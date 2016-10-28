@@ -334,7 +334,7 @@ void run_macau_mpi(
          double elapsedi = endi - starti;
 
          if (macau->verbose) {
-           macau->printStatus(i, eval.first, eval.second, elapsedi, samples_per_sec);
+           macau->printStatus(i, elapsedi, samples_per_sec);
          }
          macau->rmse_test = eval.second;
       }
