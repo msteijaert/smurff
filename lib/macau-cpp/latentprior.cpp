@@ -1,7 +1,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <math.h>
-#include <omp.h>
 #include <iomanip>
 
 #include "mvnormal.h"

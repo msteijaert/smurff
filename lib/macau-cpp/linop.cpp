@@ -9,6 +9,7 @@ extern "C" {
 
 #include "chol.h"
 #include "linop.h"
+#include "omp_util.h"
 
 using namespace Eigen;
 using namespace std;
@@ -268,26 +269,18 @@ void A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
 void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   const int n = A.rows();
   const int k = A.cols();
-  int nthreads = -1;
   double* x = A.data();
   if (A.rows() != out.rows()) {
     throw std::runtime_error("A.rows() must equal out.rows()");
   }
 
-#pragma omp parallel
-  {
-#pragma omp single
-    {
-      nthreads = omp_get_num_threads();
-    }
-  }
   std::vector<MatrixXd> Ys;
-  Ys.resize(nthreads, MatrixXd(n, n));
+  Ys.resize(nthreads(), MatrixXd(n, n));
 
 #pragma omp parallel
   {
-    const int ithread  = omp_get_thread_num();
-    int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads);
+    const int ithread  = thread_num();
+    int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads());
     int row_start = rows_per_thread * ithread;
     int row_end   = rows_per_thread * (ithread + 1);
     if (row_start >= k) {
@@ -306,7 +299,7 @@ void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   for (int i = 0; i < n; i++) {
     for (int j = i; j < n; j++) {
       double tmp = 0;
-      for (int k = 0; k < nthreads; k++) {
+      for (int k = 0; k < nthreads(); k++) {
         tmp += Ys[k](j, i);
       }
       out(j, i) = tmp;
@@ -317,7 +310,6 @@ void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
 void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
   const int n = A.rows();
   const int k = A.cols();
-  int nthreads = -1;
   double* x  = A.data();
   double* x2 = B.data();
   assert(A.rows() == B.rows());
@@ -325,21 +317,13 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
   if (A.rows() != out.rows()) {
     throw std::runtime_error("A.rows() must equal out.rows()");
   }
-
-#pragma omp parallel
-  {
-#pragma omp single
-    {
-      nthreads = omp_get_num_threads();
-    }
-  }
   std::vector<MatrixXd> Ys;
-  Ys.resize(nthreads, MatrixXd(n, n));
+  Ys.resize(nthreads(), MatrixXd(n, n));
 
 #pragma omp parallel
   {
-    const int ithread  = omp_get_thread_num();
-    int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads);
+    const int ithread  = thread_num();
+    int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads());
     int row_start = rows_per_thread * ithread;
     int row_end   = rows_per_thread * (ithread + 1);
     if (row_start >= k) {
@@ -360,7 +344,7 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
   for (int i = 0; i < n; i++) {
     for (int j = i; j < n; j++) {
       double tmp = 0;
-      for (int k = 0; k < nthreads; k++) {
+      for (int k = 0; k < nthreads(); k++) {
         tmp += Ys[k](j, i);
       }
       out(j, i) = tmp;

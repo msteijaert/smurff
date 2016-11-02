@@ -7,9 +7,10 @@
 #include <iostream>
 #include <random>                                                                                
 #include <Eigen/Dense>
-#include <omp.h>
+
 #include <chrono>
 
+#include "omp_util.h"
 #include "mvnormal.h"
 
 using namespace std;
@@ -27,9 +28,11 @@ std::mt19937 **bmrngs;
 #ifdef __INTEL_COMPILER
 std::random_device srd;
 #pragma omp threadprivate(srd)
-#else
+#elif defined(_OPENMP)
 // use thread_local for gcc 
 thread_local static std::random_device srd;
+#else 
+static std::random_device srd;
 #endif
 
 #ifndef __clang__
@@ -57,16 +60,9 @@ nrandn(int n) -> decltype( VectorXd::NullaryExpr(n, std::cref(randn)) )
 }
 
 void init_bmrng(int seed) {
-   int nthreads = -1;
-#pragma omp parallel 
-   {
-#pragma omp single
-      {
-         nthreads = omp_get_num_threads();
-      }
-   }
-   bmrngs = new std::mt19937*[nthreads];
-   for (int i = 0; i < nthreads; i++) {
+
+   bmrngs = new std::mt19937*[nthreads()];
+   for (int i = 0; i < nthreads(); i++) {
       bmrngs[i] = new std::mt19937(seed + i * 1999);
    }
 }
@@ -82,7 +78,7 @@ void bmrandn(double* x, long n) {
 #pragma omp parallel 
   {
     std::uniform_real_distribution<double> unif(-1.0, 1.0);
-    std::mt19937* bmrng = bmrngs[omp_get_thread_num()];
+    std::mt19937* bmrng = bmrngs[thread_num()];
 #pragma omp for schedule(static)
     for (long i = 0; i < n; i += 2) {
       double x1, x2, w;
@@ -109,7 +105,7 @@ void bmrandn(MatrixXd & X) {
 // to be called within OpenMP parallel loop (also from serial code is fine)
 void bmrandn_single(double* x, long n) {
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
-  std::mt19937* bmrng = bmrngs[omp_get_thread_num()];
+  std::mt19937* bmrng = bmrngs[thread_num()];
   for (long i = 0; i < n; i += 2) {
     double x1, x2, w;
     do {
@@ -129,7 +125,7 @@ void bmrandn_single(double* x, long n) {
 double bmrandn_single() {
   //TODO: add bmrng as input
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
-  std::mt19937* bmrng = bmrngs[omp_get_thread_num()];
+  std::mt19937* bmrng = bmrngs[thread_num()];
   
     double x1, x2, w;
     do {

@@ -1,9 +1,13 @@
+#!/usr/bin/make -f
+
 EXECS=macau_mpi
-MPICXX?=mpic++
-CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -DNDEBUG -O2 -fopenmp -fstrict-aliasing
+MPICXX=OMPI_CXX=g++-4.9 mpicxx
+#MPICXX=mpicxx
+CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -O3 -fstrict-aliasing -g
+# CXXFLAGS=-fopenmp
 
 INCLUDES := -I ../eigen3 -I ../libfastsparse
-LIBLOCS := -L/opt/OpenBLAS/lib -L/usr/local/lib -L/usr/lib/openblas-base
+LIBLOCS := -L/usr/local//Cellar/openblas/0.2.18_2/lib
 LDFLAGS := -lm -lopenblas -lpthread
 
 all: ${EXECS}

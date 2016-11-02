@@ -14,7 +14,10 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 
+#if defined(_OPENMP)
 #include <omp.h>
+#endif
+
 #include <signal.h>
 
 #include "macau.h"

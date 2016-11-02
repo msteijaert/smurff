@@ -19,6 +19,7 @@
 
 #include <unsupported/Eigen/SparseExtra>
 
+#include "omp_util.h"
 #include "linop.h"
 #include "macau_mpi.h"
 #include "macau.h"
@@ -48,18 +49,6 @@ bool file_exists(const char *fileName)
 {
    std::ifstream infile(fileName);
    return infile.good();
-}
-
-int get_num_omp_threads() {
-   int nt = 0;
-#pragma omp parallel
-   {
-#pragma omp single
-      {
-         nt = omp_get_num_threads();
-      }
-   }
-   return nt;
 }
 
 void die(std::string message, int world_rank) {
@@ -178,14 +167,13 @@ int main(int argc, char** argv) {
       die(std::string("[ERROR]\nTest data file '") + fname_test + "' not found.\n", world_rank);
    }
 
-   int n_omp_threads = get_num_omp_threads();
    rhs_for_rank = new int[world_size];
    split_work_mpi(num_latent, world_size, rhs_for_rank);
 
    // Print off a hello world message
    printf("Processor %s, rank %d"
           " out of %d processors using %d OpenMP threads for %d RHS.\n",
-          processor_name, world_rank, world_size, n_omp_threads, rhs_for_rank[world_rank]);
+          processor_name, world_rank, world_size, nthreads(), rhs_for_rank[world_rank]);
 
    // Step 1. Loading data
    //std::unique_ptr<SparseFeat> row_features = load_bcsr(fname_row_features);

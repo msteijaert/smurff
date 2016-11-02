@@ -7,6 +7,8 @@
 #include <memory>
 #include "latentprior.h"
 
+int get_num_omp_threads();
+
 // try adding num_latent as template parameter to Macau
 class Macau {
   public:
