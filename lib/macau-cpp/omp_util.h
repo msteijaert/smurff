@@ -7,13 +7,16 @@
 inline int thread_num() { return omp_get_thread_num(); }
 inline int nthreads() 
 {
+    int nt = -1;
 #pragma omp parallel 
    {
 #pragma omp single
       {
-         return omp_get_num_threads();
+         nt = omp_get_num_threads();
       }
    }
+
+   return nt;
 }
 #else
 inline int thread_num() { return 0; }
