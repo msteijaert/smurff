@@ -50,7 +50,7 @@ class FixedGaussianNoise : public INoiseModelDisp<FixedGaussianNoise> {
     void setPrecision(double a) { alpha = a; }    
     void evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var, const Eigen::MatrixXd &cols, const Eigen::MatrixXd &rows, double mean_rating) override;
     double getEvalMetric() override { return rmse_test;}
-    std::string getEvalString() { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
+    std::string getEvalString() override { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
  
 };
 
@@ -83,7 +83,7 @@ class AdaptiveGaussianNoise : public INoiseModelDisp<AdaptiveGaussianNoise> {
 
     void evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var, const Eigen::MatrixXd &cols, const Eigen::MatrixXd &rows, double mean_rating) override;
     double getEvalMetric() override {return rmse_test;}
-    std::string getEvalString() { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
+    std::string getEvalString() override { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
 };
 
 /** Probit noise model (binary). Fixed for the whole run */
@@ -99,5 +99,5 @@ class ProbitNoise : public INoiseModelDisp<ProbitNoise> {
     std::string getStatus() override { return std::string(""); }
     void evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var, const Eigen::MatrixXd &cols, const Eigen::MatrixXd &rows, double mean_rating) override;
     double getEvalMetric() override {return auc_test;}
-    std::string getEvalString() { return std::string("AUC: ") + to_string_with_precision(auc_test,5) + " (1samp: " + to_string_with_precision(auc_test_onesample,5)+")";}
+    std::string getEvalString() override { return std::string("AUC: ") + to_string_with_precision(auc_test,5) + " (1samp: " + to_string_with_precision(auc_test_onesample,5)+")";}
 };

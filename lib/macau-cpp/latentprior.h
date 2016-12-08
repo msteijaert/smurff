@@ -89,8 +89,8 @@ class MacauPrior : public ILatentPrior {
     void sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                                    double mean_value, const Eigen::MatrixXd &samples, const int num_latent) override;
     void update_prior(const Eigen::MatrixXd &U) override;
-    double getLinkNorm();
-    double getLinkLambda() { return lambda_beta; };
+    double getLinkNorm() override;
+    double getLinkLambda() override { return lambda_beta; };
     void sample_beta(const Eigen::MatrixXd &U);
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
