@@ -16,15 +16,15 @@ using namespace std;
 using namespace Eigen;
 
 ILatentPrior::ILatentPrior(SparseMatrixD &m, int nlatent)
-    : U(MatrixXd::Zero(nlatent, m.cols()), mat(m) 
+    : U(MatrixXd::Zero(nlatent, m.cols())), Y(m) 
 {
-  mean_value = m.sum() / m.nonZeros();
+    mean_value = m.sum() / m.nonZeros();
 }
 
 template<class NoiseModel>
 void ILatentPrior::sample_latents(const Eigen::MatrixXd &V, NoiseModel &noise) {
 #pragma omp parallel for schedule(dynamic, 2)
-  for(int n = 0; n < U.cols(); n++) sample_latent(n, V, alpha);
+  for(int n = 0; n < U.cols(); n++) sample_latent(n, V, noise);
 }
 
 /** global function */
@@ -35,11 +35,11 @@ void ILatentPrior::sample_latent(int n, const MatrixXd &V, NoiseModel &noise)
   const MatrixXd &Lambda_u = getLambda(n);
 
   MatrixXd MM = Lambda_u;
-  VectorXd rr = VectorXd::Zero(num_latent);
-  for (SparseMatrix<double>::InnerIterator it(mat, mm); it; ++it) {
-    auto col = samples.col(it.row());
+  VectorXd rr = VectorXd::Zero(num_latent());
+  for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
+    auto col = U.col(it.row());
     std::pair<double, double> alpha = noise.sample(n, it.row());
-    rr.noalias() += col * ((it.value() - mean_rating) * alpha.first);
+    rr.noalias() += col * ((it.value() - mean_value) * alpha.first);
     MM.triangularView<Eigen::Lower>() += alpha.second * col * col.transpose();
   }
 
@@ -50,11 +50,11 @@ void ILatentPrior::sample_latent(int n, const MatrixXd &V, NoiseModel &noise)
 
   rr.noalias() += Lambda_u * mu_u;
   chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent; i++) {
+  for (int i = 0; i < num_latent(); i++) {
     rr[i] += randn0();
   }
   chol.matrixU().solveInPlace(rr);
-  s.col(mm).noalias() = rr;
+  U.col(n).noalias() = rr;
 }
 
 /**
@@ -78,7 +78,7 @@ void BPMFPrior::init(const int num_latent) {
   df = num_latent;
 }
 
-void BPMFPrior::update_prior(const Eigen::MatrixXd &U) {
+void BPMFPrior::update_prior() {
   tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
 }
 
@@ -127,24 +127,13 @@ void MacauPrior<FType>::init(const int num_latent, std::unique_ptr<FType> &Fmat,
 }
 
 template<class FType>
-void MacauPrior<FType>::sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
-                    const Eigen::MatrixXd &samples, double alpha, const int num_latent) {
-  const int N = U.cols();
-#pragma omp parallel for schedule(dynamic, 2)
-  for(int n = 0; n < N; n++) {
-    // TODO: try moving mu + Uhat.col(n) inside sample_latent for speed
-    sample_latent_blas(U, n, mat, mean_value, samples, alpha, mu + Uhat.col(n), Lambda, num_latent);
-  }
-}
-
-template<class FType>
-void MacauPrior<FType>::update_prior(const Eigen::MatrixXd &U) {
+void MacauPrior<FType>::update_prior() {
   // residual (Uhat is later overwritten):
   Uhat.noalias() = U - Uhat;
   MatrixXd BBt = A_mul_At_combo(beta);
   // sampling Gaussian
   tie(mu, Lambda) = CondNormalWishart(Uhat, mu0, b0, WI + lambda_beta * BBt, df + beta.cols());
-  sample_beta(U);
+  sample_beta();
   compute_uhat(Uhat, *F, beta);
   lambda_beta = sample_lambda_beta(beta, Lambda, lambda_beta_nu0, lambda_beta_mu0);
 }
@@ -156,7 +145,7 @@ double MacauPrior<FType>::getLinkNorm() {
 
 /** Update beta and Uhat */
 template<class FType>
-void MacauPrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
+void MacauPrior<FType>::sample_beta() {
   const int num_feat = beta.cols();
   // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
   // Ft_y is [ D x F ] matrix
@@ -166,7 +155,7 @@ void MacauPrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
   if (use_FtF) {
     MatrixXd K(FtF.rows(), FtF.cols());
     K.triangularView<Eigen::Lower>() = FtF;
-    K.diagonal() += lambda_beta;
+    K.diagonal().array() += lambda_beta;
     chol_decomp(K);
     chol_solve_t(K, Ft_y);
     beta = Ft_y;
@@ -174,18 +163,6 @@ void MacauPrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
     // BlockCG
     solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
   }
-}
-
-template<class FType>
-void MacauPrior<FType>::sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                       double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
-    const int N = U.cols();
-#pragma omp parallel for schedule(dynamic, 2)
-  for(int n = 0; n < N; n++) {
-    // TODO: try moving mu + Uhat.col(n) inside sample_latent for speed
-    sample_latent_blas_probit(U, n, mat, mean_value, samples, mu + Uhat.col(n), Lambda, num_latent);
-  }
-
 }
 
 template<class FType>
@@ -209,36 +186,6 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
   auto gamma_post = posterior_lambda_beta(beta, Lambda_u, nu, mu);
   return rgamma(gamma_post.first, gamma_post.second);
 }
-
-template<typename NoiseModel>
-void sample_latent_blas(MatrixXd &s, int mm, const SparseMatrix<double> &mat, double mean_rating,
-    const MatrixXd &samples, NoiseModel &noisemodel, const VectorXd &mu_u, const MatrixXd &Lambda_u,
-    const int num_latent)
-{
-  MatrixXd MM = Lambda_u;
-  VectorXd rr = VectorXd::Zero(num_latent);
-  for (SparseMatrix<double>::InnerIterator it(mat, mm); it; ++it) {
-    auto col = samples.col(it.row());
-    double alpha1, alpha2;
-    std::tie(alpha1, alpha2) = noisemodel.sample(s.col(mm), col, it.value());
-    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose();
-    rr.noalias() += col * ((it.value() - mean_rating) * alpha);
-  }
-
-  Eigen::LLT<MatrixXd> chol = MM.llt();
-  if(chol.info() != Eigen::Success) {
-    throw std::runtime_error("Cholesky Decomposition failed!");
-  }
-
-  rr.noalias() += Lambda_u * mu_u;
-  chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent; i++) {
-    rr[i] += randn0();
-  }
-  chol.matrixU().solveInPlace(rr);
-  s.col(mm).noalias() = rr;
-}
-
 
 /**
  * X = A * B

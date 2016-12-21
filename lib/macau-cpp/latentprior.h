@@ -22,13 +22,13 @@ class ILatentPrior {
       ILatentPrior(SparseMatrixD &Y, int nlatent);
 
       // data
-      Eigen::MatrixXd &mat;
-      SparseMatrixD &Ytrain;
+      Eigen::MatrixXd U;
+      SparseMatrixD &Y;
       double mean_value;
 
       // utility
-      int num_latent() const { return mat.rows(); }
-      Eigen::MatrixXd::ColXpr col(int i)  const { return mat.col(i); }
+      int num_latent() const { return U.rows(); }
+      Eigen::MatrixXd::ColXpr col(int i) { return U.col(i); }
       virtual const Eigen::VectorXd getMu(int n) const = 0;
       virtual const Eigen::VectorXd getLambda(int) const = 0;
       virtual void saveModel(std::string prefix) = 0;
@@ -58,8 +58,9 @@ class BPMFPrior : public ILatentPrior {
 
   public:
     BPMFPrior(SparseMatrixD &Y, const int nlatent = 10) 
-       : ILatentPrior(Y,nlatent) {}
+       : ILatentPrior(Y,nlatent) { init(nlatent); }
 
+    void init(int);
     void update_prior() override;
     void saveModel(std::string prefix) override;
 
@@ -105,7 +106,7 @@ class MacauPrior : public ILatentPrior {
     const Eigen::VectorXd getMu(int n) const override { return mu + Uhat.col(n); }
     const Eigen::VectorXd getLambda(int) const override { return Lambda; }
 
-    void sample_beta(const Eigen::MatrixXd &U);
+    void sample_beta();
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
     void saveModel(std::string prefix) override;
