@@ -7,18 +7,11 @@
 
 using namespace Eigen;
 
-template<class T>
-void INoiseModelDisp<T>::sample_latents(std::unique_ptr<ILatentPrior> & prior,
-                                Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                double mean_value, const Eigen::MatrixXd &samples, const int num_latent)
-{
-  prior->sample_latents(static_cast<T *>(this), U, mat, mean_value, samples, num_latent);
-}
-
-
 ////  AdaptiveGaussianNoise  ////
-void AdaptiveGaussianNoise::init(const Eigen::SparseMatrix<double> &train, double mean_value) {
+void AdaptiveGaussianNoise::init() {
   double se = 0.0;
+  const Eigen::SparseMatrix<double> &train = U.Ytrain;
+  const double mean_value = U.mean_value;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
   for (int k = 0; k < train.outerSize(); ++k) {
@@ -37,11 +30,13 @@ void AdaptiveGaussianNoise::init(const Eigen::SparseMatrix<double> &train, doubl
   alpha_max = (sn_max + 1.0) / var_total;
 }
 
-void AdaptiveGaussianNoise::update(const Eigen::SparseMatrix<double> &train, double mean_value, std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
+void AdaptiveGaussianNoise::update()
+    
+    //, double mean_value, std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
 {
   double sumsq = 0.0;
-  MatrixXd & U = *samples[0];
-  MatrixXd & V = *samples[1];
+  const Eigen::SparseMatrix<double> &train = U.Ytrain;
+  const double mean_value = U.mean_value;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
   for (int j = 0; j < train.outerSize(); j++) {
@@ -63,21 +58,21 @@ void AdaptiveGaussianNoise::update(const Eigen::SparseMatrix<double> &train, dou
 }
 
  // Evaluation metrics
-void FixedGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var, const Eigen::MatrixXd &cols, const Eigen::MatrixXd &rows, double mean_rating) {
-   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, cols, rows, mean_rating);
+void FixedGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var) {
+   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.mat, V.mat, U.mean_value);
    rmse_test = rmse.second;
    rmse_test_onesample = rmse.first;
 }
 
-void AdaptiveGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var, const Eigen::MatrixXd &cols, const Eigen::MatrixXd &rows, double mean_rating) {
-   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, cols, rows, mean_rating);
+void AdaptiveGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var) {
+   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.mat, V.mat, U.mean_value);
    rmse_test = rmse.second;
    rmse_test_onesample = rmse.first;
 }
 
 inline double nCDF(double val) {return 0.5 * erfc(-val * M_SQRT1_2);}
 
-void ProbitNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var, const Eigen::MatrixXd &cols, const Eigen::MatrixXd &rows, double mean_rating) {
+void ProbitNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var) {
   const unsigned N = Ytest.nonZeros();
   Eigen::VectorXd pred(N);
   Eigen::VectorXd test(N);
@@ -86,7 +81,7 @@ void ProbitNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Ei
   for (int k = 0; k < Ytest.outerSize(); ++k) {
     int idx = Ytest.outerIndexPtr()[k];
     for (Eigen::SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-     pred[idx] = nCDF(cols.col(it.col()).dot(rows.col(it.row())));
+     pred[idx] = nCDF(U.col(it.col()).dot(V.col(it.row())));
      test[idx] = it.value();
 
       // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
@@ -99,13 +94,16 @@ void ProbitNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Ei
         predictions_var[idx] += delta * (pred[idx] - pred_avg);
       }
       predictions[idx++] = pred_avg;
-
    }
   }
   auc_test_onesample = auc(pred,test);
   auc_test = auc(predictions, test);
 }
 
-template class INoiseModelDisp<FixedGaussianNoise>;
-template class INoiseModelDisp<AdaptiveGaussianNoise>;
-template class INoiseModelDisp<ProbitNoise>;
+std::pair<double, double> ProbitNoise::sample(int n, int m) {
+    double y = U.mat(n,m);
+    const VectorXd &u = U.col(n);
+    const VectorXd &v = V.col(n);
+    double z = (2 * y - 1) * fabs(v.dot(u) + bmrandn_single());
+    return std::make_pair(1, z);
+}

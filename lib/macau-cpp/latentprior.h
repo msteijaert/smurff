@@ -13,22 +13,36 @@ class FixedGaussianNoise;
 class AdaptiveGaussianNoise;
 class ProbitNoise;
 
+typedef Eigen::SparseMatrix<double> SparseMatrixD;
+
 /** interface */
 class ILatentPrior {
   public:
-    void virtual sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
-                        const Eigen::MatrixXd &samples, double alpha, const int num_latent) = 0;
-    void virtual sample_latents(FixedGaussianNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                        double mean_value, const Eigen::MatrixXd &samples, const int num_latent);
-    void virtual sample_latents(AdaptiveGaussianNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                        double mean_value, const Eigen::MatrixXd &samples, const int num_latent);
-    void virtual sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                        double mean_value, const Eigen::MatrixXd &samples, const int num_latent) = 0;
-    void virtual update_prior(const Eigen::MatrixXd &U) {};
-    virtual double getLinkNorm() { return NAN; };
-    virtual double getLinkLambda() { return NAN; };
-    virtual void saveModel(std::string prefix) {};
-    virtual ~ILatentPrior() {};
+      // c-tor
+      ILatentPrior(SparseMatrixD &Y, int nlatent);
+
+      // data
+      Eigen::MatrixXd &mat;
+      SparseMatrixD &Ytrain;
+      double mean_value;
+
+      // utility
+      int num_latent() const { return mat.rows(); }
+      Eigen::MatrixXd::ColXpr col(int i)  const { return mat.col(i); }
+      virtual const Eigen::VectorXd getMu(int n) const = 0;
+      virtual const Eigen::VectorXd getLambda(int) const = 0;
+      virtual void saveModel(std::string prefix) = 0;
+
+      // work
+      virtual void update_prior() = 0;
+      virtual double getLinkNorm() { return NAN; };
+      virtual double getLinkLambda() { return NAN; };
+
+      template<class NoiseModel>
+      void sample_latents(const Eigen::MatrixXd &V, NoiseModel &noise);
+
+      template<class NoiseModel>
+      void sample_latent(int n, const Eigen::MatrixXd &V, NoiseModel &noise);
 };
 
 /** Prior without side information (pure BPMF) */
@@ -43,16 +57,14 @@ class BPMFPrior : public ILatentPrior {
     int df;
 
   public:
-    BPMFPrior(const int nlatent) { init(nlatent); }
-    BPMFPrior() : BPMFPrior(10) {}
-    void init(const int num_latent);
+    BPMFPrior(SparseMatrixD &Y, const int nlatent = 10) 
+       : ILatentPrior(Y,nlatent) {}
 
-    void sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
-                                   const Eigen::MatrixXd &samples, double alpha, const int num_latent) override;
-    void sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                   double mean_value, const Eigen::MatrixXd &samples, const int num_latent) override;
-    void update_prior(const Eigen::MatrixXd &U) override;
+    void update_prior() override;
     void saveModel(std::string prefix) override;
+
+    const Eigen::VectorXd getMu(int) const override { return mu; }
+    const Eigen::VectorXd getLambda(int) const override { return Lambda; }
 };
 
 /** Prior without side information (pure BPMF) */
@@ -79,18 +91,20 @@ class MacauPrior : public ILatentPrior {
     double tol = 1e-6;
 
   public:
-    MacauPrior(const int nlatent, std::unique_ptr<FType> &Fmat, bool comp_FtF) { init(nlatent, Fmat, comp_FtF); }
-    MacauPrior() {}
+    MacauPrior(SparseMatrixD &Y, const int nlatent, std::unique_ptr<FType> &Fmat, bool comp_FtF) 
+       : ILatentPrior(Y,nlatent) 
+    {
+        init(nlatent, Fmat, comp_FtF);
+    }
 
     void init(const int num_latent, std::unique_ptr<FType> &Fmat, bool comp_FtF);
 
-    void sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
-                                   const Eigen::MatrixXd &samples, double alpha, const int num_latent) override;
-    void sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                   double mean_value, const Eigen::MatrixXd &samples, const int num_latent) override;
-    void update_prior(const Eigen::MatrixXd &U) override;
+    void update_prior() override;
     double getLinkNorm() override;
     double getLinkLambda() override { return lambda_beta; };
+    const Eigen::VectorXd getMu(int n) const override { return mu + Uhat.col(n); }
+    const Eigen::VectorXd getLambda(int) const override { return Lambda; }
+
     void sample_beta(const Eigen::MatrixXd &U);
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
@@ -100,34 +114,6 @@ class MacauPrior : public ILatentPrior {
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
 double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
 
-void sample_latent(Eigen::MatrixXd &s,
-                   int mm,
-                   const Eigen::SparseMatrix<double> &mat,
-                   double mean_rating,
-                   const Eigen::MatrixXd &samples,
-                   double alpha,
-                   const Eigen::VectorXd &mu_u,
-                   const Eigen::MatrixXd &Lambda_u,
-                   const int num_latent);
-
-void sample_latent_blas(Eigen::MatrixXd &s,
-                        int mm,
-                        const Eigen::SparseMatrix<double> &mat,
-                        double mean_rating,
-                        const Eigen::MatrixXd &samples,
-                        double alpha,
-                        const Eigen::VectorXd &mu_u,
-                        const Eigen::MatrixXd &Lambda_u,
-                        const int num_latent);
-
-void sample_latent_blas_probit(Eigen::MatrixXd &s,
-                        int mm,
-                        const Eigen::SparseMatrix<double> &mat,
-                        double mean_rating,
-                        const Eigen::MatrixXd &samples,
-                        const Eigen::VectorXd &mu_u,
-                        const Eigen::MatrixXd &Lambda_u,
-                        const int num_latent);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
