@@ -4,16 +4,22 @@
 #include <Eigen/Sparse>
 #include <memory>
 #include <iomanip>
+#include "bpmfutils.h"
 
-#include "latentprior.h"
-
-class ILatentPrior; // forward declaration
+class Macau; // forward declaration
 
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(const ILatentPrior &_U, ILatentPrior &_V) : U(_U), V(_V) {}
-    const ILatentPrior &U, &V;
+    INoiseModel(Macau &p) : macau(p) {}
+
+    std::string getInitStatus();
+    //{
+    //    return std::string("Noise model with ") + std::to_string(macau.size()) + " macau ";
+    //}
+
+  protected:
+    Macau &macau;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -23,8 +29,8 @@ class FixedGaussianNoise : public INoiseModel {
     double rmse_test;
     double rmse_test_onesample;
   
-    FixedGaussianNoise(const ILatentPrior &_U, ILatentPrior &_V, double a = 1.) :
-        INoiseModel(_U, _V), alpha(a)  {}
+    FixedGaussianNoise(Macau &p, double a = 1.) :
+        INoiseModel(p), alpha(a)  {}
 
     void init() { }
     void update() {}
@@ -51,8 +57,8 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double rmse_test;
     double rmse_test_onesample;
 
-    AdaptiveGaussianNoise(const ILatentPrior &_U, ILatentPrior &_V, double sinit = 1., double smax = 10.)
-        : INoiseModel(_U, _V), sn_max(smax), sn_init(sinit) {}
+    AdaptiveGaussianNoise(Macau &p, double sinit = 1., double smax = 10.)
+        : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
     void init();
     void update();
@@ -60,7 +66,9 @@ class AdaptiveGaussianNoise : public INoiseModel {
 
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a)  { sn_max  = a; }
-    std::string getInitStatus() { return std::string("Noise precision: adaptive (with max precision of ") + std::to_string(alpha_max) + ")"; }
+    std::string getInitStatus() {
+        return INoiseModel::getInitStatus() + "Noise precision: adaptive (with max precision of " + std::to_string(alpha_max) + ")";
+    }
 
     std::string getStatus() {
       return std::string("Prec:") + to_string_with_precision(alpha, 2);
@@ -76,9 +84,7 @@ class ProbitNoise : public INoiseModel {
   public:
     double auc_test;
     double auc_test_onesample;
-    ProbitNoise(const ILatentPrior &_U, ILatentPrior &_V)
-        : INoiseModel(_U, _V) {}
-
+    ProbitNoise(Macau &p) : INoiseModel(p) {}
     void init() { }
     void update() {}
 

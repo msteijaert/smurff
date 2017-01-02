@@ -4,14 +4,15 @@
 #include <cmath>
 
 #include "noisemodels.h"
+#include "macau.h"
 
 using namespace Eigen;
 
 ////  AdaptiveGaussianNoise  ////
 void AdaptiveGaussianNoise::init() {
   double se = 0.0;
-  const Eigen::SparseMatrix<double> &train = U.Y;
-  const double mean_value = U.mean_value;
+  const Eigen::SparseMatrix<double> &train = macau.Y;
+  const double mean_value = macau.mean_rating;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
   for (int k = 0; k < train.outerSize(); ++k) {
@@ -33,14 +34,14 @@ void AdaptiveGaussianNoise::init() {
 void AdaptiveGaussianNoise::update()
 {
   double sumsq = 0.0;
-  const Eigen::SparseMatrix<double> &train = U.Y;
-  const double mean_value = U.mean_value;
+  const Eigen::SparseMatrix<double> &train = macau.Y;
+  const double mean_value = macau.mean_rating;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
   for (int j = 0; j < train.outerSize(); j++) {
-    auto Vj = V.col(j);
+    auto Vj = macau.samples[1].col(j);
     for (SparseMatrix<double>::InnerIterator it(train, j); it; ++it) {
-      double Yhat = Vj.dot( U.col(it.row()) ) + mean_value;
+      double Yhat = Vj.dot( macau.samples[0].col(it.row()) ) + mean_value;
       sumsq += square(Yhat - it.value());
     }
   }
@@ -57,13 +58,13 @@ void AdaptiveGaussianNoise::update()
 
  // Evaluation metrics
 void FixedGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var) {
-   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.Y, V.Y, U.mean_value);
+   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, macau.samples[0], macau.samples[1], macau.mean_rating);
    rmse_test = rmse.second;
    rmse_test_onesample = rmse.first;
 }
 
 void AdaptiveGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var) {
-   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.Y, V.Y, U.mean_value);
+   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, macau.samples[0], macau.samples[1], macau.mean_rating);
    rmse_test = rmse.second;
    rmse_test_onesample = rmse.first;
 }
@@ -79,7 +80,7 @@ void ProbitNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Ei
   for (int k = 0; k < Ytest.outerSize(); ++k) {
     int idx = Ytest.outerIndexPtr()[k];
     for (Eigen::SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-     pred[idx] = nCDF(U.col(it.col()).dot(V.col(it.row())));
+     pred[idx] = nCDF( macau.samples[0].col(it.col()).dot( macau.samples[1].col(it.row())));
      test[idx] = it.value();
 
       // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
@@ -99,9 +100,9 @@ void ProbitNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Ei
 }
 
 std::pair<double, double> ProbitNoise::sample(int n, int m) {
-    double y = U.Y.coeffRef(n,m);
-    const VectorXd &u = U.col(n);
-    const VectorXd &v = V.col(n);
+    double y = macau.Y.coeffRef(n,m);
+    const VectorXd &u = macau.samples[0].col(n);
+    const VectorXd &v = macau.samples[1].col(n);
     double z = (2 * y - 1) * fabs(v.dot(u) + bmrandn_single());
     return std::make_pair(1, z);
 }
