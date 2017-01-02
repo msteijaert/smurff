@@ -123,8 +123,7 @@ void Macau::run() {
     noise->sample_latents(priors[1], *samples[1], Y,  mean_rating, *samples[0], num_latent);
 
     // Sample hyperparams
-    priors[0]->update_prior(*samples[0]);
-    priors[1]->update_prior(*samples[1]);
+    foreach(auto p : priors) p->update_prior();
 
     noise->update(Y, mean_rating, samples);
 

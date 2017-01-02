@@ -10,7 +10,7 @@ using namespace Eigen;
 ////  AdaptiveGaussianNoise  ////
 void AdaptiveGaussianNoise::init() {
   double se = 0.0;
-  const Eigen::SparseMatrix<double> &train = U.Ytrain;
+  const Eigen::SparseMatrix<double> &train = U.Y;
   const double mean_value = U.mean_value;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
@@ -31,11 +31,9 @@ void AdaptiveGaussianNoise::init() {
 }
 
 void AdaptiveGaussianNoise::update()
-    
-    //, double mean_value, std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
 {
   double sumsq = 0.0;
-  const Eigen::SparseMatrix<double> &train = U.Ytrain;
+  const Eigen::SparseMatrix<double> &train = U.Y;
   const double mean_value = U.mean_value;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
@@ -59,13 +57,13 @@ void AdaptiveGaussianNoise::update()
 
  // Evaluation metrics
 void FixedGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var) {
-   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.mat, V.mat, U.mean_value);
+   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.Y, V.Y, U.mean_value);
    rmse_test = rmse.second;
    rmse_test_onesample = rmse.first;
 }
 
 void AdaptiveGaussianNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var) {
-   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.mat, V.mat, U.mean_value);
+   auto rmse = eval_rmse(Ytest, n, predictions, predictions_var, U.Y, V.Y, U.mean_value);
    rmse_test = rmse.second;
    rmse_test_onesample = rmse.first;
 }
@@ -101,7 +99,7 @@ void ProbitNoise::evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Ei
 }
 
 std::pair<double, double> ProbitNoise::sample(int n, int m) {
-    double y = U.mat(n,m);
+    double y = U.Y.coeffRef(n,m);
     const VectorXd &u = U.col(n);
     const VectorXd &v = V.col(n);
     double z = (2 * y - 1) * fabs(v.dot(u) + bmrandn_single());

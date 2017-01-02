@@ -28,7 +28,7 @@ class ILatentPrior {
 
       // utility
       int num_latent() const { return U.rows(); }
-      Eigen::MatrixXd::ColXpr col(int i) { return U.col(i); }
+      Eigen::MatrixXd::ConstColXpr col(int i) const { return U.col(i); }
       virtual const Eigen::VectorXd getMu(int n) const = 0;
       virtual const Eigen::VectorXd getLambda(int) const = 0;
       virtual void saveModel(std::string prefix) = 0;
