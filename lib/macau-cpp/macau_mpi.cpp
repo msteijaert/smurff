@@ -313,8 +313,7 @@ void run_macau_mpi(
       if (world_rank == 0) {
          macau->priors[1]->update_prior(*macau->samples[1]);
 
-         auto eval = eval_rmse(macau->Ytest, (i < macau->burnin) ? 0 : (i - macau->burnin), macau->predictions, macau->predictions_var,
-                               *macau->samples[1], *macau->samples[0], macau->mean_rating);
+         macau->update_rmse();
 
          auto endi = tick();
          auto elapsed = endi - start;

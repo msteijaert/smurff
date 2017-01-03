@@ -4,11 +4,12 @@
 #include <stdexcept>
 #include <iostream>
 
-char lower = 'L';
-
-// TODO, remove dependency on lapacke.h
-extern "C" void dpotrf_(char *uplo, int *n, double *a, int *lda, int *info);
-extern "C" void dpotrs_(char *uplo, int* n, int* nrhs, double* A, int* lda, double* B, int* ldb, int* info);
+extern "C" { 
+    static char lower = 'L';
+    // TODO, remove dependency on lapacke.h
+    void dpotrf_(char *uplo, int *n, double *a, int *lda, int *info);
+    void dpotrs_(char *uplo, int* n, int* nrhs, double* A, int* lda, double* B, int* ldb, int* info);
+}
 
 void chol_decomp(double* A, int n) {
   int info;

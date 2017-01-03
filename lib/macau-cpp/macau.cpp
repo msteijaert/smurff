@@ -199,3 +199,33 @@ void Macau::saveGlobalParams() {
   means << mean_rating;
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
+
+void MacauData::update_rmse()
+{
+  double se = 0.0, se_avg = 0.0;
+#pragma omp parallel for schedule(dynamic,8) reduction(+:se, se_avg)
+  for (int k = 0; k < P.outerSize(); ++k) {
+    int idx = P.outerIndexPtr()[k];
+    for (Eigen::SparseMatrix<double>::InnerIterator it(P,k); it; ++it) {
+      const double pred = sample_m.col(it.col()).dot(sample_u.col(it.row())) + mean_rating;
+      se += square(it.value() - pred);
+
+      // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+      double pred_avg;
+      if (n == 0) {
+        pred_avg = pred;
+      } else {
+        double delta = pred - predictions[idx];
+        pred_avg = (predictions[idx] + delta / (n + 1));
+        predictions_var[idx] += delta * (pred - pred_avg);
+      }
+      se_avg += square(it.value() - pred_avg);
+      predictions[idx++] = pred_avg;
+    }
+  }
+
+  const unsigned N = P.nonZeros();
+  rmse = sqrt( se / N );
+  rmse_avg = sqrt( se_avg / N );
+}
+

@@ -6,12 +6,12 @@
 #include <iomanip>
 #include "bpmfutils.h"
 
-class Macau; // forward declaration
+class MFactors; // forward declaration
 
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(Macau &p) : macau(p) {}
+    INoiseModel(MFactors &p) : data(p) {}
 
     std::string getInitStatus();
     //{
@@ -19,7 +19,7 @@ class INoiseModel {
     //}
 
   protected:
-    Macau &macau;
+    MFactors &data;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -29,7 +29,7 @@ class FixedGaussianNoise : public INoiseModel {
     double rmse_test;
     double rmse_test_onesample;
   
-    FixedGaussianNoise(Macau &p, double a = 1.) :
+    FixedGaussianNoise(MFactors &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
 
     void init() { }
@@ -57,7 +57,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double rmse_test;
     double rmse_test_onesample;
 
-    AdaptiveGaussianNoise(Macau &p, double sinit = 1., double smax = 10.)
+    AdaptiveGaussianNoise(MFactors &p, double sinit = 1., double smax = 10.)
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
     void init();
@@ -84,7 +84,7 @@ class ProbitNoise : public INoiseModel {
   public:
     double auc_test;
     double auc_test_onesample;
-    ProbitNoise(Macau &p) : INoiseModel(p) {}
+    ProbitNoise(MFactors &p) : INoiseModel(p) {}
     void init() { }
     void update() {}
 

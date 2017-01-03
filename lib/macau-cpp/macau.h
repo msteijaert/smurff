@@ -9,35 +9,57 @@
 
 int get_num_omp_threads();
 
+class MFactor {
+      //-- c'tor
+      MFactors(int D) : num_latent(D) {}
+
+      int num_latent;
+      double mean_rating = .0; 
+
+      Eigen::SparseMatrix<double> Y;
+      Eigen::VectorXd predictions, predictions_var;
+
+      Eigen::MatrixXd fac;
+};
+
+class MFactors {
+  public:
+      //-- c'tor
+      MFactors(int D) : num_latent(D) {}
+
+      int num_latent;
+      double mean_rating = .0; 
+
+      Eigen::SparseMatrix<double> Y, Yt, Ytest;
+      Eigen::VectorXd predictions, predictions_var;
+
+      /** BPMF model */
+      std::vector<MFactor> factors;
+};
+
 // try adding num_latent as template parameter to Macau
-class Macau {
+class Macau  {
   public:
-  int num_latent;
+      std::unique_ptr<INoiseModel> noise;
+      MFactors model;
 
-  //double alpha = 2.0; 
-  std::unique_ptr<INoiseModel> noise;
-  int nsamples = 100;
-  int burnin   = 50;
+      int nsamples = 100;
+      int burnin   = 50;
 
-  double mean_rating = .0; 
-  Eigen::SparseMatrix<double> Y, Yt, Ytest;
-  Eigen::VectorXd predictions;
-  Eigen::VectorXd predictions_var;
+      double rmse_test  = .0;
+      double rmse_train = .0;
 
-  double rmse_test  = .0;
-  double rmse_train = .0;
+      /** BPMF model */
+      std::vector< std::unique_ptr<ILatentPrior> > priors;
+      bool verbose = true;
 
-  /** BPMF model */
-  std::vector< std::unique_ptr<ILatentPrior> > priors;
-  std::vector< std::unique_ptr<Eigen::MatrixXd> > samples;
-  bool verbose = true;
-
-  bool save_model = false;
-  std::string save_prefix = "model";
+      bool save_model = false;
+      std::string save_prefix = "model";
 
   public:
-    Macau(int D) : num_latent{D} {}
+    Macau(int D) : model(D) {}
     Macau() : Macau(10) {}
+
     void addPrior(std::unique_ptr<ILatentPrior> & prior);
     void setPrecision(double p);
     void setAdaptivePrecision(double sn_init, double sn_max);

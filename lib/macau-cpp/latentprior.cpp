@@ -15,11 +15,10 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(SparseMatrixD &m, int nlatent)
-    : U(MatrixXd::Zero(nlatent, m.cols())), Y(m) 
-{
-    mean_value = m.sum() / m.nonZeros();
-}
+
+ILatentPrior::ILatentPrior(MFactors &data, int n)
+      : U(data.samples[n]), Y(data.Y[n]), mean_value(data.mean_value) {}
+
 
 template<class NoiseModel>
 void ILatentPrior::sample_latents(const Eigen::MatrixXd &V, NoiseModel &noise) {
@@ -61,7 +60,8 @@ void ILatentPrior::sample_latent(int n, const MatrixXd &V, NoiseModel &noise)
  *  BPMFPrior 
  */
 
-void BPMFPrior::init(const int num_latent) {
+
+PMFPrior::BPMFPrior(MFactors &data) : ILatentPrior(data) {}
   mu.resize(num_latent);
   mu.setZero();
 
@@ -89,22 +89,9 @@ void BPMFPrior::saveModel(std::string prefix) {
 
 /** MacauPrior */
 template<class FType>
-void MacauPrior<FType>::init(const int num_latent, std::unique_ptr<FType> &Fmat, bool comp_FtF) {
-  mu.resize(num_latent);
-  mu.setZero();
-
-  Lambda.resize(num_latent, num_latent);
-  Lambda.setIdentity();
-  Lambda *= 10;
-
-  // parameters of Inv-Whishart distribution
-  WI.resize(num_latent, num_latent);
-  WI.setIdentity();
-  mu0.resize(num_latent);
-  mu0.setZero();
-  b0 = 2;
-  df = num_latent;
-
+void MacauPrior<FType>::MacauPrior(MFactors &data, std::unique_ptr<FType> &Fmat, bool comp_FtF) :
+ BPMFPrior(data)
+{
   // side information
   F = std::move(Fmat);
   use_FtF = comp_FtF;

@@ -16,6 +16,7 @@ test: tests
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 OBJS = mvnormal.o chol.o linop.o latentprior.o tests.o
+
 tests: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o tests $(OBJS) $(LDFLAGS) $(LIBLOCS)
 

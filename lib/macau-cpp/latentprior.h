@@ -8,7 +8,8 @@
 #include "linop.h"
 #include "noisemodels.h"
 
- // forward declarations
+ // forward declarationsc
+class MFactors;
 class FixedGaussianNoise;
 class AdaptiveGaussianNoise;
 class ProbitNoise;
@@ -19,18 +20,16 @@ typedef Eigen::SparseMatrix<double> SparseMatrixD;
 class ILatentPrior {
   public:
       // c-tor
-      ILatentPrior(SparseMatrixD &Y, int nlatent);
+      ILatentPrior(MFactors &d, int n);
 
-      // data
-      Eigen::MatrixXd U;
+      // data -- aliases for MFactors members
+      Eigen::MatrixXd &U;
       SparseMatrixD &Y;
       double mean_value;
 
       // utility
       int num_latent() const { return U.rows(); }
-      Eigen::MatrixXd::ConstColXpr col(int i) const { return U.col(i); }
-      virtual const Eigen::VectorXd getMu(int n) const = 0;
-      virtual const Eigen::VectorXd getLambda(int) const = 0;
+      Eigen::MatrixXd::ColXpr col(int i) const { return U.col(i); }
       virtual void saveModel(std::string prefix) = 0;
 
       // work
@@ -57,20 +56,19 @@ class BPMFPrior : public ILatentPrior {
     int df;
 
   public:
-    BPMFPrior(SparseMatrixD &Y, const int nlatent = 10) 
-       : ILatentPrior(Y,nlatent) { init(nlatent); }
+    BPMFPrior(MFactors &d, int n);
 
-    void init(int);
+    void init();
     void update_prior() override;
     void saveModel(std::string prefix) override;
 
-    const Eigen::VectorXd getMu(int) const override { return mu; }
-    const Eigen::VectorXd getLambda(int) const override { return Lambda; }
+    virtual const Eigen::VectorXd getMu(int) const { return mu; }
+    virtual const Eigen::VectorXd getLambda(int) const { return Lambda; }
 };
 
-/** Prior without side information (pure BPMF) */
+/** Prior with side information */
 template<class FType>
-class MacauPrior : public ILatentPrior {
+class MacauPrior : public BPMFPrior {
   public:
     Eigen::MatrixXd Uhat;
     std::unique_ptr<FType> F;  /* side information */
@@ -81,22 +79,10 @@ class MacauPrior : public ILatentPrior {
     double lambda_beta_mu0; /* Hyper-prior for lambda_beta */
     double lambda_beta_nu0; /* Hyper-prior for lambda_beta */
 
-    Eigen::VectorXd mu; 
-    Eigen::MatrixXd Lambda;
-    Eigen::MatrixXd WI;
-    Eigen::VectorXd mu0;
-
-    int b0;
-    int df;
-
     double tol = 1e-6;
 
   public:
-    MacauPrior(SparseMatrixD &Y, const int nlatent, std::unique_ptr<FType> &Fmat, bool comp_FtF) 
-       : ILatentPrior(Y,nlatent) 
-    {
-        init(nlatent, Fmat, comp_FtF);
-    }
+    MacauPrior(MFactors &d, int n, std::unique_ptr<FType> &Fmat, bool comp_FtF);
 
     void init(const int num_latent, std::unique_ptr<FType> &Fmat, bool comp_FtF);
 
