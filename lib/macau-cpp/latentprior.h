@@ -4,12 +4,12 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <memory>
+
 #include "mvnormal.h"
 #include "linop.h"
-#include "noisemodels.h"
+#include "model.h"
 
  // forward declarationsc
-class MFactors;
 class FixedGaussianNoise;
 class AdaptiveGaussianNoise;
 class ProbitNoise;
@@ -20,16 +20,11 @@ typedef Eigen::SparseMatrix<double> SparseMatrixD;
 class ILatentPrior {
   public:
       // c-tor
-      ILatentPrior(MFactors &d, int n);
-
-      // data -- aliases for MFactors members
-      Eigen::MatrixXd &U;
-      SparseMatrixD &Y;
-      double mean_value;
+      ILatentPrior(MFactor &);
 
       // utility
-      int num_latent() const { return U.rows(); }
-      Eigen::MatrixXd::ColXpr col(int i) const { return U.col(i); }
+      int num_latent() const { return fac.num_latent; }
+      Eigen::MatrixXd::ConstColXpr col(int i) const { return fac.col(i); }
       virtual void saveModel(std::string prefix) = 0;
 
       // work
@@ -37,15 +32,16 @@ class ILatentPrior {
       virtual double getLinkNorm() { return NAN; };
       virtual double getLinkLambda() { return NAN; };
 
-      template<class NoiseModel>
-      void sample_latents(const Eigen::MatrixXd &V, NoiseModel &noise);
+      void sample_latents(const Eigen::MatrixXd &V);
+      virtual void sample_latent(int n, const Eigen::MatrixXd &V) = 0;
 
-      template<class NoiseModel>
-      void sample_latent(int n, const Eigen::MatrixXd &V, NoiseModel &noise);
+  protected:
+      MFactor &fac;
 };
 
 /** Prior without side information (pure BPMF) */
-class BPMFPrior : public ILatentPrior {
+template<class NoiseModel>
+class NormalPrior : public ILatentPrior {
   public:
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
@@ -55,8 +51,10 @@ class BPMFPrior : public ILatentPrior {
     int b0;
     int df;
 
+    NoiseModel &noise;
+
   public:
-    BPMFPrior(MFactors &d, int n);
+    NormalPrior(MFactor &d, NoiseModel &noise);
 
     void init();
     void update_prior() override;
@@ -64,11 +62,13 @@ class BPMFPrior : public ILatentPrior {
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::VectorXd getLambda(int) const { return Lambda; }
+
+    virtual void sample_latent(int n, const Eigen::MatrixXd &V) override;
 };
 
 /** Prior with side information */
-template<class FType>
-class MacauPrior : public BPMFPrior {
+template<class FType, class NoiseModel>
+class MacauPrior : public NormalPrior<NoiseModel> {
   public:
     Eigen::MatrixXd Uhat;
     std::unique_ptr<FType> F;  /* side information */
@@ -82,15 +82,15 @@ class MacauPrior : public BPMFPrior {
     double tol = 1e-6;
 
   public:
-    MacauPrior(MFactors &d, int n, std::unique_ptr<FType> &Fmat, bool comp_FtF);
+    MacauPrior(MFactor &d, NoiseModel &noise, std::unique_ptr<FType> &Fmat, bool comp_FtF);
 
     void init(const int num_latent, std::unique_ptr<FType> &Fmat, bool comp_FtF);
 
     void update_prior() override;
     double getLinkNorm() override;
     double getLinkLambda() override { return lambda_beta; };
-    const Eigen::VectorXd getMu(int n) const override { return mu + Uhat.col(n); }
-    const Eigen::VectorXd getLambda(int) const override { return Lambda; }
+    const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
+    const Eigen::VectorXd getLambda(int) const override { return this->Lambda; }
 
     void sample_beta();
     void setLambdaBeta(double lb) { lambda_beta = lb; };

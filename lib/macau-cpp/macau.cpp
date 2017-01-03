@@ -200,7 +200,7 @@ void Macau::saveGlobalParams() {
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
 
-void MacauData::update_rmse()
+void MFactors::update_rmse(bool burnin)
 {
   double se = 0.0, se_avg = 0.0;
 #pragma omp parallel for schedule(dynamic,8) reduction(+:se, se_avg)
@@ -212,11 +212,11 @@ void MacauData::update_rmse()
 
       // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
       double pred_avg;
-      if (n == 0) {
+      if (burnin) {
         pred_avg = pred;
       } else {
         double delta = pred - predictions[idx];
-        pred_avg = (predictions[idx] + delta / (n + 1));
+        pred_avg = (predictions[idx] + delta / (iter + 1));
         predictions_var[idx] += delta * (pred - pred_avg);
       }
       se_avg += square(it.value() - pred_avg);
@@ -227,5 +227,6 @@ void MacauData::update_rmse()
   const unsigned N = P.nonZeros();
   rmse = sqrt( se / N );
   rmse_avg = sqrt( se_avg / N );
+  if (!burnin) iter++;
 }
 

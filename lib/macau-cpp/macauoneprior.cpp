@@ -42,7 +42,7 @@ template<class FType>
 void MacauOnePrior<FType>::sample_latents(
     Eigen::MatrixXd &U,
     const Eigen::SparseMatrix<double> &Ymat,
-    double mean_value,
+    double mean_rating,
     const Eigen::MatrixXd &V,
     double alpha,
     const int num_latent)
@@ -61,7 +61,7 @@ void MacauOnePrior<FType>::sample_latents(
     VectorXd Qi = lambda;
     for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
       Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
-      Yhat(idx)     = mean_value + U.col(i).dot( V.col(it.row()) );
+      Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
     }
     VectorXd rnorms(num_latent);
     bmrandn_single(rnorms);
@@ -166,7 +166,7 @@ void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
 
 template<class FType>
 void MacauOnePrior<FType>::sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                          double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
+                                          double mean_rating, const Eigen::MatrixXd &samples, const int num_latent) {
  //TODO
  throw std::runtime_error("Not implemented!");
 }

@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
    auto prior_u = new MacauPrior<SparseFeat>(num_latent, row_features, false);
    prior_u->setLambdaBeta(lambda_beta);
    prior_u->setTol(tol);
-   auto prior_v = new BPMFPrior(num_latent);
+   auto prior_v = new NormalPrior(num_latent);
 
    // 2) activity data (read_sdm)
    Y = read_sdm(fname_train);

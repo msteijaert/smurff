@@ -501,7 +501,7 @@ TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calc
   Eigen::SparseMatrix<double> Y;
   Y.resize(1, 1);
   sparseFromIJV(Y, rows, cols, vals, 1);
-  double mean_value = 2.0;
+  double mean_rating = 2.0;
 
   Eigen::VectorXd pred     = Eigen::VectorXd::Zero(1);
   Eigen::VectorXd pred_var = Eigen::VectorXd::Zero(1);
@@ -510,7 +510,7 @@ TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calc
   // first iteration
   U << 1.0, 0.0;
   V << 1.0, 0.0;
-  auto rmse0 = eval_rmse(Y, 0, pred, pred_var, U, V, mean_value);
+  auto rmse0 = eval_rmse(Y, 0, pred, pred_var, U, V, mean_rating);
   REQUIRE(pred(0)      == Approx(3.0));
   REQUIRE(pred_var(0)  == Approx(0.0));
   REQUIRE(rmse0.first  == Approx(1.5));
@@ -519,7 +519,7 @@ TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calc
   //// second iteration
   U << 2.0, 0.0;
   V << 1.0, 0.0;
-  auto rmse1 = eval_rmse(Y, 1, pred, pred_var, U, V, mean_value);
+  auto rmse1 = eval_rmse(Y, 1, pred, pred_var, U, V, mean_rating);
   REQUIRE(pred(0)      == Approx((3.0 + 4.0) / 2));
   REQUIRE(pred_var(0)  == Approx(0.5));
   REQUIRE(rmse1.first  == 0.5);
@@ -528,7 +528,7 @@ TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calc
   //// third iteration
   U << 2.0, 0.0;
   V << 3.0, 0.0;
-  auto rmse2 = eval_rmse(Y, 2, pred, pred_var, U, V, mean_value);
+  auto rmse2 = eval_rmse(Y, 2, pred, pred_var, U, V, mean_rating);
   REQUIRE(pred(0)      == Approx((3.0 + 4.0 + 8.0) / 3));
   REQUIRE(pred_var(0)  == Approx(14.0)); // accumulated variance
   REQUIRE(rmse2.first  == 3.5);

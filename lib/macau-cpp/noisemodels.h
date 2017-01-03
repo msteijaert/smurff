@@ -6,12 +6,12 @@
 #include <iomanip>
 #include "bpmfutils.h"
 
-class MFactors; // forward declaration
+struct MFactors; // forward declaration
 
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(MFactors &p) : data(p) {}
+    INoiseModel(MFactors &p) : model(p) {}
 
     std::string getInitStatus();
     //{
@@ -19,7 +19,7 @@ class INoiseModel {
     //}
 
   protected:
-    MFactors &data;
+    MFactors &model;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -40,13 +40,13 @@ class FixedGaussianNoise : public INoiseModel {
     std::string getStatus() { return std::string(""); }
 
     void setPrecision(double a) { alpha = a; }    
-    void evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var);
+    void evalModel(bool burnin);
     double getEvalMetric() { return rmse_test;}
     std::string getEvalString() { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
  
 };
 
-/** Gaussian noise that adapts to the data */
+/** Gaussian noise that adapts to the model */
 class AdaptiveGaussianNoise : public INoiseModel {
   public:
     double alpha = NAN;
@@ -74,7 +74,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
       return std::string("Prec:") + to_string_with_precision(alpha, 2);
     }
 
-    void evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var);
+    void evalModel(bool burnin);
     double getEvalMetric() {return rmse_test;}
     std::string getEvalString() { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
 };
@@ -85,14 +85,14 @@ class ProbitNoise : public INoiseModel {
     double auc_test;
     double auc_test_onesample;
     ProbitNoise(MFactors &p) : INoiseModel(p) {}
-    void init() { }
+    void init() {}
     void update() {}
 
     std::pair<double, double> sample(int, int);
         
     std::string getInitStatus() { return std::string("Probit noise model"); }
     std::string getStatus() { return std::string(""); }
-    void evalModel(Eigen::SparseMatrix<double> & Ytest, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var);
+    void evalModel(bool burnin);
     double getEvalMetric() {return auc_test;}
     std::string getEvalString() { return std::string("AUC: ") + to_string_with_precision(auc_test,5) + " (1samp: " + to_string_with_precision(auc_test_onesample,5)+")";}
 };

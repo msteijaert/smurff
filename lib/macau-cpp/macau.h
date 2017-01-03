@@ -5,37 +5,12 @@
 #include <Eigen/Sparse>
 #include <unsupported/Eigen/SparseExtra>
 #include <memory>
+
+#include "model.h"
 #include "latentprior.h"
+#include "noisemodels.h"
 
 int get_num_omp_threads();
-
-class MFactor {
-      //-- c'tor
-      MFactors(int D) : num_latent(D) {}
-
-      int num_latent;
-      double mean_rating = .0; 
-
-      Eigen::SparseMatrix<double> Y;
-      Eigen::VectorXd predictions, predictions_var;
-
-      Eigen::MatrixXd fac;
-};
-
-class MFactors {
-  public:
-      //-- c'tor
-      MFactors(int D) : num_latent(D) {}
-
-      int num_latent;
-      double mean_rating = .0; 
-
-      Eigen::SparseMatrix<double> Y, Yt, Ytest;
-      Eigen::VectorXd predictions, predictions_var;
-
-      /** BPMF model */
-      std::vector<MFactor> factors;
-};
 
 // try adding num_latent as template parameter to Macau
 class Macau  {
@@ -65,14 +40,12 @@ class Macau  {
     void setAdaptivePrecision(double sn_init, double sn_max);
     void setProbit();
     void setSamples(int burnin, int nsamples);
-    void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
-    void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void init();
     void run();
     void printStatus(int i, double elapsedi, double samples_per_sec);
     void setVerbose(bool v) { verbose = v; };
     double getRmseTest();
-    Eigen::VectorXd getPredictions() { return predictions; };
+    Eigen::VectorXd getPredictions() { return model.predictions; };
     Eigen::VectorXd getStds();
     Eigen::MatrixXd getTestData();
     void saveModel(int isample);
