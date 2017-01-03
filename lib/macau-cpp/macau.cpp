@@ -40,35 +40,51 @@ void Macau::addPrior(unique_ptr<ILatentPrior> & prior) {
 }
 
 void Macau::setPrecision(double p) {
-  noise.reset(new FixedGaussianNoise(p));
+    precision = p;
+    noise_type = FixedGaussianNoise;
 }
 
 void Macau::setAdaptivePrecision(double sn_init, double sn_max) {
-  noise.reset(new AdaptiveGaussianNoise(sn_init, sn_max));
+    this->sn_init = sn_init;
+    this->sn_max  = sn_max;
+    noise_type = AdaptiveGaussianNoise;
 }
 
 void Macau::setProbit() {
-  noise.reset(new ProbitNoise());
+    noise_type = ProbitNoise;
 }
 
 void Macau::setSamples(int b, int n) {
   burnin = b;
-  nsamples = n;
+  this->nsamples = n;
 }
 
-void Macau::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  Y.resize(nrows, ncols);
-  sparseFromIJV(Y, rows, cols, values, N);
-  Yt = Y.transpose();
-  mean_rating = Y.sum() / Y.nonZeros();
+void MFactors::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+  Y().resize(nrows, ncols);
+  sparseFromIJV(Y(), rows, cols, values, N);
+  Yt() = Y().transpose();
+  //FIXME
+  factors[0].mean_rating = factors[1].mean_rating =  Y().sum() / Y().nonZeros();
 }
 
-void Macau::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+void MFactors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
   Ytest.resize(nrows, ncols);
   sparseFromIJV(Ytest, rows, cols, values, N);
 }
 
 double Macau::getRmseTest() { return rmse_test; }
+
+void MFactors::init() {
+    for( auto f : factors) f.init();
+    predictions     = VectorXd::Zero( Ytest.nonZeros() );
+    predictions_var = VectorXd::Zero( Ytest.nonZeros() );
+}
+
+void MFactor::init() {
+  U.resize(num_latent, Y.rows());
+  U.setZero();
+}
+
 
 void Macau::init() {
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -76,13 +92,8 @@ void Macau::init() {
     throw std::runtime_error("Only 2 priors are supported.");
   }
   init_bmrng(seed1);
-  MatrixXd* U = new MatrixXd(num_latent, Y.rows());
-  MatrixXd* V = new MatrixXd(num_latent, Y.cols());
-  U->setZero();
-  V->setZero();
-  samples.push_back( std::move(std::unique_ptr<MatrixXd>(U)) );
-  samples.push_back( std::move(std::unique_ptr<MatrixXd>(V)) );
-  noise->init(Y, mean_rating);
+  model.init();
+  noise->init();
   keepRunning = true;
 }
 
@@ -102,10 +113,8 @@ void Macau::run() {
   }
   signal(SIGINT, intHandler);
 
-  const int num_rows = Y.rows();
-  const int num_cols = Y.cols();
-  predictions     = VectorXd::Zero( Ytest.nonZeros() );
-  predictions_var = VectorXd::Zero( Ytest.nonZeros() );
+  const int num_rows = model.Y().rows();
+  const int num_cols = model.Y().cols();
 
   auto start = tick();
   for (int i = 0; i < burnin + nsamples; i++) {
@@ -119,18 +128,14 @@ void Macau::run() {
     auto starti = tick();
 
     // sample latent vectors
-    noise->sample_latents(priors[0], *samples[0], Yt, mean_rating, *samples[1], num_latent);
-    noise->sample_latents(priors[1], *samples[1], Y,  mean_rating, *samples[0], num_latent);
+    priors[0]->sample_latents(model.U(1));
+    priors[1]->sample_latents(model.U(0));
 
     // Sample hyperparams
-    foreach(auto p : priors) p->update_prior();
-
-    noise->update(Y, mean_rating, samples);
-
-    //auto eval = eval_rmse(Ytest, (i < burnin) ? 0 : (i - burnin), predictions, predictions_var, *samples[1], *samples[0], mean_rating);
-    noise->evalModel(Ytest, (i < burnin) ? 0 : (i - burnin), predictions, predictions_var, *samples[1], *samples[0], mean_rating);
+    for(auto &p : priors) p->update_prior();
+    noise->update();
+    noise->evalModel(i < burnin);
     
-
     auto endi = tick();
     auto elapsed = endi - start;
     double samples_per_sec = (i + 1) * (num_rows + num_cols) / elapsed;
@@ -149,19 +154,19 @@ void Macau::run() {
 void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
   double norm0 = priors[0]->getLinkNorm();
   double norm1 = priors[1]->getLinkNorm();
-  printf("Iter %3d: %s  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n", i, noise->getEvalString().c_str(), samples[0]->norm(), samples[1]->norm(), norm0, norm1, noise->getStatus().c_str(), elapsedi);
+  //printf("Iter %3d: %s  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n", i, noise->getEvalString().c_str(), samples[0]->norm(), samples[1]->norm(), norm0, norm1, noise->getStatus().c_str(), elapsedi);
   // if (!std::isnan(norm0)) printf("U.link(%1.2e) U.lambda(%.1f) ", norm0, priors[0]->getLinkLambda());
   // if (!std::isnan(norm1)) printf("V.link(%1.2e) V.lambda(%.1f)",   norm1, priors[1]->getLinkLambda());
 }
 
-Eigen::VectorXd Macau::getStds() {
+Eigen::VectorXd MFactors::getStds(int iter) {
   VectorXd std(Ytest.nonZeros());
-  if (nsamples <= 1) {
+  if (iter <= 1) {
     std.setConstant(NAN);
     return std;
   }
   const int n = std.size();
-  const double inorm = 1.0 / (nsamples - 1);
+  const double inorm = 1.0 / (iter - 1);
 #pragma omp parallel for schedule(static)
   for (int i = 0; i < n; i++) {
     std[i] = sqrt(predictions_var[i] * inorm);
@@ -170,7 +175,7 @@ Eigen::VectorXd Macau::getStds() {
 }
 
 // assumes matrix (not tensor)
-Eigen::MatrixXd Macau::getTestData() {
+Eigen::MatrixXd MFactors::getTestData() {
   MatrixXd coords(Ytest.nonZeros(), 3);
 #pragma omp parallel for schedule(dynamic, 2)
   for (int k = 0; k < Ytest.outerSize(); ++k) {
@@ -188,45 +193,46 @@ Eigen::MatrixXd Macau::getTestData() {
 void Macau::saveModel(int isample) {
   string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
   // saving latent matrices
-  for (unsigned int i = 0; i < samples.size(); i++) {
-    writeToCSVfile(fprefix + "U" + std::to_string(i+1) + "-latents.csv", *samples[i]);
+  for (unsigned int i = 0; i < model.factors.size(); i++) {
+    writeToCSVfile(fprefix + "U" + std::to_string(i+1) + "-latents.csv", model.U(i));
     priors[i]->saveModel(fprefix + "U" + std::to_string(i+1));
   }
 }
 
 void Macau::saveGlobalParams() {
   VectorXd means(1);
-  means << mean_rating;
+  means << model.mean_rating();
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
 
 void MFactors::update_rmse(bool burnin)
 {
-  double se = 0.0, se_avg = 0.0;
+    auto &P = Y();
+    double se = 0.0, se_avg = 0.0;
 #pragma omp parallel for schedule(dynamic,8) reduction(+:se, se_avg)
-  for (int k = 0; k < P.outerSize(); ++k) {
-    int idx = P.outerIndexPtr()[k];
-    for (Eigen::SparseMatrix<double>::InnerIterator it(P,k); it; ++it) {
-      const double pred = sample_m.col(it.col()).dot(sample_u.col(it.row())) + mean_rating;
-      se += square(it.value() - pred);
+    for (int k = 0; k < P.outerSize(); ++k) {
+        int idx = P.outerIndexPtr()[k];
+        for (Eigen::SparseMatrix<double>::InnerIterator it(P,k); it; ++it) {
+            const double pred = col(0,it.col()).dot(col(1,it.row())) + mean_rating();
+            se += square(it.value() - pred);
 
-      // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
-      double pred_avg;
-      if (burnin) {
-        pred_avg = pred;
-      } else {
-        double delta = pred - predictions[idx];
-        pred_avg = (predictions[idx] + delta / (iter + 1));
-        predictions_var[idx] += delta * (pred - pred_avg);
-      }
-      se_avg += square(it.value() - pred_avg);
-      predictions[idx++] = pred_avg;
+            // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+            double pred_avg;
+            if (burnin) {
+                pred_avg = pred;
+            } else {
+                double delta = pred - predictions[idx];
+                pred_avg = (predictions[idx] + delta / (iter + 1));
+                predictions_var[idx] += delta * (pred - pred_avg);
+            }
+            se_avg += square(it.value() - pred_avg);
+            predictions[idx++] = pred_avg;
+        }
     }
-  }
 
-  const unsigned N = P.nonZeros();
-  rmse = sqrt( se / N );
-  rmse_avg = sqrt( se_avg / N );
-  if (!burnin) iter++;
+    const unsigned N = P.nonZeros();
+    rmse = sqrt( se / N );
+    rmse_avg = sqrt( se_avg / N );
+    if (!burnin) iter++;
 }
 

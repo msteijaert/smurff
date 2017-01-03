@@ -21,6 +21,10 @@ class Macau  {
       int nsamples = 100;
       int burnin   = 50;
 
+      double precision = -1.;
+      double sn_init = -1.;
+      double sn_max = -1.;
+
       double rmse_test  = .0;
       double rmse_train = .0;
 
@@ -36,9 +40,14 @@ class Macau  {
     Macau() : Macau(10) {}
 
     void addPrior(std::unique_ptr<ILatentPrior> & prior);
+    
+    //-- various noise models
+    enum { UnknownNoise = 0, FixedGaussianNoise, AdaptiveGaussianNoise, ProbitNoise } noise_type;
+
     void setPrecision(double p);
     void setAdaptivePrecision(double sn_init, double sn_max);
     void setProbit();
+
     void setSamples(int burnin, int nsamples);
     void init();
     void run();
@@ -46,8 +55,6 @@ class Macau  {
     void setVerbose(bool v) { verbose = v; };
     double getRmseTest();
     Eigen::VectorXd getPredictions() { return model.predictions; };
-    Eigen::VectorXd getStds();
-    Eigen::MatrixXd getTestData();
     void saveModel(int isample);
     void saveGlobalParams();
     void setSaveModel(bool save) { save_model = save; };
