@@ -498,41 +498,37 @@ TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calc
   int rows[1] = {0};
   int cols[1] = {0};
   double vals[1] = {4.5};
-  Eigen::SparseMatrix<double> Y;
-  Y.resize(1, 1);
-  sparseFromIJV(Y, rows, cols, vals, 1);
-  double mean_rating = 2.0;
-
-  Eigen::VectorXd pred     = Eigen::VectorXd::Zero(1);
-  Eigen::VectorXd pred_var = Eigen::VectorXd::Zero(1);
-  Eigen::MatrixXd U(2, 1), V(2, 1);
+  MFactors model(2);
+  model.setRelationDataTest(rows, cols, vals, 1, 1, 1);
+  model.setRelationData(rows, cols, vals, 1, 1, 1);
+  model.init();
 
   // first iteration
-  U << 1.0, 0.0;
-  V << 1.0, 0.0;
-  auto rmse0 = eval_rmse(Y, 0, pred, pred_var, U, V, mean_rating);
-  REQUIRE(pred(0)      == Approx(3.0));
-  REQUIRE(pred_var(0)  == Approx(0.0));
-  REQUIRE(rmse0.first  == Approx(1.5));
-  REQUIRE(rmse0.second == Approx(1.5));
+  model.U(0) << 1.0, 0.0;
+  model.U(1) << 1.0, 0.0;
+  model.update_rmse(false);
+  REQUIRE(model.predictions(0)     == Approx(4.5 + 1.0));
+  REQUIRE(model.predictions_var(0) == Approx(0.0));
+  REQUIRE(model.rmse               == Approx(1.0));
+  REQUIRE(model.rmse_avg           == Approx(1.0));
 
   //// second iteration
-  U << 2.0, 0.0;
-  V << 1.0, 0.0;
-  auto rmse1 = eval_rmse(Y, 1, pred, pred_var, U, V, mean_rating);
-  REQUIRE(pred(0)      == Approx((3.0 + 4.0) / 2));
-  REQUIRE(pred_var(0)  == Approx(0.5));
-  REQUIRE(rmse1.first  == 0.5);
-  REQUIRE(rmse1.second == 1.0);
+  model.U(0) << 2.0, 0.0;
+  model.U(1) << 1.0, 0.0;
+  model.update_rmse(false);
+  REQUIRE(model.predictions(0)     == Approx(4.5 + (1.0 + 2.0) / 2));
+  REQUIRE(model.predictions_var(0) == Approx(0.5));
+  REQUIRE(model.rmse               == 2.0);
+  REQUIRE(model.rmse_avg           == 1.5);
 
   //// third iteration
-  U << 2.0, 0.0;
-  V << 3.0, 0.0;
-  auto rmse2 = eval_rmse(Y, 2, pred, pred_var, U, V, mean_rating);
-  REQUIRE(pred(0)      == Approx((3.0 + 4.0 + 8.0) / 3));
-  REQUIRE(pred_var(0)  == Approx(14.0)); // accumulated variance
-  REQUIRE(rmse2.first  == 3.5);
-  REQUIRE(rmse2.second == 0.5);
+  model.U(0) << 2.0, 0.0;
+  model.U(1) << 3.0, 0.0;
+  model.update_rmse(false);
+  REQUIRE(model.predictions(0)     == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
+  REQUIRE(model.predictions_var(0) == Approx(14.0)); // accumulated variance
+  REQUIRE(model.rmse               == 6.0);
+  REQUIRE(model.rmse_avg           == 3.0);
 }
 
 TEST_CASE( "bpmfutils/row_mean_var", "Test if row_mean_var is correct") {
@@ -548,6 +544,7 @@ TEST_CASE( "bpmfutils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
 
+/*
 TEST_CASE("bpmfutils/auc","AUC ROC") {
   Eigen::VectorXd pred(20);
   Eigen::VectorXd test(20);
@@ -557,3 +554,4 @@ TEST_CASE("bpmfutils/auc","AUC ROC") {
           10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0;
   REQUIRE ( auc(pred, test) == Approx(0.84) );
 }
+*/
