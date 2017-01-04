@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
    SparseDoubleMatrix* Ytest = NULL;
 
    Macau* macau = new Macau(num_latent);
-   FixedGaussianNoise noise = macau->setPrecision(precision);
+   FixedGaussianNoise &noise = macau->setPrecision(precision);
    macau->setSamples(burnin, nsamples);
    macau->setVerbose(true);
 

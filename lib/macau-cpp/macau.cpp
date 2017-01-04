@@ -84,7 +84,7 @@ void MFactors::init() {
 }
 
 void MFactor::init() {
-  U.resize(num_latent, Y.rows());
+  U.resize(num_latent, Y.cols());
   U.setZero();
 }
 

@@ -61,7 +61,7 @@ void NormalPrior<NoiseModel>::sample_latent(int n, const MatrixXd &V)
   MatrixXd MM = Lambda_u;
   VectorXd rr = VectorXd::Zero(num_latent());
   for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
-    auto col = U.col(it.row());
+    auto col = V.col(it.row());
     std::pair<double, double> alpha = noise.sample(n, it.row());
     rr.noalias() += col * ((it.value() - mean_rating) * alpha.first);
     MM.triangularView<Eigen::Lower>() += alpha.second * col * col.transpose();
