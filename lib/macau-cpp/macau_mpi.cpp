@@ -220,6 +220,7 @@ int main(int argc, char** argv) {
 
    // 3) create Macau object
    macau->model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
+   macau->model.init();
 
    // test data
    if (fname_test != NULL) {

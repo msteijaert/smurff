@@ -78,7 +78,7 @@ void MFactors::setRelationDataTest(int* rows, int* cols, double* values, int N, 
 double Macau::getRmseTest() { return rmse_test; }
 
 void MFactors::init() {
-    for( auto f : factors) f.init();
+    for( auto &f : factors) f.init();
     predictions     = VectorXd::Zero( Ytest.nonZeros() );
     predictions_var = VectorXd::Zero( Ytest.nonZeros() );
 }

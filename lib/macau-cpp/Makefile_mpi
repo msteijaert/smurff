@@ -3,7 +3,7 @@
 EXECS=macau_mpi
 #MPICXX=OMPI_CXX=g++-4.9 mpicxx
 MPICXX=mpicxx
-CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -O3 -fstrict-aliasing -g
+CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -O0 -fstrict-aliasing -g
 # CXXFLAGS=-fopenmp
 
 INCLUDES := -I ../eigen3 -I ../libfastsparse

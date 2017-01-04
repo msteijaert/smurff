@@ -61,7 +61,7 @@ class NormalPrior : public ILatentPrior {
     void saveModel(std::string prefix) override;
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
-    virtual const Eigen::VectorXd getLambda(int) const { return Lambda; }
+    virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
 
     virtual void sample_latent(int n, const Eigen::MatrixXd &V) override;
 };
@@ -90,7 +90,7 @@ class MacauPrior : public NormalPrior<NoiseModel> {
     double getLinkNorm() override;
     double getLinkLambda() override { return lambda_beta; };
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
-    const Eigen::VectorXd getLambda(int) const override { return this->Lambda; }
+    const Eigen::MatrixXd getLambda(int) const override { return this->Lambda; }
 
     void sample_beta();
     void setLambdaBeta(double lb) { lambda_beta = lb; };
