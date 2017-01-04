@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 
    // 1) row prior with side information
    int nfeat    = row_features->rows();
-   auto prior_u = new MacauPrior<SparseFeat,FixedGaussianNoise>(macau->model.fac(0), noise, row_features, false);
+   auto prior_u = new MacauPrior<SparseFeat,FixedGaussianNoise>(macau->model.fac(1), noise, row_features, false);
    prior_u->setLambdaBeta(lambda_beta);
    prior_u->setTol(tol);
    auto prior_v = new NormalPrior<FixedGaussianNoise>(macau->model.fac(0), noise);
@@ -235,10 +235,10 @@ int main(int argc, char** argv) {
       }
       macau->model.setRelationDataTest(Ytest->rows, Ytest->cols, Ytest->vals, Ytest->nnz, Ytest->nrow, Ytest->ncol);
    }
-   std::unique_ptr<ILatentPrior> u_ptr(prior_u);
    std::unique_ptr<ILatentPrior> v_ptr(prior_v);
-   macau->addPrior( u_ptr );
+   std::unique_ptr<ILatentPrior> u_ptr(prior_u);
    macau->addPrior( v_ptr );
+   macau->addPrior( u_ptr );
 
    if (world_rank == 0) {
       printf("Training data:  %ld [%d x %d]\n", Y->nnz, Y->nrow, Y->ncol);
@@ -306,9 +306,9 @@ void run_macau_mpi(
       }
 
       // Sample hyperparams
-      update_prior_mpi( *(MacauPrior<SparseFeat,FixedGaussianNoise>*) macau->priors[0].get(), macau->model.U(0), world_rank);
+      update_prior_mpi( *(MacauPrior<SparseFeat,FixedGaussianNoise>*) macau->priors[1].get(), macau->model.U(1), world_rank);
       if (world_rank == 0) {
-         macau->priors[1]->update_prior();
+         macau->priors[0]->update_prior();
 
          macau->model.update_rmse(i);
 

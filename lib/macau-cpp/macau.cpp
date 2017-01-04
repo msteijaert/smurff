@@ -210,12 +210,13 @@ void Macau::saveGlobalParams() {
 
 void MFactors::update_rmse(bool burnin)
 {
-    auto &P = Y();
+    if (Ytest.nonZeros() == 0) return;
+
     double se = 0.0, se_avg = 0.0;
 #pragma omp parallel for schedule(dynamic,8) reduction(+:se, se_avg)
-    for (int k = 0; k < P.outerSize(); ++k) {
-        int idx = P.outerIndexPtr()[k];
-        for (Eigen::SparseMatrix<double>::InnerIterator it(P,k); it; ++it) {
+    for (int k = 0; k < Ytest.outerSize(); ++k) {
+        int idx = Ytest.outerIndexPtr()[k];
+        for (Eigen::SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
             const double pred = col(0,it.col()).dot(col(1,it.row())) + mean_rating();
             se += square(it.value() - pred);
 
@@ -233,7 +234,7 @@ void MFactors::update_rmse(bool burnin)
         }
     }
 
-    const unsigned N = P.nonZeros();
+    const unsigned N = Ytest.nonZeros();
     rmse = sqrt( se / N );
     rmse_avg = sqrt( se_avg / N );
     if (!burnin) iter++;
@@ -241,6 +242,8 @@ void MFactors::update_rmse(bool burnin)
 
 void MFactors::update_auc(bool burnin)
 {
+    if (Ytest.nonZeros() == 0) return;
+
     double *test_vector = Ytest.valuePtr();
 
     Eigen::VectorXd stack_x(predictions.size());
