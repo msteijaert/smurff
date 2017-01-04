@@ -39,19 +39,22 @@ void Macau::addPrior(unique_ptr<ILatentPrior> & prior) {
   priors.push_back( std::move(prior) );
 }
 
-void Macau::setPrecision(double p) {
-    precision = p;
-    noise_type = FixedGaussianNoise;
+FixedGaussianNoise &Macau::setPrecision(double p) {
+  FixedGaussianNoise *n = new FixedGaussianNoise(model, p);
+  noise.reset(n);
+  return *n;
 }
 
-void Macau::setAdaptivePrecision(double sn_init, double sn_max) {
-    this->sn_init = sn_init;
-    this->sn_max  = sn_max;
-    noise_type = AdaptiveGaussianNoise;
+AdaptiveGaussianNoise &Macau::setAdaptivePrecision(double sn_init, double sn_max) {
+  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(model, sn_init, sn_max);
+  noise.reset(n);
+  return *n;
 }
 
-void Macau::setProbit() {
-    noise_type = ProbitNoise;
+ProbitNoise &Macau::setProbit() {
+  ProbitNoise *n = new ProbitNoise(model);
+  noise.reset(n);
+  return *n;
 }
 
 void Macau::setSamples(int b, int n) {
@@ -236,3 +239,31 @@ void MFactors::update_rmse(bool burnin)
     if (!burnin) iter++;
 }
 
+void MFactors::update_auc(bool burnin)
+{
+    double *test_vector = Ytest.valuePtr();
+
+    Eigen::VectorXd stack_x(predictions.size());
+    Eigen::VectorXd stack_y(predictions.size());
+    double auc = 0.0;
+
+    std::vector<unsigned int> permutation( predictions.size() );
+    for(unsigned int i = 0; i < predictions.size(); i++) {
+        permutation[i] = i;
+    }
+    std::sort(permutation.begin(), permutation.end(), [this](unsigned int a, unsigned int b) { return predictions[a] < predictions[b];});
+
+    int NP = Ytest.sum();
+    int NN = Ytest.nonZeros() - NP;
+    //Build stack_x and stack_y
+    stack_x[0] = test_vector[permutation[0]];
+    stack_y[0] = 1-stack_x[0];
+    for(int i=1; i < predictions.size(); i++) {
+        stack_x[i] = stack_x[i-1] + test_vector[permutation[i]];
+        stack_y[i] = stack_y[i-1] + 1 - test_vector[permutation[i]];
+    }
+
+    for(int i=0; i < predictions.size() - 1; i++) {
+        auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / (NP*NN); //TODO:Make it Eigen
+    }
+}

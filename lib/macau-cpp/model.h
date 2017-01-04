@@ -29,18 +29,20 @@ struct MFactors {
       }
 
       Eigen::SparseMatrix<double> Ytest;
-      Eigen::VectorXd predictions, predictions_var;
+      Eigen::VectorXd predictions, predictions_var, test_vector;
 
       double iter;
       double rmse, rmse_avg;
       double auc, auc_avg;
 
-      int num_latent() const { return factors.at(0).num_latent; }
-      double mean_rating() const { return factors.at(0).mean_rating; }
-      Eigen::SparseMatrix<double> &Y() { return factors.at(0).Y; }
-      Eigen::SparseMatrix<double> &Yt() { return factors.at(1).Y; }
-      Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return factors.at(f).col(i); }
-      Eigen::MatrixXd &U(int f) { return factors.at(f).U; }
+      const MFactor &fac(int f) const { return factors.at(f); }
+      MFactor &fac(int f) { return factors.at(f); }
+      int num_latent() const { return fac(0).num_latent; }
+      double mean_rating() const { return fac(0).mean_rating; }
+      Eigen::SparseMatrix<double> &Y() { return fac(0).Y; }
+      Eigen::SparseMatrix<double> &Yt() { return fac(1).Y; }
+      Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return fac(f).col(i); }
+      Eigen::MatrixXd &U(int f) { return fac(f).U; }
 
       std::vector<MFactor> factors;
 

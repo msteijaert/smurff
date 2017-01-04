@@ -16,50 +16,39 @@ int get_num_omp_threads();
 class Macau  {
   public:
       std::unique_ptr<INoiseModel> noise;
+      std::vector< std::unique_ptr<ILatentPrior> > priors;
       MFactors model;
 
+      bool verbose = true;
       int nsamples = 100;
       int burnin   = 50;
-
-      double precision = -1.;
-      double sn_init = -1.;
-      double sn_max = -1.;
-
-      double rmse_test  = .0;
-      double rmse_train = .0;
-
-      /** BPMF model */
-      std::vector< std::unique_ptr<ILatentPrior> > priors;
-      bool verbose = true;
-
       bool save_model = false;
       std::string save_prefix = "model";
 
+      double rmse_test;
+
   public:
-    Macau(int D) : model(D) {}
-    Macau() : Macau(10) {}
+      Macau(int D) : model(D) {}
+      Macau() : Macau(10) {}
 
-    void addPrior(std::unique_ptr<ILatentPrior> & prior);
-    
-    //-- various noise models
-    enum { UnknownNoise = 0, FixedGaussianNoise, AdaptiveGaussianNoise, ProbitNoise } noise_type;
+      void addPrior(std::unique_ptr<ILatentPrior> & prior);
 
-    void setPrecision(double p);
-    void setAdaptivePrecision(double sn_init, double sn_max);
-    void setProbit();
+      FixedGaussianNoise &setPrecision(double p);
+      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
+      ProbitNoise &setProbit();
 
-    void setSamples(int burnin, int nsamples);
-    void init();
-    void run();
-    void printStatus(int i, double elapsedi, double samples_per_sec);
-    void setVerbose(bool v) { verbose = v; };
-    double getRmseTest();
-    Eigen::VectorXd getPredictions() { return model.predictions; };
-    void saveModel(int isample);
-    void saveGlobalParams();
-    void setSaveModel(bool save) { save_model = save; };
-    void setSavePrefix(std::string pref) { save_prefix = pref; };
-    ~Macau();
+      void setSamples(int burnin, int nsamples);
+      void init();
+      void run();
+      void printStatus(int i, double elapsedi, double samples_per_sec);
+      void setVerbose(bool v) { verbose = v; };
+      double getRmseTest();
+      Eigen::VectorXd getPredictions() { return model.predictions; };
+      void saveModel(int isample);
+      void saveGlobalParams();
+      void setSaveModel(bool save) { save_model = save; };
+      void setSavePrefix(std::string pref) { save_prefix = pref; };
+      ~Macau();
 };
 
 void sparseFromIJV(Eigen::SparseMatrix<double> & X, int* rows, int* cols, double* values, int N);

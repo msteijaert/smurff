@@ -195,16 +195,16 @@ int main(int argc, char** argv) {
    SparseDoubleMatrix* Ytest = NULL;
 
    Macau* macau = new Macau(num_latent);
-   macau->setPrecision(precision);
+   FixedGaussianNoise noise = macau->setPrecision(precision);
    macau->setSamples(burnin, nsamples);
    macau->setVerbose(true);
 
    // 1) row prior with side information
    int nfeat    = row_features->rows();
-   auto prior_u = new MacauPrior<SparseFeat>(num_latent, row_features, false);
+   auto prior_u = new MacauPrior<SparseFeat,FixedGaussianNoise>(macau->model.fac(0), noise, row_features, false);
    prior_u->setLambdaBeta(lambda_beta);
    prior_u->setTol(tol);
-   auto prior_v = new NormalPrior(num_latent);
+   auto prior_v = new NormalPrior<FixedGaussianNoise>(macau->model.fac(0), noise);
 
    // 2) activity data (read_sdm)
    Y = read_sdm(fname_train);
@@ -219,7 +219,7 @@ int main(int argc, char** argv) {
    }
 
    // 3) create Macau object
-   macau->setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
+   macau->model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
 
    // test data
    if (fname_test != NULL) {
@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
                          std::to_string(Ytest->ncol) + ").",
              world_rank);
       }
-      macau->setRelationDataTest(Ytest->rows, Ytest->cols, Ytest->vals, Ytest->nnz, Ytest->nrow, Ytest->ncol);
+      macau->model.setRelationDataTest(Ytest->rows, Ytest->cols, Ytest->vals, Ytest->nnz, Ytest->nrow, Ytest->ncol);
    }
    std::unique_ptr<ILatentPrior> u_ptr(prior_u);
    std::unique_ptr<ILatentPrior> v_ptr(prior_v);
@@ -253,8 +253,8 @@ int main(int argc, char** argv) {
    // save results
    if (world_rank == 0) {
       VectorXd yhat_raw     = macau->getPredictions();
-      VectorXd yhat_sd_raw  = macau->getStds();
-      MatrixXd testdata_raw = macau->getTestData();
+      VectorXd yhat_sd_raw  = macau->model.getStds(macau->nsamples);
+      MatrixXd testdata_raw = macau->model.getTestData();
 
       std::string fname_pred = output_prefix + "-predictions.csv";
       std::ofstream predfile;
@@ -288,10 +288,8 @@ void run_macau_mpi(
       std::cout << "Sampling" << std::endl;
    }
 
-   const int num_rows = macau->Y.rows();
-   const int num_cols = macau->Y.cols();
-   macau->predictions     = VectorXd::Zero( macau->Ytest.nonZeros() );
-   macau->predictions_var = VectorXd::Zero( macau->Ytest.nonZeros() );
+   const int num_rows = macau->model.Y().rows();
+   const int num_cols = macau->model.Y().cols();
 
    auto start = tick();
    for (int i = 0; i < macau->burnin + macau->nsamples; i++) {
@@ -301,19 +299,17 @@ void run_macau_mpi(
       auto starti = tick();
 
       if (world_rank == 0) {
-         // sample latent vectors
-         macau->noise->sample_latents(macau->priors[0], *macau->samples[0], macau->Yt, macau->mean_rating, *macau->samples[1], macau->num_latent);
-         macau->noise->sample_latents(macau->priors[1], *macau->samples[1], macau->Y,  macau->mean_rating, *macau->samples[0], macau->num_latent);
-         //macau->priors[0]->sample_latents(*macau->samples[0], macau->Yt, macau->mean_rating, *macau->samples[1], macau->alpha, macau->num_latent);
-         //macau->priors[1]->sample_latents(*macau->samples[1], macau->Y,  macau->mean_rating, *macau->samples[0], macau->alpha, macau->num_latent);
+          // sample latent vectors
+          macau->priors[0]->sample_latents(macau->model.U(1));
+          macau->priors[1]->sample_latents(macau->model.U(0));
       }
 
       // Sample hyperparams
-      update_prior_mpi( *(MacauPrior<SparseFeat>*) macau->priors[0].get(), *macau->samples[0], world_rank);
+      update_prior_mpi( *(MacauPrior<SparseFeat,FixedGaussianNoise>*) macau->priors[0].get(), macau->model.U(0), world_rank);
       if (world_rank == 0) {
-         macau->priors[1]->update_prior(*macau->samples[1]);
+         macau->priors[1]->update_prior();
 
-         macau->update_rmse();
+         macau->model.update_rmse(i);
 
          auto endi = tick();
          auto elapsed = endi - start;
@@ -323,12 +319,12 @@ void run_macau_mpi(
          if (macau->verbose) {
            macau->printStatus(i, elapsedi, samples_per_sec);
          }
-         macau->rmse_test = eval.second;
       }
    }
 }
 
-void update_prior_mpi(MacauPrior<SparseFeat> &prior, const Eigen::MatrixXd &U, int world_rank) {
+template<class Prior>
+void update_prior_mpi(Prior &prior, const Eigen::MatrixXd &U, int world_rank) {
    if (world_rank == 0) {
       // residual (Uhat is later overwritten):
       prior.Uhat.noalias() = U - prior.Uhat;
@@ -343,7 +339,8 @@ void update_prior_mpi(MacauPrior<SparseFeat> &prior, const Eigen::MatrixXd &U, i
    }
 }
 
-void sample_beta_mpi(MacauPrior<SparseFeat> &prior, const Eigen::MatrixXd &U, int world_rank) {
+template<class Prior>
+void sample_beta_mpi(Prior &prior, const Eigen::MatrixXd &U, int world_rank) {
    const int num_latent = prior.beta.rows();
    const int num_feat = prior.beta.cols();
    MatrixXd Ft_y(0,0);

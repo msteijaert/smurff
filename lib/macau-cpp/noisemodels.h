@@ -70,13 +70,8 @@ class AdaptiveGaussianNoise : public INoiseModel {
 
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }
-    std::string getInitStatus() override {
-        return INoiseModel::getInitStatus() + "Noise precision: adaptive (with max precision of " + std::to_string(alpha_max) + ")";
-    }
-
-    std::string getStatus() override {
-      return std::string("Prec:") + to_string_with_precision(alpha, 2);
-    }
+    std::string getInitStatus() override { return "Noise precision: adaptive (with max precision of " + std::to_string(alpha_max) + ")"; }
+    std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
 
     void evalModel(bool burnin) override;
     double getEvalMetric() override {return rmse_test;}
