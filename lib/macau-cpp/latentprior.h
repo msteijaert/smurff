@@ -79,9 +79,9 @@ class MacauPrior : public NormalPrior {
     double tol = 1e-6;
 
   public:
-    MacauPrior(MFactor &d, INoiseModel &noise, std::unique_ptr<FType> &Fmat, bool comp_FtF);
-
-    void init(const int num_latent, std::unique_ptr<FType> &Fmat, bool comp_FtF);
+    MacauPrior(MFactor &d, INoiseModel &noise);
+            
+    void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF);
 
     void update_prior() override;
     double getLinkNorm() override;

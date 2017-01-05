@@ -195,18 +195,23 @@ int main(int argc, char** argv) {
    SparseDoubleMatrix* Ytest = NULL;
 
    Macau* macau = new Macau(num_latent);
-   FixedGaussianNoise &noise = macau->setPrecision(precision);
+
+   // -- noise model + general parameters
+   macau->setPrecision(precision);
    macau->setSamples(burnin, nsamples);
    macau->setVerbose(true);
 
-   // 1) row prior with side information
+   //-- Normal column prior
+   macau->addPrior<NormalPrior>();
+   
+   //-- row prior with side information
    int nfeat    = row_features->rows();
-   auto prior_u = new MacauPrior<SparseFeat>(macau->model.fac(1), noise, row_features, false);
-   prior_u->setLambdaBeta(lambda_beta);
-   prior_u->setTol(tol);
-   auto prior_v = new NormalPrior(macau->model.fac(0), noise);
+   auto &prior_u = macau->addPrior<MacauPrior<SparseFeat>>();
+   prior_u.addSideInfo(row_features, false);
+   prior_u.setLambdaBeta(lambda_beta);
+   prior_u.setTol(tol);
 
-   // 2) activity data (read_sdm)
+   //--  activity data (read_sdm)
    Y = read_sdm(fname_train);
 
    if (nfeat != Y->nrow) {
@@ -218,7 +223,7 @@ int main(int argc, char** argv) {
           world_rank);
    }
 
-   // 3) create Macau object
+   // 4) create Macau object
    macau->model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
    macau->model.init();
 
@@ -235,10 +240,7 @@ int main(int argc, char** argv) {
       }
       macau->model.setRelationDataTest(Ytest->rows, Ytest->cols, Ytest->vals, Ytest->nnz, Ytest->nrow, Ytest->ncol);
    }
-   std::unique_ptr<ILatentPrior> v_ptr(prior_v);
-   std::unique_ptr<ILatentPrior> u_ptr(prior_u);
-   macau->addPrior( v_ptr );
-   macau->addPrior( u_ptr );
+
 
    if (world_rank == 0) {
       printf("Training data:  %ld [%d x %d]\n", Y->nnz, Y->nrow, Y->ncol);
@@ -353,7 +355,7 @@ void sample_beta_mpi(Prior &prior, const Eigen::MatrixXd &U, int world_rank) {
       Ft_y = A_mul_B(tmp, *prior.F);
       MatrixXd tmp2 = MvNormal_prec_omp(prior.Lambda, num_feat);
 
-      #pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
       for (int f = 0; f < num_feat; f++) {
          for (int d = 0; d < num_latent; d++) {
             Ft_y(d, f) += sqrt(prior.lambda_beta) * tmp2(d, f);

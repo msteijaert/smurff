@@ -31,8 +31,10 @@ class Macau  {
       Macau(int D) : model(D) {}
       Macau() : Macau(10) {}
 
-      void addPrior(std::unique_ptr<ILatentPrior> & prior);
+      template<class Prior>
+      inline Prior& addPrior();
 
+      // noise models
       FixedGaussianNoise &setPrecision(double p);
       AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
       ProbitNoise &setProbit();
@@ -50,6 +52,17 @@ class Macau  {
       void setSavePrefix(std::string pref) { save_prefix = pref; };
       ~Macau();
 };
+
+template<class Prior>
+Prior& Macau::addPrior()
+{
+    auto pos = priors.size();
+    Prior *p = new Prior(model.fac(pos), *noise);
+    priors.push_back(std::unique_ptr<ILatentPrior>(p));
+    return *p;
+}
+
+
 
 void sparseFromIJV(Eigen::SparseMatrix<double> & X, int* rows, int* cols, double* values, int N);
 

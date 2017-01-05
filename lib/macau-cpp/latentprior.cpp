@@ -90,8 +90,11 @@ void NormalPrior::saveModel(std::string prefix) {
 
 /** MacauPrior */
 template<class FType>
-MacauPrior<FType>::MacauPrior(MFactor &data, INoiseModel &noise, std::unique_ptr<FType> &Fmat, bool comp_FtF)
-    : NormalPrior(data, noise)
+MacauPrior<FType>::MacauPrior(MFactor &data, INoiseModel &noise)
+    : NormalPrior(data, noise) {}
+    
+template<class FType>
+void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 {
   auto U = this->fac.U;
 

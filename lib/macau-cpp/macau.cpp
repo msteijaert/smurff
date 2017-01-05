@@ -35,10 +35,6 @@ void intHandler(int dummy) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
-void Macau::addPrior(unique_ptr<ILatentPrior> & prior) {
-  priors.push_back( std::move(prior) );
-}
-
 FixedGaussianNoise &Macau::setPrecision(double p) {
   FixedGaussianNoise *n = new FixedGaussianNoise(model, p);
   noise.reset(n);
@@ -106,60 +102,58 @@ Macau::~Macau() {
 inline double sqr(double x) { return x*x; }
 
 void Macau::run() {
-  init();
-  if (verbose) {
-    std::cout << noise->getInitStatus() << endl;
-    std::cout << "Sampling" << endl;
-  }
-  if (save_model) {
-    saveGlobalParams();
-  }
-  signal(SIGINT, intHandler);
-
-  const int num_rows = model.Y().rows();
-  const int num_cols = model.Y().cols();
-
-  auto start = tick();
-  for (int i = 0; i < burnin + nsamples; i++) {
-    if (keepRunning == false) {
-      keepRunning = true;
-      break;
-    }
-    if (verbose && i == burnin) {
-      printf(" ====== Burn-in complete, averaging samples ====== \n");
-    }
-    auto starti = tick();
-
-    // sample latent vectors
-    priors[0]->sample_latents(model.U(1));
-    priors[1]->sample_latents(model.U(0));
-
-    // Sample hyperparams
-    for(auto &p : priors) p->update_prior();
-    noise->update();
-    noise->evalModel(i < burnin);
-    
-    auto endi = tick();
-    auto elapsed = endi - start;
-    double samples_per_sec = (i + 1) * (num_rows + num_cols) / elapsed;
-    double elapsedi = endi - starti;
-
-    if (save_model && i >= burnin) {
-      saveModel(i - burnin + 1);
-    }
+    init();
     if (verbose) {
-      printStatus(i, elapsedi, samples_per_sec);
+        std::cout << noise->getInitStatus() << endl;
+        std::cout << "Sampling" << endl;
     }
-    rmse_test = noise->getEvalMetric();
-  }
+    if (save_model) {
+        saveGlobalParams();
+    }
+    signal(SIGINT, intHandler);
+
+    const int num_rows = model.Y().rows();
+    const int num_cols = model.Y().cols();
+
+    auto start = tick();
+    for (int i = 0; i < burnin + nsamples; i++) {
+        if (keepRunning == false) {
+            keepRunning = true;
+            break;
+        }
+        if (verbose && i == burnin) {
+            printf(" ====== Burn-in complete, averaging samples ====== \n");
+        }
+        auto starti = tick();
+
+        // sample latent vectors
+        priors[0]->sample_latents(model.U(1));
+        priors[1]->sample_latents(model.U(0));
+
+        // Sample hyperparams
+        for(auto &p : priors) p->update_prior();
+        noise->update();
+        noise->evalModel(i < burnin);
+
+        auto endi = tick();
+        auto elapsed = endi - start;
+        double samples_per_sec = (i + 1) * (num_rows + num_cols) / elapsed;
+        double elapsedi = endi - starti;
+
+        saveModel(i - burnin + 1);
+        printStatus(i, elapsedi, samples_per_sec);
+        rmse_test = noise->getEvalMetric();
+    }
 }
 
 void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
+  if(!verbose) return;
   double norm0 = priors[0]->getLinkNorm();
   double norm1 = priors[1]->getLinkNorm();
-  //printf("Iter %3d: %s  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n", i, noise->getEvalString().c_str(), samples[0]->norm(), samples[1]->norm(), norm0, norm1, noise->getStatus().c_str(), elapsedi);
-  // if (!std::isnan(norm0)) printf("U.link(%1.2e) U.lambda(%.1f) ", norm0, priors[0]->getLinkLambda());
-  // if (!std::isnan(norm1)) printf("V.link(%1.2e) V.lambda(%.1f)",   norm1, priors[1]->getLinkLambda());
+  double snorm0 = model.U(0).norm();
+  double snorm1 = model.U(1).norm();
+  printf("Iter %3d: %s  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n", i, noise->getEvalString().c_str(),
+          snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi);
 }
 
 Eigen::VectorXd MFactors::getStds(int iter) {
@@ -194,6 +188,7 @@ Eigen::MatrixXd MFactors::getTestData() {
 }
 
 void Macau::saveModel(int isample) {
+  if (!save_model || isample < 0) return;
   string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
   // saving latent matrices
   for (unsigned int i = 0; i < model.factors.size(); i++) {
