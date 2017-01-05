@@ -29,8 +29,7 @@ void ILatentPrior::sample_latents(const Eigen::MatrixXd &V) {
  *  NormalPrior 
  */
 
-template<class NoiseModel>
-NormalPrior<NoiseModel>::NormalPrior(MFactor &f, NoiseModel &noise)
+NormalPrior::NormalPrior(MFactor &f, INoiseModel &noise)
     : ILatentPrior(f), noise(noise)
 {
   mu.resize(num_latent());
@@ -49,8 +48,7 @@ NormalPrior<NoiseModel>::NormalPrior(MFactor &f, NoiseModel &noise)
   df = num_latent();
 }
 
-template<class NoiseModel>
-void NormalPrior<NoiseModel>::sample_latent(int n, const MatrixXd &V)
+void NormalPrior::sample_latent(int n, const MatrixXd &V)
 {
   const VectorXd &mu_u = getMu(n);
   const MatrixXd &Lambda_u = getLambda(n);
@@ -81,21 +79,19 @@ void NormalPrior<NoiseModel>::sample_latent(int n, const MatrixXd &V)
   U.col(n).noalias() = rr;
 }
 
-template<class NoiseModel>
-void NormalPrior<NoiseModel>::update_prior() {
+void NormalPrior::update_prior() {
   tie(mu, Lambda) = CondNormalWishart(fac.U, mu0, b0, WI, df);
 }
 
 
-template<class NoiseModel>
-void NormalPrior<NoiseModel>::saveModel(std::string prefix) {
+void NormalPrior::saveModel(std::string prefix) {
   writeToCSVfile(prefix + "-latentmean.csv", mu);
 }
 
 /** MacauPrior */
-template<class FType, class NoiseModel>
-MacauPrior<FType, NoiseModel>::MacauPrior(MFactor &data, NoiseModel &noise, std::unique_ptr<FType> &Fmat, bool comp_FtF)
-    : NormalPrior<NoiseModel>(data, noise)
+template<class FType>
+MacauPrior<FType>::MacauPrior(MFactor &data, INoiseModel &noise, std::unique_ptr<FType> &Fmat, bool comp_FtF)
+    : NormalPrior(data, noise)
 {
   auto U = this->fac.U;
 
@@ -120,8 +116,8 @@ MacauPrior<FType, NoiseModel>::MacauPrior(MFactor &data, NoiseModel &noise, std:
   lambda_beta_nu0 = 1e-3;
 }
 
-template<class FType, class NoiseModel>
-void MacauPrior<FType, NoiseModel>::update_prior() {
+template<class FType>
+void MacauPrior<FType>::update_prior() {
   // residual (Uhat is later overwritten):
   Uhat.noalias() = this->fac.U - Uhat;
   MatrixXd BBt = A_mul_At_combo(beta);
@@ -132,14 +128,14 @@ void MacauPrior<FType, NoiseModel>::update_prior() {
   lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
 }
 
-template<class FType, class NoiseModel>
-double MacauPrior<FType, NoiseModel>::getLinkNorm() {
+template<class FType>
+double MacauPrior<FType>::getLinkNorm() {
   return beta.norm();
 }
 
 /** Update beta and Uhat */
-template<class FType, class NoiseModel>
-void MacauPrior<FType, NoiseModel>::sample_beta() {
+template<class FType>
+void MacauPrior<FType>::sample_beta() {
   const int num_feat = beta.cols();
   // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
   // Ft_y is [ D x F ] matrix
@@ -159,8 +155,8 @@ void MacauPrior<FType, NoiseModel>::sample_beta() {
   }
 }
 
-template<class FType, class NoiseModel>
-void MacauPrior<FType, NoiseModel>::saveModel(std::string prefix) {
+template<class FType>
+void MacauPrior<FType>::saveModel(std::string prefix) {
   writeToCSVfile(prefix + "-latentmean.csv", this->mu);
   writeToCSVfile(prefix + "-link.csv", this->beta);
 }
@@ -202,15 +198,7 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) {
   return out;
 }
 
-template class MacauPrior<SparseFeat, FixedGaussianNoise>;
-template class MacauPrior<SparseFeat, AdaptiveGaussianNoise>;
-template class MacauPrior<SparseFeat, ProbitNoise>;
-template class MacauPrior<SparseDoubleFeat, FixedGaussianNoise>;
-template class MacauPrior<SparseDoubleFeat, AdaptiveGaussianNoise>;
-template class MacauPrior<SparseDoubleFeat, ProbitNoise>;
-template class NormalPrior<FixedGaussianNoise>;
-template class NormalPrior<AdaptiveGaussianNoise>;
-template class NormalPrior<ProbitNoise>;
-
+template class MacauPrior<SparseFeat>;
+template class MacauPrior<SparseDoubleFeat>;
 //template class MacauPrior<Eigen::MatrixXd>;
 

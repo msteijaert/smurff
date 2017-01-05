@@ -9,11 +9,9 @@
 #include "linop.h"
 #include "model.h"
 
- // forward declarationsc
-class FixedGaussianNoise;
-class AdaptiveGaussianNoise;
-class ProbitNoise;
+class INoiseModel;
 
+ // forward declarationsc
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 /** interface */
@@ -40,7 +38,6 @@ class ILatentPrior {
 };
 
 /** Prior without side information (pure BPMF) */
-template<class NoiseModel>
 class NormalPrior : public ILatentPrior {
   public:
     Eigen::VectorXd mu; 
@@ -51,10 +48,10 @@ class NormalPrior : public ILatentPrior {
     int b0;
     int df;
 
-    NoiseModel &noise;
+    INoiseModel &noise;
 
   public:
-    NormalPrior(MFactor &d, NoiseModel &noise);
+    NormalPrior(MFactor &d, INoiseModel &noise);
 
     void init();
     void update_prior() override;
@@ -67,8 +64,8 @@ class NormalPrior : public ILatentPrior {
 };
 
 /** Prior with side information */
-template<class FType, class NoiseModel>
-class MacauPrior : public NormalPrior<NoiseModel> {
+template<class FType>
+class MacauPrior : public NormalPrior {
   public:
     Eigen::MatrixXd Uhat;
     std::unique_ptr<FType> F;  /* side information */
@@ -82,7 +79,7 @@ class MacauPrior : public NormalPrior<NoiseModel> {
     double tol = 1e-6;
 
   public:
-    MacauPrior(MFactor &d, NoiseModel &noise, std::unique_ptr<FType> &Fmat, bool comp_FtF);
+    MacauPrior(MFactor &d, INoiseModel &noise, std::unique_ptr<FType> &Fmat, bool comp_FtF);
 
     void init(const int num_latent, std::unique_ptr<FType> &Fmat, bool comp_FtF);
 

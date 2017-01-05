@@ -1,7 +1,10 @@
+#!/usr/bin/make -f
+
 EXECS=macau_mpi
 MPICXX?=mpicxx
-CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -DNDEBUG -O2 -fopenmp -fstrict-aliasing -g
+CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -DNDEBUG -O2 -fstrict-aliasing -g
 CXXFLAGS+=-DEIGEN_DONT_PARALLELIZE=1
+#CXXFLAGS+=-fopenmp
 
 INCLUDES := -I ../eigen3 -I ../libfastsparse
 LDFLAGS := -lm -lopenblas -lpthread

@@ -201,10 +201,10 @@ int main(int argc, char** argv) {
 
    // 1) row prior with side information
    int nfeat    = row_features->rows();
-   auto prior_u = new MacauPrior<SparseFeat,FixedGaussianNoise>(macau->model.fac(1), noise, row_features, false);
+   auto prior_u = new MacauPrior<SparseFeat>(macau->model.fac(1), noise, row_features, false);
    prior_u->setLambdaBeta(lambda_beta);
    prior_u->setTol(tol);
-   auto prior_v = new NormalPrior<FixedGaussianNoise>(macau->model.fac(0), noise);
+   auto prior_v = new NormalPrior(macau->model.fac(0), noise);
 
    // 2) activity data (read_sdm)
    Y = read_sdm(fname_train);
@@ -306,7 +306,7 @@ void run_macau_mpi(
       }
 
       // Sample hyperparams
-      update_prior_mpi( *(MacauPrior<SparseFeat,FixedGaussianNoise>*) macau->priors[1].get(), macau->model.U(1), world_rank);
+      update_prior_mpi( *(MacauPrior<SparseFeat>*) macau->priors[1].get(), macau->model.U(1), world_rank);
       if (world_rank == 0) {
          macau->priors[0]->update_prior();
 
