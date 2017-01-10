@@ -298,6 +298,7 @@ void MacauMPIPrior<FType>::sample_beta() {
 
    if (world_rank == 0) {
       this->Ft_y = this->compute_Ft_y_omp();
+      this->Ft_y.transposeInPlace();
    }
 
    MPI_Bcast(& this->lambda_beta, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);

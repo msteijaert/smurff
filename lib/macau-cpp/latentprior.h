@@ -89,8 +89,8 @@ class MacauPrior : public NormalPrior {
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
     const Eigen::MatrixXd getLambda(int) const override { return this->Lambda; }
 
-    Eigen::MatrixXd &&compute_Ft_y_omp();
-    void sample_beta();
+    void compute_Ft_y_omp(Eigen::MatrixXd &);
+    virtual void sample_beta();
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
     void saveModel(std::string prefix) override;
@@ -104,7 +104,7 @@ class MacauMPIPrior : public MacauPrior<FType> {
     MacauMPIPrior(MFactor &d, INoiseModel &noise, int world_rank) 
         : MacauPrior<FType>(d, noise), world_rank(world_rank) {}
 
-    void sample_beta();
+    virtual void sample_beta();
     virtual void run_slave() { sample_beta(); }
   private:
     int world_rank;

@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -O3 -fstrict-aliasing
+CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -O0 -fstrict-aliasing
 #CXXFLAGS+=-fopenmp
 LINK.o=$(CXX) $(CXXFLAGS)
 

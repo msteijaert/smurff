@@ -137,14 +137,14 @@ double MacauPrior<FType>::getLinkNorm() {
 }
 
 template<class FType>
-MatrixXd &&MacauPrior<FType>::compute_Ft_y_omp() {
+void MacauPrior<FType>::compute_Ft_y_omp(MatrixXd &Ft_y) {
     auto &U = this->fac.U;
     const int num_feat = beta.cols();
 
     // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
     // Ft_y is [ D x F ] matrix
     MatrixXd tmp = (U + MvNormal_prec_omp(Lambda, U.cols())).colwise() - mu;
-    MatrixXd Ft_y = A_mul_B(tmp, *F);
+    Ft_y = A_mul_B(tmp, *F);
     MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 
 #pragma omp parallel for schedule(static)
@@ -153,27 +153,26 @@ MatrixXd &&MacauPrior<FType>::compute_Ft_y_omp() {
             Ft_y(d, f) += sqrt(lambda_beta) * tmp2(d, f);
         }
     }
-    Ft_y.transposeInPlace();
-    return std::move(Ft_y);
 }
 
 /** Update beta and Uhat */
 template<class FType>
 void MacauPrior<FType>::sample_beta() {
-  MatrixXd Ft_y =  this->compute_Ft_y_omp();
+    MatrixXd Ft_y;
+    this->compute_Ft_y_omp(Ft_y);
 
-  if (use_FtF) {
-    // direct method
-    MatrixXd K(FtF.rows(), FtF.cols());
-    K.triangularView<Eigen::Lower>() = FtF;
-    K.diagonal().array() += lambda_beta;
-    chol_decomp(K);
-    chol_solve_t(K, Ft_y);
-    beta = Ft_y;
-  } else {
-    // BlockCG solver
-    solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
-  }
+    if (use_FtF) {
+        // direct method
+        MatrixXd K(FtF.rows(), FtF.cols());
+        K.triangularView<Eigen::Lower>() = FtF;
+        K.diagonal().array() += lambda_beta;
+        chol_decomp(K);
+        chol_solve_t(K, Ft_y);
+        beta = Ft_y;
+    } else {
+        // BlockCG solver
+        solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
+    }
 }
 
 template<class FType>
