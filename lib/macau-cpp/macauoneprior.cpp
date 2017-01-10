@@ -1,123 +1,122 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <math.h>
-#include <omp.h>
 #include <iostream>
 
 #include "mvnormal.h"
 #include "linop.h"
 #include "bpmfutils.h"
 #include "macauoneprior.h"
+#include "noisemodels.h"
 
 using namespace std; 
 using namespace Eigen;
 
+
 template<class FType>
-void MacauOnePrior<FType>::init(const int nlatent, std::unique_ptr<FType> &Fmat) {
-  num_latent = nlatent;
+MacauOnePrior<FType>::MacauOnePrior(MFactor &data, INoiseModel &noise)
+    : ILatentPrior(data, noise)
+{
+    // parameters of Normal-Gamma distributions
+    mu     = VectorXd::Constant(num_latent(), 0.0);
+    lambda = VectorXd::Constant(num_latent(), 10.0);
+    // hyperparameter (lambda_0)
+    l0 = 2.0;
+    lambda_a0 = 1.0;
+    lambda_b0 = 1.0;
+}
 
-  // parameters of Normal-Gamma distributions
-  mu     = VectorXd::Constant(num_latent, 0.0);
-  lambda = VectorXd::Constant(num_latent, 10.0);
-  // their hyperparameter (lambda_0)
-  l0 = 2.0;
-  lambda_a0 = 1.0;
-  lambda_b0 = 1.0;
-
+template<class FType>
+void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat) {
   // side information
   F       = std::move(Fmat);
   F_colsq = col_square_sum(*F);
 
-  Uhat = MatrixXd::Constant(num_latent, F->rows(), 0.0);
-  beta = MatrixXd::Constant(num_latent, F->cols(), 0.0);
+  Uhat = MatrixXd::Constant(num_latent(), F->rows(), 0.0);
+  beta = MatrixXd::Constant(num_latent(), F->cols(), 0.0);
 
   // initial value (should be determined automatically)
   // Hyper-prior for lambda_beta (mean 1.0):
-  lambda_beta     = VectorXd::Constant(num_latent, 5.0);
+  lambda_beta     = VectorXd::Constant(num_latent(), 5.0);
   lambda_beta_a0 = 0.1;
   lambda_beta_b0 = 0.1;
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_latents(
-    Eigen::MatrixXd &U,
-    const Eigen::SparseMatrix<double> &Ymat,
-    double mean_rating,
-    const Eigen::MatrixXd &V,
-    double alpha,
-    const int num_latent)
+void MacauOnePrior<FType>::sample_latent(int i, const MatrixXd &V)
 {
-  const int N = U.cols();
-  const int D = U.rows();
-
-#pragma omp parallel for schedule(dynamic, 4)
-  for (int i = 0; i < N; i++) {
+    auto &U = fac.U;
+    const auto &Ymat = fac.Y;
+    const int N = U.cols();
+    const int D = U.rows();
+    double mean_rating = fac.mean_rating;
+    
 
     const int nnz = Ymat.outerIndexPtr()[i + 1] - Ymat.outerIndexPtr()[i];
     VectorXd Yhat(nnz);
 
     // precalculating Yhat and Qi
     int idx = 0;
-    VectorXd Qi = lambda;
+    VectorXd Qi = this->lambda;
     for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
-      Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
-      Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
+        Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
     }
-    VectorXd rnorms(num_latent);
+    VectorXd rnorms(num_latent());
     bmrandn_single(rnorms);
 
     for (int d = 0; d < D; d++) {
-      // computing Lid
-      const double uid = U(d, i);
-      double Lid = lambda(d) * (mu(d) + Uhat(d, i));
+        // computing Lid
+        const double uid = U(d, i);
+        double Lid = this->lambda(d) * (mu(d) + Uhat(d, i));
 
-      idx = 0;
-      for ( SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
-        const double vjd = V(d, it.row());
-        // L_id += alpha * (Y_ij - k_ijd) * v_jd
-        Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
-      }
-      // Now use Lid and Qid to update uid
-      double uid_old = U(d, i);
-      double uid_var = 1.0 / Qi(d);
+        idx = 0;
+        for ( SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
+            const double vjd = V(d, it.row());
+            // L_id += alpha * (Y_ij - k_ijd) * v_jd
+            auto alpha = noise.sample(i, it.row());
+            Lid += alpha.first * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
+        }
+        // Now use Lid and Qid to update uid
+        double uid_old = U(d, i);
+        double uid_var = 1.0 / Qi(d);
 
-      // sampling new u_id ~ Norm(Lid / Qid, 1/Qid)
-      U(d, i) = Lid * uid_var + sqrt(uid_var) * rnorms(d);
+        // sampling new u_id ~ Norm(Lid / Qid, 1/Qid)
+        U(d, i) = Lid * uid_var + sqrt(uid_var) * rnorms(d);
 
-      // updating Yhat
-      double uid_delta = U(d, i) - uid_old;
-      idx = 0;
-      for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
-        Yhat(idx) += uid_delta * V(d, it.row());
-      }
+        // updating Yhat
+        double uid_delta = U(d, i) - uid_old;
+        idx = 0;
+        for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
+            Yhat(idx) += uid_delta * V(d, it.row());
+        }
     }
-  }
 }
 
 template<class FType>
-void MacauOnePrior<FType>::update_prior(const Eigen::MatrixXd &U) {
-  sample_mu_lambda(U);
-  sample_beta(U);
-  compute_uhat(Uhat, *F, beta);
-  sample_lambda_beta();
+void MacauOnePrior<FType>::update_prior() {
+    const Eigen::MatrixXd &U = fac.U;
+    sample_mu_lambda(U);
+    sample_beta(U);
+    compute_uhat(Uhat, *F, beta);
+    sample_lambda_beta();
 }
 
 template<class FType>
 void MacauOnePrior<FType>::sample_mu_lambda(const Eigen::MatrixXd &U) {
-  MatrixXd Lambda(num_latent, num_latent);
-  MatrixXd WI(num_latent, num_latent);
+  MatrixXd Lambda(num_latent(), num_latent());
+  MatrixXd WI(num_latent(), num_latent());
   WI.setIdentity();
   int N = U.cols();
 
-  MatrixXd Udelta(num_latent, N);
+  MatrixXd Udelta(num_latent(), N);
 #pragma omp parallel for schedule(static)
   for (int i = 0; i < N; i++) {
-    for (int d = 0; d < num_latent; d++) {
+    for (int d = 0; d < num_latent(); d++) {
       Udelta(d, i) = U(d, i) - Uhat(d, i);
     }
   }
-  tie(mu, Lambda) = CondNormalWishart(Udelta, VectorXd::Constant(num_latent, 0.0), 2.0, WI, num_latent);
-  lambda = Lambda.diagonal();
+  tie(mu, Lambda) = CondNormalWishart(Udelta, VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
+  this->lambda = Lambda.diagonal();
 }
 
 template<class FType>
@@ -130,8 +129,8 @@ void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
   MatrixXd Z;
 
 #pragma omp parallel for private(Z) schedule(static, 1)
-  for (int dstart = 0; dstart < num_latent; dstart += blocksize) {
-    const int dcount = std::min(blocksize, num_latent - dstart);
+  for (int dstart = 0; dstart < num_latent(); dstart += blocksize) {
+    const int dcount = std::min(blocksize, num_latent() - dstart);
     Z.resize(dcount, U.cols());
 
     for (int i = 0; i < N; i++) {
@@ -150,8 +149,8 @@ void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
 
       for (int d = 0; d < dcount; d++) {
         int dx = d + dstart;
-        double A_df     = lambda_beta(dx) + lambda(dx) * F_colsq(f);
-        double B_df     = lambda(dx) * (zx(d) + beta(dx,f) * F_colsq(f));
+        double A_df     = lambda_beta(dx) + this->lambda(dx) * F_colsq(f);
+        double B_df     = this->lambda(dx) * (zx(d) + beta(dx,f) * F_colsq(f));
         double A_inv    = 1.0 / A_df;
         double beta_new = B_df * A_inv + sqrt(A_inv) * randvals(d);
         delta_beta(d)   = beta(dx,f) - beta_new;
@@ -162,13 +161,6 @@ void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
       add_Acol_mul_bt(Z, *F, f, delta_beta);
     }
   }
-}
-
-template<class FType>
-void MacauOnePrior<FType>::sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                          double mean_rating, const Eigen::MatrixXd &samples, const int num_latent) {
- //TODO
- throw std::runtime_error("Not implemented!");
 }
 
 template<class FType>

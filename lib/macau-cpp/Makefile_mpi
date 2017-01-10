@@ -15,7 +15,7 @@ all: ${EXECS}
 %.o: %.cpp %.h
 	$(MPICXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-OBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macau_mpi.o
+OBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macau_mpi.o macauoneprior.o
 
 macau_mpi: ${OBJS}
 	${MPICXX} ${CXXFLAGS} ${INCLUDES} -o macau_mpi ${OBJS} ${LDFLAGS} ${LIBLOCS}

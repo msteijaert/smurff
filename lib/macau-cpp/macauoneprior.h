@@ -8,7 +8,6 @@
 template<class FType>
 class MacauOnePrior : public ILatentPrior {
   public:
-    int num_latent;
     Eigen::MatrixXd Uhat;
 
     std::unique_ptr<FType> F;  /* side information */
@@ -19,7 +18,7 @@ class MacauOnePrior : public ILatentPrior {
     double lambda_beta_a0; /* Hyper-prior for lambda_beta */
     double lambda_beta_b0; /* Hyper-prior for lambda_beta */
 
-    Eigen::VectorXd mu; 
+    Eigen::VectorXd mu;
     Eigen::VectorXd lambda;
     double lambda_a0;
     double lambda_b0;
@@ -27,22 +26,18 @@ class MacauOnePrior : public ILatentPrior {
     int l0;
 
   public:
-    MacauOnePrior(const int nlatent, std::unique_ptr<FType> &Fmat) { init(nlatent, Fmat); }
-    MacauOnePrior() {}
-
-    void init(const int nlatent, std::unique_ptr<FType> &Fmat);
-
-    void sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_rating,
-                                   const Eigen::MatrixXd &samples, double alpha, const int num_latent) override;
-    void sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                   double mean_rating, const Eigen::MatrixXd &samples, const int num_latent) override;
-    void update_prior(const Eigen::MatrixXd &U) override;
+    MacauOnePrior(MFactor &d, INoiseModel &noise);
+    
+    void addSideInfo(std::unique_ptr<FType> &Fmat);
+    
+    void sample_latent(int, const Eigen::MatrixXd &) override;
+    void update_prior() override;
     double getLinkNorm() override { return beta.norm(); };
-    double getLinkLambda() { return lambda_beta.mean(); };
+    double getLinkLambda() override { return lambda_beta.mean(); };
     void sample_beta(const Eigen::MatrixXd &U);
     void sample_mu_lambda(const Eigen::MatrixXd &U);
     void sample_lambda_beta();
-    void setLambdaBeta(double lb) { lambda_beta = Eigen::VectorXd::Constant(num_latent, lb); };
+    void setLambdaBeta(double lb) { lambda_beta = Eigen::VectorXd::Constant(this->num_latent(), lb); };
     void saveModel(std::string prefix) override;
 };
 

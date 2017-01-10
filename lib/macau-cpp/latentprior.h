@@ -18,7 +18,7 @@ typedef Eigen::SparseMatrix<double> SparseMatrixD;
 class ILatentPrior {
   public:
       // c-tor
-      ILatentPrior(MFactor &);
+      ILatentPrior(MFactor &, INoiseModel &);
 
       // utility
       int num_latent() const { return fac.num_latent; }
@@ -36,6 +36,7 @@ class ILatentPrior {
 
   protected:
       MFactor &fac;
+      INoiseModel &noise;
 };
 
 /** Prior without side information (pure BPMF) */
@@ -49,7 +50,6 @@ class NormalPrior : public ILatentPrior {
     int b0;
     int df;
 
-    INoiseModel &noise;
 
   public:
     NormalPrior(MFactor &d, INoiseModel &noise);

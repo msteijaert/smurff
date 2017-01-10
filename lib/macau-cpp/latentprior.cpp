@@ -17,7 +17,7 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(MFactor &d) : fac(d) {}
+ILatentPrior::ILatentPrior(MFactor &d,INoiseModel &noise) : fac(d), noise(noise) {}
 
 void ILatentPrior::sample_latents(const Eigen::MatrixXd &V) {
 #pragma omp parallel for schedule(dynamic, 2)
@@ -30,7 +30,7 @@ void ILatentPrior::sample_latents(const Eigen::MatrixXd &V) {
  */
 
 NormalPrior::NormalPrior(MFactor &f, INoiseModel &noise)
-    : ILatentPrior(f), noise(noise)
+    : ILatentPrior(f, noise)
 {
   mu.resize(num_latent());
   mu.setZero();
