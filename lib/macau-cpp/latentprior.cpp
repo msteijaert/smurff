@@ -136,16 +136,34 @@ double MacauPrior<FType>::getLinkNorm() {
   return beta.norm();
 }
 
+template<class FType>
+MatrixXd &&MacauPrior<FType>::compute_Ft_y_omp() {
+    auto &U = this->fac.U;
+    const int num_feat = beta.cols();
+
+    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
+    // Ft_y is [ D x F ] matrix
+    MatrixXd tmp = (U + MvNormal_prec_omp(Lambda, U.cols())).colwise() - mu;
+    MatrixXd Ft_y = A_mul_B(tmp, *F);
+    MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
+
+#pragma omp parallel for schedule(static)
+    for (int f = 0; f < num_feat; f++) {
+        for (int d = 0; d < num_latent(); d++) {
+            Ft_y(d, f) += sqrt(lambda_beta) * tmp2(d, f);
+        }
+    }
+    Ft_y.transposeInPlace();
+    return std::move(Ft_y);
+}
+
 /** Update beta and Uhat */
 template<class FType>
 void MacauPrior<FType>::sample_beta() {
-  const int num_feat = beta.cols();
-  // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
-  // Ft_y is [ D x F ] matrix
-  MatrixXd tmp = (this->fac.U + MvNormal_prec_omp(this->Lambda, this->fac.U.cols())).colwise() - this->mu;
-  MatrixXd Ft_y = A_mul_B(tmp, *F) + sqrt(lambda_beta) * MvNormal_prec_omp(this->Lambda, num_feat);
+  MatrixXd Ft_y =  this->compute_Ft_y_omp();
 
   if (use_FtF) {
+    // direct method
     MatrixXd K(FtF.rows(), FtF.cols());
     K.triangularView<Eigen::Lower>() = FtF;
     K.diagonal().array() += lambda_beta;
@@ -153,7 +171,7 @@ void MacauPrior<FType>::sample_beta() {
     chol_solve_t(K, Ft_y);
     beta = Ft_y;
   } else {
-    // BlockCG
+    // BlockCG solver
     solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
   }
 }
@@ -180,6 +198,55 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
   return rgamma(gamma_post.first, gamma_post.second);
 }
 
+/*
+void SpikeAndSlabPrior::sample_latent(int d, const MatrixXd &V)
+{
+    VectorNd Zcol = VectorNd::Zero(K);
+    auto &Y = fac.Y;
+    auto &U = fac.U;
+    double mean_rating = fac.mean_rating;
+
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> udist(0,1);
+    ArrayNd log_alpha = alpha.log();
+    ArrayNd log_r = - r.array().log() + (VectorNd::Ones(K) - r).array().log();
+
+    Zcol.setZero();
+
+    MatrixNNd XX(MatrixNNd::Zero());
+    VectorNd Wcol = W.col(d);
+    VectorNd yX(VectorNd::Zero());
+    double b_tau = .0;
+    for (SparseMatrixD::InnerIterator it(Y,d); it; ++it) {
+        double y = it.value() - mean_rating;
+        auto Xcol = X.col(it.row());
+        double e = y - (Wcol.transpose() * Xcol);
+        yX.noalias() += y * Xcol;
+        b_tau += e * e;
+        XX.noalias() += Xcol * Xcol.transpose();
+    }
+
+    std::gamma_distribution<double> gdist(a_tau, 1/(prior_beta_0t + b_tau/2) );
+    double t = tau[d] = gdist(generator);
+
+    for(unsigned k=0;k<K;++k) {
+        double lambda = t * XX(k,k) + alpha(k);
+        double mu = t / lambda * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
+        double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
+        double z = 1 / (1 + exp(z1));
+        double r = udist(generator);
+        if (r < z) {
+            Zcol(k)++;
+            Wcol(k) = mu + randn() / sqrt(lambda);
+        } else {
+            Wcol(k) = .0;
+        }
+    }
+
+    W.col(d) = Wcol;
+}
+*/
+
 /**
  * X = A * B
  */
@@ -204,4 +271,26 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) {
 template class MacauPrior<SparseFeat>;
 template class MacauPrior<SparseDoubleFeat>;
 //template class MacauPrior<Eigen::MatrixXd>;
+
+
+// home made reduction!!
+// int count=0;
+// int tcount=0;
+// #pragma omp threadprivate(tcount)
+//  
+// omp_set_dynamic(0);
+//  
+// #pragma omp parallel
+// {
+// . . .
+//  if (event_happened) {
+//  tcount++;
+//  }
+//  . . .
+// }
+// #pragma omp parallel shared(count)
+// {
+// #pragma omp atomic
+//  count += tcount;
+// }
 

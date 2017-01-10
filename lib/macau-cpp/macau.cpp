@@ -96,8 +96,7 @@ void Macau::init() {
   keepRunning = true;
 }
 
-Macau::~Macau() {
-}
+Macau::~Macau() {}
 
 inline double sqr(double x) { return x*x; }
 

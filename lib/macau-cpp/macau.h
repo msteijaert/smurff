@@ -28,8 +28,7 @@ class Macau  {
       double rmse_test;
 
   public:
-      Macau(int D) : model(D) {}
-      Macau() : Macau(10) {}
+      Macau(int D = 10) : model(D) {}
 
       template<class Prior>
       inline Prior& addPrior();
@@ -51,6 +50,13 @@ class Macau  {
       void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
       ~Macau();
+};
+
+class MacauMPI : public Macau {
+  public:
+    MacauMPI(int D, int world_rank) : Macau(D), world_rank(world_rank) {}
+    void run();
+    const int world_rank;
 };
 
 template<class Prior>

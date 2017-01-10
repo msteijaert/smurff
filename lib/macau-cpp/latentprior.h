@@ -29,6 +29,7 @@ class ILatentPrior {
       virtual void update_prior() = 0;
       virtual double getLinkNorm() { return NAN; };
       virtual double getLinkLambda() { return NAN; };
+      virtual void run_slave() {}
 
       void sample_latents(const Eigen::MatrixXd &V);
       virtual void sample_latent(int n, const Eigen::MatrixXd &V) = 0;
@@ -53,14 +54,13 @@ class NormalPrior : public ILatentPrior {
   public:
     NormalPrior(MFactor &d, INoiseModel &noise);
 
-    void init();
     void update_prior() override;
     void saveModel(std::string prefix) override;
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
 
-    virtual void sample_latent(int n, const Eigen::MatrixXd &V) override;
+    void sample_latent(int n, const Eigen::MatrixXd &V) override;
 };
 
 /** Prior with side information */
@@ -89,10 +89,49 @@ class MacauPrior : public NormalPrior {
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
     const Eigen::MatrixXd getLambda(int) const override { return this->Lambda; }
 
+    Eigen::MatrixXd &&compute_Ft_y_omp();
     void sample_beta();
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
     void saveModel(std::string prefix) override;
+};
+
+
+/** Prior with side information */
+template<class FType>
+class MacauMPIPrior : public MacauPrior<FType> {
+  public:
+    MacauMPIPrior(MFactor &d, INoiseModel &noise, int world_rank) 
+        : MacauPrior<FType>(d, noise), world_rank(world_rank) {}
+
+    void sample_beta();
+    virtual void run_slave() { sample_beta(); }
+  private:
+    int world_rank;
+};
+
+
+/** Spike and slab prior */
+class SpikeAndSlab : public ILatentPrior {
+  public:
+    Eigen::VectorXd mu; 
+    Eigen::MatrixXd Lambda;
+    Eigen::MatrixXd WI;
+    Eigen::VectorXd mu0;
+
+    int b0;
+    int df;
+
+#pragma omp threadprivate(Zcol)
+    Eigen::VectorXd Zcol;
+
+    INoiseModel &noise;
+
+  public:
+    SpikeAndSlab(MFactor &d, INoiseModel &noise);
+    void update_prior() override;
+    void saveModel(std::string prefix) override;
+    void sample_latent(int n, const Eigen::MatrixXd &V) override;
 };
 
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);

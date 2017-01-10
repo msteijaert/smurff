@@ -194,19 +194,19 @@ int main(int argc, char** argv) {
    SparseDoubleMatrix* Y     = NULL;
    SparseDoubleMatrix* Ytest = NULL;
 
-   Macau* macau = new Macau(num_latent);
+   MacauMPI macau(num_latent, world_rank);
 
    // -- noise model + general parameters
-   macau->setPrecision(precision);
-   macau->setSamples(burnin, nsamples);
-   macau->setVerbose(true);
+   macau.setPrecision(precision);
+   macau.setSamples(burnin, nsamples);
+   macau.setVerbose(true);
 
    //-- Normal column prior
-   macau->addPrior<NormalPrior>();
+   macau.addPrior<NormalPrior>();
    
    //-- row prior with side information
    int nfeat    = row_features->rows();
-   auto &prior_u = macau->addPrior<MacauPrior<SparseFeat>>();
+   auto &prior_u = macau.addPrior<MacauPrior<SparseFeat>>();
    prior_u.addSideInfo(row_features, false);
    prior_u.setLambdaBeta(lambda_beta);
    prior_u.setTol(tol);
@@ -224,8 +224,8 @@ int main(int argc, char** argv) {
    }
 
    // 4) create Macau object
-   macau->model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
-   macau->model.init();
+   macau.model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
+   macau.model.init();
 
    // test data
    if (fname_test != NULL) {
@@ -238,7 +238,7 @@ int main(int argc, char** argv) {
                          std::to_string(Ytest->ncol) + ").",
              world_rank);
       }
-      macau->model.setRelationDataTest(Ytest->rows, Ytest->cols, Ytest->vals, Ytest->nnz, Ytest->nrow, Ytest->ncol);
+      macau.model.setRelationDataTest(Ytest->rows, Ytest->cols, Ytest->vals, Ytest->nnz, Ytest->nrow, Ytest->ncol);
    }
 
 
@@ -251,13 +251,13 @@ int main(int argc, char** argv) {
       }
    }
 
-   run_macau_mpi(macau, world_rank);
+   macau.run();
 
    // save results
    if (world_rank == 0) {
-      VectorXd yhat_raw     = macau->getPredictions();
-      VectorXd yhat_sd_raw  = macau->model.getStds(macau->nsamples);
-      MatrixXd testdata_raw = macau->model.getTestData();
+      VectorXd yhat_raw     = macau.getPredictions();
+      VectorXd yhat_sd_raw  = macau.model.getStds(macau.nsamples);
+      MatrixXd testdata_raw = macau.model.getTestData();
 
       std::string fname_pred = output_prefix + "-predictions.csv";
       std::ofstream predfile;
@@ -276,99 +276,35 @@ int main(int argc, char** argv) {
    }
 
    // Finalize the MPI environment.
-   delete macau;
    MPI_Finalize();
    return 0;
 }
 
-void run_macau_mpi(
-      Macau* macau,
-      int world_rank)
+void MacauMPI::run()
 {
    /* adapted from Macau.run() */
-   macau->init();
-   if (world_rank == 0 && macau->verbose) {
-      std::cout << "Sampling" << std::endl;
-   }
-
-   const int num_rows = macau->model.Y().rows();
-   const int num_cols = macau->model.Y().cols();
-
-   auto start = tick();
-   for (int i = 0; i < macau->burnin + macau->nsamples; i++) {
-      if (world_rank == 0 && macau->verbose && i == macau->burnin) {
-         printf(" ====== Burn-in complete, averaging samples ====== \n");
-      }
-      auto starti = tick();
-
-      if (world_rank == 0) {
-          // sample latent vectors
-          macau->priors[0]->sample_latents(macau->model.U(1));
-          macau->priors[1]->sample_latents(macau->model.U(0));
-      }
-
-      // Sample hyperparams
-      update_prior_mpi( *(MacauPrior<SparseFeat>*) macau->priors[1].get(), macau->model.U(1), world_rank);
-      if (world_rank == 0) {
-         macau->priors[0]->update_prior();
-
-         macau->model.update_rmse(i);
-
-         auto endi = tick();
-         auto elapsed = endi - start;
-         double samples_per_sec = (i + 1) * (num_rows + num_cols) / elapsed;
-         double elapsedi = endi - starti;
-
-         if (macau->verbose) {
-           macau->printStatus(i, elapsedi, samples_per_sec);
-         }
-      }
+   init();
+   if (world_rank == 0) {
+       Macau::run();
+   } else {
+       for(auto &p : priors) p->run_slave();
    }
 }
 
-template<class Prior>
-void update_prior_mpi(Prior &prior, const Eigen::MatrixXd &U, int world_rank) {
-   if (world_rank == 0) {
-      // residual (Uhat is later overwritten):
-      prior.Uhat.noalias() = U - prior.Uhat;
-      MatrixXd BBt = A_mul_At_combo(prior.beta);
-      // sampling Gaussian
-      std::tie(prior.mu, prior.Lambda) = CondNormalWishart(prior.Uhat, prior.mu0, prior.b0, prior.WI + prior.lambda_beta * BBt, prior.df + prior.beta.cols());
-   }
-   sample_beta_mpi(prior, U, world_rank);
-   if (world_rank == 0) { 
-      compute_uhat(prior.Uhat, *prior.F, prior.beta);
-      prior.lambda_beta = sample_lambda_beta(prior.beta, prior.Lambda, prior.lambda_beta_nu0, prior.lambda_beta_mu0);
-   }
-}
-
-template<class Prior>
-void sample_beta_mpi(Prior &prior, const Eigen::MatrixXd &U, int world_rank) {
-   const int num_latent = prior.beta.rows();
-   const int num_feat = prior.beta.cols();
-   MatrixXd Ft_y(0,0);
+template<class FType>
+void MacauMPIPrior<FType>::sample_beta() {
+   const int num_latent = this->beta.rows();
+   const int num_feat = this->beta.cols();
 
    if (world_rank == 0) {
-      // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
-      // Ft_y is [ D x F ] matrix
-      MatrixXd tmp = (U + MvNormal_prec_omp(prior.Lambda, U.cols())).colwise() - prior.mu;
-      Ft_y = A_mul_B(tmp, *prior.F);
-      MatrixXd tmp2 = MvNormal_prec_omp(prior.Lambda, num_feat);
-
-#pragma omp parallel for schedule(static)
-      for (int f = 0; f < num_feat; f++) {
-         for (int d = 0; d < num_latent; d++) {
-            Ft_y(d, f) += sqrt(prior.lambda_beta) * tmp2(d, f);
-         }
-      }
-      Ft_y.transposeInPlace();
+      this->Ft_y = this->compute_Ft_y_omp();
    }
 
-   MPI_Bcast(& prior.lambda_beta, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-   MPI_Bcast(& prior.tol,         1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+   MPI_Bcast(& this->lambda_beta, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+   MPI_Bcast(& this->tol,         1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
    // sending Ft_y
-   MPI_Scatterv(Ft_y.data(), sendcounts, displs, MPI_DOUBLE, rec, sendcounts[world_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+   MPI_Scatterv(this->Ft_y.data(), sendcounts, displs, MPI_DOUBLE, rec, sendcounts[world_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
    int nrhs = rhs_for_rank[world_rank];
    MatrixXd RHS(nrhs, num_feat), result(nrhs, num_feat);
 
@@ -379,15 +315,15 @@ void sample_beta_mpi(Prior &prior, const Eigen::MatrixXd &U, int world_rank) {
       }
    }
    // solving
-   solve_blockcg(result, *prior.F, prior.lambda_beta, RHS, prior.tol, 32, 8);
+   solve_blockcg(result, *this->F, this->lambda_beta, RHS, this->tol, 32, 8);
    result.transposeInPlace();
-   MPI_Gatherv(result.data(), nrhs*num_feat, MPI_DOUBLE, Ft_y.data(), sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+   MPI_Gatherv(result.data(), nrhs*num_feat, MPI_DOUBLE, this->Ft_y.data(), sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
    if (world_rank == 0) {
-      //prior.beta = Ft_y.transpose();
+      //this->beta = Ft_y.transpose();
 #pragma omp parallel for schedule(static)
       for (int f = 0; f < num_feat; f++) {
          for (int d = 0; d < num_latent; d++) {
-            prior.beta(d, f) = Ft_y(f, d);
+            this->beta(d, f) = this->Ft_y(f, d);
          }
       }
    }
