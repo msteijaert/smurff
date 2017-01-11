@@ -205,7 +205,7 @@ void Macau::saveModel(int isample) {
   // saving latent matrices
   for (unsigned int i = 0; i < model.factors.size(); i++) {
     writeToCSVfile(fprefix + "U" + std::to_string(i+1) + "-latents.csv", model.U(i));
-    priors[i]->saveModel(fprefix + "U" + std::to_string(i+1));
+    priors[i]->savePriorInfo(fprefix + "U" + std::to_string(i+1));
   }
 }
 

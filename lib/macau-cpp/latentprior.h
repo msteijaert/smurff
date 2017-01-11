@@ -23,7 +23,7 @@ class ILatentPrior {
       // utility
       int num_latent() const { return fac.num_latent; }
       Eigen::MatrixXd::ConstColXpr col(int i) const { return fac.col(i); }
-      virtual void saveModel(std::string prefix) = 0;
+      virtual void savePriorInfo(std::string prefix) = 0;
 
       // work
       virtual void update_prior() = 0;
@@ -55,7 +55,7 @@ class NormalPrior : public ILatentPrior {
     NormalPrior(MFactor &d, INoiseModel &noise);
 
     void update_prior() override;
-    void saveModel(std::string prefix) override;
+    void savePriorInfo(std::string prefix) override;
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
@@ -93,7 +93,7 @@ class MacauPrior : public NormalPrior {
     virtual void sample_beta();
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
-    void saveModel(std::string prefix) override;
+    void savePriorInfo(std::string prefix) override;
 };
 
 
@@ -111,26 +111,28 @@ class MacauMPIPrior : public MacauPrior<FType> {
 };
 
 
+typedef Eigen::VectorXd VectorNd;
+typedef Eigen::MatrixXd MatrixNNd;
+typedef Eigen::ArrayXd ArrayNd;
+
 /** Spike and slab prior */
-class SpikeAndSlab : public ILatentPrior {
+class SpikeAndSlabPrior : public ILatentPrior {
   public:
-    Eigen::VectorXd mu; 
-    Eigen::MatrixXd Lambda;
-    Eigen::MatrixXd WI;
-    Eigen::VectorXd mu0;
+    VectorNd Zcol, W2col, Zkeep;
+    ArrayNd alpha;
+    VectorNd r;
 
-    int b0;
-    int df;
+    //-- hyper params
+    const double prior_beta = 1; //for r
+    const double prior_alpha_0 = 1.; //for alpha
+    const double prior_beta_0 = 1.; //for alpha
 
-#pragma omp threadprivate(Zcol)
-    Eigen::VectorXd Zcol;
-
-    INoiseModel &noise;
-
+    
+ 
   public:
-    SpikeAndSlab(MFactor &d, INoiseModel &noise);
+    SpikeAndSlabPrior(MFactor &d, INoiseModel &noise);
     void update_prior() override;
-    void saveModel(std::string prefix) override;
+    void savePriorInfo(std::string prefix) override;
     void sample_latent(int n, const Eigen::MatrixXd &V) override;
 };
 
