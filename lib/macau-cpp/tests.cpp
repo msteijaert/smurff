@@ -498,7 +498,7 @@ TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calc
   int rows[1] = {0};
   int cols[1] = {0};
   double vals[1] = {4.5};
-  MFactors model(2);
+  SparseMF model(2);
   model.setRelationDataTest(rows, cols, vals, 1, 1, 1);
   model.setRelationData(rows, cols, vals, 1, 1, 1);
   model.init();

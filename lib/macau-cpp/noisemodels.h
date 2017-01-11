@@ -6,12 +6,12 @@
 #include <iomanip>
 #include "bpmfutils.h"
 
-struct MFactors; // forward declaration
+struct SparseMF; // forward declaration
 
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(MFactors &p) : model(p) {}
+    INoiseModel(SparseMF &p) : model(p) {}
 
     virtual void init()  = 0;
     virtual void update()  = 0;
@@ -25,7 +25,7 @@ class INoiseModel {
     virtual std::pair<double, double> sample(int, int) = 0;
 
   protected:
-    MFactors &model;
+    SparseMF &model;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -35,7 +35,7 @@ class FixedGaussianNoise : public INoiseModel {
     double rmse_test;
     double rmse_test_onesample;
   
-    FixedGaussianNoise(MFactors &p, double a = 1.) :
+    FixedGaussianNoise(SparseMF &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
 
     void init() override { }
@@ -63,7 +63,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double rmse_test;
     double rmse_test_onesample;
 
-    AdaptiveGaussianNoise(MFactors &p, double sinit = 1., double smax = 10.)
+    AdaptiveGaussianNoise(SparseMF &p, double sinit = 1., double smax = 10.)
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
     void init() override;
@@ -85,7 +85,7 @@ class ProbitNoise : public INoiseModel {
   public:
     double auc_test;
     double auc_test_onesample;
-    ProbitNoise(MFactors &p) : INoiseModel(p) {}
+    ProbitNoise(SparseMF &p) : INoiseModel(p) {}
     void init() override {}
     void update() override {}
 

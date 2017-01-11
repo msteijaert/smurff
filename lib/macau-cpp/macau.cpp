@@ -60,7 +60,7 @@ void Macau::setSamples(int b, int n) {
   this->nsamples = n;
 }
 
-void MFactors::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
   Y().resize(nrows, ncols);
   sparseFromIJV(Y(), rows, cols, values, N);
   Yt() = Y().transpose();
@@ -68,7 +68,7 @@ void MFactors::setRelationData(int* rows, int* cols, double* values, int N, int 
   factors[0].mean_rating = factors[1].mean_rating =  Y().sum() / Y().nonZeros();
 }
 
-void MFactors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+void SparseMF::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
   assert(nrows == Y().rows() && ncols == Y().cols() && 
          "Size of train must be equal to size of test");
     
@@ -76,23 +76,24 @@ void MFactors::setRelationDataTest(int* rows, int* cols, double* values, int N, 
   sparseFromIJV(Ytest, rows, cols, values, N);
 }
 
-void MFactors::setRelationData(SparseDoubleMatrix &Y) {
+void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
     
-void MFactors::setRelationDataTest(SparseDoubleMatrix &Y) {
+void SparseMF::setRelationDataTest(SparseDoubleMatrix &Y) {
    setRelationDataTest(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
 
 double Macau::getRmseTest() { return rmse_test; }
 
-void MFactors::init() {
+void SparseMF::init() {
     for( auto &f : factors) f.init();
     predictions     = VectorXd::Zero( Ytest.nonZeros() );
     predictions_var = VectorXd::Zero( Ytest.nonZeros() );
 }
 
-void MFactor::init() {
+template<typename YType>
+void IFactor<YType>::init() {
   U.resize(num_latent, Y.cols());
   U.setZero();
 }
@@ -139,8 +140,8 @@ void Macau::run() {
         auto starti = tick();
 
         // sample latent vectors
-        priors[0]->sample_latents(model.U(1));
-        priors[1]->sample_latents(model.U(0));
+        priors[0]->sample_latents(model.fac(1));
+        priors[1]->sample_latents(model.fac(0));
 
         // Sample hyperparams
         for(auto &p : priors) p->update_prior();
@@ -168,7 +169,7 @@ void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
           snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi);
 }
 
-Eigen::VectorXd MFactors::getStds(int iter) {
+Eigen::VectorXd SparseMF::getStds(int iter) {
   VectorXd std(Ytest.nonZeros());
   if (iter <= 1) {
     std.setConstant(NAN);
@@ -184,7 +185,7 @@ Eigen::VectorXd MFactors::getStds(int iter) {
 }
 
 // assumes matrix (not tensor)
-Eigen::MatrixXd MFactors::getTestData() {
+Eigen::MatrixXd SparseMF::getTestData() {
     MatrixXd coords(Ytest.nonZeros(), 3);
 #pragma omp parallel for schedule(dynamic, 2)
     for (int k = 0; k < Ytest.outerSize(); ++k) {
@@ -238,7 +239,7 @@ void Macau::saveGlobalParams() {
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
 
-void MFactors::update_rmse(bool burnin)
+void SparseMF::update_rmse(bool burnin)
 {
     if (Ytest.nonZeros() == 0) return;
 
@@ -270,7 +271,7 @@ void MFactors::update_rmse(bool burnin)
     if (!burnin) iter++;
 }
 
-void MFactors::update_auc(bool burnin)
+void SparseMF::update_auc(bool burnin)
 {
     if (Ytest.nonZeros() == 0) return;
 

@@ -16,8 +16,8 @@ int get_num_omp_threads();
 class Macau  {
   public:
       std::unique_ptr<INoiseModel> noise;
-      std::vector< std::unique_ptr<ILatentPrior> > priors;
-      MFactors model;
+      std::vector< std::unique_ptr<SparseLatentPrior> > priors;
+      SparseMF model;
 
       bool verbose = true;
       int nsamples = 100;
@@ -65,7 +65,7 @@ Prior& Macau::addPrior()
 {
     auto pos = priors.size();
     Prior *p = new Prior(model.fac(pos), *noise);
-    priors.push_back(std::unique_ptr<ILatentPrior>(p));
+    priors.push_back(std::unique_ptr<SparseLatentPrior>(p));
     return *p;
 }
 

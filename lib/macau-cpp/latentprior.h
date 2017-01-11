@@ -15,10 +15,11 @@ class INoiseModel;
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 /** interface */
+template<typename FactorType>
 class ILatentPrior {
   public:
       // c-tor
-      ILatentPrior(MFactor &, INoiseModel &);
+      ILatentPrior(FactorType &, INoiseModel &);
 
       // utility
       int num_latent() const { return fac.num_latent; }
@@ -31,16 +32,20 @@ class ILatentPrior {
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
 
-      void sample_latents(const Eigen::MatrixXd &V);
-      virtual void sample_latent(int n, const Eigen::MatrixXd &V) = 0;
+      void sample_latents(const FactorType &other);
+      virtual void sample_latent(int n, const FactorType &other) = 0;
 
   protected:
-      MFactor &fac;
+      FactorType &fac;
       INoiseModel &noise;
 };
 
+typedef ILatentPrior<Factor> SparseLatentPrior;
+
+
+
 /** Prior without side information (pure BPMF) */
-class NormalPrior : public ILatentPrior {
+class NormalPrior : public SparseLatentPrior {
   public:
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
@@ -52,7 +57,7 @@ class NormalPrior : public ILatentPrior {
 
 
   public:
-    NormalPrior(MFactor &d, INoiseModel &noise);
+    NormalPrior(Factor &d, INoiseModel &noise);
 
     void update_prior() override;
     void savePriorInfo(std::string prefix) override;
@@ -60,7 +65,7 @@ class NormalPrior : public ILatentPrior {
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
 
-    void sample_latent(int n, const Eigen::MatrixXd &V) override;
+    void sample_latent(int n, const Factor &other) override;
 };
 
 /** Prior with side information */
@@ -79,7 +84,7 @@ class MacauPrior : public NormalPrior {
     double tol = 1e-6;
 
   public:
-    MacauPrior(MFactor &d, INoiseModel &noise);
+    MacauPrior(Factor &d, INoiseModel &noise);
             
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
@@ -101,7 +106,7 @@ class MacauPrior : public NormalPrior {
 template<class FType>
 class MacauMPIPrior : public MacauPrior<FType> {
   public:
-    MacauMPIPrior(MFactor &d, INoiseModel &noise, int world_rank) 
+    MacauMPIPrior(Factor &d, INoiseModel &noise, int world_rank) 
         : MacauPrior<FType>(d, noise), world_rank(world_rank) {}
 
     virtual void sample_beta();
@@ -116,7 +121,7 @@ typedef Eigen::MatrixXd MatrixNNd;
 typedef Eigen::ArrayXd ArrayNd;
 
 /** Spike and slab prior */
-class SpikeAndSlabPrior : public ILatentPrior {
+class SpikeAndSlabPrior : public SparseLatentPrior {
   public:
     VectorNd Zcol, W2col, Zkeep;
     ArrayNd alpha;
@@ -130,10 +135,10 @@ class SpikeAndSlabPrior : public ILatentPrior {
     
  
   public:
-    SpikeAndSlabPrior(MFactor &d, INoiseModel &noise);
+    SpikeAndSlabPrior(Factor &d, INoiseModel &noise);
     void update_prior() override;
     void savePriorInfo(std::string prefix) override;
-    void sample_latent(int n, const Eigen::MatrixXd &V) override;
+    void sample_latent(int n, const Factor &other) override;
 };
 
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);

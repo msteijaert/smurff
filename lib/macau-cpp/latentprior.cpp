@@ -17,19 +17,22 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(MFactor &d,INoiseModel &noise) : fac(d), noise(noise) {}
+template<typename YType>
+ILatentPrior<YType>::ILatentPrior(YType &d,INoiseModel &noise) : fac(d), noise(noise) {}
 
-void ILatentPrior::sample_latents(const Eigen::MatrixXd &V) {
+template<typename YType>
+void ILatentPrior<YType>::sample_latents(const YType &other) {
 #pragma omp parallel for schedule(dynamic, 2)
-  for(int n = 0; n < fac.U.cols(); n++) sample_latent(n, V); 
+    for(int n = 0; n < fac.U.cols(); n++) sample_latent(n, other); 
 }
 
+template class ILatentPrior<Factor>;
 
 /**
  *  NormalPrior 
  */
 
-NormalPrior::NormalPrior(MFactor &f, INoiseModel &noise)
+NormalPrior::NormalPrior(Factor &f, INoiseModel &noise)
     : ILatentPrior(f, noise)
 {
   mu.resize(num_latent());
@@ -48,12 +51,13 @@ NormalPrior::NormalPrior(MFactor &f, INoiseModel &noise)
   df = num_latent();
 }
 
-void NormalPrior::sample_latent(int n, const MatrixXd &V)
+void NormalPrior::sample_latent(int n, const Factor &other)
 {
   const VectorXd &mu_u = getMu(n);
   const MatrixXd &Lambda_u = getLambda(n);
   auto &Y = fac.Y;
   auto &U = fac.U;
+  auto &V = other.U;
   double mean_rating = fac.mean_rating;
 
   MatrixXd MM = Lambda_u;
@@ -87,9 +91,70 @@ void NormalPrior::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-latentmean.csv", mu);
 }
 
+
+
+
+/**
+ *  DenseNormalPrior 
+
+DenseNormalPrior::DenseNormalPrior(Factor &f, INoiseModel &noise)
+    : NormalPrior(f, noise) {}
+
+void DenseNormalPrior::sample_latent(int n, const Factor &other)
+{
+  const VectorXd &mu_u = getMu(n);
+  const MatrixXd &Lambda_u = getLambda(n);
+  auto &Y = fac.Y;
+  auto &U = fac.U;
+  auto &U = fac.U;
+  double mean_rating = fac.mean_rating;
+
+  static MatrixXd WtauW;
+
+  {
+    MatrixNNd covZ = (MatrixNNd::Identity() + WtauW).inverse();
+    auto Sx = covZ.llt().matrixL();
+
+    XX.setZero();
+#pragma omp parallel for \
+    reduction(MatrixPlus:XX) \
+    schedule(dynamic, 8)
+    for(int n = 0; n<N; n++) {
+        VectorNd x = covZ * (Wtau * Yt.col(n)) + Sx * nrandn(K).matrix();
+        X.col(n) = x;
+        XX += x * x.transpose();
+    }
+}
+
+
+  MatrixXd MM = Lambda_u;
+  VectorXd rr = VectorXd::Zero(num_latent());
+  for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
+    auto col = V.col(it.row());
+    std::pair<double, double> alpha = noise.sample(n, it.row());
+    rr.noalias() += col * ((it.value() - mean_rating) * alpha.first);
+    MM.triangularView<Eigen::Lower>() += alpha.second * col * col.transpose();
+  }
+
+  Eigen::LLT<MatrixXd> chol = MM.llt();
+  if(chol.info() != Eigen::Success) {
+    throw std::runtime_error("Cholesky Decomposition failed!");
+  }
+
+  rr.noalias() += Lambda_u * mu_u;
+  chol.matrixL().solveInPlace(rr);
+  for (int i = 0; i < num_latent(); i++) {
+    rr[i] += randn0();
+  }
+  chol.matrixU().solveInPlace(rr);
+  U.col(n).noalias() = rr;
+}
+ */
+
+
 /** MacauPrior */
 template<class FType>
-MacauPrior<FType>::MacauPrior(MFactor &data, INoiseModel &noise)
+MacauPrior<FType>::MacauPrior(Factor &data, INoiseModel &noise)
     : NormalPrior(data, noise) {}
     
 template<class FType>
@@ -199,12 +264,11 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
 }
 
 
-SpikeAndSlabPrior::SpikeAndSlabPrior(MFactor &d, INoiseModel &noise)
+SpikeAndSlabPrior::SpikeAndSlabPrior(Factor &d, INoiseModel &noise)
     : ILatentPrior(d, noise)
 {
     const int K = num_latent();
     const int D = fac.U.cols();
-    auto &W = fac.U; // it's called W but it is W
        
     
     //-- prior params
@@ -213,26 +277,21 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(MFactor &d, INoiseModel &noise)
     Zkeep = VectorNd::Constant(K, D);
     W2col = VectorNd::Zero(K);
     r = VectorNd::Constant(K,.5);
-
-    Zkeep = Zcol;
-    VectorNd W2col = W.array().square().rowwise().sum();;
-
-
 }
 
-void SpikeAndSlabPrior::sample_latent(int d, const MatrixXd &X)
+void SpikeAndSlabPrior::sample_latent(int d, const Factor &other)
 {
     const int K = num_latent();
     VectorNd Zcol = VectorNd::Zero(K);
     auto &Y = fac.Y;
-    auto &W = fac.U; // it's called W but it is U
+    auto &W = fac.U;
+    auto &X = other.U;
     double mean_rating = fac.mean_rating;
 
     std::default_random_engine generator;
     std::uniform_real_distribution<double> udist(0,1);
     ArrayNd log_alpha = alpha.log();
     ArrayNd log_r = - r.array().log() + (VectorNd::Ones(K) - r).array().log();
-
 
     MatrixNNd XX(MatrixNNd::Zero(K,K));
     VectorNd Wcol = W.col(d);
@@ -252,7 +311,7 @@ void SpikeAndSlabPrior::sample_latent(int d, const MatrixXd &X)
         double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
         double z = 1 / (1 + exp(z1));
         double r = udist(generator);
-        if (r < z) {
+        if (Zkeep(k) > 0 && r < z) {
             Zcol(k)++;
             Wcol(k) = mu + randn() / sqrt(lambda);
         } else {
@@ -282,6 +341,7 @@ void SpikeAndSlabPrior::update_prior() {
             return distribution(generator) + 1e-7;
             });
 
+    Zkeep = Zcol.array();
     Zcol.setZero();
 }
 

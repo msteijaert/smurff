@@ -14,8 +14,8 @@ using namespace Eigen;
 
 
 template<class FType>
-MacauOnePrior<FType>::MacauOnePrior(MFactor &data, INoiseModel &noise)
-    : ILatentPrior(data, noise)
+MacauOnePrior<FType>::MacauOnePrior(Factor &data, INoiseModel &noise)
+    : SparseLatentPrior(data, noise)
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);
@@ -43,9 +43,10 @@ void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool) {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_latent(int i, const MatrixXd &V)
+void MacauOnePrior<FType>::sample_latent(int i, const Factor &other)
 {
     auto &U = fac.U;
+    auto &V = other.U;
     const auto &Ymat = fac.Y;
     const int D = U.rows();
     double mean_rating = fac.mean_rating;
