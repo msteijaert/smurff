@@ -17,17 +17,17 @@ template<class FType>
 MacauOnePrior<FType>::MacauOnePrior(MFactor &data, INoiseModel &noise)
     : ILatentPrior(data, noise)
 {
-    // parameters of Normal-Gamma distributions
-    mu     = VectorXd::Constant(num_latent(), 0.0);
-    lambda = VectorXd::Constant(num_latent(), 10.0);
-    // hyperparameter (lambda_0)
-    l0 = 2.0;
-    lambda_a0 = 1.0;
-    lambda_b0 = 1.0;
+  // parameters of Normal-Gamma distributions
+  mu     = VectorXd::Constant(num_latent(), 0.0);
+  lambda = VectorXd::Constant(num_latent(), 10.0);
+  // hyperparameter (lambda_0)
+  l0 = 2.0;
+  lambda_a0 = 1.0;
+  lambda_b0 = 1.0;
 }
 
 template<class FType>
-void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat) {
+void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool) {
   // side information
   F       = std::move(Fmat);
   F_colsq = col_square_sum(*F);
@@ -47,7 +47,6 @@ void MacauOnePrior<FType>::sample_latent(int i, const MatrixXd &V)
 {
     auto &U = fac.U;
     const auto &Ymat = fac.Y;
-    const int N = U.cols();
     const int D = U.rows();
     double mean_rating = fac.mean_rating;
     
@@ -57,9 +56,11 @@ void MacauOnePrior<FType>::sample_latent(int i, const MatrixXd &V)
 
     // precalculating Yhat and Qi
     int idx = 0;
-    VectorXd Qi = this->lambda;
+    VectorXd Qi = lambda;
     for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
-        Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
+      double alpha = noise.sample(i, it.row()).first;
+      Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
+      Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
     }
     VectorXd rnorms(num_latent());
     bmrandn_single(rnorms);
@@ -67,14 +68,15 @@ void MacauOnePrior<FType>::sample_latent(int i, const MatrixXd &V)
     for (int d = 0; d < D; d++) {
         // computing Lid
         const double uid = U(d, i);
-        double Lid = this->lambda(d) * (mu(d) + Uhat(d, i));
+        double Lid = lambda(d) * (mu(d) + Uhat(d, i));
 
         idx = 0;
         for ( SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
             const double vjd = V(d, it.row());
             // L_id += alpha * (Y_ij - k_ijd) * v_jd
-            auto alpha = noise.sample(i, it.row());
-            Lid += alpha.first * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
+            double alpha = noise.sample(i, it.row()).first;
+            Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
+            //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
         }
         // Now use Lid and Qid to update uid
         double uid_old = U(d, i);
@@ -116,7 +118,7 @@ void MacauOnePrior<FType>::sample_mu_lambda(const Eigen::MatrixXd &U) {
     }
   }
   tie(mu, Lambda) = CondNormalWishart(Udelta, VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
-  this->lambda = Lambda.diagonal();
+  lambda = Lambda.diagonal();
 }
 
 template<class FType>
@@ -149,8 +151,8 @@ void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
 
       for (int d = 0; d < dcount; d++) {
         int dx = d + dstart;
-        double A_df     = lambda_beta(dx) + this->lambda(dx) * F_colsq(f);
-        double B_df     = this->lambda(dx) * (zx(d) + beta(dx,f) * F_colsq(f));
+        double A_df     = lambda_beta(dx) + lambda(dx) * F_colsq(f);
+        double B_df     = lambda(dx) * (zx(d) + beta(dx,f) * F_colsq(f));
         double A_inv    = 1.0 / A_df;
         double beta_new = B_df * A_inv + sqrt(A_inv) * randvals(d);
         delta_beta(d)   = beta(dx,f) - beta_new;

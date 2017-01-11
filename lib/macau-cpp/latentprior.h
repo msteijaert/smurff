@@ -81,7 +81,7 @@ class MacauPrior : public NormalPrior {
   public:
     MacauPrior(MFactor &d, INoiseModel &noise);
             
-    void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF);
+    void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
     void update_prior() override;
     double getLinkNorm() override;

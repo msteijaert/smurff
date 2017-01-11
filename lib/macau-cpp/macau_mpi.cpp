@@ -23,6 +23,7 @@
 #include "linop.h"
 #include "macau_mpi.h"
 #include "macau.h"
+#include "macauoneprior.h"
 
 extern "C" {
   #include "dsparse.h"
@@ -200,31 +201,18 @@ int main(int argc, char** argv) {
    macau.setPrecision(precision);
    macau.setSamples(burnin, nsamples);
    macau.setVerbose(true);
+   Y = read_sdm(fname_train);
+   macau.model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
 
    //-- Normal column prior
    macau.addPrior<NormalPrior>();
    
    //-- row prior with side information
-   int nfeat    = row_features->rows();
-   auto &prior_u = macau.addPrior<MacauPrior<SparseFeat>>();
+   auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>();
    prior_u.addSideInfo(row_features, false);
    prior_u.setLambdaBeta(lambda_beta);
-   prior_u.setTol(tol);
+   //prior_u.setTol(tol);
 
-   //--  activity data (read_sdm)
-   Y = read_sdm(fname_train);
-
-   if (nfeat != Y->nrow) {
-      die(std::string("[ERROR]\nNumber of rows (" +
-                      std::to_string(Y->nrow) +
-                      ") in train must be equal to number of rows in row-features (" +
-                      std::to_string(row_features->rows()) +
-                      ")."),
-          world_rank);
-   }
-
-   // 4) create Macau object
-   macau.model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
    macau.model.init();
 
    // test data

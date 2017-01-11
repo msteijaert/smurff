@@ -28,7 +28,7 @@ class MacauOnePrior : public ILatentPrior {
   public:
     MacauOnePrior(MFactor &d, INoiseModel &noise);
     
-    void addSideInfo(std::unique_ptr<FType> &Fmat);
+    void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     
     void sample_latent(int, const Eigen::MatrixXd &) override;
     void update_prior() override;

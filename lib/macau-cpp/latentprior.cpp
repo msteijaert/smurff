@@ -96,27 +96,29 @@ MacauPrior<FType>::MacauPrior(MFactor &data, INoiseModel &noise)
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 {
-  auto U = this->fac.U;
+    auto &Y = this->fac.Y;
 
-  // side information
-  F = std::move(Fmat);
-  use_FtF = comp_FtF;
-  if (use_FtF) {
-    FtF.resize(F->cols(), F->cols());
-    At_mul_A(FtF, *F);
-  }
+    assert((Fmat->rows() == Y.rows()) && "Number of rows in train must be equal to number of rows in features");
 
-  Uhat.resize(this->num_latent(), F->rows());
-  Uhat.setZero();
+    // side information
+    F = std::move(Fmat);
+    use_FtF = comp_FtF;
+    if (use_FtF) {
+        FtF.resize(F->cols(), F->cols());
+        At_mul_A(FtF, *F);
+    }
 
-  beta.resize(this->num_latent(), F->cols());
-  beta.setZero();
+    Uhat.resize(this->num_latent(), F->rows());
+    Uhat.setZero();
 
-  // initial value (should be determined automatically)
-  lambda_beta = 5.0;
-  // Hyper-prior for lambda_beta (mean 1.0, var of 1e+3):
-  lambda_beta_mu0 = 1.0;
-  lambda_beta_nu0 = 1e-3;
+    beta.resize(this->num_latent(), F->cols());
+    beta.setZero();
+
+    // initial value (should be determined automatically)
+    lambda_beta = 5.0;
+    // Hyper-prior for lambda_beta (mean 1.0, var of 1e+3):
+    lambda_beta_mu0 = 1.0;
+    lambda_beta_nu0 = 1e-3;
 }
 
 template<class FType>
