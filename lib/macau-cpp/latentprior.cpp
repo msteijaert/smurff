@@ -83,8 +83,7 @@ void NormalPrior::update_prior() {
   tie(mu, Lambda) = CondNormalWishart(fac.U, mu0, b0, WI, df);
 }
 
-
-void NormalPrior::saveModel(std::string prefix) {
+void NormalPrior::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-latentmean.csv", mu);
 }
 
@@ -178,7 +177,7 @@ void MacauPrior<FType>::sample_beta() {
 }
 
 template<class FType>
-void MacauPrior<FType>::saveModel(std::string prefix) {
+void MacauPrior<FType>::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-latentmean.csv", this->mu);
   writeToCSVfile(prefix + "-link.csv", this->beta);
 }
@@ -199,12 +198,34 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
   return rgamma(gamma_post.first, gamma_post.second);
 }
 
-/*
-void SpikeAndSlabPrior::sample_latent(int d, const MatrixXd &V)
+
+SpikeAndSlabPrior::SpikeAndSlabPrior(MFactor &d, INoiseModel &noise)
+    : ILatentPrior(d, noise)
 {
+    const int K = num_latent();
+    const int D = fac.U.cols();
+    auto &W = fac.U; // it's called W but it is W
+       
+    
+    //-- prior params
+    alpha = ArrayNd::Ones(K);
+    Zcol = VectorNd::Zero(K);
+    Zkeep = VectorNd::Constant(K, D);
+    W2col = VectorNd::Zero(K);
+    r = VectorNd::Constant(K,.5);
+
+    Zkeep = Zcol;
+    VectorNd W2col = W.array().square().rowwise().sum();;
+
+
+}
+
+void SpikeAndSlabPrior::sample_latent(int d, const MatrixXd &X)
+{
+    const int K = num_latent();
     VectorNd Zcol = VectorNd::Zero(K);
     auto &Y = fac.Y;
-    auto &U = fac.U;
+    auto &W = fac.U; // it's called W but it is U
     double mean_rating = fac.mean_rating;
 
     std::default_random_engine generator;
@@ -212,23 +233,18 @@ void SpikeAndSlabPrior::sample_latent(int d, const MatrixXd &V)
     ArrayNd log_alpha = alpha.log();
     ArrayNd log_r = - r.array().log() + (VectorNd::Ones(K) - r).array().log();
 
-    Zcol.setZero();
 
-    MatrixNNd XX(MatrixNNd::Zero());
+    MatrixNNd XX(MatrixNNd::Zero(K,K));
     VectorNd Wcol = W.col(d);
-    VectorNd yX(VectorNd::Zero());
-    double b_tau = .0;
+    VectorNd yX(VectorNd::Zero(K));
     for (SparseMatrixD::InnerIterator it(Y,d); it; ++it) {
         double y = it.value() - mean_rating;
         auto Xcol = X.col(it.row());
-        double e = y - (Wcol.transpose() * Xcol);
         yX.noalias() += y * Xcol;
-        b_tau += e * e;
         XX.noalias() += Xcol * Xcol.transpose();
     }
 
-    std::gamma_distribution<double> gdist(a_tau, 1/(prior_beta_0t + b_tau/2) );
-    double t = tau[d] = gdist(generator);
+    double t = noise.sample(d, 0).first;
 
     for(unsigned k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);
@@ -245,10 +261,32 @@ void SpikeAndSlabPrior::sample_latent(int d, const MatrixXd &V)
     }
 
     W.col(d) = Wcol;
+    W2col += Wcol.array().square().matrix();
 }
-*/
+
+void SpikeAndSlabPrior::savePriorInfo(std::string prefix) {
+}
+
+
+void SpikeAndSlabPrior::update_prior() {
+    const int D = fac.U.cols();
+    
+    r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;
+
+    //-- updata alpha K samples from Gamma
+    auto ww = W2col.array() / 2 + prior_beta_0;
+    auto tmpz = Zcol.array() / 2 + prior_alpha_0 ;
+    alpha = tmpz.binaryExpr(ww, [](double a, double b)->double {
+            std::default_random_engine generator;
+            std::gamma_distribution<double> distribution(a, 1/b);
+            return distribution(generator) + 1e-7;
+            });
+
+    Zcol.setZero();
+}
 
 /**
+ *
  * X = A * B
  */
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B) {

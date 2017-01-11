@@ -9,7 +9,7 @@
 #include <random>
 
 double randn0();
-double randn(double);
+double randn(double = .0);
 
 void bmrandn(double* x, long n);
 void bmrandn(Eigen::MatrixXd & X);
@@ -22,6 +22,7 @@ void init_bmrng(int seed);
 double rgamma(double shape, double scale);
 
 auto nrandn(int n) -> decltype( Eigen::VectorXd::NullaryExpr(n, std::cref(randn)) ); 
+auto nrandn(int n, int m) -> decltype( Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)) );
 
 std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const Eigen::MatrixXd &U, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
 

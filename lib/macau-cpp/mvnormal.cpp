@@ -59,6 +59,8 @@ nrandn(int n) -> decltype( VectorXd::NullaryExpr(n, std::cref(randn)) )
     return VectorXd::NullaryExpr(n, std::cref(randn));
 }
 
+auto nrandn(int n, int m) -> decltype( ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)) ) { return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); }
+
 void init_bmrng(int seed) {
 
    bmrngs = new std::mt19937*[nthreads()];
