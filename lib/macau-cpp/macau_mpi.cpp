@@ -235,7 +235,6 @@ int main(int argc, char** argv) {
    if (Ytest) delete Ytest;
 
    macau.run();
-   macau.savePredictions();
 
    // Finalize the MPI environment.
    MPI_Finalize();

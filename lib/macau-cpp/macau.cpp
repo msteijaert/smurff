@@ -185,28 +185,29 @@ Eigen::VectorXd MFactors::getStds(int iter) {
 
 // assumes matrix (not tensor)
 Eigen::MatrixXd MFactors::getTestData() {
-  MatrixXd coords(Ytest.nonZeros(), 3);
+    MatrixXd coords(Ytest.nonZeros(), 3);
 #pragma omp parallel for schedule(dynamic, 2)
-  for (int k = 0; k < Ytest.outerSize(); ++k) {
-    int idx = Ytest.outerIndexPtr()[k];
-    for (SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-      coords(idx, 0) = it.row();
-      coords(idx, 1) = it.col();
-      coords(idx, 2) = it.value();
-      idx++;
+    for (int k = 0; k < Ytest.outerSize(); ++k) {
+        int idx = Ytest.outerIndexPtr()[k];
+        for (SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
+            coords(idx, 0) = it.row();
+            coords(idx, 1) = it.col();
+            coords(idx, 2) = it.value();
+            idx++;
+        }
     }
-  }
-  return coords;
+    return coords;
 }
 
 void Macau::saveModel(int isample) {
-  if (!save_model || isample < 0) return;
-  string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
-  // saving latent matrices
-  for (unsigned int i = 0; i < model.factors.size(); i++) {
-    writeToCSVfile(fprefix + "U" + std::to_string(i+1) + "-latents.csv", model.U(i));
-    priors[i]->savePriorInfo(fprefix + "U" + std::to_string(i+1));
-  }
+    if (!save_model || isample < 0) return;
+    string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
+    // saving latent matrices
+    for (unsigned int i = 0; i < model.factors.size(); i++) {
+        writeToCSVfile(fprefix + "U" + std::to_string(i+1) + "-latents.csv", model.U(i));
+        priors[i]->savePriorInfo(fprefix + "U" + std::to_string(i+1));
+    }
+    savePredictions();
 }
 
 void Macau::savePredictions() {
