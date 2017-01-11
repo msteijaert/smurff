@@ -29,7 +29,7 @@ class ILatentPrior {
       virtual void update_prior() = 0;
       virtual double getLinkNorm() { return NAN; };
       virtual double getLinkLambda() { return NAN; };
-      virtual void run_slave() {}
+      virtual bool run_slave() { return false; } // returns true if some work happened...
 
       void sample_latents(const Eigen::MatrixXd &V);
       virtual void sample_latent(int n, const Eigen::MatrixXd &V) = 0;
@@ -105,7 +105,7 @@ class MacauMPIPrior : public MacauPrior<FType> {
         : MacauPrior<FType>(d, noise), world_rank(world_rank) {}
 
     virtual void sample_beta();
-    virtual void run_slave() { sample_beta(); }
+    virtual bool run_slave() { sample_beta(); return true; }
   private:
     int world_rank;
 };

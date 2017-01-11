@@ -45,6 +45,7 @@ class Macau  {
       void setVerbose(bool v) { verbose = v; };
       double getRmseTest();
       Eigen::VectorXd getPredictions() { return model.predictions; };
+      void savePredictions();
       void saveModel(int isample);
       void saveGlobalParams();
       void setSaveModel(bool save) { save_model = save; };

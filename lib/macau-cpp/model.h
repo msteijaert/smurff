@@ -5,6 +5,8 @@
 #include <Eigen/Sparse>
 #include <memory>
 
+struct SparseDoubleMatrix;
+
 struct MFactor {
       //-- c'tor
       MFactor(int D) : num_latent(D) {}
@@ -48,6 +50,8 @@ struct MFactors {
 
       void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
       void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
+      void setRelationData(SparseDoubleMatrix& Y);
+      void setRelationDataTest(SparseDoubleMatrix &Y);
 
       void update_rmse(bool burnin);
       void update_auc(bool burnin);

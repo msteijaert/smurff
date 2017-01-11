@@ -2,7 +2,7 @@
 #include <Eigen/Sparse>
 
 #include <iostream>
-
+#include <cassert>
 #include <fstream>
 #include <string>
 #include <algorithm>
@@ -19,6 +19,8 @@
 #endif
 
 #include <signal.h>
+
+#include "dsparse.h"
 
 #include "macau.h"
 #include "mvnormal.h"
@@ -67,8 +69,19 @@ void MFactors::setRelationData(int* rows, int* cols, double* values, int N, int 
 }
 
 void MFactors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+  assert(nrows == Y().rows() && ncols == Y().cols() && 
+         "Size of train must be equal to size of test");
+    
   Ytest.resize(nrows, ncols);
   sparseFromIJV(Ytest, rows, cols, values, N);
+}
+
+void MFactors::setRelationData(SparseDoubleMatrix &Y) {
+   setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
+}
+    
+void MFactors::setRelationDataTest(SparseDoubleMatrix &Y) {
+   setRelationDataTest(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
 
 double Macau::getRmseTest() { return rmse_test; }
@@ -194,6 +207,28 @@ void Macau::saveModel(int isample) {
     writeToCSVfile(fprefix + "U" + std::to_string(i+1) + "-latents.csv", model.U(i));
     priors[i]->saveModel(fprefix + "U" + std::to_string(i+1));
   }
+}
+
+void Macau::savePredictions() {
+    VectorXd yhat_raw     = getPredictions();
+    VectorXd yhat_sd_raw  = model.getStds(nsamples);
+    MatrixXd testdata_raw = model.getTestData();
+
+    std::string fname_pred = save_prefix + "-predictions.csv";
+    std::ofstream predfile;
+    predfile.open(fname_pred);
+    predfile << "row,col,y,y_pred,y_pred_std\n";
+    for (int i = 0; i < yhat_raw.size(); i++) {
+        predfile << to_string( (int)testdata_raw(i,0) );
+        predfile << "," << to_string( (int)testdata_raw(i,1) );
+        predfile << "," << to_string( testdata_raw(i,2) );
+        predfile << "," << to_string( yhat_raw(i) );
+        predfile << "," << to_string( yhat_sd_raw(i) );
+        predfile << "\n";
+    }
+    predfile.close();
+    printf("Saved predictions into '%s'.\n", fname_pred.c_str());
+
 }
 
 void Macau::saveGlobalParams() {

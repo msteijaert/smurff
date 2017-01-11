@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
    macau.setSamples(burnin, nsamples);
    macau.setVerbose(true);
    Y = read_sdm(fname_train);
-   macau.model.setRelationData(Y->rows, Y->cols, Y->vals, Y->nnz, Y->nrow, Y->ncol);
+   macau.model.setRelationData(*Y);
 
    //-- Normal column prior
    macau.addPrior<NormalPrior>();
@@ -218,17 +218,8 @@ int main(int argc, char** argv) {
    // test data
    if (fname_test != NULL) {
       Ytest = read_sdm(fname_test);
-      if (Ytest->nrow != Y->nrow || Ytest->ncol != Y->ncol) {
-         die(std::string("[ERROR]\nSize of train (") +
-                         std::to_string(Y->nrow) + " x " +
-                         std::to_string(Y->ncol) + ") must be equal to size of test (" +
-                         std::to_string(Ytest->nrow) + " x " +
-                         std::to_string(Ytest->ncol) + ").",
-             world_rank);
-      }
-      macau.model.setRelationDataTest(Ytest->rows, Ytest->cols, Ytest->vals, Ytest->nnz, Ytest->nrow, Ytest->ncol);
+      macau.model.setRelationDataTest(*Ytest);
    }
-
 
    if (world_rank == 0) {
       printf("Training data:  %ld [%d x %d]\n", Y->nnz, Y->nrow, Y->ncol);
@@ -239,29 +230,11 @@ int main(int argc, char** argv) {
       }
    }
 
+   delete Y;
+   if (Ytest) delete Ytest;
+
    macau.run();
-
-   // save results
-   if (world_rank == 0) {
-      VectorXd yhat_raw     = macau.getPredictions();
-      VectorXd yhat_sd_raw  = macau.model.getStds(macau.nsamples);
-      MatrixXd testdata_raw = macau.model.getTestData();
-
-      std::string fname_pred = output_prefix + "-predictions.csv";
-      std::ofstream predfile;
-      predfile.open(fname_pred);
-      predfile << "row,col,y,y_pred,y_pred_std\n";
-      for (int i = 0; i < yhat_raw.size(); i++) {
-         predfile << to_string( (int)testdata_raw(i,0) );
-         predfile << "," << to_string( (int)testdata_raw(i,1) );
-         predfile << "," << to_string( testdata_raw(i,2) );
-         predfile << "," << to_string( yhat_raw(i) );
-         predfile << "," << to_string( yhat_sd_raw(i) );
-         predfile << "\n";
-      }
-      predfile.close();
-      printf("Saved predictions into '%s'.\n", fname_pred.c_str());
-   }
+   macau.savePredictions();
 
    // Finalize the MPI environment.
    MPI_Finalize();
@@ -275,7 +248,9 @@ void MacauMPI::run()
    if (world_rank == 0) {
        Macau::run();
    } else {
-       for(auto &p : priors) p->run_slave();
+       bool work_done = false;
+       for(auto &p : priors) work_done |= p->run_slave();
+       assert(work_done);
    }
 }
 
