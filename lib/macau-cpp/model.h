@@ -17,10 +17,19 @@ struct IFactor {
     double mean_rating = .0; 
 
     YType Y;
-    Eigen::MatrixXd U;
 
+    // get vector
     Eigen::MatrixXd::ConstColXpr col(int i) const { return U.col(i); }
+    // set vector
+    template<typename T>
+    Eigen::MatrixXd::ConstColXpr col(int i, const T &v) {
+        U.col(i) = v;
+        return U.col(i); 
+    }
+    
+    int num() const { return U.cols(); }
 
+    Eigen::MatrixXd U;
 };
 
 
@@ -48,7 +57,6 @@ struct MF {
 
     void init();
 };
-
 
 typedef IFactor<Eigen::SparseMatrix<double>> Factor;
 
@@ -78,10 +86,16 @@ struct SparseMF : MF<Eigen::SparseMatrix<double>> {
       void init();
 };
 
+struct DenseFactor : public IFactor<Eigen::MatrixXd> {
+      Eigen::MatrixXd UU, noiseUU, CovF, CovL;
+};
+
 struct DenseMF : MF<Eigen::MatrixXd> {
       //-- c'tor
       DenseMF(int num_latent, int num_fac = 2)
           : MF<Eigen::MatrixXd>(num_latent, num_fac) {}
+
+
 };
 
 #endif /* MODEL_H */

@@ -17,46 +17,69 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
-template<typename YType>
-ILatentPrior<YType>::ILatentPrior(YType &d,INoiseModel &noise) : fac(d), noise(noise) {}
+template<typename FactorType>
+ILatentPrior<FactorType>::ILatentPrior(FactorType &d,INoiseModel &noise)
+    : fac(d), noise(noise) {}
 
-template<typename YType>
-void ILatentPrior<YType>::sample_latents(const YType &other) {
+template<typename FactorType>
+void ILatentPrior<FactorType>::sample_latents(const FactorType &other) {
 #pragma omp parallel for schedule(dynamic, 2)
-    for(int n = 0; n < fac.U.cols(); n++) sample_latent(n, other); 
+    for(int n = 0; n < fac.num(); n++) sample_latent(n, other); 
 }
 
 template class ILatentPrior<Factor>;
+template class ILatentPrior<DenseFactor>;
+
 
 /**
  *  NormalPrior 
  */
 
-NormalPrior::NormalPrior(Factor &f, INoiseModel &noise)
-    : ILatentPrior(f, noise)
+template<typename FactorType>
+NormalPrior<FactorType>::NormalPrior(FactorType &f, INoiseModel &noise)
+    : ILatentPrior<FactorType>(f, noise)
 {
-  mu.resize(num_latent());
-  mu.setZero();
+    const int num_latent = f.num_latent;
+    mu.resize(num_latent);
+    mu.setZero();
 
-  Lambda.resize(num_latent(), num_latent());
-  Lambda.setIdentity();
-  Lambda *= 10;
+    Lambda.resize(num_latent, num_latent);
+    Lambda.setIdentity();
+    Lambda *= 10;
 
-  // parameters of Inv-Whishart distribution
-  WI.resize(num_latent(), num_latent());
-  WI.setIdentity();
-  mu0.resize(num_latent());
-  mu0.setZero();
-  b0 = 2;
-  df = num_latent();
+    // parameters of Inv-Whishart distribution
+    WI.resize(num_latent, num_latent);
+    WI.setIdentity();
+    mu0.resize(num_latent);
+    mu0.setZero();
+    b0 = 2;
+    df = num_latent;
 }
 
-void NormalPrior::sample_latent(int n, const Factor &other)
+template<typename FactorType>
+void NormalPrior<FactorType>::update_prior() {
+  tie(mu, Lambda) = CondNormalWishart(this->fac.U, mu0, b0, WI, df);
+}
+
+template<typename FactorType>
+void NormalPrior<FactorType>::savePriorInfo(std::string prefix) {
+  writeToCSVfile(prefix + "-latentmean.csv", mu);
+}
+
+
+/**
+ *  SparseNormalPrior 
+ */
+
+
+SparseNormalPrior::SparseNormalPrior(Factor &f, INoiseModel &noise)
+    : NormalPrior<Factor>(f,noise) {}
+
+void SparseNormalPrior::sample_latent(int n, const Factor &other)
 {
   const VectorXd &mu_u = getMu(n);
   const MatrixXd &Lambda_u = getLambda(n);
   auto &Y = fac.Y;
-  auto &U = fac.U;
   auto &V = other.U;
   double mean_rating = fac.mean_rating;
 
@@ -80,82 +103,30 @@ void NormalPrior::sample_latent(int n, const Factor &other)
     rr[i] += randn0();
   }
   chol.matrixU().solveInPlace(rr);
-  U.col(n).noalias() = rr;
+  fac.U.col(n).noalias() = rr;
 }
-
-void NormalPrior::update_prior() {
-  tie(mu, Lambda) = CondNormalWishart(fac.U, mu0, b0, WI, df);
-}
-
-void NormalPrior::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-latentmean.csv", mu);
-}
-
-
 
 
 /**
  *  DenseNormalPrior 
-
-DenseNormalPrior::DenseNormalPrior(Factor &f, INoiseModel &noise)
-    : NormalPrior(f, noise) {}
-
-void DenseNormalPrior::sample_latent(int n, const Factor &other)
-{
-  const VectorXd &mu_u = getMu(n);
-  const MatrixXd &Lambda_u = getLambda(n);
-  auto &Y = fac.Y;
-  auto &U = fac.U;
-  auto &U = fac.U;
-  double mean_rating = fac.mean_rating;
-
-  static MatrixXd WtauW;
-
-  {
-    MatrixNNd covZ = (MatrixNNd::Identity() + WtauW).inverse();
-    auto Sx = covZ.llt().matrixL();
-
-    XX.setZero();
-#pragma omp parallel for \
-    reduction(MatrixPlus:XX) \
-    schedule(dynamic, 8)
-    for(int n = 0; n<N; n++) {
-        VectorNd x = covZ * (Wtau * Yt.col(n)) + Sx * nrandn(K).matrix();
-        X.col(n) = x;
-        XX += x * x.transpose();
-    }
-}
-
-
-  MatrixXd MM = Lambda_u;
-  VectorXd rr = VectorXd::Zero(num_latent());
-  for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
-    auto col = V.col(it.row());
-    std::pair<double, double> alpha = noise.sample(n, it.row());
-    rr.noalias() += col * ((it.value() - mean_rating) * alpha.first);
-    MM.triangularView<Eigen::Lower>() += alpha.second * col * col.transpose();
-  }
-
-  Eigen::LLT<MatrixXd> chol = MM.llt();
-  if(chol.info() != Eigen::Success) {
-    throw std::runtime_error("Cholesky Decomposition failed!");
-  }
-
-  rr.noalias() += Lambda_u * mu_u;
-  chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent(); i++) {
-    rr[i] += randn0();
-  }
-  chol.matrixU().solveInPlace(rr);
-  U.col(n).noalias() = rr;
-}
  */
 
+DenseNormalPrior::DenseNormalPrior(DenseFactor &f, INoiseModel &noise)
+    : NormalPrior<DenseFactor>(f, noise) {}
+
+void DenseNormalPrior::sample_latent(int n, const DenseFactor &other)
+{
+    auto x = other.CovF * (other.noiseUU * fac.Y.col(n)) + other.CovL * nrandn(num_latent()).matrix();
+    double t = noise.sample(n, 0).first;
+    fac.U.col(n).noalias() = x;
+    fac.UU += x * x.transpose();
+    fac.noiseUU += x * (t * x.transpose());
+}
 
 /** MacauPrior */
 template<class FType>
 MacauPrior<FType>::MacauPrior(Factor &data, INoiseModel &noise)
-    : NormalPrior(data, noise) {}
+    : SparseNormalPrior(data, noise) {}
     
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
@@ -268,7 +239,7 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(Factor &d, INoiseModel &noise)
     : ILatentPrior(d, noise)
 {
     const int K = num_latent();
-    const int D = fac.U.cols();
+    const int D = fac.num();
        
     
     //-- prior params
@@ -328,7 +299,7 @@ void SpikeAndSlabPrior::savePriorInfo(std::string prefix) {
 
 
 void SpikeAndSlabPrior::update_prior() {
-    const int D = fac.U.cols();
+    const int D = fac.num();
     
     r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;
 

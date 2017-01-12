@@ -41,11 +41,26 @@ class ILatentPrior {
 };
 
 typedef ILatentPrior<Factor> SparseLatentPrior;
+typedef ILatentPrior<DenseFactor> DenseLatentPrior;
 
+//class DenseLatentPrior : public ILatentPrior<DenseFactor>
+//{
+//     // c-tor
+//     DenseLatentPrior(DenseFactor &f, INoiseModel &n)
+//         : ILatentPrior<DenseFactor>(f,n) {}
+//
+//     void update_precision() {
+//         UU = fac.U * fac.U.transpose();
+//     }
+//
+//     Eigen::MatrixXd UU;
+//};
 
 
 /** Prior without side information (pure BPMF) */
-class NormalPrior : public SparseLatentPrior {
+
+template<typename FactorType>
+class NormalPrior : public ILatentPrior<FactorType> {
   public:
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
@@ -55,22 +70,31 @@ class NormalPrior : public SparseLatentPrior {
     int b0;
     int df;
 
-
   public:
-    NormalPrior(Factor &d, INoiseModel &noise);
+    NormalPrior(FactorType &d, INoiseModel &noise);
 
     void update_prior() override;
     void savePriorInfo(std::string prefix) override;
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
+};
 
+class SparseNormalPrior : public NormalPrior<Factor> {
+  public:
+    SparseNormalPrior(Factor &d, INoiseModel &noise);
     void sample_latent(int n, const Factor &other) override;
+};
+
+class DenseNormalPrior : public NormalPrior<DenseFactor> {
+  public:
+    DenseNormalPrior(DenseFactor &d, INoiseModel &noise);
+    void sample_latent(int n, const DenseFactor &other) override;
 };
 
 /** Prior with side information */
 template<class FType>
-class MacauPrior : public NormalPrior {
+class MacauPrior : public SparseNormalPrior {
   public:
     Eigen::MatrixXd Uhat;
     std::unique_ptr<FType> F;  /* side information */

@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
    macau.model.setRelationData(*Y);
 
    //-- Normal column prior
-   macau.addPrior<NormalPrior>();
+   macau.addPrior<SparseNormalPrior>();
    //macau.addPrior<SpikeAndSlabPrior>();
    
    //-- row prior with side information

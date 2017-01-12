@@ -1,5 +1,4 @@
-CXX=g++
-MPICXX=mpicxx
+CXX=mpicxx
 CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas 
 #CXXFLAGS+=-fopenmp
 CXXFLAGS += -I ../eigen3 -I ../libfastsparse
@@ -24,7 +23,7 @@ tests: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o tests $(OBJS) $(LDFLAGS) $(LIBLOCS)
 
 macau_mpi: ${OBJS}
-	${MPICXX} ${CXXFLAGS} ${INCLUDES} -o macau_mpi ${OBJS} ${LDFLAGS} ${LIBLOCS}
+	${CXX} ${CXXFLAGS} ${INCLUDES} -o macau_mpi ${OBJS} ${LDFLAGS} ${LIBLOCS}
 
 clean:
 	rm -f */*.o *.o */*.d *.d
