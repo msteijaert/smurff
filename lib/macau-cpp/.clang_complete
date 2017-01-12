@@ -1,0 +1,3 @@
+-I../eigen3
+-I../libfastsparse
+-std=c++11
