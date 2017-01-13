@@ -8,6 +8,52 @@
 #include <fstream>
 #include <iomanip>
 
+extern "C" {
+  #include <csr.h>
+}
+
+class SparseFeat {
+  public:
+    BinaryCSR M;
+    BinaryCSR Mt;
+
+    SparseFeat() {}
+
+    SparseFeat(int nrow, int ncol, long nnz, int* rows, int* cols) {
+      new_bcsr(&M,  nnz, nrow, ncol, rows, cols);
+      new_bcsr(&Mt, nnz, ncol, nrow, cols, rows);
+    }
+    virtual ~SparseFeat() {
+      free_bcsr( & M);
+      free_bcsr( & Mt);
+    }
+    int nfeat()    {return M.ncol;}
+    int cols()     {return M.ncol;}
+    int nsamples() {return M.nrow;}
+    int rows()     {return M.nrow;}
+};
+
+class SparseDoubleFeat {
+  public:
+    CSR M;
+    CSR Mt;
+
+    SparseDoubleFeat() {}
+
+    SparseDoubleFeat(int nrow, int ncol, long nnz, int* rows, int* cols, double* vals) {
+      new_csr(&M,  nnz, nrow, ncol, rows, cols, vals);
+      new_csr(&Mt, nnz, ncol, nrow, cols, rows, vals);
+    }
+    virtual ~SparseDoubleFeat() {
+      free_csr( & M);
+      free_csr( & Mt);
+    }
+    int nfeat()    {return M.ncol;}
+    int cols()     {return M.ncol;}
+    int nsamples() {return M.nrow;}
+    int rows()     {return M.nrow;}
+};
+
 inline double tick() {
     return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count(); 
 }
@@ -119,5 +165,19 @@ inline std::string to_string_with_precision(const double a_value, const int n = 
     std::ostringstream out;
     out << std::setprecision(n) << a_value;
     return out.str();
+}
+
+inline bool file_exists(const char *fileName)
+{
+   std::ifstream infile(fileName);
+   return infile.good();
+}
+
+inline std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
+   SparseBinaryMatrix* A = read_sbm(filename);
+   SparseFeat* sf = new SparseFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols);
+   free_sbm(A);
+   std::unique_ptr<SparseFeat> sf_ptr(sf);
+   return sf_ptr;
 }
 

@@ -4,7 +4,7 @@
 #include <Eigen/Sparse>
 #include <memory>
 #include <iomanip>
-#include "bpmfutils.h"
+#include "utils.h"
 
 struct SparseMF; // forward declaration
 

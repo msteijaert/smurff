@@ -4,7 +4,7 @@
 #include "chol.h"
 #include "mvnormal.h"
 #include "latentprior.h"
-#include "bpmfutils.h"
+#include "utils.h"
 #include <cmath>
 
 TEST_CASE( "SparseFeat/At_mul_A_bcsr", "[At_mul_A] for BinaryCSR" ) {
@@ -453,7 +453,7 @@ TEST_CASE( "linop/A_mul_Bt_blas", "A_mul_Bt_blas is correct") {
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
 
-TEST_CASE( "bpmfutils/split_work_mpi", "Test if work splitting is correct") {
+TEST_CASE( "utils/split_work_mpi", "Test if work splitting is correct") {
    int work3[3], work5[5];
    split_work_mpi(96, 3, work3);
    REQUIRE( work3[0] == 32 );
@@ -483,7 +483,7 @@ TEST_CASE( "bpmfutils/split_work_mpi", "Test if work splitting is correct") {
    REQUIRE( work5[4] == 2 );
 }
 
-TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
+TEST_CASE( "utils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
   int rows[3] = {0, 1, 2};
   int cols[3] = {2, 1, 0};
   double vals[3] = {1.0, 0.0, 2.0};
@@ -494,7 +494,7 @@ TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") 
   REQUIRE( Y.nonZeros() == 3 );
 }
 
-TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calculated") {
+TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
   int rows[1] = {0};
   int cols[1] = {0};
   double vals[1] = {4.5};
@@ -531,7 +531,7 @@ TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calc
   REQUIRE(model.rmse_avg           == 3.0);
 }
 
-TEST_CASE( "bpmfutils/row_mean_var", "Test if row_mean_var is correct") {
+TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   Eigen::VectorXd mean(3), var(3), mean_tr(3), var_tr(3);
   Eigen::MatrixXd C(3, 5);
   C << 0.21, 0.70, 0.53, -0.18, -2.14,
@@ -545,7 +545,7 @@ TEST_CASE( "bpmfutils/row_mean_var", "Test if row_mean_var is correct") {
 }
 
 /*
-TEST_CASE("bpmfutils/auc","AUC ROC") {
+TEST_CASE("utils/auc","AUC ROC") {
   Eigen::VectorXd pred(20);
   Eigen::VectorXd test(20);
   test << 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 

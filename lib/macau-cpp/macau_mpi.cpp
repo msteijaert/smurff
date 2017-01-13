@@ -25,12 +25,12 @@
 #include "macau.h"
 #include "macauoneprior.h"
 
-extern "C" {
-  #include "dsparse.h"
-}
-
 using namespace Eigen;
 using namespace std;
+
+extern "C" {
+  #include <dsparse.h>
+}
 
 void usage() {
    printf("Usage:\n");
@@ -46,26 +46,12 @@ void usage() {
    printf("  --output    results  prefix for result files\n");
 }
 
-bool file_exists(const char *fileName)
-{
-   std::ifstream infile(fileName);
-   return infile.good();
-}
-
 void die(std::string message, int world_rank) {
    if (world_rank == 0) {
       std::cout << message;
    }
    MPI_Finalize();
    exit(1);
-}
-
-std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
-   SparseBinaryMatrix* A = read_sbm(filename);
-   SparseFeat* sf = new SparseFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols);
-   free_sbm(A);
-   std::unique_ptr<SparseFeat> sf_ptr(sf);
-   return sf_ptr;
 }
 
 // var for MPI
@@ -292,3 +278,4 @@ void MacauMPIPrior<FType>::sample_beta() {
       }
    }
 }
+

@@ -5,7 +5,7 @@
 
 #include "mvnormal.h"
 #include "linop.h"
-#include "bpmfutils.h"
+#include "utils.h"
 #include "macauoneprior.h"
 #include "noisemodels.h"
 

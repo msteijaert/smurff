@@ -3,53 +3,7 @@
 
 #include <Eigen/Dense>
 #include "chol.h"
-#include "bpmfutils.h"
-
-extern "C" {
-  #include <csr.h>
-}
-
-class SparseFeat {
-  public:
-    BinaryCSR M;
-    BinaryCSR Mt;
-
-    SparseFeat() {}
-
-    SparseFeat(int nrow, int ncol, long nnz, int* rows, int* cols) {
-      new_bcsr(&M,  nnz, nrow, ncol, rows, cols);
-      new_bcsr(&Mt, nnz, ncol, nrow, cols, rows);
-    }
-    virtual ~SparseFeat() {
-      free_bcsr( & M);
-      free_bcsr( & Mt);
-    }
-    int nfeat()    {return M.ncol;}
-    int cols()     {return M.ncol;}
-    int nsamples() {return M.nrow;}
-    int rows()     {return M.nrow;}
-};
-
-class SparseDoubleFeat {
-  public:
-    CSR M;
-    CSR Mt;
-
-    SparseDoubleFeat() {}
-
-    SparseDoubleFeat(int nrow, int ncol, long nnz, int* rows, int* cols, double* vals) {
-      new_csr(&M,  nnz, nrow, ncol, rows, cols, vals);
-      new_csr(&Mt, nnz, ncol, nrow, cols, rows, vals);
-    }
-    virtual ~SparseDoubleFeat() {
-      free_csr( & M);
-      free_csr( & Mt);
-    }
-    int nfeat()    {return M.ncol;}
-    int cols()     {return M.ncol;}
-    int nsamples() {return M.nrow;}
-    int rows()     {return M.nrow;}
-};
+#include "utils.h"
 
 template<typename T>
 void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess);
