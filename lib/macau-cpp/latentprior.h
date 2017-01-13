@@ -130,13 +130,23 @@ class MacauPrior : public SparseNormalPrior {
 template<class FType>
 class MacauMPIPrior : public MacauPrior<FType> {
   public:
-    MacauMPIPrior(Factor &d, INoiseModel &noise, int world_rank) 
-        : MacauPrior<FType>(d, noise), world_rank(world_rank) {}
+    MacauMPIPrior(Factor &d, INoiseModel &noise);
+
+    void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
     virtual void sample_beta();
     virtual bool run_slave() { sample_beta(); return true; }
-  private:
+
     int world_rank;
+    int world_size;
+
+    int rhs() const { return rhs_for_rank[world_rank]; }
+
+  private:
+    int* rhs_for_rank = NULL;
+    double* rec     = NULL;
+    int* sendcounts = NULL;
+    int* displs     = NULL;
 };
 
 

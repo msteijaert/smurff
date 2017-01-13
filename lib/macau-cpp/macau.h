@@ -55,9 +55,11 @@ class Macau  {
 
 class MacauMPI : public Macau {
   public:
-    MacauMPI(int D, int world_rank) : Macau(D), world_rank(world_rank) {}
+    MacauMPI(int D);
     void run();
-    const int world_rank;
+
+    int world_rank;
+    int world_size;
 };
 
 template<class Prior>

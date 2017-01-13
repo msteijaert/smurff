@@ -21,7 +21,6 @@
 
 #include "omp_util.h"
 #include "linop.h"
-#include "macau_mpi.h"
 #include "macau.h"
 #include "macauoneprior.h"
 
@@ -45,20 +44,6 @@ void usage() {
    printf("  --tol          1e-6  tolerance for CG\n");
    printf("  --output    results  prefix for result files\n");
 }
-
-void die(std::string message, int world_rank) {
-   if (world_rank == 0) {
-      std::cout << message;
-   }
-   MPI_Finalize();
-   exit(1);
-}
-
-// var for MPI
-int* rhs_for_rank = NULL;
-double* rec     = NULL;
-int* sendcounts = NULL;
-int* displs     = NULL;
 
 int main(int argc, char** argv) {
    // Initialize the MPI environment
@@ -154,38 +139,20 @@ int main(int argc, char** argv) {
       die(std::string("[ERROR]\nTest data file '") + fname_test + "' not found.\n", world_rank);
    }
 
-   rhs_for_rank = new int[world_size];
-   split_work_mpi(num_latent, world_size, rhs_for_rank);
-
-   // Print off a hello world message
-   printf("Processor %s, rank %d"
-          " out of %d processors using %d OpenMP threads for %d RHS.\n",
-          processor_name, world_rank, world_size, nthreads(), rhs_for_rank[world_rank]);
-
    // Step 1. Loading data
    //std::unique_ptr<SparseFeat> row_features = load_bcsr(fname_row_features);
    auto row_features = load_bcsr(fname_row_features);
    if (world_rank == 0) {
       printf("Row features:   [%d x %d].\n", row_features->rows(), row_features->cols());
    }
-   sendcounts = new int[world_size];
-   displs     = new int[world_size];
-   int sum = 0;
-   for (int n = 0; n < world_size; n++) {
-      sendcounts[n] = rhs_for_rank[n] * row_features->cols();
-      displs[n]     = sum;
-      sum          += sendcounts[n];
-   }
-   rec = new double[sendcounts[world_rank]];
-
    SparseDoubleMatrix* Y     = NULL;
    SparseDoubleMatrix* Ytest = NULL;
 
-   MacauMPI macau(num_latent, world_rank);
+   MacauMPI macau(num_latent);
 
    // -- noise model + general parameters
    macau.setPrecision(precision);
-   macau.setSamples(burnin, nsamples);
+
    macau.setVerbose(true);
    Y = read_sdm(fname_train);
    macau.model.setRelationData(*Y);
@@ -227,6 +194,14 @@ int main(int argc, char** argv) {
    return 0;
 }
 
+MacauMPI::MacauMPI(int D)
+    : Macau(D)
+{
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+}
+ 
+
 void MacauMPI::run()
 {
    /* adapted from Macau.run() */
@@ -239,6 +214,44 @@ void MacauMPI::run()
        assert(work_done);
    }
 }
+
+void MacauMPI::die(std::string message, int world_rank) {
+   if (world_rank == 0) {
+      std::cout << message;
+   }
+   MPI_Finalize();
+   exit(1);
+}
+
+
+template<class FType>
+MacauMPIPrior<FType>::MacauMPIPrior(Factor &d, INoiseModel &noise) 
+ : MacauPrior<FType>(d, noise)
+{
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+}
+
+
+template<class FType>
+void MacauMPIPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
+{
+    MacauPrior<FType>::addSideInfo(Fmat, comp_FtF);
+
+    rhs_for_rank = new int[world_size];
+    split_work_mpi(this->num_latent(), world_size, rhs_for_rank);
+
+    sendcounts = new int[world_size];
+    displs     = new int[world_size];
+    int sum = 0;
+    for (int n = 0; n < world_size; n++) {
+        sendcounts[n] = rhs_for_rank[n] * Fmat->cols();
+        displs[n]     = sum;
+        sum          += sendcounts[n];
+    }
+    rec = new double[sendcounts[world_rank]];
+}
+
 
 template<class FType>
 void MacauMPIPrior<FType>::sample_beta() {
