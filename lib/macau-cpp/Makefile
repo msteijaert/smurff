@@ -9,28 +9,24 @@ CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto
 #CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -flto
 #CXXFLAGS+=-O0 -g
 
-# LINK.o=$(CXX) $(CXXFLAGS) $(LDFLAGS)
+LINK.o=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 OUTPUT_OPTION=-MMD -MP -o $@
 
 .PHONY: all clean 
 
-all: test macau_mpi
-test: tests 
+all: libmacau.a tests macau_mpi
 
-OBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macau_mpi.o macauoneprior.o
-
-tests: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o tests $(OBJS) $(LDFLAGS) $(LIBLOCS)
-
-macau_mpi: ${OBJS}
-	${CXX} ${CXXFLAGS} ${INCLUDES} -o macau_mpi ${OBJS} ${LDFLAGS} ${LIBLOCS}
+LIBOBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macau_mpi.o macauoneprior.o
+libmacau.a: $(LIBOBJS)
+	$(AR) csr $@ $+
+	
+tests macau_mpi: libmacau.a
 
 clean:
 	rm -f */*.o *.o */*.d *.d
 	rm -f macau_mpi tests
  
 # DFILES 
-DFILES=$(CCFILES:.cpp=.d)
 DFILES=$(wildcard */*.d *.d)
 
 -include $(DFILES)
