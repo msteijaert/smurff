@@ -62,16 +62,16 @@ class MacauMPI : public Macau {
     int world_size;
 };
 
-/*
+
 template<class Prior>
 Prior& Macau::addPrior()
 {
     auto pos = priors.size();
-    Prior *p = new Prior(model.fac(pos), *noise);
+    Prior *p = new Prior(model, pos, *noise);
     priors.push_back(std::unique_ptr<SparseLatentPrior>(p));
     return *p;
 }
-*/
+
 
 
 

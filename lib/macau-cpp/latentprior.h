@@ -20,11 +20,11 @@ class ILatentPrior {
   public:
       // c-tor
       ILatentPrior(Factors &m, int p, INoiseModel &n)
-          : model(m), pos(p), U(model.U(pos)), V(model.U((pos+1)%2)),
+          : base_model(m), pos(p), U(m.U(pos)), V(m.U((pos+1)%2)),
             noise(n) {} 
 
       // utility
-      int num_latent() const { return model.num_latent; }
+      int num_latent() const { return base_model.num_latent; }
       //Eigen::MatrixXd::ConstColXpr col(int i) const { return U.col(i); }
       virtual void savePriorInfo(std::string prefix) = 0;
 
@@ -37,8 +37,10 @@ class ILatentPrior {
       void sample_latents();
       virtual void sample_latent(int n) = 0;
 
+  private:
+      Factors &base_model;
+
   protected:
-      Factors &model;
       int pos;
       Eigen::MatrixXd &U, &V;
       INoiseModel &noise;
@@ -49,8 +51,16 @@ class DenseLatentPrior : public ILatentPrior
   public:
      // c-tor
      DenseLatentPrior(DenseMF &mf, int p, INoiseModel &n)
-         : ILatentPrior(mf, p, n), Y(mf.Y) {}
-     Eigen::MatrixXd &Y;
+         : ILatentPrior(mf, p, n), model(mf) 
+     {
+         assert(mf.num_fac() == 2);
+         Y =  (p==0) ? mf.Y : mf.Y.transpose();
+     }
+
+     Eigen::MatrixXd Y; // local copy for faster sampling
+
+  protected:
+     DenseMF &model;
 };
 
 class SparseLatentPrior : public ILatentPrior
@@ -58,8 +68,16 @@ class SparseLatentPrior : public ILatentPrior
   public:
      // c-tor
      SparseLatentPrior(SparseMF &mf, int p, INoiseModel &n)
-         : ILatentPrior(mf, p, n), Y(mf.Y) {}
-     SparseMatrixD &Y;
+         : ILatentPrior(mf, p, n), model(mf)
+     {
+         assert(mf.num_fac() == 2);
+         Y = (p==0) ? mf.Y : mf.Y.transpose();
+     }
+
+     SparseMatrixD Y; // local copy for faster sampling
+
+  protected:
+     SparseMF &model;
 };
 
 /** Prior without side information (pure BPMF) */
@@ -90,12 +108,16 @@ class SparseNormalPrior : public NormalPrior, public SparseLatentPrior {
   public:
     SparseNormalPrior(SparseMF &m, int p, INoiseModel &n) : NormalPrior(m.U(p), m.num_latent), SparseLatentPrior(m, p, n) {}
     void sample_latent(int n) override;
+    void update_prior() override { NormalPrior::update_prior(); }
+    void savePriorInfo(std::string prefix) override { NormalPrior::savePriorInfo(prefix); }
 };
 
 class DenseNormalPrior : public NormalPrior, public DenseLatentPrior {
   public:
     DenseNormalPrior(DenseMF &m, int p, INoiseModel &n) : NormalPrior(m.U(p), m.num_latent), DenseLatentPrior(m, p, n) {} 
     void sample_latent(int n) override;
+    void update_prior() override { NormalPrior::update_prior(); }
+    void savePriorInfo(std::string prefix) override { NormalPrior::savePriorInfo(prefix); }
 };
 
 /** Prior with side information */
@@ -136,7 +158,7 @@ class MacauPrior : public SparseNormalPrior {
 template<class FType>
 class MacauMPIPrior : public MacauPrior<FType> {
   public:
-    MacauMPIPrior(SparseMF &, int);
+    MacauMPIPrior(SparseMF &, int, INoiseModel &);
 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 

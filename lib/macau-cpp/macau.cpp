@@ -60,22 +60,14 @@ void Macau::setSamples(int b, int n) {
   this->nsamples = n;
 }
 
-template<typename YType>
-void MF<YType>::setRelationData(YType& Yin)  {
-    Y() = Yin;
-    Yt() = Y().transpose();
-}
-
 void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  Y().resize(nrows, ncols);
-  sparseFromIJV(Y(), rows, cols, values, N);
-  Yt() = Y().transpose();
-  //FIXME
-  factors[0].mean_rating = factors[1].mean_rating =  Y().sum() / Y().nonZeros();
+  Y.resize(nrows, ncols);
+  sparseFromIJV(Y, rows, cols, values, N);
+  mean_rating = Y.sum() / Y.nonZeros();
 }
 
 void SparseMF::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  assert(nrows == Y().rows() && ncols == Y().cols() && 
+  assert(nrows == Y.rows() && ncols == Y.cols() && 
          "Size of train must be equal to size of test");
     
   Ytest.resize(nrows, ncols);
@@ -93,17 +85,11 @@ void SparseMF::setRelationDataTest(SparseDoubleMatrix &Y) {
 double Macau::getRmseTest() { return rmse_test; }
 
 void SparseMF::init() {
-    for( auto &f : factors) f.init();
+    U(0).resize(num_latent, Y.cols()); U(0).setZero();
+    U(1).resize(num_latent, Y.rows()); U(1).setZero();
     predictions     = VectorXd::Zero( Ytest.nonZeros() );
     predictions_var = VectorXd::Zero( Ytest.nonZeros() );
 }
-
-template<typename YType>
-void IFactor<YType>::init() {
-  U.resize(num_latent, Y.cols());
-  U.setZero();
-}
-
 
 void Macau::init() {
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -131,8 +117,8 @@ void Macau::run() {
     }
     signal(SIGINT, intHandler);
 
-    const int num_rows = model.Y().rows();
-    const int num_cols = model.Y().cols();
+    const int num_rows = model.Y.rows();
+    const int num_cols = model.Y.cols();
 
     auto start = tick();
     for (int i = 0; i < burnin + nsamples; i++) {
@@ -146,8 +132,7 @@ void Macau::run() {
         auto starti = tick();
 
         // sample latent vectors
-        priors[0]->sample_latents(model.fac(1));
-        priors[1]->sample_latents(model.fac(0));
+        for(auto &p : priors) p->sample_latents();
 
         // Sample hyperparams
         for(auto &p : priors) p->update_prior();
@@ -241,7 +226,7 @@ void Macau::savePredictions() {
 
 void Macau::saveGlobalParams() {
   VectorXd means(1);
-  means << model.mean_rating();
+  means << model.mean_rating;
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
 
@@ -254,7 +239,7 @@ void SparseMF::update_rmse(bool burnin)
     for (int k = 0; k < Ytest.outerSize(); ++k) {
         int idx = Ytest.outerIndexPtr()[k];
         for (Eigen::SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-            const double pred = col(0,it.col()).dot(col(1,it.row())) + mean_rating();
+            const double pred = col(0,it.col()).dot(col(1,it.row())) + mean_rating;
             se += square(it.value() - pred);
 
             // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm

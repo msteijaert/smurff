@@ -224,8 +224,8 @@ void MacauMPI::run()
 }
 
 template<class FType>
-MacauMPIPrior<FType>::MacauMPIPrior(Factor &d, INoiseModel &noise) 
- : MacauPrior<FType>(d, noise)
+MacauMPIPrior<FType>::MacauMPIPrior(SparseMF &m, int p, INoiseModel &n) 
+ : MacauPrior<FType>(m, p, n)
 {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);

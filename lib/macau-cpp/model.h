@@ -8,11 +8,12 @@
 struct SparseDoubleMatrix;
 
 struct Factors {
-    double mean_rating = .0; 
     int num_latent;
 
     //-- c'tor
-    Factors(int num_latent, int num_fac = 2)      {
+    Factors(int num_latent, int num_fac = 2)
+        : num_latent(num_latent)
+    {
         assert(num_fac == 2); 
         factors.resize(num_fac);
     }
@@ -20,6 +21,7 @@ struct Factors {
     const Eigen::MatrixXd &U(int f) const { return factors.at(f); }
     Eigen::MatrixXd &U(int f) { return factors.at(f); }
     Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return U(f).col(i); }
+    int num_fac() const { return factors.size(); }
 
     std::vector<Eigen::MatrixXd> factors;
 
@@ -34,7 +36,8 @@ struct RelationData {
     
     void setRelationData(YType& Yin) {
         Y = Yin; 
-        mean_rating = Yin.mean();
+        mean_rating = Y.sum() / Y.nonZeros();
+        
     }
 
     YType Y;

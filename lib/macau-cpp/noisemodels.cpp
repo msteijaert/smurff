@@ -12,8 +12,8 @@ using namespace Eigen;
 ////  AdaptiveGaussianNoise  ////
 void AdaptiveGaussianNoise::init() {
     double se = 0.0;
-    const Eigen::SparseMatrix<double> &train = model.Y();
-    const double mean_rating = model.mean_rating();
+    const Eigen::SparseMatrix<double> &train = model.Y;
+    const double mean_rating = model.mean_rating;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
     for (int k = 0; k < train.outerSize(); ++k) {
@@ -35,8 +35,8 @@ void AdaptiveGaussianNoise::init() {
 void AdaptiveGaussianNoise::update()
 {
     double sumsq = 0.0;
-    const Eigen::SparseMatrix<double> &train = model.Y();
-    const double mean_rating = model.mean_rating();
+    const Eigen::SparseMatrix<double> &train = model.Y;
+    const double mean_rating = model.mean_rating;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < train.outerSize(); j++) {
@@ -77,7 +77,7 @@ void ProbitNoise::evalModel(bool burnin) {
 }
 
 std::pair<double, double> ProbitNoise::sample(int n, int m) {
-    double y = model.Y().coeffRef(n,m);
+    double y = model.Y.coeffRef(n,m);
     const VectorXd &u = model.col(0, n);
     const VectorXd &v = model.col(1, n);
     double z = (2 * y - 1) * fabs(v.dot(u) + bmrandn_single());

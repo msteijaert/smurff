@@ -26,11 +26,11 @@ class MacauOnePrior : public SparseLatentPrior {
     int l0;
 
   public:
-    MacauOnePrior(Factor &d, INoiseModel &noise);
+    MacauOnePrior(SparseMF &, int, INoiseModel &); 
     
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     
-    void sample_latent(int, const Factor &) override;
+    void sample_latent(int) override;
     void update_prior() override;
     double getLinkNorm() override { return beta.norm(); };
     double getLinkLambda() override { return lambda_beta.mean(); };

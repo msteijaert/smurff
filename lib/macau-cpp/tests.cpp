@@ -499,8 +499,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   int cols[1] = {0};
   double vals[1] = {4.5};
   SparseMF model(2);
-  model.setRelationDataTest(rows, cols, vals, 1, 1, 1);
   model.setRelationData(rows, cols, vals, 1, 1, 1);
+  model.setRelationDataTest(rows, cols, vals, 1, 1, 1);
   model.init();
 
   // first iteration

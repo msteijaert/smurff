@@ -14,8 +14,8 @@ using namespace Eigen;
 
 
 template<class FType>
-MacauOnePrior<FType>::MacauOnePrior(Factor &data, INoiseModel &noise)
-    : SparseLatentPrior(data, noise)
+MacauOnePrior<FType>::MacauOnePrior(SparseMF &m, int p, INoiseModel &n)
+    : SparseLatentPrior(m, p, n)
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);
@@ -43,22 +43,18 @@ void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool) {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_latent(int i, const Factor &other)
+void MacauOnePrior<FType>::sample_latent(int i)
 {
-    auto &U = fac.U;
-    auto &V = other.U;
-    const auto &Ymat = fac.Y;
     const int D = U.rows();
-    double mean_rating = fac.mean_rating;
-    
+    double mean_rating = model.mean_rating;
 
-    const int nnz = Ymat.outerIndexPtr()[i + 1] - Ymat.outerIndexPtr()[i];
+    const int nnz = Y.outerIndexPtr()[i + 1] - Y.outerIndexPtr()[i];
     VectorXd Yhat(nnz);
 
     // precalculating Yhat and Qi
     int idx = 0;
     VectorXd Qi = lambda;
-    for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
+    for (SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
       double alpha = noise.sample(i, it.row()).first;
       Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
       Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
@@ -72,7 +68,7 @@ void MacauOnePrior<FType>::sample_latent(int i, const Factor &other)
         double Lid = lambda(d) * (mu(d) + Uhat(d, i));
 
         idx = 0;
-        for ( SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
+        for ( SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
             const double vjd = V(d, it.row());
             // L_id += alpha * (Y_ij - k_ijd) * v_jd
             double alpha = noise.sample(i, it.row()).first;
@@ -89,7 +85,7 @@ void MacauOnePrior<FType>::sample_latent(int i, const Factor &other)
         // updating Yhat
         double uid_delta = U(d, i) - uid_old;
         idx = 0;
-        for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++) {
+        for (SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
             Yhat(idx) += uid_delta * V(d, it.row());
         }
     }
@@ -97,7 +93,6 @@ void MacauOnePrior<FType>::sample_latent(int i, const Factor &other)
 
 template<class FType>
 void MacauOnePrior<FType>::update_prior() {
-    const Eigen::MatrixXd &U = fac.U;
     sample_mu_lambda(U);
     sample_beta(U);
     compute_uhat(Uhat, *F, beta);
