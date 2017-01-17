@@ -156,7 +156,8 @@ void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
   double norm1 = priors[1]->getLinkNorm();
   double snorm0 = model.U(0).norm();
   double snorm1 = model.U(1).norm();
-  printf("Iter %3d: %s  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n", i, noise->getEvalString().c_str(),
+  printf("Iter %3d/%3d: %s  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n", i, burnin + nsamples,
+          noise->getEvalString().c_str(),
           snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi);
 }
 

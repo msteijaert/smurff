@@ -156,46 +156,49 @@ int main(int argc, char** argv) {
    SparseDoubleMatrix* Y     = NULL;
    SparseDoubleMatrix* Ytest = NULL;
 
-   MacauMPI macau(num_latent);
+   {
+       MacauMPI macau(num_latent);
+       macau.setSamples(nsamples, burnin);
 
-   // -- noise model + general parameters
-   macau.setPrecision(precision);
+       // -- noise model + general parameters
+       macau.setPrecision(precision);
 
-   macau.setVerbose(true);
-   Y = read_sdm(fname_train);
-   macau.model.setRelationData(*Y);
+       macau.setVerbose(true);
+       Y = read_sdm(fname_train);
+       macau.model.setRelationData(*Y);
 
-   //-- Normal column prior
-   macau.addPrior<SparseNormalPrior>();
-   //macau.addPrior<SpikeAndSlabPrior>();
-   
-   //-- row prior with side information
-   auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>();
-   prior_u.addSideInfo(row_features, false);
-   prior_u.setLambdaBeta(lambda_beta);
-   //prior_u.setTol(tol);
+       //-- Normal column prior
+       macau.addPrior<SparseNormalPrior>();
+       //macau.addPrior<SpikeAndSlabPrior>();
 
-   macau.model.init();
+       //-- row prior with side information
+       auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>();
+       prior_u.addSideInfo(row_features, false);
+       prior_u.setLambdaBeta(lambda_beta);
+       //prior_u.setTol(tol);
 
-   // test data
-   if (fname_test != NULL) {
-      Ytest = read_sdm(fname_test);
-      macau.model.setRelationDataTest(*Ytest);
+       macau.model.init();
+
+       // test data
+       if (fname_test != NULL) {
+           Ytest = read_sdm(fname_test);
+           macau.model.setRelationDataTest(*Ytest);
+       }
+
+       if (world_rank == 0) {
+           printf("Training data:  %ld [%d x %d]\n", Y->nnz, Y->nrow, Y->ncol);
+           if (Ytest != NULL) {
+               printf("Test data:      %ld [%d x %d]\n", Ytest->nnz, Ytest->nrow, Ytest->ncol);
+           } else {
+               printf("Test data:      --\n");
+           }
+       }
+
+       delete Y;
+       if (Ytest) delete Ytest;
+
+       macau.run();
    }
-
-   if (world_rank == 0) {
-      printf("Training data:  %ld [%d x %d]\n", Y->nnz, Y->nrow, Y->ncol);
-      if (Ytest != NULL) {
-         printf("Test data:      %ld [%d x %d]\n", Ytest->nnz, Ytest->nrow, Ytest->ncol);
-      } else {
-         printf("Test data:      --\n");
-      }
-   }
-
-   delete Y;
-   if (Ytest) delete Ytest;
-
-   macau.run();
 
    // Finalize the MPI environment.
    MPI_Finalize();
