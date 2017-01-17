@@ -1,8 +1,7 @@
 #include <iostream>
-
-#include <Eigen/Core>
-
 #include "mvnormal.h"
+
+#include "gen_random.h"
 
 using namespace Eigen;
 

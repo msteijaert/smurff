@@ -60,6 +60,12 @@ void Macau::setSamples(int b, int n) {
   this->nsamples = n;
 }
 
+template<typename YType>
+void MF<YType>::setRelationData(YType& Yin)  {
+    Y() = Yin;
+    Yt() = Y().transpose();
+}
+
 void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
   Y().resize(nrows, ncols);
   sparseFromIJV(Y(), rows, cols, values, N);

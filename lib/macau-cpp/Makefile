@@ -16,11 +16,11 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 all: libmacau.a tests macau_mpi
 
-LIBOBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macau_mpi.o macauoneprior.o
+LIBOBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macau_mpi.o macauoneprior.o gen_random.o
 libmacau.a: $(LIBOBJS)
 	$(AR) csr $@ $+
 	
-tests macau_mpi: libmacau.a
+test_dense tests macau_mpi: libmacau.a
 
 clean:
 	rm -f */*.o *.o */*.d *.d

@@ -10,20 +10,21 @@
 #include "model.h"
 
 class INoiseModel;
+class Macau;
 
  // forward declarationsc
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 /** interface */
-template<typename FactorType>
 class ILatentPrior {
   public:
       // c-tor
-      ILatentPrior(FactorType &, INoiseModel &);
+      ILatentPrior(Factors &m, int p)
+          : model(m), pos(p), U(model.U(pos)), V(model.U((pos+1)%2)) {} 
 
       // utility
-      int num_latent() const { return fac.num_latent; }
-      Eigen::MatrixXd::ConstColXpr col(int i) const { return fac.col(i); }
+      int num_latent() const { return model.num_latent; }
+      //Eigen::MatrixXd::ConstColXpr col(int i) const { return U.col(i); }
       virtual void savePriorInfo(std::string prefix) = 0;
 
       // work
@@ -32,35 +33,36 @@ class ILatentPrior {
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
 
-      void sample_latents(const FactorType &other);
-      virtual void sample_latent(int n, const FactorType &other) = 0;
+      void sample_latents();
+      virtual void sample_latent(int n) = 0;
 
   protected:
-      FactorType &fac;
-      INoiseModel &noise;
+      Factors &model;
+      int pos;
+      Eigen::MatrixXd &U, &V;
 };
 
-typedef ILatentPrior<Factor> SparseLatentPrior;
-typedef ILatentPrior<DenseFactor> DenseLatentPrior;
+class DenseLatentPrior : public ILatentPrior
+{
+  public:
+     // c-tor
+     DenseLatentPrior(DenseMF &mf, int p)
+         : ILatentPrior(mf, p), Y(mf.Y) {}
+     Eigen::MatrixXd &Y;
+};
 
-//class DenseLatentPrior : public ILatentPrior<DenseFactor>
-//{
-//     // c-tor
-//     DenseLatentPrior(DenseFactor &f, INoiseModel &n)
-//         : ILatentPrior<DenseFactor>(f,n) {}
-//
-//     void update_precision() {
-//         UU = fac.U * fac.U.transpose();
-//     }
-//
-//     Eigen::MatrixXd UU;
-//};
-
+class SparseLatentPrior : public ILatentPrior
+{
+  public:
+     // c-tor
+     SparseLatentPrior(SparseMF &mf, int p)
+         : ILatentPrior(mf, p), Y(mf.Y) {}
+     SparseMatrixD &Y;
+};
 
 /** Prior without side information (pure BPMF) */
 
-template<typename FactorType>
-class NormalPrior : public ILatentPrior<FactorType> {
+class NormalPrior : public ILatentPrior {
   public:
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
@@ -70,8 +72,10 @@ class NormalPrior : public ILatentPrior<FactorType> {
     int b0;
     int df;
 
+    Eigen::MatrixXd &U;
+
   public:
-    NormalPrior(FactorType &d, INoiseModel &noise);
+    NormalPrior(Eigen::MatrixXd &U, int num_latent); 
 
     void update_prior() override;
     void savePriorInfo(std::string prefix) override;
@@ -80,16 +84,16 @@ class NormalPrior : public ILatentPrior<FactorType> {
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
 };
 
-class SparseNormalPrior : public NormalPrior<Factor> {
+class SparseNormalPrior : public NormalPrior, public SparseLatentPrior {
   public:
-    SparseNormalPrior(Factor &d, INoiseModel &noise);
-    void sample_latent(int n, const Factor &other) override;
+    SparseNormalPrior(SparseMF &m, int p) : SparseLatentPrior(m, p), NormalPrior(m.U(p), m.num_latent) {}
+    void sample_latent(int n) override;
 };
 
-class DenseNormalPrior : public NormalPrior<DenseFactor> {
+class DenseNormalPrior : public NormalPrior, public DenseLatentPrior {
   public:
-    DenseNormalPrior(DenseFactor &d, INoiseModel &noise);
-    void sample_latent(int n, const DenseFactor &other) override;
+    DenseNormalPrior(DenseMF &m, int p) : DenseLatentPrior(m, p), NormalPrior(m.U(p), m.num_latent) {} 
+    void sample_latent(int n) override;
 };
 
 /** Prior with side information */
@@ -108,7 +112,7 @@ class MacauPrior : public SparseNormalPrior {
     double tol = 1e-6;
 
   public:
-    MacauPrior(Factor &d, INoiseModel &noise);
+    MacauPrior(SparseMF &, int);
             
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
@@ -130,7 +134,7 @@ class MacauPrior : public SparseNormalPrior {
 template<class FType>
 class MacauMPIPrior : public MacauPrior<FType> {
   public:
-    MacauMPIPrior(Factor &d, INoiseModel &noise);
+    MacauMPIPrior(SparseMF &, int);
 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
@@ -169,10 +173,10 @@ class SpikeAndSlabPrior : public SparseLatentPrior {
     
  
   public:
-    SpikeAndSlabPrior(Factor &d, INoiseModel &noise);
+    SpikeAndSlabPrior(DenseMF &, int);
     void update_prior() override;
     void savePriorInfo(std::string prefix) override;
-    void sample_latent(int n, const Factor &other) override;
+    void sample_latent(int n) override;
 };
 
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);

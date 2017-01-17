@@ -45,6 +45,14 @@ void usage() {
    printf("  --output    results  prefix for result files\n");
 }
 
+void die(std::string message, int world_rank) {
+   if (world_rank == 0) {
+      std::cout << message;
+   }
+   MPI_Finalize();
+   exit(1);
+}
+
 int main(int argc, char** argv) {
    // Initialize the MPI environment
    MPI_Init(NULL, NULL);
@@ -214,15 +222,6 @@ void MacauMPI::run()
        assert(work_done);
    }
 }
-
-void MacauMPI::die(std::string message, int world_rank) {
-   if (world_rank == 0) {
-      std::cout << message;
-   }
-   MPI_Finalize();
-   exit(1);
-}
-
 
 template<class FType>
 MacauMPIPrior<FType>::MacauMPIPrior(Factor &d, INoiseModel &noise) 

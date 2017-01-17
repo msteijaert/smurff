@@ -17,29 +17,20 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
-template<typename FactorType>
-ILatentPrior<FactorType>::ILatentPrior(FactorType &d,INoiseModel &noise)
-    : fac(d), noise(noise) {}
-
-template<typename FactorType>
-void ILatentPrior<FactorType>::sample_latents(const FactorType &other) {
+void ILatentPrior::sample_latents() {
 #pragma omp parallel for schedule(dynamic, 2)
-    for(int n = 0; n < fac.num(); n++) sample_latent(n, other); 
+    for(int n = 0; n < U.cols(); n++) sample_latent(n); 
 }
 
-template class ILatentPrior<Factor>;
-template class ILatentPrior<DenseFactor>;
 
 
 /**
  *  NormalPrior 
  */
 
-template<typename FactorType>
-NormalPrior<FactorType>::NormalPrior(FactorType &f, INoiseModel &noise)
-    : ILatentPrior<FactorType>(f, noise)
+NormalPrior::NormalPrior(Eigen::MatrixXd &U, int num_latent)
+    : U(U)
 {
-    const int num_latent = f.num_latent;
     mu.resize(num_latent);
     mu.setZero();
 
@@ -56,13 +47,11 @@ NormalPrior<FactorType>::NormalPrior(FactorType &f, INoiseModel &noise)
     df = num_latent;
 }
 
-template<typename FactorType>
-void NormalPrior<FactorType>::update_prior() {
-  tie(mu, Lambda) = CondNormalWishart(this->fac.U, mu0, b0, WI, df);
+void NormalPrior::update_prior() {
+  tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
 }
 
-template<typename FactorType>
-void NormalPrior<FactorType>::savePriorInfo(std::string prefix) {
+void NormalPrior::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-latentmean.csv", mu);
 }
 
@@ -72,16 +61,11 @@ void NormalPrior<FactorType>::savePriorInfo(std::string prefix) {
  */
 
 
-SparseNormalPrior::SparseNormalPrior(Factor &f, INoiseModel &noise)
-    : NormalPrior<Factor>(f,noise) {}
-
-void SparseNormalPrior::sample_latent(int n, const Factor &other)
+void SparseNormalPrior::sample_latent(int n)
 {
   const VectorXd &mu_u = getMu(n);
   const MatrixXd &Lambda_u = getLambda(n);
-  auto &Y = fac.Y;
-  auto &V = other.U;
-  double mean_rating = fac.mean_rating;
+  double mean_rating = model.mean_rating;
 
   MatrixXd MM = Lambda_u;
   VectorXd rr = VectorXd::Zero(num_latent());
@@ -103,7 +87,7 @@ void SparseNormalPrior::sample_latent(int n, const Factor &other)
     rr[i] += randn0();
   }
   chol.matrixU().solveInPlace(rr);
-  fac.U.col(n).noalias() = rr;
+  U.col(n).noalias() = rr;
 }
 
 
