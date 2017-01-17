@@ -51,18 +51,23 @@ class DenseLatentPrior : public ILatentPrior
 {
   public:
      // c-tor
-     DenseLatentPrior(DenseMF &mf, int p, INoiseModel &n)
-         : ILatentPrior(mf, p, n), model(mf) 
+     DenseLatentPrior(DenseMF &m, int p, INoiseModel &n)
+         : ILatentPrior(m, p, n), model(m),
+           UU(m.UU.at(pos)), VV(m.UU.at((pos+1)%2)),
+           UtU(m.UtU.at(pos)), VtV(m.UtU.at((pos+1)%2))
      {
-         assert(mf.num_fac() == 2);
-         Y =  (p==0) ? mf.Y : mf.Y.transpose();
+         assert(m.num_fac() == 2);
+         Y =  (p==0) ? m.Y : m.Y.transpose();
      }
      virtual ~DenseLatentPrior() {}
 
      Eigen::MatrixXd Y; // local copy for faster sampling
-
-  protected:
      DenseMF &model;
+
+     Eigen::MatrixXd CovF, CovL, CovU;
+     Eigen::MatrixXd &UU, &VV;
+     Eigen::MatrixXd &UtU, &VtV;
+
 };
 
 class SparseLatentPrior : public ILatentPrior
@@ -124,7 +129,7 @@ class DenseNormalPrior : public NormalPrior, public DenseLatentPrior {
     virtual ~DenseNormalPrior() {}
 
     void sample_latent(int n) override;
-    void update_prior() override { NormalPrior::update_prior(); }
+    void update_prior() override;
     void savePriorInfo(std::string prefix) override { NormalPrior::savePriorInfo(prefix); }
 };
 

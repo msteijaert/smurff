@@ -97,14 +97,22 @@ void SparseNormalPrior::sample_latent(int n)
 
 void DenseNormalPrior::sample_latent(int n)
 {
-    /*
-    auto x = other.CovF * (other.noiseUU * fac.Y.col(n)) + other.CovL * nrandn(num_latent()).matrix();
+    auto x = CovF * (VtV * Y.col(n)) + CovL * nrandn(num_latent()).matrix();
     double t = noise.sample(n, 0).first;
-    fac.U.col(n).noalias() = x;
-    fac.UU += x * x.transpose();
-    fac.noiseUU += x * (t * x.transpose());
-    */
+    U.col(n).noalias() = x;
+    UU += x * x.transpose();
+    UtU += x * (t * x.transpose());
 }
+
+void DenseNormalPrior::update_prior()
+{
+   NormalPrior::update_prior();
+   CovF = (MatrixNNd::Identity(num_latent(), num_latent()) + VtV).inverse();
+   CovL = CovF.llt().matrixL();
+   CovU = CovF.llt().matrixU();
+}
+
+
 
 /** MacauPrior */
 template<class FType>

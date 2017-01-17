@@ -63,7 +63,14 @@ struct SparseMF : public Factors, public RelationData<SparseMatrixD> {
 struct DenseMF : public Factors, public RelationData<Eigen::MatrixXd> {
     //-- c'tor
     DenseMF(int num_latent, int num_fac = 2)
-        : Factors(num_latent, num_fac) {}
+        : Factors(num_latent, num_fac)
+    {
+        UU.resize(num_fac);
+        UtU.resize(num_fac);
+    }
+
+    std::vector<Eigen::MatrixXd> UtU;
+    std::vector<Eigen::MatrixXd> UU;
 };
 
 #endif /* MODEL_H */
