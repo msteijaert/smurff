@@ -24,8 +24,6 @@ struct Factors {
     int num_fac() const { return factors.size(); }
 
     std::vector<Eigen::MatrixXd> factors;
-
-    void init();
 };
 
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
@@ -33,13 +31,6 @@ typedef Eigen::SparseMatrix<double> SparseMatrixD;
 template<typename YType>
 struct RelationData {
     double mean_rating = .0;
-    
-    void setRelationData(YType& Yin) {
-        Y = Yin; 
-        mean_rating = Y.sum() / Y.nonZeros();
-        
-    }
-
     YType Y;
 };
 
@@ -67,8 +58,6 @@ struct SparseMF : public Factors, public RelationData<SparseMatrixD> {
 
       Eigen::VectorXd getStds(int iter);
       Eigen::MatrixXd getTestData();
-
-      void init();
 };
 
 struct DenseMF : public Factors, public RelationData<Eigen::MatrixXd> {

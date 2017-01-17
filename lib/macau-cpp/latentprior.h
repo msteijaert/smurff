@@ -203,8 +203,6 @@ class SpikeAndSlabPrior : public SparseLatentPrior {
     const double prior_beta = 1; //for r
     const double prior_alpha_0 = 1.; //for alpha
     const double prior_beta_0 = 1.; //for alpha
-
-    
  
   public:
     SpikeAndSlabPrior(SparseMF &, int, INoiseModel &);

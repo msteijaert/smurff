@@ -64,6 +64,8 @@ void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int 
   Y.resize(nrows, ncols);
   sparseFromIJV(Y, rows, cols, values, N);
   mean_rating = Y.sum() / Y.nonZeros();
+  U(0).resize(num_latent, Y.cols()); U(0).setZero();
+  U(1).resize(num_latent, Y.rows()); U(1).setZero();
 }
 
 void SparseMF::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
@@ -72,6 +74,9 @@ void SparseMF::setRelationDataTest(int* rows, int* cols, double* values, int N, 
     
   Ytest.resize(nrows, ncols);
   sparseFromIJV(Ytest, rows, cols, values, N);
+  predictions     = VectorXd::Zero( Ytest.nonZeros() );
+  predictions_var = VectorXd::Zero( Ytest.nonZeros() );
+
 }
 
 void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
@@ -84,20 +89,12 @@ void SparseMF::setRelationDataTest(SparseDoubleMatrix &Y) {
 
 double Macau::getRmseTest() { return rmse_test; }
 
-void SparseMF::init() {
-    U(0).resize(num_latent, Y.cols()); U(0).setZero();
-    U(1).resize(num_latent, Y.rows()); U(1).setZero();
-    predictions     = VectorXd::Zero( Ytest.nonZeros() );
-    predictions_var = VectorXd::Zero( Ytest.nonZeros() );
-}
-
 void Macau::init() {
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
   if (priors.size() != 2) {
     throw std::runtime_error("Only 2 priors are supported.");
   }
   init_bmrng(seed1);
-  model.init();
   noise->init();
   keepRunning = true;
 }

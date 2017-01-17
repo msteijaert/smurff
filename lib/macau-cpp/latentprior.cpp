@@ -220,7 +220,7 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(SparseMF &m, int p, INoiseModel &n)
 {
     const int K = num_latent();
     const int D = U.cols();
-       
+    assert(D > 0);
     
     //-- prior params
     alpha = ArrayNd::Ones(K);
@@ -233,10 +233,9 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(SparseMF &m, int p, INoiseModel &n)
 void SpikeAndSlabPrior::sample_latent(int d)
 {
     const int K = num_latent();
-    VectorNd Zcol = VectorNd::Zero(K);
     auto &W = U; // aliases
     auto &X = V; // aliases
-
+    
     std::default_random_engine generator;
     std::uniform_real_distribution<double> udist(0,1);
     ArrayNd log_alpha = alpha.log();
@@ -259,8 +258,8 @@ void SpikeAndSlabPrior::sample_latent(int d)
         double mu = t / lambda * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
         double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
         double z = 1 / (1 + exp(z1));
-        double r = udist(generator);
-        if (Zkeep(k) > 0 && r < z) {
+        double p = udist(generator);
+        if (Zkeep(k) > 0 && p < z) {
             Zcol(k)++;
             Wcol(k) = mu + randn() / sqrt(lambda);
         } else {

@@ -168,16 +168,14 @@ int main(int argc, char** argv) {
        macau.model.setRelationData(*Y);
 
        //-- Normal column prior
-       macau.addPrior<SparseNormalPrior>();
-       //macau.addPrior<SpikeAndSlabPrior>();
+       //macau.addPrior<SparseNormalPrior>();
+       macau.addPrior<SpikeAndSlabPrior>();
 
        //-- row prior with side information
        auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>();
        prior_u.addSideInfo(row_features, false);
        prior_u.setLambdaBeta(lambda_beta);
        //prior_u.setTol(tol);
-
-       macau.model.init();
 
        // test data
        if (fname_test != NULL) {

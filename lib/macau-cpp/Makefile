@@ -9,6 +9,7 @@ LDFLAGS := $(LIBLOCS) -lm -lopenblas -lpthread
 CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto
 #CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -flto
 #CXXFLAGS+=-O0 -g
+#CXXFLAGS+=-O1 -g
 
 LINK.o=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 OUTPUT_OPTION=-MMD -MP -o $@
