@@ -29,7 +29,7 @@ void ILatentPrior::sample_latents() {
  */
 
 NormalPrior::NormalPrior(Eigen::MatrixXd &U, int num_latent)
-    : U(U)
+    : nU(U)
 {
     mu.resize(num_latent);
     mu.setZero();
@@ -48,7 +48,7 @@ NormalPrior::NormalPrior(Eigen::MatrixXd &U, int num_latent)
 }
 
 void NormalPrior::update_prior() {
-  tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
+  tie(mu, Lambda) = CondNormalWishart(nU, mu0, b0, WI, df);
 }
 
 void NormalPrior::savePriorInfo(std::string prefix) {
@@ -95,28 +95,25 @@ void SparseNormalPrior::sample_latent(int n)
  *  DenseNormalPrior 
  */
 
-DenseNormalPrior::DenseNormalPrior(DenseFactor &f, INoiseModel &noise)
-    : NormalPrior<DenseFactor>(f, noise) {}
-
-void DenseNormalPrior::sample_latent(int n, const DenseFactor &other)
+void DenseNormalPrior::sample_latent(int n)
 {
+    /*
     auto x = other.CovF * (other.noiseUU * fac.Y.col(n)) + other.CovL * nrandn(num_latent()).matrix();
     double t = noise.sample(n, 0).first;
     fac.U.col(n).noalias() = x;
     fac.UU += x * x.transpose();
     fac.noiseUU += x * (t * x.transpose());
+    */
 }
 
 /** MacauPrior */
 template<class FType>
-MacauPrior<FType>::MacauPrior(Factor &data, INoiseModel &noise)
-    : SparseNormalPrior(data, noise) {}
+MacauPrior<FType>::MacauPrior(SparseMF &m, int p, INoiseModel &n)
+    : SparseNormalPrior(m, p, n) {}
     
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 {
-    auto &Y = this->fac.Y;
-
     assert((Fmat->rows() == Y.rows()) && "Number of rows in train must be equal to number of rows in features");
 
     // side information
@@ -143,7 +140,7 @@ void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 template<class FType>
 void MacauPrior<FType>::update_prior() {
   // residual (Uhat is later overwritten):
-  Uhat.noalias() = this->fac.U - Uhat;
+  Uhat.noalias() = U - Uhat;
   MatrixXd BBt = A_mul_At_combo(beta);
   // sampling Gaussian
   tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
@@ -159,7 +156,6 @@ double MacauPrior<FType>::getLinkNorm() {
 
 template<class FType>
 void MacauPrior<FType>::compute_Ft_y_omp(MatrixXd &Ft_y) {
-    auto &U = this->fac.U;
     const int num_feat = beta.cols();
 
     // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
@@ -219,11 +215,11 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
 }
 
 
-SpikeAndSlabPrior::SpikeAndSlabPrior(Factor &d, INoiseModel &noise)
-    : ILatentPrior(d, noise)
+SpikeAndSlabPrior::SpikeAndSlabPrior(SparseMF &m, int p, INoiseModel &n)
+    : SparseLatentPrior(m, p, n)
 {
     const int K = num_latent();
-    const int D = fac.num();
+    const int D = U.cols();
        
     
     //-- prior params
@@ -234,14 +230,12 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(Factor &d, INoiseModel &noise)
     r = VectorNd::Constant(K,.5);
 }
 
-void SpikeAndSlabPrior::sample_latent(int d, const Factor &other)
+void SpikeAndSlabPrior::sample_latent(int d)
 {
     const int K = num_latent();
     VectorNd Zcol = VectorNd::Zero(K);
-    auto &Y = fac.Y;
-    auto &W = fac.U;
-    auto &X = other.U;
-    double mean_rating = fac.mean_rating;
+    auto &W = U; // aliases
+    auto &X = V; // aliases
 
     std::default_random_engine generator;
     std::uniform_real_distribution<double> udist(0,1);
@@ -252,7 +246,7 @@ void SpikeAndSlabPrior::sample_latent(int d, const Factor &other)
     VectorNd Wcol = W.col(d);
     VectorNd yX(VectorNd::Zero(K));
     for (SparseMatrixD::InnerIterator it(Y,d); it; ++it) {
-        double y = it.value() - mean_rating;
+        double y = it.value() - model.mean_rating;
         auto Xcol = X.col(it.row());
         yX.noalias() += y * Xcol;
         XX.noalias() += Xcol * Xcol.transpose();
@@ -283,7 +277,7 @@ void SpikeAndSlabPrior::savePriorInfo(std::string prefix) {
 
 
 void SpikeAndSlabPrior::update_prior() {
-    const int D = fac.num();
+    const int D = U.cols();
     
     r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;
 
