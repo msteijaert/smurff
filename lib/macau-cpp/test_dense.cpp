@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     model.setRelationDataTest(Ytest);
 
     //-- Normal priors
-    macau.addPrior<DenseNormalPrior>(model);
+    macau.addPrior<DenseSpikeAndSlabPrior>(model);
     macau.addPrior<DenseNormalPrior>(model);
 
     macau.run();

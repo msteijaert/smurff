@@ -46,7 +46,7 @@ class Macau  {
       void saveModel(int isample);
       void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
-      ~Macau();
+      ~Macau() {}
 };
 
 class MacauMPI : public Macau {
@@ -67,9 +67,6 @@ Prior& Macau::addPrior(Model &model)
     priors.push_back(std::unique_ptr<ILatentPrior>(p));
     return *p;
 }
-
-
-
 
 void sparseFromIJV(Eigen::SparseMatrix<double> & X, int* rows, int* cols, double* values, int N);
 

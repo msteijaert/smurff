@@ -68,8 +68,6 @@ void Macau::init() {
   keepRunning = true;
 }
 
-Macau::~Macau() {}
-
 void Macau::run() {
     init();
     if (verbose) {

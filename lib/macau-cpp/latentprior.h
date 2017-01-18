@@ -193,8 +193,9 @@ typedef Eigen::MatrixXd MatrixNNd;
 typedef Eigen::ArrayXd ArrayNd;
 
 /** Spike and slab prior */
-class SpikeAndSlabPrior : public SparseLatentPrior {
-  public:
+template<class BasePrior, class BaseModel>
+class SpikeAndSlabPrior : public BasePrior {
+   public:
     VectorNd Zcol, W2col, Zkeep;
     ArrayNd alpha;
     VectorNd r;
@@ -203,9 +204,9 @@ class SpikeAndSlabPrior : public SparseLatentPrior {
     const double prior_beta = 1; //for r
     const double prior_alpha_0 = 1.; //for alpha
     const double prior_beta_0 = 1.; //for alpha
- 
+
   public:
-    SpikeAndSlabPrior(SparseMF &, int, INoiseModel &);
+    SpikeAndSlabPrior(BaseModel &, int, INoiseModel &);
     virtual ~SpikeAndSlabPrior() {}
 
     void pre_update() override;
@@ -213,6 +214,10 @@ class SpikeAndSlabPrior : public SparseLatentPrior {
     void savePriorInfo(std::string prefix) override;
     void sample_latent(int n) override;
 };
+
+
+typedef SpikeAndSlabPrior<SparseLatentPrior, SparseMF> SparseSpikeAndSlabPrior;
+typedef SpikeAndSlabPrior<DenseLatentPrior, DenseMF> DenseSpikeAndSlabPrior;
 
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
 double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);

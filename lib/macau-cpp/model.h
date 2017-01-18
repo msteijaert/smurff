@@ -54,7 +54,7 @@ struct Factors {
     double mean_rating = .0;
     virtual int Yrows() const = 0;
     virtual int Ycols() const = 0;
-   // virtual int Ynnz() const = 0;
+    virtual int Ynnz() const = 0;
 };
 
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
@@ -71,6 +71,10 @@ struct SparseMF : public Factors {
 
     int Yrows() const override { return Y.rows(); }
     int Ycols() const override { return Y.cols(); }
+    int Ynnz()  const override { return Y.nonZeros(); }
+
+    typedef SparseMatrixD::InnerIterator Iter;
+    Iter it(int d) { return SparseMatrixD::InnerIterator(Y, d); }
 
     SparseMatrixD Y;
 };
@@ -93,6 +97,24 @@ struct DenseMF : public Factors {
 
     int Yrows() const override { return Y.rows(); }
     int Ycols() const override { return Y.cols(); }
+    int Ynnz()  const override { return Y.rows() * Y.cols(); }
+
+    struct Iter {
+        Iter(Eigen::MatrixXd &Y, int c)
+            : Y(Y), c(c), r(0) {}
+        Iter &operator++() { r++; return *this; }
+        operator bool() const { return r < Y.rows(); }
+        double value() const { return Y(r, c); }
+        int row() const { return r; }
+        int col() const { return c; }
+
+      private:
+        Eigen::MatrixXd &Y;
+        int c, r;
+    };
+
+    Iter it(int d) { return Iter(Y, d); }
+
     void setRelationData(Eigen::MatrixXd Y);
 
     Eigen::MatrixXd Y;

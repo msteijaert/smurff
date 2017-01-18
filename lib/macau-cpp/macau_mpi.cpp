@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
 
     //-- Normal column prior
     //macau.addPrior<SparseNormalPrior>(model);
-    macau.addPrior<SpikeAndSlabPrior>(model);
+    macau.addPrior<SparseSpikeAndSlabPrior>(model);
 
     //-- row prior with side information
     auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>(model);
