@@ -43,17 +43,17 @@ FixedGaussianNoise &Macau::setPrecision(double p) {
   return *n;
 }
 
-AdaptiveGaussianNoise &Macau::setAdaptivePrecision(double sn_init, double sn_max) {
-  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(model, sn_init, sn_max);
-  noise.reset(n);
-  return *n;
-}
-
-ProbitNoise &Macau::setProbit() {
-  ProbitNoise *n = new ProbitNoise(model);
-  noise.reset(n);
-  return *n;
-}
+//AdaptiveGaussianNoise &Macau::setAdaptivePrecision(double sn_init, double sn_max) {
+//  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(model, sn_init, sn_max);
+//  noise.reset(n);
+//  return *n;
+//}
+//
+//ProbitNoise &Macau::setProbit() {
+//  ProbitNoise *n = new ProbitNoise(model);
+//  noise.reset(n);
+//  return *n;
+//}
 
 void Macau::setSamples(int b, int n) {
   burnin = b;
@@ -68,8 +68,8 @@ void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int 
   U(1).resize(num_latent, Y.rows()); U(1).setZero();
 }
 
-void SparseMF::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  assert(nrows == Y.rows() && ncols == Y.cols() && 
+void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+  assert(nrows == Yrows() && ncols == Ycols() && 
          "Size of train must be equal to size of test");
     
   Ytest.resize(nrows, ncols);
@@ -79,11 +79,33 @@ void SparseMF::setRelationDataTest(int* rows, int* cols, double* values, int N, 
 
 }
 
+void DenseMF::init()
+{
+    assert(Yrows() > 0 && Ycols() > 0);
+    mean_rating = Y.sum() / Y.nonZeros();
+    U(0).resize(num_latent, Y.cols()); U(0).setZero();
+    U(1).resize(num_latent, Y.rows()); U(1).setZero();
+    Ut.at(0).resize(num_latent, Y.cols()); Ut.at(0).setZero();
+    Ut.at(1).resize(num_latent, Y.rows()); Ut.at(1).setZero();
+}
+
+void SparseMF::init()
+{
+    assert(Yrows() > 0 && Ycols() > 0);
+    mean_rating = Y.sum() / Y.nonZeros();
+    U(0).resize(num_latent, Y.cols()); U(0).setZero();
+    U(1).resize(num_latent, Y.rows()); U(1).setZero();
+}
+
 void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
-    
-void SparseMF::setRelationDataTest(SparseDoubleMatrix &Y) {
+   
+void DenseMF::setRelationData(MatrixXd Y) {
+    this->Y = Y;
+}
+ 
+void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
    setRelationDataTest(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
 
@@ -96,6 +118,7 @@ void Macau::init() {
   }
   init_bmrng(seed1);
   noise->init();
+  model.init();
   keepRunning = true;
 }
 
@@ -114,8 +137,8 @@ void Macau::run() {
     }
     signal(SIGINT, intHandler);
 
-    const int num_rows = model.Y.rows();
-    const int num_cols = model.Y.cols();
+    const int num_rows = model.Yrows();
+    const int num_cols = model.Ycols();
 
     auto start = tick();
     for (int i = 0; i < burnin + nsamples; i++) {
@@ -158,7 +181,7 @@ void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
           snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi);
 }
 
-Eigen::VectorXd SparseMF::getStds(int iter) {
+Eigen::VectorXd Factors::getStds(int iter) {
   VectorXd std(Ytest.nonZeros());
   if (iter <= 1) {
     std.setConstant(NAN);
@@ -174,7 +197,7 @@ Eigen::VectorXd SparseMF::getStds(int iter) {
 }
 
 // assumes matrix (not tensor)
-Eigen::MatrixXd SparseMF::getTestData() {
+Eigen::MatrixXd Factors::getTestData() {
     MatrixXd coords(Ytest.nonZeros(), 3);
 #pragma omp parallel for schedule(dynamic, 2)
     for (int k = 0; k < Ytest.outerSize(); ++k) {
@@ -228,7 +251,7 @@ void Macau::saveGlobalParams() {
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
 
-void SparseMF::update_rmse(bool burnin)
+void Factors::update_rmse(bool burnin)
 {
     if (Ytest.nonZeros() == 0) return;
 
@@ -260,7 +283,7 @@ void SparseMF::update_rmse(bool burnin)
     if (!burnin) iter++;
 }
 
-void SparseMF::update_auc(bool burnin)
+void Factors::update_auc(bool burnin)
 {
     if (Ytest.nonZeros() == 0) return;
 

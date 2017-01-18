@@ -6,12 +6,12 @@
 #include <iomanip>
 #include "utils.h"
 
-struct SparseMF; // forward declaration
+#include "model.h"
 
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(SparseMF &p) : model(p) {}
+    INoiseModel(Factors &p) : base_model(p) {}
 
     virtual void init()  = 0;
     virtual void update()  = 0;
@@ -25,7 +25,7 @@ class INoiseModel {
     virtual std::pair<double, double> sample(int, int) = 0;
 
   protected:
-    SparseMF &model;
+    Factors &base_model;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -35,7 +35,7 @@ class FixedGaussianNoise : public INoiseModel {
     double rmse_test;
     double rmse_test_onesample;
   
-    FixedGaussianNoise(SparseMF &p, double a = 1.) :
+    FixedGaussianNoise(Factors &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
 
     void init() override { }
@@ -64,7 +64,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double rmse_test_onesample;
 
     AdaptiveGaussianNoise(SparseMF &p, double sinit = 1., double smax = 10.)
-        : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
+        : INoiseModel(p), sn_max(smax), sn_init(sinit), model(p) {}
 
     void init() override;
     void update() override;
@@ -78,6 +78,10 @@ class AdaptiveGaussianNoise : public INoiseModel {
     void evalModel(bool burnin) override;
     double getEvalMetric() override {return rmse_test;}
     std::string getEvalString() override { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
+    
+  protected:
+    SparseMF &model;
+
 };
 
 /** Probit noise model (binary). Fixed for the whole run */
@@ -85,7 +89,7 @@ class ProbitNoise : public INoiseModel {
   public:
     double auc_test;
     double auc_test_onesample;
-    ProbitNoise(SparseMF &p) : INoiseModel(p) {}
+    ProbitNoise(SparseMF &p) : INoiseModel(p), model(p) {}
     void init() override {}
     void update() override {}
 
@@ -96,4 +100,7 @@ class ProbitNoise : public INoiseModel {
     void evalModel(bool burnin) override;
     double getEvalMetric() override {return auc_test;}
     std::string getEvalString() override { return std::string("AUC: ") + to_string_with_precision(auc_test,5) + " (1samp: " + to_string_with_precision(auc_test_onesample,5)+")";}
+    
+  protected:
+    SparseMF &model;
 };

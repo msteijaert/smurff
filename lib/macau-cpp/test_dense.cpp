@@ -31,20 +31,20 @@ int main(int argc, char** argv) {
 
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
 
-    //MatrixXd Y = random_Ydense(N,D,3);
-    MatrixXd Y = ones_Ydense(N,D,2);
-    Macau macau(num_latent);
+    DenseMF model(num_latent);
+    Macau macau(model);
+    macau.setSamples(iter_max / 5, 4 * iter_max / 5);
 
     // fixed gaussian noise
     macau.setPrecision(1.0);
     macau.setVerbose(true);
-    macau.model.setRelationData(Y);
 
-   //-- Normal priors
-   macau.addPrior<DenseNormalPrior>();
-   macau.addPrior<DenseNormalPrior>();
+    // = random_Ydense(N,D,3);
+    model.setRelationData(ones_Ydense(N,D,2));
 
-   macau.model.init();
+    //-- Normal priors
+    macau.addPrior<DenseNormalPrior>(model);
+    macau.addPrior<DenseNormalPrior>(model);
 
-   macau.run();
+    macau.run();
 }

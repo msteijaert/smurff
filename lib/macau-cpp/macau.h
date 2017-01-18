@@ -16,8 +16,8 @@ int get_num_omp_threads();
 class Macau  {
   public:
       std::unique_ptr<INoiseModel> noise;
-      std::vector< std::unique_ptr<SparseLatentPrior> > priors;
-      SparseMF model;
+      std::vector< std::unique_ptr<ILatentPrior> > priors;
+      Factors &model;
 
       bool verbose = true;
       int nsamples = 100;
@@ -28,15 +28,15 @@ class Macau  {
       double rmse_test;
 
   public:
-      Macau(int D = 10) : model(D) {}
+      Macau(Factors &m) : model(m) {}
 
-      template<class Prior>
-      inline Prior& addPrior();
+      template<class Prior, class Model>
+      inline Prior& addPrior(Model &model);
 
       // noise models
       FixedGaussianNoise &setPrecision(double p);
-      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
-      ProbitNoise &setProbit();
+      //AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
+      //ProbitNoise &setProbit();
 
       void setSamples(int burnin, int nsamples);
       void init();
@@ -55,7 +55,7 @@ class Macau  {
 
 class MacauMPI : public Macau {
   public:
-    MacauMPI(int D);
+    MacauMPI(Factors &m);
     void run();
 
     int world_rank;
@@ -63,12 +63,12 @@ class MacauMPI : public Macau {
 };
 
 
-template<class Prior>
-Prior& Macau::addPrior()
+template<class Prior, class Model>
+Prior& Macau::addPrior(Model &model)
 {
     auto pos = priors.size();
     Prior *p = new Prior(model, pos, *noise);
-    priors.push_back(std::unique_ptr<SparseLatentPrior>(p));
+    priors.push_back(std::unique_ptr<ILatentPrior>(p));
     return *p;
 }
 

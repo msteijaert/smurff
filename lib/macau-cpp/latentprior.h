@@ -54,10 +54,11 @@ class DenseLatentPrior : public ILatentPrior
      DenseLatentPrior(DenseMF &m, int p, INoiseModel &n)
          : ILatentPrior(m, p, n), model(m),
            UU(m.UU.at(pos)), VV(m.UU.at((pos+1)%2)),
-           UtU(m.UtU.at(pos)), VtV(m.UtU.at((pos+1)%2))
+           UtU(m.UtU.at(pos)), VtV(m.UtU.at((pos+1)%2)),
+           Ut(m.Ut.at(pos)), Vt(m.Ut.at((pos+1)%2))
      {
          assert(m.num_fac() == 2);
-         Y =  (p==0) ? m.Y : m.Y.transpose();
+         Y = (p==0) ? m.Y : m.Y.transpose();
      }
      virtual ~DenseLatentPrior() {}
 
@@ -67,6 +68,7 @@ class DenseLatentPrior : public ILatentPrior
      Eigen::MatrixXd CovF, CovL, CovU;
      Eigen::MatrixXd &UU, &VV;
      Eigen::MatrixXd &UtU, &VtV;
+     Eigen::MatrixXd &Ut, &Vt;
 
 };
 
