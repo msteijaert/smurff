@@ -63,9 +63,7 @@ void Macau::setSamples(int b, int n) {
 void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
   Y.resize(nrows, ncols);
   sparseFromIJV(Y, rows, cols, values, N);
-  mean_rating = Y.sum() / Y.nonZeros();
-  U(0).resize(num_latent, Y.cols()); U(0).setZero();
-  U(1).resize(num_latent, Y.rows()); U(1).setZero();
+  init();
 }
 
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
@@ -74,7 +72,7 @@ void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, i
     
   Ytest.resize(nrows, ncols);
   sparseFromIJV(Ytest, rows, cols, values, N);
-
+  init();
 }
 
 void Factors::init()
@@ -85,7 +83,6 @@ void Factors::init()
 
 void DenseMF::init()
 {
-    Factors::init();
     assert(Yrows() > 0 && Ycols() > 0);
     mean_rating = Y.sum() / Y.nonZeros();
     U(0).resize(num_latent, Y.cols()); U(0).setZero();
@@ -96,7 +93,6 @@ void DenseMF::init()
 
 void SparseMF::init()
 {
-    Factors::init();
     assert(Yrows() > 0 && Ycols() > 0);
     mean_rating = Y.sum() / Y.nonZeros();
     U(0).resize(num_latent, Y.cols()); U(0).setZero();
@@ -109,6 +105,7 @@ void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
    
 void DenseMF::setRelationData(MatrixXd Y) {
     this->Y = Y;
+    init();
 }
  
 void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
@@ -117,6 +114,7 @@ void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
  
 void Factors::setRelationDataTest(SparseMatrixD Y) {
     Ytest = Y;
+    init();
 }
 
 double Macau::getRmseTest() { return rmse_test; }
@@ -128,7 +126,6 @@ void Macau::init() {
   }
   init_bmrng(seed1);
   noise->init();
-  model.init();
   keepRunning = true;
 }
 

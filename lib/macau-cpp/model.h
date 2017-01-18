@@ -18,7 +18,7 @@ struct Factors {
         factors.resize(num_fac);
     }
 
-    virtual void init();
+    void init();
 
     const Eigen::MatrixXd &U(int f) const { return factors.at(f); }
     Eigen::MatrixXd &U(int f) { return factors.at(f); }
@@ -57,7 +57,7 @@ struct SparseMF : public Factors {
     SparseMF(int num_latent, int num_fac = 2)
         : Factors(num_latent, num_fac) {}
 
-    void init() override;
+    void init();
 
     void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void setRelationData(SparseDoubleMatrix& Y);
@@ -78,7 +78,7 @@ struct DenseMF : public Factors {
         Ut.resize(num_fac);
     }
 
-    void init() override;
+    void init();
 
     std::vector<Eigen::MatrixXd> Ut;
     std::vector<Eigen::MatrixXd> UtU;

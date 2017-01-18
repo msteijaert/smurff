@@ -158,18 +158,18 @@ int main(int argc, char** argv) {
 
     SparseMF model(num_latent);
     MacauMPI macau(model);
-    macau.setSamples(nsamples, burnin);
+    macau.setSamples(burnin, nsamples);
 
     // -- noise model + general parameters
     macau.setPrecision(precision);
 
     macau.setVerbose(true);
     Y = read_sdm(fname_train);
-    ////macau.model.setRelationData(*Y);
+    model.setRelationData(*Y);
 
     //-- Normal column prior
-    //macau.addPrior<SparseNormalPrior>();
-    macau.addPrior<SpikeAndSlabPrior>(model);
+    macau.addPrior<SparseNormalPrior>(model);
+    //macau.addPrior<SpikeAndSlabPrior>(model);
 
     //-- row prior with side information
     auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>(model);
