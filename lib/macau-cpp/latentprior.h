@@ -165,10 +165,10 @@ class MacauPrior : public SparseNormalPrior {
 
 /** Prior with side information */
 template<class FType>
-class MacauMPIPrior : public MacauPrior<FType> {
+class MPIMacauPrior : public MacauPrior<FType> {
   public:
-    MacauMPIPrior(SparseMF &, int, INoiseModel &);
-    virtual ~MacauMPIPrior() {}
+    MPIMacauPrior(SparseMF &, int, INoiseModel &);
+    virtual ~MPIMacauPrior() {}
 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 

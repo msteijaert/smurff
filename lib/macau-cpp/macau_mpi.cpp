@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
     SparseDoubleMatrix* Ytest = NULL;
 
     SparseMF model(num_latent);
-    MacauMPI macau(model);
+    MPIMacau macau(model);
     macau.setSamples(burnin, nsamples);
 
     // -- noise model + general parameters
@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-MacauMPI::MacauMPI(Factors &m)
+MPIMacau::MPIMacau(Factors &m)
     : Macau(m)
 {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -210,7 +210,7 @@ MacauMPI::MacauMPI(Factors &m)
 }
  
 
-void MacauMPI::run()
+void MPIMacau::run()
 {
    /* adapted from Macau.run() */
    init();
@@ -224,7 +224,7 @@ void MacauMPI::run()
 }
 
 template<class FType>
-MacauMPIPrior<FType>::MacauMPIPrior(SparseMF &m, int p, INoiseModel &n) 
+MPIMacauPrior<FType>::MPIMacauPrior(SparseMF &m, int p, INoiseModel &n) 
  : MacauPrior<FType>(m, p, n)
 {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -233,7 +233,7 @@ MacauMPIPrior<FType>::MacauMPIPrior(SparseMF &m, int p, INoiseModel &n)
 
 
 template<class FType>
-void MacauMPIPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
+void MPIMacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 {
     MacauPrior<FType>::addSideInfo(Fmat, comp_FtF);
 
@@ -253,7 +253,7 @@ void MacauMPIPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_F
 
 
 template<class FType>
-void MacauMPIPrior<FType>::sample_beta() {
+void MPIMacauPrior<FType>::sample_beta() {
    const int num_latent = this->beta.rows();
    const int num_feat = this->beta.cols();
 

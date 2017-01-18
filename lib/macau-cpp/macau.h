@@ -49,9 +49,9 @@ class Macau  {
       ~Macau() {}
 };
 
-class MacauMPI : public Macau {
+class MPIMacau : public Macau {
   public:
-    MacauMPI(Factors &m);
+    MPIMacau(Factors &m);
     void run();
 
     int world_rank;
