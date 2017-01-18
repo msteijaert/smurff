@@ -40,7 +40,10 @@ int main(int argc, char** argv) {
     macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);
-    model.setRelationData(ones_Ydense(N,D,2));
+    auto Ytrain = ones_Ydense(N,D,2);
+    auto Ytest  = extract(Ytrain, .2);
+    model.setRelationData(Ytrain);
+    model.setRelationDataTest(Ytest);
 
     //-- Normal priors
     macau.addPrior<DenseNormalPrior>(model);

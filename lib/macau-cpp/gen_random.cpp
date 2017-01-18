@@ -92,3 +92,37 @@ SparseMatrixD random_Ysparse(int N, int D, int K, double s)
     return sparsify(X, W, s);
 }
 
+std::pair<SparseMatrixD,SparseMatrixD> split(const SparseMatrixD &Y, double s)
+{
+    SparseMatrixD Ytrain(Y.rows(), Y.cols());
+    SparseMatrixD Ytest(Y.rows(), Y.cols());
+
+    std::default_random_engine gen;
+    std::uniform_real_distribution<double> udist(0.0,1.0);
+
+    for (int k = 0; k < Y.outerSize(); ++k) {
+        for (SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
+            auto p=udist(gen);
+            if(p < s) Ytest.coeffRef(it.row(), it.col()) = it.value();
+            else Ytrain.coeffRef(it.row(), it.col()) = it.value();
+        }
+    }
+    return std::make_pair(Ytrain, Ytest);
+}
+
+SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s)
+{
+    SparseMatrixD Yout(Yin.rows(), Yin.cols());
+
+    std::default_random_engine gen;
+    std::uniform_real_distribution<double> udist(0.0,1.0);
+
+    for (int k = 0; k < Yin.cols(); ++k) {
+        for (int l = 0; l < Yin.rows(); ++l) {
+            auto p=udist(gen);
+            if(p < s) Yout.coeffRef(l,k) = Yin(l,k);
+        }
+    }
+    return Yout;
+}
+

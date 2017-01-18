@@ -18,7 +18,7 @@ struct Factors {
         factors.resize(num_fac);
     }
 
-    virtual void init() = 0;
+    virtual void init();
 
     const Eigen::MatrixXd &U(int f) const { return factors.at(f); }
     Eigen::MatrixXd &U(int f) { return factors.at(f); }
@@ -31,11 +31,12 @@ struct Factors {
     Eigen::VectorXd predictions, predictions_var, test_vector;
 
     double iter;
-    double rmse, rmse_avg;
-    double auc, auc_avg;
+    double rmse = NAN, rmse_avg = NAN;
+    double auc = NAN, auc_avg = NAN;
 
     void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void setRelationDataTest(SparseDoubleMatrix &Y);
+    void setRelationDataTest(Eigen::SparseMatrix<double> Y);
 
     void update_rmse(bool burnin);
     void update_auc(bool burnin);
