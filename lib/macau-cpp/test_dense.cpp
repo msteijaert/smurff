@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     macau.setSamples(iter_max / 5, 4 * iter_max / 5);
 
     // fixed gaussian noise
-    macau.setPrecision(1.0);
+    macau.setPrecision(.01);
     macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);

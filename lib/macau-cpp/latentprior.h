@@ -30,7 +30,8 @@ class ILatentPrior {
       virtual void savePriorInfo(std::string prefix) = 0;
 
       // work
-      virtual void update_prior() = 0;
+      virtual void pre_update() = 0;
+      virtual void post_update() = 0;
       virtual double getLinkNorm() { return NAN; };
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
@@ -108,7 +109,8 @@ class NormalPrior {
     NormalPrior(Eigen::MatrixXd &U, int num_latent); 
     virtual ~NormalPrior() {}
 
-    virtual void update_prior();
+    virtual void pre_update();
+    virtual void post_update();
     virtual void savePriorInfo(std::string prefix);
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
@@ -121,7 +123,8 @@ class SparseNormalPrior : public NormalPrior, public SparseLatentPrior {
     virtual ~SparseNormalPrior() {}
 
     void sample_latent(int n) override;
-    void update_prior() override { NormalPrior::update_prior(); }
+    void pre_update() override { NormalPrior::pre_update(); }
+    void post_update() override { NormalPrior::post_update(); }
     void savePriorInfo(std::string prefix) override { NormalPrior::savePriorInfo(prefix); }
 };
 
@@ -131,7 +134,8 @@ class DenseNormalPrior : public NormalPrior, public DenseLatentPrior {
     virtual ~DenseNormalPrior() {}
 
     void sample_latent(int n) override;
-    void update_prior() override;
+    void pre_update() override;
+    void post_update() override;
     void savePriorInfo(std::string prefix) override { NormalPrior::savePriorInfo(prefix); }
 };
 
@@ -156,7 +160,8 @@ class MacauPrior : public SparseNormalPrior {
             
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
-    void update_prior() override;
+    void pre_update() override;
+    void post_update() override;
     double getLinkNorm() override;
     double getLinkLambda() override { return lambda_beta; };
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
@@ -215,7 +220,8 @@ class SpikeAndSlabPrior : public SparseLatentPrior {
     SpikeAndSlabPrior(SparseMF &, int, INoiseModel &);
     virtual ~SpikeAndSlabPrior() {}
 
-    void update_prior() override;
+    void pre_update() override;
+    void post_update() override;
     void savePriorInfo(std::string prefix) override;
     void sample_latent(int n) override;
 };

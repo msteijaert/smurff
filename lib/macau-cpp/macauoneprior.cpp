@@ -92,7 +92,11 @@ void MacauOnePrior<FType>::sample_latent(int i)
 }
 
 template<class FType>
-void MacauOnePrior<FType>::update_prior() {
+void MacauOnePrior<FType>::pre_update() {
+}
+
+template<class FType>
+void MacauOnePrior<FType>::post_update() {
     sample_mu_lambda(U);
     sample_beta(U);
     compute_uhat(Uhat, *F, beta);

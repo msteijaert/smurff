@@ -47,8 +47,11 @@ NormalPrior::NormalPrior(Eigen::MatrixXd &U, int num_latent)
     df = num_latent;
 }
 
-void NormalPrior::update_prior() {
+void NormalPrior::pre_update() {
   tie(mu, Lambda) = CondNormalWishart(nU, mu0, b0, WI, df);
+}
+
+void NormalPrior::post_update() {
 }
 
 void NormalPrior::savePriorInfo(std::string prefix) {
@@ -105,9 +108,14 @@ void DenseNormalPrior::sample_latent(int n)
     UtU += x * (t * x.transpose());
 }
 
-void DenseNormalPrior::update_prior()
+void DenseNormalPrior::pre_update()
 {
-   NormalPrior::update_prior();
+   NormalPrior::pre_update();
+}
+
+void DenseNormalPrior::post_update()
+{
+   NormalPrior::post_update();
    CovF = (MatrixNNd::Identity(num_latent(), num_latent()) + VtV).inverse();
    CovL = CovF.llt().matrixL();
    CovU = CovF.llt().matrixU();
@@ -147,7 +155,11 @@ void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 }
 
 template<class FType>
-void MacauPrior<FType>::update_prior() {
+void MacauPrior<FType>::pre_update() {
+}
+
+template<class FType>
+void MacauPrior<FType>::post_update() {
   // residual (Uhat is later overwritten):
   Uhat.noalias() = U - Uhat;
   MatrixXd BBt = A_mul_At_combo(beta);
@@ -284,7 +296,10 @@ void SpikeAndSlabPrior::savePriorInfo(std::string prefix) {
 }
 
 
-void SpikeAndSlabPrior::update_prior() {
+void SpikeAndSlabPrior::pre_update() {
+}
+
+void SpikeAndSlabPrior::post_update() {
     const int D = U.cols();
     
     r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;

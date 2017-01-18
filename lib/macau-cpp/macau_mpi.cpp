@@ -168,8 +168,8 @@ int main(int argc, char** argv) {
     model.setRelationData(*Y);
 
     //-- Normal column prior
-    macau.addPrior<SparseNormalPrior>(model);
-    //macau.addPrior<SpikeAndSlabPrior>(model);
+    //macau.addPrior<SparseNormalPrior>(model);
+    macau.addPrior<SpikeAndSlabPrior>(model);
 
     //-- row prior with side information
     auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>(model);

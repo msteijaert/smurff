@@ -158,11 +158,10 @@ void Macau::run() {
         }
         auto starti = tick();
 
-        // Sample hyperparams
-        for(auto &p : priors) p->update_prior();
-
-        // sample latent vectors
+        // Sample hyperparams + latents
+        for(auto &p : priors) p->pre_update();
         for(auto &p : priors) p->sample_latents();
+        for(auto &p : priors) p->post_update();
 
         noise->update();
         noise->evalModel(i < burnin);
