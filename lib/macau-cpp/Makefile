@@ -1,5 +1,5 @@
-CXX=mpicxx
-#CXX=g++
+#CXX=mpicxx
+CXX=g++
 CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas 
 #CXXFLAGS+=-fopenmp
 CXXFLAGS += -I ../eigen3 -I ../libfastsparse

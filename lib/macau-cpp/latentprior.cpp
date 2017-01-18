@@ -97,7 +97,7 @@ void SparseNormalPrior::sample_latent(int n)
 
 void DenseNormalPrior::sample_latent(int n)
 {
-    auto x = CovF * (VtV * Y.col(n)) + CovL * nrandn(num_latent()).matrix();
+    auto x = CovF * (Vt * Y.col(n)) + CovL * nrandn(num_latent()).matrix();
     double t = noise.sample(n, 0).first;
     U.col(n).noalias() = x;
     Ut.col(n).noalias() = t * x;
