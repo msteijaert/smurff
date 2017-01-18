@@ -43,11 +43,7 @@ class Macau  {
       void run();
       void printStatus(int i, double elapsedi, double samples_per_sec);
       void setVerbose(bool v) { verbose = v; };
-      double getRmseTest();
-      Eigen::VectorXd getPredictions() { return model.predictions; };
-      void savePredictions();
       void saveModel(int isample);
-      void saveGlobalParams();
       void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
       ~Macau();

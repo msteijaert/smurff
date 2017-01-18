@@ -18,7 +18,7 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 all: libmacau.a tests macau_mpi test_dense
 
-LIBOBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macauoneprior.o gen_random.o
+LIBOBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macauoneprior.o gen_random.o model.o
 libmacau.a: $(LIBOBJS)
 	$(AR) csr $@ $+
 	

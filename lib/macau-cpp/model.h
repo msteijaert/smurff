@@ -41,13 +41,20 @@ struct Factors {
     void update_rmse(bool burnin);
     void update_auc(bool burnin);
 
-    Eigen::VectorXd getStds(int iter);
+
+    //-- output to file
+    void saveGlobalParams(std::string);
+    void savePredictions(std::string);
+    void saveModel(std::string);
+
+    Eigen::VectorXd getStds();
     Eigen::MatrixXd getTestData();
 
     // Y-related
     double mean_rating = .0;
     virtual int Yrows() const = 0;
     virtual int Ycols() const = 0;
+   // virtual int Ynnz() const = 0;
 };
 
 typedef Eigen::SparseMatrix<double> SparseMatrixD;

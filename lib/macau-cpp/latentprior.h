@@ -93,8 +93,8 @@ class SparseLatentPrior : public ILatentPrior
 
 /** Prior without side information (pure BPMF) */
 
-class NormalPrior {
-  public: 
+class SparseNormalPrior : public SparseLatentPrior {
+  public:
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
     Eigen::MatrixXd WI;
@@ -103,40 +103,28 @@ class NormalPrior {
     int b0;
     int df;
 
-    Eigen::MatrixXd &nU;
+    SparseNormalPrior(SparseMF &m, int p, INoiseModel &n);
+    virtual ~SparseNormalPrior() {}
 
-  public:
-    NormalPrior(Eigen::MatrixXd &U, int num_latent); 
-    virtual ~NormalPrior() {}
-
-    virtual void pre_update();
-    virtual void post_update();
-    virtual void savePriorInfo(std::string prefix);
+    void pre_update() override;
+    void post_update() override;
+    void savePriorInfo(std::string prefix) override;
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
-};
-
-class SparseNormalPrior : public NormalPrior, public SparseLatentPrior {
-  public:
-    SparseNormalPrior(SparseMF &m, int p, INoiseModel &n) : NormalPrior(m.U(p), m.num_latent), SparseLatentPrior(m, p, n) {}
-    virtual ~SparseNormalPrior() {}
 
     void sample_latent(int n) override;
-    void pre_update() override { NormalPrior::pre_update(); }
-    void post_update() override { NormalPrior::post_update(); }
-    void savePriorInfo(std::string prefix) override { NormalPrior::savePriorInfo(prefix); }
 };
 
-class DenseNormalPrior : public NormalPrior, public DenseLatentPrior {
+class DenseNormalPrior : public DenseLatentPrior {
   public:
-    DenseNormalPrior(DenseMF &m, int p, INoiseModel &n) : NormalPrior(m.U(p), m.num_latent), DenseLatentPrior(m, p, n) {} 
+    DenseNormalPrior(DenseMF &m, int p, INoiseModel &n) : DenseLatentPrior(m, p, n) {} 
     virtual ~DenseNormalPrior() {}
 
     void sample_latent(int n) override;
     void pre_update() override;
     void post_update() override;
-    void savePriorInfo(std::string prefix) override { NormalPrior::savePriorInfo(prefix); }
+    void savePriorInfo(std::string prefix) override {}
 };
 
 /** Prior with side information */

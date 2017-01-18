@@ -23,45 +23,40 @@ void ILatentPrior::sample_latents() {
 }
 
 
-
 /**
- *  NormalPrior 
+ *  SparseNormalPrior 
  */
 
-NormalPrior::NormalPrior(Eigen::MatrixXd &U, int num_latent)
-    : nU(U)
+SparseNormalPrior::SparseNormalPrior(SparseMF &m, int p, INoiseModel &n)
+    : SparseLatentPrior(m, p, n)
 {
-    mu.resize(num_latent);
+    const int K = num_latent();
+    mu.resize(K);
     mu.setZero();
 
-    Lambda.resize(num_latent, num_latent);
+    Lambda.resize(K, K);
     Lambda.setIdentity();
     Lambda *= 10;
 
     // parameters of Inv-Whishart distribution
-    WI.resize(num_latent, num_latent);
+    WI.resize(K, K);
     WI.setIdentity();
-    mu0.resize(num_latent);
+    mu0.resize(K);
     mu0.setZero();
     b0 = 2;
-    df = num_latent;
+    df = K;
 }
 
-void NormalPrior::pre_update() {
-  tie(mu, Lambda) = CondNormalWishart(nU, mu0, b0, WI, df);
+void SparseNormalPrior::pre_update() {
+  tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
 }
 
-void NormalPrior::post_update() {
+void SparseNormalPrior::post_update() {
 }
 
-void NormalPrior::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-latentmean.csv", mu);
+void SparseNormalPrior::savePriorInfo(std::string prefix) {
+  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", mu);
 }
-
-
-/**
- *  SparseNormalPrior 
- */
 
 
 void SparseNormalPrior::sample_latent(int n)
@@ -110,15 +105,13 @@ void DenseNormalPrior::sample_latent(int n)
 
 void DenseNormalPrior::pre_update()
 {
-   NormalPrior::pre_update();
+   CovF = (MatrixNNd::Identity(num_latent(), num_latent()) + VtV).inverse();
+   CovL = CovF.llt().matrixL();
+   CovU = CovF.llt().matrixU();
 }
 
 void DenseNormalPrior::post_update()
 {
-   NormalPrior::post_update();
-   CovF = (MatrixNNd::Identity(num_latent(), num_latent()) + VtV).inverse();
-   CovL = CovF.llt().matrixL();
-   CovU = CovF.llt().matrixU();
 }
 
 
@@ -215,8 +208,8 @@ void MacauPrior<FType>::sample_beta() {
 
 template<class FType>
 void MacauPrior<FType>::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-latentmean.csv", this->mu);
-  writeToCSVfile(prefix + "-link.csv", this->beta);
+  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", this->mu);
+  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-link.csv", this->beta);
 }
 
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu) {
