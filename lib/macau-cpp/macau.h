@@ -59,6 +59,12 @@ class MacauMPI : public Macau {
 };
 
 
+class PythonMacau : public Macau {
+  public:
+    PythonMacau(Factors &m) : Macau(m) {}
+    void run();
+};
+
 template<class Prior, class Model>
 Prior& Macau::addPrior(Model &model)
 {

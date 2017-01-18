@@ -75,7 +75,6 @@ void Macau::run() {
         std::cout << "Sampling" << endl;
     }
     if (save_model) model.saveGlobalParams(save_prefix);
-    signal(SIGINT, intHandler);
 
     const int num_rows = model.Yrows();
     const int num_cols = model.Ycols();
@@ -108,6 +107,11 @@ void Macau::run() {
         printStatus(i, elapsedi, samples_per_sec);
         rmse_test = noise->getEvalMetric();
     }
+}
+
+void PythonMacau::run() {
+    signal(SIGINT, intHandler);
+    Macau::run();
 }
 
 void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
