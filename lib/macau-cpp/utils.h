@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <memory>
 
 extern "C" {
   #include <csr.h>
