@@ -2,7 +2,8 @@ MPICXX=mpicxx
 CXX=g++
 CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas 
 #CXXFLAGS+=-fopenmp
-CXXFLAGS += -I ../eigen3 -I ../libfastsparse
+
+CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
 LIBLOCS := -L/usr/local/Cellar/openblas/0.2.18_2/lib
 LDFLAGS := $(LIBLOCS) -lm -lopenblas -lpthread
 
@@ -19,13 +20,15 @@ OUTPUT_OPTION=-MMD -MP -o $@
 all: libmacau.a tests macau_mpi test_dense
 
 LIBOBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macauoneprior.o gen_random.o model.o spikeandslab.o
+
+vpath %.cpp $(ROOT)
 libmacau.a: $(LIBOBJS)
 	$(AR) csr $@ $+
 	
 test_dense tests macau_mpi: libmacau.a
 
 macau_mpi: macau_mpi.cpp
-	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) libmacau.a macau_mpi.cpp -o macau_mpi
+	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) libmacau.a $? -o macau_mpi
 
 clean:
 	rm -f */*.o *.o */*.d *.d
