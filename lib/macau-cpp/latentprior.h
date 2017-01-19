@@ -36,7 +36,12 @@ class ILatentPrior {
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
 
-      void sample_latents();
+      void sample_latents() {
+#pragma omp parallel for schedule(dynamic, 2)
+          for(int n = 0; n < U.cols(); n++) sample_latent(n); 
+      }
+
+
       virtual void sample_latent(int n) = 0;
 
   private:

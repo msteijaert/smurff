@@ -19,7 +19,8 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 all: libmacau.a tests macau_mpi test_dense
 
-LIBOBJS = mvnormal.o chol.o linop.o latentprior.o noisemodels.o macau.o macauoneprior.o gen_random.o model.o spikeandslab.o
+LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o macau.o gen_random.o model.o 
+LIBOBJS += macauoneprior.o spikeandslab.o macauprior.o normalprior.o
 
 vpath %.cpp $(ROOT)
 libmacau.a: $(LIBOBJS)
@@ -31,10 +32,10 @@ macau_mpi: macau_mpi.cpp
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) libmacau.a $? -o macau_mpi
 
 clean:
-	rm -f */*.o *.o */*.d *.d
+	rm -f *.o *.d
 	rm -f macau_mpi tests libmacau.a
  
 # DFILES 
-DFILES=$(wildcard */*.d *.d)
+DFILES=$(wildcard *.d)
 
 -include $(DFILES)
