@@ -55,7 +55,7 @@ void MacauOnePrior<FType>::sample_latent(int i)
     int idx = 0;
     VectorXd Qi = lambda;
     for (SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
-      double alpha = noise.sample(i, it.row()).first;
+      double alpha = noise.getAlpha();
       Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
       Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
     }
@@ -71,7 +71,7 @@ void MacauOnePrior<FType>::sample_latent(int i)
         for ( SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
             const double vjd = V(d, it.row());
             // L_id += alpha * (Y_ij - k_ijd) * v_jd
-            double alpha = noise.sample(i, it.row()).first;
+            double alpha = noise.getAlpha();
             Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
             //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
         }

@@ -1,8 +1,8 @@
 #include "noisemodels.h"
 #include "latentprior.h"
 
-template<class BasePrior, class BaseModel>
-SpikeAndSlabPrior<BasePrior,BaseModel>::SpikeAndSlabPrior(BaseModel &m, int p, INoiseModel &n)
+template<class BasePrior>
+SpikeAndSlabPrior<BasePrior>::SpikeAndSlabPrior(typename BasePrior::BaseModel &m, int p, INoiseModel &n)
     : BasePrior(m, p, n)
 {
     const int K = this->num_latent();
@@ -17,12 +17,12 @@ SpikeAndSlabPrior<BasePrior,BaseModel>::SpikeAndSlabPrior(BaseModel &m, int p, I
     r = VectorNd::Constant(K,.5);
 }
 
-template<class BasePrior, class BaseModel>
-void SpikeAndSlabPrior<BasePrior,BaseModel>::sample_latent(int d)
+template<class BasePrior>
+void SpikeAndSlabPrior<BasePrior>::sample_latent(int d)
 {
     const int K = this->num_latent();
     auto &W = this->U; // aliases
-    auto &X = this->V; // aliases
+    VectorNd Wcol = W.col(d); // local copy
     
     std::default_random_engine generator;
     std::uniform_real_distribution<double> udist(0,1);
@@ -30,17 +30,9 @@ void SpikeAndSlabPrior<BasePrior,BaseModel>::sample_latent(int d)
     ArrayNd log_r = - r.array().log() + (VectorNd::Ones(K) - r).array().log();
 
     MatrixNNd XX(MatrixNNd::Zero(K,K));
-    VectorNd Wcol = W.col(d);
     VectorNd yX(VectorNd::Zero(K));
-    //for (SparseMatrixD::InnerIterator it(this->Y,d); it; ++it) {
-    for(auto it = this->model.it(d); it; ++it) {
-        double y = it.value() - this->model.mean_rating;
-        auto Xcol = X.col(it.row());
-        yX.noalias() += y * Xcol;
-        XX.noalias() += Xcol * Xcol.transpose();
-    }
-
-    double t = this->noise.sample(d, 0).first;
+    compute_XX_yX(d, XX, yX);
+    double t = this->noise.getAlpha();
 
     for(unsigned k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);
@@ -60,17 +52,43 @@ void SpikeAndSlabPrior<BasePrior,BaseModel>::sample_latent(int d)
     W2col += Wcol.array().square().matrix();
 }
 
-template<class BasePrior, class BaseModel>
-void SpikeAndSlabPrior<BasePrior,BaseModel>::savePriorInfo(std::string prefix) {
+
+void SparseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::VectorXd &yX)
+{
+    auto &X = this->V; // aliases
+    for (SparseMatrixD::InnerIterator it(this->Y,d); it; ++it) {
+        double y = it.value() - this->model.mean_rating;
+        auto Xcol = X.col(it.row());
+        yX.noalias() += y * Xcol;
+        XX.noalias() += Xcol * Xcol.transpose();
+    }
+}
+
+void DenseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::VectorXd &yX)
+{
+    auto &X = this->V; // aliases
+    XX = this->XX;
+    yX = Y.col(d) * X;
+}
+
+template<class BasePrior>
+void SpikeAndSlabPrior<BasePrior>::savePriorInfo(std::string prefix) {
 }
 
 
-template<class BasePrior, class BaseModel>
-void SpikeAndSlabPrior<BasePrior,BaseModel>::pre_update() {
+void DenseSpikeAndSlabPrior::pre_update() {
+    XX.setZero();
+
+#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:VtV)
+    for(int n = 0; n < V.cols(); n++) {
+        auto v = V.col(n);
+        XX += v * v.transpose();
+    }
 }
 
-template<class BasePrior, class BaseModel>
-void SpikeAndSlabPrior<BasePrior,BaseModel>::post_update() {
+
+template<class BasePrior>
+void SpikeAndSlabPrior<BasePrior>::post_update() {
     const int D = this->U.cols();
     
     r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;
@@ -88,5 +106,5 @@ void SpikeAndSlabPrior<BasePrior,BaseModel>::post_update() {
     Zcol.setZero();
 }
 
-template class SpikeAndSlabPrior<SparseLatentPrior, SparseMF>;
-template class SpikeAndSlabPrior<DenseLatentPrior, DenseMF>;
+template class SpikeAndSlabPrior<SparseLatentPrior>;
+template class SpikeAndSlabPrior<DenseLatentPrior>;

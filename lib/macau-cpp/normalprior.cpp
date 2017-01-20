@@ -55,33 +55,49 @@ void SparseNormalPrior::savePriorInfo(std::string prefix) {
 
 void SparseNormalPrior::sample_latent(int n)
 {
-  const VectorXd &mu_u = getMu(n);
-  const MatrixXd &Lambda_u = getLambda(n);
-  double mean_rating = model.mean_rating;
+    const VectorXd &mu_u = getMu(n);
+    const MatrixXd &Lambda_u = getLambda(n);
 
-  MatrixXd MM = Lambda_u;
-  VectorXd rr = VectorXd::Zero(num_latent());
-  for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
-    auto col = V.col(it.row());
-    std::pair<double, double> alpha = noise.sample(n, it.row());
-    rr.noalias() += col * ((it.value() - mean_rating) * alpha.first);
-    MM.triangularView<Eigen::Lower>() += alpha.second * col * col.transpose();
-  }
+    MatrixXd MM = Lambda_u;
+    VectorXd rr = VectorXd::Zero(num_latent());
 
-  Eigen::LLT<MatrixXd> chol = MM.llt();
-  if(chol.info() != Eigen::Success) {
-    throw std::runtime_error("Cholesky Decomposition failed!");
-  }
+    if (noise.isProbit()) probit_precision_and_mean(n, rr, MM);
+    else gaussian_precision_and_mean(n, rr, MM);
 
-  rr.noalias() += Lambda_u * mu_u;
-  chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent(); i++) {
-    rr[i] += randn0();
-  }
-  chol.matrixU().solveInPlace(rr);
-  U.col(n).noalias() = rr;
+    Eigen::LLT<MatrixXd> chol = MM.llt();
+    if(chol.info() != Eigen::Success) {
+        throw std::runtime_error("Cholesky Decomposition failed!");
+    }
+
+    rr.noalias() += Lambda_u * mu_u;
+    chol.matrixL().solveInPlace(rr);
+    for (int i = 0; i < num_latent(); i++) {
+        rr[i] += randn0();
+    }
+    chol.matrixU().solveInPlace(rr);
+    U.col(n).noalias() = rr;
 }
 
+void SparseNormalPrior::gaussian_precision_and_mean(int n, VectorXd &rr, MatrixXd &MM) 
+{
+    double alpha = noise.getAlpha();
+    for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
+        auto col = V.col(it.row());
+        rr.noalias() += col * ((it.value() - model.mean_rating) * alpha);
+        MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose();
+    }
+}
+
+void SparseNormalPrior::probit_precision_and_mean(int n, VectorXd &rr, MatrixXd &MM)
+{
+    auto u = U.col(n);
+    for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
+        auto col = V.col(it.row());
+        MM.triangularView<Eigen::Lower>() += col * col.transpose();
+        auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
+        rr.noalias() += col * z;
+    }
+}
 
 /**
  *  DenseNormalPrior 
@@ -89,19 +105,25 @@ void SparseNormalPrior::sample_latent(int n)
 
 void DenseNormalPrior::sample_latent(int n)
 {
-    auto x = CovF * (Vt * Y.col(n)) + CovL * nrandn(num_latent()).matrix();
-    double t = noise.sample(n, 0).first;
+    double t = noise.getAlpha();
+    auto x = CovF * (V * Y.col(n)) * t + CovL * nrandn(num_latent()).matrix();
     U.col(n).noalias() = x;
-    Ut.col(n).noalias() = t * x;
-    UU += x * x.transpose();
-    UtU += x * (t * x.transpose());
 }
 
 void DenseNormalPrior::pre_update()
 {
-   CovF = (MatrixNNd::Identity(num_latent(), num_latent()) + VtV).inverse();
-   CovL = CovF.llt().matrixL();
-   CovU = CovF.llt().matrixU();
+    MatrixNNd VtV = MatrixNNd::Identity(num_latent(), num_latent());
+    double t = noise.getAlpha();
+
+#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:VtV)
+    for(int n = 0; n < V.cols(); n++) {
+        auto v = V.col(n);
+        VtV += v * (t * v.transpose());
+    }
+
+    CovF = VtV.inverse();
+    CovL = CovF.llt().matrixL();
+    CovU = CovF.llt().matrixU();
 }
 
 void DenseNormalPrior::post_update()

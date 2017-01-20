@@ -22,7 +22,9 @@ class INoiseModel {
     virtual double getEvalMetric()  = 0;
     virtual std::string getEvalString()  = 0;
 
-    virtual std::pair<double, double> sample(int, int) = 0;
+    virtual double getAlpha() = 0;
+
+    virtual bool isProbit() const { return false; }
 
   protected:
     Factors &base_model;
@@ -40,7 +42,7 @@ class FixedGaussianNoise : public INoiseModel {
 
     void init() override { }
     void update() override {}
-    std::pair<double, double> sample(int, int) override { return std::make_pair(alpha, alpha); }
+    double getAlpha() override { return alpha; }
 
     std::string getInitStatus()  override { return std::string("Noise precision: ") + std::to_string(alpha) + " (fixed)"; }
     std::string getStatus() override { return std::string(""); }
@@ -68,7 +70,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
 
     void init() override;
     void update() override;
-    std::pair<double,double> sample(int n, int m) override { return std::make_pair(alpha, alpha); }
+    double getAlpha() override { return alpha; }
 
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }
@@ -93,7 +95,8 @@ class ProbitNoise : public INoiseModel {
     void init() override {}
     void update() override {}
 
-    std::pair<double, double> sample(int, int) override;
+    double getAlpha() override { assert(false && "ProbitNoise is special"); return NAN; }
+    bool isProbit() const override { return true; }
         
     std::string getInitStatus() override { return std::string("Probit noise model"); }
     std::string getStatus() override { return std::string(""); }

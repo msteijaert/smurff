@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
 
     DenseMF model(num_latent);
     Macau macau(model);
-    macau.setSamples(iter_max / 5, 4 * iter_max / 5);
+    macau.setSamples(10, iter_max);
 
     // fixed gaussian noise
     macau.setPrecision(.01);
@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
 
     //-- Normal priors
     macau.addPrior<DenseSpikeAndSlabPrior>(model);
+    //macau.addPrior<DenseNormalPrior>(model);
     macau.addPrior<DenseNormalPrior>(model);
 
     macau.run();

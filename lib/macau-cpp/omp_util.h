@@ -23,4 +23,7 @@ inline int thread_num() { return 0; }
 inline int nthreads(void) { return 1; }
 #endif
 
+#pragma omp declare reduction (VectorPlus : VectorNd : omp_out += omp_in) initializer(omp_priv = VectorNd::Zero())
+#pragma omp declare reduction (MatrixPlus : MatrixNNd : omp_out += omp_in) initializer(omp_priv = MatrixNNd::Zero())
+
 #endif
