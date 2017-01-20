@@ -7,11 +7,14 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <memory>
 
 extern "C" {
   #include <csr.h>
 }
+
+#define SHOW(m) std::cout << #m << ": " << m << std::endl;
 
 class SparseFeat {
   public:

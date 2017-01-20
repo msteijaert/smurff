@@ -36,17 +36,24 @@ void SpikeAndSlabPrior<BasePrior>::sample_latent(int d)
 
     for(unsigned k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);
+        SHOW(lambda);
+        SHOW(alpha(k));
         double mu = t / lambda * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
         double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
         double z = 1 / (1 + exp(z1));
         double p = udist(generator);
         if (Zkeep(k) > 0 && p < z) {
             Zcol(k)++;
-            Wcol(k) = mu + randn() / sqrt(lambda);
+            double var = randn() / sqrt(lambda);
+            SHOW(var);
+            Wcol(k) = mu + var;
         } else {
             Wcol(k) = .0;
         }
     }
+    SHOW(Wcol.transpose());
+    auto &X = this->V; // aliases
+    SHOW(Wcol.transpose() * X);
 
     W.col(d) = Wcol;
     W2col += Wcol.array().square().matrix();
@@ -57,7 +64,7 @@ void SparseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::V
 {
     auto &X = this->V; // aliases
     for (SparseMatrixD::InnerIterator it(this->Y,d); it; ++it) {
-        double y = it.value() - this->model.mean_rating;
+        double y = it.value() - model.mean_rating;
         auto Xcol = X.col(it.row());
         yX.noalias() += y * Xcol;
         XX.noalias() += Xcol * Xcol.transpose();
@@ -68,8 +75,13 @@ void DenseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::Ve
 {
     auto &X = this->V; // aliases
     XX = this->XX;
-    yX = Y.col(d) * X;
+    SHOW(XX);
+    SHOW(X * X.transpose());
+   // assert(XX == X * X.transpose());
+
+    yX = (Y.col(d).array() - model.mean_rating).matrix().transpose() * X.transpose();
 }
+
 
 template<class BasePrior>
 void SpikeAndSlabPrior<BasePrior>::savePriorInfo(std::string prefix) {
@@ -79,10 +91,22 @@ void SpikeAndSlabPrior<BasePrior>::savePriorInfo(std::string prefix) {
 void DenseSpikeAndSlabPrior::pre_update() {
     XX.setZero();
 
-#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:VtV)
+#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:XX)
     for(int n = 0; n < V.cols(); n++) {
         auto v = V.col(n);
         XX += v * v.transpose();
+    }
+
+    if (!this->is_init) {
+        const int K = this->num_latent();
+        double t = noise.getAlpha();
+        auto &W = this->U; // aliases
+        auto &X = this->V; // aliases
+
+        MatrixNNd covW = (MatrixNNd::Identity(K, K) + t * XX).inverse();
+        MatrixNNd Sx = covW.llt().matrixU();
+        this->U = covW * (X * (Y.array() - model.mean_rating).matrix()) * t + Sx * nrandn(K,U.cols()).matrix();
+        this->is_init = true;
     }
 }
 
@@ -104,6 +128,7 @@ void SpikeAndSlabPrior<BasePrior>::post_update() {
 
     Zkeep = Zcol.array();
     Zcol.setZero();
+    W2col.setZero();
 }
 
 template class SpikeAndSlabPrior<SparseLatentPrior>;

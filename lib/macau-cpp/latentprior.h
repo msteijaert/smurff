@@ -63,6 +63,8 @@ class DenseLatentPrior : public ILatentPrior
      {
          assert(m.num_fac() == 2);
          Y = (p==0) ? m.Y : m.Y.transpose();
+         U = nrandn(U.rows(), U.cols());
+         SHOW(m.mean_rating);
      }
      virtual ~DenseLatentPrior() {}
 
@@ -121,7 +123,11 @@ class SparseNormalPrior : public SparseLatentPrior {
 
 class DenseNormalPrior : public DenseLatentPrior {
   public:
-    DenseNormalPrior(DenseMF &m, int p, INoiseModel &n) : DenseLatentPrior(m, p, n) {} 
+    DenseNormalPrior(DenseMF &m, int p, INoiseModel &n)
+        : DenseLatentPrior(m, p, n) 
+    {
+    }
+
     virtual ~DenseNormalPrior() {}
 
     void sample_latent(int n) override;
@@ -223,6 +229,9 @@ class SpikeAndSlabPrior : public BasePrior {
     // compute dependent on dense or sparse
     virtual void compute_XX_yX(int n, Eigen::MatrixXd &, Eigen::VectorXd &) = 0;
 
+  protected:
+    bool is_init = false;
+
 };
 
 
@@ -236,7 +245,8 @@ class SparseSpikeAndSlabPrior : public SpikeAndSlabPrior<SparseLatentPrior> {
 
 class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior<DenseLatentPrior> {
   public:
-    DenseSpikeAndSlabPrior(DenseMF& m, int p, INoiseModel &n) : SpikeAndSlabPrior<DenseLatentPrior>(m,p,n) {} 
+    DenseSpikeAndSlabPrior(DenseMF& m, int p, INoiseModel &n)
+        : SpikeAndSlabPrior<DenseLatentPrior>(m,p,n) {} 
     virtual ~DenseSpikeAndSlabPrior() {}
     void pre_update() override;
     void compute_XX_yX(int n, Eigen::MatrixXd &, Eigen::VectorXd &) override;

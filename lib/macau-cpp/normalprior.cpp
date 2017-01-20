@@ -107,6 +107,7 @@ void DenseNormalPrior::sample_latent(int n)
 {
     double t = noise.getAlpha();
     auto x = CovF * (V * Y.col(n)) * t + CovL * nrandn(num_latent()).matrix();
+    SHOW(x.transpose());
     U.col(n).noalias() = x;
 }
 

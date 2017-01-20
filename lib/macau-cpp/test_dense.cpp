@@ -20,7 +20,7 @@
 using namespace Eigen;
 using namespace std;
 
-const int num_latent = 32;
+const int num_latent = 5;
 
 int main(int argc, char** argv) {
     assert(argc>3 && "Usage GFA N D iter");
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     macau.setSamples(10, iter_max);
 
     // fixed gaussian noise
-    macau.setPrecision(.01);
+    macau.setPrecision(1.0);
     macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);
