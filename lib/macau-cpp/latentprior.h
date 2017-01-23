@@ -52,7 +52,7 @@ class ILatentPrior {
       INoiseModel &noise;
 };
 
-class DenseLatentPrior : public ILatentPrior
+class DenseLatentPrior : public virtual ILatentPrior
 {
   public:
      typedef DenseMF BaseModel;
@@ -73,7 +73,7 @@ class DenseLatentPrior : public ILatentPrior
      DenseMF &model;
 };
 
-class SparseLatentPrior : public ILatentPrior
+class SparseLatentPrior : public virtual ILatentPrior
 {
   public:
      typedef SparseMF BaseModel;
@@ -98,8 +98,11 @@ class SparseLatentPrior : public ILatentPrior
 
 /** Prior without side information (pure BPMF) */
 
-class SparseNormalPrior : public SparseLatentPrior {
+class NormalPrior : public virtual ILatentPrior {
   public:
+    NormalPrior(Factors &m, int p, INoiseModel &n);
+    virtual ~NormalPrior() {}
+
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
     Eigen::MatrixXd WI;
@@ -108,39 +111,40 @@ class SparseNormalPrior : public SparseLatentPrior {
     int b0;
     int df;
 
-    SparseNormalPrior(SparseMF &m, int p, INoiseModel &n);
-    virtual ~SparseNormalPrior() {}
-
-    void pre_update() override;
-    void post_update() override;
-    void savePriorInfo(std::string prefix) override;
-
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
 
+    void pre_update() override;
+    void post_update() override {}
     void sample_latent(int n) override;
-    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int);
+
+    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) = 0;
+
+    void savePriorInfo(std::string prefix) override;
+};
+
+class SparseNormalPrior : public SparseLatentPrior, public NormalPrior {
+  public:
+    SparseNormalPrior(SparseMF &m, int p, INoiseModel &n);
+    virtual ~SparseNormalPrior() {}
+
+    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
 
   private:
     void gaussian_precision_and_mean(int n, Eigen::VectorXd &rr, Eigen::MatrixXd &MM); 
     void probit_precision_and_mean(int n, Eigen::VectorXd &rr, Eigen::MatrixXd &MM);
 };
 
-class DenseNormalPrior : public DenseLatentPrior {
+class DenseNormalPrior : public DenseLatentPrior, public NormalPrior {
   public:
-    DenseNormalPrior(DenseMF &m, int p, INoiseModel &n)
-        : DenseLatentPrior(m, p, n) { }
-
+    DenseNormalPrior(DenseMF &m, int p, INoiseModel &n);
     virtual ~DenseNormalPrior() {}
 
     virtual void sample_latents() override;
-    void sample_latent(int n) override;
-    void pre_update() override;
-    void post_update() override;
-    void savePriorInfo(std::string prefix) override {}
+    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
 
   private:
-     Eigen::MatrixXd VtV, CovF, CovL, CovU;
+     Eigen::MatrixXd VtV;
 
 };
 
@@ -210,8 +214,7 @@ typedef Eigen::MatrixXd MatrixNNd;
 typedef Eigen::ArrayXd ArrayNd;
 
 /** Spike and slab prior */
-template<class BasePrior>
-class SpikeAndSlabPrior : public BasePrior {
+class SpikeAndSlabPrior : public virtual ILatentPrior {
    public:
     VectorNd Zcol, W2col, Zkeep;
     ArrayNd alpha;
@@ -223,7 +226,7 @@ class SpikeAndSlabPrior : public BasePrior {
     const double prior_beta_0 = 1.; //for alpha
 
   public:
-    SpikeAndSlabPrior(typename BasePrior::BaseModel &, int, INoiseModel &);
+    SpikeAndSlabPrior(Factors &, int, INoiseModel &);
     virtual ~SpikeAndSlabPrior() {}
 
     void post_update() override;
@@ -238,19 +241,17 @@ class SpikeAndSlabPrior : public BasePrior {
 
 };
 
-
-class SparseSpikeAndSlabPrior : public SpikeAndSlabPrior<SparseLatentPrior> {
+class SparseSpikeAndSlabPrior : public SpikeAndSlabPrior, public SparseLatentPrior {
   public:
-    SparseSpikeAndSlabPrior(SparseMF& m, int p, INoiseModel &n) : SpikeAndSlabPrior<SparseLatentPrior>(m,p,n) {} 
+    SparseSpikeAndSlabPrior(SparseMF& m, int p, INoiseModel &n);
     virtual ~SparseSpikeAndSlabPrior() {}
     void pre_update() override {}
     void compute_XX_yX(int n, Eigen::MatrixXd &, Eigen::VectorXd &) override;
 };
 
-class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior<DenseLatentPrior> {
+class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior, public DenseLatentPrior {
   public:
-    DenseSpikeAndSlabPrior(DenseMF& m, int p, INoiseModel &n)
-        : SpikeAndSlabPrior<DenseLatentPrior>(m,p,n) {} 
+    DenseSpikeAndSlabPrior(DenseMF& m, int p, INoiseModel &n);
     virtual ~DenseSpikeAndSlabPrior() {}
     void pre_update() override;
     void compute_XX_yX(int n, Eigen::MatrixXd &, Eigen::VectorXd &) override;
@@ -259,7 +260,6 @@ class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior<DenseLatentPrior> {
      Eigen::MatrixXd XX;
 
 };
-
 
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
 double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);

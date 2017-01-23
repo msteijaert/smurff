@@ -18,11 +18,11 @@ using namespace std;
 using namespace Eigen;
 
 /**
- *  SparseNormalPrior 
+ *  base class NormalPrior 
  */
 
-SparseNormalPrior::SparseNormalPrior(SparseMF &m, int p, INoiseModel &n)
-    : SparseLatentPrior(m, p, n)
+NormalPrior::NormalPrior(Factors &m, int p, INoiseModel &n)
+    : ILatentPrior(m, p, n) 
 {
     const int K = num_latent();
     mu.resize(K);
@@ -41,36 +41,11 @@ SparseNormalPrior::SparseNormalPrior(SparseMF &m, int p, INoiseModel &n)
     df = K;
 }
 
-void SparseNormalPrior::pre_update() {
+void NormalPrior::pre_update() {
   tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
 }
 
-void SparseNormalPrior::post_update() {
-}
-
-void SparseNormalPrior::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", mu);
-}
-
-
-std::pair<VectorXd,MatrixXd> SparseNormalPrior::precision_and_mean(int n)
-{
-    const VectorXd &mu_u = getMu(n);
-    const MatrixXd &Lambda_u = getLambda(n);
-
-    MatrixXd MM = Lambda_u;
-    VectorXd rr = VectorXd::Zero(num_latent());
-
-    if (noise.isProbit()) probit_precision_and_mean(n, rr, MM);
-    else gaussian_precision_and_mean(n, rr, MM);
-
-    rr.noalias() += Lambda_u * mu_u;
-
-    return std::make_pair(rr, MM);
-}
-
-
-void SparseNormalPrior::sample_latent(int n)
+void NormalPrior::sample_latent(int n)
 {
 
     MatrixXd MM;
@@ -88,6 +63,18 @@ void SparseNormalPrior::sample_latent(int n)
     chol.matrixU().solveInPlace(rr);
     U.col(n).noalias() = rr;
 }
+
+void NormalPrior::savePriorInfo(std::string prefix) {
+  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", mu);
+}
+
+
+/**
+ *  SparseNormalPrior 
+ */
+
+SparseNormalPrior::SparseNormalPrior(SparseMF &m, int p, INoiseModel &n)
+    : ILatentPrior(m, p, n), SparseLatentPrior(m, p, n), NormalPrior(m, p, n) {}
 
 void SparseNormalPrior::gaussian_precision_and_mean(int n, VectorXd &rr, MatrixXd &MM) 
 {
@@ -110,53 +97,49 @@ void SparseNormalPrior::probit_precision_and_mean(int n, VectorXd &rr, MatrixXd 
     }
 }
 
+std::pair<VectorXd,MatrixXd> SparseNormalPrior::precision_and_mean(int n)
+{
+    const VectorXd &mu_u = getMu(n);
+    const MatrixXd &Lambda_u = getLambda(n);
+
+    MatrixXd MM = Lambda_u;
+    VectorXd rr = VectorXd::Zero(num_latent());
+
+    if (noise.isProbit()) probit_precision_and_mean(n, rr, MM);
+    else gaussian_precision_and_mean(n, rr, MM);
+
+    rr.noalias() += Lambda_u * mu_u;
+
+    return std::make_pair(rr, MM);
+}
+
 /**
  *  DenseNormalPrior 
  */
 
-void DenseNormalPrior::sample_latent(int n)
+
+DenseNormalPrior::DenseNormalPrior(DenseMF &m, int p, INoiseModel &n)
+    : ILatentPrior(m, p, n), DenseLatentPrior(m, p, n), NormalPrior(m, p, n) {}
+
+std::pair<VectorXd,MatrixXd> DenseNormalPrior::precision_and_mean(int n)
 {
-    double t = noise.getAlpha();
-    auto &MM = VtV;
-    VectorXd rr = (V * Yc.col(n)) * t;
-
-    Eigen::LLT<MatrixXd> chol = MM.llt();
-    if(chol.info() != Eigen::Success) {
-        throw std::runtime_error("Cholesky Decomposition failed!");
-    }
-
-    chol.matrixU().solveInPlace(rr);
-    rr.noalias() += nrandn(num_latent());
-    chol.matrixL().solveInPlace(rr);
-    U.col(n).noalias() = rr;
+    double alpha = noise.getAlpha();
+    VectorXd rr = (V * Yc.col(n)) * alpha;
+    return std::make_pair(rr, VtV);
 }
+
 
 void DenseNormalPrior::sample_latents() {
     VtV = MatrixNNd::Identity(num_latent(), num_latent());
-    double t = noise.getAlpha();
+    double alpha = noise.getAlpha();
 
 #pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:VtV)
     for(int n = 0; n < V.cols(); n++) {
         auto v = V.col(n);
-        VtV += v * (t * v.transpose());
+        VtV += v * (alpha * v.transpose());
     }
 
-    CovF = VtV.inverse();
-    CovL = CovF.llt().matrixL();
-    CovU = CovF.llt().matrixU();
-    SHOW(VtV);
-    SHOW(CovF);
-    SHOW(CovU);
-    SHOW(CovL);
-    SHOW(CovL * CovU);
-
     DenseLatentPrior::sample_latents();
-}
-
-void DenseNormalPrior::pre_update() {}
-
-void DenseNormalPrior::post_update()
-{
 }
 
 

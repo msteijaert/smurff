@@ -19,7 +19,7 @@ using namespace Eigen;
 
 template<class FType>
 MacauPrior<FType>::MacauPrior(SparseMF &m, int p, INoiseModel &n)
-    : SparseNormalPrior(m, p, n) {}
+    : ILatentPrior(m, p, n), SparseNormalPrior(m, p, n)  {}
     
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)

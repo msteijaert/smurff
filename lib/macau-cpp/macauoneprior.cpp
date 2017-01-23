@@ -15,7 +15,7 @@ using namespace Eigen;
 
 template<class FType>
 MacauOnePrior<FType>::MacauOnePrior(SparseMF &m, int p, INoiseModel &n)
-    : SparseLatentPrior(m, p, n)
+    : ILatentPrior(m, p, n), SparseLatentPrior(m, p, n)
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);

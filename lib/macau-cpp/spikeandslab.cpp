@@ -1,9 +1,8 @@
 #include "noisemodels.h"
 #include "latentprior.h"
 
-template<class BasePrior>
-SpikeAndSlabPrior<BasePrior>::SpikeAndSlabPrior(typename BasePrior::BaseModel &m, int p, INoiseModel &n)
-    : BasePrior(m, p, n)
+SpikeAndSlabPrior::SpikeAndSlabPrior(Factors &m, int p, INoiseModel &n)
+    : ILatentPrior(m, p, n)
 {
     const int K = this->num_latent();
     const int D = this->U.cols();
@@ -17,8 +16,7 @@ SpikeAndSlabPrior<BasePrior>::SpikeAndSlabPrior(typename BasePrior::BaseModel &m
     r = VectorNd::Constant(K,.5);
 }
 
-template<class BasePrior>
-void SpikeAndSlabPrior<BasePrior>::sample_latent(int d)
+void SpikeAndSlabPrior::sample_latent(int d)
 {
     const int K = this->num_latent();
     auto &W = this->U; // aliases
@@ -59,6 +57,8 @@ void SpikeAndSlabPrior<BasePrior>::sample_latent(int d)
     W2col += Wcol.array().square().matrix();
 }
 
+SparseSpikeAndSlabPrior::SparseSpikeAndSlabPrior(SparseMF &m, int p, INoiseModel &n)
+    : ILatentPrior(m, p, n), SpikeAndSlabPrior(m, p, n), SparseLatentPrior(m, p, n) {}
 
 void SparseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::VectorXd &yX)
 {
@@ -70,6 +70,9 @@ void SparseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::V
         XX.noalias() += Xcol * Xcol.transpose();
     }
 }
+
+DenseSpikeAndSlabPrior::DenseSpikeAndSlabPrior(DenseMF &m, int p, INoiseModel &n)
+    : ILatentPrior(m, p, n), SpikeAndSlabPrior(m, p, n), DenseLatentPrior(m, p, n) {}
 
 void DenseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::VectorXd &yX)
 {
@@ -83,9 +86,7 @@ void DenseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::Ve
 }
 
 
-template<class BasePrior>
-void SpikeAndSlabPrior<BasePrior>::savePriorInfo(std::string prefix) {
-}
+void SpikeAndSlabPrior::savePriorInfo(std::string prefix) { }
 
 
 void DenseSpikeAndSlabPrior::pre_update() {
@@ -100,7 +101,6 @@ void DenseSpikeAndSlabPrior::pre_update() {
     if (!this->is_init) {
         const int K = this->num_latent();
         double t = noise.getAlpha();
-        auto &W = this->U; // aliases
         auto &X = this->V; // aliases
 
         MatrixNNd covW = (MatrixNNd::Identity(K, K) + t * XX).inverse();
@@ -111,8 +111,7 @@ void DenseSpikeAndSlabPrior::pre_update() {
 }
 
 
-template<class BasePrior>
-void SpikeAndSlabPrior<BasePrior>::post_update() {
+void SpikeAndSlabPrior::post_update() {
     const int D = this->U.cols();
     
     r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;
@@ -131,5 +130,3 @@ void SpikeAndSlabPrior<BasePrior>::post_update() {
     W2col.setZero();
 }
 
-template class SpikeAndSlabPrior<SparseLatentPrior>;
-template class SpikeAndSlabPrior<DenseLatentPrior>;
