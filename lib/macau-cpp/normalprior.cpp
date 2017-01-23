@@ -117,33 +117,18 @@ void SparseNormalPrior::probit_precision_and_mean(int n, VectorXd &rr, MatrixXd 
 void DenseNormalPrior::sample_latent(int n)
 {
     double t = noise.getAlpha();
-   
-    MatrixXd MM = VtV;
-    VectorXd rr1 = (V * Yc.col(n)) * t;
-    VectorXd rr2 = (V * Yc.col(n)) * t;
+    auto &MM = VtV;
+    VectorXd rr = (V * Yc.col(n)) * t;
 
     Eigen::LLT<MatrixXd> chol = MM.llt();
     if(chol.info() != Eigen::Success) {
         throw std::runtime_error("Cholesky Decomposition failed!");
     }
 
-    //VectorXd random = VectorXd::Zero(num_latent());
-    VectorXd random = nrandn(num_latent());
-    SHOW(random.transpose());
-
-    chol.matrixU().solveInPlace(rr1);
-    SHOW((CovU * rr2).transpose());
-    SHOW(rr1.transpose());
-    rr1.noalias() += random;
-    chol.matrixL().solveInPlace(rr1);
-    SHOW(rr1.transpose());
-
-    auto x = CovF * rr2 + CovL * random.matrix();
-    SHOW(x.transpose());
-    auto x1 = CovL * ((CovU * rr2) + random.matrix());
-    SHOW(x1.transpose());
-
-    U.col(n).noalias() = rr1;
+    chol.matrixU().solveInPlace(rr);
+    rr.noalias() += nrandn(num_latent());
+    chol.matrixL().solveInPlace(rr);
+    U.col(n).noalias() = rr;
 }
 
 void DenseNormalPrior::sample_latents() {
