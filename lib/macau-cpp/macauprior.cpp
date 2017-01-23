@@ -24,7 +24,7 @@ MacauPrior<FType>::MacauPrior(SparseMF &m, int p, INoiseModel &n)
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 {
-    assert((Fmat->rows() == Y.rows()) && "Number of rows in train must be equal to number of rows in features");
+    assert((Fmat->rows() == Yc.rows()) && "Number of rows in train must be equal to number of rows in features");
 
     // side information
     F = std::move(Fmat);

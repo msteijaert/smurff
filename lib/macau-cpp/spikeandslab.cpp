@@ -63,8 +63,8 @@ void SpikeAndSlabPrior<BasePrior>::sample_latent(int d)
 void SparseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::VectorXd &yX)
 {
     auto &X = this->V; // aliases
-    for (SparseMatrixD::InnerIterator it(this->Y,d); it; ++it) {
-        double y = it.value() - model.mean_rating;
+    for (SparseMatrixD::InnerIterator it(this->Yc,d); it; ++it) {
+        double y = it.value();
         auto Xcol = X.col(it.row());
         yX.noalias() += y * Xcol;
         XX.noalias() += Xcol * Xcol.transpose();
@@ -79,7 +79,7 @@ void DenseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::Ve
     SHOW(X * X.transpose());
    // assert(XX == X * X.transpose());
 
-    yX = (Y.col(d).array() - model.mean_rating).matrix().transpose() * X.transpose();
+    yX = Yc.col(d).transpose() * X.transpose();
 }
 
 
@@ -105,7 +105,7 @@ void DenseSpikeAndSlabPrior::pre_update() {
 
         MatrixNNd covW = (MatrixNNd::Identity(K, K) + t * XX).inverse();
         MatrixNNd Sx = covW.llt().matrixU();
-        this->U = covW * (X * (Y.array() - model.mean_rating).matrix()) * t + Sx * nrandn(K,U.cols()).matrix();
+        this->U = covW * (X * (Yc.array() - model.mean_rating).matrix()) * t + Sx * nrandn(K,U.cols()).matrix();
         this->is_init = true;
     }
 }

@@ -46,18 +46,17 @@ template<class FType>
 void MacauOnePrior<FType>::sample_latent(int i)
 {
     const int D = U.rows();
-    double mean_rating = model.mean_rating;
 
-    const int nnz = Y.outerIndexPtr()[i + 1] - Y.outerIndexPtr()[i];
+    const int nnz = Yc.outerIndexPtr()[i + 1] - Yc.outerIndexPtr()[i];
     VectorXd Yhat(nnz);
 
     // precalculating Yhat and Qi
     int idx = 0;
     VectorXd Qi = lambda;
-    for (SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
+    for (SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++) {
       double alpha = noise.getAlpha();
       Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
-      Yhat(idx)     = mean_rating + U.col(i).dot( V.col(it.row()) );
+      Yhat(idx)     = U.col(i).dot( V.col(it.row()) );
     }
     VectorXd rnorms(num_latent());
     bmrandn_single(rnorms);
@@ -68,7 +67,7 @@ void MacauOnePrior<FType>::sample_latent(int i)
         double Lid = lambda(d) * (mu(d) + Uhat(d, i));
 
         idx = 0;
-        for ( SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
+        for ( SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++) {
             const double vjd = V(d, it.row());
             // L_id += alpha * (Y_ij - k_ijd) * v_jd
             double alpha = noise.getAlpha();
@@ -85,7 +84,7 @@ void MacauOnePrior<FType>::sample_latent(int i)
         // updating Yhat
         double uid_delta = U(d, i) - uid_old;
         idx = 0;
-        for (SparseMatrix<double>::InnerIterator it(Y, i); it; ++it, idx++) {
+        for (SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++) {
             Yhat(idx) += uid_delta * V(d, it.row());
         }
     }

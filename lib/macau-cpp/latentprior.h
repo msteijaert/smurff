@@ -36,7 +36,7 @@ class ILatentPrior {
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
 
-      void sample_latents() {
+      virtual void sample_latents() {
 #pragma omp parallel for schedule(dynamic, 2)
           for(int n = 0; n < U.cols(); n++) sample_latent(n); 
       }
@@ -62,13 +62,14 @@ class DenseLatentPrior : public ILatentPrior
          : ILatentPrior(m, p, n), model(m)
      {
          assert(m.num_fac() == 2);
-         Y = (p==0) ? m.Y : m.Y.transpose();
+         if (p==0) Yc = (m.Y.array() - m.mean_rating);
+         else Yc = (m.Y.transpose().array() - m.mean_rating);
          U = nrandn(U.rows(), U.cols());
          SHOW(m.mean_rating);
      }
      virtual ~DenseLatentPrior() {}
 
-     Eigen::MatrixXd Y; // local copy for faster sampling
+     Eigen::MatrixXd Yc; // local centered copy for faster sampling
      DenseMF &model;
 };
 
@@ -78,15 +79,18 @@ class SparseLatentPrior : public ILatentPrior
      typedef SparseMF BaseModel;
 
      // c-tor
-     SparseLatentPrior(SparseMF &mf, int p, INoiseModel &n)
-         : ILatentPrior(mf, p, n), model(mf)
+     SparseLatentPrior(SparseMF &m, int p, INoiseModel &n)
+         : ILatentPrior(m, p, n), model(m)
      {
-         assert(mf.num_fac() == 2);
-         Y = (p==0) ? mf.Y : mf.Y.transpose();
+         assert(m.num_fac() == 2);
+         if (p==0) Yc = m.Y;
+         else Yc = m.Y.transpose();
+         Yc.coeffs() -= m.mean_rating;
+         U = nrandn(U.rows(), U.cols());
      }
      virtual ~SparseLatentPrior() {}
 
-     SparseMatrixD Y; // local copy for faster sampling
+     SparseMatrixD Yc; // local centered copy for faster sampling
 
   protected:
      SparseMF &model;
@@ -115,6 +119,7 @@ class SparseNormalPrior : public SparseLatentPrior {
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
 
     void sample_latent(int n) override;
+    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int);
 
   private:
     void gaussian_precision_and_mean(int n, Eigen::VectorXd &rr, Eigen::MatrixXd &MM); 
@@ -124,19 +129,18 @@ class SparseNormalPrior : public SparseLatentPrior {
 class DenseNormalPrior : public DenseLatentPrior {
   public:
     DenseNormalPrior(DenseMF &m, int p, INoiseModel &n)
-        : DenseLatentPrior(m, p, n) 
-    {
-    }
+        : DenseLatentPrior(m, p, n) { }
 
     virtual ~DenseNormalPrior() {}
 
+    virtual void sample_latents() override;
     void sample_latent(int n) override;
     void pre_update() override;
     void post_update() override;
     void savePriorInfo(std::string prefix) override {}
 
   private:
-     Eigen::MatrixXd CovF, CovL, CovU;
+     Eigen::MatrixXd VtV, CovF, CovL, CovU;
 
 };
 
