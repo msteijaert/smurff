@@ -37,10 +37,10 @@ int main(int argc, char** argv) {
 
     // fixed gaussian noise
     slave_macau.setPrecision(1.0);
-    slave_macau.setVerbose(true);
+    slave_macau.setVerbose(false);
 
     // = random_Ydense(N,D,3);
-    auto Ytrain1 = ones_Ydense(N,D,2);
+    auto Ytrain1 = ones_Ydense(N,2*D,2);
     auto Ytest1  = extract(Ytrain1, .2);
     slave_model.setRelationData(Ytrain1);
     slave_model.setRelationDataTest(Ytest1);
