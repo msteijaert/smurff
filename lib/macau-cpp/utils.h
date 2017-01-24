@@ -185,3 +185,21 @@ inline std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
    return sf_ptr;
 }
 
+
+// assumes matrix (not tensor)
+inline Eigen::MatrixXd to_coo(const Eigen::SparseMatrix<double> &Y) {
+    Eigen::MatrixXd coords(Y.nonZeros(), 3);
+#pragma omp parallel for schedule(dynamic, 2)
+    for (int k = 0; k < Y.outerSize(); ++k) {
+        int idx = Y.outerIndexPtr()[k];
+        for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
+            coords(idx, 0) = it.row();
+            coords(idx, 1) = it.col();
+            coords(idx, 2) = it.value();
+            idx++;
+        }
+    }
+    return coords;
+}
+
+

@@ -6,19 +6,19 @@
 #include <memory>
 
 struct SparseDoubleMatrix;
+typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 struct Factors {
     int num_latent;
 
     //-- c'tor
     Factors(int num_latent, int num_fac = 2)
-        : num_latent(num_latent), iter(0)
+        : num_latent(num_latent), last_iter(-1)
     {
         assert(num_fac == 2); 
         factors.resize(num_fac);
     }
 
-    void init();
 
     const Eigen::MatrixXd &U(int f) const { return factors.at(f); }
     Eigen::MatrixXd &U(int f) { return factors.at(f); }
@@ -28,96 +28,75 @@ struct Factors {
     std::vector<Eigen::MatrixXd> factors;
 
     Eigen::SparseMatrix<double> Ytest;
-    Eigen::VectorXd predictions, predictions_var, test_vector;
-
-    double iter;
-    double rmse = NAN, rmse_avg = NAN;
-    double auc = NAN, auc_avg = NAN;
 
     void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void setRelationDataTest(SparseDoubleMatrix &Y);
     void setRelationDataTest(Eigen::SparseMatrix<double> Y);
 
-    void update_rmse(bool burnin);
-    void update_auc(bool burnin);
+    std::pair<double,double> getRMSE(int iter, int burnin);
+    const Eigen::VectorXd &getPredictions(int iter, int burnin);
+    const Eigen::VectorXd &getPredictionsVar(int iter, int burnin);
+    const Eigen::VectorXd &getStds(int iter, int burnin);
 
+    double auc();
+
+    virtual double sumsq() const = 0;
+    virtual double var_total() const = 0;
 
     //-- output to file
     void saveGlobalParams(std::string);
-    void savePredictions(std::string);
-    void saveModel(std::string);
+    void savePredictions(std::string, int iter, int burnin);
+    void saveModel(std::string, int iter, int burnin);
 
-    Eigen::VectorXd getStds();
-    Eigen::MatrixXd getTestData();
-
-    // Y-related
+    // virtual functions Y-related
     double mean_rating = .0;
-    virtual int Yrows() const = 0;
-    virtual int Ycols() const = 0;
-    virtual int Ynnz() const = 0;
+    virtual int Yrows()    const = 0;
+    virtual int Ycols()    const = 0;
+    virtual int Ynnz ()    const = 0;
+
+  private:
+    void init_predictions();
+    void update_predictions(int iter, int burnin);
+    double rmse_avg, rmse; 
+    int last_iter;
+    Eigen::VectorXd predictions, predictions_var, stds;
 };
 
-typedef Eigen::SparseMatrix<double> SparseMatrixD;
+template<typename YType>
+struct MF : public Factors {
+    //-- c'tor
+    MF(int num_latent, int num_fac = 2) : Factors(num_latent, num_fac) {}
 
-struct SparseMF : public Factors {
+    void init();
+
+    int Yrows()   const override { return Y.rows(); }
+    int Ycols()   const override { return Y.cols(); }
+    int Ynnz()    const override { return Y.nonZeros(); }
+
+    void setRelationData(YType Y);
+
+    YType Y;
+};
+
+struct SparseMF : public MF<SparseMatrixD> {
     //-- c'tor
     SparseMF(int num_latent, int num_fac = 2)
-        : Factors(num_latent, num_fac) {}
+        : MF<SparseMatrixD>(num_latent, num_fac) {}
 
-    void init();
-
+    void setRelationData(SparseDoubleMatrix &Y);
     void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
-    void setRelationData(SparseDoubleMatrix& Y);
 
-    int Yrows() const override { return Y.rows(); }
-    int Ycols() const override { return Y.cols(); }
-    int Ynnz()  const override { return Y.nonZeros(); }
-
-    typedef SparseMatrixD::InnerIterator Iter;
-    Iter it(int d) { return SparseMatrixD::InnerIterator(Y, d); }
-
-    SparseMatrixD Y;
+    double var_total() const override;
+    double sumsq() const override;
 };
 
-struct DenseMF : public Factors {
+struct DenseMF : public MF<Eigen::MatrixXd> {
     //-- c'tor
     DenseMF(int num_latent, int num_fac = 2)
-        : Factors(num_latent, num_fac),
-          UtU(num_fac, Eigen::MatrixXd::Zero(num_latent, num_latent)),
-          UU(num_fac, Eigen::MatrixXd::Zero(num_latent, num_latent))
-    {
-        Ut.resize(num_fac);
-    }
+        : MF<Eigen::MatrixXd>(num_latent, num_fac) {}
 
-    void init();
-
-    std::vector<Eigen::MatrixXd> Ut;
-    std::vector<Eigen::MatrixXd> UtU;
-    std::vector<Eigen::MatrixXd> UU;
-
-    int Yrows() const override { return Y.rows(); }
-    int Ycols() const override { return Y.cols(); }
-    int Ynnz()  const override { return Y.rows() * Y.cols(); }
-
-    struct Iter {
-        Iter(Eigen::MatrixXd &Y, int c)
-            : Y(Y), c(c), r(0) {}
-        Iter &operator++() { r++; return *this; }
-        operator bool() const { return r < Y.rows(); }
-        double value() const { return Y(r, c); }
-        int row() const { return r; }
-        int col() const { return c; }
-
-      private:
-        Eigen::MatrixXd &Y;
-        int c, r;
-    };
-
-    Iter it(int d) { return Iter(Y, d); }
-
-    void setRelationData(Eigen::MatrixXd Y);
-
-    Eigen::MatrixXd Y;
+    double var_total() const override;
+    double sumsq() const override;
 };
 
-#endif /* MODEL_H */
+#endif

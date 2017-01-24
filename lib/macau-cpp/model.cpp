@@ -27,52 +27,12 @@
 using namespace std; 
 using namespace Eigen;
 
-void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  Y.resize(nrows, ncols);
-  sparseFromIJV(Y, rows, cols, values, N);
-  init();
-}
-
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
   assert(nrows == Yrows() && ncols == Ycols() && 
          "Size of train must be equal to size of test");
     
   Ytest.resize(nrows, ncols);
   sparseFromIJV(Ytest, rows, cols, values, N);
-  init();
-}
-
-void Factors::init()
-{
-  predictions     = VectorXd::Zero( Ytest.nonZeros() );
-  predictions_var = VectorXd::Zero( Ytest.nonZeros() );
-}
-
-void DenseMF::init()
-{
-    assert(Yrows() > 0 && Ycols() > 0);
-    mean_rating = Y.sum() / Y.nonZeros();
-    U(0).resize(num_latent, Y.cols()); U(0).setZero();
-    U(1).resize(num_latent, Y.rows()); U(1).setZero();
-    Ut.at(0).resize(num_latent, Y.cols()); Ut.at(0).setZero();
-    Ut.at(1).resize(num_latent, Y.rows()); Ut.at(1).setZero();
-}
-
-void SparseMF::init()
-{
-    assert(Yrows() > 0 && Ycols() > 0);
-    mean_rating = Y.sum() / Y.nonZeros();
-    U(0).resize(num_latent, Y.cols()); U(0).setZero();
-    U(1).resize(num_latent, Y.rows()); U(1).setZero();
-}
-
-void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
-   setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
-}
-   
-void DenseMF::setRelationData(MatrixXd Y) {
-    this->Y = Y;
-    init();
 }
  
 void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
@@ -81,41 +41,13 @@ void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
  
 void Factors::setRelationDataTest(SparseMatrixD Y) {
     Ytest = Y;
-    init();
-}
-
-Eigen::VectorXd Factors::getStds() {
-  VectorXd std(Ytest.nonZeros());
-  const int n = std.size();
-  const double inorm = 1.0 / (iter - 1);
-#pragma omp parallel for schedule(static)
-  for (int i = 0; i < n; i++) {
-    std[i] = sqrt(predictions_var[i] * inorm);
-  }
-  return std;
-}
-
-// assumes matrix (not tensor)
-Eigen::MatrixXd Factors::getTestData() {
-    MatrixXd coords(Ytest.nonZeros(), 3);
-#pragma omp parallel for schedule(dynamic, 2)
-    for (int k = 0; k < Ytest.outerSize(); ++k) {
-        int idx = Ytest.outerIndexPtr()[k];
-        for (SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-            coords(idx, 0) = it.row();
-            coords(idx, 1) = it.col();
-            coords(idx, 2) = it.value();
-            idx++;
-        }
-    }
-    return coords;
 }
 
 //--- output model to files
 
-void Factors::savePredictions(std::string save_prefix) {
-    VectorXd yhat_sd_raw  = getStds();
-    MatrixXd testdata_raw = getTestData();
+void Factors::savePredictions(std::string save_prefix, int iter, int burnin) {
+    VectorXd yhat_sd_raw  = getStds(iter, burnin);
+    MatrixXd testdata_raw = to_coo(Ytest);
 
     std::string fname_pred = save_prefix + "-predictions.csv";
     std::ofstream predfile;
@@ -140,21 +72,34 @@ void Factors::saveGlobalParams(std::string save_prefix) {
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
 
-void Factors::saveModel(std::string save_prefix) {
+void Factors::saveModel(std::string save_prefix, int iter, int burnin) {
     int i = 0;
     for(auto &U : factors) {
         writeToCSVfile(save_prefix + "U" + std::to_string(++i) + "-latents.csv", U);
     }
-    savePredictions(save_prefix);
+    savePredictions(save_prefix, iter, burnin);
 }
 
 ///--- update RMSE and AUC
 
-void Factors::update_rmse(bool burnin)
+void Factors::update_predictions(int iter, int burnin)
 {
     if (Ytest.nonZeros() == 0) return;
+    assert(last_iter <= iter);
+
+    if (last_iter < 0) {
+        const int N = Ytest.nonZeros();
+        predictions     = VectorXd::Zero(N);
+        predictions_var = VectorXd::Zero(N);
+        stds            = VectorXd::Zero(N);
+    }
+
+    if (last_iter == iter) return;
+
+    assert(last_iter + 1 == iter);
 
     double se = 0.0, se_avg = 0.0;
+    const double inorm = 1.0 / (iter - burnin - 1);
 #pragma omp parallel for schedule(dynamic,8) reduction(+:se, se_avg)
     for (int k = 0; k < Ytest.outerSize(); ++k) {
         int idx = Ytest.outerIndexPtr()[k];
@@ -164,27 +109,53 @@ void Factors::update_rmse(bool burnin)
 
             // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
             double pred_avg;
-            if (burnin) {
+            if (iter <= burnin) {
                 pred_avg = pred;
             } else {
                 double delta = pred - predictions[idx];
-                pred_avg = (predictions[idx] + delta / (iter + 1));
+                pred_avg = (predictions[idx] + delta / (iter - burnin + 1));
                 predictions_var[idx] += delta * (pred - pred_avg);
             }
             se_avg += square(it.value() - pred_avg);
-            predictions[idx++] = pred_avg;
+            predictions[idx] = pred_avg;
+            stds[idx] = sqrt(predictions_var[idx] * inorm);
+            idx++;
         }
     }
 
     const unsigned N = Ytest.nonZeros();
     rmse = sqrt( se / N );
     rmse_avg = sqrt( se_avg / N );
-    if (!burnin) iter++;
+    last_iter = iter;
 }
 
-void Factors::update_auc(bool burnin)
+std::pair<double,double> Factors::getRMSE(int iter, int burnin)
 {
-    if (Ytest.nonZeros() == 0) return;
+    update_predictions(iter, burnin);
+    return std::make_pair(rmse, rmse_avg);
+}
+
+const Eigen::VectorXd &Factors::getPredictions(int iter, int burnin)
+{
+    update_predictions(iter, burnin);
+    return predictions;
+}
+
+const Eigen::VectorXd &Factors::getPredictionsVar(int iter, int burnin)
+{
+    update_predictions(iter, burnin);
+    return predictions_var;
+}
+
+const Eigen::VectorXd &Factors::getStds(int iter, int burnin)
+{
+    update_predictions(iter, burnin);
+    return stds;
+}
+
+double Factors::auc()
+{
+    if (Ytest.nonZeros() == 0) return NAN;
 
     double *test_vector = Ytest.valuePtr();
 
@@ -211,4 +182,94 @@ void Factors::update_auc(bool burnin)
     for(int i=0; i < predictions.size() - 1; i++) {
         auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / (NP*NN); //TODO:Make it Eigen
     }
+
+    return auc;
 }
+
+template<typename YType>
+void MF<YType>::init()
+{
+    assert(Yrows() > 0 && Ycols() > 0);
+    mean_rating = Y.sum() / Y.nonZeros();
+    U(0).resize(num_latent, Y.cols()); U(0).setZero();
+    U(1).resize(num_latent, Y.rows()); U(1).setZero();
+}
+
+template<typename YType>
+void MF<YType>::setRelationData(YType Y) {
+    this->Y = Y;
+    init();
+}
+
+//
+//-- SparseMF specific stuff
+//
+
+void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+    Y.resize(nrows, ncols);
+    sparseFromIJV(Y, rows, cols, values, N);
+    init();
+}
+
+void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
+    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
+}
+
+double SparseMF::var_total() const {
+    double se = 0.0;
+
+#pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+    for (int k = 0; k < Y.outerSize(); ++k) {
+        for (SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
+            se += square(it.value() - mean_rating);
+        }
+    }
+
+    double var_total = se / Y.nonZeros();
+    if (var_total <= 0.0 || std::isnan(var_total)) {
+        // if var cannot be computed using 1.0
+        var_total = 1.0;
+    }
+
+    return var_total;
+}
+
+double SparseMF::sumsq() const {
+    double sumsq = 0.0;
+
+#pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+    for (int j = 0; j < Y.outerSize(); j++) {
+        auto Vj = col(1, j);
+        for (SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
+            double Yhat = Vj.dot( col(0, it.row()) ) + mean_rating;
+            sumsq += square(Yhat - it.value());
+        }
+    }
+
+    return sumsq;
+}
+
+
+//
+//-- DenseMF specific stuff
+//
+
+double DenseMF::var_total() const {
+    double se = (Y.array() - mean_rating).square().sum();
+
+    double var_total = se / Y.nonZeros();
+    if (var_total <= 0.0 || std::isnan(var_total)) {
+        // if var cannot be computed using 1.0
+        var_total = 1.0;
+    }
+
+    return var_total;
+}
+
+double DenseMF::sumsq() const {
+    double sumsq = 0.0;
+#warning FIXME!
+    return sumsq;
+}
+
+
