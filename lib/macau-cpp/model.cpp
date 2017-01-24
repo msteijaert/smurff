@@ -272,7 +272,16 @@ double DenseMF::var_total() const {
 
 double DenseMF::sumsq() const {
     double sumsq = 0.0;
-#warning FIXME!
+
+#pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+    for (int j = 0; j < Y.cols(); j++) {
+        auto Vj = col(1, j);
+        for (int i = 0; i < Y.rows(); i++) {
+            double Yhat = Vj.dot( col(0, j) ) + mean_rating;
+            sumsq += square(Yhat - Y(i,j));
+        }
+    }
+
     return sumsq;
 }
 
