@@ -168,11 +168,11 @@ int main(int argc, char** argv) {
     model.setRelationData(*Y);
 
     //-- Normal column prior
-    //macau.addPrior<SparseNormalPrior>(model);
-    macau.addPrior<SparseSpikeAndSlabPrior>(model);
+    //macau.addPrior<SparseNormalPrior>();
+    macau.addPrior<SparseSpikeAndSlabPrior>();
 
     //-- row prior with side information
-    auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>(model);
+    auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>();
     prior_u.addSideInfo(row_features, false);
     prior_u.setLambdaBeta(lambda_beta);
     //prior_u.setTol(tol);
@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
     // test data
     if (fname_test != NULL) {
         Ytest = read_sdm(fname_test);
-        macau.model.setRelationDataTest(*Ytest);
+        macau.base_model.setRelationDataTest(*Ytest);
     }
 
     if (world_rank == 0) {

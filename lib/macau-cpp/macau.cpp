@@ -37,19 +37,19 @@ void intHandler(int dummy) {
 }
 
 FixedGaussianNoise &Macau::setPrecision(double p) {
-  FixedGaussianNoise *n = new FixedGaussianNoise(base_model, p);
+  FixedGaussianNoise *n = new FixedGaussianNoise(model, p);
   noise.reset(n);
   return *n;
 }
 
 AdaptiveGaussianNoise &Macau::setAdaptivePrecision(double sn_init, double sn_max) {
-  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(base_model, sn_init, sn_max);
+  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(model, sn_init, sn_max);
   noise.reset(n);
   return *n;
 }
 
 ProbitNoise &Macau::setProbit() {
-  ProbitNoise *n = new ProbitNoise(base_model);
+  ProbitNoise *n = new ProbitNoise(model);
   noise.reset(n);
   return *n;
 }
@@ -74,10 +74,10 @@ void Macau::run() {
         std::cout << noise->getInitStatus() << endl;
         std::cout << "Sampling" << endl;
     }
-    if (save_model) base_model.saveGlobalParams(save_prefix);
+    if (save_model) model.saveGlobalParams(save_prefix);
 
-    const int num_rows = base_model.Yrows();
-    const int num_cols = base_model.Ycols();
+    const int num_rows = model.Yrows();
+    const int num_cols = model.Ycols();
 
     auto start = tick();
     for (int i = 0; i < burnin + nsamples; i++) {
@@ -117,21 +117,21 @@ void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
 
-    double snorm0 = base_model.U(0).norm();
-    double snorm1 = base_model.U(1).norm();
+    double snorm0 = model.U(0).norm();
+    double snorm1 = model.U(1).norm();
 
-    std::pair<double,double> rmse_test = base_model.getRMSE(i, burnin);
-    double auc = base_model.auc();
+    std::pair<double,double> rmse_test = model.getRMSE(i, burnin);
+    double auc = model.auc();
 
-    printf("Iter %3d/%3d: RMSE: %.5e (1samp: %.5e)  AUC: %.5e U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n",
-            i, burnin + nsamples, rmse_test.first, rmse_test.second, auc,
+    printf("Iter %3d/%3d: RMSE: %.4f (1samp: %.4f)  AUC: %.4f U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n",
+            i, burnin + nsamples, rmse_test.second, rmse_test.first, auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi);
 }
 
 void Macau::saveModel(int isample) {
     if (!save_model || isample < 0) return;
     string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
-    base_model.saveModel(fprefix, isample, burnin);
+    model.saveModel(fprefix, isample, burnin);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }
 

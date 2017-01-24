@@ -11,23 +11,20 @@
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(Factors &p) : base_model(p) {}
+    INoiseModel(Factors &p) : model(p) {}
 
     virtual void init()  = 0;
     virtual void update()  = 0;
 
     virtual std::string getInitStatus()   = 0;
     virtual std::string getStatus()  = 0;
-    virtual void evalModel(bool burnin)  = 0;
-    virtual double getEvalMetric()  = 0;
-    virtual std::string getEvalString()  = 0;
 
     virtual double getAlpha() = 0;
 
     virtual bool isProbit() const { return false; }
 
   protected:
-    Factors &base_model;
+    Factors &model;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -48,10 +45,6 @@ class FixedGaussianNoise : public INoiseModel {
     std::string getStatus() override { return std::string(""); }
 
     void setPrecision(double a) { alpha = a; }    
-    void evalModel(bool burnin) override;
-    double getEvalMetric() override { return rmse_test;}
-    std::string getEvalString() override { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
- 
 };
 
 /** Gaussian noise that adapts to the model */
@@ -62,11 +55,9 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double sn_max;
     double sn_init;
     double var_total = NAN;
-    double rmse_test;
-    double rmse_test_onesample;
 
-    AdaptiveGaussianNoise(SparseMF &p, double sinit = 1., double smax = 10.)
-        : INoiseModel(p), sn_max(smax), sn_init(sinit), model(p) {}
+    AdaptiveGaussianNoise(Factors &p, double sinit = 1., double smax = 10.)
+        : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
     void init() override;
     void update() override;
@@ -76,14 +67,6 @@ class AdaptiveGaussianNoise : public INoiseModel {
     void setSNMax(double a) { sn_max  = a; }
     std::string getInitStatus() override { return "Noise precision: adaptive (with max precision of " + std::to_string(alpha_max) + ")"; }
     std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
-
-    void evalModel(bool burnin) override;
-    double getEvalMetric() override {return rmse_test;}
-    std::string getEvalString() override { return std::string("RMSE: ") + to_string_with_precision(rmse_test,5) + " (1samp: " + to_string_with_precision(rmse_test_onesample,5)+")";}
-    
-  protected:
-    SparseMF &model;
-
 };
 
 /** Probit noise model (binary). Fixed for the whole run */
@@ -91,7 +74,7 @@ class ProbitNoise : public INoiseModel {
   public:
     double auc_test;
     double auc_test_onesample;
-    ProbitNoise(SparseMF &p) : INoiseModel(p), model(p) {}
+    ProbitNoise(Factors &p) : INoiseModel(p) {}
     void init() override {}
     void update() override {}
 
@@ -100,10 +83,4 @@ class ProbitNoise : public INoiseModel {
         
     std::string getInitStatus() override { return std::string("Probit noise model"); }
     std::string getStatus() override { return std::string(""); }
-    void evalModel(bool burnin) override;
-    double getEvalMetric() override {return auc_test;}
-    std::string getEvalString() override { return std::string("AUC: ") + to_string_with_precision(auc_test,5) + " (1samp: " + to_string_with_precision(auc_test_onesample,5)+")";}
-    
-  protected:
-    SparseMF &model;
 };

@@ -201,6 +201,10 @@ void MF<YType>::setRelationData(YType Y) {
     init();
 }
 
+template struct MF<SparseMatrix<double>>;
+template struct MF<MatrixXd>;
+
+
 //
 //-- SparseMF specific stuff
 //

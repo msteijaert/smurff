@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
 
     //-- Normal priors
     //macau.addPrior<DenseSpikeAndSlabPrior>(model);
-    macau.addPrior<DenseNormalPrior>(model);
-    macau.addPrior<DenseNormalPrior>(model);
+    macau.addPrior<DenseNormalPrior>();
+    macau.addPrior<DenseNormalPrior>();
 
     macau.run();
 }

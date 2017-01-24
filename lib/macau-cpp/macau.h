@@ -30,13 +30,13 @@ class Macau  {
   public:
       Macau(Factors &m) : model(m) {}
 
-      template<class Prior, class Model>
-      inline Prior& addPrior(Model &model);
+      template<class Prior>
+      inline Prior& addPrior();
 
       // noise models
       FixedGaussianNoise &setPrecision(double p);
-      //AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
-      //ProbitNoise &setProbit();
+      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
+      ProbitNoise &setProbit();
 
       void setSamples(int burnin, int nsamples);
       void init();
@@ -65,11 +65,12 @@ class PythonMacau : public Macau {
     void run();
 };
 
-template<class Prior, class Model>
-Prior& Macau::addPrior(Model &model)
+template<class Prior>
+Prior& Macau::addPrior()
 {
     auto pos = priors.size();
-    Prior *p = new Prior(model, pos, *noise);
+    auto &m = dynamic_cast<typename Prior::BaseModel &>(model);
+    Prior *p = new Prior(m, pos, *noise);
     priors.push_back(std::unique_ptr<ILatentPrior>(p));
     return *p;
 }
