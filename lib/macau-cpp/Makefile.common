@@ -1,4 +1,4 @@
-MPICXX=mpicxx
+# MPICXX=mpicxx
 CXX=g++
 CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas 
 #CXXFLAGS+=-fopenmp
@@ -17,13 +17,13 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 .PHONY: all clean 
 
-all: tests macau_mpi test_dense
+all: tests test_dense macau_nompi
 
 LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o macau.o gen_random.o model.o 
 LIBOBJS += macauoneprior.o spikeandslab.o macauprior.o normalprior.o
 
 vpath %.cpp $(ROOT)
-test_dense tests: $(LIBOBJS)
+test_dense tests macau_nompi: $(LIBOBJS)
 
 macau_mpi: macau_mpi.cpp $(LIBOBJS)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o macau_mpi

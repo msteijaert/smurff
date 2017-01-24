@@ -38,6 +38,8 @@ class Macau  {
       AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
       ProbitNoise &setProbit();
 
+      bool setFromArgs(int argc, char** argv, SparseMF &model, bool print);
+
       void setSamples(int burnin, int nsamples);
       void init();
       void run();
