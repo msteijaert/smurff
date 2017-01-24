@@ -14,7 +14,11 @@ extern "C" {
   #include <csr.h>
 }
 
+#ifdef NDEBUG
+#define SHOW(m)
+#else
 #define SHOW(m) std::cout << #m << ": " << m << std::endl;
+#endif
 
 class SparseFeat {
   public:
