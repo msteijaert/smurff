@@ -142,6 +142,54 @@ void DenseNormalPrior::sample_latents() {
     DenseLatentPrior::sample_latents();
 }
 
+template<class Prior>
+MasterNormalPrior<Prior>::MasterNormalPrior(typename Prior::BaseModel &m, int p, INoiseModel &n) 
+    : ILatentPrior(m, p, n), Prior(m, p, n), is_init(false) {}
+
+
+template<typename P1, typename P2>
+std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
+    a.first += b.first;
+    a.second += b.second;
+    return a;
+}
+
+template<class Prior>
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> MasterNormalPrior<Prior>::precision_and_mean(int n) 
+{
+    // first the master
+    auto p = Prior::precision_and_mean(n);
+
+    // then the slaves
+    assert(slaves.size() > 0 && "No slaves");
+    for(auto &s : slaves) {
+        auto &slave_prior = s->priors.at(this->pos);
+        p += slave_prior->precision_and_mean(n);
+    }
+
+    return p;
+}
+
+template<class Prior>
+void MasterNormalPrior<Prior>::sample_latents() {
+    assert(slaves.size() > 0 && "No slaves");
+    if (!is_init) {
+        for(auto &s : slaves) s->init();
+        is_init = true;
+    }
+
+    for(auto &s : slaves) s->step();
+    Prior::sample_latents();
+}
+
+template<class Prior>
+void MasterNormalPrior<Prior>::addSideInfo(Macau &m)
+{
+    slaves.push_back(&m); 
+}
+
+template class MasterNormalPrior<SparseNormalPrior>;
+template class MasterNormalPrior<DenseNormalPrior>;
 
 // home made reduction!!
 // int count=0;

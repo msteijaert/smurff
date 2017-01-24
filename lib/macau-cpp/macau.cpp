@@ -79,35 +79,33 @@ void Macau::run() {
     }
     if (save_model) model.saveGlobalParams(save_prefix);
 
-    const int num_rows = model.Yrows();
-    const int num_cols = model.Ycols();
-
-    auto start = tick();
-    for (int i = 0; i < burnin + nsamples; i++) {
+    for (iter = 0; iter < burnin + nsamples; iter++) {
         if (keepRunning == false) {
             keepRunning = true;
             break;
         }
-        if (verbose && i == burnin) {
-            printf(" ====== Burn-in complete, averaging samples ====== \n");
-        }
-        auto starti = tick();
-
-        // Sample hyperparams + latents
-        for(auto &p : priors) p->pre_update();
-        for(auto &p : priors) p->sample_latents();
-        for(auto &p : priors) p->post_update();
-
-        noise->update();
-
-        auto endi = tick();
-        auto elapsed = endi - start;
-        double samples_per_sec = (i + 1) * (num_rows + num_cols) / elapsed;
-        double elapsedi = endi - starti;
-
-        saveModel(i - burnin + 1);
-        printStatus(i, elapsedi, samples_per_sec);
+        step();
     }
+}
+
+
+void Macau::step() {
+    if (verbose && iter == burnin) {
+        printf(" ====== Burn-in complete, averaging samples ====== \n");
+    }
+    auto starti = tick();
+
+    // Sample hyperparams + latents
+    for(auto &p : priors) p->pre_update();
+    for(auto &p : priors) p->sample_latents();
+    for(auto &p : priors) p->post_update();
+
+    noise->update();
+
+    auto endi = tick();
+
+    saveModel(iter - burnin + 1);
+    printStatus(endi - starti);
 }
 
 void PythonMacau::run() {
@@ -264,7 +262,7 @@ bool Macau::setFromArgs(int argc, char** argv, SparseMF &model, bool print) {
 }
 
 
-void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
+void Macau::printStatus(double elapsedi) {
     if(!verbose) return;
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
@@ -272,11 +270,11 @@ void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
     double snorm0 = model.U(0).norm();
     double snorm1 = model.U(1).norm();
 
-    std::pair<double,double> rmse_test = model.getRMSE(i, burnin);
+    std::pair<double,double> rmse_test = model.getRMSE(iter, burnin);
     double auc = model.auc();
 
     printf("Iter %3d/%3d: RMSE: %.4f (1samp: %.4f)  AUC: %.4f U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n",
-            i, burnin + nsamples, rmse_test.second, rmse_test.first, auc,
+            iter, burnin + nsamples, rmse_test.second, rmse_test.first, auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi);
 }
 

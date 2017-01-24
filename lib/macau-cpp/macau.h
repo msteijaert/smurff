@@ -12,6 +12,8 @@
 
 int get_num_omp_threads();
 
+class ILatentPrior;
+
 // try adding num_latent as template parameter to Macau
 class Macau  {
   public:
@@ -22,6 +24,7 @@ class Macau  {
       bool verbose = true;
       int nsamples = 100;
       int burnin   = 50;
+      int iter;
       bool save_model = false;
       std::string save_prefix = "model";
 
@@ -43,7 +46,8 @@ class Macau  {
       void setSamples(int burnin, int nsamples);
       void init();
       void run();
-      void printStatus(int i, double elapsedi, double samples_per_sec);
+      void step();
+      void printStatus(double elapsedi);
       void setVerbose(bool v) { verbose = v; };
       void saveModel(int isample);
       void setSaveModel(bool save) { save_model = save; };

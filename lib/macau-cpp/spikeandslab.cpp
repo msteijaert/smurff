@@ -27,9 +27,9 @@ void SpikeAndSlabPrior::sample_latent(int d)
     ArrayNd log_alpha = alpha.log();
     ArrayNd log_r = - r.array().log() + (VectorNd::Ones(K) - r).array().log();
 
-    MatrixNNd XX(MatrixNNd::Zero(K,K));
-    VectorNd yX(VectorNd::Zero(K));
-    compute_XX_yX(d, XX, yX);
+    MatrixNNd XX;
+    VectorNd yX;
+    std::tie(yX, XX) = precision_and_mean(d);
     double t = this->noise.getAlpha();
 
     for(unsigned k=0;k<K;++k) {
@@ -60,29 +60,36 @@ void SpikeAndSlabPrior::sample_latent(int d)
 SparseSpikeAndSlabPrior::SparseSpikeAndSlabPrior(SparseMF &m, int p, INoiseModel &n)
     : ILatentPrior(m, p, n), SpikeAndSlabPrior(m, p, n), SparseLatentPrior(m, p, n) {}
 
-void SparseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::VectorXd &yX)
+
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> SparseSpikeAndSlabPrior::precision_and_mean(int d)
 {
     auto &X = this->V; // aliases
+    const int K = num_latent();
+    MatrixNNd XX(MatrixNNd::Zero(K,K));
+    VectorNd yX(VectorNd::Zero(K));
     for (SparseMatrixD::InnerIterator it(this->Yc,d); it; ++it) {
         double y = it.value();
         auto Xcol = X.col(it.row());
         yX.noalias() += y * Xcol;
         XX.noalias() += Xcol * Xcol.transpose();
     }
+    return std::make_pair(yX, XX);
 }
 
 DenseSpikeAndSlabPrior::DenseSpikeAndSlabPrior(DenseMF &m, int p, INoiseModel &n)
     : ILatentPrior(m, p, n), SpikeAndSlabPrior(m, p, n), DenseLatentPrior(m, p, n) {}
 
-void DenseSpikeAndSlabPrior::compute_XX_yX(int d, Eigen::MatrixXd &XX, Eigen::VectorXd &yX)
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> DenseSpikeAndSlabPrior::precision_and_mean(int d)
 {
     auto &X = this->V; // aliases
-    XX = this->XX;
+    MatrixNNd XX = this->XX;
     SHOW(XX);
     SHOW(X * X.transpose());
    // assert(XX == X * X.transpose());
 
-    yX = Yc.col(d).transpose() * X.transpose();
+    VectorNd yX = Yc.col(d).transpose() * X.transpose();
+
+    return std::make_pair(yX, XX);
 }
 
 

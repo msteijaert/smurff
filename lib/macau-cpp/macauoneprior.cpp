@@ -91,6 +91,16 @@ void MacauOnePrior<FType>::sample_latent(int i)
 }
 
 template<class FType>
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> MacauOnePrior<FType>::precision_and_mean(int)
+{
+    assert(false);
+    const int K = num_latent();
+    MatrixNNd MM(MatrixNNd::Zero(K,K));
+    VectorNd rr(VectorNd::Zero(K));
+    return std::make_pair(rr,MM);
+};
+
+template<class FType>
 void MacauOnePrior<FType>::pre_update() {
 }
 

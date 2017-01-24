@@ -40,5 +40,7 @@ class MacauOnePrior : public SparseLatentPrior {
     void sample_lambda_beta();
     void setLambdaBeta(double lb) { lambda_beta = Eigen::VectorXd::Constant(this->num_latent(), lb); };
     void savePriorInfo(std::string prefix) override;
+
+    std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
 };
 

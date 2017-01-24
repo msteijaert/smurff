@@ -8,6 +8,7 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
+#include "macau.h"
 
 class INoiseModel;
 class Macau;
@@ -35,6 +36,7 @@ class ILatentPrior {
       virtual double getLinkNorm() { return NAN; };
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
+      virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) = 0;
 
       virtual void sample_latents() {
 #pragma omp parallel for schedule(dynamic, 2)
@@ -118,7 +120,6 @@ class NormalPrior : public virtual ILatentPrior {
     void post_update() override {}
     void sample_latent(int n) override;
 
-    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) = 0;
 
     void savePriorInfo(std::string prefix) override;
 };
@@ -147,6 +148,31 @@ class DenseNormalPrior : public DenseLatentPrior, public NormalPrior {
      Eigen::MatrixXd VtV;
 
 };
+
+template<class Prior>
+class MasterNormalPrior : public Prior {
+  public:
+    MasterNormalPrior(typename Prior::BaseModel &m, int p, INoiseModel &n);
+    virtual ~MasterNormalPrior() {}
+
+    virtual void sample_latents() override;
+    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
+    void addSideInfo(Macau &);
+
+  private:
+    std::vector<Macau *> slaves;
+    bool is_init = false;
+};
+
+template<class Prior>
+class SlavePrior : public Prior {
+  public:
+    SlavePrior(typename Prior::BaseModel &m, int p, INoiseModel &n)
+        : ILatentPrior(m, p, n), Prior(m, p, n) {}
+    virtual ~SlavePrior() {}
+    // virtual void sample_latents() override {}
+};
+
 
 /** Prior with side information */
 template<class FType>
@@ -232,10 +258,7 @@ class SpikeAndSlabPrior : public virtual ILatentPrior {
     void post_update() override;
     void savePriorInfo(std::string prefix) override;
     void sample_latent(int n) override;
-    
-    // compute dependent on dense or sparse
-    virtual void compute_XX_yX(int n, Eigen::MatrixXd &, Eigen::VectorXd &) = 0;
-
+   
   protected:
     bool is_init = false;
 
@@ -246,7 +269,7 @@ class SparseSpikeAndSlabPrior : public SpikeAndSlabPrior, public SparseLatentPri
     SparseSpikeAndSlabPrior(SparseMF& m, int p, INoiseModel &n);
     virtual ~SparseSpikeAndSlabPrior() {}
     void pre_update() override {}
-    void compute_XX_yX(int n, Eigen::MatrixXd &, Eigen::VectorXd &) override;
+    std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override; 
 };
 
 class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior, public DenseLatentPrior {
@@ -254,7 +277,8 @@ class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior, public DenseLatentPrior
     DenseSpikeAndSlabPrior(DenseMF& m, int p, INoiseModel &n);
     virtual ~DenseSpikeAndSlabPrior() {}
     void pre_update() override;
-    void compute_XX_yX(int n, Eigen::MatrixXd &, Eigen::VectorXd &) override;
+
+    std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override; 
 
   private:
      Eigen::MatrixXd XX;
