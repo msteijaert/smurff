@@ -41,7 +41,8 @@ int main(int argc, char** argv) {
     int num_latent = 32;
     SparseMF model(num_latent);
     MPIMacau macau(model);
-    assert(macau.setFromArgs(argc, argv, model, world_rank == 0));
+    bool ok = macau.setFromArgs(argc, argv, model, world_rank == 0);
+    assert(ok);
 
     macau.run();
 

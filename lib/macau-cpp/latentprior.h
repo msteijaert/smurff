@@ -170,7 +170,7 @@ class SlavePrior : public Prior {
     SlavePrior(typename Prior::BaseModel &m, int p, INoiseModel &n)
         : ILatentPrior(m, p, n), Prior(m, p, n) {}
     virtual ~SlavePrior() {}
-    // virtual void sample_latents() override {}
+    virtual void sample_latent(int d) override { }
 };
 
 
@@ -284,12 +284,5 @@ class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior, public DenseLatentPrior
      Eigen::MatrixXd XX;
 
 };
-
-std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
-double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
-
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 #endif /* LATENTPRIOR_H */

@@ -9,6 +9,7 @@
 #include "linop.h"
 #include "noisemodels.h"
 #include "latentprior.h"
+#include "macauprior.h"
 
 extern "C" {
   #include <sparse.h>
@@ -16,6 +17,10 @@ extern "C" {
 
 using namespace std; 
 using namespace Eigen;
+
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 template<class FType>
 MacauPrior<FType>::MacauPrior(SparseMF &m, int p, INoiseModel &n)

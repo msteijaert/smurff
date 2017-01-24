@@ -29,7 +29,8 @@ int main(int argc, char** argv) {
     int num_latent = 32;
     SparseMF model(num_latent);
     Macau macau(model);
-    assert(macau.setFromArgs(argc, argv, model, true));
+    bool ok = macau.setFromArgs(argc, argv, model, true);
+    assert(ok);
 
     macau.run();
     return 0;
