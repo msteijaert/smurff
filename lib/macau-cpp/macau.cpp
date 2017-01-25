@@ -32,35 +32,42 @@ extern "C" {
   #include <dsparse.h>
 }
 
-static volatile bool keepRunning = true;
+//-- add model
+SparseMF &Macau::sparseModel(int num_latent) {
+  SparseMF *n = new SparseMF(num_latent);
+  model.reset(n);
+  return *n;
+}
 
-void intHandler(int dummy) {
-  keepRunning = false;
-  printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
+DenseMF  &Macau::denseModel(int num_latent) {
+  DenseMF *n = new DenseMF(num_latent);
+  model.reset(n);
+  return *n;
 }
 
 FixedGaussianNoise &Macau::setPrecision(double p) {
-  FixedGaussianNoise *n = new FixedGaussianNoise(model, p);
+  FixedGaussianNoise *n = new FixedGaussianNoise(*model, p);
   noise.reset(n);
   return *n;
 }
 
 AdaptiveGaussianNoise &Macau::setAdaptivePrecision(double sn_init, double sn_max) {
-  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(model, sn_init, sn_max);
+  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*model, sn_init, sn_max);
   noise.reset(n);
   return *n;
 }
 
 ProbitNoise &Macau::setProbit() {
-  ProbitNoise *n = new ProbitNoise(model);
+  ProbitNoise *n = new ProbitNoise(*model);
   noise.reset(n);
   return *n;
 }
 
 void Macau::setSamples(int b, int n) {
   burnin = b;
-  this->nsamples = n;
+  nsamples = n;
 }
+
 void Macau::init() {
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
   if (priors.size() != 2) {
@@ -68,22 +75,16 @@ void Macau::init() {
   }
   init_bmrng(seed1);
   noise->init();
-  keepRunning = true;
+  if (verbose) {
+      std::cout << noise->getInitStatus() << endl;
+      std::cout << "Sampling" << endl;
+  }
+  if (save_model) model->saveGlobalParams(save_prefix);
 }
 
 void Macau::run() {
     init();
-    if (verbose) {
-        std::cout << noise->getInitStatus() << endl;
-        std::cout << "Sampling" << endl;
-    }
-    if (save_model) model.saveGlobalParams(save_prefix);
-
     for (iter = 0; iter < burnin + nsamples; iter++) {
-        if (keepRunning == false) {
-            keepRunning = true;
-            break;
-        }
         step();
     }
 }
@@ -108,31 +109,26 @@ void Macau::step() {
     printStatus(endi - starti);
 }
 
+volatile bool PythonMacau::keepRunning;
+
 void PythonMacau::run() {
+    keepRunning = true;
     signal(SIGINT, intHandler);
-    Macau::run();
+    for (iter = 0; iter < burnin + nsamples; iter++) {
+        if (keepRunning == false) {
+            keepRunning = true;
+            break;
+        }
+        step();
+    }
 }
 
-static void usage() {
-   printf("Usage:\n");
-   printf("  macau_mpi --train <train_file> --row-features <feature-file> [options]\n");
-   printf("Optional:\n");
-   printf("  --test    test_file  test data (for computing RMSE)\n");
-   printf("  --burnin        200  number of samples to discard\n");
-   printf("  --nsamples      800  number of samples to collect\n");
-   printf("  --num-latent     96  number of latent dimensions\n");
-   printf("  --precision     5.0  precision of observations\n");
-   printf("  --lambda-beta  10.0  initial value of lambda beta\n");
-   printf("  --tol          1e-6  tolerance for CG\n");
-   printf("  --output    results  prefix for result files\n");
+void PythonMacau::intHandler(int) {
+  keepRunning = false;
+  printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
-static void die(std::string message, bool print) {
-   if (print) std::cout << message;
-}
-
-
-bool Macau::setFromArgs(int argc, char** argv, SparseMF &model, bool print) {
+Macau&& Macau::FromArgs(int argc, char** argv, bool print) {
     char* fname_train         = NULL;
     char* fname_test          = NULL;
     char* fname_row_features  = NULL;
@@ -143,6 +139,24 @@ bool Macau::setFromArgs(int argc, char** argv, SparseMF &model, bool print) {
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;
+
+    auto die = [print](std::string message) {
+        if (print) std::cout << message;
+        exit(-1);
+    };
+
+    std::string usage = 
+        "Usage:\n"
+        "  macau_mpi --train <train_file> --row-features <feature-file> [options]\n"
+        "Optional:\n"
+        "  --test    test_file  test data (for computing RMSE)\n"
+        "  --burnin        200  number of samples to discard\n"
+        "  --nsamples      800  number of samples to collect\n"
+        "  --num-latent     96  number of latent dimensions\n"
+        "  --precision     5.0  precision of observations\n"
+        "  --lambda-beta  10.0  initial value of lambda beta\n"
+        "  --tol          1e-6  tolerance for CG\n"
+        "  --output    results  prefix for result files\n\n";
 
     // reading command line arguments
     while (1) {
@@ -177,16 +191,13 @@ bool Macau::setFromArgs(int argc, char** argv, SparseMF &model, bool print) {
             case 'r': fname_row_features = optarg; break;
             case 't': fname_train = optarg; break;
             case '?':
-            default : if (print) usage(); return false;
+            default : die(usage);
         }
     }
     if (fname_train == NULL || fname_row_features == NULL) {
-        if (print) {
-            printf("[ERROR]\nMissing parameters '--matrix' or '--row-features'.\n");
-            usage();
-        }
-        return false;
+        die(usage + "[ERROR]\nMissing parameters '--matrix' or '--row-features'.\n");
     }
+
     if (print) {
         printf("Train data:    '%s'\n", fname_train);
         printf("Test data:     '%s'\n", fname_test==NULL ?"" :fname_test);
@@ -200,16 +211,13 @@ bool Macau::setFromArgs(int argc, char** argv, SparseMF &model, bool print) {
         printf("tol:           %.1e\n", tol);
     }
     if ( ! file_exists(fname_train) ) {
-        die(std::string("[ERROR]\nTrain data file '") + fname_train + "' not found.\n", print);
-        return false;
+        die(std::string("[ERROR]\nTrain data file '") + fname_train + "' not found.\n");
     }
     if ( ! file_exists(fname_row_features) ) {
-        die(std::string("[ERROR]\nRow feature file '") + fname_row_features + "' not found.\n", print);
-        return false;
+        die(std::string("[ERROR]\nRow feature file '") + fname_row_features + "' not found.\n");
     }
     if ( (fname_test != NULL) && ! file_exists(fname_test) ) {
-        die(std::string("[ERROR]\nTest data file '") + fname_test + "' not found.\n", print);
-        return false;
+        die(std::string("[ERROR]\nTest data file '") + fname_test + "' not found.\n");
     }
 
     // Step 1. Loading data
@@ -221,21 +229,23 @@ bool Macau::setFromArgs(int argc, char** argv, SparseMF &model, bool print) {
     SparseDoubleMatrix* Y     = NULL;
     SparseDoubleMatrix* Ytest = NULL;
 
-    setSamples(burnin, nsamples);
+    Macau macau;
+    SparseMF& model = macau.sparseModel(num_latent);
+    macau.setSamples(burnin, nsamples);
 
     // -- noise model + general parameters
-    setPrecision(precision);
+    macau.setPrecision(precision);
 
-    setVerbose(true);
+    macau.setVerbose(true);
     Y = read_sdm(fname_train);
     model.setRelationData(*Y);
 
     //-- Normal column prior
     //macau.addPrior<SparseNormalPrior>();
-    addPrior<SparseSpikeAndSlabPrior>();
+    macau.addPrior<SparseSpikeAndSlabPrior>();
 
     //-- row prior with side information
-    auto &prior_u = addPrior<MacauOnePrior<SparseFeat>>();
+    auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>();
     prior_u.addSideInfo(row_features, false);
     prior_u.setLambdaBeta(lambda_beta);
     //prior_u.setTol(tol);
@@ -258,7 +268,7 @@ bool Macau::setFromArgs(int argc, char** argv, SparseMF &model, bool print) {
     delete Y;
     if (Ytest) delete Ytest;
 
-    return true;
+    return std::move(macau);
 }
 
 
@@ -267,11 +277,11 @@ void Macau::printStatus(double elapsedi) {
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
 
-    double snorm0 = model.U(0).norm();
-    double snorm1 = model.U(1).norm();
+    double snorm0 = model->U(0).norm();
+    double snorm1 = model->U(1).norm();
 
-    std::pair<double,double> rmse_test = model.getRMSE(iter, burnin);
-    double auc = model.auc();
+    std::pair<double,double> rmse_test = model->getRMSE(iter, burnin);
+    double auc = model->auc();
 
     printf("Iter %3d/%3d: RMSE: %.4f (1samp: %.4f)  AUC: %.4f U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n",
             iter, burnin + nsamples, rmse_test.second, rmse_test.first, auc,
@@ -281,7 +291,7 @@ void Macau::printStatus(double elapsedi) {
 void Macau::saveModel(int isample) {
     if (!save_model || isample < 0) return;
     string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
-    model.saveModel(fprefix, isample, burnin);
+    model->saveModel(fprefix, isample, burnin);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }
 

@@ -26,12 +26,7 @@ using namespace Eigen;
 using namespace std;
 
 int main(int argc, char** argv) {
-    int num_latent = 32;
-    SparseMF model(num_latent);
-    Macau macau(model);
-    bool ok = macau.setFromArgs(argc, argv, model, true);
-    assert(ok);
-
+    auto &&macau = Macau::FromArgs(argc, argv, true);
     macau.run();
     return 0;
 }

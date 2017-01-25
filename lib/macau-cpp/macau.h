@@ -17,47 +17,55 @@ class ILatentPrior;
 // try adding num_latent as template parameter to Macau
 class Macau  {
   public:
-      std::unique_ptr<INoiseModel> noise;
-      std::vector< std::unique_ptr<ILatentPrior> > priors;
-      Factors &model;
+      std::unique_ptr<INoiseModel>                noise;
+      std::vector< std::unique_ptr<ILatentPrior>> priors;
+      std::unique_ptr<Factors>                    model;
 
-      bool verbose = true;
-      int nsamples = 100;
-      int burnin   = 50;
-      int iter;
-      bool save_model = false;
+      bool        verbose     = true;
+      int         nsamples    = 100;
+      int         burnin      = 50;
+      int         num_latent  = 32;
+      bool        save_model  = false;
       std::string save_prefix = "model";
 
-      double rmse_test;
+      // while running
+      int         iter;
 
   public:
-      Macau(Factors &m) : model(m) {}
+      Macau() {}
+      ~Macau() {}
 
-      template<class Prior>
-      inline Prior& addPrior();
-
-      // noise models
-      FixedGaussianNoise &setPrecision(double p);
-      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
-      ProbitNoise &setProbit();
-
-      bool setFromArgs(int argc, char** argv, SparseMF &model, bool print);
-
+      //-- set params
       void setSamples(int burnin, int nsamples);
-      void init();
-      void run();
-      void step();
       void printStatus(double elapsedi);
       void setVerbose(bool v) { verbose = v; };
       void saveModel(int isample);
       void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
-      ~Macau() {}
+
+      //-- add model
+      SparseMF &sparseModel(int num_latent);
+      DenseMF  &denseModel(int num_latent);
+
+      //-- add priors
+      template<class Prior>
+      inline Prior& addPrior();
+
+      // set noise models
+      FixedGaussianNoise &setPrecision(double p);
+      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
+      ProbitNoise &setProbit();
+
+      static Macau&& FromArgs(int argc, char** argv, bool print);
+
+      // execution of the sampler
+      void init();
+      void run();
+      void step();
 };
 
 class MPIMacau : public Macau {
   public:
-    MPIMacau(Factors &m);
     void run();
 
     int world_rank;
@@ -67,15 +75,19 @@ class MPIMacau : public Macau {
 
 class PythonMacau : public Macau {
   public:
-    PythonMacau(Factors &m) : Macau(m) {}
     void run();
+
+  private:
+    static void intHandler(int); 
+    static volatile bool keepRunning;
+
 };
 
 template<class Prior>
 Prior& Macau::addPrior()
 {
     auto pos = priors.size();
-    auto &m = dynamic_cast<typename Prior::BaseModel &>(model);
+    auto &m = dynamic_cast<typename Prior::BaseModel &>(*model);
     Prior *p = new Prior(m, pos, *noise);
     priors.push_back(std::unique_ptr<ILatentPrior>(p));
     return *p;

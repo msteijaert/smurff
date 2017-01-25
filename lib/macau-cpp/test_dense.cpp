@@ -31,8 +31,8 @@ int main(int argc, char** argv) {
 
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
 
-    DenseMF slave_model(num_latent);
-    Macau slave_macau(slave_model);
+    Macau slave_macau;
+    DenseMF &slave_model = slave_macau.denseModel(num_latent);
     slave_macau.setSamples(10, iter_max);
 
     // fixed gaussian noise
@@ -50,8 +50,8 @@ int main(int argc, char** argv) {
     slave_macau.addPrior<DenseNormalPrior>();
     slave_macau.addPrior<SlavePrior<DenseNormalPrior>>();
 
-    DenseMF master_model(num_latent);
-    Macau master_macau(master_model);
+    Macau master_macau;
+    DenseMF &master_model = master_macau.denseModel(num_latent);
     master_macau.setSamples(10, iter_max);
 
     // fixed gaussian noise
