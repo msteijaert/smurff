@@ -80,12 +80,14 @@ void Macau::init() {
       std::cout << "Sampling" << endl;
   }
   if (save_model) model->saveGlobalParams(save_prefix);
+  iter = 0;
 }
 
 void Macau::run() {
     init();
-    for (iter = 0; iter < burnin + nsamples; iter++) {
+    while (iter < burnin + nsamples) {
         step();
+        iter++;
     }
 }
 
@@ -128,7 +130,7 @@ void PythonMacau::intHandler(int) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
-Macau&& Macau::FromArgs(int argc, char** argv, bool print) {
+void Macau::setFromArgs(int argc, char** argv, bool print) {
     char* fname_train         = NULL;
     char* fname_test          = NULL;
     char* fname_row_features  = NULL;
@@ -230,22 +232,22 @@ Macau&& Macau::FromArgs(int argc, char** argv, bool print) {
     SparseDoubleMatrix* Ytest = NULL;
 
     Macau macau;
-    SparseMF& model = macau.sparseModel(num_latent);
-    macau.setSamples(burnin, nsamples);
+    SparseMF& model = sparseModel(num_latent);
+    setSamples(burnin, nsamples);
 
     // -- noise model + general parameters
-    macau.setPrecision(precision);
+    setPrecision(precision);
 
-    macau.setVerbose(true);
+    setVerbose(true);
     Y = read_sdm(fname_train);
     model.setRelationData(*Y);
 
     //-- Normal column prior
-    //macau.addPrior<SparseNormalPrior>();
-    macau.addPrior<SparseSpikeAndSlabPrior>();
+    //addPrior<SparseNormalPrior>();
+    addPrior<SparseSpikeAndSlabPrior>();
 
     //-- row prior with side information
-    auto &prior_u = macau.addPrior<MacauOnePrior<SparseFeat>>();
+    auto &prior_u = addPrior<MacauOnePrior<SparseFeat>>();
     prior_u.addSideInfo(row_features, false);
     prior_u.setLambdaBeta(lambda_beta);
     //prior_u.setTol(tol);
@@ -267,8 +269,6 @@ Macau&& Macau::FromArgs(int argc, char** argv, bool print) {
 
     delete Y;
     if (Ytest) delete Ytest;
-
-    return std::move(macau);
 }
 
 

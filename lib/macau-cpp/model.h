@@ -13,7 +13,7 @@ struct Factors {
 
     //-- c'tor
     Factors(int num_latent, int num_fac = 2)
-        : num_latent(num_latent), last_iter(-1)
+        : num_latent(num_latent)
     {
         assert(num_fac == 2); 
         factors.resize(num_fac);
@@ -57,8 +57,8 @@ struct Factors {
   private:
     void init_predictions();
     void update_predictions(int iter, int burnin);
-    double rmse_avg, rmse; 
-    int last_iter;
+    double rmse_avg = NAN, rmse = NAN; 
+    int last_iter = -1;
     Eigen::VectorXd predictions, predictions_var, stds;
 };
 

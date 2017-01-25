@@ -32,14 +32,9 @@ class Macau  {
       int         iter;
 
   public:
-      Macau() {}
-      ~Macau() {}
-
       //-- set params
       void setSamples(int burnin, int nsamples);
-      void printStatus(double elapsedi);
       void setVerbose(bool v) { verbose = v; };
-      void saveModel(int isample);
       void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
 
@@ -56,16 +51,22 @@ class Macau  {
       AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
       ProbitNoise &setProbit();
 
-      static Macau&& FromArgs(int argc, char** argv, bool print);
+      void setFromArgs(int argc, char** argv, bool print);
 
       // execution of the sampler
       void init();
       void run();
       void step();
+
+   private:
+      void saveModel(int isample);
+      void printStatus(double elapsedi);
 };
 
 class MPIMacau : public Macau {
   public:
+    MPIMacau();
+      
     void run();
 
     int world_rank;

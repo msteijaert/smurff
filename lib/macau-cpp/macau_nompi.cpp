@@ -26,7 +26,8 @@ using namespace Eigen;
 using namespace std;
 
 int main(int argc, char** argv) {
-    auto &&macau = Macau::FromArgs(argc, argv, true);
+    Macau macau;
+    macau.setFromArgs(argc, argv, true);
     macau.run();
     return 0;
 }

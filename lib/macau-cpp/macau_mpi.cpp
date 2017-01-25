@@ -38,11 +38,8 @@ int main(int argc, char** argv) {
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    int num_latent = 32;
-    SparseMF model(num_latent);
-    MPIMacau macau(model);
-    bool ok = macau.setFromArgs(argc, argv, model, world_rank == 0);
-    assert(ok);
+    MPIMacau macau;
+    macau.setFromArgs(argc, argv, world_rank == 0);
 
     macau.run();
 
@@ -51,8 +48,7 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-MPIMacau::MPIMacau(Factors &m)
-    : Macau(m)
+MPIMacau::MPIMacau()
 {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -61,8 +57,6 @@ MPIMacau::MPIMacau(Factors &m)
 
 void MPIMacau::run()
 {
-   /* adapted from Macau.run() */
-   init();
    if (world_rank == 0) {
        Macau::run();
    } else {
