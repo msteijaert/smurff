@@ -23,13 +23,13 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 template<class FType>
-MacauPrior<FType>::MacauPrior(SparseMF &m, int p, INoiseModel &n)
-    : ILatentPrior(m, p, n), SparseNormalPrior(m, p, n)  {}
+MacauPrior<FType>::MacauPrior(Factors &m, int p, INoiseModel &n)
+    : NormalPrior(m, p, n)  {}
     
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 {
-    assert((Fmat->rows() == Yc.rows()) && "Number of rows in train must be equal to number of rows in features");
+    assert((Fmat->rows() == U.rows()) && "Number of rows in train must be equal to number of rows in features");
 
     // side information
     F = std::move(Fmat);

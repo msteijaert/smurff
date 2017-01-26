@@ -47,11 +47,13 @@ void NormalPrior::pre_update() {
 
 void NormalPrior::sample_latent(int n)
 {
-
     MatrixXd MM;
     VectorXd rr;
+    std::tie(rr, MM) = pnm(n);
 
-    std::tie(rr, MM) = precision_and_mean(n);
+    double alpha = noise.getAlpha();
+    rr *= alpha;
+    MM *= alpha;
 
     Eigen::LLT<MatrixXd> chol = MM.llt();
     if(chol.info() != Eigen::Success) {
@@ -73,78 +75,16 @@ void NormalPrior::savePriorInfo(std::string prefix) {
  *  SparseNormalPrior 
  */
 
-SparseNormalPrior::SparseNormalPrior(SparseMF &m, int p, INoiseModel &n)
-    : ILatentPrior(m, p, n), SparseLatentPrior(m, p, n), NormalPrior(m, p, n) {}
 
-void SparseNormalPrior::gaussian_precision_and_mean(int n, VectorXd &rr, MatrixXd &MM) 
-{
-    double alpha = noise.getAlpha();
-    for (SparseMatrix<double>::InnerIterator it(Yc, n); it; ++it) {
-        auto col = V.col(it.row());
-        rr.noalias() += col * (it.value() * alpha);
-        MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose();
-    }
-}
-
-void SparseNormalPrior::probit_precision_and_mean(int n, VectorXd &rr, MatrixXd &MM)
-{
-    auto u = U.col(n);
-    for (SparseMatrix<double>::InnerIterator it(Yc, n); it; ++it) {
-        auto col = V.col(it.row());
-        MM.triangularView<Eigen::Lower>() += col * col.transpose();
-        auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
-        rr.noalias() += col * z;
-    }
-}
-
-std::pair<VectorXd,MatrixXd> SparseNormalPrior::precision_and_mean(int n)
-{
-    const VectorXd &mu_u = getMu(n);
-    const MatrixXd &Lambda_u = getLambda(n);
-
-    MatrixXd MM = Lambda_u;
-    VectorXd rr = VectorXd::Zero(num_latent());
-
-    if (noise.isProbit()) probit_precision_and_mean(n, rr, MM);
-    else gaussian_precision_and_mean(n, rr, MM);
-
-    rr.noalias() += Lambda_u * mu_u;
-
-    return std::make_pair(rr, MM);
-}
 
 /**
  *  DenseNormalPrior 
  */
 
 
-DenseNormalPrior::DenseNormalPrior(DenseMF &m, int p, INoiseModel &n)
-    : ILatentPrior(m, p, n), DenseLatentPrior(m, p, n), NormalPrior(m, p, n) {}
-
-std::pair<VectorXd,MatrixXd> DenseNormalPrior::precision_and_mean(int n)
-{
-    double alpha = noise.getAlpha();
-    VectorXd rr = (V * Yc.col(n)) * alpha;
-    return std::make_pair(rr, VtV);
-}
-
-
-void DenseNormalPrior::sample_latents() {
-    VtV = MatrixNNd::Identity(num_latent(), num_latent());
-    double alpha = noise.getAlpha();
-
-#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:VtV)
-    for(int n = 0; n < V.cols(); n++) {
-        auto v = V.col(n);
-        VtV += v * (alpha * v.transpose());
-    }
-
-    DenseLatentPrior::sample_latents();
-}
-
 template<class Prior>
-MasterNormalPrior<Prior>::MasterNormalPrior(typename Prior::BaseModel &m, int p, INoiseModel &n) 
-    : ILatentPrior(m, p, n), Prior(m, p, n), is_init(false) {}
+MasterPrior<Prior>::MasterPrior(Factors &m, int p, INoiseModel &n) 
+    : Prior(m, p, n), is_init(false) {}
 
 
 template<typename P1, typename P2>
@@ -155,23 +95,23 @@ std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) 
 }
 
 template<class Prior>
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> MasterNormalPrior<Prior>::precision_and_mean(int n) 
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> MasterPrior<Prior>::pnm(int n) 
 {
     // first the master
-    auto p = Prior::precision_and_mean(n);
+    auto p = Prior::pnm(n);
 
     // then the slaves
     assert(slaves.size() > 0 && "No slaves");
     for(auto &s : slaves) {
         auto &slave_prior = s->priors.at(this->pos);
-        p += slave_prior->precision_and_mean(n);
+        p += slave_prior->pnm(n);
     }
 
     return p;
 }
 
 template<class Prior>
-void MasterNormalPrior<Prior>::sample_latents() {
+void MasterPrior<Prior>::sample_latents() {
     assert(slaves.size() > 0 && "No slaves");
     if (!is_init) {
         for(auto &s : slaves) s->init();
@@ -183,13 +123,13 @@ void MasterNormalPrior<Prior>::sample_latents() {
 }
 
 template<class Prior>
-void MasterNormalPrior<Prior>::addSideInfo(Macau &m)
+void MasterPrior<Prior>::addSideInfo(Macau &m)
 {
     slaves.push_back(&m); 
 }
 
-template class MasterNormalPrior<SparseNormalPrior>;
-template class MasterNormalPrior<DenseNormalPrior>;
+template class MasterPrior<NormalPrior>;
+template class MasterPrior<SpikeAndSlabPrior>;
 
 // home made reduction!!
 // int count=0;

@@ -22,10 +22,11 @@ struct Factors {
 
     const Eigen::MatrixXd &U(int f) const { return factors.at(f); }
     Eigen::MatrixXd &U(int f) { return factors.at(f); }
+    Eigen::MatrixXd &V(int f) { return factors.at((f+1)%2); }
     Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return U(f).col(i); }
+
     int num_fac() const { return factors.size(); }
 
-    std::vector<Eigen::MatrixXd> factors;
 
     Eigen::SparseMatrix<double> Ytest;
 
@@ -40,9 +41,16 @@ struct Factors {
 
     double auc();
 
+    // helper functions for noise
     virtual double sumsq() const = 0;
     virtual double var_total() const = 0;
 
+    // helper functions for priors
+    typedef std::pair<Eigen::VectorXd, Eigen::MatrixXd> PnM;
+    virtual PnM  get_pnm(int,int) = 0;
+    virtual PnM  get_probit_pnm(int,int) = 0;
+    virtual void update_pnm(int) = 0;
+ 
     //-- output to file
     void saveGlobalParams(std::string);
     void savePredictions(std::string, int iter, int burnin);
@@ -60,6 +68,7 @@ struct Factors {
     double rmse_avg = NAN, rmse = NAN; 
     int last_iter = -1;
     Eigen::VectorXd predictions, predictions_var, stds;
+    std::vector<Eigen::MatrixXd> factors;
 };
 
 template<typename YType>
@@ -76,6 +85,7 @@ struct MF : public Factors {
     void setRelationData(YType Y);
 
     YType Y;
+    std::vector<YType> Yc; // centered version
 };
 
 struct SparseMF : public MF<SparseMatrixD> {
@@ -88,6 +98,10 @@ struct SparseMF : public MF<SparseMatrixD> {
 
     double var_total() const override;
     double sumsq() const override;
+
+    PnM  get_pnm(int,int) override;
+    PnM  get_probit_pnm(int,int) override;
+    void update_pnm(int) override {}
 };
 
 struct DenseMF : public MF<Eigen::MatrixXd> {
@@ -97,6 +111,13 @@ struct DenseMF : public MF<Eigen::MatrixXd> {
 
     double var_total() const override;
     double sumsq() const override;
+
+    PnM  get_pnm(int,int) override;
+    PnM  get_probit_pnm(int f,int n) override { assert(false); return get_pnm(f,n); }
+    void update_pnm(int) override;
+
+  private:
+    std::vector<Eigen::MatrixXd> VV;
 };
 
 #endif

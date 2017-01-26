@@ -21,8 +21,6 @@ class INoiseModel {
 
     virtual double getAlpha() = 0;
 
-    virtual bool isProbit() const { return false; }
-
   protected:
     Factors &model;
 };
@@ -69,18 +67,3 @@ class AdaptiveGaussianNoise : public INoiseModel {
     std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
 };
 
-/** Probit noise model (binary). Fixed for the whole run */
-class ProbitNoise : public INoiseModel {
-  public:
-    double auc_test;
-    double auc_test_onesample;
-    ProbitNoise(Factors &p) : INoiseModel(p) {}
-    void init() override {}
-    void update() override {}
-
-    double getAlpha() override { assert(false && "ProbitNoise is special"); return NAN; }
-    bool isProbit() const override { return true; }
-        
-    std::string getInitStatus() override { return std::string("Probit noise model"); }
-    std::string getStatus() override { return std::string(""); }
-};

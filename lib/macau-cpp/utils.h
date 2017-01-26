@@ -181,6 +181,11 @@ inline bool file_exists(const char *fileName)
    return infile.good();
 }
 
+inline bool file_exists(const std::string fileName)
+{
+   return file_exists(fileName.c_str());
+}
+
 inline std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
    SparseBinaryMatrix* A = read_sbm(filename);
    SparseFeat* sf = new SparseFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols);
@@ -206,4 +211,25 @@ inline Eigen::MatrixXd to_coo(const Eigen::SparseMatrix<double> &Y) {
     return coords;
 }
 
+template<class Matrix>
+void write_ddm(const char* filename, const Matrix& matrix){
+    std::ofstream out(filename,std::ios::out | std::ios::binary | std::ios::trunc);
+    typename Matrix::Index rows=matrix.rows(), cols=matrix.cols();
+    out.write((char*) (&rows), sizeof(typename Matrix::Index));
+    out.write((char*) (&cols), sizeof(typename Matrix::Index));
+    out.write((char*) matrix.data(), rows*cols*sizeof(typename Matrix::Scalar) );
+    out.close();
+}
 
+template<class Matrix>
+Matrix read_ddm(const char* filename) {
+    Matrix matrix;
+    std::ifstream in(filename,std::ios::in | std::ios::binary);
+    typename Matrix::Index rows=0, cols=0;
+    in.read((char*) (&rows),sizeof(typename Matrix::Index));
+    in.read((char*) (&cols),sizeof(typename Matrix::Index));
+    matrix.resize(rows, cols);
+    in.read( (char *) matrix.data() , rows*cols*sizeof(typename Matrix::Scalar) );
+    in.close();
+    return matrix;
+}

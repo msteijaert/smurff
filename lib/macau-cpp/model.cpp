@@ -23,6 +23,7 @@
 #include "dsparse.h"
 #include "utils.h"
 #include "model.h"
+#include "mvnormal.h"
 
 using namespace std; 
 using namespace Eigen;
@@ -253,11 +254,41 @@ double SparseMF::sumsq() const {
     return sumsq;
 }
 
+Factors::PnM SparseMF::get_pnm(int f, int n) {
+    MatrixXd MM = MatrixXd::Zero(num_latent, num_latent);
+    VectorXd rr = VectorXd::Zero(num_latent);
+
+    for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
+        auto col = V(f).col(it.row());
+        rr.noalias() += col * it.value();
+        MM.triangularView<Eigen::Lower>() += col * col.transpose();
+    }
+
+    return std::make_pair(rr, MM);
+}
+
+Factors::PnM SparseMF::get_probit_pnm(int f, int n)
+{
+    MatrixXd MM = MatrixXd::Zero(num_latent, num_latent);
+    VectorXd rr = VectorXd::Zero(num_latent);
+
+    auto u = U(f).col(n);
+    for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
+        auto col = V(f).col(it.row());
+        MM.triangularView<Eigen::Lower>() += col * col.transpose();
+        auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
+        rr.noalias() += col * z;
+    }
+
+    return std::make_pair(rr, MM);
+}
+
 
 //
 //-- DenseMF specific stuff
 //
 
+// for the adaptive gaussian noise
 double DenseMF::var_total() const {
     double se = (Y.array() - mean_rating).square().sum();
 
@@ -270,19 +301,38 @@ double DenseMF::var_total() const {
     return var_total;
 }
 
+// for the adaptive gaussian noise
 double DenseMF::sumsq() const {
     double sumsq = 0.0;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < Y.cols(); j++) {
-        auto Vj = col(1, j);
+        auto Vj = U(1).col(j);
         for (int i = 0; i < Y.rows(); i++) {
-            double Yhat = Vj.dot( col(0, j) ) + mean_rating;
+            double Yhat = Vj.dot( U(0).col(j) ) + mean_rating;
             sumsq += square(Yhat - Y(i,j));
         }
     }
 
     return sumsq;
 }
+
+Factors::PnM DenseMF::get_pnm(int f, int d) {
+    auto &Y = Yc.at(f);
+    VectorXd rr = (V(f) * Y.col(d));
+    return std::make_pair(rr, VV.at(f));
+}
+
+void DenseMF::update_pnm(int f) {
+    auto &Vf = V(f);
+#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:XX)
+    for(int n = 0; n < Vf.cols(); n++) {
+        auto v = Vf.col(n);
+        VV.at(f) += v * v.transpose();
+    }
+
+
+}
+
 
 

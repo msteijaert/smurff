@@ -49,7 +49,6 @@ class Macau  {
       // set noise models
       FixedGaussianNoise &setPrecision(double p);
       AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
-      ProbitNoise &setProbit();
 
       void setFromArgs(int argc, char** argv, bool print);
 
@@ -88,8 +87,7 @@ template<class Prior>
 Prior& Macau::addPrior()
 {
     auto pos = priors.size();
-    auto &m = dynamic_cast<typename Prior::BaseModel &>(*model);
-    Prior *p = new Prior(m, pos, *noise);
+    Prior *p = new Prior(*model, pos, *noise);
     priors.push_back(std::unique_ptr<ILatentPrior>(p));
     return *p;
 }

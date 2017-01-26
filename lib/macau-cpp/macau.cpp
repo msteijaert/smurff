@@ -57,12 +57,6 @@ AdaptiveGaussianNoise &Macau::setAdaptivePrecision(double sn_init, double sn_max
   return *n;
 }
 
-ProbitNoise &Macau::setProbit() {
-  ProbitNoise *n = new ProbitNoise(*model);
-  noise.reset(n);
-  return *n;
-}
-
 void Macau::setSamples(int b, int n) {
   burnin = b;
   nsamples = n;
@@ -130,14 +124,62 @@ void PythonMacau::intHandler(int) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
+
+
+
+template<class SideInfo>
+void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
+{
+    if(prior_name == "macau"){
+        auto &prior = m.addPrior<MacauPrior<SideInfo>>();
+        prior.addSideInfo(features, false);
+        prior.setLambdaBeta(lambda_beta);
+        prior.setTol(tol);
+    } else if(prior_name == "macauone") {
+        auto &prior = m.addPrior<MacauOnePrior<SideInfo>>();
+        prior.addSideInfo(features, false);
+        prior.setLambdaBeta(lambda_beta);
+    } else {
+        assert(false && "Unknown prior with side info");
+    }
+}
+
+
+void add_prior(Macau &macau, std::string prior_name, std::string fname_features, double lambda_beta, double tol)
+{
+    //-- row prior with side information
+    if (fname_features.size()) {
+        if (fname_features.find(".sdm") != std::string::npos) {
+            auto row_features = std::unique_ptr<SparseDoubleMatrix>(read_sdm(fname_features.c_str()));
+            addMacauPrior(macau, prior_name, row_features, lambda_beta, tol);
+        } else if (fname_features.find(".sbm") != std::string::npos) {
+            auto features = load_bcsr(fname_features.c_str());
+            addMacauPrior(macau, prior_name, features, lambda_beta, tol);
+        } else {
+            assert(false); //("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname_features));
+        }
+    } else if(prior_name == "normal"){
+        macau.addPrior<NormalPrior>();
+    } else if(prior_name == "spikeandslab") {
+       macau.addPrior<SpikeAndSlabPrior>();
+    } else {
+        assert(false); 
+    }
+}
+
 void Macau::setFromArgs(int argc, char** argv, bool print) {
-    char* fname_train         = NULL;
-    char* fname_test          = NULL;
-    char* fname_row_features  = NULL;
-    std::string output_prefix = std::string("result");
+    std::string fname_train;
+    std::string fname_test;
+    std::string fname_row_features;
+    std::string fname_col_features;
+    std::string row_prior("normal");
+    std::string col_prior("normal");
+    std::string output_prefix("result");
+
     double precision          = 5.0;
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
+
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;
@@ -149,8 +191,12 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
 
     std::string usage = 
         "Usage:\n"
-        "  macau_mpi --train <train_file> --row-features <feature-file> [options]\n"
+        "  macau_mpi --train <train_file> <feature-file> [options]\n"
         "Optional:\n"
+        "  --row-prior <normal|spikeandslab|macau|macauone>\n"
+        "  --col-prior <normal|spikeandslab|macau|macauone>\n\n"
+        "  --row-features file  side info for rows\n"
+        "  --col-features file  side info for cols\n"
         "  --test    test_file  test data (for computing RMSE)\n"
         "  --burnin        200  number of samples to discard\n"
         "  --nsamples      800  number of samples to collect\n"
@@ -164,50 +210,59 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
     while (1) {
         static struct option long_options[] =
         {
-            {"train",      required_argument, 0, 't'},
-            {"test",       required_argument, 0, 'e'},
+            {"train",        required_argument, 0, 't'},
+            {"test",         required_argument, 0, 'e'},
             {"row-features", required_argument, 0, 'r'},
-            {"precision",  required_argument, 0, 'p'},
-            {"burnin",     required_argument, 0, 'b'},
-            {"nsamples",   required_argument, 0, 'n'},
-            {"output",     required_argument, 0, 'o'},
-            {"num-latent", required_argument, 0, 'l'},
-            {"lambda-beta",required_argument, 0, 'a'},
-            {"tol",        required_argument, 0, 'c'},
+            {"col-features", required_argument, 0, 'f'},
+            {"row-prior",    required_argument, 0, 'q'},
+            {"col-prior",    required_argument, 0, 's'},
+            {"precision",    required_argument, 0, 'p'},
+            {"burnin",       required_argument, 0, 'b'},
+            {"nsamples",     required_argument, 0, 'n'},
+            {"output",       required_argument, 0, 'o'},
+            {"num-latent",   required_argument, 0, 'l'},
+            {"lambda-beta",  required_argument, 0, 'a'},
+            {"tol",          required_argument, 0, 'c'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
-        int c = getopt_long(argc, argv, "t:e:r:p:b:n:o:a:c:", long_options, &option_index);
+        int c = getopt_long(argc, argv, "t:e:r:f:p:b:n:o:a:c:", long_options, &option_index);
         if (c == -1)
             break;
 
         switch (c) {
-            case 'a': lambda_beta   = strtod(optarg, NULL); break;
-            case 'b': burnin        = strtol(optarg, NULL, 10); break;
-            case 'c': tol           = atof(optarg); break;
-            case 'e': fname_test    = optarg; break;
-            case 'l': num_latent    = strtol(optarg, NULL, 10); break;
-            case 'n': nsamples      = strtol(optarg, NULL, 10); break;
-            case 'o': output_prefix = std::string(optarg); break;
-            case 'p': precision     = strtod(optarg, NULL); break;
+            case 'a': lambda_beta        = strtod(optarg, NULL); break;
+            case 'b': burnin             = strtol(optarg, NULL, 10); break;
+            case 'c': tol                = atof(optarg); break;
+            case 'e': fname_test         = optarg; break;
+            case 'l': num_latent         = strtol(optarg, NULL, 10); break;
+            case 'n': nsamples           = strtol(optarg, NULL, 10); break;
+            case 'o': output_prefix      = std::string(optarg); break;
+            case 'p': precision          = strtod(optarg, NULL); break;
             case 'r': fname_row_features = optarg; break;
-            case 't': fname_train = optarg; break;
+            case 'f': fname_col_features = optarg; break;
+            case 'q': row_prior          = optarg; break;
+            case 's': col_prior          = optarg; break;
+            case 't': fname_train        = optarg; break;
             case '?':
             default : die(usage);
         }
     }
-    if (fname_train == NULL || fname_row_features == NULL) {
-        die(usage + "[ERROR]\nMissing parameters '--matrix' or '--row-features'.\n");
+    if (fname_train.empty()) {
+        die(usage + "[ERROR]\nMissing parameters '--train'\n");
     }
 
     if (print) {
-        printf("Train data:    '%s'\n", fname_train);
-        printf("Test data:     '%s'\n", fname_test==NULL ?"" :fname_test);
-        printf("Row features:  '%s'\n", fname_row_features);
+        printf("Train data:    '%s'\n", fname_train.c_str());
+        printf("Test data:     '%s'\n", fname_test.c_str());
+        printf("Row prior:     '%s'\n", row_prior.c_str());
+        printf("Col prior:     '%s'\n", col_prior.c_str());
+        printf("Row features:  '%s'\n", fname_row_features.c_str());
+        printf("Col features:  '%s'\n", fname_col_features.c_str());
         printf("Output prefix: '%s'\n", output_prefix.c_str());
-        printf("Burn-in:       %d\n", burnin);
-        printf("Samples:       %d\n", nsamples);
-        printf("Num-latents:   %d\n", num_latent);
+        printf("Burn-in:       %d\n",   burnin);
+        printf("Samples:       %d\n",   nsamples);
+        printf("Num-latents:   %d\n",   num_latent);
         printf("Precision:     %.1f\n", precision);
         printf("Lambda-beta:   %.1f\n", lambda_beta);
         printf("tol:           %.1e\n", tol);
@@ -215,60 +270,53 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
     if ( ! file_exists(fname_train) ) {
         die(std::string("[ERROR]\nTrain data file '") + fname_train + "' not found.\n");
     }
-    if ( ! file_exists(fname_row_features) ) {
+    if ( fname_row_features.size() && ! file_exists(fname_row_features) ) {
         die(std::string("[ERROR]\nRow feature file '") + fname_row_features + "' not found.\n");
     }
-    if ( (fname_test != NULL) && ! file_exists(fname_test) ) {
+    if ( fname_col_features.size() && ! file_exists(fname_col_features) ) {
+        die(std::string("[ERROR]\nCol feature file '") + fname_col_features + "' not found.\n");
+    }
+    if ( fname_test.size() && ! file_exists(fname_test) ) {
         die(std::string("[ERROR]\nTest data file '") + fname_test + "' not found.\n");
     }
 
-    // Step 1. Loading data
-    //std::unique_ptr<SparseFeat> row_features = load_bcsr(fname_row_features);
-    auto row_features = load_bcsr(fname_row_features);
-    if (print) {
-        printf("Row features:   [%d x %d].\n", row_features->rows(), row_features->cols());
+    // Load main Y matrix file
+    if (fname_train.find(".sdm") != std::string::npos) {
+        SparseMF& model = sparseModel(num_latent);
+        SparseDoubleMatrix* Y = read_sdm(fname_train.c_str());
+        model.setRelationData(*Y);
+        delete Y;
+    } else if (fname_train.find(".ddm") != std::string::npos) {
+        DenseMF& model = denseModel(num_latent);
+        MatrixXd Y = read_ddm<MatrixXd>(fname_train.c_str());
+        model.setRelationData(Y);
+    } else {
+        die("Train data file: expecing .sdm or .ddm, got " + std::string(fname_train));
     }
-    SparseDoubleMatrix* Y     = NULL;
-    SparseDoubleMatrix* Ytest = NULL;
+
 
     Macau macau;
-    SparseMF& model = sparseModel(num_latent);
     setSamples(burnin, nsamples);
-
-    // -- noise model + general parameters
     setPrecision(precision);
-
     setVerbose(true);
-    Y = read_sdm(fname_train);
-    model.setRelationData(*Y);
-
-    //-- Normal column prior
-    //addPrior<SparseNormalPrior>();
-    addPrior<SparseSpikeAndSlabPrior>();
-
-    //-- row prior with side information
-    auto &prior_u = addPrior<MacauOnePrior<SparseFeat>>();
-    prior_u.addSideInfo(row_features, false);
-    prior_u.setLambdaBeta(lambda_beta);
-    //prior_u.setTol(tol);
 
     // test data
-    if (fname_test != NULL) {
-        Ytest = read_sdm(fname_test);
-        model.setRelationDataTest(*Ytest);
+    if (fname_test.size()) {
+        auto Ytest = read_sdm(fname_test.c_str());
+        model->setRelationDataTest(*Ytest);
+        delete Ytest;
     }
-
+/*
     if (print) {
-        printf("Training data:  %ld [%d x %d]\n", Y->nnz, Y->nrow, Y->ncol);
+        printf("Row features:   [%d x %d].\n", row_features->rows(), row_features->cols());
+        printf("Training data:  %d [%d x %d]\n", model->Ynnz(), model->Yrows(), model->Ycols());
         if (Ytest != NULL) {
             printf("Test data:      %ld [%d x %d]\n", Ytest->nnz, Ytest->nrow, Ytest->ncol);
         } else {
             printf("Test data:      --\n");
         }
     }
-
-    delete Y;
-    if (Ytest) delete Ytest;
+    */
 }
 
 

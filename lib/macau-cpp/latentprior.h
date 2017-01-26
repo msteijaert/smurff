@@ -21,12 +21,12 @@ class ILatentPrior {
   public:
       // c-tor
       ILatentPrior(Factors &m, int p, INoiseModel &n)
-          : base_model(m), pos(p), U(m.U(pos)), V(m.U((pos+1)%2)),
+          : model(m), pos(p), U(m.U(pos)), V(m.V(pos)),
             noise(n) {} 
       virtual ~ILatentPrior() {}
 
       // utility
-      int num_latent() const { return base_model.num_latent; }
+      int num_latent() const { return model.num_latent; }
       //Eigen::MatrixXd::ConstColXpr col(int i) const { return U.col(i); }
       virtual void savePriorInfo(std::string prefix) = 0;
 
@@ -36,71 +36,28 @@ class ILatentPrior {
       virtual double getLinkNorm() { return NAN; };
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
-      virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) = 0;
 
       virtual void sample_latents() {
+          model.update_pnm(pos);
 #pragma omp parallel for schedule(dynamic, 2)
           for(int n = 0; n < U.cols(); n++) sample_latent(n); 
       }
 
       virtual void sample_latent(int n) = 0;
+      virtual Factors::PnM pnm(int n) { return model.get_pnm(pos, n); }
 
   private:
-      Factors &base_model;
 
   protected:
+      Factors &model;
       int pos;
       Eigen::MatrixXd &U, &V;
       INoiseModel &noise;
 };
 
-class DenseLatentPrior : public virtual ILatentPrior
-{
-  public:
-     typedef DenseMF BaseModel;
-
-     // c-tor
-     DenseLatentPrior(DenseMF &m, int p, INoiseModel &n)
-         : ILatentPrior(m, p, n), model(m)
-     {
-         assert(m.num_fac() == 2);
-         if (p==0) Yc = (m.Y.array() - m.mean_rating);
-         else Yc = (m.Y.transpose().array() - m.mean_rating);
-         U = nrandn(U.rows(), U.cols());
-         SHOW(m.mean_rating);
-     }
-     virtual ~DenseLatentPrior() {}
-
-     Eigen::MatrixXd Yc; // local centered copy for faster sampling
-     DenseMF &model;
-};
-
-class SparseLatentPrior : public virtual ILatentPrior
-{
-  public:
-     typedef SparseMF BaseModel;
-
-     // c-tor
-     SparseLatentPrior(SparseMF &m, int p, INoiseModel &n)
-         : ILatentPrior(m, p, n), model(m)
-     {
-         assert(m.num_fac() == 2);
-         if (p==0) Yc = m.Y;
-         else Yc = m.Y.transpose();
-         Yc.coeffs() -= m.mean_rating;
-         U = nrandn(U.rows(), U.cols());
-     }
-     virtual ~SparseLatentPrior() {}
-
-     SparseMatrixD Yc; // local centered copy for faster sampling
-
-  protected:
-     SparseMF &model;
-};
-
 /** Prior without side information (pure BPMF) */
 
-class NormalPrior : public virtual ILatentPrior {
+class NormalPrior : public ILatentPrior {
   public:
     NormalPrior(Factors &m, int p, INoiseModel &n);
     virtual ~NormalPrior() {}
@@ -119,44 +76,25 @@ class NormalPrior : public virtual ILatentPrior {
     void pre_update() override;
     void post_update() override {}
     void sample_latent(int n) override;
-
-
     void savePriorInfo(std::string prefix) override;
 };
 
-class SparseNormalPrior : public SparseLatentPrior, public NormalPrior {
+class ProbitNormalPrior : public NormalPrior {
   public:
-    SparseNormalPrior(SparseMF &m, int p, INoiseModel &n);
-    virtual ~SparseNormalPrior() {}
-
-    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
-
-  private:
-    void gaussian_precision_and_mean(int n, Eigen::VectorXd &rr, Eigen::MatrixXd &MM); 
-    void probit_precision_and_mean(int n, Eigen::VectorXd &rr, Eigen::MatrixXd &MM);
-};
-
-class DenseNormalPrior : public DenseLatentPrior, public NormalPrior {
-  public:
-    DenseNormalPrior(DenseMF &m, int p, INoiseModel &n);
-    virtual ~DenseNormalPrior() {}
-
-    virtual void sample_latents() override;
-    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
-
-  private:
-     Eigen::MatrixXd VtV;
-
+    ProbitNormalPrior(Factors &m, int p, INoiseModel &n)
+        : NormalPrior(m, p, n) {}
+    virtual ~ProbitNormalPrior() {}
+    virtual Factors::PnM pnm(int n) { return model.get_probit_pnm(pos, n); }
 };
 
 template<class Prior>
-class MasterNormalPrior : public Prior {
+class MasterPrior : public Prior {
   public:
-    MasterNormalPrior(typename Prior::BaseModel &m, int p, INoiseModel &n);
-    virtual ~MasterNormalPrior() {}
+    MasterPrior(Factors &m, int p, INoiseModel &n);
+    virtual ~MasterPrior() {}
 
     virtual void sample_latents() override;
-    virtual std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
+    Factors::PnM pnm(int) override;
     void addSideInfo(Macau &);
 
   private:
@@ -164,19 +102,21 @@ class MasterNormalPrior : public Prior {
     bool is_init = false;
 };
 
-template<class Prior>
-class SlavePrior : public Prior {
+class SlavePrior : public ILatentPrior {
   public:
-    SlavePrior(typename Prior::BaseModel &m, int p, INoiseModel &n)
-        : ILatentPrior(m, p, n), Prior(m, p, n) {}
+    SlavePrior(Factors &m, int p, INoiseModel &n)
+        : ILatentPrior(m, p, n) {}
     virtual ~SlavePrior() {}
     virtual void sample_latent(int d) override { }
+    void pre_update() override {}
+    void post_update() override {}
+    void savePriorInfo(std::string prefix) override {}
 };
 
 
 /** Prior with side information */
 template<class FType>
-class MacauPrior : public SparseNormalPrior {
+class MacauPrior : public NormalPrior {
   public:
     Eigen::MatrixXd Uhat;
     std::unique_ptr<FType> F;  /* side information */
@@ -190,7 +130,7 @@ class MacauPrior : public SparseNormalPrior {
     double tol = 1e-6;
 
   public:
-    MacauPrior(SparseMF &, int, INoiseModel &);
+    MacauPrior(Factors &, int, INoiseModel &);
     virtual ~MacauPrior() {}
             
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
@@ -240,7 +180,7 @@ typedef Eigen::MatrixXd MatrixNNd;
 typedef Eigen::ArrayXd ArrayNd;
 
 /** Spike and slab prior */
-class SpikeAndSlabPrior : public virtual ILatentPrior {
+class SpikeAndSlabPrior : public ILatentPrior {
    public:
     VectorNd Zcol, W2col, Zkeep;
     ArrayNd alpha;
@@ -255,33 +195,13 @@ class SpikeAndSlabPrior : public virtual ILatentPrior {
     SpikeAndSlabPrior(Factors &, int, INoiseModel &);
     virtual ~SpikeAndSlabPrior() {}
 
+    void pre_update() override {}
     void post_update() override;
     void savePriorInfo(std::string prefix) override;
     void sample_latent(int n) override;
    
   protected:
     bool is_init = false;
-
-};
-
-class SparseSpikeAndSlabPrior : public SpikeAndSlabPrior, public SparseLatentPrior {
-  public:
-    SparseSpikeAndSlabPrior(SparseMF& m, int p, INoiseModel &n);
-    virtual ~SparseSpikeAndSlabPrior() {}
-    void pre_update() override {}
-    std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override; 
-};
-
-class DenseSpikeAndSlabPrior : public SpikeAndSlabPrior, public DenseLatentPrior {
-  public:
-    DenseSpikeAndSlabPrior(DenseMF& m, int p, INoiseModel &n);
-    virtual ~DenseSpikeAndSlabPrior() {}
-    void pre_update() override;
-
-    std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override; 
-
-  private:
-     Eigen::MatrixXd XX;
 
 };
 

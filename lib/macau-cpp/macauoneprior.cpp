@@ -14,8 +14,8 @@ using namespace Eigen;
 
 
 template<class FType>
-MacauOnePrior<FType>::MacauOnePrior(SparseMF &m, int p, INoiseModel &n)
-    : ILatentPrior(m, p, n), SparseLatentPrior(m, p, n)
+MacauOnePrior<FType>::MacauOnePrior(Factors &m, int p, INoiseModel &n)
+    : ILatentPrior(m, p, n), Yc(dynamic_cast<SparseMF &>(m).Yc.at(p))
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);
@@ -91,7 +91,7 @@ void MacauOnePrior<FType>::sample_latent(int i)
 }
 
 template<class FType>
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> MacauOnePrior<FType>::precision_and_mean(int)
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> MacauOnePrior<FType>::pnm(int)
 {
     assert(false);
     const int K = num_latent();

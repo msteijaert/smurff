@@ -6,7 +6,7 @@
 #include "latentprior.h"
 
 template<class FType>
-class MacauOnePrior : public SparseLatentPrior {
+class MacauOnePrior : public ILatentPrior {
   public:
     Eigen::MatrixXd Uhat;
 
@@ -25,8 +25,10 @@ class MacauOnePrior : public SparseLatentPrior {
 
     int l0;
 
+    Eigen::SparseMatrix<double> &Yc;
+
   public:
-    MacauOnePrior(SparseMF &, int, INoiseModel &); 
+    MacauOnePrior(Factors &, int, INoiseModel &); 
     
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     
@@ -41,6 +43,6 @@ class MacauOnePrior : public SparseLatentPrior {
     void setLambdaBeta(double lb) { lambda_beta = Eigen::VectorXd::Constant(this->num_latent(), lb); };
     void savePriorInfo(std::string prefix) override;
 
-    std::pair<Eigen::VectorXd, Eigen::MatrixXd> precision_and_mean(int) override;
+    std::pair<Eigen::VectorXd, Eigen::MatrixXd> pnm(int) override;
 };
 

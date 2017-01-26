@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
 
     //-- Normal priors
     //slave_macau.addPrior<DenseSpikeAndSlabPrior>(model);
-    slave_macau.addPrior<DenseNormalPrior>();
-    slave_macau.addPrior<SlavePrior<DenseNormalPrior>>();
+    slave_macau.addPrior<NormalPrior>();
+    slave_macau.addPrior<SlavePrior>();
 
     Macau master_macau;
     DenseMF &master_model = master_macau.denseModel(num_latent);
@@ -66,8 +66,8 @@ int main(int argc, char** argv) {
 
     //-- Normal priors
     //master_macau.addPrior<DenseSpikeAndSlabPrior>(model);
-    master_macau.addPrior<DenseNormalPrior>();
-    auto &master_prior = master_macau.addPrior<MasterNormalPrior<DenseNormalPrior>>();
+    master_macau.addPrior<NormalPrior>();
+    auto &master_prior = master_macau.addPrior<MasterPrior<NormalPrior>>();
     master_prior.addSideInfo(slave_macau);
 
     master_macau.run();
