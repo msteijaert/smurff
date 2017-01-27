@@ -20,7 +20,6 @@
 
 #include <signal.h>
 
-#include "dsparse.h"
 #include "utils.h"
 #include "model.h"
 #include "mvnormal.h"
@@ -188,12 +187,16 @@ double Factors::auc()
 }
 
 template<typename YType>
-void MF<YType>::init()
+void MF<YType>::init_base()
 {
     assert(Yrows() > 0 && Ycols() > 0);
     mean_rating = Y.sum() / Y.nonZeros();
-    U(0).resize(num_latent, Y.cols()); U(0).setZero();
-    U(1).resize(num_latent, Y.rows()); U(1).setZero();
+
+    U(0) = nrandn(num_latent, Y.cols());
+    U(1) = nrandn(num_latent, Y.rows());
+
+    Yc.push_back(Y);
+    Yc.push_back(Y.transpose());
 }
 
 template<typename YType>
@@ -209,6 +212,13 @@ template struct MF<MatrixXd>;
 //
 //-- SparseMF specific stuff
 //
+
+void SparseMF::init()
+{
+    init_base();
+    Yc.at(0).coeffs() -= mean_rating;
+    Yc.at(1).coeffs() -= mean_rating;
+}
 
 void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     Y.resize(nrows, ncols);
@@ -288,6 +298,14 @@ Factors::PnM SparseMF::get_probit_pnm(int f, int n)
 //-- DenseMF specific stuff
 //
 
+void DenseMF::init()
+{
+    init_base();
+    Yc.at(0).array() -= mean_rating;
+    Yc.at(1).array() -= mean_rating;
+}
+
+
 // for the adaptive gaussian noise
 double DenseMF::var_total() const {
     double se = (Y.array() - mean_rating).square().sum();
@@ -325,10 +343,15 @@ Factors::PnM DenseMF::get_pnm(int f, int d) {
 
 void DenseMF::update_pnm(int f) {
     auto &Vf = V(f);
+    auto &VVf = VV.at(f);
+    VVf = MatrixXd::Zero(num_latent, num_latent);
+    SHOW(VVf);
+
 #pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:XX)
     for(int n = 0; n < Vf.cols(); n++) {
         auto v = Vf.col(n);
-        VV.at(f) += v * v.transpose();
+        VVf += v * v.transpose();
+        SHOW(VVf);
     }
 
 

@@ -67,8 +67,9 @@ int main(int argc, char** argv) {
     //-- Normal priors
     //master_macau.addPrior<DenseSpikeAndSlabPrior>(model);
     master_macau.addPrior<NormalPrior>();
-    auto &master_prior = master_macau.addPrior<MasterPrior<NormalPrior>>();
-    master_prior.addSideInfo(slave_macau);
+    master_macau.addPrior<NormalPrior>();
+    //auto &master_prior = master_macau.addPrior<MasterPrior<NormalPrior>>();
+    //master_prior.addSideInfo(slave_macau);
 
     master_macau.run();
 }

@@ -74,9 +74,13 @@ struct Factors {
 template<typename YType>
 struct MF : public Factors {
     //-- c'tor
-    MF(int num_latent, int num_fac = 2) : Factors(num_latent, num_fac) {}
+    MF(int num_latent, int num_fac = 2)
+        : Factors(num_latent, num_fac)
+    {
+    }
 
-    void init();
+    void init_base();
+    virtual void init() = 0;
 
     int Yrows()   const override { return Y.rows(); }
     int Ycols()   const override { return Y.cols(); }
@@ -93,6 +97,7 @@ struct SparseMF : public MF<SparseMatrixD> {
     SparseMF(int num_latent, int num_fac = 2)
         : MF<SparseMatrixD>(num_latent, num_fac) {}
 
+    void init() override;
     void setRelationData(SparseDoubleMatrix &Y);
     void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
 
@@ -107,13 +112,18 @@ struct SparseMF : public MF<SparseMatrixD> {
 struct DenseMF : public MF<Eigen::MatrixXd> {
     //-- c'tor
     DenseMF(int num_latent, int num_fac = 2)
-        : MF<Eigen::MatrixXd>(num_latent, num_fac) {}
+        : MF<Eigen::MatrixXd>(num_latent, num_fac) 
+    {
+        assert(num_fac == 2);
+        VV.resize(num_fac);
+    }
+    void init() override;
 
     double var_total() const override;
     double sumsq() const override;
 
     PnM  get_pnm(int,int) override;
-    PnM  get_probit_pnm(int f,int n) override { assert(false); return get_pnm(f,n); }
+    PnM  get_probit_pnm(int f,int n) override { assert(false && " Probit noise only on dense for the moment" ); return get_pnm(f,n); }
     void update_pnm(int) override;
 
   private:

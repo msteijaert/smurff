@@ -47,23 +47,30 @@ void NormalPrior::pre_update() {
 
 void NormalPrior::sample_latent(int n)
 {
-    MatrixXd MM;
-    VectorXd rr;
-    std::tie(rr, MM) = pnm(n);
+    const auto &mu_u = getMu(n);
+    const auto &Lambda_u = getLambda(n);
+    SHOW(Lambda_u);
+    const auto &p = pnm(n);
+    const double alpha = noise.getAlpha();
 
-    double alpha = noise.getAlpha();
-    rr *= alpha;
-    MM *= alpha;
+    VectorXd rr = p.first * alpha + Lambda_u * mu_u;
+    MatrixXd MM = p.second * alpha + Lambda_u;
 
     Eigen::LLT<MatrixXd> chol = MM.llt();
     if(chol.info() != Eigen::Success) {
+        SHOW(V);
+        SHOW(p.second);
+        SHOW(MM);
         throw std::runtime_error("Cholesky Decomposition failed!");
     }
 
     chol.matrixL().solveInPlace(rr);
     rr.noalias() += nrandn(num_latent());
     chol.matrixU().solveInPlace(rr);
+    SHOW(n);
+    SHOW(U.col(n).transpose());
     U.col(n).noalias() = rr;
+    SHOW(U.col(n).transpose());
 }
 
 void NormalPrior::savePriorInfo(std::string prefix) {

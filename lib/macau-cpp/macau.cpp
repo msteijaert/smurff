@@ -28,10 +28,6 @@
 using namespace std; 
 using namespace Eigen;
 
-extern "C" {
-  #include <dsparse.h>
-}
-
 //-- add model
 SparseMF &Macau::sparseModel(int num_latent) {
   SparseMF *n = new SparseMF(num_latent);
@@ -124,11 +120,8 @@ void PythonMacau::intHandler(int) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
-
-
-
 template<class SideInfo>
-void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
+inline void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
 {
     if(prior_name == "macau"){
         auto &prior = m.addPrior<MacauPrior<SideInfo>>();
@@ -144,13 +137,12 @@ void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo> &featu
     }
 }
 
-
 void add_prior(Macau &macau, std::string prior_name, std::string fname_features, double lambda_beta, double tol)
 {
     //-- row prior with side information
     if (fname_features.size()) {
         if (fname_features.find(".sdm") != std::string::npos) {
-            auto row_features = std::unique_ptr<SparseDoubleMatrix>(read_sdm(fname_features.c_str()));
+            auto row_features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname_features.c_str()));
             addMacauPrior(macau, prior_name, row_features, lambda_beta, tol);
         } else if (fname_features.find(".sbm") != std::string::npos) {
             auto features = load_bcsr(fname_features.c_str());
