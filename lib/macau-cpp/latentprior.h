@@ -11,6 +11,7 @@
 #include "macau.h"
 
 class INoiseModel;
+class MacauBase;
 class Macau;
 
  // forward declarationsc
@@ -31,8 +32,6 @@ class ILatentPrior {
       virtual void savePriorInfo(std::string prefix) = 0;
 
       // work
-      virtual void pre_update() = 0;
-      virtual void post_update() = 0;
       virtual double getLinkNorm() { return NAN; };
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
@@ -53,6 +52,7 @@ class ILatentPrior {
       int pos;
       Eigen::MatrixXd &U, &V;
       INoiseModel &noise;
+      std::vector<ILatentPrior *> siblings;
 };
 
 /** Prior without side information (pure BPMF) */
@@ -73,8 +73,7 @@ class NormalPrior : public ILatentPrior {
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
 
-    void pre_update() override;
-    void post_update() override {}
+    void sample_latents() override;
     void sample_latent(int n) override;
     void savePriorInfo(std::string prefix) override;
 };
@@ -95,10 +94,10 @@ class MasterPrior : public Prior {
 
     virtual void sample_latents() override;
     Factors::PnM pnm(int) override;
-    void addSideInfo(Macau &);
+    void addSideInfo(MacauBase &, Factors &);
 
   private:
-    std::vector<Macau *> slaves;
+    std::vector<MacauBase *> slaves;
     bool is_init = false;
 };
 
@@ -107,10 +106,12 @@ class SlavePrior : public ILatentPrior {
     SlavePrior(Factors &m, int p, INoiseModel &n)
         : ILatentPrior(m, p, n) {}
     virtual ~SlavePrior() {}
-    virtual void sample_latent(int d) override { }
-    void pre_update() override {}
-    void post_update() override {}
+    void sample_latents() override {};
+    void sample_latent(int) override {};
     void savePriorInfo(std::string prefix) override {}
+
+  private:
+    std::vector<ILatentPrior *> siblings;
 };
 
 
@@ -132,11 +133,10 @@ class MacauPrior : public NormalPrior {
   public:
     MacauPrior(Factors &, int, INoiseModel &);
     virtual ~MacauPrior() {}
+    void sample_latents() override;
             
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
-    void pre_update() override;
-    void post_update() override;
     double getLinkNorm() override;
     double getLinkLambda() override { return lambda_beta; };
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
@@ -195,9 +195,8 @@ class SpikeAndSlabPrior : public ILatentPrior {
     SpikeAndSlabPrior(Factors &, int, INoiseModel &);
     virtual ~SpikeAndSlabPrior() {}
 
-    void pre_update() override {}
-    void post_update() override;
     void savePriorInfo(std::string prefix) override;
+    void sample_latents() override;
     void sample_latent(int n) override;
    
   protected:

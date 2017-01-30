@@ -4,8 +4,8 @@
 SpikeAndSlabPrior::SpikeAndSlabPrior(Factors &m, int p, INoiseModel &n)
     : ILatentPrior(m, p, n)
 {
-    const int K = this->num_latent();
-    const int D = this->U.cols();
+    const int K = num_latent();
+    const int D = U.cols();
     assert(D > 0);
     
     //-- prior params
@@ -18,8 +18,8 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(Factors &m, int p, INoiseModel &n)
 
 void SpikeAndSlabPrior::sample_latent(int d)
 {
-    const int K = this->num_latent();
-    auto &W = this->U; // aliases
+    const int K = num_latent();
+    auto &W = U; // aliases
     VectorNd Wcol = W.col(d); // local copy
     
     std::default_random_engine generator;
@@ -30,7 +30,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
     MatrixNNd XX;
     VectorNd yX;
     std::tie(yX, XX) = pnm(d);
-    double t = this->noise.getAlpha();
+    double t = noise.getAlpha();
 
     for(unsigned k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);
@@ -50,7 +50,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
         }
     }
     SHOW(Wcol.transpose());
-    auto &X = this->V; // aliases
+    auto &X = V; // aliases
     SHOW(Wcol.transpose() * X);
 
     W.col(d) = Wcol;
@@ -59,9 +59,19 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
 void SpikeAndSlabPrior::savePriorInfo(std::string prefix) { }
 
-void SpikeAndSlabPrior::post_update() {
-    const int D = this->U.cols();
+void SpikeAndSlabPrior::sample_latents() {
+    ILatentPrior::sample_latents();
+
+    const int D = U.cols();
+ 
+    // one: accumulate across siblings
+    for(auto s : siblings) {
+        auto p = dynamic_cast<SpikeAndSlabPrior *>(s);
+        Zcol += p->Zcol;
+        W2col += p->W2col;
+    }
     
+    // two: update hyper params
     r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;
 
     //-- updata alpha K samples from Gamma
@@ -71,10 +81,19 @@ void SpikeAndSlabPrior::post_update() {
             std::default_random_engine generator;
             std::gamma_distribution<double> distribution(a, 1/b);
             return distribution(generator) + 1e-7;
-            });
+    });
 
     Zkeep = Zcol.array();
     Zcol.setZero();
     W2col.setZero();
+     
+    // three: update siblings
+    for(auto s : siblings) {
+        auto p = dynamic_cast<SpikeAndSlabPrior *>(s);
+        p->Zcol.setZero();
+        p->W2col.setZero();
+        p->Zkeep = Zkeep;
+        p->alpha = alpha;
+        p->r = r;
+    }
 }
-

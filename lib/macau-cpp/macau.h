@@ -14,13 +14,30 @@ int get_num_omp_threads();
 
 class ILatentPrior;
 
-// try adding num_latent as template parameter to Macau
-class Macau  {
-  public:
+class MacauBase  {
+   public:
       std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
       std::unique_ptr<Factors>                    model;
 
+      //-- add model
+      SparseMF &sparseModel(int num_latent);
+      DenseMF  &denseModel(int num_latent);
+
+      //-- add priors
+      template<class Prior>
+      inline Prior& addPrior();
+
+      // set noise models
+      FixedGaussianNoise &setPrecision(double p);
+      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
+
+      void init();
+};
+
+// try adding num_latent as template parameter to Macau
+class Macau : public MacauBase {
+  public:
       bool        verbose     = true;
       int         nsamples    = 100;
       int         burnin      = 50;
@@ -37,19 +54,6 @@ class Macau  {
       void setVerbose(bool v) { verbose = v; };
       void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
-
-      //-- add model
-      SparseMF &sparseModel(int num_latent);
-      DenseMF  &denseModel(int num_latent);
-
-      //-- add priors
-      template<class Prior>
-      inline Prior& addPrior();
-
-      // set noise models
-      FixedGaussianNoise &setPrecision(double p);
-      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
-
       void setFromArgs(int argc, char** argv, bool print);
 
       // execution of the sampler
@@ -84,7 +88,7 @@ class PythonMacau : public Macau {
 };
 
 template<class Prior>
-Prior& Macau::addPrior()
+Prior& MacauBase::addPrior()
 {
     auto pos = priors.size();
     Prior *p = new Prior(*model, pos, *noise);

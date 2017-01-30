@@ -101,11 +101,9 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXd> MacauOnePrior<FType>::pnm(int)
 };
 
 template<class FType>
-void MacauOnePrior<FType>::pre_update() {
-}
+void MacauOnePrior<FType>::sample_latents() {
+    ILatentPrior::sample_latents();
 
-template<class FType>
-void MacauOnePrior<FType>::post_update() {
     sample_mu_lambda(U);
     sample_beta(U);
     compute_uhat(Uhat, *F, beta);

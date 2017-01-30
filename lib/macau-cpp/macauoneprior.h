@@ -33,8 +33,7 @@ class MacauOnePrior : public ILatentPrior {
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     
     void sample_latent(int) override;
-    void pre_update() override;
-    void post_update() override;
+    void sample_latents() override;
     double getLinkNorm() override { return beta.norm(); };
     double getLinkLambda() override { return lambda_beta.mean(); };
     void sample_beta(const Eigen::MatrixXd &U);

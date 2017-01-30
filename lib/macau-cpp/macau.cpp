@@ -1,4 +1,3 @@
-#include <Eigen/Dense>
 #include <Eigen/Sparse>
 
 #include <iostream>
@@ -29,25 +28,25 @@ using namespace std;
 using namespace Eigen;
 
 //-- add model
-SparseMF &Macau::sparseModel(int num_latent) {
+SparseMF &MacauBase::sparseModel(int num_latent) {
   SparseMF *n = new SparseMF(num_latent);
   model.reset(n);
   return *n;
 }
 
-DenseMF  &Macau::denseModel(int num_latent) {
+DenseMF  &MacauBase::denseModel(int num_latent) {
   DenseMF *n = new DenseMF(num_latent);
   model.reset(n);
   return *n;
 }
 
-FixedGaussianNoise &Macau::setPrecision(double p) {
+FixedGaussianNoise &MacauBase::setPrecision(double p) {
   FixedGaussianNoise *n = new FixedGaussianNoise(*model, p);
   noise.reset(n);
   return *n;
 }
 
-AdaptiveGaussianNoise &Macau::setAdaptivePrecision(double sn_init, double sn_max) {
+AdaptiveGaussianNoise &MacauBase::setAdaptivePrecision(double sn_init, double sn_max) {
   AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*model, sn_init, sn_max);
   noise.reset(n);
   return *n;
@@ -58,13 +57,18 @@ void Macau::setSamples(int b, int n) {
   nsamples = n;
 }
 
-void Macau::init() {
-  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+void MacauBase::init() {
   if (priors.size() != 2) {
     throw std::runtime_error("Only 2 priors are supported.");
   }
-  init_bmrng(seed1);
+
   noise->init();
+}
+
+void Macau::init() {
+  MacauBase::init();
+  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+  init_bmrng(seed1);
   if (verbose) {
       std::cout << noise->getInitStatus() << endl;
       std::cout << "Sampling" << endl;
@@ -89,9 +93,7 @@ void Macau::step() {
     auto starti = tick();
 
     // Sample hyperparams + latents
-    for(auto &p : priors) p->pre_update();
     for(auto &p : priors) p->sample_latents();
-    for(auto &p : priors) p->post_update();
 
     noise->update();
 
@@ -120,6 +122,9 @@ void PythonMacau::intHandler(int) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
+// 
+//-- cmdline handling stuff
+//
 template<class SideInfo>
 inline void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
 {

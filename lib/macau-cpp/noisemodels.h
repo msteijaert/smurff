@@ -29,8 +29,6 @@ class INoiseModel {
 class FixedGaussianNoise : public INoiseModel {
   public:
     double alpha;
-    double rmse_test;
-    double rmse_test_onesample;
   
     FixedGaussianNoise(Factors &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
@@ -48,11 +46,11 @@ class FixedGaussianNoise : public INoiseModel {
 /** Gaussian noise that adapts to the model */
 class AdaptiveGaussianNoise : public INoiseModel {
   public:
+    double var_total;
     double alpha = NAN;
     double alpha_max = NAN;
     double sn_max;
     double sn_init;
-    double var_total = NAN;
 
     AdaptiveGaussianNoise(Factors &p, double sinit = 1., double smax = 10.)
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
@@ -60,7 +58,6 @@ class AdaptiveGaussianNoise : public INoiseModel {
     void init() override;
     void update() override;
     double getAlpha() override { return alpha; }
-
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }
     std::string getInitStatus() override { return "Noise precision: adaptive (with max precision of " + std::to_string(alpha_max) + ")"; }

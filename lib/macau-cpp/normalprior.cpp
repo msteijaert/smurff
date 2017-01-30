@@ -41,8 +41,12 @@ NormalPrior::NormalPrior(Factors &m, int p, INoiseModel &n)
     df = K;
 }
 
-void NormalPrior::pre_update() {
-  tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
+void NormalPrior::sample_latents() {
+
+    // FIXME: include siblings!!!!
+    tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
+
+    ILatentPrior::sample_latents();
 }
 
 void NormalPrior::sample_latent(int n)
@@ -78,21 +82,14 @@ void NormalPrior::savePriorInfo(std::string prefix) {
 }
 
 
-/**
- *  SparseNormalPrior 
+/*
+ * Master Prior
  */
-
-
-
-/**
- *  DenseNormalPrior 
- */
-
 
 template<class Prior>
 MasterPrior<Prior>::MasterPrior(Factors &m, int p, INoiseModel &n) 
     : Prior(m, p, n), is_init(false) {}
-
+ 
 
 template<typename P1, typename P2>
 std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
@@ -125,37 +122,17 @@ void MasterPrior<Prior>::sample_latents() {
         is_init = true;
     }
 
-    for(auto &s : slaves) s->step();
+    //for(auto &s : slaves) s->step();
+
     Prior::sample_latents();
 }
 
-template<class Prior>
-void MasterPrior<Prior>::addSideInfo(Macau &m)
-{
-    slaves.push_back(&m); 
-}
+//template<class Prior>
+//void MasterPrior<Prior>::addSideInfo(Factors &info, Macau &macau)
+//{
+//    slaves.push_back(Macau(macau, info)); 
+//}
 
 template class MasterPrior<NormalPrior>;
 template class MasterPrior<SpikeAndSlabPrior>;
-
-// home made reduction!!
-// int count=0;
-// int tcount=0;
-// #pragma omp threadprivate(tcount)
-//  
-// omp_set_dynamic(0);
-//  
-// #pragma omp parallel
-// {
-// . . .
-//  if (event_happened) {
-//  tcount++;
-//  }
-//  . . .
-// }
-// #pragma omp parallel shared(count)
-// {
-// #pragma omp atomic
-//  count += tcount;
-// }
 

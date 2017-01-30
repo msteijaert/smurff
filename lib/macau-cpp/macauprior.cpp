@@ -53,11 +53,9 @@ void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 }
 
 template<class FType>
-void MacauPrior<FType>::pre_update() {
-}
+void MacauPrior<FType>::sample_latents() {
+  NormalPrior::sample_latents();
 
-template<class FType>
-void MacauPrior<FType>::post_update() {
   // residual (Uhat is later overwritten):
   Uhat.noalias() = U - Uhat;
   MatrixXd BBt = A_mul_At_combo(beta);
