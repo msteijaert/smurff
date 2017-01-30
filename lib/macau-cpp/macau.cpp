@@ -123,7 +123,7 @@ void PythonMacau::intHandler(int) {
 template<class SideInfo>
 inline void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
 {
-    if(prior_name == "macau"){
+    if(prior_name == "macau" || prior_name == "default"){
         auto &prior = m.addPrior<MacauPrior<SideInfo>>();
         prior.addSideInfo(features, false);
         prior.setLambdaBeta(lambda_beta);
@@ -133,7 +133,7 @@ inline void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo>
         prior.addSideInfo(features, false);
         prior.setLambdaBeta(lambda_beta);
     } else {
-        assert(false && "Unknown prior with side info");
+        throw std::runtime_error("Unknown prior with side info: " + prior_name);
     }
 }
 
@@ -148,14 +148,14 @@ void add_prior(Macau &macau, std::string prior_name, std::string fname_features,
             auto features = load_bcsr(fname_features.c_str());
             addMacauPrior(macau, prior_name, features, lambda_beta, tol);
         } else {
-            assert(false); //("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname_features));
+            throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname_features));
         }
-    } else if(prior_name == "normal"){
+    } else if(prior_name == "normal" || prior_name == "default") {
         macau.addPrior<NormalPrior>();
     } else if(prior_name == "spikeandslab") {
-       macau.addPrior<SpikeAndSlabPrior>();
+        macau.addPrior<SpikeAndSlabPrior>();
     } else {
-        assert(false); 
+        throw std::runtime_error("Unknown prior without side info: " + prior_name);
     }
 }
 
@@ -164,8 +164,8 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
     std::string fname_test;
     std::string fname_row_features;
     std::string fname_col_features;
-    std::string row_prior("normal");
-    std::string col_prior("normal");
+    std::string row_prior("default");
+    std::string col_prior("default");
     std::string output_prefix("result");
 
     double precision          = 5.0;
@@ -286,8 +286,6 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
         die("Train data file: expecing .sdm or .ddm, got " + std::string(fname_train));
     }
 
-
-    Macau macau;
     setSamples(burnin, nsamples);
     setPrecision(precision);
     setVerbose(true);
@@ -298,6 +296,11 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
         model->setRelationDataTest(*Ytest);
         delete Ytest;
     }
+
+
+    add_prior(*this, col_prior, fname_col_features, lambda_beta, tol);
+    add_prior(*this, row_prior, fname_row_features, lambda_beta, tol);
+
 /*
     if (print) {
         printf("Row features:   [%d x %d].\n", row_features->rows(), row_features->cols());
