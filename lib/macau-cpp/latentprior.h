@@ -96,9 +96,11 @@ class MasterPrior : public Prior {
     virtual void sample_latents() override;
     Factors::PnM pnm(int) override;
 
-    MacauBase& addSlave();
+    template<class Model>
+    Model& addSlave();
+
     SparseMF& addSparseSlave();
-    DenseMF&  addDenseSlave();
+    DenseMF& addDenseSlave();
 
   private:
     std::vector<MacauBase> slaves;

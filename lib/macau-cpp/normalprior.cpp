@@ -152,28 +152,31 @@ void MasterPrior<Prior>::sample_latents() {
 }
 
 template<class Prior>
-MacauBase& MasterPrior<Prior>::addSlave()
+template<class Model>
+Model& MasterPrior<Prior>::addSlave()
 {
     slaves.push_back(MacauBase());
     auto &slave_macau = slaves.back();
+    Model *n = new Model(this->num_latent());
+    slave_macau.model.reset(n);
     for(auto &p : this->macau.priors) {
         if (p->pos == this->pos) slave_macau.template addPrior<SlavePrior>();
         else p->addSibling(slave_macau);
     }
-    return slave_macau;
+    return *n;
 }
 
 template<class Prior>
 DenseMF& MasterPrior<Prior>::addDenseSlave()
 {
-    return addSlave().denseModel(this->num_latent());
+    return addSlave<DenseMF>();
 }
 
 template<class Prior>
 SparseMF& MasterPrior<Prior>::addSparseSlave()
 {
-    return addSlave().sparseModel(this->num_latent());
-}
+    return addSlave<SparseMF>();
+ }
 
 template class MasterPrior<NormalPrior>;
 template class MasterPrior<SpikeAndSlabPrior>;

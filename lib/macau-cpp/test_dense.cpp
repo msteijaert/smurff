@@ -30,33 +30,13 @@ int main(int argc, char** argv) {
     int iter_max = atoi(argv[3]);
 
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
-
-    Macau slave_macau;
-    DenseMF &slave_model = slave_macau.denseModel(num_latent);
-    slave_macau.setSamples(10, iter_max);
-
-    // fixed gaussian noise
-    slave_macau.setPrecision(1.0);
-    slave_macau.setVerbose(false);
-
-    // = random_Ydense(N,D,3);
-    auto Ytrain1 = ones_Ydense(N,2*D,2);
-    auto Ytest1  = extract(Ytrain1, .2);
-    slave_model.setRelationData(Ytrain1);
-    slave_model.setRelationDataTest(Ytest1);
-
-    //-- Normal priors
-    //slave_macau.addPrior<DenseSpikeAndSlabPrior>(model);
-    slave_macau.addPrior<NormalPrior>();
-    slave_macau.addPrior<SlavePrior>();
-
-    Macau master_macau;
-    DenseMF &master_model = master_macau.denseModel(num_latent);
-    master_macau.setSamples(10, iter_max);
+    Macau macau;
+    DenseMF &master_model = macau.denseModel(num_latent);
+    macau.setSamples(10, iter_max);
 
     // fixed gaussian noise
-    master_macau.setPrecision(1.0);
-    master_macau.setVerbose(true);
+    macau.setPrecision(1.0);
+    macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);
     auto Ytrain2 = ones_Ydense(N,D,2);
@@ -65,11 +45,13 @@ int main(int argc, char** argv) {
     master_model.setRelationDataTest(Ytest2);
 
     //-- Normal priors
-    //master_macau.addPrior<DenseSpikeAndSlabPrior>(model);
-    master_macau.addPrior<NormalPrior>();
-    master_macau.addPrior<NormalPrior>();
-    //auto &master_prior = master_macau.addPrior<MasterPrior<NormalPrior>>();
-    //master_prior.addSideInfo(slave_macau);
+    //macau.addPrior<DenseSpikeAndSlabPrior>(model);
+    macau.addPrior<NormalPrior>();
+    //macau.addPrior<NormalPrior>();
+    auto &master_prior = macau.addPrior<MasterPrior<NormalPrior>>();
+    auto &slave_model = master_prior.addSlave<DenseMF>();
+    auto Ytrain1 = ones_Ydense(N,2*D,2);
+    slave_model.setRelationData(Ytrain1);
 
-    master_macau.run();
+    macau.run();
 }
