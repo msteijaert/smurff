@@ -35,7 +35,7 @@ void MacauPrior<FType>::addSibling(MacauBase &b)
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 {
-    assert((Fmat->rows() == U.rows()) && "Number of rows in train must be equal to number of rows in features");
+    assert((Fmat->rows() == U.cols()) && "Number of rows in train must be equal to number of rows in features");
 
     // side information
     F = std::move(Fmat);
