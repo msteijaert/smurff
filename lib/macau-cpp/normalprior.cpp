@@ -1,6 +1,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <math.h>
+
 #include <iomanip>
 
 #include "mvnormal.h"
@@ -17,12 +17,32 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
+ILatentPrior::ILatentPrior(MacauBase &m, int p)
+    : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)) {} 
+
+// utility
+Factors &ILatentPrior::model() const
+{
+    return *macau.model; 
+}
+
+int ILatentPrior::num_latent() const
+{ 
+    return model().num_latent; 
+}
+
+INoiseModel &ILatentPrior::noise() const
+{
+    return *macau.noise; 
+}
+
+
 /**
  *  base class NormalPrior 
  */
 
-NormalPrior::NormalPrior(Factors &m, int p, INoiseModel &n)
-    : ILatentPrior(m, p, n) 
+NormalPrior::NormalPrior(MacauBase &m, int p)
+    : ILatentPrior(m, p) 
 {
     const int K = num_latent();
     mu.resize(K);
@@ -49,13 +69,19 @@ void NormalPrior::sample_latents() {
     ILatentPrior::sample_latents();
 }
 
+void NormalPrior::addSibling(MacauBase &b)
+{
+    addSiblingTempl<NormalPrior>(b);
+}
+
+
 void NormalPrior::sample_latent(int n)
 {
     const auto &mu_u = getMu(n);
     const auto &Lambda_u = getLambda(n);
     SHOW(Lambda_u);
     const auto &p = pnm(n);
-    const double alpha = noise.getAlpha();
+    const double alpha = noise().getAlpha();
 
     VectorXd rr = p.first * alpha + Lambda_u * mu_u;
     MatrixXd MM = p.second * alpha + Lambda_u;
@@ -87,9 +113,8 @@ void NormalPrior::savePriorInfo(std::string prefix) {
  */
 
 template<class Prior>
-MasterPrior<Prior>::MasterPrior(Factors &m, int p, INoiseModel &n) 
-    : Prior(m, p, n), is_init(false) {}
- 
+MasterPrior<Prior>::MasterPrior(MacauBase &m, int p) 
+    : Prior(m, p), is_init(false) {}
 
 template<typename P1, typename P2>
 std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
@@ -107,7 +132,7 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXd> MasterPrior<Prior>::pnm(int n)
     // then the slaves
     assert(slaves.size() > 0 && "No slaves");
     for(auto &s : slaves) {
-        auto &slave_prior = s->priors.at(this->pos);
+        auto &slave_prior = s.priors.at(this->pos);
         p += slave_prior->pnm(n);
     }
 
@@ -118,7 +143,6 @@ template<class Prior>
 void MasterPrior<Prior>::sample_latents() {
     assert(slaves.size() > 0 && "No slaves");
     if (!is_init) {
-        for(auto &s : slaves) s->init();
         is_init = true;
     }
 
@@ -127,11 +151,29 @@ void MasterPrior<Prior>::sample_latents() {
     Prior::sample_latents();
 }
 
-//template<class Prior>
-//void MasterPrior<Prior>::addSideInfo(Factors &info, Macau &macau)
-//{
-//    slaves.push_back(Macau(macau, info)); 
-//}
+template<class Prior>
+MacauBase& MasterPrior<Prior>::addSlave()
+{
+    slaves.push_back(MacauBase());
+    auto &slave_macau = slaves.back();
+    for(auto &p : this->macau.priors) {
+        if (p->pos == this->pos) slave_macau.template addPrior<SlavePrior>();
+        else p->addSibling(slave_macau);
+    }
+    return slave_macau;
+}
+
+template<class Prior>
+DenseMF& MasterPrior<Prior>::addDenseSlave()
+{
+    return addSlave().denseModel(this->num_latent());
+}
+
+template<class Prior>
+SparseMF& MasterPrior<Prior>::addSparseSlave()
+{
+    return addSlave().sparseModel(this->num_latent());
+}
 
 template class MasterPrior<NormalPrior>;
 template class MasterPrior<SpikeAndSlabPrior>;

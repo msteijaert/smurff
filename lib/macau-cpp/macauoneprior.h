@@ -28,7 +28,8 @@ class MacauOnePrior : public ILatentPrior {
     Eigen::SparseMatrix<double> &Yc;
 
   public:
-    MacauOnePrior(Factors &, int, INoiseModel &); 
+    MacauOnePrior(MacauBase &, int); 
+    void addSibling(MacauBase &) override;
     
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     

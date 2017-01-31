@@ -6,16 +6,16 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "utils.h"
+#include "macau.h"
 #include "macauoneprior.h"
-#include "noisemodels.h"
 
 using namespace std; 
 using namespace Eigen;
 
 
 template<class FType>
-MacauOnePrior<FType>::MacauOnePrior(Factors &m, int p, INoiseModel &n)
-    : ILatentPrior(m, p, n), Yc(dynamic_cast<SparseMF &>(m).Yc.at(p))
+MacauOnePrior<FType>::MacauOnePrior(MacauBase &m, int p)
+    : ILatentPrior(m, p), Yc(dynamic_cast<SparseMF &>(*m.model).Yc.at(p))
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);
@@ -25,6 +25,14 @@ MacauOnePrior<FType>::MacauOnePrior(Factors &m, int p, INoiseModel &n)
   lambda_a0 = 1.0;
   lambda_b0 = 1.0;
 }
+
+
+template<class FType>
+void MacauOnePrior<FType>::addSibling(MacauBase &b) 
+{
+     addSiblingTempl<MacauOnePrior<FType>>(b);
+}
+
 
 template<class FType>
 void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool) {
@@ -54,7 +62,7 @@ void MacauOnePrior<FType>::sample_latent(int i)
     int idx = 0;
     VectorXd Qi = lambda;
     for (SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++) {
-      double alpha = noise.getAlpha();
+      double alpha = noise().getAlpha();
       Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
       Yhat(idx)     = U.col(i).dot( V.col(it.row()) );
     }
@@ -70,7 +78,7 @@ void MacauOnePrior<FType>::sample_latent(int i)
         for ( SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++) {
             const double vjd = V(d, it.row());
             // L_id += alpha * (Y_ij - k_ijd) * v_jd
-            double alpha = noise.getAlpha();
+            double alpha = noise().getAlpha();
             Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
             //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
         }

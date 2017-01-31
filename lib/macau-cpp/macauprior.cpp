@@ -23,8 +23,14 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 template<class FType>
-MacauPrior<FType>::MacauPrior(Factors &m, int p, INoiseModel &n)
-    : NormalPrior(m, p, n)  {}
+MacauPrior<FType>::MacauPrior(MacauBase &m, int p)
+    : NormalPrior(m, p)  {}
+
+template<class FType>
+void MacauPrior<FType>::addSibling(MacauBase &b) 
+{
+     addSiblingTempl<MacauPrior<FType>>(b);
+}
     
 template<class FType>
 void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)

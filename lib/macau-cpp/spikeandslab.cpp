@@ -1,8 +1,8 @@
 #include "noisemodels.h"
-#include "latentprior.h"
+#include "macau.h"
 
-SpikeAndSlabPrior::SpikeAndSlabPrior(Factors &m, int p, INoiseModel &n)
-    : ILatentPrior(m, p, n)
+SpikeAndSlabPrior::SpikeAndSlabPrior(MacauBase &m, int p)
+    : ILatentPrior(m, p)
 {
     const int K = num_latent();
     const int D = U.cols();
@@ -15,6 +15,13 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(Factors &m, int p, INoiseModel &n)
     W2col = VectorNd::Zero(K);
     r = VectorNd::Constant(K,.5);
 }
+
+
+void SpikeAndSlabPrior::addSibling(MacauBase &b) 
+{
+     addSiblingTempl<SpikeAndSlabPrior>(b);
+}
+
 
 void SpikeAndSlabPrior::sample_latent(int d)
 {
@@ -30,7 +37,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
     MatrixNNd XX;
     VectorNd yX;
     std::tie(yX, XX) = pnm(d);
-    double t = noise.getAlpha();
+    double t = noise().getAlpha();
 
     for(unsigned k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);

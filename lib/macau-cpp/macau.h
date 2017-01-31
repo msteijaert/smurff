@@ -12,8 +12,6 @@
 
 int get_num_omp_threads();
 
-class ILatentPrior;
-
 class MacauBase  {
    public:
       std::unique_ptr<INoiseModel>                noise;
@@ -91,9 +89,17 @@ template<class Prior>
 Prior& MacauBase::addPrior()
 {
     auto pos = priors.size();
-    Prior *p = new Prior(*model, pos, *noise);
+    Prior *p = new Prior(*this, pos);
     priors.push_back(std::unique_ptr<ILatentPrior>(p));
     return *p;
+}
+
+
+template<class Prior>
+void ILatentPrior::addSiblingTempl(MacauBase &b)
+{
+    auto &p = b.addPrior<Prior>();
+    siblings.push_back(&p);
 }
 
 void sparseFromIJV(Eigen::SparseMatrix<double> & X, int* rows, int* cols, double* values, int N);
