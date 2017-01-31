@@ -36,7 +36,7 @@ void test_sparse(int N, int D, int iter_max)
     macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);
-    auto Y2 = split(ones_Ysparse(N,D,2,.3),.2);
+    auto Y2 = split(ones_Ysparse(N,D,2,.8),.2);
     master_model.setRelationData(Y2.first);
     master_model.setRelationDataTest(Y2.second);
 

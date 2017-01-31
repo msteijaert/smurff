@@ -116,6 +116,14 @@ template<class Prior>
 MasterPrior<Prior>::MasterPrior(MacauBase &m, int p) 
     : Prior(m, p) {}
 
+template<class Prior>
+void MasterPrior<Prior>::init() 
+{
+    for(auto &s : slaves) s.init();
+}
+
+
+
 template<typename P1, typename P2>
 std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
     a.first += b.first;

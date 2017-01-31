@@ -93,6 +93,7 @@ class MasterPrior : public Prior {
     MasterPrior(MacauBase &m, int p);
     virtual ~MasterPrior() {}
     void addSibling(MacauBase &) override { assert(false); }
+    void init() override;
 
     virtual void sample_latents() override;
     Factors::PnM pnm(int) override;

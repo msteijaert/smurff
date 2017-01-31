@@ -202,7 +202,6 @@ void MF<YType>::init_base()
 template<typename YType>
 void MF<YType>::setRelationData(YType Y) {
     this->Y = Y;
-    init();
 }
 
 template struct MF<SparseMatrix<double>>;
@@ -223,7 +222,6 @@ void SparseMF::init()
 void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     Y.resize(nrows, ncols);
     sparseFromIJV(Y, rows, cols, values, N);
-    init();
 }
 
 void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
