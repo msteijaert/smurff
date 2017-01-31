@@ -142,12 +142,7 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXd> MasterPrior<Prior>::pnm(int n)
 template<class Prior>
 void MasterPrior<Prior>::sample_latents() {
     assert(slaves.size() > 0 && "No slaves");
-    if (!is_init) {
-        is_init = true;
-    }
-
-    //for(auto &s : slaves) s->step();
-
+    for(auto &s : this->slaves) s.step();
     Prior::sample_latents();
 }
 
@@ -157,6 +152,7 @@ Model& MasterPrior<Prior>::addSlave()
 {
     slaves.push_back(MacauBase());
     auto &slave_macau = slaves.back();
+    slave_macau.setPrecision(1.0); // FIXME
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);
     for(auto &p : this->macau.priors) {

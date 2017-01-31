@@ -52,17 +52,25 @@ AdaptiveGaussianNoise &MacauBase::setAdaptivePrecision(double sn_init, double sn
   return *n;
 }
 
-void Macau::setSamples(int b, int n) {
-  burnin = b;
-  nsamples = n;
-}
-
 void MacauBase::init() {
   if (priors.size() != 2) {
     throw std::runtime_error("Only 2 priors are supported.");
   }
 
   noise->init();
+}
+
+void MacauBase::step() {
+    for(auto &p : priors) p->sample_latents();
+    noise->update();
+}
+
+
+//--- 
+
+void Macau::setSamples(int b, int n) {
+  burnin = b;
+  nsamples = n;
 }
 
 void Macau::init() {
@@ -91,12 +99,7 @@ void Macau::step() {
         printf(" ====== Burn-in complete, averaging samples ====== \n");
     }
     auto starti = tick();
-
-    // Sample hyperparams + latents
-    for(auto &p : priors) p->sample_latents();
-
-    noise->update();
-
+    MacauBase::step();
     auto endi = tick();
 
     saveModel(iter - burnin + 1);

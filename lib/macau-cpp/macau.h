@@ -31,6 +31,7 @@ class MacauBase  {
       AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
 
       void init();
+      void step();
 };
 
 // try adding num_latent as template parameter to Macau

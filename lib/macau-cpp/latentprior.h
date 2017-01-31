@@ -113,7 +113,6 @@ class SlavePrior : public ILatentPrior {
     virtual ~SlavePrior() {}
     void addSibling(MacauBase &) override { assert(false); }
 
-    void sample_latents() override {};
     void sample_latent(int) override {};
     void savePriorInfo(std::string prefix) override {}
 };
