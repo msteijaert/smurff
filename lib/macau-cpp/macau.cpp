@@ -53,10 +53,9 @@ AdaptiveGaussianNoise &MacauBase::setAdaptivePrecision(double sn_init, double sn
 }
 
 void MacauBase::init() {
-  if (priors.size() != 2) {
-    throw std::runtime_error("Only 2 priors are supported.");
-  }
-
+  if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
+  for( auto &p : priors) p->init();
+  model->init();
   noise->init();
 }
 

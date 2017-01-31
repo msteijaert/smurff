@@ -23,6 +23,7 @@ class ILatentPrior {
       // c-tor
       ILatentPrior(MacauBase &m, int p);
       virtual ~ILatentPrior() {}
+      virtual void init() {};
 
       // utility
       Factors &model() const;
@@ -104,7 +105,6 @@ class MasterPrior : public Prior {
 
   private:
     std::vector<MacauBase> slaves;
-    bool is_init = false;
 };
 
 class SlavePrior : public ILatentPrior {
@@ -205,10 +205,6 @@ class SpikeAndSlabPrior : public ILatentPrior {
     void savePriorInfo(std::string prefix) override;
     void sample_latents() override;
     void sample_latent(int n) override;
-   
-  protected:
-    bool is_init = false;
-
 };
 
 #endif /* LATENTPRIOR_H */

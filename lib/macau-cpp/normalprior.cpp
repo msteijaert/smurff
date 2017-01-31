@@ -114,7 +114,7 @@ void NormalPrior::savePriorInfo(std::string prefix) {
 
 template<class Prior>
 MasterPrior<Prior>::MasterPrior(MacauBase &m, int p) 
-    : Prior(m, p), is_init(false) {}
+    : Prior(m, p) {}
 
 template<typename P1, typename P2>
 std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {

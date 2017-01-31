@@ -58,6 +58,7 @@ struct Factors {
 
     // virtual functions Y-related
     double mean_rating = .0;
+    virtual void init() = 0;
     virtual int Yrows()    const = 0;
     virtual int Ycols()    const = 0;
     virtual int Ynnz ()    const = 0;
@@ -80,7 +81,6 @@ struct MF : public Factors {
     }
 
     void init_base();
-    virtual void init() = 0;
 
     int Yrows()   const override { return Y.rows(); }
     int Ycols()   const override { return Y.cols(); }
@@ -98,6 +98,7 @@ struct SparseMF : public MF<SparseMatrixD> {
         : MF<SparseMatrixD>(num_latent, num_fac) {}
 
     void init() override;
+    void setRelationData(SparseMatrixD Y) { MF<SparseMatrixD>::setRelationData(Y); }
     void setRelationData(SparseDoubleMatrix &Y);
     void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
 
