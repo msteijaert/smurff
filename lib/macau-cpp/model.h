@@ -107,7 +107,7 @@ struct SparseMF : public MF<SparseMatrixD> {
 
     Factors::PnM  get_pnm(int,int) override;
     Factors::PnM  get_probit_pnm(int,int) override;
-    void update_pnm(int) override {}
+    void          update_pnm(int) override {}
 };
 
 template<class YType>
@@ -116,13 +116,13 @@ struct DenseMF : public MF<YType> {
     DenseMF(int num_latent, int num_fac = 2)
         : MF<YType>(num_latent, num_fac) 
     {
-        assert(num_fac == 2);
         VV.resize(num_fac);
+        this->name = "DenseMF";
     }
 
     Factors::PnM  get_pnm(int,int) override;
     Factors::PnM  get_probit_pnm(int f,int n) override { assert(false && " Probit noise only on dense for the moment" ); return get_pnm(f,n); }
-    void update_pnm(int) override;
+    void          update_pnm(int) override;
 
   private:
     std::vector<Eigen::MatrixXd> VV;

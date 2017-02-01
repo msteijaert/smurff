@@ -215,6 +215,7 @@ void MF<SparseMatrixD>::init()
     init_base();
     Yc.at(0).coeffs() -= mean_rating;
     Yc.at(1).coeffs() -= mean_rating;
+    name = "Sparse" + name;
 }
 
 
@@ -224,6 +225,7 @@ void MF<Eigen::MatrixXd>::init()
     init_base();
     Yc.at(0).array() -= this->mean_rating;
     Yc.at(1).array() -= this->mean_rating;
+    name = "Dense" + name;
 }
 
 template<typename YType>
