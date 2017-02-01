@@ -12,12 +12,14 @@
 
 int get_num_omp_threads();
 
+class ILatentPrior;
+
 class MacauBase  {
    public:
       std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
       std::unique_ptr<Factors>                    model;
-
+    
       //-- add model
       SparseMF &sparseModel(int num_latent);
       DenseMF  &denseModel(int num_latent);
@@ -32,6 +34,10 @@ class MacauBase  {
 
       void init();
       void step();
+
+      virtual std::ostream &printInitStatus(std::ostream &, std::string indent);
+
+      std::string name;
 };
 
 // try adding num_latent as template parameter to Macau
@@ -40,14 +46,15 @@ class Macau : public MacauBase {
       bool        verbose     = true;
       int         nsamples    = 100;
       int         burnin      = 50;
-      int         num_latent  = 32;
       bool        save_model  = false;
       std::string save_prefix = "model";
 
       // while running
       int         iter;
 
-  public:
+      // c'tor
+      Macau() { name = "Macau"; }
+
       //-- set params
       void setSamples(int burnin, int nsamples);
       void setVerbose(bool v) { verbose = v; };
@@ -60,6 +67,8 @@ class Macau : public MacauBase {
       void run();
       void step();
 
+      std::ostream &printInitStatus(std::ostream &, std::string indent) override;
+
    private:
       void saveModel(int isample);
       void printStatus(double elapsedi);
@@ -67,17 +76,21 @@ class Macau : public MacauBase {
 
 class MPIMacau : public Macau {
   public:
-    MPIMacau();
+    MPIMacau() { name = "MPIMacau"; }
       
     void run();
+    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
 
     int world_rank;
     int world_size;
+
 };
 
 
 class PythonMacau : public Macau {
   public:
+    PythonMacau() { name = "PythonMacau"; }
+
     void run();
 
   private:

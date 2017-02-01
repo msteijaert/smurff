@@ -17,8 +17,8 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(MacauBase &m, int p)
-    : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)) {} 
+ILatentPrior::ILatentPrior(MacauBase &m, int p, std::string name)
+    : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)), name(name) {} 
 
 // utility
 Factors &ILatentPrior::model() const
@@ -35,14 +35,19 @@ INoiseModel &ILatentPrior::noise() const
 {
     return *macau.noise; 
 }
+std::ostream &ILatentPrior::printInitStatus(std::ostream &os, std::string indent) 
+{
+    os << indent << pos << ": " << name << "\n";
+    return os;
+}
 
 
 /**
  *  base class NormalPrior 
  */
 
-NormalPrior::NormalPrior(MacauBase &m, int p)
-    : ILatentPrior(m, p) 
+NormalPrior::NormalPrior(MacauBase &m, int p, std::string name)
+    : ILatentPrior(m, p, name) 
 {
     const int K = num_latent();
     mu.resize(K);
@@ -114,7 +119,10 @@ void NormalPrior::savePriorInfo(std::string prefix) {
 
 template<class Prior>
 MasterPrior<Prior>::MasterPrior(MacauBase &m, int p) 
-    : Prior(m, p) {}
+    : Prior(m, p)
+{
+    this->name = "Master" + this->name;
+}
 
 template<class Prior>
 void MasterPrior<Prior>::init() 
@@ -122,7 +130,16 @@ void MasterPrior<Prior>::init()
     for(auto &s : slaves) s.init();
 }
 
+template<class Prior>
+std::ostream &MasterPrior<Prior>::printInitStatus(std::ostream &os, std::string indent) 
+{
+    Prior::printInitStatus(os, indent);
+    os << indent << "with slaves {\n";
+    for(auto &s : slaves) s.printInitStatus(os, indent + "  ");
+    os << indent << "}\n";
+    return os;
 
+}
 
 template<typename P1, typename P2>
 std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
@@ -160,6 +177,7 @@ Model& MasterPrior<Prior>::addSlave()
 {
     slaves.push_back(MacauBase());
     auto &slave_macau = slaves.back();
+    slave_macau.name = "Slave " + std::to_string(slaves.size());
     slave_macau.setPrecision(1.0); // FIXME
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);

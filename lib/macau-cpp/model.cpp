@@ -28,15 +28,15 @@ using namespace std;
 using namespace Eigen;
 
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  assert(nrows == Yrows() && ncols == Ycols() && 
-         "Size of train must be equal to size of test");
-    
-  Ytest.resize(nrows, ncols);
-  sparseFromIJV(Ytest, rows, cols, values, N);
+    assert(nrows == Yrows() && ncols == Ycols() && 
+            "Size of train must be equal to size of test");
+
+    Ytest.resize(nrows, ncols);
+    sparseFromIJV(Ytest, rows, cols, values, N);
 }
  
 void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
-   setRelationDataTest(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
+    setRelationDataTest(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
  
 void Factors::setRelationDataTest(SparseMatrixD Y) {
@@ -186,6 +186,16 @@ double Factors::auc()
     return auc;
 }
 
+std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
+{
+    os << indent << "Type: " << name << "\n";
+    os << indent << "Num-latents: " << num_latent << "\n";
+    os << indent << "Train data: [" << Yrows() << " x " << Ycols() << "]\n";
+    os << indent << "Test data:  [" << Ytest.rows() << " x " << Ytest.cols() << "]\n";
+    return os;
+}
+
+
 template<typename YType>
 void MF<YType>::init_base()
 {
@@ -198,6 +208,7 @@ void MF<YType>::init_base()
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
 }
+
 
 template<typename YType>
 void MF<YType>::setRelationData(YType Y) {

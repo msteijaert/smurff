@@ -54,8 +54,8 @@ AdaptiveGaussianNoise &MacauBase::setAdaptivePrecision(double sn_init, double sn
 
 void MacauBase::init() {
   if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
-  for( auto &p : priors) p->init();
   model->init();
+  for( auto &p : priors) p->init();
   noise->init();
 }
 
@@ -63,6 +63,20 @@ void MacauBase::step() {
     for(auto &p : priors) p->sample_latents();
     noise->update();
 }
+
+std::ostream &MacauBase::printInitStatus(std::ostream &os, std::string indent) {
+    os << indent << name << " {\n";
+    os << indent << "  Priors: {\n";
+    for( auto &p : priors) p->printInitStatus(os, indent + "    ");
+    os << indent << "  }\n";
+    os << indent << "  Factors: {\n";
+    model->printInitStatus(os, indent + "    ");
+    os << indent << "  }\n";
+    os << indent << "  Noise: ";
+    noise->printInitStatus(os, "");
+    return os;
+}
+
 
 
 //--- 
@@ -77,7 +91,7 @@ void Macau::init() {
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
   init_bmrng(seed1);
   if (verbose) {
-      std::cout << noise->getInitStatus() << endl;
+      printInitStatus(std::cout, "");
       std::cout << "Sampling" << endl;
   }
   if (save_model) model->saveGlobalParams(save_prefix);
@@ -103,6 +117,14 @@ void Macau::step() {
 
     saveModel(iter - burnin + 1);
     printStatus(endi - starti);
+}
+
+std::ostream &Macau::printInitStatus(std::ostream &os, std::string indent) {
+    MacauBase::printInitStatus(os, indent);
+    os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
+    os << indent << "  Output prefix: " << save_prefix << "\n";
+    os << indent << "}\n";
+    return os;
 }
 
 volatile bool PythonMacau::keepRunning;
@@ -250,22 +272,6 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
     if (fname_train.empty()) {
         die(usage + "[ERROR]\nMissing parameters '--train'\n");
     }
-
-    if (print) {
-        printf("Train data:    '%s'\n", fname_train.c_str());
-        printf("Test data:     '%s'\n", fname_test.c_str());
-        printf("Row prior:     '%s'\n", row_prior.c_str());
-        printf("Col prior:     '%s'\n", col_prior.c_str());
-        printf("Row features:  '%s'\n", fname_row_features.c_str());
-        printf("Col features:  '%s'\n", fname_col_features.c_str());
-        printf("Output prefix: '%s'\n", output_prefix.c_str());
-        printf("Burn-in:       %d\n",   burnin);
-        printf("Samples:       %d\n",   nsamples);
-        printf("Num-latents:   %d\n",   num_latent);
-        printf("Precision:     %.1f\n", precision);
-        printf("Lambda-beta:   %.1f\n", lambda_beta);
-        printf("tol:           %.1e\n", tol);
-    }
     if ( ! file_exists(fname_train) ) {
         die(std::string("[ERROR]\nTrain data file '") + fname_train + "' not found.\n");
     }
@@ -304,21 +310,8 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
         delete Ytest;
     }
 
-
     add_prior(*this, col_prior, fname_col_features, lambda_beta, tol);
     add_prior(*this, row_prior, fname_row_features, lambda_beta, tol);
-
-/*
-    if (print) {
-        printf("Row features:   [%d x %d].\n", row_features->rows(), row_features->cols());
-        printf("Training data:  %d [%d x %d]\n", model->Ynnz(), model->Yrows(), model->Ycols());
-        if (Ytest != NULL) {
-            printf("Test data:      %ld [%d x %d]\n", Ytest->nnz, Ytest->nrow, Ytest->ncol);
-        } else {
-            printf("Test data:      --\n");
-        }
-    }
-    */
 }
 
 

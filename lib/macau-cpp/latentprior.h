@@ -14,14 +14,11 @@ class INoiseModel;
 class MacauBase;
 class Macau;
 
- // forward declarationsc
-typedef Eigen::SparseMatrix<double> SparseMatrixD;
-
 /** interface */
 class ILatentPrior {
   public:
       // c-tor
-      ILatentPrior(MacauBase &m, int p);
+      ILatentPrior(MacauBase &m, int p, std::string name = "xxxx");
       virtual ~ILatentPrior() {}
       virtual void init() {};
 
@@ -30,6 +27,7 @@ class ILatentPrior {
       int num_latent() const;
       INoiseModel &noise() const;
       virtual void savePriorInfo(std::string prefix) = 0;
+      virtual std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
       // work
       virtual double getLinkNorm() { return NAN; };
@@ -53,13 +51,14 @@ class ILatentPrior {
       int pos;
       Eigen::MatrixXd &U, &V;
       std::vector<ILatentPrior *> siblings;
+      std::string name = "xxxx";
 };
 
 /** Prior without side information (pure BPMF) */
 
 class NormalPrior : public ILatentPrior {
   public:
-    NormalPrior(MacauBase &m, int p);
+    NormalPrior(MacauBase &m, int p, std::string name = "NormalPrior");
     virtual ~NormalPrior() {}
     void addSibling(MacauBase &b) override;
 
@@ -104,13 +103,15 @@ class MasterPrior : public Prior {
     SparseMF& addSparseSlave();
     DenseMF& addDenseSlave();
 
+    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
+
   private:
     std::vector<MacauBase> slaves;
 };
 
 class SlavePrior : public ILatentPrior {
   public:
-    SlavePrior(MacauBase &m, int p) : ILatentPrior(m, p) {}
+    SlavePrior(MacauBase &m, int p) : ILatentPrior(m, p, "SlavePrior") {}
     virtual ~SlavePrior() {}
     void addSibling(MacauBase &) override { assert(false); }
 
@@ -138,6 +139,7 @@ class MacauPrior : public NormalPrior {
     MacauPrior(MacauBase &m, int p);
     virtual ~MacauPrior() {}
     void addSibling(MacauBase &b) override;
+    void init() override;
 
     void sample_latents() override;
             
@@ -153,6 +155,7 @@ class MacauPrior : public NormalPrior {
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
     void savePriorInfo(std::string prefix) override;
+    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
 };
 
 
@@ -165,6 +168,7 @@ class MPIMacauPrior : public MacauPrior<FType> {
     void addSibling(MacauBase &b) override;
 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
+    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
 
     virtual void sample_beta();
     virtual bool run_slave() { sample_beta(); return true; }
@@ -203,7 +207,7 @@ class SpikeAndSlabPrior : public ILatentPrior {
     virtual ~SpikeAndSlabPrior() {}
     void addSibling(MacauBase &b) override;
 
-    void savePriorInfo(std::string prefix) override;
+    void savePriorInfo(std::string prefix) override {}
     void sample_latents() override;
     void sample_latent(int n) override;
 };

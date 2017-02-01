@@ -27,7 +27,6 @@ struct Factors {
 
     int num_fac() const { return factors.size(); }
 
-
     Eigen::SparseMatrix<double> Ytest;
 
     void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
@@ -55,6 +54,7 @@ struct Factors {
     void saveGlobalParams(std::string);
     void savePredictions(std::string, int iter, int burnin);
     void saveModel(std::string, int iter, int burnin);
+    std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
     double mean_rating = .0;
@@ -63,6 +63,7 @@ struct Factors {
     virtual int Ycols()    const = 0;
     virtual int Ynnz ()    const = 0;
 
+    std::string name;
   private:
     void init_predictions();
     void update_predictions(int iter, int burnin);
@@ -76,9 +77,7 @@ template<typename YType>
 struct MF : public Factors {
     //-- c'tor
     MF(int num_latent, int num_fac = 2)
-        : Factors(num_latent, num_fac)
-    {
-    }
+        : Factors(num_latent, num_fac) { }
 
     void init_base();
 
@@ -95,7 +94,10 @@ struct MF : public Factors {
 struct SparseMF : public MF<SparseMatrixD> {
     //-- c'tor
     SparseMF(int num_latent, int num_fac = 2)
-        : MF<SparseMatrixD>(num_latent, num_fac) {}
+        : MF<SparseMatrixD>(num_latent, num_fac)
+    {
+        name = "SparseMF";
+    }
 
     void init() override;
     void setRelationData(SparseMatrixD Y) { MF<SparseMatrixD>::setRelationData(Y); }
@@ -116,6 +118,7 @@ struct DenseMF : public MF<Eigen::MatrixXd> {
         : MF<Eigen::MatrixXd>(num_latent, num_fac) 
     {
         assert(num_fac == 2);
+        name = "DenseMF";
         VV.resize(num_fac);
     }
     void init() override;

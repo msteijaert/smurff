@@ -2,7 +2,7 @@
 #include "macau.h"
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(MacauBase &m, int p)
-    : ILatentPrior(m, p)
+    : ILatentPrior(m, p, "SpikeAndSlabPrior")
 {
     const int K = num_latent();
     const int D = U.cols();
@@ -63,8 +63,6 @@ void SpikeAndSlabPrior::sample_latent(int d)
     W.col(d) = Wcol;
     W2col += Wcol.array().square().matrix();
 }
-
-void SpikeAndSlabPrior::savePriorInfo(std::string prefix) { }
 
 void SpikeAndSlabPrior::sample_latents() {
     ILatentPrior::sample_latents();

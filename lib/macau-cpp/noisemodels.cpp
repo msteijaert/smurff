@@ -9,6 +9,19 @@
 
 using namespace Eigen;
 
+
+std::ostream &FixedGaussianNoise::printInitStatus(std::ostream &os, std::string indent)
+{ 
+    os << "Fixed gaussian noise with precision: " << alpha << "\n";
+    return os;
+}
+
+std::ostream &AdaptiveGaussianNoise::printInitStatus(std::ostream &os, std::string indent)
+{ 
+    os << "Adaptive gaussian noise with max precision of " << alpha_max << "\n";
+    return os;
+}
+
 //  AdaptiveGaussianNoise  ////
 void AdaptiveGaussianNoise::init() {
     double var_total = model.var_total();

@@ -24,22 +24,20 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 template<class FType>
 MacauPrior<FType>::MacauPrior(MacauBase &m, int p)
-    : NormalPrior(m, p)  {}
+    : NormalPrior(m, p, "MacauPrior")  {}
 
 template<class FType>
 void MacauPrior<FType>::addSibling(MacauBase &b) 
 {
      addSiblingTempl<MacauPrior<FType>>(b);
 }
-    
-template<class FType>
-void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
-{
-    assert((Fmat->rows() == U.cols()) && "Number of rows in train must be equal to number of rows in features");
 
-    // side information
-    F = std::move(Fmat);
-    use_FtF = comp_FtF;
+template<class FType>
+void MacauPrior<FType>::init()
+{
+    NormalPrior::init();
+
+    assert((F->rows() == U.cols()) && "Number of rows in train must be equal to number of rows in features");
     if (use_FtF) {
         FtF.resize(F->cols(), F->cols());
         At_mul_A(FtF, *F);
@@ -50,6 +48,14 @@ void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
 
     beta.resize(this->num_latent(), F->cols());
     beta.setZero();
+}
+    
+template<class FType>
+void MacauPrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF)
+{
+    // side information
+    F = std::move(Fmat);
+    use_FtF = comp_FtF;
 
     // initial value (should be determined automatically)
     lambda_beta = 5.0;
@@ -119,6 +125,15 @@ template<class FType>
 void MacauPrior<FType>::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", this->mu);
   writeToCSVfile(prefix + "-" + std::to_string(pos) + "-link.csv", this->beta);
+}
+
+template<class FType>
+std::ostream &MacauPrior<FType>::printInitStatus(std::ostream &os, std::string indent) {
+    NormalPrior::printInitStatus(os, indent);
+    os << indent << " SideInfo: [" << F->rows() << ", " << F->cols() << "]\n";
+    os << indent << " Tol: " << tol << "\n";
+    os << indent << " LambdaBeta: " << lambda_beta << "\n";
+    return os;
 }
 
 std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu) {

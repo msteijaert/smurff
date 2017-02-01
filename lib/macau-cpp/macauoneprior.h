@@ -30,7 +30,6 @@ class MacauOnePrior : public ILatentPrior {
   public:
     MacauOnePrior(MacauBase &, int); 
     void addSibling(MacauBase &) override;
-    
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     
     void sample_latent(int) override;
