@@ -240,3 +240,17 @@ Matrix read_ddm(const char* filename) {
     in.close();
     return matrix;
 }
+
+inline Eigen::MatrixXd sparse_to_dense(SparseBinaryMatrix &in)
+{
+    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
+    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = 1.;
+    return out;
+}
+
+inline Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in)
+{
+    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
+    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
+    return out;
+}

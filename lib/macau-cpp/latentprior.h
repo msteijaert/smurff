@@ -100,9 +100,6 @@ class MasterPrior : public Prior {
     template<class Model>
     Model& addSlave();
 
-    SparseMF& addSparseSlave();
-    DenseMF& addDenseSlave();
-
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
 
   private:

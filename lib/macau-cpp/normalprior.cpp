@@ -188,18 +188,11 @@ Model& MasterPrior<Prior>::addSlave()
     return *n;
 }
 
-template<class Prior>
-DenseMF& MasterPrior<Prior>::addDenseSlave()
-{
-    return addSlave<DenseMF>();
-}
-
-template<class Prior>
-SparseMF& MasterPrior<Prior>::addSparseSlave()
-{
-    return addSlave<SparseMF>();
- }
-
 template class MasterPrior<NormalPrior>;
+template DenseMF &MasterPrior<NormalPrior>::addSlave();
+template SparseMF &MasterPrior<NormalPrior>::addSlave();
+
 template class MasterPrior<SpikeAndSlabPrior>;
+template DenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+template SparseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
 
