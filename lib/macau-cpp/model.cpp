@@ -36,7 +36,7 @@ void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, i
 }
  
 void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
-    setRelationDataTest(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
+    Ytest = to_eigen(Y);
 }
  
 void Factors::setRelationDataTest(SparseMatrixD Y) {

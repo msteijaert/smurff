@@ -105,13 +105,37 @@ inline void split_work_mpi(int num_latent, int num_nodes, int* work) {
 }
 
 inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, int* rows, int* cols, double* values, int N) {
-  typedef Eigen::Triplet<double> T;
-  std::vector<T> tripletList;
-  tripletList.reserve(N);
-  for (int n = 0; n < N; n++) {
-    tripletList.push_back(T(rows[n], cols[n], values[n]));
-  }
-  X.setFromTriplets(tripletList.begin(), tripletList.end());
+    typedef Eigen::Triplet<double> T;
+    std::vector<T> tripletList;
+    tripletList.reserve(N);
+    for (int n = 0; n < N; n++) {
+        tripletList.push_back(T(rows[n], cols[n], values[n]));
+    }
+    X.setFromTriplets(tripletList.begin(), tripletList.end());
+}
+
+inline void sparseFromIJ(Eigen::SparseMatrix<double> &X, int* rows, int* cols, int N) {
+    typedef Eigen::Triplet<double> T;
+    std::vector<T> tripletList;
+    tripletList.reserve(N);
+    for (int n = 0; n < N; n++) {
+        tripletList.push_back(T(rows[n], cols[n], 1.0));
+    }
+    X.setFromTriplets(tripletList.begin(), tripletList.end());
+}
+
+inline Eigen::SparseMatrix<double> to_eigen(SparseDoubleMatrix &Y) 
+{
+    Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
+    sparseFromIJV(out, Y.rows, Y.cols, Y.vals, Y.nnz);
+    return out;
+}
+
+inline Eigen::SparseMatrix<double> to_eigen(SparseBinaryMatrix &Y) 
+{
+   Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
+   sparseFromIJ(out, Y.rows, Y.cols, Y.nnz);
+   return out;
 }
 
 inline double square(double x) { return x * x; }

@@ -175,7 +175,7 @@ inline void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo>
 }
 
 template<class Prior>
-inline void addMaster(Macau &macau, Eigen::MatrixXd &sideinfo)
+inline void addMaster(Macau &macau, const Eigen::MatrixXd &sideinfo)
 {
     auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
     auto &slave_model = master_prior.template addSlave<DenseDenseMF>();
@@ -183,11 +183,24 @@ inline void addMaster(Macau &macau, Eigen::MatrixXd &sideinfo)
 }
 
 template<class Prior>
-inline void addMaster(Macau &macau, SparseMatrixD &sideinfo)
+inline void addMaster(Macau &macau, const SparseMatrixD &sideinfo)
 {
     auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
     auto &slave_model = master_prior.template addSlave<SparseDenseMF>();
     slave_model.setRelationData(sideinfo);
+}
+
+
+template<class SideInfo>
+inline void addMaster(Macau &macau,std::string prior_name, const SideInfo &features)
+{
+    if(prior_name == "normal" || prior_name == "default") {
+        addMaster<NormalPrior>(macau, features);
+    } else if(prior_name == "spikeandslab") {
+        addMaster<SpikeAndSlabPrior>(macau, features);
+    } else {
+        throw std::runtime_error("Unknown prior with side info: " + prior_name);
+    }
 }
 
 void add_prior(Macau &macau, std::string prior_name, std::string fname_features, double lambda_beta, double tol)
@@ -205,22 +218,19 @@ void add_prior(Macau &macau, std::string prior_name, std::string fname_features,
                 throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname_features));
             }
         } else {
-            Eigen::MatrixXd features;
             if (fname_features.find(".sdm") != std::string::npos) {
-                features = sparse_to_dense(*read_sdm(fname_features.c_str()));
+                auto features = read_sdm(fname_features.c_str());
+                addMaster(macau, prior_name, to_eigen(*features));
+                delete features;
             } else if (fname_features.find(".sbm") != std::string::npos) {
-                features = sparse_to_dense(*read_sbm(fname_features.c_str()));
+                auto features = read_sbm(fname_features.c_str());
+                addMaster(macau, prior_name, to_eigen(*features));
+                delete features;
             } else if (fname_features.find(".ddm") != std::string::npos) {
-                features = read_ddm<Eigen::MatrixXd>(fname_features.c_str());
-             } else {
-                throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname_features));
-            }
-            if(prior_name == "normal" || prior_name == "default") {
-                addMaster<NormalPrior>(macau, features);
-            } else if(prior_name == "spikeandslab") {
-                addMaster<SpikeAndSlabPrior>(macau, features);
+                auto features = read_ddm<Eigen::MatrixXd>(fname_features.c_str());
+                addMaster(macau, prior_name, features);
             } else {
-                throw std::runtime_error("Unknown prior with side info: " + prior_name);
+                throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname_features));
             }
         }
     } else if(prior_name == "normal" || prior_name == "default") {
