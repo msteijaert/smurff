@@ -21,8 +21,11 @@ class MacauBase  {
       std::unique_ptr<Factors>                    model;
     
       //-- add model
-      SparseMF &sparseModel(int num_latent);
-      DenseMF  &denseModel(int num_latent);
+      template<class Model>
+      Model         &addModel(int num_latent);
+      SparseMF      &sparseModel(int num_latent);
+      DenseDenseMF  &denseDenseModel(int num_latent);
+      SparseDenseMF &sparseDenseModel(int num_latent);
 
       //-- add priors
       template<class Prior>

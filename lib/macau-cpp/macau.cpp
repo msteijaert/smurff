@@ -28,16 +28,24 @@ using namespace std;
 using namespace Eigen;
 
 //-- add model
-SparseMF &MacauBase::sparseModel(int num_latent) {
-  SparseMF *n = new SparseMF(num_latent);
-  model.reset(n);
-  return *n;
+//
+template<class Model>
+Model &MacauBase::addModel(int num_latent) {
+    Model *n = new Model(num_latent);
+    model.reset(n);
+    return *n;
 }
 
-DenseMF  &MacauBase::denseModel(int num_latent) {
-  DenseMF *n = new DenseMF(num_latent);
-  model.reset(n);
-  return *n;
+SparseMF &MacauBase::sparseModel(int num_latent) {
+    return addModel<SparseMF>(num_latent);
+}
+
+DenseDenseMF &MacauBase::denseDenseModel(int num_latent) {
+    return addModel<DenseDenseMF>(num_latent);
+}
+
+SparseDenseMF &MacauBase::sparseDenseModel(int num_latent) {
+    return addModel<SparseDenseMF>(num_latent);
 }
 
 FixedGaussianNoise &MacauBase::setPrecision(double p) {
@@ -170,7 +178,15 @@ template<class Prior>
 inline void addMaster(Macau &macau, Eigen::MatrixXd &sideinfo)
 {
     auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
-    auto &slave_model = master_prior.template addSlave<DenseMF>();
+    auto &slave_model = master_prior.template addSlave<DenseDenseMF>();
+    slave_model.setRelationData(sideinfo);
+}
+
+template<class Prior>
+inline void addMaster(Macau &macau, SparseMatrixD &sideinfo)
+{
+    auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
+    auto &slave_model = master_prior.template addSlave<SparseDenseMF>();
     slave_model.setRelationData(sideinfo);
 }
 
@@ -320,7 +336,7 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
         model.setRelationData(*Y);
         delete Y;
     } else if (fname_train.find(".ddm") != std::string::npos) {
-        DenseMF& model = denseModel(num_latent);
+        DenseDenseMF& model = denseDenseModel(num_latent);
         MatrixXd Y = read_ddm<MatrixXd>(fname_train.c_str());
         model.setRelationData(Y);
     } else {

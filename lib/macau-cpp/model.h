@@ -128,4 +128,7 @@ struct DenseMF : public MF<YType> {
     std::vector<Eigen::MatrixXd> VV;
 };
 
+typedef DenseMF<Eigen::MatrixXd> DenseDenseMF;
+typedef DenseMF<SparseMatrixD> SparseDenseMF;
+
 #endif
