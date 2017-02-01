@@ -209,6 +209,22 @@ void MF<YType>::init_base()
     Yc.push_back(Y.transpose());
 }
 
+template<>
+void MF<SparseMatrixD>::init()
+{
+    init_base();
+    Yc.at(0).coeffs() -= mean_rating;
+    Yc.at(1).coeffs() -= mean_rating;
+}
+
+
+template<>
+void MF<Eigen::MatrixXd>::init()
+{
+    init_base();
+    Yc.at(0).array() -= this->mean_rating;
+    Yc.at(1).array() -= this->mean_rating;
+}
 
 template<typename YType>
 void MF<YType>::setRelationData(YType Y) {
@@ -219,33 +235,29 @@ template struct MF<SparseMatrix<double>>;
 template struct MF<MatrixXd>;
 
 
-//
-//-- SparseMF specific stuff
-//
+template<>
+double MF<Eigen::MatrixXd>::var_total() const {
+    auto &Y = Yc.at(0);
+    double se = Y.array().square().sum();
 
-void SparseMF::init()
-{
-    init_base();
-    Yc.at(0).coeffs() -= mean_rating;
-    Yc.at(1).coeffs() -= mean_rating;
+    double var_total = se / Y.nonZeros();
+    if (var_total <= 0.0 || std::isnan(var_total)) {
+        // if var cannot be computed using 1.0
+        var_total = 1.0;
+    }
+
+    return var_total;
 }
 
-void SparseMF::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    Y.resize(nrows, ncols);
-    sparseFromIJV(Y, rows, cols, values, N);
-}
-
-void SparseMF::setRelationData(SparseDoubleMatrix &Y) {
-    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
-}
-
-double SparseMF::var_total() const {
+template<>
+double MF<SparseMatrixD>::var_total() const {
     double se = 0.0;
+    auto &Y = Yc.at(0);
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
     for (int k = 0; k < Y.outerSize(); ++k) {
         for (SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
-            se += square(it.value() - mean_rating);
+            se += square(it.value());
         }
     }
 
@@ -258,7 +270,25 @@ double SparseMF::var_total() const {
     return var_total;
 }
 
-double SparseMF::sumsq() const {
+// for the adaptive gaussian noise
+template<>
+double MF<Eigen::MatrixXd>::sumsq() const {
+    double sumsq = 0.0;
+
+#pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+    for (int j = 0; j < this->Y.cols(); j++) {
+        auto Vj = this->U(1).col(j);
+        for (int i = 0; i < this->Y.rows(); i++) {
+            double Yhat = Vj.dot( this->U(0).col(j) ) + this->mean_rating;
+            sumsq += square(Yhat - this->Y(i,j));
+        }
+    }
+
+    return sumsq;
+}
+
+template<>
+double MF<SparseMatrixD>::sumsq() const {
     double sumsq = 0.0;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
@@ -272,6 +302,21 @@ double SparseMF::sumsq() const {
 
     return sumsq;
 }
+
+template<>
+void MF<SparseMatrixD>::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+    Y.resize(nrows, ncols);
+    sparseFromIJV(Y, rows, cols, values, N);
+}
+
+template<>
+void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
+    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
+}
+
+//
+//-- SparseMF specific stuff
+//
 
 Factors::PnM SparseMF::get_pnm(int f, int n) {
     MatrixXd MM = MatrixXd::Zero(num_latent, num_latent);
@@ -307,53 +352,18 @@ Factors::PnM SparseMF::get_probit_pnm(int f, int n)
 //-- DenseMF specific stuff
 //
 
-void DenseMF::init()
-{
-    init_base();
-    Yc.at(0).array() -= mean_rating;
-    Yc.at(1).array() -= mean_rating;
-}
-
-
-// for the adaptive gaussian noise
-double DenseMF::var_total() const {
-    double se = (Y.array() - mean_rating).square().sum();
-
-    double var_total = se / Y.nonZeros();
-    if (var_total <= 0.0 || std::isnan(var_total)) {
-        // if var cannot be computed using 1.0
-        var_total = 1.0;
-    }
-
-    return var_total;
-}
-
-// for the adaptive gaussian noise
-double DenseMF::sumsq() const {
-    double sumsq = 0.0;
-
-#pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-    for (int j = 0; j < Y.cols(); j++) {
-        auto Vj = U(1).col(j);
-        for (int i = 0; i < Y.rows(); i++) {
-            double Yhat = Vj.dot( U(0).col(j) ) + mean_rating;
-            sumsq += square(Yhat - Y(i,j));
-        }
-    }
-
-    return sumsq;
-}
-
-Factors::PnM DenseMF::get_pnm(int f, int d) {
-    auto &Y = Yc.at(f);
-    VectorXd rr = (V(f) * Y.col(d));
+template<class YType>
+Factors::PnM DenseMF<YType>::get_pnm(int f, int d) {
+    auto &Y = this->Yc.at(f);
+    VectorXd rr = (this->V(f) * Y.col(d));
     return std::make_pair(rr, VV.at(f));
 }
 
-void DenseMF::update_pnm(int f) {
-    auto &Vf = V(f);
+template<class YType>
+void DenseMF<YType>::update_pnm(int f) {
+    auto &Vf = this->V(f);
     auto &VVf = VV.at(f);
-    VVf = MatrixXd::Zero(num_latent, num_latent);
+    VVf = MatrixXd::Zero(this->num_latent, this->num_latent);
     SHOW(VVf);
 
 #pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:XX)
@@ -362,9 +372,4 @@ void DenseMF::update_pnm(int f) {
         VVf += v * v.transpose();
         SHOW(VVf);
     }
-
-
 }
-
-
-

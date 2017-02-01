@@ -80,12 +80,18 @@ struct MF : public Factors {
         : Factors(num_latent, num_fac) { }
 
     void init_base();
+    void init() override;
 
     int Yrows()   const override { return Y.rows(); }
     int Ycols()   const override { return Y.cols(); }
     int Ynnz()    const override { return Y.nonZeros(); }
 
     void setRelationData(YType Y);
+    void setRelationData(SparseDoubleMatrix &Y);
+    void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
+
+    double var_total() const override;
+    double sumsq() const override;
 
     YType Y;
     std::vector<YType> Yc; // centered version
@@ -99,35 +105,23 @@ struct SparseMF : public MF<SparseMatrixD> {
         name = "SparseMF";
     }
 
-    void init() override;
-    void setRelationData(SparseMatrixD Y) { MF<SparseMatrixD>::setRelationData(Y); }
-    void setRelationData(SparseDoubleMatrix &Y);
-    void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
-
-    double var_total() const override;
-    double sumsq() const override;
-
-    PnM  get_pnm(int,int) override;
-    PnM  get_probit_pnm(int,int) override;
+    Factors::PnM  get_pnm(int,int) override;
+    Factors::PnM  get_probit_pnm(int,int) override;
     void update_pnm(int) override {}
 };
 
-struct DenseMF : public MF<Eigen::MatrixXd> {
+template<class YType>
+struct DenseMF : public MF<YType> {
     //-- c'tor
     DenseMF(int num_latent, int num_fac = 2)
-        : MF<Eigen::MatrixXd>(num_latent, num_fac) 
+        : MF<YType>(num_latent, num_fac) 
     {
         assert(num_fac == 2);
-        name = "DenseMF";
         VV.resize(num_fac);
     }
-    void init() override;
 
-    double var_total() const override;
-    double sumsq() const override;
-
-    PnM  get_pnm(int,int) override;
-    PnM  get_probit_pnm(int f,int n) override { assert(false && " Probit noise only on dense for the moment" ); return get_pnm(f,n); }
+    Factors::PnM  get_pnm(int,int) override;
+    Factors::PnM  get_probit_pnm(int f,int n) override { assert(false && " Probit noise only on dense for the moment" ); return get_pnm(f,n); }
     void update_pnm(int) override;
 
   private:
