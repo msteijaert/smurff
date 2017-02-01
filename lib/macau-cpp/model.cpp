@@ -373,3 +373,6 @@ void DenseMF<YType>::update_pnm(int f) {
         SHOW(VVf);
     }
 }
+
+template struct DenseMF<Eigen::MatrixXd>;
+template struct DenseMF<SparseMatrixD>;
