@@ -52,11 +52,11 @@ void test_sparse(int N, int D, int iter_max)
     macau.run();
 }
 
-void test_dense(int N, int D, int iter_max) 
+void test_dense_dense(int N, int D, int iter_max) 
 {
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
     Macau macau;
-    auto &master_model = macau.denseModel(num_latent);
+    auto &master_model = macau.denseDenseModel(num_latent);
     macau.setSamples(10, iter_max);
 
     // fixed gaussian noise
@@ -74,7 +74,7 @@ void test_dense(int N, int D, int iter_max)
     macau.addPrior<NormalPrior>();
     //macau.addPrior<NormalPrior>();
     auto &master_prior = macau.addPrior<MasterPrior<NormalPrior>>();
-    auto &slave_model = master_prior.addSlave<DenseMF>();
+    auto &slave_model = master_prior.addSlave<DenseDenseMF>();
     auto Ytrain1 = ones_Ydense(N,2*D,2);
     slave_model.setRelationData(Ytrain1);
 
@@ -82,14 +82,14 @@ void test_dense(int N, int D, int iter_max)
 }
 
 int main(int argc, char** argv) {
-    assert(argc>4 && "Usage test N D iter <dense|sparse>");
+    assert(argc>4 && "Usage test N D iter <dense_dense|sparse>");
 
     int N = atoi(argv[1]);
     int D = atoi(argv[2]);
     int iter_max = atoi(argv[3]);
-    bool dense = !strcmp(argv[4], "dense");
-    if (dense) test_dense(N, D, iter_max);
-    else test_sparse(N, D, iter_max);
+    if (!strcmp(argv[4], "dense_dense")) test_dense_dense(N, D, iter_max);
+    else if (!strcmp(argv[4], "sparse")) test_sparse(N, D, iter_max);
+    else assert(false);
 
     return 0;
 }

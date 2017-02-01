@@ -189,10 +189,12 @@ Model& MasterPrior<Prior>::addSlave()
 }
 
 template class MasterPrior<NormalPrior>;
-template DenseMF &MasterPrior<NormalPrior>::addSlave();
+template DenseDenseMF &MasterPrior<NormalPrior>::addSlave();
+template SparseDenseMF &MasterPrior<NormalPrior>::addSlave();
 template SparseMF &MasterPrior<NormalPrior>::addSlave();
 
 template class MasterPrior<SpikeAndSlabPrior>;
-template DenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+template DenseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+template SparseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
 template SparseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
 
