@@ -23,6 +23,7 @@
 #include "macauoneprior.h"
 #include "omp_util.h"
 #include "linop.h"
+#include "gen_random.h"
 
 using namespace std; 
 using namespace Eigen;
@@ -254,6 +255,7 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
     double precision          = 5.0;
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
+    double test_split         = .0;
 
     int burnin                = 200;
     int nsamples              = 800;
@@ -262,6 +264,12 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
     auto die = [print](std::string message) {
         if (print) std::cout << message;
         exit(-1);
+    };
+
+    auto die_unless_file_exists = [&die](std::string fname) {
+        if ( fname.size() && ! file_exists(fname) ) {
+            die(std::string("[ERROR]\nFile '") + fname +  "' not found.\n");
+        }
     };
 
     std::string usage = 
@@ -326,29 +334,34 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
     if (fname_train.empty()) {
         die(usage + "[ERROR]\nMissing parameters '--train'\n");
     }
-    if ( ! file_exists(fname_train) ) {
-        die(std::string("[ERROR]\nTrain data file '") + fname_train + "' not found.\n");
-    }
-    if ( fname_row_features.size() && ! file_exists(fname_row_features) ) {
-        die(std::string("[ERROR]\nRow feature file '") + fname_row_features + "' not found.\n");
-    }
-    if ( fname_col_features.size() && ! file_exists(fname_col_features) ) {
-        die(std::string("[ERROR]\nCol feature file '") + fname_col_features + "' not found.\n");
-    }
-    if ( fname_test.size() && ! file_exists(fname_test) ) {
-        die(std::string("[ERROR]\nTest data file '") + fname_test + "' not found.\n");
+    die_unless_file_exists(fname_train);
+    die_unless_file_exists(fname_row_features);
+    die_unless_file_exists(fname_col_features);
+
+    //-- check if fname_test is actually a number
+    if ((test_split = atof(fname_test.c_str())) > .0) {
+        fname_test.clear();
     }
 
     // Load main Y matrix file
     if (fname_train.find(".sdm") != std::string::npos) {
         SparseMF& model = sparseModel(num_latent);
-        SparseDoubleMatrix* Y = read_sdm(fname_train.c_str());
-        model.setRelationData(*Y);
-        delete Y;
+        auto Ytrain = to_eigen(*read_sdm(fname_train.c_str()));
+        if (test_split > .0) {
+            auto Y = split(Ytrain, test_split);
+            model.setRelationData(Y.first);
+            model.setRelationDataTest(Y.second);
+        } else {
+            model.setRelationData(Ytrain);
+        }
     } else if (fname_train.find(".ddm") != std::string::npos) {
         DenseDenseMF& model = denseDenseModel(num_latent);
-        MatrixXd Y = read_ddm<MatrixXd>(fname_train.c_str());
-        model.setRelationData(Y);
+        auto Ytrain = read_ddm<MatrixXd>(fname_train.c_str());
+        if (test_split > .0) {
+            auto Ytest = extract(Ytrain, test_split);
+            model.setRelationDataTest(Ytest);
+        }
+        model.setRelationData(Ytrain);
     } else {
         die("Train data file: expecing .sdm or .ddm, got " + std::string(fname_train));
     }
@@ -359,6 +372,7 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
 
     // test data
     if (fname_test.size()) {
+        die_unless_file_exists(fname_test);
         auto Ytest = read_sdm(fname_test.c_str());
         model->setRelationDataTest(*Ytest);
         delete Ytest;
