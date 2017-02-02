@@ -190,8 +190,8 @@ std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
-    os << indent << "Train data: [" << Yrows() << " x " << Ycols() << "]\n";
-    os << indent << "Test data:  [" << Ytest.rows() << " x " << Ytest.cols() << "]\n";
+    os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "]\n";
+    os << indent << "Test data: " << Ytest.nonZeros() << " [" << Ytest.rows() << " x " << Ytest.cols() << "]\n";
     return os;
 }
 
