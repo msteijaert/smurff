@@ -62,10 +62,11 @@ AdaptiveGaussianNoise &MacauBase::setAdaptivePrecision(double sn_init, double sn
 }
 
 void MacauBase::init() {
-  if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
-  model->init();
-  for( auto &p : priors) p->init();
-  noise->init();
+    init_bmrng();
+    if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
+    model->init();
+    for( auto &p : priors) p->init();
+    noise->init();
 }
 
 void MacauBase::step() {
@@ -97,8 +98,6 @@ void Macau::setSamples(int b, int n) {
 
 void Macau::init() {
   MacauBase::init();
-  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-  init_bmrng(seed1);
   if (verbose) {
       printInitStatus(std::cout, "");
       std::cout << "Sampling" << endl;

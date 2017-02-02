@@ -35,22 +35,12 @@ thread_local static std::random_device srd;
 static std::random_device srd;
 #endif
 
-#ifndef __clang__
-thread_local 
-#endif 
-static std::mt19937 rng(srd());
-
-#ifndef __clang__
-thread_local 
-#endif 
-static std::normal_distribution<> nd;
-
 double randn(double) {
-  return nd(rng);
+  return bmrandn_single() ;
 }
 
 double randn0() {
-  return nd(rng);
+  return bmrandn_single();
 }
 
 auto
@@ -59,7 +49,10 @@ nrandn(int n) -> decltype( VectorXd::NullaryExpr(n, std::cref(randn)) )
     return VectorXd::NullaryExpr(n, std::cref(randn));
 }
 
-auto nrandn(int n, int m) -> decltype( ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)) ) { return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); }
+auto nrandn(int n, int m) -> decltype( ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)) )
+{
+    return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); 
+}
 
 void init_bmrng(int seed) {
 
@@ -204,10 +197,11 @@ MatrixXd WishartUnit(int m, int df)
 {
     MatrixXd c(m,m);
     c.setZero();
+    std::mt19937* rng = bmrngs[thread_num()];
 
     for ( int i = 0; i < m; i++ ) {
         std::gamma_distribution<> gam(0.5*(df - i));
-        c(i,i) = sqrt(2.0 * gam(rng));
+        c(i,i) = sqrt(2.0 * gam(*rng));
         VectorXd r = nrandn(m-i-1);
         c.block(i,i+1,1,m-i-1) = r.transpose();
     }
