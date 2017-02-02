@@ -2,8 +2,9 @@
 #include "macau.h"
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(MacauBase &m, int p)
-    : ILatentPrior(m, p, "SpikeAndSlabPrior")
-{
+    : ILatentPrior(m, p, "SpikeAndSlabPrior") {}
+
+void SpikeAndSlabPrior::init() {
     const int K = num_latent();
     const int D = U.cols();
     assert(D > 0);
@@ -41,8 +42,6 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
     for(unsigned k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);
-        SHOW(lambda);
-        SHOW(alpha(k));
         double mu = t / lambda * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
         double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
         double z = 1 / (1 + exp(z1));
@@ -50,16 +49,12 @@ void SpikeAndSlabPrior::sample_latent(int d)
         if (Zkeep(k) > 0 && p < z) {
             Zcol(k)++;
             double var = randn() / sqrt(lambda);
-            SHOW(var);
             Wcol(k) = mu + var;
+            assert(mu < 100.);
         } else {
             Wcol(k) = .0;
         }
     }
-    SHOW(Wcol.transpose());
-    auto &X = V; // aliases
-    SHOW(Wcol.transpose() * X);
-
     W.col(d) = Wcol;
     W2col += Wcol.array().square().matrix();
 }
@@ -91,6 +86,8 @@ void SpikeAndSlabPrior::sample_latents() {
     Zkeep = Zcol.array();
     Zcol.setZero();
     W2col.setZero();
+
+    SHOW(Zkeep.transpose());
      
     // three: update siblings
     for(auto s : siblings) {

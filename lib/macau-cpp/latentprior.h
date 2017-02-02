@@ -202,6 +202,7 @@ class SpikeAndSlabPrior : public ILatentPrior {
   public:
     SpikeAndSlabPrior(MacauBase &m, int p);
     virtual ~SpikeAndSlabPrior() {}
+    void init() override;
     void addSibling(MacauBase &b) override;
 
     void savePriorInfo(std::string prefix) override {}

@@ -327,7 +327,7 @@ Factors::PnM SparseMF::get_pnm(int f, int n) {
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
         auto col = V(f).col(it.row());
         rr.noalias() += col * it.value();
-        MM.triangularView<Eigen::Lower>() += col * col.transpose();
+        MM += col * col.transpose();
     }
 
     return std::make_pair(rr, MM);
@@ -341,7 +341,7 @@ Factors::PnM SparseMF::get_probit_pnm(int f, int n)
     auto u = U(f).col(n);
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
         auto col = V(f).col(it.row());
-        MM.triangularView<Eigen::Lower>() += col * col.transpose();
+        MM += col * col.transpose();
         auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
         rr.noalias() += col * z;
     }

@@ -84,7 +84,6 @@ void NormalPrior::sample_latent(int n)
 {
     const auto &mu_u = getMu(n);
     const auto &Lambda_u = getLambda(n);
-    SHOW(Lambda_u);
     const auto &p = pnm(n);
     const double alpha = noise().getAlpha();
 
@@ -102,10 +101,7 @@ void NormalPrior::sample_latent(int n)
     chol.matrixL().solveInPlace(rr);
     rr.noalias() += nrandn(num_latent());
     chol.matrixU().solveInPlace(rr);
-    SHOW(n);
-    SHOW(U.col(n).transpose());
     U.col(n).noalias() = rr;
-    SHOW(U.col(n).transpose());
 }
 
 void NormalPrior::savePriorInfo(std::string prefix) {
