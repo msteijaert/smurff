@@ -2,9 +2,9 @@
 #define OMP_UTIL_H
 
 #if defined(_OPENMP)
+#include <iostream>
 #include <omp.h>
 
-inline int thread_num() { return omp_get_thread_num(); }
 inline int nthreads() 
 {
     int nt = -1;
@@ -18,12 +18,20 @@ inline int nthreads()
 
    return nt;
 }
+inline int thread_num()
+{
+    return omp_get_thread_num(); 
+}
+
+inline void threads_init() {
+    omp_set_nested(true);
+    omp_set_dynamic(true);
+    std::cout << "Using OpenMP with " << nthreads() << " threads.\n";
+}
+
 #else
 inline int thread_num() { return 0; }
 inline int nthreads(void) { return 1; }
+inline void threads_init() { }
 #endif
-
-#pragma omp declare reduction (VectorPlus : VectorNd : omp_out += omp_in) initializer(omp_priv = VectorNd::Zero())
-#pragma omp declare reduction (MatrixPlus : MatrixNNd : omp_out += omp_in) initializer(omp_priv = MatrixNNd::Zero())
-
 #endif
