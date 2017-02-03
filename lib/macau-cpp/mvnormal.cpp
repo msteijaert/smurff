@@ -17,7 +17,7 @@ using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
 
-std::mt19937 **bmrngs;
+std::vector<std::mt19937> bmrngs;
 
 /*
   We need a functor that can pretend it's const,
@@ -56,9 +56,9 @@ auto nrandn(int n, int m) -> decltype( ArrayXXd::NullaryExpr(n, m, ptr_fun(randn
 
 void init_bmrng(int seed) {
 
-   bmrngs = new std::mt19937*[nthreads()];
+   bmrngs.clear();
    for (int i = 0; i < nthreads(); i++) {
-      bmrngs[i] = new std::mt19937(seed + i * 1999);
+      bmrngs.push_back(std::mt19937(seed + i * 1999));
    }
 }
 
@@ -73,13 +73,13 @@ void bmrandn(double* x, long n) {
 #pragma omp parallel 
   {
     std::uniform_real_distribution<double> unif(-1.0, 1.0);
-    std::mt19937* bmrng = bmrngs[thread_num()];
+    std::mt19937& bmrng = bmrngs.at(thread_num());
 #pragma omp for schedule(static)
     for (long i = 0; i < n; i += 2) {
       double x1, x2, w;
       do {
-        x1 = unif(*bmrng);
-        x2 = unif(*bmrng);
+        x1 = unif(bmrng);
+        x2 = unif(bmrng);
         w = x1 * x1 + x2 * x2;
       } while ( w >= 1.0 );
 
@@ -100,12 +100,12 @@ void bmrandn(MatrixXd & X) {
 // to be called within OpenMP parallel loop (also from serial code is fine)
 void bmrandn_single(double* x, long n) {
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
-  std::mt19937* bmrng = bmrngs[thread_num()];
+  std::mt19937& bmrng = bmrngs.at(thread_num());
   for (long i = 0; i < n; i += 2) {
     double x1, x2, w;
     do {
-      x1 = unif(*bmrng);
-      x2 = unif(*bmrng);
+      x1 = unif(bmrng);
+      x2 = unif(bmrng);
       w = x1 * x1 + x2 * x2;
     } while ( w >= 1.0 );
 
@@ -120,12 +120,12 @@ void bmrandn_single(double* x, long n) {
 double bmrandn_single() {
   //TODO: add bmrng as input
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
-  std::mt19937* bmrng = bmrngs[thread_num()];
+  std::mt19937& bmrng = bmrngs.at(thread_num());
   
     double x1, x2, w;
     do {
-      x1 = unif(*bmrng);
-      x2 = unif(*bmrng);
+      x1 = unif(bmrng);
+      x2 = unif(bmrng);
       w = x1 * x1 + x2 * x2;
     } while ( w >= 1.0 );
 
@@ -141,7 +141,7 @@ void bmrandn_single(Eigen::VectorXd & x) {
  *  with the given shape (k) and scale (theta). See wiki. */
 double rgamma(double shape, double scale) {
   std::gamma_distribution<double> gamma(shape, scale);
-  return gamma(*bmrngs[0]);
+  return gamma(bmrngs.at(thread_num()));
 }
 
 /** Normal(0, Lambda^-1) for nn columns */
@@ -197,11 +197,11 @@ MatrixXd WishartUnit(int m, int df)
 {
     MatrixXd c(m,m);
     c.setZero();
-    std::mt19937* rng = bmrngs[thread_num()];
+    std::mt19937& rng = bmrngs.at(thread_num());
 
     for ( int i = 0; i < m; i++ ) {
         std::gamma_distribution<> gam(0.5*(df - i));
-        c(i,i) = sqrt(2.0 * gam(*rng));
+        c(i,i) = sqrt(2.0 * gam(rng));
         VectorXd r = nrandn(m-i-1);
         c.block(i,i+1,1,m-i-1) = r.transpose();
     }

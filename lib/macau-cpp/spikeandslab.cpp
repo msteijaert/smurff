@@ -36,7 +36,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
     ArrayNd log_r = - r.array().log() + (VectorNd::Ones(K) - r).array().log();
 
     MatrixNNd XX = MatrixNNd::Zero(num_latent(), num_latent());
-    VectorNd yX = VectorNd::Zero(num_latent(), num_latent());
+    VectorNd yX = VectorNd::Zero(num_latent());
     pnm(d, yX, XX);
     double t = noise().getAlpha();
 

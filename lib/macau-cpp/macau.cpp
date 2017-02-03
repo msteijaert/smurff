@@ -62,8 +62,6 @@ AdaptiveGaussianNoise &MacauBase::setAdaptivePrecision(double sn_init, double sn
 }
 
 void MacauBase::init() {
-    threads_init();
-    init_bmrng();
     if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
     model->init();
     for( auto &p : priors) p->init();
@@ -98,6 +96,8 @@ void Macau::setSamples(int b, int n) {
 }
 
 void Macau::init() {
+  threads_init();
+  init_bmrng();
   MacauBase::init();
   if (verbose) {
       printInitStatus(std::cout, "");

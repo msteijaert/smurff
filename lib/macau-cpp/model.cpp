@@ -199,7 +199,9 @@ template<typename YType>
 void MF<YType>::init_base()
 {
     assert(Yrows() > 0 && Ycols() > 0);
-    assert(Ytest.rows() == Yrows() && Ytest.cols() == Ycols() && "Size of train must be equal to size of test");
+    if (Ytest.nonZeros() > 0) {
+        assert(Ytest.rows() == Yrows() && Ytest.cols() == Ycols() && "Size of train must be equal to size of test");
+    }
 
     mean_rating = Y.sum() / Y.nonZeros();
 
