@@ -40,7 +40,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
     std::tie(yX, XX) = pnm(d);
     double t = noise().getAlpha();
 
-    for(unsigned k=0;k<K;++k) {
+    for(int k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);
         double mu = t / lambda * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
         double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
