@@ -321,9 +321,7 @@ void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
 //-- SparseMF specific stuff
 //
 
-Factors::PnM SparseMF::get_pnm(int f, int n) {
-    MatrixXd MM = MatrixXd::Zero(num_latent, num_latent);
-    VectorXd rr = VectorXd::Zero(num_latent);
+void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(f);
     MatrixXd &Vf = V(f);
     const int C = Y.col(n).nonZeros();
@@ -349,11 +347,8 @@ Factors::PnM SparseMF::get_pnm(int f, int n) {
     return std::make_pair(rr, MM);
 }
 
-Factors::PnM SparseMF::get_probit_pnm(int f, int n)
+void SparseMF::get_probit_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)
 {
-    MatrixXd MM = MatrixXd::Zero(num_latent, num_latent);
-    VectorXd rr = VectorXd::Zero(num_latent);
-
     auto u = U(f).col(n);
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
         const auto &col = V(f).col(it.row());
@@ -361,8 +356,6 @@ Factors::PnM SparseMF::get_probit_pnm(int f, int n)
         auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
         rr.noalias() += col * z;
     }
-
-    return std::make_pair(rr, MM);
 }
 
 
@@ -371,10 +364,10 @@ Factors::PnM SparseMF::get_probit_pnm(int f, int n)
 //
 
 template<class YType>
-Factors::PnM DenseMF<YType>::get_pnm(int f, int d) {
+void DenseMF<YType>::get_pnm(int f, int d, VectorXd &rr, MatrixXd &MM) {
     auto &Y = this->Yc.at(f);
-    VectorXd rr = (this->V(f) * Y.col(d));
-    return std::make_pair(rr, VV.at(f));
+    rr.noalias() += (this->V(f) * Y.col(d));
+    MM.noalias() += VV.at(f); 
 }
 
 template<class YType>

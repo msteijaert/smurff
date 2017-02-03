@@ -49,9 +49,8 @@ struct Factors {
     virtual double var_total() const = 0;
 
     // helper functions for priors
-    typedef std::pair<Eigen::VectorXd, Eigen::MatrixXd> PnM;
-    virtual PnM  get_pnm(int,int) = 0;
-    virtual PnM  get_probit_pnm(int,int) = 0;
+    virtual void get_pnm(int,int,VectorNd &, MatrixNNd &) = 0;
+    virtual void get_probit_pnm(int,int,VectorNd &, MatrixNNd &) = 0;
     virtual void update_pnm(int) = 0;
  
     //-- output to file
@@ -109,9 +108,9 @@ struct SparseMF : public MF<SparseMatrixD> {
         name = "SparseMF";
     }
 
-    Factors::PnM  get_pnm(int,int) override;
-    Factors::PnM  get_probit_pnm(int,int) override;
-    void          update_pnm(int) override {}
+    void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
+    void get_probit_pnm(int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(int) override {}
 };
 
 template<class YType>
@@ -124,12 +123,12 @@ struct DenseMF : public MF<YType> {
         this->name = "DenseMF";
     }
 
-    Factors::PnM  get_pnm(int,int) override;
-    Factors::PnM  get_probit_pnm(int f,int n) override { assert(false && " Probit noise only on dense for the moment" ); return get_pnm(f,n); }
-    void          update_pnm(int) override;
+    void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
+    void get_probit_pnm(int f,int n,VectorNd &, MatrixNNd &) override { assert(false && " Probit noise only on dense for the moment" ); return get_pnm(f,n); }
+    void update_pnm(int) override;
 
   private:
-    std::vector<Eigen::MatrixXd> VV;
+    std::vector<MatrixNNd> VV;
 };
 
 typedef DenseMF<Eigen::MatrixXd> DenseDenseMF;

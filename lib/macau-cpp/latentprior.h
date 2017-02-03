@@ -41,7 +41,7 @@ class ILatentPrior {
       }
 
       virtual void sample_latent(int n) = 0;
-      virtual Factors::PnM pnm(int n) { return model().get_pnm(pos, n); }
+      virtual void pnm(int n, VectorNNd &rr, MatrixNNd &MM) { model().get_pnm(pos, n, rr, MM); }
 
       virtual void addSibling(MacauBase &b) = 0;
       template<class Prior>
@@ -83,7 +83,7 @@ class ProbitNormalPrior : public NormalPrior {
     ProbitNormalPrior(MacauBase &m, int p)
         : NormalPrior(m, p) {}
     virtual ~ProbitNormalPrior() {}
-    virtual Factors::PnM pnm(int n) { return model().get_probit_pnm(pos, n); }
+    virtual void pnm(int n, VectorNNd &rr, MatrixNNd &MM) { model().get_probit_pnm(pos, n, rr, MM); }
 };
 
 template<class Prior>
