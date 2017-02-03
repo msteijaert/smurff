@@ -8,6 +8,8 @@
 struct SparseDoubleMatrix;
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
+extern int global_num_latent;
+
 struct Factors {
     int num_latent;
 
@@ -17,6 +19,8 @@ struct Factors {
     {
         assert(num_fac == 2); 
         factors.resize(num_fac);
+        assert(this->num_latent == global_num_latent || global_num_latent == -1);
+        global_num_latent = this->num_latent;
     }
 
 

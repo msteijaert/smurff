@@ -183,10 +183,6 @@ class MPIMacauPrior : public MacauPrior<FType> {
 };
 
 
-typedef Eigen::VectorXd VectorNd;
-typedef Eigen::MatrixXd MatrixNNd;
-typedef Eigen::ArrayXd ArrayNd;
-
 /** Spike and slab prior */
 class SpikeAndSlabPrior : public ILatentPrior {
    public:

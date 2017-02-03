@@ -27,10 +27,9 @@
 using namespace std; 
 using namespace Eigen;
 
-void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    assert(nrows == Yrows() && ncols == Ycols() && 
-            "Size of train must be equal to size of test");
+int global_num_latent = -1;
 
+void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     Ytest.resize(nrows, ncols);
     sparseFromIJV(Ytest, rows, cols, values, N);
 }
@@ -200,6 +199,8 @@ template<typename YType>
 void MF<YType>::init_base()
 {
     assert(Yrows() > 0 && Ycols() > 0);
+    assert(Ytest.rows() == Yrows() && Ytest.cols() == Ycols() && "Size of train must be equal to size of test");
+
     mean_rating = Y.sum() / Y.nonZeros();
 
     U(0) = nrandn(num_latent, Y.cols());
@@ -323,11 +324,26 @@ void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
 Factors::PnM SparseMF::get_pnm(int f, int n) {
     MatrixXd MM = MatrixXd::Zero(num_latent, num_latent);
     VectorXd rr = VectorXd::Zero(num_latent);
-
-    for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
-        auto col = V(f).col(it.row());
-        rr.noalias() += col * it.value();
-        MM += col * col.transpose();
+    auto &Y = Yc.at(f);
+    MatrixXd &Vf = V(f);
+    const int C = Y.col(n).nonZeros();
+    if (C > 1e6) {
+        auto from = Y.outerIndexPtr()[n];
+        auto to = Y.outerIndexPtr()[n+1];
+#pragma omp parallel for schedule(dynamic, 20) reduction(VectorPlus:rr) reduction(MatrixPlus:MM)
+        for(int i=from; i<to; ++i) {
+            auto val = Y.valuePtr()[i];
+            auto idx = Y.innerIndexPtr()[i];
+            const auto &col = Vf.col(idx);
+            rr.noalias() += col * val;
+            MM += col * col.transpose();
+        }
+    } else {
+        for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
+            const auto &col = Vf.col(it.row());
+            rr.noalias() += col * it.value();
+            MM += col * col.transpose();
+        }
     }
 
     return std::make_pair(rr, MM);
@@ -340,7 +356,7 @@ Factors::PnM SparseMF::get_probit_pnm(int f, int n)
 
     auto u = U(f).col(n);
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
-        auto col = V(f).col(it.row());
+        const auto &col = V(f).col(it.row());
         MM += col * col.transpose();
         auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
         rr.noalias() += col * z;
@@ -366,13 +382,11 @@ void DenseMF<YType>::update_pnm(int f) {
     auto &Vf = this->V(f);
     auto &VVf = VV.at(f);
     VVf = MatrixXd::Zero(this->num_latent, this->num_latent);
-    SHOW(VVf);
 
-#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:XX)
+#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:VVf)
     for(int n = 0; n < Vf.cols(); n++) {
         auto v = Vf.col(n);
         VVf += v * v.transpose();
-        SHOW(VVf);
     }
 }
 

@@ -92,9 +92,6 @@ void NormalPrior::sample_latent(int n)
 
     Eigen::LLT<MatrixXd> chol = MM.llt();
     if(chol.info() != Eigen::Success) {
-        SHOW(V);
-        SHOW(p.second);
-        SHOW(MM);
         throw std::runtime_error("Cholesky Decomposition failed!");
     }
 
