@@ -336,13 +336,13 @@ Factors::PnM SparseMF::get_pnm(int f, int n) {
             auto idx = Y.innerIndexPtr()[i];
             const auto &col = Vf.col(idx);
             rr.noalias() += col * val;
-            MM += col * col.transpose();
+            MM.noalias() += col * col.transpose();
         }
     } else {
         for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
             const auto &col = Vf.col(it.row());
             rr.noalias() += col * it.value();
-            MM += col * col.transpose();
+            MM.noalias() += col * col.transpose();
         }
     }
 
@@ -357,7 +357,7 @@ Factors::PnM SparseMF::get_probit_pnm(int f, int n)
     auto u = U(f).col(n);
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
         const auto &col = V(f).col(it.row());
-        MM += col * col.transpose();
+        MM.noalias() += col * col.transpose();
         auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
         rr.noalias() += col * z;
     }
