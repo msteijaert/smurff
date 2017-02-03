@@ -287,6 +287,9 @@ extern int global_num_latent;
 inline VectorNd vec_zero() { return VectorNd::Zero(global_num_latent); }
 inline MatrixNNd mat_zero() { return MatrixNNd::Zero(global_num_latent, global_num_latent); }
 
+typedef Eigen::SparseMatrix<double> SparseMatrixD;
+
+extern int global_num_latent;
 
 #pragma omp declare reduction (VectorPlus : VectorNd : omp_out += omp_in) initializer(omp_priv = vec_zero())
 #pragma omp declare reduction (MatrixPlus : MatrixNNd : omp_out += omp_in) initializer(omp_priv = mat_zero())

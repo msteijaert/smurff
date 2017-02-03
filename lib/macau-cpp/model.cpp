@@ -343,8 +343,6 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
             MM.noalias() += col * col.transpose();
         }
     }
-
-    return std::make_pair(rr, MM);
 }
 
 void SparseMF::get_probit_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)

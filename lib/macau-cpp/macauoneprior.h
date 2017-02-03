@@ -42,6 +42,6 @@ class MacauOnePrior : public ILatentPrior {
     void setLambdaBeta(double lb) { lambda_beta = Eigen::VectorXd::Constant(this->num_latent(), lb); };
     void savePriorInfo(std::string prefix) override;
 
-    std::pair<Eigen::VectorXd, Eigen::MatrixXd> pnm(int) override;
+     void pnm(int,VectorNd &, MatrixNNd &) override;
 };
 

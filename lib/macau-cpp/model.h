@@ -5,10 +5,7 @@
 #include <Eigen/Sparse>
 #include <memory>
 
-struct SparseDoubleMatrix;
-typedef Eigen::SparseMatrix<double> SparseMatrixD;
-
-extern int global_num_latent;
+#include "utils.h"
 
 struct Factors {
     int num_latent;
@@ -124,7 +121,7 @@ struct DenseMF : public MF<YType> {
     }
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void get_probit_pnm(int f,int n,VectorNd &, MatrixNNd &) override { assert(false && " Probit noise only on dense for the moment" ); return get_pnm(f,n); }
+    void get_probit_pnm(int f,int n,VectorNd &, MatrixNNd &) override { assert(false && " Probit noise only on dense for the moment" );  }
     void update_pnm(int) override;
 
   private:

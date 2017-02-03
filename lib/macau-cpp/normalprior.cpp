@@ -84,11 +84,21 @@ void NormalPrior::sample_latent(int n)
 {
     const auto &mu_u = getMu(n);
     const auto &Lambda_u = getLambda(n);
-    const auto &p = pnm(n);
     const double alpha = noise().getAlpha();
 
-    VectorXd rr = p.first * alpha + Lambda_u * mu_u;
-    MatrixXd MM = p.second * alpha + Lambda_u;
+    VectorNd rr = VectorNd::Zero(num_latent());
+    MatrixNNd MM = MatrixNNd::Zero(num_latent(), num_latent());
+
+    // add pnm
+    pnm(n,rr,MM);
+
+    // add noise
+    rr.array() *= alpha;
+    MM.array() *= alpha;
+
+    // add hyperparams
+    rr.noalias() += Lambda_u * mu_u;
+    MM.noalias() += Lambda_u;
 
     Eigen::LLT<MatrixXd> chol = MM.llt();
     if(chol.info() != Eigen::Success) {
@@ -142,19 +152,17 @@ std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) 
 }
 
 template<class Prior>
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> MasterPrior<Prior>::pnm(int n) 
+void MasterPrior<Prior>::pnm(int n, VectorNd &rr, MatrixNNd &MM) 
 {
     // first the master
-    auto p = Prior::pnm(n);
+    Prior::pnm(n, rr, MM);
 
     // then the slaves
     assert(slaves.size() > 0 && "No slaves");
     for(auto &s : slaves) {
         auto &slave_prior = s.priors.at(this->pos);
-        p += slave_prior->pnm(n);
+        slave_prior->pnm(n, rr, MM);
     }
-
-    return p;
 }
 
 template<class Prior>
