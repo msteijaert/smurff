@@ -1,4 +1,3 @@
-#include <mpi.h>
 #include <stdio.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
