@@ -92,22 +92,28 @@ SparseMatrixD random_Ysparse(int N, int D, int K, double s)
     return sparsify(X, W, s);
 }
 
-std::pair<SparseMatrixD,SparseMatrixD> split(const SparseMatrixD &Y, double s)
+SparseMatrixD extract(SparseMatrixD &Y, double s)
 {
-    SparseMatrixD Ytrain(Y.rows(), Y.cols());
     SparseMatrixD Ytest(Y.rows(), Y.cols());
-
     std::default_random_engine gen;
     std::uniform_real_distribution<double> udist(0.0,1.0);
+    typedef Eigen::Triplet<double> T;
+    std::vector<T> tripletList;
 
-    for (int k = 0; k < Y.outerSize(); ++k) {
-        for (SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
-            auto p=udist(gen);
-            if(p < s) Ytest.coeffRef(it.row(), it.col()) = it.value();
-            else Ytrain.coeffRef(it.row(), it.col()) = it.value();
+    Y.prune([&udist, &gen, &tripletList, s](
+                const SparseMatrixD::Index& row,
+                const SparseMatrixD::Index& col,
+                const SparseMatrixD::Scalar& value)->bool
+        {
+            bool prune = udist(gen) < s;
+            if (prune) tripletList.push_back(T(row,col,value));
+            return prune;
         }
-    }
-    return std::make_pair(Ytrain, Ytest);
+    );
+
+    Ytest.setFromTriplets(tripletList.begin(), tripletList.end());   //create the matrix
+
+    return Ytest;
 }
 
 SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s)

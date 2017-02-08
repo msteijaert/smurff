@@ -36,9 +36,10 @@ void test_sparse(int N, int D, int iter_max)
     macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);
-    auto Y2 = split(ones_Ysparse(N,D,2,.8),.2);
-    master_model.setRelationData(Y2.first);
-    master_model.setRelationDataTest(Y2.second);
+    auto Ytrain = ones_Ysparse(N,D,2,.8);
+    auto Ytest = extract(Ytrain,.2);
+    master_model.setRelationData(Ytrain);
+    master_model.setRelationDataTest(Ytest);
 
     //-- Normal priors
     //macau.addPrior<DenseSpikeAndSlabPrior>(model);

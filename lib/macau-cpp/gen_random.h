@@ -8,6 +8,6 @@ Eigen::MatrixXd random_Ydense(int N, int D, int K);
 SparseMatrixD ones_Ysparse(int N, int D, int K, double s);
 SparseMatrixD random_Ysparse(int N, int D, int K, double s);
 
-std::pair<SparseMatrixD,SparseMatrixD>   split(const SparseMatrixD &Y, double s);
+SparseMatrixD extract(SparseMatrixD &Y, double s);
 SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s);
 

@@ -348,12 +348,10 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
         SparseMF& model = sparseModel(num_latent);
         auto Ytrain = to_eigen(*read_sdm(fname_train.c_str()));
         if (test_split > .0) {
-            auto Y = split(Ytrain, test_split);
-            model.setRelationData(Y.first);
-            model.setRelationDataTest(Y.second);
-        } else {
-            model.setRelationData(Ytrain);
+            auto Ytest = extract(Ytrain, test_split);
+            model.setRelationDataTest(Ytest);
         }
+        model.setRelationData(Ytrain);
     } else if (fname_train.find(".ddm") != std::string::npos) {
         DenseDenseMF& model = denseDenseModel(num_latent);
         auto Ytrain = read_ddm<MatrixXd>(fname_train.c_str());
