@@ -327,21 +327,33 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(f);
     MatrixXd &Vf = V(f);
     const int C = Y.col(n).nonZeros();
-    if (C > 1e6) {
+    if (C > 10000) {
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
-#pragma omp for 
-        for(int i=from; i<to; ++i) {
-#pragma omp task private(rr,MM)
+        std::vector<VectorXd> rrs(nthreads(), vec_zero());
+        std::vector<MatrixXd> MMs(nthreads(), mat_zero()); 
+#pragma omp for nowait
+        for(int j=from; j<to; j+=1000) {
+#pragma omp task shared(Y,Vf,rrs,MMs)
             {
-                auto val = Y.valuePtr()[i];
-                auto idx = Y.innerIndexPtr()[i];
-                const auto &col = Vf.col(idx);
-                rr.noalias() += col * val;
-                MM.noalias() += col * col.transpose();
+                auto &my_rr = rrs.at(thread_num());
+                auto &my_MM = MMs.at(thread_num());
+
+                for(int i=j; i<std::min(j+1000, to); ++i)
+                {
+                    auto val = Y.valuePtr()[i];
+                    auto idx = Y.innerIndexPtr()[i];
+                    const auto &col = Vf.col(idx);
+                    my_rr.noalias() += col * val;
+                    my_MM.noalias() += col * col.transpose();
+                }
             }
         }
 #pragma omp taskwait
+        for(int i=0; i<nthreads();++i) {
+                MM += MMs.at(i);
+                rr += rrs.at(i);
+        }
     } else {
         for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
             const auto &col = Vf.col(it.row());

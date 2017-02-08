@@ -275,7 +275,7 @@ void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   }
 
   std::vector<MatrixXd> Ys;
-  Ys.resize(nthreads(), MatrixXd(n, n));
+  Ys.resize(thread_limit(), MatrixXd(n, n));
 
 #pragma omp parallel
   {
@@ -318,7 +318,7 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
     throw std::runtime_error("A.rows() must equal out.rows()");
   }
   std::vector<MatrixXd> Ys;
-  Ys.resize(nthreads(), MatrixXd(n, n));
+  Ys.resize(thread_limit(), MatrixXd(n, n));
 
 #pragma omp parallel
   {

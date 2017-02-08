@@ -7,31 +7,34 @@
 
 inline int nthreads() 
 {
-    int nt = -1;
-#pragma omp parallel 
-   {
-#pragma omp single
-      {
-         nt = omp_get_num_threads();
-      }
-   }
-
-   return nt;
+    return omp_get_num_threads();
 }
+
+
+inline int thread_limit() 
+{
+    int nt = -1;
+#pragma omp parallel
+    {
+#pragma omp single
+        nt = omp_get_num_threads();
+    }
+return nt;
+}
+
 inline int thread_num()
 {
     return omp_get_thread_num(); 
 }
 
 inline void threads_init() {
-    omp_set_nested(true);
-    omp_set_dynamic(true);
-    std::cout << "Using OpenMP with " << nthreads() << " threads.\n";
+    std::cout << "Using OpenMP with up to " << thread_limit() << " threads.\n";
 }
 
 #else
 inline int thread_num() { return 0; }
 inline int nthreads(void) { return 1; }
+inline int thread_limit(void) { return 1; }
 inline void threads_init() { }
 #endif
 #endif

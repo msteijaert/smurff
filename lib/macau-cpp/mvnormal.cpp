@@ -57,7 +57,7 @@ auto nrandn(int n, int m) -> decltype( ArrayXXd::NullaryExpr(n, m, ptr_fun(randn
 void init_bmrng(int seed) {
 
    bmrngs.clear();
-   for (int i = 0; i < nthreads(); i++) {
+   for (int i = 0; i < thread_limit(); i++) {
       bmrngs.push_back(std::mt19937(seed + i * 1999));
    }
 }
