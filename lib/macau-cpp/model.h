@@ -35,9 +35,9 @@ struct Factors {
     void setRelationDataTest(Eigen::SparseMatrix<double> Y);
 
     std::pair<double,double> getRMSE(int iter, int burnin);
-    const Eigen::VectorXd &getPredictions(int iter, int burnin);
-    const Eigen::VectorXd &getPredictionsVar(int iter, int burnin);
-    const Eigen::VectorXd &getStds(int iter, int burnin);
+    const Eigen::VectorXd   &getPredictions(int iter, int burnin);
+    const Eigen::VectorXd   &getPredictionsVar(int iter, int burnin);
+    const Eigen::VectorXd   &getStds(int iter, int burnin);
 
     double auc();
 

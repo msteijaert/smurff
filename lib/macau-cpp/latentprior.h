@@ -36,8 +36,12 @@ class ILatentPrior {
 
       virtual void sample_latents() {
           model().update_pnm(pos);
-#pragma omp parallel for schedule(dynamic, 2)
-          for(int n = 0; n < U.cols(); n++) sample_latent(n); 
+#pragma omp parallel
+#pragma omp for 
+          for(int n = 0; n < U.cols(); n++) {
+              #pragma omp task
+              sample_latent(n); 
+          }
       }
 
       virtual void sample_latent(int n) = 0;

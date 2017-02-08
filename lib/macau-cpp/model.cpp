@@ -330,14 +330,18 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     if (C > 1e6) {
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
-#pragma omp parallel for schedule(dynamic, 20) reduction(VectorPlus:rr) reduction(MatrixPlus:MM)
+#pragma omp for 
         for(int i=from; i<to; ++i) {
-            auto val = Y.valuePtr()[i];
-            auto idx = Y.innerIndexPtr()[i];
-            const auto &col = Vf.col(idx);
-            rr.noalias() += col * val;
-            MM.noalias() += col * col.transpose();
+#pragma omp task private(rr,MM)
+            {
+                auto val = Y.valuePtr()[i];
+                auto idx = Y.innerIndexPtr()[i];
+                const auto &col = Vf.col(idx);
+                rr.noalias() += col * val;
+                MM.noalias() += col * col.transpose();
+            }
         }
+#pragma omp taskwait
     } else {
         for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
             const auto &col = Vf.col(it.row());
