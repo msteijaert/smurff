@@ -333,13 +333,13 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
         const int task_size = local_nnz / 100.0;
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
-        std::vector<VectorXd> rrs(nthreads(), vec_zero());
-        std::vector<MatrixXd> MMs(nthreads(), mat_zero()); 
+        thread_vector<VectorXd> rrs(vec_zero());
+        thread_vector<MatrixXd> MMs(mat_zero()); 
         for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(Y,Vf,rrs,MMs)
             {
-                auto &my_rr = rrs.at(thread_num());
-                auto &my_MM = MMs.at(thread_num());
+                auto &my_rr = rrs.local();
+                auto &my_MM = MMs.local();
 
                 for(int i=j; i<std::min(j+task_size,to); ++i)
                 {
@@ -352,10 +352,8 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
             }
         }
 #pragma omp taskwait
-        for(int i=0; i<nthreads();++i) {
-                MM += MMs.at(i);
-                rr += rrs.at(i);
-        }
+        MM += MMs.combine();
+        rr += rrs.combine();
     } else {
         for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
             const auto &col = Vf.col(it.row());

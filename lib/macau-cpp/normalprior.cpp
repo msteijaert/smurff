@@ -18,7 +18,9 @@ using namespace std;
 using namespace Eigen;
 
 ILatentPrior::ILatentPrior(MacauBase &m, int p, std::string name)
-    : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)), name(name) {} 
+    : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)),
+      name(name), rrs(VectorNd::Zero(m.model->num_latent)),
+                  MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent)) {} 
 
 // utility
 Factors &ILatentPrior::model() const
@@ -86,8 +88,11 @@ void NormalPrior::sample_latent(int n)
     const auto &Lambda_u = getLambda(n);
     const double alpha = noise().getAlpha();
 
-    VectorNd rr = VectorNd::Zero(num_latent());
-    MatrixNNd MM = MatrixNNd::Zero(num_latent(), num_latent());
+    VectorNd &rr = rrs.local();
+    MatrixNNd &MM = MMs.local();
+
+    rr.setZero();
+    MM.setZero();
 
     // add pnm
     pnm(n,rr,MM);

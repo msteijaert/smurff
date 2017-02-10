@@ -54,6 +54,10 @@ class ILatentPrior {
       Eigen::MatrixXd &U, &V;
       std::vector<ILatentPrior *> siblings;
       std::string name = "xxxx";
+
+      thread_vector<VectorNd> rrs;
+      thread_vector<MatrixNNd> MMs;
+
 };
 
 /** Prior without side information (pure BPMF) */

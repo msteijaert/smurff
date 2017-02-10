@@ -8,10 +8,32 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <numeric>
 #include <memory>
 
 #include <csr.h>
 #include <dsparse.h>
+
+template<typename T>
+class thread_vector
+{
+    public:
+        thread_vector(const T &t) : _m(nthreads(), t), _i(t) {}
+        template<typename F>
+        T combine(F f) const {
+            return std::accumulate(_m.begin(), _m.end(), _i, f);
+        }
+        T combine() const {
+            return std::accumulate(_m.begin(), _m.end(), _i, std::plus<T>());
+        }
+
+
+        T &local() { return _m[thread_num()]; }
+
+    private:
+        std::vector<T> _m;
+        T _i;
+};
 
 #ifdef NDEBUG
 #define SHOW(m)
