@@ -326,20 +326,22 @@ void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
 void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(f);
     MatrixXd &Vf = V(f);
-    const int C = Y.col(n).nonZeros();
-    if (C > 10000) {
+    const double local_nnz = Y.col(n).nonZeros();
+    const double total_nnz = Y.nonZeros();
+    // extra parallization for samples with >1% of nonzeros
+    if (local_nnz > total_nnz / 100.) {
+        const int task_size = local_nnz / 100.0;
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
         std::vector<VectorXd> rrs(nthreads(), vec_zero());
         std::vector<MatrixXd> MMs(nthreads(), mat_zero()); 
-#pragma omp for nowait
-        for(int j=from; j<to; j+=1000) {
+        for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(Y,Vf,rrs,MMs)
             {
                 auto &my_rr = rrs.at(thread_num());
                 auto &my_MM = MMs.at(thread_num());
 
-                for(int i=j; i<std::min(j+1000, to); ++i)
+                for(int i=j; i<std::min(j+task_size,to); ++i)
                 {
                     auto val = Y.valuePtr()[i];
                     auto idx = Y.innerIndexPtr()[i];
@@ -361,6 +363,22 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
             MM.noalias() += col * col.transpose();
         }
     }
+}
+
+void SparseMF::update_pnm(int f) {
+    auto &Y = Yc.at(f);
+
+    return;
+    int bin = 1;
+    int count = 1;
+    while (count > 0) {
+        count = 0;
+        for(int i=0; i<Y.cols();++i) if (Y.col(i).nonZeros() >= bin) count++;
+        std::cout << "fac: " << f << "; bin > " << bin << ": " << count << std::endl;
+        bin *= 2;
+    }
+
+
 }
 
 void SparseMF::get_probit_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)

@@ -107,7 +107,7 @@ struct SparseMF : public MF<SparseMatrixD> {
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
     void get_probit_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(int) override {}
+    void update_pnm(int) override;
 };
 
 template<class YType>
