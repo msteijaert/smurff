@@ -97,21 +97,17 @@ SparseMatrixD extract(SparseMatrixD &Y, double s)
     SparseMatrixD Ytest(Y.rows(), Y.cols());
     std::default_random_engine gen;
     std::uniform_real_distribution<double> udist(0.0,1.0);
-    typedef Eigen::Triplet<double> T;
-    std::vector<T> tripletList;
 
-    Y.prune([&udist, &gen, &tripletList, s](
+    Y.prune([&udist, &gen, &Ytest, s](
                 const SparseMatrixD::Index& row,
                 const SparseMatrixD::Index& col,
                 const SparseMatrixD::Scalar& value)->bool
         {
             bool prune = udist(gen) < s;
-            if (prune) tripletList.push_back(T(row,col,value));
+            if (prune) Ytest.insert(row,col) = value;
             return prune;
         }
     );
-
-    Ytest.setFromTriplets(tripletList.begin(), tripletList.end());   //create the matrix
 
     return Ytest;
 }
