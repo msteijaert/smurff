@@ -329,12 +329,15 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     const double local_nnz = Y.col(n).nonZeros();
     const double total_nnz = Y.nonZeros();
     // extra parallization for samples with >1% of nonzeros
+    //std::cout << "local_nnz : " << local_nnz << std::endl;
+    //std::cout << "total_nnz / 1000: " << total_nnz/1000. << std::endl;
     if (local_nnz > total_nnz / 100.) {
-        const int task_size = local_nnz / 100.0;
+        const int task_size = ceil(local_nnz / 100.0);
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
         thread_vector<VectorXd> rrs(vec_zero());
         thread_vector<MatrixXd> MMs(mat_zero()); 
+        //printf("from-to-tasksize: %d-%d-%d\n", from, to, task_size);
         for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(Y,Vf,rrs,MMs)
             {
@@ -366,17 +369,23 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
 void SparseMF::update_pnm(int f) {
     auto &Y = Yc.at(f);
 
-    return;
     int bin = 1;
-    int count = 1;
-    while (count > 0) {
+    int count = 0;
+    int total = 0;
+    while (count < Y.cols()) {
         count = 0;
-        for(int i=0; i<Y.cols();++i) if (Y.col(i).nonZeros() >= bin) count++;
-        std::cout << "fac: " << f << "; bin > " << bin << ": " << count << std::endl;
+        for(int i=0; i<Y.cols();++i) if (Y.col(i).nonZeros() < bin) count++;
+        auto bin_count = count - total;
+        auto bin_nnz = bin_count * bin;
+        auto bin_percent = (100. * bin_nnz) / Y.nonZeros();
+            printf("fac: %d\t%5d < bin < %5d;\t#samples: %4d;\t%5d < #nnz < %5d;\t %.1f < %%nnz < %.1f\n",
+                    f, bin/2, bin, bin_count, bin_nnz/2, bin_nnz, bin_percent/2, bin_percent);
         bin *= 2;
+        total = count;
     }
 
-
+    std::cout << "Total samples: " << Y.cols() << std::endl;
+    std::cout << "Total nnz: " << Y.nonZeros() << std::endl;
 }
 
 void SparseMF::get_probit_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)
@@ -407,12 +416,15 @@ void DenseMF<YType>::update_pnm(int f) {
     auto &Vf = this->V(f);
     auto &VVf = VV.at(f);
     VVf = MatrixXd::Zero(this->num_latent, this->num_latent);
+    thread_vector<MatrixXd> VVs(VVf);
 
-#pragma omp parallel for schedule(dynamic, 2) reduction(MatrixPlus:VVf)
+#pragma omp parallel for schedule(dynamic, 8) shared(VVs)
     for(int n = 0; n < Vf.cols(); n++) {
         auto v = Vf.col(n);
-        VVf += v * v.transpose();
+        VVs.local() += v * v.transpose();
     }
+
+   VV.at(f) = VVs.combine();
 }
 
 template struct DenseMF<Eigen::MatrixXd>;

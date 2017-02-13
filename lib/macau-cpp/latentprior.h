@@ -20,7 +20,7 @@ class ILatentPrior {
       // c-tor
       ILatentPrior(MacauBase &m, int p, std::string name = "xxxx");
       virtual ~ILatentPrior() {}
-      virtual void init() {};
+      virtual void init() {}
 
       // utility
       Factors &model() const;
@@ -36,8 +36,9 @@ class ILatentPrior {
 
       virtual void sample_latents() {
           model().update_pnm(pos);
-#pragma omp parallel for 
+#pragma omp parallel for
           for(int n = 0; n < U.cols(); n++) {
+#pragma omp task shared(n)
               sample_latent(n); 
           }
       }
@@ -77,8 +78,6 @@ class NormalPrior : public ILatentPrior {
     int df;
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
-    virtual const Eigen::MatrixXd getLambda(int) const { return Lambda; }
-
     void sample_latents() override;
     void sample_latent(int n) override;
     void savePriorInfo(std::string prefix) override;
@@ -151,7 +150,6 @@ class MacauPrior : public NormalPrior {
     double getLinkNorm() override;
     double getLinkLambda() override { return lambda_beta; };
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
-    const Eigen::MatrixXd getLambda(int) const override { return this->Lambda; }
 
     void compute_Ft_y_omp(Eigen::MatrixXd &);
     virtual void sample_beta();

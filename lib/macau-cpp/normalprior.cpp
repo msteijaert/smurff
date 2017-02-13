@@ -20,7 +20,9 @@ using namespace Eigen;
 ILatentPrior::ILatentPrior(MacauBase &m, int p, std::string name)
     : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)),
       name(name), rrs(VectorNd::Zero(m.model->num_latent)),
-                  MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent)) {} 
+                  MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent))
+{
+} 
 
 // utility
 Factors &ILatentPrior::model() const
@@ -85,7 +87,6 @@ void NormalPrior::addSibling(MacauBase &b)
 void NormalPrior::sample_latent(int n)
 {
     const auto &mu_u = getMu(n);
-    const auto &Lambda_u = getLambda(n);
     const double alpha = noise().getAlpha();
 
     VectorNd &rr = rrs.local();
@@ -102,8 +103,8 @@ void NormalPrior::sample_latent(int n)
     MM.array() *= alpha;
 
     // add hyperparams
-    rr.noalias() += Lambda_u * mu_u;
-    MM.noalias() += Lambda_u;
+    rr.noalias() += Lambda * mu_u;
+    MM.noalias() += Lambda;
 
     Eigen::LLT<MatrixXd> chol = MM.llt();
     if(chol.info() != Eigen::Success) {

@@ -18,7 +18,7 @@ template<typename T>
 class thread_vector
 {
     public:
-        thread_vector(const T &t) : _m(nthreads(), t), _i(t) {}
+        thread_vector(const T &t) : _m(thread_limit(), t), _i(t) {}
         template<typename F>
         T combine(F f) const {
             return std::accumulate(_m.begin(), _m.end(), _i, f);
@@ -28,7 +28,7 @@ class thread_vector
         }
 
 
-        T &local() { return _m[thread_num()]; }
+        T &local() { return _m.at(thread_num()); }
 
     private:
         std::vector<T> _m;
@@ -312,8 +312,4 @@ inline MatrixNNd mat_zero() { return MatrixNNd::Zero(global_num_latent, global_n
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 extern int global_num_latent;
-
-#pragma omp declare reduction (VectorPlus : VectorNd : omp_out += omp_in) initializer(omp_priv = vec_zero())
-#pragma omp declare reduction (MatrixPlus : MatrixNNd : omp_out += omp_in) initializer(omp_priv = mat_zero())
-
 

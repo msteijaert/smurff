@@ -8,13 +8,14 @@
 inline int nthreads() { return omp_get_num_threads(); }
 inline int thread_limit() 
 {
-    int nt = -1;
+    static int nt = -1;
+    if (nt < 0) 
 #pragma omp parallel
     {
 #pragma omp single
         nt = omp_get_num_threads();
     }
-return nt;
+    return nt;
 }
 
 inline int thread_num() { return omp_get_thread_num(); }
