@@ -38,7 +38,7 @@ class ILatentPrior {
           model().update_pnm(pos);
 #pragma omp parallel for
           for(int n = 0; n < U.cols(); n++) {
-#pragma omp task shared(n)
+#pragma omp task
               sample_latent(n); 
           }
       }
