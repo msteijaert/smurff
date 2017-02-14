@@ -16,8 +16,9 @@ extern "C" {
 
 using namespace std; 
 using namespace Eigen;
+using namespace Macau;
 
-ILatentPrior::ILatentPrior(MacauBase &m, int p, std::string name)
+ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
     : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)),
       name(name), rrs(VectorNd::Zero(m.model->num_latent)),
                   MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent))
@@ -50,7 +51,7 @@ std::ostream &ILatentPrior::printInitStatus(std::ostream &os, std::string indent
  *  base class NormalPrior 
  */
 
-NormalPrior::NormalPrior(MacauBase &m, int p, std::string name)
+NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
     : ILatentPrior(m, p, name) 
 {
     const int K = num_latent();
@@ -78,7 +79,7 @@ void NormalPrior::sample_latents() {
     ILatentPrior::sample_latents();
 }
 
-void NormalPrior::addSibling(MacauBase &b)
+void NormalPrior::addSibling(BaseSession &b)
 {
     addSiblingTempl<NormalPrior>(b);
 }
@@ -127,7 +128,7 @@ void NormalPrior::savePriorInfo(std::string prefix) {
  */
 
 template<class Prior>
-MasterPrior<Prior>::MasterPrior(MacauBase &m, int p) 
+MasterPrior<Prior>::MasterPrior(BaseSession &m, int p) 
     : Prior(m, p)
 {
     this->name = "Master" + this->name;
@@ -182,7 +183,7 @@ template<class Prior>
 template<class Model>
 Model& MasterPrior<Prior>::addSlave()
 {
-    slaves.push_back(MacauBase());
+    slaves.push_back(BaseSession());
     auto &slave_macau = slaves.back();
     slave_macau.name = "Slave " + std::to_string(slaves.size());
     slave_macau.setPrecision(1.0); // FIXME
@@ -195,13 +196,15 @@ Model& MasterPrior<Prior>::addSlave()
     return *n;
 }
 
-template class MasterPrior<NormalPrior>;
-template DenseDenseMF &MasterPrior<NormalPrior>::addSlave();
-template SparseDenseMF &MasterPrior<NormalPrior>::addSlave();
-template SparseMF &MasterPrior<NormalPrior>::addSlave();
+namespace Macau {
+    template class MasterPrior<NormalPrior>;
+    template DenseDenseMF &MasterPrior<NormalPrior>::addSlave();
+    template SparseDenseMF &MasterPrior<NormalPrior>::addSlave();
+    template SparseMF &MasterPrior<NormalPrior>::addSlave();
 
-template class MasterPrior<SpikeAndSlabPrior>;
-template DenseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
-template SparseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
-template SparseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+    template class MasterPrior<SpikeAndSlabPrior>;
+    template DenseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+    template SparseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+    template SparseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
 
+}

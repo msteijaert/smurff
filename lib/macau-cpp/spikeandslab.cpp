@@ -1,7 +1,9 @@
 #include "noisemodels.h"
 #include "macau.h"
 
-SpikeAndSlabPrior::SpikeAndSlabPrior(MacauBase &m, int p)
+using namespace Macau;
+
+SpikeAndSlabPrior::SpikeAndSlabPrior(BaseSession &m, int p)
     : ILatentPrior(m, p, "SpikeAndSlabPrior") {}
 
 void SpikeAndSlabPrior::init() {
@@ -18,7 +20,7 @@ void SpikeAndSlabPrior::init() {
 }
 
 
-void SpikeAndSlabPrior::addSibling(MacauBase &b) 
+void SpikeAndSlabPrior::addSibling(BaseSession &b) 
 {
      addSiblingTempl<SpikeAndSlabPrior>(b);
 }

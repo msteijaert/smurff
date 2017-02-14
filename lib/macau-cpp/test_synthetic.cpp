@@ -19,6 +19,7 @@
 
 using namespace Eigen;
 using namespace std;
+using namespace Macau;
 
 const int num_latent = 5;
 
@@ -27,7 +28,7 @@ const int num_latent = 5;
 void test_sparse(int N, int D, int iter_max) 
 {
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
-    Macau macau;
+    Session macau;
     auto &master_model = macau.sparseModel(num_latent);
     macau.setSamples(10, iter_max);
 
@@ -56,7 +57,7 @@ void test_sparse(int N, int D, int iter_max)
 void test_dense_dense(int N, int D, int iter_max) 
 {
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
-    Macau macau;
+    Session macau;
     auto &master_model = macau.denseDenseModel(num_latent);
     macau.setSamples(10, iter_max);
 

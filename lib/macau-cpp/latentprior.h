@@ -10,15 +10,16 @@
 #include "model.h"
 #include "macau.h"
 
+namespace Macau {
+
 class INoiseModel;
-class MacauBase;
-class Macau;
+class BaseSession;
 
 /** interface */
 class ILatentPrior {
   public:
       // c-tor
-      ILatentPrior(MacauBase &m, int p, std::string name = "xxxx");
+      ILatentPrior(BaseSession &m, int p, std::string name = "xxxx");
       virtual ~ILatentPrior() {}
       virtual void init() {}
 
@@ -46,11 +47,11 @@ class ILatentPrior {
       virtual void sample_latent(int n) = 0;
       virtual void pnm(int n, VectorNd &rr, MatrixNNd &MM) { model().get_pnm(pos, n, rr, MM); }
 
-      virtual void addSibling(MacauBase &b) = 0;
+      virtual void addSibling(BaseSession &b) = 0;
       template<class Prior>
-      void addSiblingTempl(MacauBase &b);
+      void addSiblingTempl(BaseSession &b);
 
-      MacauBase &macau;
+      BaseSession &macau;
       int pos;
       Eigen::MatrixXd &U, &V;
       std::vector<ILatentPrior *> siblings;
@@ -65,9 +66,9 @@ class ILatentPrior {
 
 class NormalPrior : public ILatentPrior {
   public:
-    NormalPrior(MacauBase &m, int p, std::string name = "NormalPrior");
+    NormalPrior(BaseSession &m, int p, std::string name = "NormalPrior");
     virtual ~NormalPrior() {}
-    void addSibling(MacauBase &b) override;
+    void addSibling(BaseSession &b) override;
 
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
@@ -85,7 +86,7 @@ class NormalPrior : public ILatentPrior {
 
 class ProbitNormalPrior : public NormalPrior {
   public:
-    ProbitNormalPrior(MacauBase &m, int p)
+    ProbitNormalPrior(BaseSession &m, int p)
         : NormalPrior(m, p) {}
     virtual ~ProbitNormalPrior() {}
     virtual void pnm(int n, VectorNd &rr, MatrixNNd &MM) { model().get_probit_pnm(pos, n, rr, MM); }
@@ -94,9 +95,9 @@ class ProbitNormalPrior : public NormalPrior {
 template<class Prior>
 class MasterPrior : public Prior {
   public:
-    MasterPrior(MacauBase &m, int p);
+    MasterPrior(BaseSession &m, int p);
     virtual ~MasterPrior() {}
-    void addSibling(MacauBase &) override { assert(false); }
+    void addSibling(BaseSession &) override { assert(false); }
     void init() override;
 
     virtual void sample_latents() override;
@@ -108,14 +109,14 @@ class MasterPrior : public Prior {
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
 
   private:
-    std::vector<MacauBase> slaves;
+    std::vector<BaseSession> slaves;
 };
 
 class SlavePrior : public ILatentPrior {
   public:
-    SlavePrior(MacauBase &m, int p) : ILatentPrior(m, p, "SlavePrior") {}
+    SlavePrior(BaseSession &m, int p) : ILatentPrior(m, p, "SlavePrior") {}
     virtual ~SlavePrior() {}
-    void addSibling(MacauBase &) override { assert(false); }
+    void addSibling(BaseSession &) override { assert(false); }
 
     void sample_latent(int) override {};
     void savePriorInfo(std::string prefix) override {}
@@ -138,9 +139,9 @@ class MacauPrior : public NormalPrior {
     double tol = 1e-6;
 
   public:
-    MacauPrior(MacauBase &m, int p);
+    MacauPrior(BaseSession &m, int p);
     virtual ~MacauPrior() {}
-    void addSibling(MacauBase &b) override;
+    void addSibling(BaseSession &b) override;
     void init() override;
 
     void sample_latents() override;
@@ -164,9 +165,9 @@ class MacauPrior : public NormalPrior {
 template<class FType>
 class MPIMacauPrior : public MacauPrior<FType> {
   public:
-    MPIMacauPrior(MacauBase &m, int p);
+    MPIMacauPrior(BaseSession &m, int p);
     virtual ~MPIMacauPrior() {}
-    void addSibling(MacauBase &b) override;
+    void addSibling(BaseSession &b) override;
 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
@@ -200,14 +201,16 @@ class SpikeAndSlabPrior : public ILatentPrior {
     const double prior_beta_0 = 1.; //for alpha
 
   public:
-    SpikeAndSlabPrior(MacauBase &m, int p);
+    SpikeAndSlabPrior(BaseSession &m, int p);
     virtual ~SpikeAndSlabPrior() {}
     void init() override;
-    void addSibling(MacauBase &b) override;
+    void addSibling(BaseSession &b) override;
 
     void savePriorInfo(std::string prefix) override {}
     void sample_latents() override;
     void sample_latent(int n) override;
 };
+
+}
 
 #endif /* LATENTPRIOR_H */

@@ -305,11 +305,5 @@ typedef Eigen::VectorXd VectorNd;
 typedef Eigen::MatrixXd MatrixNNd;
 typedef Eigen::ArrayXd ArrayNd;
 
-extern int global_num_latent;
-inline VectorNd vec_zero() { return VectorNd::Zero(global_num_latent); }
-inline MatrixNNd mat_zero() { return MatrixNNd::Zero(global_num_latent, global_num_latent); }
-
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
-
-extern int global_num_latent;
 

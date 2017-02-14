@@ -27,53 +27,54 @@
 
 using namespace std; 
 using namespace Eigen;
+using namespace Macau;
 
 //-- add model
 //
 template<class Model>
-Model &MacauBase::addModel(int num_latent) {
+Model &BaseSession::addModel(int num_latent) {
     Model *n = new Model(num_latent);
     model.reset(n);
     return *n;
 }
 
-SparseMF &MacauBase::sparseModel(int num_latent) {
+SparseMF &BaseSession::sparseModel(int num_latent) {
     return addModel<SparseMF>(num_latent);
 }
 
-DenseDenseMF &MacauBase::denseDenseModel(int num_latent) {
+DenseDenseMF &BaseSession::denseDenseModel(int num_latent) {
     return addModel<DenseDenseMF>(num_latent);
 }
 
-SparseDenseMF &MacauBase::sparseDenseModel(int num_latent) {
+SparseDenseMF &BaseSession::sparseDenseModel(int num_latent) {
     return addModel<SparseDenseMF>(num_latent);
 }
 
-FixedGaussianNoise &MacauBase::setPrecision(double p) {
+FixedGaussianNoise &BaseSession::setPrecision(double p) {
   FixedGaussianNoise *n = new FixedGaussianNoise(*model, p);
   noise.reset(n);
   return *n;
 }
 
-AdaptiveGaussianNoise &MacauBase::setAdaptivePrecision(double sn_init, double sn_max) {
+AdaptiveGaussianNoise &BaseSession::setAdaptivePrecision(double sn_init, double sn_max) {
   AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*model, sn_init, sn_max);
   noise.reset(n);
   return *n;
 }
 
-void MacauBase::init() {
+void BaseSession::init() {
     if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
     model->init();
     for( auto &p : priors) p->init();
     noise->init();
 }
 
-void MacauBase::step() {
+void BaseSession::step() {
     for(auto &p : priors) p->sample_latents();
     noise->update();
 }
 
-std::ostream &MacauBase::printInitStatus(std::ostream &os, std::string indent) {
+std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent) {
     os << indent << name << " {\n";
     os << indent << "  Priors: {\n";
     for( auto &p : priors) p->printInitStatus(os, indent + "    ");
@@ -90,15 +91,15 @@ std::ostream &MacauBase::printInitStatus(std::ostream &os, std::string indent) {
 
 //--- 
 
-void Macau::setSamples(int b, int n) {
+void Session::setSamples(int b, int n) {
   burnin = b;
   nsamples = n;
 }
 
-void Macau::init() {
+void Session::init() {
   threads_init();
   init_bmrng();
-  MacauBase::init();
+  BaseSession::init();
   if (verbose) {
       printInitStatus(std::cout, "");
       std::cout << "Sampling" << endl;
@@ -107,7 +108,7 @@ void Macau::init() {
   iter = 0;
 }
 
-void Macau::run() {
+void Session::run() {
     init();
     while (iter < burnin + nsamples) {
         step();
@@ -116,20 +117,20 @@ void Macau::run() {
 }
 
 
-void Macau::step() {
+void Session::step() {
     if (verbose && iter == burnin) {
         printf(" ====== Burn-in complete, averaging samples ====== \n");
     }
     auto starti = tick();
-    MacauBase::step();
+    BaseSession::step();
     auto endi = tick();
 
     saveModel(iter - burnin + 1);
     printStatus(endi - starti);
 }
 
-std::ostream &Macau::printInitStatus(std::ostream &os, std::string indent) {
-    MacauBase::printInitStatus(os, indent);
+std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
+    BaseSession::printInitStatus(os, indent);
     os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
     os << indent << "  Output prefix: " << save_prefix << "\n";
     os << indent << "}\n";
@@ -159,7 +160,7 @@ void PythonMacau::intHandler(int) {
 //-- cmdline handling stuff
 //
 template<class SideInfo>
-inline void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
+inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
 {
     if(prior_name == "macau" || prior_name == "default"){
         auto &prior = m.addPrior<MacauPrior<SideInfo>>();
@@ -176,7 +177,7 @@ inline void addMacauPrior(Macau &m, std::string prior_name, unique_ptr<SideInfo>
 }
 
 template<class Prior>
-inline void addMaster(Macau &macau, const Eigen::MatrixXd &sideinfo)
+inline void addMaster(Session &macau, const Eigen::MatrixXd &sideinfo)
 {
     auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
     auto &slave_model = master_prior.template addSlave<DenseDenseMF>();
@@ -184,7 +185,7 @@ inline void addMaster(Macau &macau, const Eigen::MatrixXd &sideinfo)
 }
 
 template<class Prior>
-inline void addMaster(Macau &macau, const SparseMatrixD &sideinfo)
+inline void addMaster(Session &macau, const SparseMatrixD &sideinfo)
 {
     auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
     auto &slave_model = master_prior.template addSlave<SparseDenseMF>();
@@ -193,7 +194,7 @@ inline void addMaster(Macau &macau, const SparseMatrixD &sideinfo)
 
 
 template<class SideInfo>
-inline void addMaster(Macau &macau,std::string prior_name, const SideInfo &features)
+inline void addMaster(Session &macau,std::string prior_name, const SideInfo &features)
 {
     if(prior_name == "normal" || prior_name == "default") {
         addMaster<NormalPrior>(macau, features);
@@ -204,7 +205,7 @@ inline void addMaster(Macau &macau,std::string prior_name, const SideInfo &featu
     }
 }
 
-void add_prior(Macau &macau, std::string prior_name, std::string fname_features, double lambda_beta, double tol)
+void add_prior(Session &macau, std::string prior_name, std::string fname_features, double lambda_beta, double tol)
 {
     //-- row prior with side information
     if (fname_features.size()) {
@@ -243,7 +244,7 @@ void add_prior(Macau &macau, std::string prior_name, std::string fname_features,
     }
 }
 
-void Macau::setFromArgs(int argc, char** argv, bool print) {
+void Session::setFromArgs(int argc, char** argv, bool print) {
     std::string fname_train;
     std::string fname_test;
     std::string fname_row_features;
@@ -381,7 +382,7 @@ void Macau::setFromArgs(int argc, char** argv, bool print) {
 }
 
 
-void Macau::printStatus(double elapsedi) {
+void Session::printStatus(double elapsedi) {
     if(!verbose) return;
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
@@ -400,7 +401,7 @@ void Macau::printStatus(double elapsedi) {
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
-void Macau::saveModel(int isample) {
+void Session::saveModel(int isample) {
     if (!save_model || isample < 0) return;
     string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
     model->saveModel(fprefix, isample, burnin);

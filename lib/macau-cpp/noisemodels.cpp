@@ -8,6 +8,7 @@
 #include "model.h"
 
 using namespace Eigen;
+using namespace Macau;
 
 
 std::ostream &FixedGaussianNoise::printInitStatus(std::ostream &os, std::string indent)

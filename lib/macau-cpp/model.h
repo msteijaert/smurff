@@ -7,6 +7,8 @@
 
 #include "utils.h"
 
+namespace Macau {
+
 struct Factors {
     int num_latent;
 
@@ -16,8 +18,6 @@ struct Factors {
     {
         assert(num_fac == 2); 
         factors.resize(num_fac);
-        assert(this->num_latent == global_num_latent || global_num_latent == -1);
-        global_num_latent = this->num_latent;
     }
 
 
@@ -130,5 +130,7 @@ struct DenseMF : public MF<YType> {
 
 typedef DenseMF<Eigen::MatrixXd> DenseDenseMF;
 typedef DenseMF<SparseMatrixD> SparseDenseMF;
+
+}
 
 #endif

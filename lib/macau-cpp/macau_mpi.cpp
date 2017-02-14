@@ -58,7 +58,7 @@ MPIMacau::MPIMacau()
 void MPIMacau::run()
 {
    if (world_rank == 0) {
-       Macau::run();
+       Session::run();
    } else {
        bool work_done = false;
        for(auto &p : priors) work_done |= p->run_slave();

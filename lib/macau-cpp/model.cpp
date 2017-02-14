@@ -26,8 +26,7 @@
 
 using namespace std; 
 using namespace Eigen;
-
-int global_num_latent = -1;
+using namespace Macau;
 
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     Ytest.resize(nrows, ncols);
@@ -236,9 +235,6 @@ void MF<YType>::setRelationData(YType Y) {
     this->Y = Y;
 }
 
-template struct MF<SparseMatrix<double>>;
-template struct MF<MatrixXd>;
-
 
 template<>
 double MF<Eigen::MatrixXd>::var_total() const {
@@ -335,8 +331,8 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
         const int task_size = ceil(local_nnz / 100.0);
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
-        thread_vector<VectorXd> rrs(vec_zero());
-        thread_vector<MatrixXd> MMs(mat_zero()); 
+        thread_vector<VectorXd> rrs(VectorXd::Zero(num_latent));
+        thread_vector<MatrixXd> MMs(MatrixXd::Zero(num_latent, num_latent)); 
         //printf("from-to-tasksize: %d-%d-%d\n", from, to, task_size);
         for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(Y,Vf,rrs,MMs)
@@ -427,5 +423,9 @@ void DenseMF<YType>::update_pnm(int f) {
    VV.at(f) = VVs.combine();
 }
 
-template struct DenseMF<Eigen::MatrixXd>;
-template struct DenseMF<SparseMatrixD>;
+namespace Macau {
+    template struct MF<SparseMatrix<double>>;
+    template struct MF<MatrixXd>;
+    template struct DenseMF<Eigen::MatrixXd>;
+    template struct DenseMF<SparseMatrixD>;
+}

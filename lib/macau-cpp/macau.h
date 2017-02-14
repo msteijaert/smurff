@@ -10,11 +10,12 @@
 #include "latentprior.h"
 #include "noisemodels.h"
 
-int get_num_omp_threads();
+
+namespace Macau {
 
 class ILatentPrior;
 
-class MacauBase  {
+class BaseSession  {
    public:
       std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
@@ -43,8 +44,8 @@ class MacauBase  {
       std::string name;
 };
 
-// try adding num_latent as template parameter to Macau
-class Macau : public MacauBase {
+// try adding num_latent as template parameter to Session
+class Session : public BaseSession {
   public:
       bool        verbose     = true;
       int         nsamples    = 100;
@@ -56,7 +57,7 @@ class Macau : public MacauBase {
       int         iter;
 
       // c'tor
-      Macau() { name = "Macau"; }
+      Session() { name = "MacauSession"; }
 
       //-- set params
       void setSamples(int burnin, int nsamples);
@@ -77,7 +78,7 @@ class Macau : public MacauBase {
       void printStatus(double elapsedi);
 };
 
-class MPIMacau : public Macau {
+class MPIMacau : public Session {
   public:
     MPIMacau() { name = "MPIMacau"; }
       
@@ -90,7 +91,7 @@ class MPIMacau : public Macau {
 };
 
 
-class PythonMacau : public Macau {
+class PythonMacau : public Session {
   public:
     PythonMacau() { name = "PythonMacau"; }
 
@@ -103,7 +104,7 @@ class PythonMacau : public Macau {
 };
 
 template<class Prior>
-Prior& MacauBase::addPrior()
+Prior& BaseSession::addPrior()
 {
     auto pos = priors.size();
     Prior *p = new Prior(*this, pos);
@@ -113,12 +114,12 @@ Prior& MacauBase::addPrior()
 
 
 template<class Prior>
-void ILatentPrior::addSiblingTempl(MacauBase &b)
+void ILatentPrior::addSiblingTempl(BaseSession &b)
 {
     auto &p = b.addPrior<Prior>();
     siblings.push_back(&p);
 }
 
-void sparseFromIJV(Eigen::SparseMatrix<double> & X, int* rows, int* cols, double* values, int N);
+}
 
 #endif /* MACAU_H */

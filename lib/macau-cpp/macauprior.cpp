@@ -17,17 +17,18 @@ extern "C" {
 
 using namespace std; 
 using namespace Eigen;
+using namespace Macau;
 
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 template<class FType>
-MacauPrior<FType>::MacauPrior(MacauBase &m, int p)
+MacauPrior<FType>::MacauPrior(BaseSession &m, int p)
     : NormalPrior(m, p, "MacauPrior")  {}
 
 template<class FType>
-void MacauPrior<FType>::addSibling(MacauBase &b) 
+void MacauPrior<FType>::addSibling(BaseSession &b) 
 {
      addSiblingTempl<MacauPrior<FType>>(b);
 }
@@ -174,29 +175,8 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) {
   return out;
 }
 
-template class MacauPrior<SparseFeat>;
-template class MacauPrior<SparseDoubleFeat>;
-//template class MacauPrior<Eigen::MatrixXd>;
 
-
-// home made reduction!!
-// int count=0;
-// int tcount=0;
-// #pragma omp threadprivate(tcount)
-//  
-// omp_set_dynamic(0);
-//  
-// #pragma omp parallel
-// {
-// . . .
-//  if (event_happened) {
-//  tcount++;
-//  }
-//  . . .
-// }
-// #pragma omp parallel shared(count)
-// {
-// #pragma omp atomic
-//  count += tcount;
-// }
-
+namespace Macau {
+    template class MacauPrior<SparseFeat>;
+    template class MacauPrior<SparseDoubleFeat>;
+}

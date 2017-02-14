@@ -23,9 +23,10 @@
 
 using namespace Eigen;
 using namespace std;
+using namespace Macau;
 
 int main(int argc, char** argv) {
-    Macau macau;
+    Session macau;
     macau.setFromArgs(argc, argv, true);
     macau.run();
     return 0;

@@ -11,10 +11,10 @@
 
 using namespace std; 
 using namespace Eigen;
-
+using namespace Macau;
 
 template<class FType>
-MacauOnePrior<FType>::MacauOnePrior(MacauBase &m, int p)
+MacauOnePrior<FType>::MacauOnePrior(BaseSession &m, int p)
     : ILatentPrior(m, p), Yc(dynamic_cast<SparseMF &>(*m.model).Yc.at(p))
 {
   // parameters of Normal-Gamma distributions
@@ -28,7 +28,7 @@ MacauOnePrior<FType>::MacauOnePrior(MacauBase &m, int p)
 
 
 template<class FType>
-void MacauOnePrior<FType>::addSibling(MacauBase &b) 
+void MacauOnePrior<FType>::addSibling(BaseSession &b) 
 {
      addSiblingTempl<MacauOnePrior<FType>>(b);
 }
@@ -208,5 +208,7 @@ void MacauOnePrior<FType>::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-link.csv", beta);
 }
 
-template class MacauOnePrior<SparseFeat>;
-template class MacauOnePrior<SparseDoubleFeat>;
+namespace Macau {
+    template class MacauOnePrior<SparseFeat>;
+    template class MacauOnePrior<SparseDoubleFeat>;
+}

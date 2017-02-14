@@ -8,6 +8,8 @@
 
 #include "model.h"
 
+namespace Macau {
+
 /** interface */
 class INoiseModel {
   public:
@@ -64,3 +66,4 @@ class AdaptiveGaussianNoise : public INoiseModel {
     std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
 };
 
+}

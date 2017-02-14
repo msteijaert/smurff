@@ -5,6 +5,8 @@
 #include <memory>
 #include "latentprior.h"
 
+namespace Macau {
+
 template<class FType>
 class MacauOnePrior : public ILatentPrior {
   public:
@@ -28,8 +30,8 @@ class MacauOnePrior : public ILatentPrior {
     Eigen::SparseMatrix<double> &Yc;
 
   public:
-    MacauOnePrior(MacauBase &, int); 
-    void addSibling(MacauBase &) override;
+    MacauOnePrior(BaseSession &, int); 
+    void addSibling(BaseSession &) override;
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     
     void sample_latent(int) override;
@@ -45,3 +47,4 @@ class MacauOnePrior : public ILatentPrior {
      void pnm(int,VectorNd &, MatrixNNd &) override;
 };
 
+}
