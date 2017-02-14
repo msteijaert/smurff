@@ -30,7 +30,7 @@ macau_mpi: macau_mpi.cpp $(LIBOBJS)
 
 clean:
 	rm -f *.o *.d
-	rm -f macau_mpi tests libmacau.a
+	rm -f macau_mpi tests libmacau.a macau_nompi
  
 # DFILES 
 DFILES=$(wildcard *.d)
