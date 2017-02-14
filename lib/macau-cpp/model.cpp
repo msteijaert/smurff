@@ -26,7 +26,8 @@
 
 using namespace std; 
 using namespace Eigen;
-using namespace Macau;
+
+namespace Macau {
 
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     Ytest.resize(nrows, ncols);
@@ -165,6 +166,7 @@ double Factors::auc()
     for(unsigned int i = 0; i < predictions.size(); i++) {
         permutation[i] = i;
     }
+
     std::sort(permutation.begin(), permutation.end(), [this](unsigned int a, unsigned int b) { return predictions[a] < predictions[b];});
 
     int NP = Ytest.sum();
@@ -189,10 +191,13 @@ std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
     os << indent << "Type: " << name << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
     os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "]\n";
-    os << indent << "Test data: " << Ytest.nonZeros() << " [" << Ytest.rows() << " x " << Ytest.cols() << "]\n";
+    if (Ytest.nonZeros()) {
+        os << indent << "Test data: " << Ytest.nonZeros() << " [" << Ytest.rows() << " x " << Ytest.cols() << "]\n";
+    } else {
+        os << indent << "Test data: -\n";
+    }
     return os;
 }
-
 
 template<typename YType>
 void MF<YType>::init_base()
@@ -363,6 +368,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
 }
 
 void SparseMF::update_pnm(int f) {
+    return;
     auto &Y = Yc.at(f);
 
     int bin = 1;
@@ -410,9 +416,7 @@ void DenseMF<YType>::get_pnm(int f, int d, VectorXd &rr, MatrixXd &MM) {
 template<class YType>
 void DenseMF<YType>::update_pnm(int f) {
     auto &Vf = this->V(f);
-    auto &VVf = VV.at(f);
-    VVf = MatrixXd::Zero(this->num_latent, this->num_latent);
-    thread_vector<MatrixXd> VVs(VVf);
+    thread_vector<MatrixXd> VVs(MatrixXd::Zero(this->num_latent, this->num_latent));
 
 #pragma omp parallel for schedule(dynamic, 8) shared(VVs)
     for(int n = 0; n < Vf.cols(); n++) {
@@ -420,12 +424,12 @@ void DenseMF<YType>::update_pnm(int f) {
         VVs.local() += v * v.transpose();
     }
 
-   VV.at(f) = VVs.combine();
+    VV.at(f) = VVs.combine();
 }
 
-namespace Macau {
-    template struct MF<SparseMatrix<double>>;
-    template struct MF<MatrixXd>;
-    template struct DenseMF<Eigen::MatrixXd>;
-    template struct DenseMF<SparseMatrixD>;
-}
+template struct MF<SparseMatrix<double>>;
+template struct MF<MatrixXd>;
+template struct DenseMF<Eigen::MatrixXd>;
+template struct DenseMF<SparseMatrixD>;
+
+} //end namespace Macau

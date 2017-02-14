@@ -11,7 +11,7 @@
 
 using namespace std; 
 using namespace Eigen;
-using namespace Macau;
+namespace Macau {
 
 template<class FType>
 MacauOnePrior<FType>::MacauOnePrior(BaseSession &m, int p)
@@ -208,7 +208,7 @@ void MacauOnePrior<FType>::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-link.csv", beta);
 }
 
-namespace Macau {
-    template class MacauOnePrior<SparseFeat>;
-    template class MacauOnePrior<SparseDoubleFeat>;
-}
+template class MacauOnePrior<SparseFeat>;
+template class MacauOnePrior<SparseDoubleFeat>;
+
+} // end namespace Macau

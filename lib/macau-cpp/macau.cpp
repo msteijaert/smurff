@@ -27,7 +27,8 @@
 
 using namespace std; 
 using namespace Eigen;
-using namespace Macau;
+
+namespace Macau {
 
 //-- add model
 //
@@ -408,3 +409,4 @@ void Session::saveModel(int isample) {
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }
 
+} // end namespace Macau

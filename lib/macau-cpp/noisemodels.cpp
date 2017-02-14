@@ -8,8 +8,8 @@
 #include "model.h"
 
 using namespace Eigen;
-using namespace Macau;
 
+namespace Macau {
 
 std::ostream &FixedGaussianNoise::printInitStatus(std::ostream &os, std::string indent)
 { 
@@ -46,3 +46,5 @@ void AdaptiveGaussianNoise::update()
         alpha = alpha_max;
     }
 }
+
+} // end namespace Macau

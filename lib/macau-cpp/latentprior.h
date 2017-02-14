@@ -108,6 +108,8 @@ class MasterPrior : public Prior {
 
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
 
+    double getLinkNorm() override;
+
   private:
     std::vector<BaseSession> slaves;
 };
@@ -209,6 +211,9 @@ class SpikeAndSlabPrior : public ILatentPrior {
     void savePriorInfo(std::string prefix) override {}
     void sample_latents() override;
     void sample_latent(int n) override;
+
+    // mean value of Z
+    double getLinkNorm() override { return Zkeep.sum() / U.cols() / num_latent(); }
 };
 
 }

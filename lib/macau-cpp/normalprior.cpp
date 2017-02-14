@@ -16,7 +16,8 @@ extern "C" {
 
 using namespace std; 
 using namespace Eigen;
-using namespace Macau;
+
+namespace Macau {
 
 ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
     : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)),
@@ -196,15 +197,22 @@ Model& MasterPrior<Prior>::addSlave()
     return *n;
 }
 
-namespace Macau {
-    template class MasterPrior<NormalPrior>;
-    template DenseDenseMF &MasterPrior<NormalPrior>::addSlave();
-    template SparseDenseMF &MasterPrior<NormalPrior>::addSlave();
-    template SparseMF &MasterPrior<NormalPrior>::addSlave();
-
-    template class MasterPrior<SpikeAndSlabPrior>;
-    template DenseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
-    template SparseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
-    template SparseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
-
+template<class Prior>
+double MasterPrior<Prior>::getLinkNorm() {
+    assert(slaves.size() > 0 && "No slaves");
+    double ret = .0;
+    for(auto &s : this->slaves) ret += s.model->V(this->pos).norm();
+    return ret;
 }
+
+template class MasterPrior<NormalPrior>;
+template DenseDenseMF &MasterPrior<NormalPrior>::addSlave();
+template SparseDenseMF &MasterPrior<NormalPrior>::addSlave();
+template SparseMF &MasterPrior<NormalPrior>::addSlave();
+
+template class MasterPrior<SpikeAndSlabPrior>;
+template DenseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+template SparseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+template SparseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
+
+} // end namespace Macau

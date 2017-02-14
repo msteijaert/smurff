@@ -17,11 +17,12 @@ extern "C" {
 
 using namespace std; 
 using namespace Eigen;
-using namespace Macau;
 
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
+
+namespace Macau {
 
 template<class FType>
 MacauPrior<FType>::MacauPrior(BaseSession &m, int p)
@@ -153,6 +154,11 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
   return rgamma(gamma_post.first, gamma_post.second);
 }
 
+template class MacauPrior<SparseFeat>;
+template class MacauPrior<SparseDoubleFeat>;
+
+} // end namespace Macau
+
 /**
  *
  * X = A * B
@@ -176,7 +182,3 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) {
 }
 
 
-namespace Macau {
-    template class MacauPrior<SparseFeat>;
-    template class MacauPrior<SparseDoubleFeat>;
-}

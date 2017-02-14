@@ -1,7 +1,7 @@
 #include "noisemodels.h"
 #include "macau.h"
 
-using namespace Macau;
+namespace Macau {
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(BaseSession &m, int p)
     : ILatentPrior(m, p, "SpikeAndSlabPrior") {}
@@ -89,8 +89,6 @@ void SpikeAndSlabPrior::sample_latents() {
     Zcol.setZero();
     W2col.setZero();
 
-    SHOW(Zkeep.transpose());
-     
     // three: update siblings
     for(auto s : siblings) {
         auto p = dynamic_cast<SpikeAndSlabPrior *>(s);
@@ -101,3 +99,5 @@ void SpikeAndSlabPrior::sample_latents() {
         p->r = r;
     }
 }
+
+} // end namespace Macau

@@ -6,3 +6,5 @@ CXXFLAGS+=-fopenmp
 #CXXFLAGS+=-pg
 
 include ../Makefile.common
+
+CXX=g++-6
