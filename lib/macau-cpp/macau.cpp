@@ -137,9 +137,9 @@ std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     return os;
 }
 
-volatile bool PythonMacau::keepRunning;
+volatile bool PythonSession::keepRunning;
 
-void PythonMacau::run() {
+void PythonSession::run() {
     keepRunning = true;
     signal(SIGINT, intHandler);
     for (iter = 0; iter < burnin + nsamples; iter++) {
@@ -151,7 +151,7 @@ void PythonMacau::run() {
     }
 }
 
-void PythonMacau::intHandler(int) {
+void PythonSession::intHandler(int) {
   keepRunning = false;
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }

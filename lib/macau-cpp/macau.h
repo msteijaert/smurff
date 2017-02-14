@@ -91,9 +91,9 @@ class MPISession : public Session {
 };
 
 
-class PythonMacau : public Session {
+class PythonSession : public Session {
   public:
-    PythonMacau() { name = "PythonMacau"; }
+    PythonSession() { name = "PythonSession"; }
 
     void run();
 
