@@ -78,9 +78,9 @@ class Session : public BaseSession {
       void printStatus(double elapsedi);
 };
 
-class MPIMacau : public Session {
+class MPISession : public Session {
   public:
-    MPIMacau() { name = "MPIMacau"; }
+    MPISession() { name = "MPISession"; }
       
     void run();
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;

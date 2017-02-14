@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    MPIMacau macau;
+    MPISession macau;
     macau.setFromArgs(argc, argv, world_rank == 0);
 
     macau.run();
@@ -48,14 +48,14 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-MPIMacau::MPIMacau()
+MPISession::MPISession()
 {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 }
  
 
-void MPIMacau::run()
+void MPISession::run()
 {
    if (world_rank == 0) {
        Session::run();
