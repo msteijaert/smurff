@@ -226,8 +226,8 @@ Model& MasterPrior<Prior>::addSlave()
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);
     for(auto &p : this->sys().priors) {
-        if (p->pos == this->pos) slave_macau.template addPrior<SlavePrior>();
-        else p->add(slave_macau);
+        slave_macau.template addPrior<SlavePrior>();
+        if (p->pos != this->pos) p->add(slave_macau);
     }
     return *n;
 }
