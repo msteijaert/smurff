@@ -192,9 +192,11 @@ std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
-    os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "]\n";
+    double train_fill_rate = 100. * Ynnz() / Yrows() / Ycols();
+    os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "] (" << train_fill_rate << "%)\n";
     if (Ytest.nonZeros()) {
-        os << indent << "Test data: " << Ytest.nonZeros() << " [" << Ytest.rows() << " x " << Ytest.cols() << "]\n";
+        double test_fill_rate = 100. * Ytest.nonZeros() / Ytest.rows() / Ytest.cols();
+        os << indent << "Test data: " << Ytest.nonZeros() << " [" << Ytest.rows() << " x " << Ytest.cols() << "] (" << test_fill_rate << "%)\n";
     } else {
         os << indent << "Test data: -\n";
     }
