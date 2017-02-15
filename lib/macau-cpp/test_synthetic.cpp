@@ -43,9 +43,9 @@ void test_sparse(int N, int D, int iter_max)
     master_model.setRelationDataTest(Ytest);
 
     //-- Normal priors
-    macau.addPrior<NormalPrior>();
+    macau.addPrior<SpikeAndSlabPrior>();
     //macau.addPrior<NormalPrior>();
-    auto &master_prior = macau.addPrior<MasterPrior<SpikeAndSlabPrior>>();
+    auto &master_prior = macau.addPrior<MasterPrior<NormalPrior>>();
     auto &slave_model = master_prior.addSlave<SparseMF>();
     auto Y1 = ones_Ysparse(N,2*D,2,.3);
     slave_model.setRelationData(Y1);
@@ -71,8 +71,8 @@ void test_dense_dense(int N, int D, int iter_max)
     master_model.setRelationDataTest(Ytest2);
 
     //-- Normal priors
-    //macau.addPrior<DenseSpikeAndSlabPrior>(model);
-    macau.addPrior<NormalPrior>();
+    macau.addPrior<SpikeAndSlabPrior>();
+    //macau.addPrior<NormalPrior>();
     //macau.addPrior<NormalPrior>();
     auto &master_prior = macau.addPrior<MasterPrior<NormalPrior>>();
     auto &slave_model = master_prior.addSlave<DenseDenseMF>();
