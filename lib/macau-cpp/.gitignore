@@ -1,3 +1,8 @@
 tests
 macau_mpi
 *.o
+*.d
+*.dSYM/
+test_synthetic
+macau_nompi
+tests
