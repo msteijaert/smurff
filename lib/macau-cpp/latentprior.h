@@ -85,7 +85,8 @@ class MasterPrior : public Prior {
     virtual ~MasterPrior() {}
     void init() override;
 
-    virtual void sample_latents() override;
+    void sample_latents() override;
+    void sample_latent(int s, int n) override;
     void pnm(int, int, VectorNd&, MatrixNNd&) override;
 
     template<class Model>

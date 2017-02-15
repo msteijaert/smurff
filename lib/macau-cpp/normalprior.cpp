@@ -202,17 +202,28 @@ void MasterPrior<Prior>::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
 
     // then the slaves
     assert(slaves.size() > 0 && "No slaves");
-    for(auto &l : slaves) {
-        auto &slave_prior = l.priors.at(this->pos);
+    for(auto &slave : slaves) {
+        auto &slave_prior = slave.priors.at(this->pos);
         slave_prior->pnm(s, n, rr, MM);
     }
 }
 
 template<class Prior>
+void MasterPrior<Prior>::sample_latent(int s, int d) {
+    Prior::sample_latent(s,d);
+    for(auto &slave : this->slaves) {
+        auto &slave_prior = slave.priors.at(this->pos);
+        slave_prior->U(s).col(d) = this->U(s).col(d);
+    }
+}
+
+
+template<class Prior>
 void MasterPrior<Prior>::sample_latents() {
     assert(slaves.size() > 0 && "No slaves");
-    for(auto &s : this->slaves) s.step();
-    Prior::sample_latents();
+    for(auto &s : this->slaves) s.model->update_pnm(this->pos);
+    Prior::sample_latents(); // includes slaves!
+    for(auto &s : this->slaves) s.noise->update();
 }
 
 template<class Prior>
@@ -237,7 +248,6 @@ double MasterPrior<Prior>::getLinkNorm() {
     assert(slaves.size() > 0 && "No slaves");
     double ret = .0;
     for(auto &s : this->slaves) {
-        SHOW(s.model->V(this->pos));
         ret += s.model->V(this->pos).norm();
     }
     return ret;
