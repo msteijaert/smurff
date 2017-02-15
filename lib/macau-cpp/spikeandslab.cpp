@@ -22,7 +22,6 @@ void SpikeAndSlabPrior::init() {
 void SpikeAndSlabPrior::sample_latent(int s, int d)
 {
     const int K = num_latent();
-    const int D = num_cols();
 
     auto &W = U(s); // aliases
     VectorNd Wcol = W.col(d); // local copy
@@ -52,6 +51,7 @@ void SpikeAndSlabPrior::sample_latent(int s, int d)
             Wcol(k) = .0;
         }
     }
+
     W.col(d) = Wcol;
     W2col += Wcol.array().square().matrix();
 }
