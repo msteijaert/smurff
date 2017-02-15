@@ -20,33 +20,70 @@ using namespace Eigen;
 namespace Macau {
 
 ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
-    : macau(m), pos(p), U(m.model->U(pos)), V(m.model->V(pos)),
-      name(name), rrs(VectorNd::Zero(m.model->num_latent)),
-                  MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent))
-{
-} 
+    : sessions(1, &m), pos(p), name(name), rrs(VectorNd::Zero(m.model->num_latent)),
+                  MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent)) {} 
 
-// utility
-Factors &ILatentPrior::model() const
-{
-    return *macau.model; 
-}
-
-int ILatentPrior::num_latent() const
-{ 
-    return model().num_latent; 
-}
-
-INoiseModel &ILatentPrior::noise() const
-{
-    return *macau.noise; 
-}
 std::ostream &ILatentPrior::printInitStatus(std::ostream &os, std::string indent) 
 {
     os << indent << pos << ": " << name << "\n";
     return os;
 }
 
+BaseSession &ILatentPrior::sys(int s)
+{
+    return *sessions.at(s); 
+}
+
+Factors &ILatentPrior::model(int s)
+{
+    return *sys(s).model; 
+}
+
+MatrixXd &ILatentPrior::U(int s)
+{
+    return model(s).U(pos);
+}
+
+MatrixXd &ILatentPrior::V(int s)
+{
+    return model(s).V(pos);
+}
+
+INoiseModel &ILatentPrior::noise(int s)
+{
+    return *sys(s).noise;
+}
+
+int ILatentPrior::num_cols()
+{
+    int ret = 0;
+    for(int i = 0; i<num_sys(); ++i) ret += U(i).cols();
+    return ret;
+}
+
+void ILatentPrior::add(BaseSession &b)
+{
+    sessions.push_back(&b);
+}
+
+void ILatentPrior::sample_latents() 
+{
+    for(int s = 0; s < sessions.size(); s++) {
+        auto &model = *sessions.at(s)->model;
+        model.update_pnm(pos);
+#pragma omp parallel for
+        for(int n = 0; n < model.U(pos).cols(); n++) {
+#pragma omp task
+            sample_latent(s, n); 
+        }
+    }
+}
+
+void ILatentPrior::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
+{
+    auto &model = *sessions.at(s)->model;
+    model.get_pnm(pos, n, rr, MM); 
+}
 
 /**
  *  base class NormalPrior 
@@ -75,21 +112,18 @@ NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
 void NormalPrior::sample_latents() {
 
     // FIXME: include siblings!!!!
+    auto &U = sessions.front()->model->U(pos);
     tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
 
     ILatentPrior::sample_latents();
 }
 
-void NormalPrior::addSibling(BaseSession &b)
+void NormalPrior::sample_latent(int s, int n)
 {
-    addSiblingTempl<NormalPrior>(b);
-}
-
-
-void NormalPrior::sample_latent(int n)
-{
+    auto &U = this->U(s);
     const auto &mu_u = getMu(n);
-    const double alpha = noise().getAlpha();
+    const double alpha = noise(s).getAlpha();
+
 
     VectorNd &rr = rrs.local();
     MatrixNNd &MM = MMs.local();
@@ -98,7 +132,7 @@ void NormalPrior::sample_latent(int n)
     MM.setZero();
 
     // add pnm
-    pnm(n,rr,MM);
+    pnm(s,n,rr,MM);
 
     // add noise
     rr.array() *= alpha;
@@ -138,6 +172,7 @@ MasterPrior<Prior>::MasterPrior(BaseSession &m, int p)
 template<class Prior>
 void MasterPrior<Prior>::init() 
 {
+    Prior::init();
     for(auto &s : slaves) s.init();
 }
 
@@ -160,16 +195,16 @@ std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) 
 }
 
 template<class Prior>
-void MasterPrior<Prior>::pnm(int n, VectorNd &rr, MatrixNNd &MM) 
+void MasterPrior<Prior>::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM) 
 {
     // first the master
-    Prior::pnm(n, rr, MM);
+    Prior::pnm(s, n, rr, MM);
 
     // then the slaves
     assert(slaves.size() > 0 && "No slaves");
-    for(auto &s : slaves) {
-        auto &slave_prior = s.priors.at(this->pos);
-        slave_prior->pnm(n, rr, MM);
+    for(auto &l : slaves) {
+        auto &slave_prior = l.priors.at(this->pos);
+        slave_prior->pnm(s, n, rr, MM);
     }
 }
 
@@ -190,9 +225,9 @@ Model& MasterPrior<Prior>::addSlave()
     slave_macau.setPrecision(1.0); // FIXME
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);
-    for(auto &p : this->macau.priors) {
+    for(auto &p : this->sys().priors) {
         if (p->pos == this->pos) slave_macau.template addPrior<SlavePrior>();
-        else p->addSibling(slave_macau);
+        else p->add(slave_macau);
     }
     return *n;
 }
@@ -201,7 +236,10 @@ template<class Prior>
 double MasterPrior<Prior>::getLinkNorm() {
     assert(slaves.size() > 0 && "No slaves");
     double ret = .0;
-    for(auto &s : this->slaves) ret += s.model->V(this->pos).norm();
+    for(auto &s : this->slaves) {
+        SHOW(s.model->V(this->pos));
+        ret += s.model->V(this->pos).norm();
+    }
     return ret;
 }
 

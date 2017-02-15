@@ -290,7 +290,6 @@ std::pair<VectorXd, MatrixXd> OldCondNormalWishart(const MatrixXd &U, const Vect
   return NormalWishart(mu_c, kappa_c, T_c, nu_c);
 }
 
-// from bpmf.jl -- verified
 std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
 {
   /// TODO: parallelize (for computing C and C * C')
@@ -318,7 +317,6 @@ std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorX
 
   return NormalWishart(mu_c, kappa_c, T_c, nu_c);
 }
-
 #if defined(TEST_MVNORMAL) || defined (BENCH_MVNORMAL)
 
 int main()

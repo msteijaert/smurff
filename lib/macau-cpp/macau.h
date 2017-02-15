@@ -112,14 +112,6 @@ Prior& BaseSession::addPrior()
     return *p;
 }
 
-
-template<class Prior>
-void ILatentPrior::addSiblingTempl(BaseSession &b)
-{
-    auto &p = b.addPrior<Prior>();
-    siblings.push_back(&p);
-}
-
 }
 
 #endif /* MACAU_H */

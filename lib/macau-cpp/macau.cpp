@@ -66,7 +66,10 @@ AdaptiveGaussianNoise &BaseSession::setAdaptivePrecision(double sn_init, double 
 void BaseSession::init() {
     if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
     model->init();
-    for( auto &p : priors) p->init();
+    for( auto &p : priors) {
+        std::cout << " Init " << p->name << std::endl;
+        p->init();
+    }
     noise->init();
 }
 

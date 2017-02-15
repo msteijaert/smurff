@@ -8,7 +8,7 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(BaseSession &m, int p)
 
 void SpikeAndSlabPrior::init() {
     const int K = num_latent();
-    const int D = U.cols();
+    const int D = num_cols();
     assert(D > 0);
     
     //-- prior params
@@ -19,17 +19,12 @@ void SpikeAndSlabPrior::init() {
     r = VectorNd::Constant(K,.5);
 }
 
-
-void SpikeAndSlabPrior::addSibling(BaseSession &b) 
-{
-     addSiblingTempl<SpikeAndSlabPrior>(b);
-}
-
-
-void SpikeAndSlabPrior::sample_latent(int d)
+void SpikeAndSlabPrior::sample_latent(int s, int d)
 {
     const int K = num_latent();
-    auto &W = U; // aliases
+    const int D = num_cols();
+
+    auto &W = U(s); // aliases
     VectorNd Wcol = W.col(d); // local copy
     
     std::default_random_engine generator;
@@ -39,8 +34,8 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
     MatrixNNd XX = MatrixNNd::Zero(num_latent(), num_latent());
     VectorNd yX = VectorNd::Zero(num_latent());
-    pnm(d, yX, XX);
-    double t = noise().getAlpha();
+    pnm(s, d, yX, XX);
+    double t = noise(s).getAlpha();
 
     for(int k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);
@@ -64,19 +59,10 @@ void SpikeAndSlabPrior::sample_latent(int d)
 void SpikeAndSlabPrior::sample_latents() {
     ILatentPrior::sample_latents();
 
-    const int D = U.cols();
+    const int D = num_cols();
  
-    // one: accumulate across siblings
-    for(auto s : siblings) {
-        auto p = dynamic_cast<SpikeAndSlabPrior *>(s);
-        Zcol += p->Zcol;
-        W2col += p->W2col;
-    }
-    
-    // two: update hyper params
+    // update hyper params
     r = ( Zcol.array() + prior_beta ) / ( D + prior_beta * D ) ;
-
-    //-- updata alpha K samples from Gamma
     auto ww = W2col.array() / 2 + prior_beta_0;
     auto tmpz = Zcol.array() / 2 + prior_alpha_0 ;
     alpha = tmpz.binaryExpr(ww, [](double a, double b)->double {
@@ -88,16 +74,6 @@ void SpikeAndSlabPrior::sample_latents() {
     Zkeep = Zcol.array();
     Zcol.setZero();
     W2col.setZero();
-
-    // three: update siblings
-    for(auto s : siblings) {
-        auto p = dynamic_cast<SpikeAndSlabPrior *>(s);
-        p->Zcol.setZero();
-        p->W2col.setZero();
-        p->Zkeep = Zkeep;
-        p->alpha = alpha;
-        p->r = r;
-    }
 }
 
 } // end namespace Macau

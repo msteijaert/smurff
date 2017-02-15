@@ -10,13 +10,14 @@
 namespace Macau {
 
 struct Factors {
-    int num_latent;
+    static int num_latent;
 
     //-- c'tor
-    Factors(int num_latent, int num_fac = 2)
-        : num_latent(num_latent)
+    Factors(int nl, int num_fac = 2)
     {
         assert(num_fac == 2); 
+        assert(num_latent == -1 || num_latent == nl);
+        num_latent = nl;
         factors.resize(num_fac);
     }
 

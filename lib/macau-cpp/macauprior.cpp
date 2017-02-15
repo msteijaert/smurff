@@ -29,17 +29,12 @@ MacauPrior<FType>::MacauPrior(BaseSession &m, int p)
     : NormalPrior(m, p, "MacauPrior")  {}
 
 template<class FType>
-void MacauPrior<FType>::addSibling(BaseSession &b) 
-{
-     addSiblingTempl<MacauPrior<FType>>(b);
-}
-
-template<class FType>
 void MacauPrior<FType>::init()
 {
     NormalPrior::init();
 
-    assert((F->rows() == U.cols()) && "Number of rows in train must be equal to number of rows in features");
+    assert((F->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
+
     if (use_FtF) {
         FtF.resize(F->cols(), F->cols());
         At_mul_A(FtF, *F);
@@ -70,8 +65,9 @@ template<class FType>
 void MacauPrior<FType>::sample_latents() {
   NormalPrior::sample_latents();
 
+  assert(num_sys() == 1);
   // residual (Uhat is later overwritten):
-  Uhat.noalias() = U - Uhat;
+  Uhat.noalias() = U(0) - Uhat;
   MatrixXd BBt = A_mul_At_combo(beta);
   // sampling Gaussian
   tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
@@ -88,10 +84,11 @@ double MacauPrior<FType>::getLinkNorm() {
 template<class FType>
 void MacauPrior<FType>::compute_Ft_y_omp(MatrixXd &Ft_y) {
     const int num_feat = beta.cols();
+    assert(num_sys() == 1);
 
     // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
     // Ft_y is [ D x F ] matrix
-    MatrixXd tmp = (U + MvNormal_prec_omp(Lambda, U.cols())).colwise() - mu;
+    MatrixXd tmp = (U(0) + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
     Ft_y = A_mul_B(tmp, *F);
     MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 

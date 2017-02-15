@@ -24,9 +24,16 @@ class ILatentPrior {
       virtual void init() {}
 
       // utility
-      Factors &model() const;
-      int num_latent() const;
-      INoiseModel &noise() const;
+      BaseSession &sys(int s = 0);
+      Factors &model(int s);
+      Eigen::MatrixXd &U(int s);
+      Eigen::MatrixXd &V(int s);
+      INoiseModel &noise(int s);
+
+      int num_latent() { return Factors::num_latent; }
+      int num_cols();
+      int num_sys() { return sessions.size(); }
+
       virtual void savePriorInfo(std::string prefix) = 0;
       virtual std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
@@ -35,26 +42,14 @@ class ILatentPrior {
       virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
 
-      virtual void sample_latents() {
-          model().update_pnm(pos);
-#pragma omp parallel for
-          for(int n = 0; n < U.cols(); n++) {
-#pragma omp task
-              sample_latent(n); 
-          }
-      }
+      virtual void sample_latents();
+      virtual void sample_latent(int s, int n) = 0;
+      virtual void pnm(int s, int n, VectorNd &rr, MatrixNNd &MM);
 
-      virtual void sample_latent(int n) = 0;
-      virtual void pnm(int n, VectorNd &rr, MatrixNNd &MM) { model().get_pnm(pos, n, rr, MM); }
+      void add(BaseSession &b);
 
-      virtual void addSibling(BaseSession &b) = 0;
-      template<class Prior>
-      void addSiblingTempl(BaseSession &b);
-
-      BaseSession &macau;
+      std::vector<BaseSession *> sessions;
       int pos;
-      Eigen::MatrixXd &U, &V;
-      std::vector<ILatentPrior *> siblings;
       std::string name = "xxxx";
 
       thread_vector<VectorNd> rrs;
@@ -68,7 +63,6 @@ class NormalPrior : public ILatentPrior {
   public:
     NormalPrior(BaseSession &m, int p, std::string name = "NormalPrior");
     virtual ~NormalPrior() {}
-    void addSibling(BaseSession &b) override;
 
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
@@ -80,16 +74,8 @@ class NormalPrior : public ILatentPrior {
 
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     void sample_latents() override;
-    void sample_latent(int n) override;
+    void sample_latent(int s, int n) override;
     void savePriorInfo(std::string prefix) override;
-};
-
-class ProbitNormalPrior : public NormalPrior {
-  public:
-    ProbitNormalPrior(BaseSession &m, int p)
-        : NormalPrior(m, p) {}
-    virtual ~ProbitNormalPrior() {}
-    virtual void pnm(int n, VectorNd &rr, MatrixNNd &MM) { model().get_probit_pnm(pos, n, rr, MM); }
 };
 
 template<class Prior>
@@ -97,11 +83,10 @@ class MasterPrior : public Prior {
   public:
     MasterPrior(BaseSession &m, int p);
     virtual ~MasterPrior() {}
-    void addSibling(BaseSession &) override { assert(false); }
     void init() override;
 
     virtual void sample_latents() override;
-    void pnm(int,VectorNd&,MatrixNNd&) override;
+    void pnm(int, int, VectorNd&, MatrixNNd&) override;
 
     template<class Model>
     Model& addSlave();
@@ -118,9 +103,8 @@ class SlavePrior : public ILatentPrior {
   public:
     SlavePrior(BaseSession &m, int p) : ILatentPrior(m, p, "SlavePrior") {}
     virtual ~SlavePrior() {}
-    void addSibling(BaseSession &) override { assert(false); }
 
-    void sample_latent(int) override {};
+    void sample_latent(int,int) override {};
     void savePriorInfo(std::string prefix) override {}
 };
 
@@ -143,7 +127,6 @@ class MacauPrior : public NormalPrior {
   public:
     MacauPrior(BaseSession &m, int p);
     virtual ~MacauPrior() {}
-    void addSibling(BaseSession &b) override;
     void init() override;
 
     void sample_latents() override;
@@ -169,7 +152,6 @@ class MPIMacauPrior : public MacauPrior<FType> {
   public:
     MPIMacauPrior(BaseSession &m, int p);
     virtual ~MPIMacauPrior() {}
-    void addSibling(BaseSession &b) override;
 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
@@ -206,14 +188,13 @@ class SpikeAndSlabPrior : public ILatentPrior {
     SpikeAndSlabPrior(BaseSession &m, int p);
     virtual ~SpikeAndSlabPrior() {}
     void init() override;
-    void addSibling(BaseSession &b) override;
 
     void savePriorInfo(std::string prefix) override {}
     void sample_latents() override;
-    void sample_latent(int n) override;
+    void sample_latent(int s, int n) override;
 
     // mean value of Z
-    double getLinkNorm() override { return Zkeep.sum() / U.cols() / num_latent(); }
+    double getLinkNorm() override { return Zkeep.sum(); }
 };
 
 }

@@ -29,6 +29,8 @@ using namespace Eigen;
 
 namespace Macau {
 
+int Factors::num_latent = -1;
+
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     Ytest.resize(nrows, ncols);
     sparseFromIJV(Ytest, rows, cols, values, N);
