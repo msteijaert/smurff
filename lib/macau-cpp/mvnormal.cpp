@@ -137,6 +137,11 @@ void bmrandn_single(Eigen::VectorXd & x) {
   bmrandn_single(x.data(), x.size());
 }
 
+void bmrandn_single(MatrixXd & X) {
+  long n = X.rows() * (long)X.cols();
+  bmrandn_single(X.data(), n);
+}
+
 /** returns random number according to Gamma distribution
  *  with the given shape (k) and scale (theta). See wiki. */
 double rgamma(double shape, double scale) {
@@ -317,78 +322,124 @@ std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorX
 
   return NormalWishart(mu_c, kappa_c, T_c, nu_c);
 }
-#if defined(TEST_MVNORMAL) || defined (BENCH_MVNORMAL)
+
+#if defined(TEST) || defined (BENCH)
+
+#include "utils.h"
 
 int main()
 {
 
-    MatrixXd U(32,32 * 1024);
-    U.setOnes();
-
-    VectorXd mu(32);
-    mu.setZero();
-
-    double kappa = 2;
-
-    MatrixXd T(32,32);
-    T.setIdentity(32,32);
-    T.array() /= 4;
-
-    int nu = 3;
-
-    VectorXd mu_out;
-    MatrixXd T_out;
-
-#ifdef BENCH_MVNORMAL
-    for(int i=0; i<300; ++i) {
-        tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
-        cout << i << "\r" << flush;
+#ifdef BENCH_NRANDN
+    const int N = 2 * 1024;
+    const int R = 10;
+    {
+        init_bmrng(1234);
+        MatrixXd U;
+        double start = tick();
+        for(int i=0; i<R; ++i) {
+            U = nrandn(N,N);
+        }
+        double stop = tick();
+        std::cout << "norm: " << U.norm() << std::endl;
+        std::cout << "nullary: " << stop - start << std::endl;
     }
-    cout << endl << flush;
 
-    for(int i=0; i<7; ++i) {
-        cout << i << ": " << (int)(100.0 * acc[i] / acc[7])  << endl;
+    {
+        init_bmrng(1234);
+        MatrixXd U(N,N);
+        double start = tick();
+        for(int i=0; i<R; ++i) {
+            bmrandn(U);
+        }
+        double stop = tick();
+        std::cout << "norm: " << U.norm() << std::endl;
+        std::cout << "inplace omp: " << stop - start << std::endl;
     }
-    cout << "total: " << acc[7] << endl;
-
-    for(int i=0; i<300; ++i) {
-        tie(mu_out, T_out) = OldCondNormalWishart(U, mu, kappa, T, nu);
-        cout << i << "\r" << flush;
+    {
+        init_bmrng(1234);
+        MatrixXd U(N,N);
+        double start = tick();
+        for(int i=0; i<R; ++i) {
+            bmrandn_single(U);
+        }
+        double stop = tick();
+        std::cout << "norm: " << U.norm() << std::endl;
+        std::cout << "inplace single: " << stop - start << std::endl;
     }
-    cout << endl << flush;
-
-    cout << "total: " << acc[8] << endl;
-
+    return 0;
 
 #else
-#if 1
-    cout << "COND NORMAL WISHART\n" << endl;
 
-    tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
+    {
+        MatrixXd U(32,32 * 1024);
+        U.setOnes();
 
-    cout << "mu_out:\n" << mu_out << endl;
-    cout << "T_out:\n" << T_out << endl;
+        VectorXd mu(32);
+        mu.setZero();
 
-    cout << "\n-----\n\n";
+        double kappa = 2;
+
+        MatrixXd T(32,32);
+        T.setIdentity(32,32);
+        T.array() /= 4;
+
+        int nu = 3;
+
+        VectorXd mu_out;
+        MatrixXd T_out;
+
+#ifdef BENCH_OLD_VS_NEW
+        for(int i=0; i<300; ++i) {
+            tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
+            cout << i << "\r" << flush;
+        }
+        cout << endl << flush;
+
+        for(int i=0; i<7; ++i) {
+            cout << i << ": " << (int)(100.0 * acc[i] / acc[7])  << endl;
+        }
+        cout << "total: " << acc[7] << endl;
+
+        for(int i=0; i<300; ++i) {
+            tie(mu_out, T_out) = OldCondNormalWishart(U, mu, kappa, T, nu);
+            cout << i << "\r" << flush;
+        }
+        cout << endl << flush;
+
+        cout << "total: " << acc[8] << endl;
 #endif
 
-#if 0
-    cout << "NORMAL WISHART\n" << endl;
+#if defined(BENCH_COND_NORMALWISHART)
+        cout << "COND NORMAL WISHART\n" << endl;
 
-    tie(mu_out, T_out) = NormalWishart(mu, kappa, T, nu);
-    cout << "mu_out:\n" << mu_out << endl;
-    cout << "T_out:\n" << T_out << endl;
+        tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
 
+        cout << "mu_out:\n" << mu_out << endl;
+        cout << "T_out:\n" << T_out << endl;
+
+        cout << "\n-----\n\n";
 #endif
 
-#if 0
-    cout << "MVNORMAL\n" << endl;
-    MatrixXd out = MvNormal(T, mu, 10);
-    cout << "mu:\n" << mu << endl;
-    cout << "T:\n" << T << endl;
-    cout << "out:\n" << out << endl;
+#if defined(BENCH_NORMAL_WISHART)
+        cout << "NORMAL WISHART\n" << endl;
+
+        tie(mu_out, T_out) = NormalWishart(mu, kappa, T, nu);
+        cout << "mu_out:\n" << mu_out << endl;
+        cout << "T_out:\n" << T_out << endl;
 #endif
+
+#if defined(BENCH_MVNORMAL)
+        cout << "MVNORMAL\n" << endl;
+        MatrixXd out = MvNormal(T, mu, 10);
+        cout << "mu:\n" << mu << endl;
+        cout << "T:\n" << T << endl;
+        cout << "out:\n" << out << endl;
+#endif
+    }
+
 #endif
 }
+
 
 #endif

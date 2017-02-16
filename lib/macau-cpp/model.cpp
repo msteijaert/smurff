@@ -213,8 +213,11 @@ void MF<YType>::init_base()
 
     mean_rating = Y.sum() / Y.nonZeros();
 
-    U(0) = nrandn(num_latent, Y.cols());
-    U(1) = nrandn(num_latent, Y.rows());
+    U(0).resize(num_latent, Y.cols());
+    U(1).resize(num_latent, Y.rows());
+
+    bmrandn(U(0));
+    bmrandn(U(1));
 
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
