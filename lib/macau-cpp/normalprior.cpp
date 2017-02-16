@@ -68,7 +68,7 @@ void ILatentPrior::add(BaseSession &b)
 
 void ILatentPrior::sample_latents() 
 {
-    for(int s = 0; s < sessions.size(); s++) {
+    for(unsigned s = 0; s < sessions.size(); s++) {
         auto &model = *sessions.at(s)->model;
         model.update_pnm(pos);
 #pragma omp parallel for
