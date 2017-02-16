@@ -395,13 +395,12 @@ void Session::printStatus(double elapsedi) {
     double snorm1 = model->U(1).norm();
 
     std::pair<double,double> rmse_test = model->getRMSE(iter, burnin);
-    double auc = model->auc();
 
     auto nnz_per_sec = (model->Ynnz()) / elapsedi;
     auto samples_per_sec = (model->Yrows() + model->Ycols()) / elapsedi;
 
-    printf("Iter %3d/%3d: RMSE: %.4f (1samp: %.4f)  AUC: %.4f U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            iter, burnin + nsamples, rmse_test.second, rmse_test.first, auc,
+    printf("Iter %3d/%3d: RMSE: %.4f (1samp: %.4f) U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
+            iter, burnin + nsamples, rmse_test.second, rmse_test.first,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
