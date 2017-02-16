@@ -330,25 +330,44 @@ void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
 //
 //-- SparseMF specific stuff
 //
+//
+//
+
+struct pnm_perf_item {
+    int local_nnz, total_nnz;
+    bool in_parallel;
+    double start, stop;
+};
+
+static std::vector<pnm_perf_item> pnm_perf;
 
 void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(f);
     MatrixXd &Vf = V(f);
-    const double local_nnz = Y.col(n).nonZeros();
-    const double total_nnz = Y.nonZeros();
+    const int local_nnz = Y.col(n).nonZeros();
+    const int total_nnz = Y.nonZeros();
+    double start = tick();
+    bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
     // extra parallization for samples with >1% of nonzeros
     //std::cout << "local_nnz : " << local_nnz << std::endl;
     //std::cout << "total_nnz / 1000: " << total_nnz/1000. << std::endl;
-    if (local_nnz > total_nnz / 100.) {
+    if (in_parallel) {
+#if 0
+#pragma omp critical
+        printf("%d-%d with %d nnz started on thread %d\n", f, n, local_nnz, thread_num());
+#endif
         const int task_size = ceil(local_nnz / 100.0);
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
         thread_vector<VectorXd> rrs(VectorXd::Zero(num_latent));
         thread_vector<MatrixXd> MMs(MatrixXd::Zero(num_latent, num_latent)); 
-        //printf("from-to-tasksize: %d-%d-%d\n", from, to, task_size);
         for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(Y,Vf,rrs,MMs)
             {
+#if 0
+#pragma omp critical
+                printf("%d-%d with %d nnz running a task on thread %d\n", f, n, local_nnz, thread_num());
+#endif
                 auto &my_rr = rrs.local();
                 auto &my_MM = MMs.local();
 
@@ -362,7 +381,14 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
                 }
             }
         }
+#if 0
+        printf("%d-%d with %d nnz is waiting\n", f, n, local_nnz);
+#endif
 #pragma omp taskwait
+#if 0 
+#pragma omp critical
+        printf("%d-%d with %d nnz finished waiting\n", f, n, local_nnz);
+#endif
         MM += MMs.combine();
         rr += rrs.combine();
     } else {
@@ -372,10 +398,23 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
             MM.noalias() += col * col.transpose();
         }
     }
+
+    double stop = tick();
+
+#if 0
+#pragma omp critical
+    pnm_perf.push_back({local_nnz, total_nnz, in_parallel, start, stop});
+#endif
 }
 
 void SparseMF::update_pnm(int f) {
     return;
+    if (pnm_perf.size()) {
+        printf("==========\n"); 
+        for(auto &item: pnm_perf) printf("%d;%d;%d;%f;%f\n", item.local_nnz, item.total_nnz, item.in_parallel, item.start, item.stop);
+        pnm_perf.clear();
+    }
+
     auto &Y = Yc.at(f);
 
     int bin = 1;
