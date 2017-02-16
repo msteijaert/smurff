@@ -126,24 +126,49 @@ inline void split_work_mpi(int num_latent, int num_nodes, int* work) {
    }
 }
 
-inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, int* rows, int* cols, double* values, int N) {
-    typedef Eigen::Triplet<double> T;
-    std::vector<T> tripletList;
-    tripletList.reserve(N);
-    for (int n = 0; n < N; n++) {
-        tripletList.push_back(T(rows[n], cols[n], values[n]));
+
+struct sparse_vec_iterator {
+    sparse_vec_iterator(int *rows, int *cols, uint64_t pos)
+        : rows(rows), cols(cols), vals(0), fixed_val(1.0), pos(pos) {}
+    sparse_vec_iterator(int *rows, int *cols, double *vals, uint64_t pos)
+        : rows(rows), cols(cols), vals(vals), fixed_val(NAN), pos(pos) {}
+    sparse_vec_iterator(int *rows, int *cols, double fixed_val, uint64_t pos)
+        : rows(rows), cols(cols), vals(0), fixed_val(fixed_val), pos(pos) {}
+
+    int *rows, *cols;
+    double *vals; // can be null pointer -> use fixed value
+    double fixed_val;
+    int pos;
+    bool operator!=(const sparse_vec_iterator &other) const { 
+        assert(rows == other.rows);
+        assert(cols == other.cols);
+        assert(vals == other.vals);
+        return pos != other.pos;
     }
-    X.setFromTriplets(tripletList.begin(), tripletList.end());
+    sparse_vec_iterator &operator++() { pos++; return *this; }
+    typedef Eigen::Triplet<double> T;
+    T v;
+    T* operator->() {
+        // also convert from 1-base to 0-base
+        uint32_t row = rows[pos];
+        uint32_t col = cols[pos];
+        double val = vals ? vals[pos] : 1.0;
+        v = T(row, col, val);
+        return &v;
+    }
+};
+
+
+inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, int* rows, int* cols, double* values, int N) {
+    sparse_vec_iterator begin(rows, cols, values, 0);
+    sparse_vec_iterator end(rows, cols, values, N);
+    X.setFromTriplets(begin, end);
 }
 
 inline void sparseFromIJ(Eigen::SparseMatrix<double> &X, int* rows, int* cols, int N) {
-    typedef Eigen::Triplet<double> T;
-    std::vector<T> tripletList;
-    tripletList.reserve(N);
-    for (int n = 0; n < N; n++) {
-        tripletList.push_back(T(rows[n], cols[n], 1.0));
-    }
-    X.setFromTriplets(tripletList.begin(), tripletList.end());
+    sparse_vec_iterator begin(rows, cols, 1.0, 0);
+    sparse_vec_iterator end  (rows, cols, 1.0, N);
+    X.setFromTriplets(begin, end);
 }
 
 inline Eigen::SparseMatrix<double> to_eigen(SparseDoubleMatrix &Y) 
