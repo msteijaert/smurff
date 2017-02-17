@@ -274,11 +274,6 @@ std::pair<VectorXd, MatrixXd> NormalWishart(const VectorXd & mu, double kappa, c
 
 std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S, const VectorNd &Um, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
 {
-    SHOW(N);
-    SHOW(S);
-    SHOW(Um.transpose());
-    SHOW(mu.transpose());
-
     VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
     double kappa_c = kappa + N;
     auto mu_m = (mu - Um);
