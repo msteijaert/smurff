@@ -27,8 +27,13 @@ class thread_vector
             return std::accumulate(_m.begin(), _m.end(), _i, std::plus<T>());
         }
 
+        T &local() {
+            return _m.at(thread_num()); 
+        }
+        void reset() {
+            for(auto &t: _m) t = _i;
+        }
 
-        T &local() { return _m.at(thread_num()); }
 
     private:
         std::vector<T> _m;

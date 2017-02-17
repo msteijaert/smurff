@@ -63,12 +63,19 @@ class NormalPrior : public ILatentPrior {
   public:
     NormalPrior(BaseSession &m, int p, std::string name = "NormalPrior");
     virtual ~NormalPrior() {}
+    
+    // updated by every thread
+    thread_vector<VectorNd> Ucol;
+    thread_vector<MatrixNNd> UUcol;
 
+
+    // hyperparams
     Eigen::VectorXd mu; 
     Eigen::MatrixXd Lambda;
     Eigen::MatrixXd WI;
     Eigen::VectorXd mu0;
 
+    // constants
     int b0;
     int df;
 
@@ -176,7 +183,11 @@ class MPIMacauPrior : public MacauPrior<FType> {
 /** Spike and slab prior */
 class SpikeAndSlabPrior : public ILatentPrior {
    public:
-    VectorNd Zcol, W2col, Zkeep;
+    // updated by every thread
+    thread_vector<VectorNd> Zcol, W2col;
+
+    // read-only during sampling
+    VectorNd Zkeep;
     ArrayNd alpha;
     VectorNd r;
 
