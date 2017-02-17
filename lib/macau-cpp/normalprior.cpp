@@ -71,7 +71,7 @@ void ILatentPrior::sample_latents()
     for(unsigned s = 0; s < sessions.size(); s++) {
         auto &model = *sessions.at(s)->model;
         model.update_pnm(pos);
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
         for(int n = 0; n < model.U(pos).cols(); n++) {
 #pragma omp task
             sample_latent(s, n); 
