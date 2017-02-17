@@ -48,7 +48,6 @@ void SpikeAndSlabPrior::sample_latent(int s, int d)
             Zcol.local()(k)++;
             double var = randn() / sqrt(lambda);
             Wcol(k) = mu + var;
-            assert(mu < 100.);
         } else {
             Wcol(k) = .0;
         }
