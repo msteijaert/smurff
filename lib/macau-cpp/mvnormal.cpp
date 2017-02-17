@@ -274,13 +274,17 @@ std::pair<VectorXd, MatrixXd> NormalWishart(const VectorXd & mu, double kappa, c
 
 std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S, const VectorNd &Um, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
 {
-    auto mu_m = (mu - Um);
-    VectorNd mu_c = (kappa*mu + N*Um) / (kappa + N);
+    SHOW(N);
+    SHOW(S);
+    SHOW(Um.transpose());
+    SHOW(mu.transpose());
 
+    VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
     double kappa_c = kappa + N;
+    auto mu_m = (mu - Um);
     double kappa_m = (kappa * N)/(kappa + N);
     auto X = ( T + N * S + kappa_m * (mu_m * mu_m.transpose()));
-    MatrixNNd T_c = X.inverse();
+    MatrixXd T_c = X.inverse();
     int nu_c = nu + N;
 
 #ifdef TEST_MVNORMAL
@@ -293,44 +297,16 @@ std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S
     return NormalWishart(mu_c, kappa_c, T_c, nu_c);
 }
 
-std::pair<VectorXd, MatrixXd> OldCondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
-{
-  int N = U.cols();
-  auto Um = U.rowwise().mean();
-
-  // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
-  MatrixXd C = U.colwise() - Um;
-  MatrixXd S = (C * C.adjoint()) / double(N - 1);
-  
-  return CondNormalWishart(N, S, Um, mu, kappa, T, nu);
-}
-
 std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
 {
-  /// TODO: parallelize (for computing C and C * C')
-  int N = U.cols();
+    int N = U.cols();
+    auto Um = U.rowwise().mean();
 
-  VectorXd Um = U.rowwise().mean();
+    // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
+    MatrixXd C = U.colwise() - Um;
+    MatrixXd S = (C * C.adjoint()) / double(N - 1);
 
-  // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
-  auto C = U.colwise() - Um;
-  MatrixXd S = (C * C.adjoint()) / double(N - 1);
-  VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
-  double kappa_c = kappa + N;
-  auto mu_m = (mu - Um);
-  double kappa_m = (kappa * N)/(kappa + N);
-  auto X = ( T + N * S + kappa_m * (mu_m * mu_m.transpose()));
-  MatrixXd T_c = X.inverse();
-  int nu_c = nu + N;
-
-#ifdef TEST_MVNORMAL
-  cout << "mu_c:\n" << mu_c << endl;
-  cout << "kappa_c:\n" << kappa_c << endl;
-  cout << "T_c:\n" << T_c << endl;
-  cout << "nu_c:\n" << nu_c << endl;
-#endif
-
-  return NormalWishart(mu_c, kappa_c, T_c, nu_c);
+    return CondNormalWishart(N, S, Um, mu, kappa, T, nu);
 }
 
 #if defined(TEST) || defined (BENCH)

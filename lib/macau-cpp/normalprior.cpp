@@ -90,7 +90,9 @@ void ILatentPrior::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
  */
 
 NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
-    : ILatentPrior(m, p, name) 
+    : ILatentPrior(m, p, name),
+      Ucol(VectorNd::Zero(num_latent())),
+      UUcol(MatrixNNd::Zero(num_latent(), num_latent()))
 {
     const int K = num_latent();
     mu.resize(K);
@@ -111,9 +113,13 @@ NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
 
 void NormalPrior::sample_latents() {
 
-    // FIXME: include siblings!!!!
-    auto &U = sessions.front()->model->U(pos);
-    tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
+    const int N = num_cols();
+    const auto cov = UUcol.combine();
+    const auto sum = Ucol.combine();
+    tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
+
+    UUcol.reset();
+    Ucol.reset();
 
     ILatentPrior::sample_latents();
 }
@@ -150,7 +156,11 @@ void NormalPrior::sample_latent(int s, int n)
     chol.matrixL().solveInPlace(rr);
     rr.noalias() += nrandn(num_latent());
     chol.matrixU().solveInPlace(rr);
+
     U.col(n).noalias() = rr;
+    Ucol.local().noalias() += rr;
+    UUcol.local().noalias() += rr * rr.transpose();
+
 }
 
 void NormalPrior::savePriorInfo(std::string prefix) {
