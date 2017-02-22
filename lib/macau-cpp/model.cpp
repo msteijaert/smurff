@@ -377,7 +377,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
                     auto idx = Y.innerIndexPtr()[i];
                     const auto &col = Vf.col(idx);
                     my_rr.noalias() += col * val;
-                    my_MM.noalias() += col * col.transpose();
+                    my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
                 }
             }
         }
@@ -395,11 +395,13 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
         for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
             const auto &col = Vf.col(it.row());
             rr.noalias() += col * it.value();
-            MM.noalias() += col * col.transpose();
+            MM.triangularView<Lower>() += col * col.transpose();
         }
     }
 
     double stop = tick();
+
+    MM.triangularView<Upper>() = MM.transpose();
 
 #if 0
 #pragma omp critical
