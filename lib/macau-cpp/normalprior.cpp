@@ -243,9 +243,9 @@ Model& MasterPrior<Prior>::addSlave()
     slaves.push_back(BaseSession());
     auto &slave_macau = slaves.back();
     slave_macau.name = "Slave " + std::to_string(slaves.size());
-    slave_macau.setPrecision(1.0); // FIXME
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);
+    slave_macau.noise.reset(this->noise().copyTo(*n)); 
     for(auto &p : this->sys().priors) {
         slave_macau.template addPrior<SlavePrior>();
         if (p->pos != this->pos) p->add(slave_macau);

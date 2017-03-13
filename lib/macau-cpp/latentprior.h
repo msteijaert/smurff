@@ -28,7 +28,7 @@ class ILatentPrior {
       Factors &model(int s);
       Eigen::MatrixXd &U(int s);
       Eigen::MatrixXd &V(int s);
-      INoiseModel &noise(int s);
+      INoiseModel &noise(int s = 0);
 
       int num_latent() { return Factors::num_latent; }
       int num_cols();
