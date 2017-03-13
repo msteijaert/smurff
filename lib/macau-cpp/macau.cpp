@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <random>
+#include <cstring>
 #include <chrono>
 #include <memory>
 #include <cmath>
@@ -258,6 +259,13 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     std::string output_prefix("result");
 
     double precision          = 5.0;
+    bool fixed_precision      = false;
+
+    char *token;
+    double sn_init            = 1.0;
+    double sn_max             = 10.0;
+    bool adaptive_precision   = false;
+
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
     double test_split         = .0;
@@ -290,6 +298,7 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
         "  --nsamples      800  number of samples to collect\n"
         "  --num-latent     96  number of latent dimensions\n"
         "  --precision     5.0  precision of observations\n"
+        "  --adaptive 1.0,10.0  adavtive precision of observations\n"
         "  --lambda-beta  10.0  initial value of lambda beta\n"
         "  --tol          1e-6  tolerance for CG\n"
         "  --output    results  prefix for result files\n\n";
@@ -305,6 +314,7 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             {"row-prior",    required_argument, 0, 'q'},
             {"col-prior",    required_argument, 0, 's'},
             {"precision",    required_argument, 0, 'p'},
+            {"adaptive",     required_argument, 0, 'v'},
             {"burnin",       required_argument, 0, 'b'},
             {"nsamples",     required_argument, 0, 'n'},
             {"output",       required_argument, 0, 'o'},
@@ -326,7 +336,17 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             case 'l': num_latent         = strtol(optarg, NULL, 10); break;
             case 'n': nsamples           = strtol(optarg, NULL, 10); break;
             case 'o': output_prefix      = std::string(optarg); break;
-            case 'p': precision          = strtod(optarg, NULL); break;
+            case 'p': 
+                      assert(!adaptive_precision);
+                      precision          = strtod(optarg, NULL);
+                      fixed_precision    = true;
+                      break;
+            case 'v': 
+                      assert(!fixed_precision);
+                      if(optarg && (token = strsep(&optarg, ","))) sn_init = strtod(token, NULL); 
+                      if(optarg && (token = strsep(&optarg, ","))) sn_max = strtod(token, NULL); 
+                      adaptive_precision = true;
+                      break;
             case 'r': fname_row_features = optarg; break;
             case 'f': fname_col_features = optarg; break;
             case 'q': row_prior          = optarg; break;
@@ -370,7 +390,10 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     }
 
     setSamples(burnin, nsamples);
-    setPrecision(precision);
+
+    if (adaptive_precision) setAdaptivePrecision(sn_init, sn_max);
+    else setPrecision(precision);
+
     setVerbose(true);
 
     // test data

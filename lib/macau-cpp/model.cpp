@@ -306,9 +306,9 @@ double MF<SparseMatrixD>::sumsq() const {
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < Y.outerSize(); j++) {
-        auto Vj = col(1, j);
+        auto Uj = col(0, j);
         for (SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
-            double Yhat = Vj.dot( col(0, it.row()) ) + mean_rating;
+            double Yhat = Uj.dot( col(1, it.row()) ) + mean_rating;
             sumsq += square(Yhat - it.value());
         }
     }
