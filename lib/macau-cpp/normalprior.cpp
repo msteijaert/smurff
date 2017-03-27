@@ -183,7 +183,16 @@ template<class Prior>
 void MasterPrior<Prior>::init() 
 {
     Prior::init();
-    for(auto &s : slaves) s.init();
+ 
+    // create+init slave priors
+    for(auto &s : slaves) {
+        for(auto &p : this->sys().priors) {
+            s.template addPrior<SlavePrior>();
+            if (p->pos != this->pos) p->add(s);
+        }
+
+        s.init();
+   }
 }
 
 template<class Prior>
@@ -246,10 +255,6 @@ Model& MasterPrior<Prior>::addSlave()
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);
     slave_macau.noise.reset(this->noise().copyTo(*n)); 
-    for(auto &p : this->sys().priors) {
-        slave_macau.template addPrior<SlavePrior>();
-        if (p->pos != this->pos) p->add(slave_macau);
-    }
     return *n;
 }
 
