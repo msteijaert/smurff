@@ -219,6 +219,9 @@ void MasterPrior<Prior>::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
     // first the master
     Prior::pnm(s, n, rr, MM);
 
+    // no slaves for the slaves
+    if (s > 0) return;
+
     // then the slaves
     assert(slaves.size() > 0 && "No slaves");
     for(auto &slave : slaves) {
@@ -230,6 +233,9 @@ void MasterPrior<Prior>::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
 template<class Prior>
 void MasterPrior<Prior>::sample_latent(int s, int d) {
     Prior::sample_latent(s,d);
+
+    // no slaves on slaves
+    if (s>0) return;
     for(auto &slave : this->slaves) {
         auto &slave_prior = slave.priors.at(this->pos);
         slave_prior->U(s).col(d) = this->U(s).col(d);
