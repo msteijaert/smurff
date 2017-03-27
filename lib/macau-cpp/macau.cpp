@@ -182,63 +182,62 @@ inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInf
 }
 
 template<class Prior>
-inline void addMaster(Session &macau, const Eigen::MatrixXd &sideinfo)
+inline void add_features(MasterPrior<Prior> &p,  std::vector<std::string> fname_features)
 {
-    auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
-    auto &slave_model = master_prior.template addSlave<DenseDenseMF>();
-    slave_model.setRelationData(sideinfo);
+    for(auto &fname : fname_features) {
+        if (fname.find(".sdm") != std::string::npos) {
+            auto features = read_sdm(fname.c_str());
+            auto &slave_model = p.template addSlave<SparseDenseMF>();
+            slave_model.setRelationData(to_eigen(*features));
+            delete features;
+        } else if (fname.find(".sbm") != std::string::npos) {
+            auto features = read_sbm(fname.c_str());
+            auto &slave_model = p.template addSlave<SparseDenseMF>();
+            slave_model.setRelationData(to_eigen(*features));
+            delete features;
+        } else if (fname.find(".ddm") != std::string::npos) {
+            auto features = read_ddm<Eigen::MatrixXd>(fname.c_str());
+            auto &slave_model = p.template addSlave<DenseDenseMF>();
+            slave_model.setRelationData(features);
+        } else {
+            throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname));
+        }
+    }
 }
 
-template<class Prior>
-inline void addMaster(Session &macau, const SparseMatrixD &sideinfo)
-{
-    auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
-    auto &slave_model = master_prior.template addSlave<SparseDenseMF>();
-    slave_model.setRelationData(sideinfo);
-}
 
-
-template<class SideInfo>
-inline void addMaster(Session &macau,std::string prior_name, const SideInfo &features)
+inline void addMaster(Session &macau,std::string prior_name, std::vector<std::string> fname_features)
 {
     if(prior_name == "normal" || prior_name == "default") {
-        addMaster<NormalPrior>(macau, features);
+       auto &prior = macau.addPrior<MasterPrior<NormalPrior>>();
+       add_features(prior, fname_features);
     } else if(prior_name == "spikeandslab") {
-        addMaster<SpikeAndSlabPrior>(macau, features);
+       auto &prior = macau.addPrior<MasterPrior<SpikeAndSlabPrior>>();
+       add_features(prior, fname_features);
     } else {
         throw std::runtime_error("Unknown prior with side info: " + prior_name);
     }
 }
 
-void add_prior(Session &macau, std::string prior_name, std::string fname_features, double lambda_beta, double tol)
+void add_prior(Session &macau, std::string prior_name, std::vector<std::string> fname_features, double lambda_beta, double tol)
 {
     //-- row prior with side information
     if (fname_features.size()) {
         if (prior_name == "macau" || prior_name == "macauone") {
-            if (fname_features.find(".sdm") != std::string::npos) {
-                auto row_features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname_features.c_str()));
+            assert(fname_features.size() == 1);
+            auto &fname = fname_features.at(0);
+            die_unless_file_exists(fname);
+            if (fname.find(".sdm") != std::string::npos) {
+                auto row_features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname.c_str()));
                 addMacauPrior(macau, prior_name, row_features, lambda_beta, tol);
-            } else if (fname_features.find(".sbm") != std::string::npos) {
-                auto features = load_bcsr(fname_features.c_str());
+            } else if (fname.find(".sbm") != std::string::npos) {
+                auto features = load_bcsr(fname.c_str());
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol);
             } else {
-                throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname_features));
+                throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname));
             }
         } else {
-            if (fname_features.find(".sdm") != std::string::npos) {
-                auto features = read_sdm(fname_features.c_str());
-                addMaster(macau, prior_name, to_eigen(*features));
-                delete features;
-            } else if (fname_features.find(".sbm") != std::string::npos) {
-                auto features = read_sbm(fname_features.c_str());
-                addMaster(macau, prior_name, to_eigen(*features));
-                delete features;
-            } else if (fname_features.find(".ddm") != std::string::npos) {
-                auto features = read_ddm<Eigen::MatrixXd>(fname_features.c_str());
-                addMaster(macau, prior_name, features);
-            } else {
-                throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname_features));
-            }
+            addMaster(macau, prior_name, fname_features);
         }
     } else if(prior_name == "normal" || prior_name == "default") {
         macau.addPrior<NormalPrior>();
@@ -252,8 +251,8 @@ void add_prior(Session &macau, std::string prior_name, std::string fname_feature
 void Session::setFromArgs(int argc, char** argv, bool print) {
     std::string fname_train;
     std::string fname_test;
-    std::string fname_row_features;
-    std::string fname_col_features;
+    std::vector<std::string> fname_row_features;
+    std::vector<std::string> fname_col_features;
     std::string row_prior("default");
     std::string col_prior("default");
     std::string output_prefix("result");
@@ -278,13 +277,6 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
         if (print) std::cout << message;
         exit(-1);
     };
-
-    auto die_unless_file_exists = [&die](std::string fname) {
-        if ( fname.size() && ! file_exists(fname) ) {
-            die(std::string("[ERROR]\nFile '") + fname +  "' not found.\n");
-        }
-    };
-
     std::string usage = 
         "Usage:\n"
         "  macau_mpi --train <train_file> <feature-file> [options]\n"
@@ -347,8 +339,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
                       if(optarg && (token = strsep(&optarg, ","))) sn_max = strtod(token, NULL); 
                       adaptive_precision = true;
                       break;
-            case 'r': fname_row_features = optarg; break;
-            case 'f': fname_col_features = optarg; break;
+            case 'r': fname_row_features.push_back(optarg); break;
+            case 'f': fname_col_features.push_back(optarg); break;
             case 'q': row_prior          = optarg; break;
             case 's': col_prior          = optarg; break;
             case 't': fname_train        = optarg; break;
@@ -359,9 +351,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     if (fname_train.empty()) {
         die(usage + "[ERROR]\nMissing parameters '--train'\n");
     }
+
     die_unless_file_exists(fname_train);
-    die_unless_file_exists(fname_row_features);
-    die_unless_file_exists(fname_col_features);
 
     //-- check if fname_test is actually a number
     if ((test_split = atof(fname_test.c_str())) > .0) {
@@ -403,6 +394,7 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
         model->setRelationDataTest(*Ytest);
         delete Ytest;
     }
+
 
     add_prior(*this, col_prior, fname_col_features, lambda_beta, tol);
     add_prior(*this, row_prior, fname_row_features, lambda_beta, tol);
