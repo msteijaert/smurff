@@ -192,6 +192,8 @@ void MasterPrior<Prior>::init()
         }
 
         s.init();
+
+        assert(this->U().cols() == s.priors.at(this->pos)->U().cols());
    }
 }
 
