@@ -50,7 +50,7 @@ class Session : public BaseSession {
       bool        verbose     = true;
       int         nsamples    = 100;
       int         burnin      = 50;
-      bool        save_model  = false;
+      int         save_freq   = 0;
       std::string save_prefix = "model";
 
       // while running
@@ -62,8 +62,8 @@ class Session : public BaseSession {
       //-- set params
       void setSamples(int burnin, int nsamples);
       void setVerbose(bool v) { verbose = v; };
-      void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
+      void setSaveFrequency(int f) { save_freq = f; };
       void setFromArgs(int argc, char** argv, bool print);
 
       // execution of the sampler

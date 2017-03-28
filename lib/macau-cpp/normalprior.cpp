@@ -164,7 +164,7 @@ void NormalPrior::sample_latent(int s, int n)
 }
 
 void NormalPrior::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", mu);
+  writeToCSVfile(prefix + "-U" + std::to_string(pos) + "-latentmean.csv", mu);
 }
 
 

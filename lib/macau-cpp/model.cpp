@@ -76,7 +76,7 @@ void Factors::saveGlobalParams(std::string save_prefix) {
 void Factors::saveModel(std::string save_prefix, int iter, int burnin) {
     int i = 0;
     for(auto &U : factors) {
-        writeToCSVfile(save_prefix + "U" + std::to_string(++i) + "-latents.csv", U);
+        writeToCSVfile(save_prefix + "-U" + std::to_string(i++) + "-latents.csv", U);
     }
     savePredictions(save_prefix, iter, burnin);
 }

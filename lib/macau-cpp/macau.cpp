@@ -65,12 +65,9 @@ AdaptiveGaussianNoise &BaseSession::setAdaptivePrecision(double sn_init, double 
 }
 
 void BaseSession::init() {
-    if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
+    if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported (have" + std::to_string(priors.size()) + ").");
     model->init();
-    for( auto &p : priors) {
-        std::cout << " Init " << p->name << std::endl;
-        p->init();
-    }
+    for( auto &p : priors) p->init();
     noise->init();
 }
 
@@ -109,7 +106,9 @@ void Session::init() {
       printInitStatus(std::cout, "");
       std::cout << "Sampling" << endl;
   }
-  if (save_model) model->saveGlobalParams(save_prefix);
+  if (save_freq) {
+      model->saveGlobalParams(save_prefix);
+  }
   iter = 0;
 }
 
@@ -255,7 +254,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     std::vector<std::string> fname_col_features;
     std::string row_prior("default");
     std::string col_prior("default");
-    std::string output_prefix("result");
+    std::string output_prefix;
+    int output_freq = 1;
 
     double precision          = 5.0;
     bool fixed_precision      = false;
@@ -293,7 +293,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
         "  --adaptive 1.0,10.0  adavtive precision of observations\n"
         "  --lambda-beta  10.0  initial value of lambda beta\n"
         "  --tol          1e-6  tolerance for CG\n"
-        "  --output    results  prefix for result files\n\n";
+        "  --output-prefix prx  prefix for result files\n"
+        "  --output-freq     0  save every n iterations (0 == never)\n\n";
 
     // reading command line arguments
     while (1) {
@@ -309,7 +310,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             {"adaptive",     required_argument, 0, 'v'},
             {"burnin",       required_argument, 0, 'b'},
             {"nsamples",     required_argument, 0, 'n'},
-            {"output",       required_argument, 0, 'o'},
+            {"output-prefix",required_argument, 0, 'o'},
+            {"output-freq",  required_argument, 0, 'm'},
             {"num-latent",   required_argument, 0, 'l'},
             {"lambda-beta",  required_argument, 0, 'a'},
             {"tol",          required_argument, 0, 'c'},
@@ -328,13 +330,14 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             case 'l': num_latent         = strtol(optarg, NULL, 10); break;
             case 'n': nsamples           = strtol(optarg, NULL, 10); break;
             case 'o': output_prefix      = std::string(optarg); break;
+            case 'm': output_freq        = strtol(optarg, NULL, 10); break;
             case 'p': 
-                      assert(!adaptive_precision);
+                      if(adaptive_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
                       precision          = strtod(optarg, NULL);
                       fixed_precision    = true;
                       break;
             case 'v': 
-                      assert(!fixed_precision);
+                      if(fixed_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
                       if(optarg && (token = strsep(&optarg, ","))) sn_init = strtod(token, NULL); 
                       if(optarg && (token = strsep(&optarg, ","))) sn_max = strtod(token, NULL); 
                       adaptive_precision = true;
@@ -398,6 +401,9 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
 
     add_prior(*this, col_prior, fname_col_features, lambda_beta, tol);
     add_prior(*this, row_prior, fname_row_features, lambda_beta, tol);
+
+    setSavePrefix(output_prefix);
+    setSaveFrequency(output_freq);
 }
 
 
@@ -410,18 +416,20 @@ void Session::printStatus(double elapsedi) {
     double snorm1 = model->U(1).norm();
 
     std::pair<double,double> rmse_test = model->getRMSE(iter, burnin);
+    double auc = model->auc();
 
     auto nnz_per_sec = (model->Ynnz()) / elapsedi;
     auto samples_per_sec = (model->Yrows() + model->Ycols()) / elapsedi;
 
-    printf("Iter %3d/%3d: RMSE: %.4f (1samp: %.4f) U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            iter, burnin + nsamples, rmse_test.second, rmse_test.first,
+    printf("Iter %3d/%3d: RMSE: %.4f AUC:%.4f (1samp: %.4f) U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
+            iter, burnin + nsamples, rmse_test.second, rmse_test.first, auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
 void Session::saveModel(int isample) {
-    if (!save_model || isample < 0) return;
-    string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
+    if (!save_freq || isample < 0) return;
+    if ((isample % save_freq) != 0) return;
+    string fprefix = save_prefix + "-sample-" + std::to_string(isample);
     model->saveModel(fprefix, isample, burnin);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }
