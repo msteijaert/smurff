@@ -33,8 +33,6 @@ class BaseSession  {
       inline Prior& addPrior();
 
       // set noise models
-      INoiseModel &setNoiseModel(std::string, std::vector<double>);
-      ProbitNoise &setProbit();
       FixedGaussianNoise &setPrecision(double p);
       AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
 

@@ -29,21 +29,6 @@ class INoiseModel {
 };
 
 /** Gaussian noise is fixed for the whole run */
-class ProbitNoise : public INoiseModel {
-  public:
-    ProbitNoise(Factors &p) : INoiseModel(p)  {}
-
-    INoiseModel *copyTo(Factors &p) override { return new ProbitNoise(p); }
-
-    void init() override {}
-    void update() override {}
-    double getAlpha() override { assert(false); }
-
-    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
-    std::string getStatus() override { return std::string(""); }
-};
-
-/** Gaussian noise is fixed for the whole run */
 class FixedGaussianNoise : public INoiseModel {
   public:
     double alpha;

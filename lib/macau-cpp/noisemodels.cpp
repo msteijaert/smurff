@@ -11,12 +11,6 @@ using namespace Eigen;
 
 namespace Macau {
 
-std::ostream &ProbitNoise::printInitStatus(std::ostream &os, std::string indent)
-{ 
-    os << "Probit noise\n";
-    return os;
-}
-
 INoiseModel *FixedGaussianNoise::copyTo(Factors &p)
 {
     return new FixedGaussianNoise(p, alpha);
