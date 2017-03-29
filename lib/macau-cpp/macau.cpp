@@ -52,6 +52,28 @@ SparseDenseMF &BaseSession::sparseDenseModel(int num_latent) {
     return addModel<SparseDenseMF>(num_latent);
 }
 
+INoiseModel &BaseSession::setNoiseModel(std::string name, std::vector<double> args)
+{
+    if (name == "fixed") {
+        double precision = args.size() ? args.at(0) : 1.0;
+        return setPrecision(precision);
+    } else if (name == "adaptive") {
+        double sn_init = args.size() > 0 ? args.at(0) : 1.0;
+        double sn_max = args.size() > 1 ? args.at(1) : 10.0;
+        return setAdaptivePrecision(sn_init, sn_max);
+    } else if (name == "probit") {
+        return setProbit();
+    }
+
+    throw std::runtime_error("Unknown noise model: " + name);
+}
+
+ProbitNoise &BaseSession::setProbit() {
+  ProbitNoise *n = new ProbitNoise(*model);
+  noise.reset(n);
+  return *n;
+}
+
 FixedGaussianNoise &BaseSession::setPrecision(double p) {
   FixedGaussianNoise *n = new FixedGaussianNoise(*model, p);
   noise.reset(n);
@@ -247,6 +269,17 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
     }
 }
 
+
+static void parse_noise_args(std::string opt, std::string &model, std::vector<double> &args)
+{
+    char *token, *s;
+
+    s = strdup(opt.c_str());
+    if((token = strsep(&s, ","))) model = token;
+    while ((token = strsep(&s, ","))) args.push_back(strtod(token, NULL));
+    delete s;
+}
+
 void Session::setFromArgs(int argc, char** argv, bool print) {
     std::string fname_train;
     std::string fname_test;
@@ -257,13 +290,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     std::string output_prefix;
     int output_freq = 1;
 
-    double precision          = 5.0;
-    bool fixed_precision      = false;
-
-    char *token;
-    double sn_init            = 1.0;
-    double sn_max             = 10.0;
-    bool adaptive_precision   = false;
+    std::string noise_model = "fixed";
+    std::vector<double> noise_args;
 
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
@@ -283,18 +311,21 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
         "Optional:\n"
         "  --row-prior <normal|spikeandslab|macau|macauone>\n"
         "  --col-prior <normal|spikeandslab|macau|macauone>\n\n"
-        "  --row-features file  side info for rows\n"
-        "  --col-features file  side info for cols\n"
-        "  --test    test_file  test data (for computing RMSE)\n"
-        "  --burnin        200  number of samples to discard\n"
-        "  --nsamples      800  number of samples to collect\n"
-        "  --num-latent     96  number of latent dimensions\n"
-        "  --precision     5.0  precision of observations\n"
-        "  --adaptive 1.0,10.0  adavtive precision of observations\n"
-        "  --lambda-beta  10.0  initial value of lambda beta\n"
-        "  --tol          1e-6  tolerance for CG\n"
-        "  --output-prefix prx  prefix for result files\n"
-        "  --output-freq     0  save every n iterations (0 == never)\n\n";
+        "  --row-features file        side info for rows\n"
+        "  --col-features file        side info for cols\n"
+        "  --test    test_file        test data (for computing RMSE)\n"
+        "  --burnin        200        number of samples to discard\n"
+        "  --nsamples      800        number of samples to collect\n"
+        "  --num-latent     96        number of latent dimensions\n"
+
+        "  --noise  fixed,5.0         fixed noise precision of observations\n"
+        "  --noise  adaptive.1.0,10.0 adaptive noise with sn_init and and sn_max\n"
+        "  --noise  probit            probit noise\n"
+
+        "  --lambda-beta  10.0        initial value of lambda beta\n"
+        "  --tol          1e-6        tolerance for CG\n"
+        "  --output-prefix prx        prefix for result files\n"
+        "  --output-freq     0        save every n iterations (0 == never)\n\n";
 
     // reading command line arguments
     while (1) {
@@ -306,8 +337,7 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             {"col-features", required_argument, 0, 'f'},
             {"row-prior",    required_argument, 0, 'q'},
             {"col-prior",    required_argument, 0, 's'},
-            {"precision",    required_argument, 0, 'p'},
-            {"adaptive",     required_argument, 0, 'v'},
+            {"noise",        required_argument, 0, 'p'},
             {"burnin",       required_argument, 0, 'b'},
             {"nsamples",     required_argument, 0, 'n'},
             {"output-prefix",required_argument, 0, 'o'},
@@ -331,17 +361,7 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             case 'n': nsamples           = strtol(optarg, NULL, 10); break;
             case 'o': output_prefix      = std::string(optarg); break;
             case 'm': output_freq        = strtol(optarg, NULL, 10); break;
-            case 'p': 
-                      if(adaptive_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
-                      precision          = strtod(optarg, NULL);
-                      fixed_precision    = true;
-                      break;
-            case 'v': 
-                      if(fixed_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
-                      if(optarg && (token = strsep(&optarg, ","))) sn_init = strtod(token, NULL); 
-                      if(optarg && (token = strsep(&optarg, ","))) sn_max = strtod(token, NULL); 
-                      adaptive_precision = true;
-                      break;
+            case 'p': parse_noise_args(optarg, noise_model, noise_args);
             case 'r': fname_row_features.push_back(optarg); break;
             case 'f': fname_col_features.push_back(optarg); break;
             case 'q': row_prior          = optarg; break;
@@ -385,8 +405,7 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
 
     setSamples(burnin, nsamples);
 
-    if (adaptive_precision) setAdaptivePrecision(sn_init, sn_max);
-    else setPrecision(precision);
+    setNoiseModel(noise_model, noise_args);
 
     setVerbose(true);
 
