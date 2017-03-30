@@ -154,15 +154,15 @@ const Eigen::VectorXd &Factors::getStds(int iter, int burnin)
     return stds;
 }
 
-double Factors::auc()
+double Factors::auc(double threshold)
 {
     if (Ytest.nonZeros() == 0) return NAN;
+    if (isnan(threshold)) return NAN;
 
     double *test_vector = Ytest.valuePtr();
 
     Eigen::VectorXd stack_x(predictions.size());
     Eigen::VectorXd stack_y(predictions.size());
-    double auc = 0.0;
 
     std::vector<unsigned int> permutation( predictions.size() );
     for(unsigned int i = 0; i < predictions.size(); i++) {
@@ -171,18 +171,23 @@ double Factors::auc()
 
     std::sort(permutation.begin(), permutation.end(), [this](unsigned int a, unsigned int b) { return predictions[a] < predictions[b];});
 
-    int NP = Ytest.sum();
-    int NN = Ytest.nonZeros() - NP;
     //Build stack_x and stack_y
     stack_x[0] = test_vector[permutation[0]];
     stack_y[0] = 1-stack_x[0];
+    int num_positive = 0;
+    int num_negative = 0;
     for(int i=1; i < predictions.size(); i++) {
-        stack_x[i] = stack_x[i-1] + test_vector[permutation[i]];
-        stack_y[i] = stack_y[i-1] + 1 - test_vector[permutation[i]];
+        int is_positive = test_vector[permutation[i]] > threshold;
+        int is_negative = !is_positive; 
+        stack_x[i] = stack_x[i-1] + is_positive;
+        stack_y[i] = stack_y[i-1] + is_negative; 
+        num_positive += is_positive;
+        num_negative += is_negative;
     }
 
+    double auc = .0;
     for(int i=0; i < predictions.size() - 1; i++) {
-        auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / (NP*NN); //TODO:Make it Eigen
+        auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / num_positive / num_negative;
     }
 
     return auc;
@@ -438,7 +443,7 @@ void SparseMF::update_pnm(int f) {
     std::cout << "Total nnz: " << Y.nonZeros() << std::endl;
 }
 
-void SparseMF::get_probit_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)
+void SparseBinaryMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)
 {
     auto u = U(f).col(n);
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {

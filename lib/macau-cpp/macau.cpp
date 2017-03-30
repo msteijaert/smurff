@@ -44,6 +44,10 @@ SparseMF &BaseSession::sparseModel(int num_latent) {
     return addModel<SparseMF>(num_latent);
 }
 
+SparseBinaryMF &BaseSession::sparseBinaryModel(int num_latent) {
+    return addModel<SparseBinaryMF>(num_latent);
+}
+
 DenseDenseMF &BaseSession::denseDenseModel(int num_latent) {
     return addModel<DenseDenseMF>(num_latent);
 }
@@ -129,14 +133,16 @@ void Session::step() {
     BaseSession::step();
     auto endi = tick();
 
-    saveModel(iter - burnin + 1);
+    saveModel(iter - burnin);
     printStatus(endi - starti);
 }
 
 std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     BaseSession::printInitStatus(os, indent);
     os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
+    os << indent << "  Save model every: " << save_freq << "\n";
     os << indent << "  Output prefix: " << save_prefix << "\n";
+    os << indent << "  Threshold for binary classification : " << threshold << "\n";
     os << indent << "}\n";
     return os;
 }
@@ -255,7 +261,7 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     std::string row_prior("default");
     std::string col_prior("default");
     std::string output_prefix;
-    int output_freq = 1;
+    int output_freq = 0;
 
     double precision          = 5.0;
     bool fixed_precision      = false;
@@ -363,7 +369,16 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     }
 
     // Load main Y matrix file
-    if (fname_train.find(".sdm") != std::string::npos) {
+    if (fname_train.find(".sbm") != std::string::npos) {
+        SparseBinaryMF& model = sparseBinaryModel(num_latent);
+        auto Ytrain = to_eigen(*read_sbm(fname_train.c_str()));
+        if (test_split > .0) {
+            auto Ytest = extract(Ytrain, test_split);
+            model.setRelationDataTest(Ytest);
+        }
+        model.setRelationData(Ytrain);
+        setThreshold(0.5);
+    } else if (fname_train.find(".sdm") != std::string::npos) {
         SparseMF& model = sparseModel(num_latent);
         auto Ytrain = to_eigen(*read_sdm(fname_train.c_str()));
         if (test_split > .0) {
@@ -393,11 +408,16 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     // test data
     if (fname_test.size()) {
         die_unless_file_exists(fname_test);
-        auto Ytest = read_sdm(fname_test.c_str());
-        model->setRelationDataTest(*Ytest);
-        delete Ytest;
+        if (fname_test.find(".sbm") != std::string::npos) {
+            auto Ytest = read_sbm(fname_test.c_str());
+            model->setRelationDataTest(to_eigen(*Ytest));
+            delete Ytest;
+        } else if (fname_test.find(".sdm") != std::string::npos) {
+            auto Ytest = read_sdm(fname_test.c_str());
+            model->setRelationDataTest(*Ytest);
+            delete Ytest;
+        }
     }
-
 
     add_prior(*this, col_prior, fname_col_features, lambda_beta, tol);
     add_prior(*this, row_prior, fname_row_features, lambda_beta, tol);
@@ -416,13 +436,27 @@ void Session::printStatus(double elapsedi) {
     double snorm1 = model->U(1).norm();
 
     std::pair<double,double> rmse_test = model->getRMSE(iter, burnin);
-    double auc = model->auc();
+
+    double auc = model->auc(threshold);
 
     auto nnz_per_sec = (model->Ynnz()) / elapsedi;
     auto samples_per_sec = (model->Yrows() + model->Ycols()) / elapsedi;
 
-    printf("Iter %3d/%3d: RMSE: %.4f AUC:%.4f (1samp: %.4f) U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            iter, burnin + nsamples, rmse_test.second, rmse_test.first, auc,
+    std::string phase;
+    int i, from;
+    if (iter < burnin) {
+        phase = "Burnin";
+        i = iter;
+        from = burnin;
+    } else {
+        phase = "Sample";
+        i = iter - burnin;
+        from = nsamples;
+    }
+
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
+            phase.c_str(), i, from, 
+            rmse_test.second, rmse_test.first, auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 

@@ -40,7 +40,7 @@ struct Factors {
     const Eigen::VectorXd   &getPredictionsVar(int iter, int burnin);
     const Eigen::VectorXd   &getStds(int iter, int burnin);
 
-    double auc();
+    double auc(double threshold = .5);
 
     // helper functions for noise
     virtual double sumsq() const = 0;
@@ -48,7 +48,6 @@ struct Factors {
 
     // helper functions for priors
     virtual void get_pnm(int,int,VectorNd &, MatrixNNd &) = 0;
-    virtual void get_probit_pnm(int,int,VectorNd &, MatrixNNd &) = 0;
     virtual void update_pnm(int) = 0;
  
     //-- output to file
@@ -107,8 +106,19 @@ struct SparseMF : public MF<SparseMatrixD> {
     }
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void get_probit_pnm(int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(int) override;
+};
+
+struct SparseBinaryMF : public MF<SparseMatrixD> {
+    //-- c'tor
+    SparseBinaryMF(int num_latent, int num_fac = 2)
+        : MF<SparseMatrixD>(num_latent, num_fac)
+    {
+        name = "SparseBinaryMF";
+    }
+
+    void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(int) override {}
 };
 
 template<class YType>
@@ -122,7 +132,6 @@ struct DenseMF : public MF<YType> {
     }
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void get_probit_pnm(int f,int n,VectorNd &, MatrixNNd &) override { assert(false && " Probit noise only on dense for the moment" );  }
     void update_pnm(int) override;
 
   private:

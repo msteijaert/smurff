@@ -25,6 +25,7 @@ class BaseSession  {
       template<class Model>
       Model         &addModel(int num_latent);
       SparseMF      &sparseModel(int num_latent);
+      SparseBinaryMF&sparseBinaryModel(int num_latent);
       DenseDenseMF  &denseDenseModel(int num_latent);
       SparseDenseMF &sparseDenseModel(int num_latent);
 
@@ -47,6 +48,7 @@ class BaseSession  {
 // try adding num_latent as template parameter to Session
 class Session : public BaseSession {
   public:
+      double      threshold   = NAN;
       bool        verbose     = true;
       int         nsamples    = 100;
       int         burnin      = 50;
@@ -60,6 +62,7 @@ class Session : public BaseSession {
       Session() { name = "MacauSession"; }
 
       //-- set params
+      void setThreshold(double t) { threshold = t; }
       void setSamples(int burnin, int nsamples);
       void setVerbose(bool v) { verbose = v; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
