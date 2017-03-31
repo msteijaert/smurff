@@ -44,6 +44,10 @@ SparseMF &BaseSession::sparseModel(int num_latent) {
     return addModel<SparseMF>(num_latent);
 }
 
+SparseBinaryMF &BaseSession::sparseBinaryModel(int num_latent) {
+    return addModel<SparseBinaryMF>(num_latent);
+}
+
 DenseDenseMF &BaseSession::denseDenseModel(int num_latent) {
     return addModel<DenseDenseMF>(num_latent);
 }
@@ -65,12 +69,9 @@ AdaptiveGaussianNoise &BaseSession::setAdaptivePrecision(double sn_init, double 
 }
 
 void BaseSession::init() {
-    if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported.");
+    if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported (have" + std::to_string(priors.size()) + ").");
     model->init();
-    for( auto &p : priors) {
-        std::cout << " Init " << p->name << std::endl;
-        p->init();
-    }
+    for( auto &p : priors) p->init();
     noise->init();
 }
 
@@ -109,7 +110,9 @@ void Session::init() {
       printInitStatus(std::cout, "");
       std::cout << "Sampling" << endl;
   }
-  if (save_model) model->saveGlobalParams(save_prefix);
+  if (save_freq) {
+      model->saveGlobalParams(save_prefix);
+  }
   iter = 0;
 }
 
@@ -130,14 +133,16 @@ void Session::step() {
     BaseSession::step();
     auto endi = tick();
 
-    saveModel(iter - burnin + 1);
+    saveModel(iter - burnin);
     printStatus(endi - starti);
 }
 
 std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     BaseSession::printInitStatus(os, indent);
     os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
+    os << indent << "  Save model every: " << save_freq << "\n";
     os << indent << "  Output prefix: " << save_prefix << "\n";
+    os << indent << "  Threshold for binary classification : " << threshold << "\n";
     os << indent << "}\n";
     return os;
 }
@@ -182,63 +187,62 @@ inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInf
 }
 
 template<class Prior>
-inline void addMaster(Session &macau, const Eigen::MatrixXd &sideinfo)
+inline void add_features(MasterPrior<Prior> &p,  std::vector<std::string> fname_features)
 {
-    auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
-    auto &slave_model = master_prior.template addSlave<DenseDenseMF>();
-    slave_model.setRelationData(sideinfo);
+    for(auto &fname : fname_features) {
+        if (fname.find(".sdm") != std::string::npos) {
+            auto features = read_sdm(fname.c_str());
+            auto &slave_model = p.template addSlave<SparseDenseMF>();
+            slave_model.setRelationData(to_eigen(*features));
+            delete features;
+        } else if (fname.find(".sbm") != std::string::npos) {
+            auto features = read_sbm(fname.c_str());
+            auto &slave_model = p.template addSlave<SparseDenseMF>();
+            slave_model.setRelationData(to_eigen(*features));
+            delete features;
+        } else if (fname.find(".ddm") != std::string::npos) {
+            auto features = read_ddm<Eigen::MatrixXd>(fname.c_str());
+            auto &slave_model = p.template addSlave<DenseDenseMF>();
+            slave_model.setRelationData(features);
+        } else {
+            throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname));
+        }
+    }
 }
 
-template<class Prior>
-inline void addMaster(Session &macau, const SparseMatrixD &sideinfo)
-{
-    auto &master_prior = macau.addPrior<MasterPrior<Prior>>();
-    auto &slave_model = master_prior.template addSlave<SparseDenseMF>();
-    slave_model.setRelationData(sideinfo);
-}
 
-
-template<class SideInfo>
-inline void addMaster(Session &macau,std::string prior_name, const SideInfo &features)
+inline void addMaster(Session &macau,std::string prior_name, std::vector<std::string> fname_features)
 {
     if(prior_name == "normal" || prior_name == "default") {
-        addMaster<NormalPrior>(macau, features);
+       auto &prior = macau.addPrior<MasterPrior<NormalPrior>>();
+       add_features(prior, fname_features);
     } else if(prior_name == "spikeandslab") {
-        addMaster<SpikeAndSlabPrior>(macau, features);
+       auto &prior = macau.addPrior<MasterPrior<SpikeAndSlabPrior>>();
+       add_features(prior, fname_features);
     } else {
         throw std::runtime_error("Unknown prior with side info: " + prior_name);
     }
 }
 
-void add_prior(Session &macau, std::string prior_name, std::string fname_features, double lambda_beta, double tol)
+void add_prior(Session &macau, std::string prior_name, std::vector<std::string> fname_features, double lambda_beta, double tol)
 {
     //-- row prior with side information
     if (fname_features.size()) {
         if (prior_name == "macau" || prior_name == "macauone") {
-            if (fname_features.find(".sdm") != std::string::npos) {
-                auto row_features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname_features.c_str()));
+            assert(fname_features.size() == 1);
+            auto &fname = fname_features.at(0);
+            die_unless_file_exists(fname);
+            if (fname.find(".sdm") != std::string::npos) {
+                auto row_features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname.c_str()));
                 addMacauPrior(macau, prior_name, row_features, lambda_beta, tol);
-            } else if (fname_features.find(".sbm") != std::string::npos) {
-                auto features = load_bcsr(fname_features.c_str());
+            } else if (fname.find(".sbm") != std::string::npos) {
+                auto features = load_bcsr(fname.c_str());
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol);
             } else {
-                throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname_features));
+                throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname));
             }
         } else {
-            if (fname_features.find(".sdm") != std::string::npos) {
-                auto features = read_sdm(fname_features.c_str());
-                addMaster(macau, prior_name, to_eigen(*features));
-                delete features;
-            } else if (fname_features.find(".sbm") != std::string::npos) {
-                auto features = read_sbm(fname_features.c_str());
-                addMaster(macau, prior_name, to_eigen(*features));
-                delete features;
-            } else if (fname_features.find(".ddm") != std::string::npos) {
-                auto features = read_ddm<Eigen::MatrixXd>(fname_features.c_str());
-                addMaster(macau, prior_name, features);
-            } else {
-                throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname_features));
-            }
+            addMaster(macau, prior_name, fname_features);
         }
     } else if(prior_name == "normal" || prior_name == "default") {
         macau.addPrior<NormalPrior>();
@@ -252,11 +256,12 @@ void add_prior(Session &macau, std::string prior_name, std::string fname_feature
 void Session::setFromArgs(int argc, char** argv, bool print) {
     std::string fname_train;
     std::string fname_test;
-    std::string fname_row_features;
-    std::string fname_col_features;
+    std::vector<std::string> fname_row_features;
+    std::vector<std::string> fname_col_features;
     std::string row_prior("default");
     std::string col_prior("default");
-    std::string output_prefix("result");
+    std::string output_prefix;
+    int output_freq = 0;
 
     double precision          = 5.0;
     bool fixed_precision      = false;
@@ -278,13 +283,6 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
         if (print) std::cout << message;
         exit(-1);
     };
-
-    auto die_unless_file_exists = [&die](std::string fname) {
-        if ( fname.size() && ! file_exists(fname) ) {
-            die(std::string("[ERROR]\nFile '") + fname +  "' not found.\n");
-        }
-    };
-
     std::string usage = 
         "Usage:\n"
         "  macau_mpi --train <train_file> <feature-file> [options]\n"
@@ -301,7 +299,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
         "  --adaptive 1.0,10.0  adavtive precision of observations\n"
         "  --lambda-beta  10.0  initial value of lambda beta\n"
         "  --tol          1e-6  tolerance for CG\n"
-        "  --output    results  prefix for result files\n\n";
+        "  --output-prefix prx  prefix for result files\n"
+        "  --output-freq     0  save every n iterations (0 == never)\n\n";
 
     // reading command line arguments
     while (1) {
@@ -317,7 +316,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             {"adaptive",     required_argument, 0, 'v'},
             {"burnin",       required_argument, 0, 'b'},
             {"nsamples",     required_argument, 0, 'n'},
-            {"output",       required_argument, 0, 'o'},
+            {"output-prefix",required_argument, 0, 'o'},
+            {"output-freq",  required_argument, 0, 'm'},
             {"num-latent",   required_argument, 0, 'l'},
             {"lambda-beta",  required_argument, 0, 'a'},
             {"tol",          required_argument, 0, 'c'},
@@ -336,19 +336,20 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
             case 'l': num_latent         = strtol(optarg, NULL, 10); break;
             case 'n': nsamples           = strtol(optarg, NULL, 10); break;
             case 'o': output_prefix      = std::string(optarg); break;
+            case 'm': output_freq        = strtol(optarg, NULL, 10); break;
             case 'p': 
-                      assert(!adaptive_precision);
+                      if(adaptive_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
                       precision          = strtod(optarg, NULL);
                       fixed_precision    = true;
                       break;
             case 'v': 
-                      assert(!fixed_precision);
+                      if(fixed_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
                       if(optarg && (token = strsep(&optarg, ","))) sn_init = strtod(token, NULL); 
                       if(optarg && (token = strsep(&optarg, ","))) sn_max = strtod(token, NULL); 
                       adaptive_precision = true;
                       break;
-            case 'r': fname_row_features = optarg; break;
-            case 'f': fname_col_features = optarg; break;
+            case 'r': fname_row_features.push_back(optarg); break;
+            case 'f': fname_col_features.push_back(optarg); break;
             case 'q': row_prior          = optarg; break;
             case 's': col_prior          = optarg; break;
             case 't': fname_train        = optarg; break;
@@ -359,9 +360,8 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     if (fname_train.empty()) {
         die(usage + "[ERROR]\nMissing parameters '--train'\n");
     }
+
     die_unless_file_exists(fname_train);
-    die_unless_file_exists(fname_row_features);
-    die_unless_file_exists(fname_col_features);
 
     //-- check if fname_test is actually a number
     if ((test_split = atof(fname_test.c_str())) > .0) {
@@ -370,13 +370,17 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
 
     // Load main Y matrix file
     if (fname_train.find(".sdm") != std::string::npos) {
-        SparseMF& model = sparseModel(num_latent);
         auto Ytrain = to_eigen(*read_sdm(fname_train.c_str()));
+        MF<SparseMatrixD> *model;
+        if (is_binary(Ytrain)) {
+            model = &sparseBinaryModel(num_latent);
+            setThreshold(0.5);
+        } else model = &sparseModel(num_latent);
         if (test_split > .0) {
             auto Ytest = extract(Ytrain, test_split);
-            model.setRelationDataTest(Ytest);
+            model->setRelationDataTest(Ytest);
         }
-        model.setRelationData(Ytrain);
+        model->setRelationData(Ytrain);
     } else if (fname_train.find(".ddm") != std::string::npos) {
         DenseDenseMF& model = denseDenseModel(num_latent);
         auto Ytrain = read_ddm<MatrixXd>(fname_train.c_str());
@@ -399,13 +403,22 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     // test data
     if (fname_test.size()) {
         die_unless_file_exists(fname_test);
-        auto Ytest = read_sdm(fname_test.c_str());
-        model->setRelationDataTest(*Ytest);
-        delete Ytest;
+        if (fname_test.find(".sbm") != std::string::npos) {
+            auto Ytest = read_sbm(fname_test.c_str());
+            model->setRelationDataTest(to_eigen(*Ytest));
+            delete Ytest;
+        } else if (fname_test.find(".sdm") != std::string::npos) {
+            auto Ytest = read_sdm(fname_test.c_str());
+            model->setRelationDataTest(*Ytest);
+            delete Ytest;
+        }
     }
 
     add_prior(*this, col_prior, fname_col_features, lambda_beta, tol);
     add_prior(*this, row_prior, fname_row_features, lambda_beta, tol);
+
+    setSavePrefix(output_prefix);
+    setSaveFrequency(output_freq);
 }
 
 
@@ -419,17 +432,33 @@ void Session::printStatus(double elapsedi) {
 
     std::pair<double,double> rmse_test = model->getRMSE(iter, burnin);
 
+    double auc = model->auc(threshold);
+
     auto nnz_per_sec = (model->Ynnz()) / elapsedi;
     auto samples_per_sec = (model->Yrows() + model->Ycols()) / elapsedi;
 
-    printf("Iter %3d/%3d: RMSE: %.4f (1samp: %.4f) U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            iter, burnin + nsamples, rmse_test.second, rmse_test.first,
+    std::string phase;
+    int i, from;
+    if (iter < burnin) {
+        phase = "Burnin";
+        i = iter;
+        from = burnin;
+    } else {
+        phase = "Sample";
+        i = iter - burnin;
+        from = nsamples;
+    }
+
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
+            phase.c_str(), i, from, 
+            rmse_test.second, rmse_test.first, auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
 void Session::saveModel(int isample) {
-    if (!save_model || isample < 0) return;
-    string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
+    if (!save_freq || isample < 0) return;
+    if ((isample % save_freq) != 0) return;
+    string fprefix = save_prefix + "-sample-" + std::to_string(isample);
     model->saveModel(fprefix, isample, burnin);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }

@@ -25,6 +25,7 @@ class BaseSession  {
       template<class Model>
       Model         &addModel(int num_latent);
       SparseMF      &sparseModel(int num_latent);
+      SparseBinaryMF&sparseBinaryModel(int num_latent);
       DenseDenseMF  &denseDenseModel(int num_latent);
       SparseDenseMF &sparseDenseModel(int num_latent);
 
@@ -47,10 +48,11 @@ class BaseSession  {
 // try adding num_latent as template parameter to Session
 class Session : public BaseSession {
   public:
+      double      threshold   = NAN;
       bool        verbose     = true;
       int         nsamples    = 100;
       int         burnin      = 50;
-      bool        save_model  = false;
+      int         save_freq   = 0;
       std::string save_prefix = "model";
 
       // while running
@@ -60,10 +62,11 @@ class Session : public BaseSession {
       Session() { name = "MacauSession"; }
 
       //-- set params
+      void setThreshold(double t) { threshold = t; }
       void setSamples(int burnin, int nsamples);
       void setVerbose(bool v) { verbose = v; };
-      void setSaveModel(bool save) { save_model = save; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
+      void setSaveFrequency(int f) { save_freq = f; };
       void setFromArgs(int argc, char** argv, bool print);
 
       // execution of the sampler

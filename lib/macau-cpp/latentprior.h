@@ -26,8 +26,8 @@ class ILatentPrior {
       // utility
       BaseSession &sys(int s = 0);
       Factors &model(int s);
-      Eigen::MatrixXd &U(int s);
-      Eigen::MatrixXd &V(int s);
+      Eigen::MatrixXd &U(int s = 0);
+      Eigen::MatrixXd &V(int s = 0);
       INoiseModel &noise(int s = 0);
 
       int num_latent() { return Factors::num_latent; }

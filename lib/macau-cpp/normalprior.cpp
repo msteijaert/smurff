@@ -164,7 +164,7 @@ void NormalPrior::sample_latent(int s, int n)
 }
 
 void NormalPrior::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", mu);
+  writeToCSVfile(prefix + "-U" + std::to_string(pos) + "-latentmean.csv", mu);
 }
 
 
@@ -183,7 +183,18 @@ template<class Prior>
 void MasterPrior<Prior>::init() 
 {
     Prior::init();
-    for(auto &s : slaves) s.init();
+ 
+    // create+init slave priors
+    for(auto &s : slaves) {
+        for(auto &p : this->sys().priors) {
+            s.template addPrior<SlavePrior>();
+            if (p->pos != this->pos) p->add(s);
+        }
+
+        s.init();
+
+        assert(this->U().cols() == s.priors.at(this->pos)->U().cols());
+   }
 }
 
 template<class Prior>
@@ -210,6 +221,9 @@ void MasterPrior<Prior>::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
     // first the master
     Prior::pnm(s, n, rr, MM);
 
+    // no slaves for the slaves
+    if (s > 0) return;
+
     // then the slaves
     assert(slaves.size() > 0 && "No slaves");
     for(auto &slave : slaves) {
@@ -221,6 +235,9 @@ void MasterPrior<Prior>::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
 template<class Prior>
 void MasterPrior<Prior>::sample_latent(int s, int d) {
     Prior::sample_latent(s,d);
+
+    // no slaves on slaves
+    if (s>0) return;
     for(auto &slave : this->slaves) {
         auto &slave_prior = slave.priors.at(this->pos);
         slave_prior->U(s).col(d) = this->U(s).col(d);
@@ -246,10 +263,6 @@ Model& MasterPrior<Prior>::addSlave()
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);
     slave_macau.noise.reset(this->noise().copyTo(*n)); 
-    for(auto &p : this->sys().priors) {
-        slave_macau.template addPrior<SlavePrior>();
-        if (p->pos != this->pos) p->add(slave_macau);
-    }
     return *n;
 }
 
