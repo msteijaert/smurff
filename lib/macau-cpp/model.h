@@ -64,13 +64,20 @@ struct Factors {
     virtual int Ynnz ()    const = 0;
 
     std::string name;
+
   private:
     void init_predictions();
     void update_predictions(int iter, int burnin);
     double rmse_avg = NAN, rmse = NAN; 
     int last_iter = -1;
-    Eigen::VectorXd predictions, predictions_var, stds;
     std::vector<Eigen::MatrixXd> factors;
+
+    // related to test set
+    Eigen::VectorXd predictions, predictions_var, stds;
+
+    // AUC related
+    Eigen::VectorXd stack_x, stack_y;
+    std::vector<unsigned int> permutation;
 };
 
 template<typename YType>

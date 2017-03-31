@@ -34,14 +34,22 @@ int Factors::num_latent = -1;
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     Ytest.resize(nrows, ncols);
     sparseFromIJV(Ytest, rows, cols, values, N);
+    init_predictions();
 }
  
 void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
     Ytest = to_eigen(Y);
+    init_predictions();
 }
  
 void Factors::setRelationDataTest(SparseMatrixD Y) {
     Ytest = Y;
+    init_predictions();
+}
+
+void Factors::init_predictions() {
+    std::vector<unsigned int> permutation( predictions.size() );
+    for(unsigned int i = 0; i < predictions.size(); i++) permutation[i] = i;
 }
 
 //--- output model to files
@@ -159,15 +167,9 @@ double Factors::auc(double threshold)
     if (Ytest.nonZeros() == 0) return NAN;
     if (isnan(threshold)) return NAN;
 
+    auto start = tick();
+
     double *test_vector = Ytest.valuePtr();
-
-    Eigen::VectorXd stack_x(predictions.size());
-    Eigen::VectorXd stack_y(predictions.size());
-
-    std::vector<unsigned int> permutation( predictions.size() );
-    for(unsigned int i = 0; i < predictions.size(); i++) {
-        permutation[i] = i;
-    }
 
     std::sort(permutation.begin(), permutation.end(), [this](unsigned int a, unsigned int b) { return predictions[a] < predictions[b];});
 
@@ -189,6 +191,9 @@ double Factors::auc(double threshold)
     for(int i=0; i < predictions.size() - 1; i++) {
         auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / num_positive / num_negative;
     }
+
+    auto stop = tick();
+    std::cout << "AUC time: " << stop-start << std::endl;
 
     return auc;
 }
