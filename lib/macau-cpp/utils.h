@@ -13,6 +13,7 @@
 
 #include <csr.h>
 #include <dsparse.h>
+#include "omp_util.h"
 
 template<typename T>
 class thread_vector
