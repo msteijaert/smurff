@@ -190,6 +190,20 @@ inline Eigen::SparseMatrix<double> to_eigen(SparseBinaryMatrix &Y)
    return out;
 }
 
+template <typename Matrix>
+inline bool is_binary(const Matrix &M) 
+{
+    auto *values = M.valuePtr();
+    for(int i=0; i<M.nonZeros(); ++i) {
+        if (values[i] != 1.0 && values[i] != 0.0) return false;
+    }
+
+    std::cout << "Detected binary matrix\n";
+
+    return true;
+}
+
+
 inline double square(double x) { return x * x; }
 
 inline void row_mean_var(Eigen::VectorXd & mean, Eigen::VectorXd & var, const Eigen::MatrixXd X) {

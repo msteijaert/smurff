@@ -114,7 +114,7 @@ struct SparseBinaryMF : public MF<SparseMatrixD> {
     SparseBinaryMF(int num_latent, int num_fac = 2)
         : MF<SparseMatrixD>(num_latent, num_fac)
     {
-        name = "SparseBinaryMF";
+        name = "SparseBinaryMF (Probit Noise Sampler)";
     }
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;

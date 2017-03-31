@@ -234,7 +234,7 @@ void MF<SparseMatrixD>::init()
     init_base();
     Yc.at(0).coeffs() -= mean_rating;
     Yc.at(1).coeffs() -= mean_rating;
-    name = "Sparse" + name;
+    name = name + " [with NAs]";
 }
 
 

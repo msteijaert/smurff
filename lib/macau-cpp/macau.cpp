@@ -369,23 +369,18 @@ void Session::setFromArgs(int argc, char** argv, bool print) {
     }
 
     // Load main Y matrix file
-    if (fname_train.find(".sbm") != std::string::npos) {
-        SparseBinaryMF& model = sparseBinaryModel(num_latent);
-        auto Ytrain = to_eigen(*read_sbm(fname_train.c_str()));
-        if (test_split > .0) {
-            auto Ytest = extract(Ytrain, test_split);
-            model.setRelationDataTest(Ytest);
-        }
-        model.setRelationData(Ytrain);
-        setThreshold(0.5);
-    } else if (fname_train.find(".sdm") != std::string::npos) {
-        SparseMF& model = sparseModel(num_latent);
+    if (fname_train.find(".sdm") != std::string::npos) {
         auto Ytrain = to_eigen(*read_sdm(fname_train.c_str()));
+        MF<SparseMatrixD> *model;
+        if (is_binary(Ytrain)) {
+            model = &sparseBinaryModel(num_latent);
+            setThreshold(0.5);
+        } else model = &sparseModel(num_latent);
         if (test_split > .0) {
             auto Ytest = extract(Ytrain, test_split);
-            model.setRelationDataTest(Ytest);
+            model->setRelationDataTest(Ytest);
         }
-        model.setRelationData(Ytrain);
+        model->setRelationData(Ytrain);
     } else if (fname_train.find(".ddm") != std::string::npos) {
         DenseDenseMF& model = denseDenseModel(num_latent);
         auto Ytrain = read_ddm<MatrixXd>(fname_train.c_str());
