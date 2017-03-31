@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     MPI_Get_processor_name(processor_name, &name_len);
 
     MPISession macau;
-    macau.setFromArgs(argc, argv, world_rank == 0);
+    macau.setFromArgs(argc, argv);
 
     macau.run();
 

@@ -352,6 +352,9 @@ typedef Eigen::ArrayXd ArrayNd;
 
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
+inline void die(std::string message) {
+    throw std::runtime_error(std::string("[ERROR]\n'") + message +  "\n");
+}
 
 inline void die_unless_file_exists(std::string fname) {
     if ( fname.size() && ! file_exists(fname) ) {

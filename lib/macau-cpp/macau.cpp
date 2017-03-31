@@ -1,4 +1,3 @@
-#include <Eigen/Sparse>
 
 #include <iostream>
 #include <cassert>
@@ -10,6 +9,7 @@
 #include <chrono>
 #include <memory>
 #include <cmath>
+#include <argp.h>
 
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
@@ -253,172 +253,144 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
     }
 }
 
-void Session::setFromArgs(int argc, char** argv, bool print) {
-    std::string fname_train;
-    std::string fname_test;
-    std::vector<std::string> fname_row_features;
-    std::vector<std::string> fname_col_features;
-    std::string row_prior("default");
-    std::string col_prior("default");
-    std::string output_prefix;
-    int output_freq = 0;
+enum OPT_ENUM {
+    ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_TEST, FNAME_TRAIN,
+    BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL,
+    OUTPUT_PREFIX, OUTPUT_FREQ
+};
 
-    double precision          = 5.0;
-    bool fixed_precision      = false;
+static int parse_opts(int key, char *optarg, struct argp_state *state)
+{
+    MacauConfig &config = *(MacauConfig *)(state);
 
-    char *token;
-    double sn_init            = 1.0;
-    double sn_max             = 10.0;
-    bool adaptive_precision   = false;
+    switch (key) {
+        case ROW_PRIOR:     config.row_prior          = optarg; break;
+        case COL_PRIOR:     config.col_prior          = optarg; break;
+        case ROW_FEATURES:  config.fname_row_features.push_back(optarg); break;
+        case COL_FEATURES:  config.fname_col_features.push_back(optarg); break;
+        case FNAME_TRAIN:   config.fname_train        = optarg; break;
+        case LAMBDA_BETA:   config.lambda_beta        = strtod(optarg, NULL); break;
+        case BURNIN:        config.burnin             = strtol(optarg, NULL, 10); break;
+        case TOL:           config.tol                = atof(optarg); break;
+        case FNAME_TEST:    config.fname_test         = optarg; break;
+        case NUM_LATENT:    config.num_latent         = strtol(optarg, NULL, 10); break;
+        case NSAMPLES:      config.nsamples           = strtol(optarg, NULL, 10); break;
+        case OUTPUT_PREFIX: config.output_prefix      = std::string(optarg); break;
+        case OUTPUT_FREQ:   config.output_freq        = strtol(optarg, NULL, 10); break;
+        case PRECISION:     config.fixed_precision    = optarg; break;
+        case ADAPTIVE:      config.adaptive_precision = optarg; break;
+        default:            return ARGP_ERR_UNKNOWN;
+    }
 
-    double lambda_beta        = 10.0;
-    double tol                = 1e-6;
-    double test_split         = .0;
+    return 0;
+}
 
-    int burnin                = 200;
-    int nsamples              = 800;
-    int num_latent            = 96;
+void Session::setFromArgs(int argc, char** argv) {
+    /* Program documentation. */
+    static char doc[] = "ExCAPE Matrix Factorization Framework";
 
-    auto die = [print](std::string message) {
-        if (print) std::cout << message;
-        exit(-1);
+    static struct argp_option options[] = {
+        {"row-prior",	  ROW_PRIOR     , "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
+        {"col-prior",	  COL_PRIOR	, "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
+        {"row-features",  ROW_FEATURES	, "FILE",  0, "side info for rows"},
+        {"col-features",  COL_FEATURES	, "FILE",  0, "side info for cols"},
+        {"test",	  FNAME_TEST    , "FILE",  0, "test data (for computing RMSE)"},
+        {"train",	  FNAME_TRAIN   , "FILE",  0, "train data"},
+        {"burnin",	  BURNIN	, "NUM",   0, "200  number of samples to discard"},
+        {"nsamples",	  NSAMPLES	, "NUM",   0, "800  number of samples to collect"},
+        {"num-latent",	  NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
+        {"precision",	  PRECISION	, "NUM",   0, "5.0  precision of observations"},
+        {"adaptive",	  ADAPTIVE	, "NUM",   0, "1.0,10.0  adavtive precision of observations"},
+        {"lambda-beta",	  LAMBDA_BETA	, "NUM",   0, "10.0  initial value of lambda beta"},
+        {"tol",           TOL           , "NUM",   0, "1e-6  tolerance for CG"},
+        {"output-prefix", OUTPUT_PREFIX	, "DIR",   0, "prefix for result files"},
+        {"output-freq",   OUTPUT_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
+        {0}
     };
-    std::string usage = 
-        "Usage:\n"
-        "  macau_mpi --train <train_file> <feature-file> [options]\n"
-        "Optional:\n"
-        "  --row-prior <normal|spikeandslab|macau|macauone>\n"
-        "  --col-prior <normal|spikeandslab|macau|macauone>\n\n"
-        "  --row-features file  side info for rows\n"
-        "  --col-features file  side info for cols\n"
-        "  --test    test_file  test data (for computing RMSE)\n"
-        "  --burnin        200  number of samples to discard\n"
-        "  --nsamples      800  number of samples to collect\n"
-        "  --num-latent     96  number of latent dimensions\n"
-        "  --precision     5.0  precision of observations\n"
-        "  --adaptive 1.0,10.0  adavtive precision of observations\n"
-        "  --lambda-beta  10.0  initial value of lambda beta\n"
-        "  --tol          1e-6  tolerance for CG\n"
-        "  --output-prefix prx  prefix for result files\n"
-        "  --output-freq     0  save every n iterations (0 == never)\n\n";
 
-    // reading command line arguments
-    while (1) {
-        static struct option long_options[] =
-        {
-            {"train",        required_argument, 0, 't'},
-            {"test",         required_argument, 0, 'e'},
-            {"row-features", required_argument, 0, 'r'},
-            {"col-features", required_argument, 0, 'f'},
-            {"row-prior",    required_argument, 0, 'q'},
-            {"col-prior",    required_argument, 0, 's'},
-            {"precision",    required_argument, 0, 'p'},
-            {"adaptive",     required_argument, 0, 'v'},
-            {"burnin",       required_argument, 0, 'b'},
-            {"nsamples",     required_argument, 0, 'n'},
-            {"output-prefix",required_argument, 0, 'o'},
-            {"output-freq",  required_argument, 0, 'm'},
-            {"num-latent",   required_argument, 0, 'l'},
-            {"lambda-beta",  required_argument, 0, 'a'},
-            {"tol",          required_argument, 0, 'c'},
-            {0, 0, 0, 0}
-        };
-        int option_index = 0;
-        int c = getopt_long(argc, argv, "t:e:r:f:p:b:n:o:a:c:", long_options, &option_index);
-        if (c == -1)
-            break;
+    MacauConfig config;
+    struct argp argp = { options, parse_opts, 0, doc };
+    argp_parse (&argp, argc, argv, 0, 0, &config);
 
-        switch (c) {
-            case 'a': lambda_beta        = strtod(optarg, NULL); break;
-            case 'b': burnin             = strtol(optarg, NULL, 10); break;
-            case 'c': tol                = atof(optarg); break;
-            case 'e': fname_test         = optarg; break;
-            case 'l': num_latent         = strtol(optarg, NULL, 10); break;
-            case 'n': nsamples           = strtol(optarg, NULL, 10); break;
-            case 'o': output_prefix      = std::string(optarg); break;
-            case 'm': output_freq        = strtol(optarg, NULL, 10); break;
-            case 'p': 
-                      if(adaptive_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
-                      precision          = strtod(optarg, NULL);
-                      fixed_precision    = true;
-                      break;
-            case 'v': 
-                      if(fixed_precision) throw std::runtime_error("Cannot have both --adaptive and --precision");
-                      if(optarg && (token = strsep(&optarg, ","))) sn_init = strtod(token, NULL); 
-                      if(optarg && (token = strsep(&optarg, ","))) sn_max = strtod(token, NULL); 
-                      adaptive_precision = true;
-                      break;
-            case 'r': fname_row_features.push_back(optarg); break;
-            case 'f': fname_col_features.push_back(optarg); break;
-            case 'q': row_prior          = optarg; break;
-            case 's': col_prior          = optarg; break;
-            case 't': fname_train        = optarg; break;
-            case '?':
-            default : die(usage);
-        }
-    }
-    if (fname_train.empty()) {
-        die(usage + "[ERROR]\nMissing parameters '--train'\n");
-    }
+    setFromConfig(config);
+}
 
-    die_unless_file_exists(fname_train);
+
+void Session::setFromConfig(MacauConfig &c)
+{
+    if (c.fname_train.size() == 0) die("Missing --train=FILE");
+    die_unless_file_exists(c.fname_train);
 
     //-- check if fname_test is actually a number
-    if ((test_split = atof(fname_test.c_str())) > .0) {
-        fname_test.clear();
+    if ((c.test_split = atof(c.fname_test.c_str())) > .0) {
+        c.fname_test.clear();
     }
 
     // Load main Y matrix file
-    if (fname_train.find(".sdm") != std::string::npos) {
-        auto Ytrain = to_eigen(*read_sdm(fname_train.c_str()));
+    if (c.fname_train.find(".sdm") != std::string::npos) {
+        auto Ytrain = to_eigen(*read_sdm(c.fname_train.c_str()));
         MF<SparseMatrixD> *model;
         if (is_binary(Ytrain)) {
-            model = &sparseBinaryModel(num_latent);
+            model = &sparseBinaryModel(c.num_latent);
             setThreshold(0.5);
-        } else model = &sparseModel(num_latent);
-        if (test_split > .0) {
-            auto Ytest = extract(Ytrain, test_split);
+        } else model = &sparseModel(c.num_latent);
+        if (c.test_split > .0) {
+            auto Ytest = extract(Ytrain, c.test_split);
             model->setRelationDataTest(Ytest);
         }
         model->setRelationData(Ytrain);
-    } else if (fname_train.find(".ddm") != std::string::npos) {
-        DenseDenseMF& model = denseDenseModel(num_latent);
-        auto Ytrain = read_ddm<MatrixXd>(fname_train.c_str());
-        if (test_split > .0) {
-            auto Ytest = extract(Ytrain, test_split);
+    } else if (c.fname_train.find(".ddm") != std::string::npos) {
+        DenseDenseMF& model = denseDenseModel(c.num_latent);
+        auto Ytrain = read_ddm<MatrixXd>(c.fname_train.c_str());
+        if (c.test_split > .0) {
+            auto Ytest = extract(Ytrain, c.test_split);
             model.setRelationDataTest(Ytest);
         }
         model.setRelationData(Ytrain);
     } else {
-        die("Train data file: expecing .sdm or .ddm, got " + std::string(fname_train));
+        die("Train data file: expecing .sdm or .ddm, got " + std::string(c.fname_train));
     }
 
-    setSamples(burnin, nsamples);
-
-    if (adaptive_precision) setAdaptivePrecision(sn_init, sn_max);
-    else setPrecision(precision);
-
+    //-- simple options
+    setSamples(c.burnin, c.nsamples);
     setVerbose(true);
+    setSavePrefix(c.output_prefix);
+    setSaveFrequency(c.output_freq);
+ 
+    //-- noise model
+    if(c.adaptive_precision.size() && c.fixed_precision.size()) {
+        throw std::runtime_error("Cannot have both --adaptive and --precision");
+    }
+
+    if (c.fixed_precision.size()) {
+        c.precision = strtod(c.fixed_precision.c_str(), NULL);
+        setPrecision(c.precision);
+    }
+
+    if (c.adaptive_precision.size()) {
+        char * optarg = strdup(c.adaptive_precision.c_str());
+        char *token;
+        if(optarg && (token = strsep(&optarg, ","))) c.sn_init = strtod(token, NULL); 
+        if(optarg && (token = strsep(&optarg, ","))) c.sn_max = strtod(token, NULL); 
+        setAdaptivePrecision(c.sn_init, c.sn_max);
+    }
 
     // test data
-    if (fname_test.size()) {
-        die_unless_file_exists(fname_test);
-        if (fname_test.find(".sbm") != std::string::npos) {
-            auto Ytest = read_sbm(fname_test.c_str());
+    if (c.fname_test.size()) {
+        die_unless_file_exists(c.fname_test);
+        if (c.fname_test.find(".sbm") != std::string::npos) {
+            auto Ytest = read_sbm(c.fname_test.c_str());
             model->setRelationDataTest(to_eigen(*Ytest));
             delete Ytest;
-        } else if (fname_test.find(".sdm") != std::string::npos) {
-            auto Ytest = read_sdm(fname_test.c_str());
+        } else if (c.fname_test.find(".sdm") != std::string::npos) {
+            auto Ytest = read_sdm(c.fname_test.c_str());
             model->setRelationDataTest(*Ytest);
             delete Ytest;
         }
     }
 
-    add_prior(*this, col_prior, fname_col_features, lambda_beta, tol);
-    add_prior(*this, row_prior, fname_row_features, lambda_beta, tol);
-
-    setSavePrefix(output_prefix);
-    setSaveFrequency(output_freq);
+    add_prior(*this, c.col_prior, c.fname_col_features, c.lambda_beta, c.tol);
+    add_prior(*this, c.row_prior, c.fname_row_features, c.lambda_beta, c.tol);
 }
 
 

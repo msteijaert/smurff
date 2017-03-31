@@ -27,7 +27,7 @@ using namespace Macau;
 
 int main(int argc, char** argv) {
     Session macau;
-    macau.setFromArgs(argc, argv, true);
+    macau.setFromArgs(argc, argv);
     macau.run();
     return 0;
 }

@@ -15,6 +15,30 @@ namespace Macau {
 
 class ILatentPrior;
 
+struct MacauConfig {
+    std::string fname_train;
+    std::string fname_test;
+    std::vector<std::string> fname_row_features;
+    std::vector<std::string> fname_col_features;
+    std::string row_prior = "default";
+    std::string col_prior = "default";
+    std::string output_prefix;
+    std::string fixed_precision, adaptive_precision;
+
+    int output_freq           = 0; // never
+    int burnin                = 200;
+    int nsamples              = 800;
+    int num_latent            = 96;
+    double lambda_beta        = 10.0;
+    double tol                = 1e-6;
+
+    double precision          = 5.0;
+    double sn_init            = 1.0;
+    double sn_max             = 10.0;
+
+    double test_split         = .0;
+};
+
 class BaseSession  {
    public:
       std::unique_ptr<INoiseModel>                noise;
@@ -67,7 +91,9 @@ class Session : public BaseSession {
       void setVerbose(bool v) { verbose = v; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };
       void setSaveFrequency(int f) { save_freq = f; };
-      void setFromArgs(int argc, char** argv, bool print);
+
+      void setFromArgs(int argc, char** argv);
+      void setFromConfig(MacauConfig &);
 
       // execution of the sampler
       void init();
