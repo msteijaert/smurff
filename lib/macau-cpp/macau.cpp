@@ -261,7 +261,7 @@ enum OPT_ENUM {
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
-    MacauConfig &config = *(MacauConfig *)(state);
+    MacauConfig &config = *(MacauConfig *)(state->input);
 
     switch (key) {
         case ROW_PRIOR:     config.row_prior          = optarg; break;
@@ -287,9 +287,9 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 
 void Session::setFromArgs(int argc, char** argv) {
     /* Program documentation. */
-    static char doc[] = "ExCAPE Matrix Factorization Framework";
+    char doc[] = "ExCAPE Matrix Factorization Framework";
 
-    static struct argp_option options[] = {
+    struct argp_option options[] = {
         {"row-prior",	  ROW_PRIOR     , "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
         {"col-prior",	  COL_PRIOR	, "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
         {"row-features",  ROW_FEATURES	, "FILE",  0, "side info for rows"},
