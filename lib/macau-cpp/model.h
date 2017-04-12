@@ -40,7 +40,7 @@ struct Factors {
     const Eigen::VectorXd   &getPredictionsVar(int iter, int burnin);
     const Eigen::VectorXd   &getStds(int iter, int burnin);
 
-    double auc(double threshold = .5);
+    double auc(double);
 
     // helper functions for noise
     virtual double sumsq() const = 0;
@@ -76,7 +76,7 @@ struct Factors {
     Eigen::VectorXd predictions, predictions_var, stds;
 
     // AUC related
-    Eigen::VectorXd stack_x, stack_y;
+    std::vector<double> stack_x, stack_y;
     std::vector<unsigned int> permutation;
 };
 

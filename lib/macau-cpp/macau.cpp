@@ -142,7 +142,9 @@ std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
     os << indent << "  Save model every: " << save_freq << "\n";
     os << indent << "  Output prefix: " << save_prefix << "\n";
-    os << indent << "  Threshold for binary classification : " << threshold << "\n";
+    if (classify) {
+        os << indent << "  Threshold for binary classification : " << threshold << "\n";
+    }
     os << indent << "}\n";
     return os;
 }
@@ -256,7 +258,7 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
 enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL,
-    OUTPUT_PREFIX, OUTPUT_FREQ
+    OUTPUT_PREFIX, OUTPUT_FREQ, THRESHOLD, VERBOSE
 };
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
@@ -279,6 +281,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case OUTPUT_FREQ:   config.output_freq        = strtol(optarg, NULL, 10); break;
         case PRECISION:     config.fixed_precision    = optarg; break;
         case ADAPTIVE:      config.adaptive_precision = optarg; break;
+        case THRESHOLD:     config.threshold          = strtod(optarg, 0); config.classify = true; break;
+        case VERBOSE:       config.verbose            = true; break;
         default:            return ARGP_ERR_UNKNOWN;
     }
 
@@ -290,21 +294,30 @@ void Session::setFromArgs(int argc, char** argv) {
     char doc[] = "ExCAPE Matrix Factorization Framework";
 
     struct argp_option options[] = {
+        {0,0,0,0,"Priors and side Info:",1},
         {"row-prior",	  ROW_PRIOR     , "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
         {"col-prior",	  COL_PRIOR	, "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
         {"row-features",  ROW_FEATURES	, "FILE",  0, "side info for rows"},
         {"col-features",  COL_FEATURES	, "FILE",  0, "side info for cols"},
+        {0,0,0,0,"Test and train matrices:",2},
         {"test",	  FNAME_TEST    , "FILE",  0, "test data (for computing RMSE)"},
-        {"train",	  FNAME_TRAIN   , "FILE",  0, "train data"},
+        {"test",	  FNAME_TEST    , "NUM",   0, "fraction of train matrix to extract for computing RMSE (e.g. 0.2)"},
+        {"train",	  FNAME_TRAIN   , "FILE",  0, "train data file"},
+        {0,0,0,0,"General parameters:",3},
         {"burnin",	  BURNIN	, "NUM",   0, "200  number of samples to discard"},
         {"nsamples",	  NSAMPLES	, "NUM",   0, "800  number of samples to collect"},
         {"num-latent",	  NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
-        {"precision",	  PRECISION	, "NUM",   0, "5.0  precision of observations"},
-        {"adaptive",	  ADAPTIVE	, "NUM",   0, "1.0,10.0  adavtive precision of observations"},
-        {"lambda-beta",	  LAMBDA_BETA	, "NUM",   0, "10.0  initial value of lambda beta"},
-        {"tol",           TOL           , "NUM",   0, "1e-6  tolerance for CG"},
         {"output-prefix", OUTPUT_PREFIX	, "DIR",   0, "prefix for result files"},
         {"output-freq",   OUTPUT_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
+        {"threshold",     THRESHOLD	, "NUM",   0, "threshold for binary classification"},
+        {"verbose",       VERBOSE	, 0,       0, "verbose output"},
+        {0,0,0,0,"Noise model:",4},
+        {"precision",	  PRECISION	, "NUM",   0, "5.0  precision of observations"},
+        {"adaptive",	  ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adavtive precision of observations"},
+        {0,0,0,0,"For the macau prior:",5},
+        {"lambda-beta",	  LAMBDA_BETA	, "NUM",   0, "10.0  initial value of lambda beta"},
+        {"tol",           TOL           , "NUM",   0, "1e-6  tolerance for CG"},
+        {0,0,0,0,"General Options:",0},
         {0}
     };
 
@@ -356,15 +369,12 @@ void Session::setFromConfig(MacauConfig &c)
     setVerbose(true);
     setSavePrefix(c.output_prefix);
     setSaveFrequency(c.output_freq);
+
+    if (c.classify) setThreshold(c.threshold);
  
     //-- noise model
     if(c.adaptive_precision.size() && c.fixed_precision.size()) {
         throw std::runtime_error("Cannot have both --adaptive and --precision");
-    }
-
-    if (c.fixed_precision.size()) {
-        c.precision = strtod(c.fixed_precision.c_str(), NULL);
-        setPrecision(c.precision);
     }
 
     if (c.adaptive_precision.size()) {
@@ -373,7 +383,13 @@ void Session::setFromConfig(MacauConfig &c)
         if(optarg && (token = strsep(&optarg, ","))) c.sn_init = strtod(token, NULL); 
         if(optarg && (token = strsep(&optarg, ","))) c.sn_max = strtod(token, NULL); 
         setAdaptivePrecision(c.sn_init, c.sn_max);
+    } else if (c.fixed_precision.size()) {
+        c.precision = strtod(c.fixed_precision.c_str(), NULL);
+        setPrecision(c.precision);
+    } else {
+        setPrecision(c.precision);
     }
+
 
     // test data
     if (c.fname_test.size()) {
@@ -404,7 +420,7 @@ void Session::printStatus(double elapsedi) {
 
     std::pair<double,double> rmse_test = model->getRMSE(iter, burnin);
 
-    double auc = model->auc(threshold);
+    double auc = classify ? model->auc(threshold) : NAN;
 
     auto nnz_per_sec = (model->Ynnz()) / elapsedi;
     auto samples_per_sec = (model->Yrows() + model->Ycols()) / elapsedi;

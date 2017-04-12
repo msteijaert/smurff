@@ -37,6 +37,11 @@ struct MacauConfig {
     double sn_max             = 10.0;
 
     double test_split         = .0;
+
+    bool classify             = false;
+    double threshold;
+
+    bool verbose              = false;
 };
 
 class BaseSession  {
@@ -72,7 +77,8 @@ class BaseSession  {
 // try adding num_latent as template parameter to Session
 class Session : public BaseSession {
   public:
-      double      threshold   = NAN;
+      double      threshold;
+      bool        classify    = false;
       bool        verbose     = true;
       int         nsamples    = 100;
       int         burnin      = 50;
@@ -86,7 +92,7 @@ class Session : public BaseSession {
       Session() { name = "MacauSession"; }
 
       //-- set params
-      void setThreshold(double t) { threshold = t; }
+      void setThreshold(double t) { threshold = t; classify = true; }
       void setSamples(int burnin, int nsamples);
       void setVerbose(bool v) { verbose = v; };
       void setSavePrefix(std::string pref) { save_prefix = pref; };

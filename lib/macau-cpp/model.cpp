@@ -48,7 +48,14 @@ void Factors::setRelationDataTest(SparseMatrixD Y) {
 }
 
 void Factors::init_predictions() {
-    std::vector<unsigned int> permutation( predictions.size() );
+    const int N = Ytest.nonZeros();
+    predictions     = VectorXd::Zero(N);
+    predictions_var = VectorXd::Zero(N);
+    stds            = VectorXd::Zero(N);
+    permutation.resize(N);
+    stack_x.resize(N);
+    stack_y.resize(N);
+
     for(unsigned int i = 0; i < predictions.size(); i++) permutation[i] = i;
 }
 
@@ -95,13 +102,6 @@ void Factors::update_predictions(int iter, int burnin)
 {
     if (Ytest.nonZeros() == 0) return;
     assert(last_iter <= iter);
-
-    if (last_iter < 0) {
-        const int N = Ytest.nonZeros();
-        predictions     = VectorXd::Zero(N);
-        predictions_var = VectorXd::Zero(N);
-        stds            = VectorXd::Zero(N);
-    }
 
     if (last_iter == iter) return;
 
@@ -165,7 +165,6 @@ const Eigen::VectorXd &Factors::getStds(int iter, int burnin)
 double Factors::auc(double threshold)
 {
     if (Ytest.nonZeros() == 0) return NAN;
-    if (isnan(threshold)) return NAN;
 
     auto start = tick();
 
@@ -189,7 +188,7 @@ double Factors::auc(double threshold)
 
     double auc = .0;
     for(int i=0; i < predictions.size() - 1; i++) {
-        auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / num_positive / num_negative;
+        auc += (stack_x[i+1] - stack_x[i]) * stack_y[i+1] / num_positive / num_negative;
     }
 
     auto stop = tick();
