@@ -14,7 +14,7 @@
 
 #include <unsupported/Eigen/SparseExtra>
 
-#include "macau.h"
+#include "iface.h"
 #include "gen_random.h"
 
 using namespace Eigen;

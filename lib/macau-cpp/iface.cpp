@@ -17,7 +17,7 @@
 #include <getopt.h>
 #include <signal.h>
 
-#include "macau.h"
+#include "iface.h"
 #include "mvnormal.h"
 #include "utils.h"
 #include "latentprior.h"

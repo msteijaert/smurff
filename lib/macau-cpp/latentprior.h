@@ -8,7 +8,7 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
-#include "macau.h"
+#include "iface.h"
 
 namespace Macau {
 

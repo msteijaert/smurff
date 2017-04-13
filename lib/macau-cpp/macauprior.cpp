@@ -4,7 +4,7 @@
 #include <iomanip>
 
 #include "mvnormal.h"
-#include "macau.h"
+#include "iface.h"
 #include "chol.h"
 #include "linop.h"
 #include "noisemodels.h"

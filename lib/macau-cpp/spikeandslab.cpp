@@ -1,5 +1,5 @@
 #include "noisemodels.h"
-#include "macau.h"
+#include "iface.h"
 
 using namespace Eigen;
 
