@@ -18,7 +18,7 @@
 
 #include "omp_util.h"
 #include "linop.h"
-#include "iface.h"
+#include "session.h"
 #include "macauoneprior.h"
 
 using namespace Eigen;

@@ -14,7 +14,7 @@
 
 #include <unsupported/Eigen/SparseExtra>
 
-#include "iface.h"
+#include "session.h"
 #include "gen_random.h"
 
 using namespace Eigen;

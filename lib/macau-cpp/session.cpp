@@ -17,7 +17,7 @@
 #include <getopt.h>
 #include <signal.h>
 
-#include "iface.h"
+#include "session.h"
 #include "mvnormal.h"
 #include "utils.h"
 #include "latentprior.h"

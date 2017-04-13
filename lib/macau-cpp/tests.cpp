@@ -3,7 +3,7 @@
 #include "linop.h"
 #include "chol.h"
 #include "mvnormal.h"
-#include "iface.h"
+#include "session.h"
 #include "latentprior.h"
 #include "macauprior.h"
 #include "utils.h"

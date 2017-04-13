@@ -1,5 +1,5 @@
 #include "noisemodels.h"
-#include "iface.h"
+#include "session.h"
 
 using namespace Eigen;
 

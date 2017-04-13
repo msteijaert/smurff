@@ -6,7 +6,7 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "utils.h"
-#include "iface.h"
+#include "session.h"
 #include "macauoneprior.h"
 
 using namespace std; 
