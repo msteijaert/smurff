@@ -32,49 +32,50 @@ namespace Macau {
 int Factors::num_latent = -1;
 
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    Ytest.resize(nrows, ncols);
-    sparseFromIJV(Ytest, rows, cols, values, N);
+    for(int i=0; i<N; ++i) Ytest.push_back({rows[i], cols[i], values[i]});
+    Ytestrows = nrows;
+    Ytestcols = ncols;
     init_predictions();
 }
  
 void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
-    Ytest = to_eigen(Y);
+    for(unsigned i=0; i<Y.nnz; ++i) Ytest.push_back({Y.rows[i], Y.cols[i], Y.vals[i]});
+    Ytestrows = Y.nrow;
+    Ytestcols = Y.ncol;
     init_predictions();
 }
- 
+
 void Factors::setRelationDataTest(SparseMatrixD Y) {
-    Ytest = Y;
+    for (int k = 0; k < Y.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
+            Ytest.push_back({(int)it.row(), (int)it.col(), it.value()});
+        }
+    }
+    Ytestrows = Y.rows();
+    Ytestcols = Y.cols();
     init_predictions();
 }
 
 void Factors::init_predictions() {
-    const int N = Ytest.nonZeros();
-    predictions     = VectorXd::Zero(N);
-    predictions_var = VectorXd::Zero(N);
-    stds            = VectorXd::Zero(N);
+    const int N = Ytest.size();
     permutation.resize(N);
-    stack_x.resize(N);
-    stack_y.resize(N);
-
-    for(unsigned int i = 0; i < predictions.size(); i++) permutation[i] = i;
+    for(unsigned int i = 0; i < Ytest.size(); i++) permutation[i] = i;
 }
 
 //--- output model to files
 
 void Factors::savePredictions(std::string save_prefix, int iter, int burnin) {
-    VectorXd yhat_sd_raw  = getStds(iter, burnin);
-    MatrixXd testdata_raw = to_coo(Ytest);
-
     std::string fname_pred = save_prefix + "-predictions.csv";
     std::ofstream predfile;
     predfile.open(fname_pred);
     predfile << "row,col,y,y_pred,y_pred_std\n";
-    for (int i = 0; i < predictions.size(); i++) {
-        predfile << to_string( (int)testdata_raw(i,0) );
-        predfile << "," << to_string( (int)testdata_raw(i,1) );
-        predfile << "," << to_string( testdata_raw(i,2) );
-        predfile << "," << to_string( predictions(i) );
-        predfile << "," << to_string( yhat_sd_raw(i) );
+    for (unsigned i = 0; i < Ytest.size(); i++) {
+        auto &t = Ytest[i];
+        predfile        << to_string( t.row );
+        predfile << "," << to_string( t.col );
+        predfile << "," << to_string( t.val );
+        predfile << "," << to_string( t.pred );
+        predfile << "," << to_string( t.stds );
         predfile << "\n";
     }
     predfile.close();
@@ -100,7 +101,7 @@ void Factors::saveModel(std::string save_prefix, int iter, int burnin) {
 
 void Factors::update_predictions(int iter, int burnin)
 {
-    if (Ytest.nonZeros() == 0) return;
+    if (Ytest.size() == 0) return;
     assert(last_iter <= iter);
 
     if (last_iter == iter) return;
@@ -110,29 +111,26 @@ void Factors::update_predictions(int iter, int burnin)
     double se = 0.0, se_avg = 0.0;
     const double inorm = 1.0 / (iter - burnin - 1);
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
-    for (int k = 0; k < Ytest.outerSize(); ++k) {
-        int idx = Ytest.outerIndexPtr()[k];
-        for (Eigen::SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-            const double pred = col(0,it.col()).dot(col(1,it.row())) + mean_rating;
-            se += square(it.value() - pred);
+    for (unsigned k = 0; k < Ytest.size(); ++k) {
+        auto &t = Ytest[k];
+        const double pred = col(0,t.col).dot(col(1,t.row)) + mean_rating;
+        se += square(t.val - pred);
 
-            // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
-            double pred_avg;
-            if (iter <= burnin) {
-                pred_avg = pred;
-            } else {
-                double delta = pred - predictions[idx];
-                pred_avg = (predictions[idx] + delta / (iter - burnin + 1));
-                predictions_var[idx] += delta * (pred - pred_avg);
-            }
-            se_avg += square(it.value() - pred_avg);
-            predictions[idx] = pred_avg;
-            stds[idx] = sqrt(predictions_var[idx] * inorm);
-            idx++;
+        // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+        double pred_avg;
+        if (iter <= burnin) {
+            pred_avg = pred;
+        } else {
+            double delta = pred - t.pred;
+            pred_avg = (t.pred + delta / (iter - burnin + 1));
+            t.var += delta * (pred - pred_avg);
         }
+        se_avg += square(t.val - pred_avg);
+        t.pred = pred_avg;
+        t.stds = sqrt(t.var * inorm);
     }
 
-    const unsigned N = Ytest.nonZeros();
+    const unsigned N = Ytest.size();
     rmse = sqrt( se / N );
     rmse_avg = sqrt( se_avg / N );
     last_iter = iter;
@@ -144,52 +142,31 @@ std::pair<double,double> Factors::getRMSE(int iter, int burnin)
     return std::make_pair(rmse, rmse_avg);
 }
 
-const Eigen::VectorXd &Factors::getPredictions(int iter, int burnin)
-{
-    update_predictions(iter, burnin);
-    return predictions;
-}
-
-const Eigen::VectorXd &Factors::getPredictionsVar(int iter, int burnin)
-{
-    update_predictions(iter, burnin);
-    return predictions_var;
-}
-
-const Eigen::VectorXd &Factors::getStds(int iter, int burnin)
-{
-    update_predictions(iter, burnin);
-    return stds;
-}
-
 double Factors::auc(double threshold)
 {
-    if (Ytest.nonZeros() == 0) return NAN;
+    if (Ytest.size() == 0) return NAN;
 
     auto start = tick();
-
-    double *test_vector = Ytest.valuePtr();
-
-    std::sort(permutation.begin(), permutation.end(), [this](unsigned int a, unsigned int b) { return predictions[a] < predictions[b];});
+    std::sort(Ytest.begin(), Ytest.end(), [this](const YTestItem &a, const YTestItem &b) { return a.pred < b.pred;});
 
     //Build stack_x and stack_y
-    stack_x[0] = test_vector[permutation[0]];
-    stack_y[0] = 1-stack_x[0];
+    double stack_x = Ytest[0].val;
+    double stack_y = 1-stack_x;
     int num_positive = 0;
     int num_negative = 0;
-    for(int i=1; i < predictions.size(); i++) {
-        int is_positive = test_vector[permutation[i]] > threshold;
+    double auc = .0;
+    for(auto &t : Ytest) {
+        int is_positive = t.val > threshold;
         int is_negative = !is_positive; 
-        stack_x[i] = stack_x[i-1] + is_positive;
-        stack_y[i] = stack_y[i-1] + is_negative; 
+        stack_x += is_positive;
+        stack_y += is_negative; 
         num_positive += is_positive;
         num_negative += is_negative;
+        auc += is_positive * stack_y;
     }
 
-    double auc = .0;
-    for(int i=0; i < predictions.size() - 1; i++) {
-        auc += (stack_x[i+1] - stack_x[i]) * stack_y[i+1] / num_positive / num_negative;
-    }
+    auc /= num_positive * num_negative;
+
 
     auto stop = tick();
     std::cout << "AUC time: " << stop-start << std::endl;
@@ -203,9 +180,9 @@ std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
     os << indent << "Num-latents: " << num_latent << "\n";
     double train_fill_rate = 100. * Ynnz() / Yrows() / Ycols();
     os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "] (" << train_fill_rate << "%)\n";
-    if (Ytest.nonZeros()) {
-        double test_fill_rate = 100. * Ytest.nonZeros() / Ytest.rows() / Ytest.cols();
-        os << indent << "Test data: " << Ytest.nonZeros() << " [" << Ytest.rows() << " x " << Ytest.cols() << "] (" << test_fill_rate << "%)\n";
+    if (Ytest.size()) {
+        double test_fill_rate = 100. * Ytest.size() / Ytestrows / Ytestcols;
+        os << indent << "Test data: " << Ytest.size() << " [" << Ytestrows << " x " << Ytestcols << "] (" << test_fill_rate << "%)\n";
     } else {
         os << indent << "Test data: -\n";
     }
@@ -216,8 +193,8 @@ template<typename YType>
 void MF<YType>::init_base()
 {
     assert(Yrows() > 0 && Ycols() > 0);
-    if (Ytest.nonZeros() > 0) {
-        assert(Ytest.rows() == Yrows() && Ytest.cols() == Ycols() && "Size of train must be equal to size of test");
+    if (Ytest.size() > 0) {
+        assert(Ytestrows == Yrows() && Ytestcols == Ycols() && "Size of train must be equal to size of test");
     }
 
     mean_rating = Y.sum() / Y.nonZeros();
@@ -355,7 +332,6 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     MatrixXd &Vf = V(f);
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
-    double start = tick();
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
     // extra parallization for samples with >1% of nonzeros
     //std::cout << "local_nnz : " << local_nnz << std::endl;

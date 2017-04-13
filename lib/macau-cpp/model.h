@@ -29,18 +29,24 @@ struct Factors {
 
     int num_fac() const { return factors.size(); }
 
-    Eigen::SparseMatrix<double> Ytest;
+    struct YTestItem {
+        int row, col;
+        double val, pred, var, stds;
+    };
+    std::vector<YTestItem> Ytest;
+    int Ytestrows, Ytestcols;
+    void update_predictions(int iter, int burnin);
+    double rmse_avg = NAN, rmse = NAN; 
 
     void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void setRelationDataTest(SparseDoubleMatrix &Y);
     void setRelationDataTest(Eigen::SparseMatrix<double> Y);
+    void setThreshold(double);
 
     std::pair<double,double> getRMSE(int iter, int burnin);
-    const Eigen::VectorXd   &getPredictions(int iter, int burnin);
-    const Eigen::VectorXd   &getPredictionsVar(int iter, int burnin);
-    const Eigen::VectorXd   &getStds(int iter, int burnin);
 
     double auc(double);
+    double auc_old(double);
 
     // helper functions for noise
     virtual double sumsq() const = 0;
@@ -67,16 +73,11 @@ struct Factors {
 
   private:
     void init_predictions();
-    void update_predictions(int iter, int burnin);
-    double rmse_avg = NAN, rmse = NAN; 
     int last_iter = -1;
+    bool classify = false;
+    double threshold;
     std::vector<Eigen::MatrixXd> factors;
-
-    // related to test set
-    Eigen::VectorXd predictions, predictions_var, stds;
-
     // AUC related
-    std::vector<double> stack_x, stack_y;
     std::vector<unsigned int> permutation;
 };
 

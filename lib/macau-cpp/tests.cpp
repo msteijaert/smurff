@@ -507,30 +507,34 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   model.setRelationData(rows, cols, vals, 1, 1, 1);
   model.setRelationDataTest(rows, cols, vals, 1, 1, 1);
   model.init();
+  auto &t = model.Ytest.at(0);
 
   // first iteration
   model.U(0) << 1.0, 0.0;
   model.U(1) << 1.0, 0.0;
-  REQUIRE(model.getPredictions(0,burnin)(0)     == Approx(4.5 + 1.0));
-  REQUIRE(model.getPredictionsVar(0,burnin)(0) == Approx(0.0));
-  REQUIRE(model.getRMSE(0,burnin).first      == Approx(1.0));
-  REQUIRE(model.getRMSE(0,burnin).second     == Approx(1.0));
+  model.update_predictions(0,burnin);
+  REQUIRE(t.pred         == Approx(4.5 + 1.0));
+  REQUIRE(t.var          == Approx(0.0));
+  REQUIRE(model.rmse     == Approx(1.0));
+  REQUIRE(model.rmse_avg == Approx(1.0));
 
   //// second iteration
   model.U(0) << 2.0, 0.0;
   model.U(1) << 1.0, 0.0;
-  REQUIRE(model.getPredictions(1,burnin)(0)     == Approx(4.5 + (1.0 + 2.0) / 2));
-  REQUIRE(model.getPredictionsVar(1,burnin)(0) == Approx(0.5));
-  REQUIRE(model.getRMSE(1,burnin).first      == 2.0);
-  REQUIRE(model.getRMSE(1,burnin).second     == 1.5);
+  model.update_predictions(1,burnin);
+  REQUIRE(t.pred         == Approx(4.5 + (1.0 + 2.0) / 2));
+  REQUIRE(t.var          == Approx(0.5));
+  REQUIRE(model.rmse     == 2.0);
+  REQUIRE(model.rmse_avg == 1.5);
 
   //// third iteration
   model.U(0) << 2.0, 0.0;
   model.U(1) << 3.0, 0.0;
-  REQUIRE(model.getPredictions(2,burnin)(0)     == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
-  REQUIRE(model.getPredictionsVar(2,burnin)(0) == Approx(14.0)); // accumulated variance
-  REQUIRE(model.getRMSE(2,burnin).first      == 6.0);
-  REQUIRE(model.getRMSE(2,burnin).second     == 3.0);
+  model.update_predictions(2,burnin);
+  REQUIRE(t.pred         == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
+  REQUIRE(t.var          == Approx(14.0)); // accumulated variance
+  REQUIRE(model.rmse     == 6.0);
+  REQUIRE(model.rmse_avg == 3.0);
 }
 
 TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
