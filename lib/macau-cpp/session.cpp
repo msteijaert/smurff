@@ -142,9 +142,6 @@ std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
     os << indent << "  Save model every: " << save_freq << "\n";
     os << indent << "  Output prefix: " << save_prefix << "\n";
-    if (classify) {
-        os << indent << "  Threshold for binary classification : " << threshold << "\n";
-    }
     os << indent << "}\n";
     return os;
 }
@@ -343,10 +340,14 @@ void Session::setFromConfig(MacauConfig &c)
     if (c.fname_train.find(".sdm") != std::string::npos) {
         auto Ytrain = to_eigen(*read_sdm(c.fname_train.c_str()));
         MF<SparseMatrixD> *model;
+
         if (is_binary(Ytrain)) {
             model = &sparseBinaryModel(c.num_latent);
-            setThreshold(0.5);
-        } else model = &sparseModel(c.num_latent);
+            model->setThreshold(0.5);
+        } else {
+            model = &sparseModel(c.num_latent);
+        }
+
         if (c.test_split > .0) {
             auto Ytest = extract(Ytrain, c.test_split);
             model->setRelationDataTest(Ytest);
@@ -369,9 +370,8 @@ void Session::setFromConfig(MacauConfig &c)
     setVerbose(true);
     setSavePrefix(c.output_prefix);
     setSaveFrequency(c.output_freq);
+    if (c.classify) model->setThreshold(c.threshold);
 
-    if (c.classify) setThreshold(c.threshold);
- 
     //-- noise model
     if(c.adaptive_precision.size() && c.fixed_precision.size()) {
         throw std::runtime_error("Cannot have both --adaptive and --precision");
@@ -412,15 +412,14 @@ void Session::setFromConfig(MacauConfig &c)
 
 void Session::printStatus(double elapsedi) {
     if(!verbose) return;
+
+    model->update_predictions(iter, burnin);
+
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
 
     double snorm0 = model->U(0).norm();
     double snorm1 = model->U(1).norm();
-
-    std::pair<double,double> rmse_test = model->getRMSE(iter, burnin);
-
-    double auc = classify ? model->auc(threshold) : NAN;
 
     auto nnz_per_sec = (model->Ynnz()) / elapsedi;
     auto samples_per_sec = (model->Yrows() + model->Ycols()) / elapsedi;
@@ -438,8 +437,7 @@ void Session::printStatus(double elapsedi) {
     }
 
     printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            phase.c_str(), i, from, 
-            rmse_test.second, rmse_test.first, auc,
+            phase.c_str(), i, from, model->rmse_avg, model->rmse, model->auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 

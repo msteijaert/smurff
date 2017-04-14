@@ -29,26 +29,28 @@ struct Factors {
 
     int num_fac() const { return factors.size(); }
 
+
+    // Ytest related
     struct YTestItem {
         int row, col;
         double val, pred, var, stds;
-        int pos;
     };
     std::vector<YTestItem> Ytest;
     int Ytestrows, Ytestcols;
     void update_predictions(int iter, int burnin);
-    double rmse_avg = NAN, rmse = NAN; 
+    double max_val = NAN, min_val = NAN;
+    double rmse_avg = NAN, rmse = NAN, auc = NAN; 
+    const int num_bins = 10;
+    int total_pos;
+    std::vector<unsigned> num_pos;
+    std::vector<unsigned> num_neg;
 
     void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void setRelationDataTest(SparseDoubleMatrix &Y);
     void setRelationDataTest(Eigen::SparseMatrix<double> Y);
-    void setThreshold(double);
+    void setThreshold(double t) { threshold = t; classify = true; } 
 
     std::pair<double,double> getRMSE(int iter, int burnin);
-
-    double auc(double);
-    double auc_old(double);
-    double auc_binned(double);
 
     // helper functions for noise
     virtual double sumsq() const = 0;

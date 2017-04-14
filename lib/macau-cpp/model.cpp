@@ -32,14 +32,18 @@ namespace Macau {
 int Factors::num_latent = -1;
 
 void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    for(int i=0; i<N; ++i) Ytest.push_back({rows[i], cols[i], values[i]});
+    for(int i=0; i<N; ++i) {
+        Ytest.push_back({rows[i], cols[i], values[i]});
+    }
     Ytestrows = nrows;
     Ytestcols = ncols;
     init_predictions();
 }
  
 void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
-    for(unsigned i=0; i<Y.nnz; ++i) Ytest.push_back({Y.rows[i], Y.cols[i], Y.vals[i]});
+    for(unsigned i=0; i<Y.nnz; ++i) {
+        Ytest.push_back({Y.rows[i], Y.cols[i], Y.vals[i]});
+    }
     Ytestrows = Y.nrow;
     Ytestcols = Y.ncol;
     init_predictions();
@@ -57,9 +61,17 @@ void Factors::setRelationDataTest(SparseMatrixD Y) {
 }
 
 void Factors::init_predictions() {
-    const int N = Ytest.size();
-    permutation.resize(N);
-    for(unsigned int i = 0; i < Ytest.size(); i++) permutation[i] = i;
+    max_val = -INFINITY;
+    min_val =  INFINITY;
+    total_pos = 0;
+    for(auto &t : Ytest) {
+        max_val = std::max(max_val, t.val);
+        min_val = std::min(min_val, t.val);
+        int is_positive = t.val > threshold;
+        total_pos += is_positive;
+    }
+    num_pos.resize(num_bins);
+    num_neg.resize(num_bins);
 }
 
 //--- output model to files
@@ -108,8 +120,13 @@ void Factors::update_predictions(int iter, int burnin)
 
     assert(last_iter + 1 == iter);
 
+    const unsigned N = Ytest.size();
     double se = 0.0, se_avg = 0.0;
     const double inorm = 1.0 / (iter - burnin - 1);
+    std::fill(num_pos.begin(), num_pos.end(), 0);
+    std::fill(num_neg.begin(), num_neg.end(), 0);
+    thread_vector<std::vector<unsigned>> local_pos(num_pos);
+    thread_vector<std::vector<unsigned>> local_neg(num_neg);
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
     for (unsigned k = 0; k < Ytest.size(); ++k) {
         auto &t = Ytest[k];
@@ -128,104 +145,26 @@ void Factors::update_predictions(int iter, int burnin)
         se_avg += square(t.val - pred_avg);
         t.pred = pred_avg;
         t.stds = sqrt(t.var * inorm);
-    }
 
-    const unsigned N = Ytest.size();
-    rmse = sqrt( se / N );
-    rmse_avg = sqrt( se_avg / N );
-    last_iter = iter;
-}
-
-std::pair<double,double> Factors::getRMSE(int iter, int burnin)
-{
-    update_predictions(iter, burnin);
-    return std::make_pair(rmse, rmse_avg);
-}
-
-double Factors::auc(double threshold)
-{
-    std::cout << "AUC binned:" <<  auc_binned(threshold) << std::endl;
-
-    if (Ytest.size() == 0) return NAN;
-
-    auto start = tick();
-    for(unsigned i = 0; i<Ytest.size(); ++i) Ytest[i].pos = i;
-    std::sort(Ytest.begin(), Ytest.end(), [this](const YTestItem &a, const YTestItem &b) { return a.pred < b.pred;});
-
-#if 0
-    int min_pos_diff = Ytest.size();
-    int max_pos_diff = 0;
-    int sum_pos_diff = 0;
-
-    for(int i = 0; i<Ytest.size(); ++i) {
-        auto &t = Ytest[i];
-        int diff = abs(t.pos - i);
-        assert(diff >= 0);
-        min_pos_diff = std::min(diff, min_pos_diff);
-        max_pos_diff = std::max(diff, max_pos_diff);
-        sum_pos_diff += diff;
-    }
-    std::cout << "size:" << Ytest.size() << "\n";
-    std::cout << "min: " << min_pos_diff << "\n";
-    std::cout << "max: " << max_pos_diff << "\n";
-    std::cout << "avg: " << (double)sum_pos_diff / (double) Ytest.size() << "\n";
-#endif
-
-    //Build stack_x and stack_y
-    int num_positive = 0;
-    int num_negative = 0;
-    double auc = .0;
-    for(auto &t : Ytest) {
-        int is_positive = t.val > threshold;
-        int is_negative = !is_positive; 
-        num_positive += is_positive;
-        num_negative += is_negative;
-        auc += is_positive * num_negative;
-    }
-
-    auc /= (double)num_positive;
-    auc /= (double)num_negative;
-
-
-    auto stop = tick();
-    std::cout << "AUC real time: " << stop-start << std::endl;
-
-    std::cout << "AUC real:" <<  auc << std::endl;
-
-    return auc;
-}
-
-double Factors::auc_binned(double threshold)
-{
-    if (Ytest.size() == 0) return NAN;
-
-    auto start = tick();
-    double max_val = -INFINITY;
-    double min_val = INFINITY;
-    for(auto &t : Ytest) {
-        max_val = std::max(max_val, t.pred);
-        min_val = std::min(min_val, t.pred);
-    }
-    const int num_bins = 10000;
-    std::vector<unsigned> num_pos(num_bins);
-    std::vector<unsigned> num_neg(num_bins);
-    int total_pos = 0;
-    int total_neg = 0;
-    for(auto &t : Ytest) {
+        // update AUC
         int bin_no = (double)(num_bins - 1) * (t.pred - min_val) / (max_val - min_val);
         assert(bin_no >= 0 && bin_no < num_bins);
         int is_positive = t.val > threshold;
-        if (is_positive) {
-            num_pos.at(bin_no)++;
-            total_pos++;
-        } else {
-            num_neg.at(bin_no)++;
-            total_neg++;
-        }
+        if (is_positive) local_pos.local().at(bin_no)++;
+        else local_neg.local().at(bin_no)++;
     }
 
-    //Build stack_x and stack_y
-    double auc = .0;
+    auto vector_plus = [](std::vector<unsigned> &init, const std::vector<unsigned>& pos) -> std::vector<unsigned> & 
+    {
+        for(unsigned i = 0; i< init.size(); ++i) init[i] += pos[i];
+        return init;
+    };
+    num_pos = local_pos.combine(vector_plus);
+    num_neg = local_neg.combine(vector_plus);
+
+
+    // update AUC
+    auc = .0;
     int acc_neg = 0;
     for(int i = 0; i<num_bins; ++i) {
         std::cout << " bin: " << i << "; pos: " << num_pos[i] << "; neg: " << num_neg[i] << "\n";
@@ -235,13 +174,16 @@ double Factors::auc_binned(double threshold)
     }
 
     auc /= (double)total_pos;
-    auc /= (double)total_neg;
+    auc /= (double)(N - total_pos);
+    rmse = sqrt( se / N );
+    rmse_avg = sqrt( se_avg / N );
+    last_iter = iter;
+}
 
-
-    auto stop = tick();
-    std::cout << "AUC binned time: " << stop-start << std::endl;
-
-    return auc;
+std::pair<double,double> Factors::getRMSE(int iter, int burnin)
+{
+    update_predictions(iter, burnin);
+    return std::make_pair(rmse, rmse_avg);
 }
 
 std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
@@ -255,6 +197,9 @@ std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
         os << indent << "Test data: " << Ytest.size() << " [" << Ytestrows << " x " << Ytestcols << "] (" << test_fill_rate << "%)\n";
     } else {
         os << indent << "Test data: -\n";
+    }
+    if (classify) {
+        os << indent << "  Threshold for binary classification : " << threshold << "\n";
     }
     return os;
 }
