@@ -206,7 +206,7 @@ double Factors::auc_binned(double threshold)
         max_val = std::max(max_val, t.pred);
         min_val = std::min(min_val, t.pred);
     }
-    const int num_bins = 10;
+    const int num_bins = 10000;
     std::vector<unsigned> num_pos(num_bins);
     std::vector<unsigned> num_neg(num_bins);
     int total_pos = 0;
