@@ -148,7 +148,8 @@ void Factors::update_predictions(int iter, int burnin)
 
         // update AUC
         int bin_no = (double)(num_bins - 1) * (t.pred - min_val) / (max_val - min_val);
-        assert(bin_no >= 0 && bin_no < num_bins);
+        if (bin_no < 0) bin_no = 0;
+        if (bin_no >= num_bins) bin_no = num_bins;
         int is_positive = t.val > threshold;
         if (is_positive) local_pos.local().at(bin_no)++;
         else local_neg.local().at(bin_no)++;
@@ -199,7 +200,10 @@ std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
         os << indent << "Test data: -\n";
     }
     if (classify) {
-        os << indent << "Threshold for binary classification : " << threshold << "\n";
+        double pos = 100. * total_pos / Ytest.size();
+        os << indent << "Binary classification threshold: " << threshold << "\n";
+        os << indent << "  " << pos << "% positives in test data\n";
+        os << indent << "  " << 100-pos << "% negatives in test data\n";
     }
     return os;
 }
