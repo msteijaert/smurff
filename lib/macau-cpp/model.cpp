@@ -203,16 +203,17 @@ double Factors::auc_binned(double threshold)
     double max_val = -INFINITY;
     double min_val = INFINITY;
     for(auto &t : Ytest) {
-        max_val = std::max(max_val, t.val);
-        min_val = std::min(min_val, t.val);
+        max_val = std::max(max_val, t.pred);
+        min_val = std::min(min_val, t.pred);
     }
-    const int num_bins = 1000;
+    const int num_bins = 10;
     std::vector<unsigned> num_pos(num_bins);
     std::vector<unsigned> num_neg(num_bins);
     int total_pos = 0;
     int total_neg = 0;
     for(auto &t : Ytest) {
-        int bin_no = (num_bins - 1) * (t.pred - min_val) / (max_val - min_val);
+        int bin_no = (double)(num_bins - 1) * (t.pred - min_val) / (max_val - min_val);
+        assert(bin_no >= 0 && bin_no < num_bins);
         int is_positive = t.val > threshold;
         if (is_positive) {
             num_pos.at(bin_no)++;
@@ -227,6 +228,7 @@ double Factors::auc_binned(double threshold)
     double auc = .0;
     int acc_neg = 0;
     for(int i = 0; i<num_bins; ++i) {
+        std::cout << " bin: " << i << "; pos: " << num_pos[i] << "; neg: " << num_neg[i] << "\n";
         acc_neg += num_neg[i] / 2;
         auc += num_pos[i] * acc_neg;
         acc_neg += num_neg[i] / 2;
