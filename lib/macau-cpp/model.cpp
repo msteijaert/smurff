@@ -167,7 +167,7 @@ void Factors::update_predictions(int iter, int burnin)
     auc = .0;
     int acc_neg = 0;
     for(int i = 0; i<num_bins; ++i) {
-        std::cout << " bin: " << i << "; pos: " << num_pos[i] << "; neg: " << num_neg[i] << "\n";
+        if (num_bins <= 10) std::cout << " bin: " << i << "; pos: " << num_pos[i] << "; neg: " << num_neg[i] << "\n";
         acc_neg += num_neg[i] / 2;
         auc += num_pos[i] * acc_neg;
         acc_neg += num_neg[i] / 2;
@@ -199,7 +199,7 @@ std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
         os << indent << "Test data: -\n";
     }
     if (classify) {
-        os << indent << "  Threshold for binary classification : " << threshold << "\n";
+        os << indent << "Threshold for binary classification : " << threshold << "\n";
     }
     return os;
 }
