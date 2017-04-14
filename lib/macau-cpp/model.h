@@ -32,6 +32,7 @@ struct Factors {
     struct YTestItem {
         int row, col;
         double val, pred, var, stds;
+        int pos;
     };
     std::vector<YTestItem> Ytest;
     int Ytestrows, Ytestcols;

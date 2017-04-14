@@ -147,7 +147,27 @@ double Factors::auc(double threshold)
     if (Ytest.size() == 0) return NAN;
 
     auto start = tick();
+    for(unsigned i = 0; i<Ytest.size(); ++i) Ytest[i].pos = i;
     std::sort(Ytest.begin(), Ytest.end(), [this](const YTestItem &a, const YTestItem &b) { return a.pred < b.pred;});
+
+#if 0
+    int min_pos_diff = Ytest.size();
+    int max_pos_diff = 0;
+    int sum_pos_diff = 0;
+
+    for(int i = 0; i<Ytest.size(); ++i) {
+        auto &t = Ytest[i];
+        int diff = abs(t.pos - i);
+        assert(diff >= 0);
+        min_pos_diff = std::min(diff, min_pos_diff);
+        max_pos_diff = std::max(diff, max_pos_diff);
+        sum_pos_diff += diff;
+    }
+    std::cout << "size:" << Ytest.size() << "\n";
+    std::cout << "min: " << min_pos_diff << "\n";
+    std::cout << "max: " << max_pos_diff << "\n";
+    std::cout << "avg: " << (double)sum_pos_diff / (double) Ytest.size() << "\n";
+#endif
 
     //Build stack_x and stack_y
     double stack_x = Ytest[0].val;
@@ -165,7 +185,8 @@ double Factors::auc(double threshold)
         auc += is_positive * stack_y;
     }
 
-    auc /= num_positive * num_negative;
+    auc /= (double)num_positive;
+    auc /= (double)num_negative;
 
 
     auto stop = tick();
@@ -333,14 +354,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
-    // extra parallization for samples with >1% of nonzeros
-    //std::cout << "local_nnz : " << local_nnz << std::endl;
-    //std::cout << "total_nnz / 1000: " << total_nnz/1000. << std::endl;
     if (in_parallel) {
-#if 0
-#pragma omp critical
-        printf("%d-%d with %d nnz started on thread %d\n", f, n, local_nnz, thread_num());
-#endif
         const int task_size = ceil(local_nnz / 100.0);
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
@@ -349,10 +363,6 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
         for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(Y,Vf,rrs,MMs)
             {
-#if 0
-#pragma omp critical
-                printf("%d-%d with %d nnz running a task on thread %d\n", f, n, local_nnz, thread_num());
-#endif
                 auto &my_rr = rrs.local();
                 auto &my_MM = MMs.local();
 
@@ -366,14 +376,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
                 }
             }
         }
-#if 0
-        printf("%d-%d with %d nnz is waiting\n", f, n, local_nnz);
-#endif
 #pragma omp taskwait
-#if 0 
-#pragma omp critical
-        printf("%d-%d with %d nnz finished waiting\n", f, n, local_nnz);
-#endif
         MM += MMs.combine();
         rr += rrs.combine();
     } else {
@@ -384,14 +387,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
         }
     }
 
-    double stop = tick();
-
     MM.triangularView<Upper>() = MM.transpose();
-
-#if 0
-#pragma omp critical
-    pnm_perf.push_back({local_nnz, total_nnz, in_parallel, start, stop});
-#endif
 }
 
 void SparseMF::update_pnm(int f) {
