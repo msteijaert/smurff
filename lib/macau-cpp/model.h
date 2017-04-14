@@ -48,6 +48,7 @@ struct Factors {
 
     double auc(double);
     double auc_old(double);
+    double auc_binned(double);
 
     // helper functions for noise
     virtual double sumsq() const = 0;

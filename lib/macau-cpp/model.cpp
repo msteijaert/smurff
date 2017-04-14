@@ -144,6 +144,8 @@ std::pair<double,double> Factors::getRMSE(int iter, int burnin)
 
 double Factors::auc(double threshold)
 {
+    std::cout << "AUC binned:" <<  auc_binned(threshold) << std::endl;
+
     if (Ytest.size() == 0) return NAN;
 
     auto start = tick();
@@ -170,19 +172,15 @@ double Factors::auc(double threshold)
 #endif
 
     //Build stack_x and stack_y
-    double stack_x = Ytest[0].val;
-    double stack_y = 1-stack_x;
     int num_positive = 0;
     int num_negative = 0;
     double auc = .0;
     for(auto &t : Ytest) {
         int is_positive = t.val > threshold;
         int is_negative = !is_positive; 
-        stack_x += is_positive;
-        stack_y += is_negative; 
         num_positive += is_positive;
         num_negative += is_negative;
-        auc += is_positive * stack_y;
+        auc += is_positive * num_negative;
     }
 
     auc /= (double)num_positive;
@@ -190,7 +188,56 @@ double Factors::auc(double threshold)
 
 
     auto stop = tick();
-    std::cout << "AUC time: " << stop-start << std::endl;
+    std::cout << "AUC real time: " << stop-start << std::endl;
+
+    std::cout << "AUC real:" <<  auc << std::endl;
+
+    return auc;
+}
+
+double Factors::auc_binned(double threshold)
+{
+    if (Ytest.size() == 0) return NAN;
+
+    auto start = tick();
+    double max_val = -INFINITY;
+    double min_val = INFINITY;
+    for(auto &t : Ytest) {
+        max_val = std::max(max_val, t.val);
+        min_val = std::min(min_val, t.val);
+    }
+    const int num_bins = 1000;
+    std::vector<unsigned> num_pos(num_bins);
+    std::vector<unsigned> num_neg(num_bins);
+    int total_pos = 0;
+    int total_neg = 0;
+    for(auto &t : Ytest) {
+        int bin_no = (num_bins - 1) * (t.pred - min_val) / (max_val - min_val);
+        int is_positive = t.val > threshold;
+        if (is_positive) {
+            num_pos.at(bin_no)++;
+            total_pos++;
+        } else {
+            num_neg.at(bin_no)++;
+            total_neg++;
+        }
+    }
+
+    //Build stack_x and stack_y
+    double auc = .0;
+    int acc_neg = 0;
+    for(int i = 0; i<num_bins; ++i) {
+        acc_neg += num_neg[i] / 2;
+        auc += num_pos[i] * acc_neg;
+        acc_neg += num_neg[i] / 2;
+    }
+
+    auc /= (double)total_pos;
+    auc /= (double)total_neg;
+
+
+    auto stop = tick();
+    std::cout << "AUC binned time: " << stop-start << std::endl;
 
     return auc;
 }
