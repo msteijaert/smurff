@@ -38,12 +38,12 @@ struct Factors {
     std::vector<YTestItem> Ytest;
     int Ytestrows, Ytestcols;
     void update_predictions(int iter, int burnin);
-    double max_val = NAN, min_val = NAN;
     double rmse_avg = NAN, rmse = NAN, auc = NAN; 
-    const int num_bins = 10;
+    const int num_bins = 10000;
     int total_pos;
     std::vector<unsigned> num_pos;
     std::vector<unsigned> num_neg;
+    std::vector<double> bin_bounds;
 
     void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void setRelationDataTest(SparseDoubleMatrix &Y);

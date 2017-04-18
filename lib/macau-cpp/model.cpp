@@ -61,17 +61,33 @@ void Factors::setRelationDataTest(SparseMatrixD Y) {
 }
 
 void Factors::init_predictions() {
-    max_val = -INFINITY;
-    min_val =  INFINITY;
+    const unsigned N = Ytest.size();
     total_pos = 0;
-    for(auto &t : Ytest) {
-        max_val = std::max(max_val, t.val);
-        min_val = std::min(min_val, t.val);
-        int is_positive = t.val > threshold;
-        total_pos += is_positive;
-    }
     num_pos.resize(num_bins);
     num_neg.resize(num_bins);
+    bin_bounds.resize(num_bins + 1);
+    int max_per_bin = ceil((double)N / (double)num_bins);
+
+    std::sort(Ytest.begin(), Ytest.end(), [this](const YTestItem &a, const YTestItem &b) { return a.val < b.val;});
+    int bin_no = 1;
+    int per_bin = 0;
+    bin_bounds[0] = Ytest.begin()->val;
+    bin_bounds[num_bins] = Ytest.rbegin()->val;
+    for(auto &t : Ytest) {
+        int is_positive = t.val > threshold;
+        total_pos += is_positive;
+        per_bin++;
+        if (per_bin > max_per_bin) {
+            bin_bounds[bin_no] = t.val;
+            bin_no++;
+            per_bin = 0;
+        }
+    }
+    if (num_bins <= 10) {
+        for(int i = 0; i<num_bins+1; ++i) {
+            std::cout << " bin: " << i << "; bound: " << bin_bounds[i] << "\n";
+        }
+    }
 }
 
 //--- output model to files
@@ -147,9 +163,18 @@ void Factors::update_predictions(int iter, int burnin)
         t.stds = sqrt(t.var * inorm);
 
         // update AUC
-        int bin_no = (double)(num_bins - 1) * (t.pred - min_val) / (max_val - min_val);
+        int bin_no = std::lower_bound(bin_bounds.begin(), bin_bounds.end(),t.pred) - bin_bounds.begin() - 1;
+        if (num_bins <= 10) {
+            std::cout << "t.pred = " << t.pred << "\n";
+            std::cout << "min = " << bin_bounds[0] << "\n";
+            std::cout << "max = " << bin_bounds[num_bins] << "\n";
+            std::cout << "bin = " << bin_no << "\n";
+        }
+
+        //predictions do not necessary fall in the same range as 
+        //test values
         if (bin_no < 0) bin_no = 0;
-        if (bin_no >= num_bins) bin_no = num_bins;
+        if (bin_no >= num_bins) bin_no = num_bins - 1;
         int is_positive = t.val > threshold;
         if (is_positive) local_pos.local().at(bin_no)++;
         else local_neg.local().at(bin_no)++;
