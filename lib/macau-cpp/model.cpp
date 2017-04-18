@@ -164,7 +164,8 @@ double Factors::calc_auc(double threshold)
         auc += is_positive * num_negative;
     }
 
-    auc /= num_positive * num_negative;
+    auc /= num_positive;
+    auc /= num_negative;
     return auc;
 }
 
