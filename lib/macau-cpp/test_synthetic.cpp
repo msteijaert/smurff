@@ -40,7 +40,7 @@ void test_sparse(int N, int D, int iter_max)
     auto Ytrain = ones_Ysparse(N,D,2,.8);
     auto Ytest = extract(Ytrain,.2);
     master_model.setRelationData(Ytrain);
-    master_model.setRelationDataTest(Ytest);
+    master_model.pred.set(Ytest);
 
     //-- Normal priors
     macau.addPrior<SpikeAndSlabPrior>();
@@ -68,7 +68,7 @@ void test_dense_dense(int N, int D, int iter_max)
     auto Ytrain2 = ones_Ydense(N,D,2);
     auto Ytest2  = extract(Ytrain2, .2);
     master_model.setRelationData(Ytrain2);
-    master_model.setRelationDataTest(Ytest2);
+    master_model.pred.set(Ytest2);
 
     //-- Normal priors
     macau.addPrior<SpikeAndSlabPrior>();

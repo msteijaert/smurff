@@ -25,7 +25,7 @@ struct MatrixConfig {
     int ncols;
 };
 
-struct MacauConfig {
+struct Config {
     
     //-- train and test
     MatrixConfig config_train, config_test;
@@ -118,7 +118,7 @@ class Session : public BaseSession {
       void setSaveFrequency(int f) { save_freq = f; };
 
       void setFromArgs(int argc, char** argv);
-      void setFromConfig(MacauConfig &);
+      void setFromConfig(Config &);
 
       // execution of the sampler
       void init();

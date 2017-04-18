@@ -260,7 +260,7 @@ enum OPT_ENUM {
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
-    MacauConfig &config = *(MacauConfig *)(state->input);
+    Config &config = *(Config *)(state->input);
 
     switch (key) {
         case ROW_PRIOR:     config.row_prior          = optarg; break;
@@ -318,7 +318,7 @@ void Session::setFromArgs(int argc, char** argv) {
         {0}
     };
 
-    MacauConfig config;
+    Config config;
     struct argp argp = { options, parse_opts, 0, doc };
     argp_parse (&argp, argc, argv, 0, 0, &config);
 
@@ -326,7 +326,7 @@ void Session::setFromArgs(int argc, char** argv) {
 }
 
 
-void Session::setFromConfig(MacauConfig &c)
+void Session::setFromConfig(Config &c)
 {
     if (c.fname_train.size() == 0) die("Missing --train=FILE");
     die_unless_file_exists(c.fname_train);
@@ -343,14 +343,17 @@ void Session::setFromConfig(MacauConfig &c)
 
         if (is_binary(Ytrain)) {
             model = &sparseBinaryModel(c.num_latent);
-            model->setThreshold(0.5);
+            if (!c.classify) {
+               c.classify = true;
+               c.threshold = 0.5;
+            }
         } else {
             model = &sparseModel(c.num_latent);
         }
 
         if (c.test_split > .0) {
             auto Ytest = extract(Ytrain, c.test_split);
-            model->setRelationDataTest(Ytest);
+            model->pred.set(Ytest);
         }
         model->setRelationData(Ytrain);
     } else if (c.fname_train.find(".ddm") != std::string::npos) {
@@ -358,7 +361,7 @@ void Session::setFromConfig(MacauConfig &c)
         auto Ytrain = read_ddm<MatrixXd>(c.fname_train.c_str());
         if (c.test_split > .0) {
             auto Ytest = extract(Ytrain, c.test_split);
-            model.setRelationDataTest(Ytest);
+            model.pred.set(Ytest);
         }
         model.setRelationData(Ytrain);
     } else {
@@ -370,7 +373,7 @@ void Session::setFromConfig(MacauConfig &c)
     setVerbose(true);
     setSavePrefix(c.output_prefix);
     setSaveFrequency(c.output_freq);
-    if (c.classify) model->setThreshold(c.threshold);
+    if (c.classify) model->pred.setThreshold(c.threshold);
 
     //-- noise model
     if(c.adaptive_precision.size() && c.fixed_precision.size()) {
@@ -396,11 +399,11 @@ void Session::setFromConfig(MacauConfig &c)
         die_unless_file_exists(c.fname_test);
         if (c.fname_test.find(".sbm") != std::string::npos) {
             auto Ytest = read_sbm(c.fname_test.c_str());
-            model->setRelationDataTest(to_eigen(*Ytest));
+            model->pred.set(to_eigen(*Ytest));
             delete Ytest;
         } else if (c.fname_test.find(".sdm") != std::string::npos) {
             auto Ytest = read_sdm(c.fname_test.c_str());
-            model->setRelationDataTest(*Ytest);
+            model->pred.set(*Ytest);
             delete Ytest;
         }
     }
@@ -413,7 +416,7 @@ void Session::setFromConfig(MacauConfig &c)
 void Session::printStatus(double elapsedi) {
     if(!verbose) return;
 
-    model->update_predictions(iter, burnin);
+    auto &result = model->update_predictions(iter, burnin);
 
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
@@ -437,7 +440,7 @@ void Session::printStatus(double elapsedi) {
     }
 
     printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            phase.c_str(), i, from, model->rmse_avg, model->rmse, model->auc,
+            phase.c_str(), i, from, result.rmse_avg, result.rmse, result.auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
