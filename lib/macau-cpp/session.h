@@ -15,16 +15,39 @@ namespace Macau {
 
 class ILatentPrior;
 
+struct MatrixConfig {
+    bool dense;
+    int* rows;
+    int* cols;
+    double* values;
+    int N;
+    int nrows;
+    int ncols;
+};
+
 struct MacauConfig {
+    
+    //-- train and test
+    MatrixConfig config_train, config_test;
     std::string fname_train;
     std::string fname_test;
+    double test_split         = .0;
+
+    //-- features
+    std::vector<MatrixConfig> config_row_features;
     std::vector<std::string> fname_row_features;
+    std::vector<MatrixConfig> config_col_features;
     std::vector<std::string> fname_col_features;
+
+    // -- priors
     std::string row_prior = "default";
     std::string col_prior = "default";
-    std::string output_prefix;
-    std::string fixed_precision, adaptive_precision;
 
+    //-- output
+    std::string output_prefix;
+
+    //-- general
+    bool verbose              = false;
     int output_freq           = 0; // never
     int burnin                = 200;
     int nsamples              = 800;
@@ -32,16 +55,16 @@ struct MacauConfig {
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
 
+    //-- noise model
+    std::string fixed_precision, adaptive_precision;
     double precision          = 5.0;
     double sn_init            = 1.0;
     double sn_max             = 10.0;
 
-    double test_split         = .0;
-
+    //-- binary classification
     bool classify             = false;
     double threshold;
 
-    bool verbose              = false;
 };
 
 class BaseSession  {
@@ -74,7 +97,6 @@ class BaseSession  {
       std::string name;
 };
 
-// try adding num_latent as template parameter to Session
 class Session : public BaseSession {
   public:
       bool        verbose     = true;
