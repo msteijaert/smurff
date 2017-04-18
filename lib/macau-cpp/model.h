@@ -29,7 +29,6 @@ struct Factors {
 
     int num_fac() const { return factors.size(); }
 
-
     // Ytest related
     struct YTestItem {
         int row, col;
@@ -39,18 +38,12 @@ struct Factors {
     int Ytestrows, Ytestcols;
     void update_predictions(int iter, int burnin);
     double rmse_avg = NAN, rmse = NAN, auc = NAN; 
-    const int num_bins = 10000;
     int total_pos;
-    std::vector<unsigned> num_pos;
-    std::vector<unsigned> num_neg;
-    std::vector<double> bin_bounds;
 
     void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void setRelationDataTest(SparseDoubleMatrix &Y);
     void setRelationDataTest(Eigen::SparseMatrix<double> Y);
     void setThreshold(double t) { threshold = t; classify = true; } 
-
-    std::pair<double,double> getRMSE(int iter, int burnin);
 
     // helper functions for noise
     virtual double sumsq() const = 0;
@@ -83,6 +76,7 @@ struct Factors {
     std::vector<Eigen::MatrixXd> factors;
     // AUC related
     std::vector<unsigned int> permutation;
+    double calc_auc(double threshold);
 };
 
 template<typename YType>
