@@ -84,6 +84,8 @@ void Factors::init_predictions() {
         }
     }
     if (num_bins <= 10) {
+        std::cout << " N: " << N << "\n";
+        std::cout << " max_per_bin: " << max_per_bin << "\n";
         for(int i = 0; i<num_bins+1; ++i) {
             std::cout << " bin: " << i << "; bound: " << bin_bounds[i] << "\n";
         }
