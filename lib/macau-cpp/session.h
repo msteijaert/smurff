@@ -16,6 +16,14 @@ namespace Macau {
 class ILatentPrior;
 
 struct MatrixConfig {
+    MatrixConfig()
+        : dense(true), rows(0), cols(0), values(0), N(0), nrows(0), ncols(0) {}
+    MatrixConfig(int nrows, int ncols, double *values)
+        : dense(true), rows(0), cols(0), values(values), N(nrows*ncols), nrows(nrows), ncols(ncols) {}
+
+    MatrixConfig(int nrows, int ncols, int N, int *rows, int *cols, double *values)
+        : dense(false), rows(rows), cols(cols), values(values), N(N), nrows(nrows), ncols(ncols) {}
+
     bool dense;
     int* rows;
     int* cols;
@@ -120,7 +128,6 @@ class Session : public BaseSession {
       void setSavePrefix(std::string pref) { save_prefix = pref; };
       void setSaveFrequency(int f) { save_freq = f; };
 
-      void setFromArgs(int argc, char** argv);
       void setFromConfig(Config &);
 
       // execution of the sampler
@@ -135,7 +142,12 @@ class Session : public BaseSession {
       void printStatus(double elapsedi);
 };
 
-class MPISession : public Session {
+class CmdSession :  public Session {
+    public:
+        void setFromArgs(int argc, char** argv);
+};
+
+class MPISession : public CmdSession {
   public:
     MPISession() { name = "MPISession"; }
       

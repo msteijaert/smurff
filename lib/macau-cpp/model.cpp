@@ -108,7 +108,8 @@ void Predictions::update(const Model &model, bool burnin)
     if (burnin) {
         double se = 0.0;
 #pragma omp parallel for schedule(guided) reduction(+:se)
-        for (auto &t : Ytest) {
+        for(unsigned k=0; k<Ytest.size(); ++k) {
+            auto &t = Ytest[k];
             t.pred = model.predict(t.row, t.col);
             se += square(t.val - t.pred);
             burnin_iter++;
@@ -117,7 +118,8 @@ void Predictions::update(const Model &model, bool burnin)
     } else {
         double se = 0.0, se_avg = 0.0;
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
-        for (auto &t : Ytest) {
+        for(unsigned k=0; k<Ytest.size(); ++k) {
+            auto &t = Ytest[k];
             const double pred = model.predict(t.row, t.col);
             se += square(t.val - pred);
             double delta = pred - t.pred;

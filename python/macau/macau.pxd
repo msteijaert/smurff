@@ -16,7 +16,7 @@ cdef extern from "session.h" namespace "Macau":
         int ncols
         bool dense
 
-    cdef cppclass MacauConfig:
+    cdef cppclass Config:
         #-- train and test
         MatrixConfig config_train, config_test
         string fname_train
@@ -57,6 +57,6 @@ cdef extern from "session.h" namespace "Macau":
 
     cdef cppclass PythonSession:
         PythonSession()
-        void setFromConfig(MacauConfig)
+        void setFromConfig(Config)
         void step()
 

@@ -80,10 +80,10 @@ def macau(Y,
           save_prefix  = None,
           verbose      = True):
 
-    config = MacauConfig 
+    cdef Config config
 
     Y = prepare_sparse(Y)
-    Ytest = prepare_sparse(Ytest)
+    if (Ytest): Ytest = prepare_sparse(Ytest)
 
     cdef PythonSession session
     session.step()

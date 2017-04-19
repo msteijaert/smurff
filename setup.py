@@ -232,8 +232,7 @@ ldirs = ["/opt/OpenBLAS/lib", "/usr/local/lib", "/usr/lib/openblas-base", "/usr/
 
 libmacau = ('macau-cpp', dict(
     package='macau',
-    sources = filter(lambda a: a.find("tests.cpp") < 0 and a.find("macau_mpi.cpp") < 0,
-                               glob('lib/macau-cpp/*.cpp')),
+    sources = filter(lambda a: a.find("test") < 0 and a.find("cmd") < 0, glob('lib/macau-cpp/*.cpp')),
     include_dirs = inc,
     extra_compile_args = ['-fopenmp', '-O3', '-fstrict-aliasing', '-std=c++11'],
     #extra_link_args = ['-fopenmp'],
@@ -242,8 +241,7 @@ libmacau = ('macau-cpp', dict(
 
 ext_modules=[
     Extension("macau.macau",
-              sources = ["python/macau/macau.pyx",
-                         "python/macau/myblas.cpp"],
+              sources = ["python/macau/macau.pyx"],
               include_dirs = inc,
               libraries = blas_libs,
               library_dirs = ldirs,

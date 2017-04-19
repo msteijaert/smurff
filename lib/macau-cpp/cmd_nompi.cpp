@@ -26,7 +26,7 @@ using namespace std;
 using namespace Macau;
 
 int main(int argc, char** argv) {
-    Session macau;
+    CmdSession macau;
     macau.setFromArgs(argc, argv);
     macau.run();
     return 0;
