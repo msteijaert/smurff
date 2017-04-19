@@ -15,16 +15,47 @@ namespace Macau {
 
 class ILatentPrior;
 
-struct MacauConfig {
+struct MatrixConfig {
+    MatrixConfig()
+        : dense(true), rows(0), cols(0), values(0), N(0), nrows(0), ncols(0) {}
+    MatrixConfig(int nrows, int ncols, double *values)
+        : dense(true), rows(0), cols(0), values(values), N(nrows*ncols), nrows(nrows), ncols(ncols) {}
+
+    MatrixConfig(int nrows, int ncols, int N, int *rows, int *cols, double *values)
+        : dense(false), rows(rows), cols(cols), values(values), N(N), nrows(nrows), ncols(ncols) {}
+
+    bool dense;
+    int* rows;
+    int* cols;
+    double* values;
+    int N;
+    int nrows;
+    int ncols;
+};
+
+struct Config {
+    
+    //-- train and test
+    MatrixConfig config_train, config_test;
     std::string fname_train;
     std::string fname_test;
+    double test_split         = .0;
+
+    //-- features
+    std::vector<MatrixConfig> config_row_features;
     std::vector<std::string> fname_row_features;
+    std::vector<MatrixConfig> config_col_features;
     std::vector<std::string> fname_col_features;
+
+    // -- priors
     std::string row_prior = "default";
     std::string col_prior = "default";
-    std::string output_prefix;
-    std::string fixed_precision, adaptive_precision;
 
+    //-- output
+    std::string output_prefix;
+
+    //-- general
+    bool verbose              = false;
     int output_freq           = 0; // never
     int burnin                = 200;
     int nsamples              = 800;
@@ -32,23 +63,26 @@ struct MacauConfig {
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
 
+    //-- noise model
+    std::string fixed_precision, adaptive_precision;
     double precision          = 5.0;
     double sn_init            = 1.0;
     double sn_max             = 10.0;
 
-    double test_split         = .0;
-
+    //-- binary classification
     bool classify             = false;
     double threshold;
 
-    bool verbose              = false;
 };
 
 class BaseSession  {
    public:
+      BaseSession() : pred(new Predictions) {}
+      //-- data members
       std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
-      std::unique_ptr<Factors>                    model;
+      std::unique_ptr<Model>                      model;
+      std::unique_ptr<Predictions>                pred;
     
       //-- add model
       template<class Model>
@@ -74,7 +108,6 @@ class BaseSession  {
       std::string name;
 };
 
-// try adding num_latent as template parameter to Session
 class Session : public BaseSession {
   public:
       bool        verbose     = true;
@@ -95,8 +128,7 @@ class Session : public BaseSession {
       void setSavePrefix(std::string pref) { save_prefix = pref; };
       void setSaveFrequency(int f) { save_freq = f; };
 
-      void setFromArgs(int argc, char** argv);
-      void setFromConfig(MacauConfig &);
+      void setFromConfig(Config &);
 
       // execution of the sampler
       void init();
@@ -110,7 +142,12 @@ class Session : public BaseSession {
       void printStatus(double elapsedi);
 };
 
-class MPISession : public Session {
+class CmdSession :  public Session {
+    public:
+        void setFromArgs(int argc, char** argv);
+};
+
+class MPISession : public CmdSession {
   public:
     MPISession() { name = "MPISession"; }
       

@@ -23,9 +23,12 @@ LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o
 LIBOBJS += macauoneprior.o spikeandslab.o macauprior.o normalprior.o
 
 vpath %.cpp $(ROOT)
-cmd_nompi test_synthetic tests: $(LIBOBJS)
 
-cmd_mpi: cmd_mpi.cpp $(LIBOBJS)
+test_synthetic tests: $(LIBOBJS)
+
+cmd_nompi: $(LIBOBJS) cmd_session.o
+
+cmd_mpi: cmd_mpi.cpp cmd_session.o $(LIBOBJS)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o cmd_mpi
 
 clean:

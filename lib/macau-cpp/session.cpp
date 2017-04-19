@@ -85,8 +85,11 @@ std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent)
     os << indent << "  Priors: {\n";
     for( auto &p : priors) p->printInitStatus(os, indent + "    ");
     os << indent << "  }\n";
-    os << indent << "  Factors: {\n";
+    os << indent << "  Model: {\n";
     model->printInitStatus(os, indent + "    ");
+    os << indent << "  }\n";
+    os << indent << "  Predictions: {\n";
+    pred->printInitStatus(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Noise: ";
     noise->printInitStatus(os, "");
@@ -109,9 +112,6 @@ void Session::init() {
   if (verbose) {
       printInitStatus(std::cout, "");
       std::cout << "Sampling" << endl;
-  }
-  if (save_freq) {
-      model->saveGlobalParams(save_prefix);
   }
   iter = 0;
 }
@@ -140,8 +140,12 @@ void Session::step() {
 std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     BaseSession::printInitStatus(os, indent);
     os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
-    os << indent << "  Save model every: " << save_freq << "\n";
-    os << indent << "  Output prefix: " << save_prefix << "\n";
+    if (save_freq > 0) {
+        os << indent << "  Save model every: " << save_freq << "\n";
+        os << indent << "  Output prefix: " << save_prefix << "\n";
+    } else {
+        os << indent << "  Don't save model\n";
+    }
     os << indent << "}\n";
     return os;
 }
@@ -252,81 +256,7 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
     }
 }
 
-enum OPT_ENUM {
-    ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_TEST, FNAME_TRAIN,
-    BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL,
-    OUTPUT_PREFIX, OUTPUT_FREQ, THRESHOLD, VERBOSE
-};
-
-static int parse_opts(int key, char *optarg, struct argp_state *state)
-{
-    MacauConfig &config = *(MacauConfig *)(state->input);
-
-    switch (key) {
-        case ROW_PRIOR:     config.row_prior          = optarg; break;
-        case COL_PRIOR:     config.col_prior          = optarg; break;
-        case ROW_FEATURES:  config.fname_row_features.push_back(optarg); break;
-        case COL_FEATURES:  config.fname_col_features.push_back(optarg); break;
-        case FNAME_TRAIN:   config.fname_train        = optarg; break;
-        case LAMBDA_BETA:   config.lambda_beta        = strtod(optarg, NULL); break;
-        case BURNIN:        config.burnin             = strtol(optarg, NULL, 10); break;
-        case TOL:           config.tol                = atof(optarg); break;
-        case FNAME_TEST:    config.fname_test         = optarg; break;
-        case NUM_LATENT:    config.num_latent         = strtol(optarg, NULL, 10); break;
-        case NSAMPLES:      config.nsamples           = strtol(optarg, NULL, 10); break;
-        case OUTPUT_PREFIX: config.output_prefix      = std::string(optarg); break;
-        case OUTPUT_FREQ:   config.output_freq        = strtol(optarg, NULL, 10); break;
-        case PRECISION:     config.fixed_precision    = optarg; break;
-        case ADAPTIVE:      config.adaptive_precision = optarg; break;
-        case THRESHOLD:     config.threshold          = strtod(optarg, 0); config.classify = true; break;
-        case VERBOSE:       config.verbose            = true; break;
-        default:            return ARGP_ERR_UNKNOWN;
-    }
-
-    return 0;
-}
-
-void Session::setFromArgs(int argc, char** argv) {
-    /* Program documentation. */
-    char doc[] = "ExCAPE Matrix Factorization Framework";
-
-    struct argp_option options[] = {
-        {0,0,0,0,"Priors and side Info:",1},
-        {"row-prior",	  ROW_PRIOR     , "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
-        {"col-prior",	  COL_PRIOR	, "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
-        {"row-features",  ROW_FEATURES	, "FILE",  0, "side info for rows"},
-        {"col-features",  COL_FEATURES	, "FILE",  0, "side info for cols"},
-        {0,0,0,0,"Test and train matrices:",2},
-        {"test",	  FNAME_TEST    , "FILE",  0, "test data (for computing RMSE)"},
-        {"test",	  FNAME_TEST    , "NUM",   0, "fraction of train matrix to extract for computing RMSE (e.g. 0.2)"},
-        {"train",	  FNAME_TRAIN   , "FILE",  0, "train data file"},
-        {0,0,0,0,"General parameters:",3},
-        {"burnin",	  BURNIN	, "NUM",   0, "200  number of samples to discard"},
-        {"nsamples",	  NSAMPLES	, "NUM",   0, "800  number of samples to collect"},
-        {"num-latent",	  NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
-        {"output-prefix", OUTPUT_PREFIX	, "DIR",   0, "prefix for result files"},
-        {"output-freq",   OUTPUT_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
-        {"threshold",     THRESHOLD	, "NUM",   0, "threshold for binary classification"},
-        {"verbose",       VERBOSE	, 0,       0, "verbose output"},
-        {0,0,0,0,"Noise model:",4},
-        {"precision",	  PRECISION	, "NUM",   0, "5.0  precision of observations"},
-        {"adaptive",	  ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adavtive precision of observations"},
-        {0,0,0,0,"For the macau prior:",5},
-        {"lambda-beta",	  LAMBDA_BETA	, "NUM",   0, "10.0  initial value of lambda beta"},
-        {"tol",           TOL           , "NUM",   0, "1e-6  tolerance for CG"},
-        {0,0,0,0,"General Options:",0},
-        {0}
-    };
-
-    MacauConfig config;
-    struct argp argp = { options, parse_opts, 0, doc };
-    argp_parse (&argp, argc, argv, 0, 0, &config);
-
-    setFromConfig(config);
-}
-
-
-void Session::setFromConfig(MacauConfig &c)
+void Session::setFromConfig(Config &c)
 {
     if (c.fname_train.size() == 0) die("Missing --train=FILE");
     die_unless_file_exists(c.fname_train);
@@ -343,14 +273,17 @@ void Session::setFromConfig(MacauConfig &c)
 
         if (is_binary(Ytrain)) {
             model = &sparseBinaryModel(c.num_latent);
-            model->setThreshold(0.5);
+            if (!c.classify) {
+               c.classify = true;
+               c.threshold = 0.5;
+            }
         } else {
             model = &sparseModel(c.num_latent);
         }
 
         if (c.test_split > .0) {
             auto Ytest = extract(Ytrain, c.test_split);
-            model->setRelationDataTest(Ytest);
+            pred->set(Ytest);
         }
         model->setRelationData(Ytrain);
     } else if (c.fname_train.find(".ddm") != std::string::npos) {
@@ -358,7 +291,7 @@ void Session::setFromConfig(MacauConfig &c)
         auto Ytrain = read_ddm<MatrixXd>(c.fname_train.c_str());
         if (c.test_split > .0) {
             auto Ytest = extract(Ytrain, c.test_split);
-            model.setRelationDataTest(Ytest);
+            pred->set(Ytest);
         }
         model.setRelationData(Ytrain);
     } else {
@@ -370,7 +303,7 @@ void Session::setFromConfig(MacauConfig &c)
     setVerbose(true);
     setSavePrefix(c.output_prefix);
     setSaveFrequency(c.output_freq);
-    if (c.classify) model->setThreshold(c.threshold);
+    if (c.classify) pred->setThreshold(c.threshold);
 
     //-- noise model
     if(c.adaptive_precision.size() && c.fixed_precision.size()) {
@@ -396,11 +329,11 @@ void Session::setFromConfig(MacauConfig &c)
         die_unless_file_exists(c.fname_test);
         if (c.fname_test.find(".sbm") != std::string::npos) {
             auto Ytest = read_sbm(c.fname_test.c_str());
-            model->setRelationDataTest(to_eigen(*Ytest));
+            pred->set(to_eigen(*Ytest));
             delete Ytest;
         } else if (c.fname_test.find(".sdm") != std::string::npos) {
             auto Ytest = read_sdm(c.fname_test.c_str());
-            model->setRelationDataTest(*Ytest);
+            pred->set(*Ytest);
             delete Ytest;
         }
     }
@@ -413,7 +346,7 @@ void Session::setFromConfig(MacauConfig &c)
 void Session::printStatus(double elapsedi) {
     if(!verbose) return;
 
-    model->update_predictions(iter, burnin);
+    pred->update(*model, iter < burnin);
 
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
@@ -437,7 +370,7 @@ void Session::printStatus(double elapsedi) {
     }
 
     printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            phase.c_str(), i, from, model->rmse_avg, model->rmse, model->auc,
+            phase.c_str(), i, from, pred->rmse_avg, pred->rmse, pred->auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
@@ -445,7 +378,7 @@ void Session::saveModel(int isample) {
     if (!save_freq || isample < 0) return;
     if ((isample % save_freq) != 0) return;
     string fprefix = save_prefix + "-sample-" + std::to_string(isample);
-    model->saveModel(fprefix, isample, burnin);
+    model->save(fprefix);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }
 
