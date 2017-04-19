@@ -499,21 +499,20 @@ TEST_CASE( "utils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
 }
 
 TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
-  const int burnin = 0;
   int rows[1] = {0};
   int cols[1] = {0};
   double vals[1] = {4.5};
   SparseMF model(2);
+  Predictions p;
   model.setRelationData(rows, cols, vals, 1, 1, 1);
-  model.pred.set(rows, cols, vals, 1, 1, 1);
+  p.set(rows, cols, vals, 1, 1, 1);
   model.init();
-  auto &p = model.pred;
   auto &t = p.Ytest.at(0);
 
   // first iteration
   model.U(0) << 1.0, 0.0;
   model.U(1) << 1.0, 0.0;
-  model.update_predictions(0,burnin);
+  p.update(model, false);
   REQUIRE(t.pred     == Approx(4.5 + 1.0));
   REQUIRE(t.var      == Approx(0.0));
   REQUIRE(p.rmse     == Approx(1.0));
@@ -522,7 +521,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   //// second iteration
   model.U(0) << 2.0, 0.0;
   model.U(1) << 1.0, 0.0;
-  model.update_predictions(1,burnin);
+  p.update(model, false);
   REQUIRE(t.pred     == Approx(4.5 + (1.0 + 2.0) / 2));
   REQUIRE(t.var      == Approx(0.5));
   REQUIRE(p.rmse     == 2.0);
@@ -531,7 +530,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   //// third iteration
   model.U(0) << 2.0, 0.0;
   model.U(1) << 3.0, 0.0;
-  model.update_predictions(2,burnin);
+  p.update(model, false);
   REQUIRE(t.pred     == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
   REQUIRE(t.var      == Approx(14.0)); // accumulated variance
   REQUIRE(p.rmse     == 6.0);

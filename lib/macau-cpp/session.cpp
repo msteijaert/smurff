@@ -85,8 +85,11 @@ std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent)
     os << indent << "  Priors: {\n";
     for( auto &p : priors) p->printInitStatus(os, indent + "    ");
     os << indent << "  }\n";
-    os << indent << "  Factors: {\n";
+    os << indent << "  Model: {\n";
     model->printInitStatus(os, indent + "    ");
+    os << indent << "  }\n";
+    os << indent << "  Predictions: {\n";
+    pred->printInitStatus(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Noise: ";
     noise->printInitStatus(os, "");
@@ -109,9 +112,6 @@ void Session::init() {
   if (verbose) {
       printInitStatus(std::cout, "");
       std::cout << "Sampling" << endl;
-  }
-  if (save_freq) {
-      model->saveGlobalParams(save_prefix);
   }
   iter = 0;
 }
@@ -140,8 +140,12 @@ void Session::step() {
 std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     BaseSession::printInitStatus(os, indent);
     os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
-    os << indent << "  Save model every: " << save_freq << "\n";
-    os << indent << "  Output prefix: " << save_prefix << "\n";
+    if (save_freq > 0) {
+        os << indent << "  Save model every: " << save_freq << "\n";
+        os << indent << "  Output prefix: " << save_prefix << "\n";
+    } else {
+        os << indent << "  Don't save model\n";
+    }
     os << indent << "}\n";
     return os;
 }
@@ -353,7 +357,7 @@ void Session::setFromConfig(Config &c)
 
         if (c.test_split > .0) {
             auto Ytest = extract(Ytrain, c.test_split);
-            model->pred.set(Ytest);
+            pred->set(Ytest);
         }
         model->setRelationData(Ytrain);
     } else if (c.fname_train.find(".ddm") != std::string::npos) {
@@ -361,7 +365,7 @@ void Session::setFromConfig(Config &c)
         auto Ytrain = read_ddm<MatrixXd>(c.fname_train.c_str());
         if (c.test_split > .0) {
             auto Ytest = extract(Ytrain, c.test_split);
-            model.pred.set(Ytest);
+            pred->set(Ytest);
         }
         model.setRelationData(Ytrain);
     } else {
@@ -373,7 +377,7 @@ void Session::setFromConfig(Config &c)
     setVerbose(true);
     setSavePrefix(c.output_prefix);
     setSaveFrequency(c.output_freq);
-    if (c.classify) model->pred.setThreshold(c.threshold);
+    if (c.classify) pred->setThreshold(c.threshold);
 
     //-- noise model
     if(c.adaptive_precision.size() && c.fixed_precision.size()) {
@@ -399,11 +403,11 @@ void Session::setFromConfig(Config &c)
         die_unless_file_exists(c.fname_test);
         if (c.fname_test.find(".sbm") != std::string::npos) {
             auto Ytest = read_sbm(c.fname_test.c_str());
-            model->pred.set(to_eigen(*Ytest));
+            pred->set(to_eigen(*Ytest));
             delete Ytest;
         } else if (c.fname_test.find(".sdm") != std::string::npos) {
             auto Ytest = read_sdm(c.fname_test.c_str());
-            model->pred.set(*Ytest);
+            pred->set(*Ytest);
             delete Ytest;
         }
     }
@@ -416,7 +420,7 @@ void Session::setFromConfig(Config &c)
 void Session::printStatus(double elapsedi) {
     if(!verbose) return;
 
-    auto &result = model->update_predictions(iter, burnin);
+    pred->update(*model, iter < burnin);
 
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
@@ -440,7 +444,7 @@ void Session::printStatus(double elapsedi) {
     }
 
     printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            phase.c_str(), i, from, result.rmse_avg, result.rmse, result.auc,
+            phase.c_str(), i, from, pred->rmse_avg, pred->rmse, pred->auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
@@ -448,7 +452,7 @@ void Session::saveModel(int isample) {
     if (!save_freq || isample < 0) return;
     if ((isample % save_freq) != 0) return;
     string fprefix = save_prefix + "-sample-" + std::to_string(isample);
-    model->saveModel(fprefix, isample, burnin);
+    model->save(fprefix);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }
 

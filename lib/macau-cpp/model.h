@@ -9,21 +9,22 @@
 
 namespace Macau {
 
-struct Factors;
+struct Model;
 
-struct Result {
+struct Predictions {
     struct Item {
         int row, col;
         double val, pred, var, stds;
     };
     std::vector<Item> Ytest;
     int nrows, ncols;
-    void update_predictions(const Factors &, int iter, int burnin);
+    void update(const Model &, bool burnin);
     double rmse_avg = NAN, rmse = NAN, auc = NAN; 
     int total_pos;
-    void save(std::string, int iter, int burnin);
-    void init_predictions();
-    int last_iter = -1;
+    void save(std::string fname_prefix);
+    void init();
+    int sample_iter = 0;
+    int burnin_iter = 0;
     bool classify = false;
     double threshold;
     void update_auc();
@@ -36,11 +37,11 @@ struct Result {
     std::ostream &printInitStatus(std::ostream &os, std::string indent);
 };
 
-struct Factors {
+struct Model {
     static int num_latent;
 
     //-- c'tor
-    Factors(int nl, int num_fac = 2) {
+    Model(int nl, int num_fac = 2) {
         assert(num_fac == 2); 
         assert(num_latent == -1 || num_latent == nl);
         num_latent = nl;
@@ -66,12 +67,7 @@ struct Factors {
     virtual void update_pnm(int) = 0;
  
     //-- output to file
-    const Result &update_predictions(int iter, int burnin) {
-        pred.update_predictions(*this, iter, burnin);
-        return pred;
-    }
-    void saveGlobalParams(std::string);
-    void saveModel(std::string, int iter, int burnin);
+    void save(std::string);
     std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
@@ -82,17 +78,15 @@ struct Factors {
     virtual int Ynnz ()    const = 0;
 
     std::string name;
-
-    Result pred;
   private:
     std::vector<Eigen::MatrixXd> factors;
 };
 
 template<typename YType>
-struct MF : public Factors {
+struct MF : public Model {
     //-- c'tor
     MF(int num_latent, int num_fac = 2)
-        : Factors(num_latent, num_fac) { }
+        : Model(num_latent, num_fac) { }
 
     void init_base();
     void init() override;

@@ -25,12 +25,12 @@ class ILatentPrior {
 
       // utility
       BaseSession &sys(int s = 0);
-      Factors &model(int s);
+      Model &model(int s);
       Eigen::MatrixXd &U(int s = 0);
       Eigen::MatrixXd &V(int s = 0);
       INoiseModel &noise(int s = 0);
 
-      int num_latent() { return Factors::num_latent; }
+      int num_latent() { return Model::num_latent; }
       int num_cols();
       int num_sys() { return sessions.size(); }
 

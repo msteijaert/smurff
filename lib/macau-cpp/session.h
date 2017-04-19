@@ -69,9 +69,12 @@ struct Config {
 
 class BaseSession  {
    public:
+      BaseSession() : pred(new Predictions) {}
+      //-- data members
       std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
-      std::unique_ptr<Factors>                    model;
+      std::unique_ptr<Model>                      model;
+      std::unique_ptr<Predictions>                pred;
     
       //-- add model
       template<class Model>
