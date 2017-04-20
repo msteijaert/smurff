@@ -287,8 +287,6 @@ bool Config::validate(bool throw_error)
     validate_matrix_file(fname_train);
     validate_matrix_file(fname_test);
 
-    if (classify && isnan(threshold)) die("Missing threshold for binary classification");
-
     if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
         die("Train and test matrix should have the same number of rows");
 
@@ -379,8 +377,6 @@ void Session::setFromConfig(Config &c)
          SparseMatrixD Ytest(i.nrows, i.ncols);
          sparseFromIJV(Ytest, i.rows, i.cols, i.values, i.N);
          pred->set(Ytest);
-    } else {
-        assert(false);
     }
 
     add_prior(*this, c.col_prior, c.fname_col_features, c.lambda_beta, c.tol);
