@@ -114,6 +114,11 @@ void CmdSession::setFromArgs(int argc, char** argv) {
     struct argp argp = { options, parse_opts, 0, doc };
     argp_parse (&argp, argc, argv, 0, 0, &config);
 
+    //-- check if fname_test is actually a number
+    if ((config.test_split = atof(config.fname_test.c_str())) > .0) {
+        config.fname_test.clear();
+    }
+
     setFromConfig(config);
 }
 } // end namespace Macau

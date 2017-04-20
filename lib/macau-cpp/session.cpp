@@ -257,6 +257,7 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
 bool Config::validate(bool throw_error) 
 {
     auto validate_matrix_file = [](std::string fname) {
+        if (fname.size()  == 0) return;
         die_unless_file_exists(fname);
         std::set<std::string> matrix_file_extensions = { ".sbm", ".sdm", ".ddm" };
         std::string extension = fname.substr(fname.size() - 4);
@@ -301,17 +302,20 @@ void Session::setFromConfig(Config &c)
 {
     c.validate(true);
 
-    if (c.fname_train.size() == 0) die("Missing --train=FILE");
-    die_unless_file_exists(c.fname_train);
-
-    //-- check if fname_test is actually a number
-    if ((c.test_split = atof(c.fname_test.c_str())) > .0) {
-        c.fname_test.clear();
-    }
+    bool train_is_sparse = (c.fname_train.size() && (c.fname_train.find(".sdm") != std::string::npos))
+        || (!c.config_train.dense);
 
     // Load main Y matrix file
-    if (c.fname_train.find(".sdm") != std::string::npos) {
-        auto Ytrain = to_eigen(*read_sdm(c.fname_train.c_str()));
+    if (train_is_sparse) {
+        SparseMatrixD Ytrain;
+        if (c.fname_train.size()) { 
+            Ytrain = to_eigen(*read_sdm(c.fname_train.c_str()));
+        } else {
+            auto &i = c.config_train;
+            Ytrain.resize(i.nrows, i.ncols);
+            sparseFromIJV(Ytrain, i.rows, i.cols, i.values, i.N);
+        }
+
         MF<SparseMatrixD> *model;
 
         if (is_binary(Ytrain)) {
@@ -370,6 +374,13 @@ void Session::setFromConfig(Config &c)
             pred->set(*Ytest);
             delete Ytest;
         }
+    } else if (c.config_test.nrows > 0) {
+         auto &i = c.config_train;
+         SparseMatrixD Ytest(i.nrows, i.ncols);
+         sparseFromIJV(Ytest, i.rows, i.cols, i.values, i.N);
+         pred->set(Ytest);
+    } else {
+        assert(false);
     }
 
     add_prior(*this, c.col_prior, c.fname_col_features, c.lambda_beta, c.tol);
