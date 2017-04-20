@@ -17,15 +17,16 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 .PHONY: all clean 
 
-all: tests test_synthetic cmd_nompi
 
 LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o 
 LIBOBJS += macauoneprior.o spikeandslab.o macauprior.o normalprior.o
 LIBMACAU=libmacau-cpp.a
 
+all: tests test_synthetic cmd_nompi $(LIBMACAU)
+
 vpath %.cpp $(ROOT)
 $(LIBMACAU): $(LIBOBJS)
-	ar -q $(LIBMACAU) $(LIBOBJS)
+	ar -r $(LIBMACAU) $(LIBOBJS)
 
 
 test_synthetic tests: $(LIBMACAU)
