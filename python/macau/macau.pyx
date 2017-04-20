@@ -42,27 +42,23 @@ def remove_nan(Y):
 
 cdef MatrixConfig prepare_sideinfo(in_matrix):
     if type(in_matrix) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
-        return prepare_sparse_sideinfo(in_matrix)
+        return prepare_sparse(in_matrix)
     else:
-        return prepare_dense_sideinfo(in_matrix)
+        return prepare_dense(in_matrix)
  
-cdef MatrixConfig prepare_dense_sideinfo(X):
+cdef MatrixConfig prepare_dense(X):
     cdef np.ndarray[np.double_t] vals = X.data.astype(np.double, copy=False)
     return MatrixConfig(X.shape[0], X.shape[1], & vals[0])
 
-cdef MatrixConfig prepare_sparse_sideinfo(X):
-    X = X.to_coo(copy = False)
+cdef MatrixConfig prepare_sparse(X):
+    if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+        raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
+    X = X.tocoo(copy = False)
+    X = remove_nan(X)
     cdef np.ndarray[int] irows = X.row.astype(np.int32, copy=False)
     cdef np.ndarray[int] icols = X.col.astype(np.int32, copy=False)
     cdef np.ndarray[np.double_t] vals = X.data.astype(np.double, copy=False)
     return MatrixConfig(X.shape[0], X.shape[1], irows.shape[0], & irows[0], & icols[0], & vals[0])
-
-def prepare_sparse(M):
-    if type(M) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
-        raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
-    M = M.tocoo(copy = False)
-    M = remove_nan(M)
-    return M
 
 def macau(Y,
           Ytest        = None,
@@ -82,10 +78,15 @@ def macau(Y,
 
     cdef Config config
 
-    Y = prepare_sparse(Y)
-    if (Ytest): Ytest = prepare_sparse(Ytest)
+    # set config fields
+    config.config_train = prepare_sparse(Y)
+    if (Ytest): config.config_test = prepare_sparse(Ytest)
 
+    # create session
     cdef PythonSession session
+    session.setFromConfig(config)
+
+    # only do one step
     session.step()
 
     #cdef int D = np.int32(num_latent)

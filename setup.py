@@ -7,6 +7,7 @@ from distutils.errors    import DistutilsSetupError
 from distutils.sysconfig import get_python_inc
 from setuptools          import setup
 from setuptools          import Extension
+from datetime            import datetime
 
 import Cython
 from Cython.Distutils import build_ext
@@ -24,10 +25,10 @@ import shutil
 # checking out libfastsparse
 import subprocess
 
-blas_libs = ['blas']
+blas_libs = ['blas', 'lapack']
 macau_libs = ['macau-cpp']
 inc = ['lib/macau-cpp', 'lib/eigen3', 'lib/libfastsparse', np.get_include(), get_python_inc()]
-ldirs = []
+ldirs = ['lib/macau-cpp']
 
 ext_modules=[
     Extension("macau.macau",
@@ -36,8 +37,7 @@ ext_modules=[
               libraries = blas_libs + macau_libs,
               library_dirs = ldirs,
               runtime_library_dirs = ldirs,
-              extra_compile_args = ['-std=c++11', '-fopenmp'],
-              extra_link_args = ['-fopenmp'],
+              extra_compile_args = ['-std=c++11'],
               language = "c++")
 ]
 
@@ -63,9 +63,7 @@ def main():
 
     setup(
         name = 'macau',
-        version = __version__,
-        requires = ['numpy', 'scipy', 'cython', 'pandas'],
-        # libraries = macau_libs,
+        version = __version__ + "-" + datetime.now().strftime("%Y%m%d%H%M"),
         packages = ["macau"],
         package_dir = {'' : 'python'},
         url = "http://github.com/jaak-s/macau",
