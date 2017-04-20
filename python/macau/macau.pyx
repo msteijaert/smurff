@@ -87,6 +87,7 @@ def macau(Y,
     session.setFromConfig(config)
 
     # only do one step
+    session.init()
     session.step()
 
     #cdef int D = np.int32(num_latent)

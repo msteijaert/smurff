@@ -59,4 +59,5 @@ cdef extern from "session.h" namespace "Macau":
         PythonSession()
         void setFromConfig(Config)
         void step()
+        void init()
 
