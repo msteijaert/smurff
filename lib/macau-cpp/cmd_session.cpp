@@ -41,6 +41,17 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
     Config &config = *(Config *)(state->input);
 
+    auto set_noise_model = [&config](std::string name, std::string optarg) {
+        config.noise_model = name;
+        if (name == "adaptive") {
+            char *token, *str = strdup(optarg.c_str());
+            if(str && (token = strsep(&str, ","))) config.sn_init = strtod(token, NULL); 
+            if(str && (token = strsep(&str, ","))) config.sn_max = strtod(token, NULL); 
+        } else if (name == "fixed") {
+            config.precision = strtod(optarg.c_str(), NULL);
+        }
+    };
+
     switch (key) {
         case ROW_PRIOR:     config.row_prior          = optarg; break;
         case COL_PRIOR:     config.col_prior          = optarg; break;
@@ -55,8 +66,10 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case NSAMPLES:      config.nsamples           = strtol(optarg, NULL, 10); break;
         case OUTPUT_PREFIX: config.output_prefix      = std::string(optarg); break;
         case OUTPUT_FREQ:   config.output_freq        = strtol(optarg, NULL, 10); break;
-        case PRECISION:     config.fixed_precision    = optarg; break;
-        case ADAPTIVE:      config.adaptive_precision = optarg; break;
+
+        case PRECISION:     set_noise_model("fixed", optarg); break;
+        case ADAPTIVE:      set_noise_model("adaptive", optarg); break;
+
         case THRESHOLD:     config.threshold          = strtod(optarg, 0); config.classify = true; break;
         case VERBOSE:       config.verbose            = true; break;
         default:            return ARGP_ERR_UNKNOWN;

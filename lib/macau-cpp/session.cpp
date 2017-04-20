@@ -1,4 +1,5 @@
 
+#include <set>
 #include <iostream>
 #include <cassert>
 #include <fstream>
@@ -100,11 +101,6 @@ std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent)
 
 //--- 
 
-void Session::setSamples(int b, int n) {
-  burnin = b;
-  nsamples = n;
-}
-
 void Session::init() {
   threads_init();
   init_bmrng();
@@ -114,6 +110,7 @@ void Session::init() {
       std::cout << "Sampling" << endl;
   }
   iter = 0;
+  is_init = true;
 }
 
 void Session::run() {
@@ -126,6 +123,7 @@ void Session::run() {
 
 
 void Session::step() {
+    assert(is_init);
     if (verbose && iter == burnin) {
         printf(" ====== Burn-in complete, averaging samples ====== \n");
     }
@@ -256,8 +254,53 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
     }
 }
 
+bool Config::validate(bool throw_error) 
+{
+    auto validate_matrix_file = [](std::string fname) {
+        die_unless_file_exists(fname);
+        std::set<std::string> matrix_file_extensions = { ".sbm", ".sdm", ".ddm" };
+        std::string extension = fname.substr(fname.size() - 4);
+        if (matrix_file_extensions.find(extension) == matrix_file_extensions.end()) {
+            die("Unknown extension: " + extension + " of filename: " + fname);
+        }
+    };
+
+    if (!fname_train.size() && !config_train.rows) die("Missing train matrix");
+    if (fname_train.size() && config_train.rows) die("Provided both input train pointer and input train file");
+
+    if (fname_test.size() && config_test.rows) die("Provided both input test pointer and input test file");
+    if (fname_test.size() && test_split)       die("Provided both input test file and split ratio");
+    if (config_test.rows  && test_split)       die("Provided both input test pointer and split ratio");
+
+    if (config_row_features.size() && fname_row_features.size()) die("Provided both row-features file and pointer");
+    if (config_col_features.size() && fname_col_features.size()) die("Provided both col-features file and pointer");
+
+
+    std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
+    if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
+    if (prior_names.find(row_prior) == prior_names.end()) die("Unknown row_prior " + row_prior);
+
+    std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
+    if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
+
+    validate_matrix_file(fname_train);
+    validate_matrix_file(fname_test);
+
+    if (classify && isnan(threshold)) die("Missing threshold for binary classification");
+
+    if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
+        die("Train and test matrix should have the same number of rows");
+
+    if (config_test.cols > 0 && config_train.cols > 0 && config_test.cols != config_train.cols)
+        die("Train and test matrix should have the same number of cols");
+
+    return true;
+ }
+
 void Session::setFromConfig(Config &c)
 {
+    c.validate(true);
+
     if (c.fname_train.size() == 0) die("Missing --train=FILE");
     die_unless_file_exists(c.fname_train);
 
@@ -299,30 +342,21 @@ void Session::setFromConfig(Config &c)
     }
 
     //-- simple options
-    setSamples(c.burnin, c.nsamples);
-    setVerbose(true);
-    setSavePrefix(c.output_prefix);
-    setSaveFrequency(c.output_freq);
+    burnin = c.burnin;
+    nsamples = c.nsamples;
+    verbose = c.verbose;
+    save_prefix = c.output_prefix;
+    save_freq = c.output_freq;
     if (c.classify) pred->setThreshold(c.threshold);
 
     //-- noise model
-    if(c.adaptive_precision.size() && c.fixed_precision.size()) {
-        throw std::runtime_error("Cannot have both --adaptive and --precision");
-    }
-
-    if (c.adaptive_precision.size()) {
-        char * optarg = strdup(c.adaptive_precision.c_str());
-        char *token;
-        if(optarg && (token = strsep(&optarg, ","))) c.sn_init = strtod(token, NULL); 
-        if(optarg && (token = strsep(&optarg, ","))) c.sn_max = strtod(token, NULL); 
+    if (c.noise_model == "adaptive") {
         setAdaptivePrecision(c.sn_init, c.sn_max);
-    } else if (c.fixed_precision.size()) {
-        c.precision = strtod(c.fixed_precision.c_str(), NULL);
+    } else if (c.noise_model == "fixed") {
         setPrecision(c.precision);
     } else {
-        setPrecision(c.precision);
+        die("Unknown noise model; " + c.noise_model);
     }
-
 
     // test data
     if (c.fname_test.size()) {

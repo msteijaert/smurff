@@ -64,7 +64,7 @@ struct Config {
     double tol                = 1e-6;
 
     //-- noise model
-    std::string fixed_precision, adaptive_precision;
+    std::string noise_model   = "fixed";
     double precision          = 5.0;
     double sn_init            = 1.0;
     double sn_max             = 10.0;
@@ -73,6 +73,7 @@ struct Config {
     bool classify             = false;
     double threshold;
 
+    bool validate(bool);
 };
 
 class BaseSession  {
@@ -106,6 +107,9 @@ class BaseSession  {
       virtual std::ostream &printInitStatus(std::ostream &, std::string indent);
 
       std::string name;
+
+   protected:
+      bool is_init = false;
 };
 
 class Session : public BaseSession {
@@ -123,11 +127,6 @@ class Session : public BaseSession {
       Session() { name = "MacauSession"; }
 
       //-- set params
-      void setSamples(int burnin, int nsamples);
-      void setVerbose(bool v) { verbose = v; };
-      void setSavePrefix(std::string pref) { save_prefix = pref; };
-      void setSaveFrequency(int f) { save_freq = f; };
-
       void setFromConfig(Config &);
 
       // execution of the sampler
