@@ -21,18 +21,22 @@ all: tests test_synthetic cmd_nompi
 
 LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o 
 LIBOBJS += macauoneprior.o spikeandslab.o macauprior.o normalprior.o
+LIBMACAU=libmacau-cpp.a
 
 vpath %.cpp $(ROOT)
+$(LIBMACAU): $(LIBOBJS)
+	ar -q $(LIBMACAU) $(LIBOBJS)
 
-test_synthetic tests: $(LIBOBJS)
 
-cmd_nompi: $(LIBOBJS) cmd_session.o
+test_synthetic tests: $(LIBMACAU)
 
-cmd_mpi: cmd_mpi.cpp cmd_session.o $(LIBOBJS)
+cmd_nompi: $(LIBMACAU) cmd_session.o
+
+cmd_mpi: cmd_mpi.cpp cmd_session.o $(LIBMACAU)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o cmd_mpi
 
 clean:
-	rm -f *.o *.d
+	rm -f *.o *.d *.a
 	rm -f cmd_mpi tests libmacau.a cmd_nompi
  
 # DFILES 
