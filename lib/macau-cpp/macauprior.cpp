@@ -33,7 +33,8 @@ void MacauPrior<FType>::init()
 {
     NormalPrior::init();
 
-    assert((F->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
+    assert((F->rows() == num_cols()) && 
+            "Number of rows in train must be equal to number of rows in features");
 
     if (use_FtF) {
         FtF.resize(F->cols(), F->cols());
@@ -110,8 +111,7 @@ void MacauPrior<FType>::sample_beta() {
 // specialization for dense matrices --> always direct method */
 template<>
 void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg() {
-    std::cout << "Whoops...\n";
-    sample_beta_direct();
+    not_implemented("Dense Matrix requires direct method");
 }
 
 // direct method

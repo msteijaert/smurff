@@ -163,16 +163,16 @@ void PythonSession::intHandler(int) {
 //-- cmdline handling stuff
 //
 template<class SideInfo>
-inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol)
+inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol, bool use_FtF)
 {
     if(prior_name == "macau" || prior_name == "default"){
         auto &prior = m.addPrior<MacauPrior<SideInfo>>();
-        prior.addSideInfo(features, false);
+        prior.addSideInfo(features, use_FtF);
         prior.setLambdaBeta(lambda_beta);
         prior.setTol(tol);
     } else if(prior_name == "macauone") {
         auto &prior = m.addPrior<MacauOnePrior<SideInfo>>();
-        prior.addSideInfo(features, false);
+        prior.addSideInfo(features, use_FtF);
         prior.setLambdaBeta(lambda_beta);
     } else {
         throw std::runtime_error("Unknown prior with side info: " + prior_name);
@@ -226,17 +226,19 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
             auto &fname = fname_features.at(0);
             die_unless_file_exists(fname);
             if (fname.find(".sdm") != std::string::npos) {
-                auto row_features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname.c_str()));
-                addMacauPrior(macau, prior_name, row_features, lambda_beta, tol);
+                auto features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname.c_str()));
+                bool comp_FtF = (features->cols() * features->rows()) < 25000;
+                addMacauPrior(macau, prior_name, features, lambda_beta, tol, comp_FtF);
             } else if (fname.find(".sbm") != std::string::npos) {
                 auto features = load_bcsr(fname.c_str());
-                addMacauPrior(macau, prior_name, features, lambda_beta, tol);
+                bool comp_FtF = (features->cols() * features->rows()) < 25000;
+                addMacauPrior(macau, prior_name, features, lambda_beta, tol, comp_FtF);
             } else if (fname.find(".ddm") != std::string::npos) {
                 auto feature_matrix = read_ddm<MatrixXd>(fname.c_str());
                 auto features = std::unique_ptr<MatrixXd>(new MatrixXd(feature_matrix));
-                addMacauPrior(macau, prior_name, features, lambda_beta, tol);
+                addMacauPrior(macau, prior_name, features, lambda_beta, tol, true);
             } else {
-                throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname));
+                throw std::runtime_error("Train features file: expecing .sdm or .sbm, got " + std::string(fname));
             }
         } else {
             addMaster(macau, prior_name, fname_features);
