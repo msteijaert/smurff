@@ -13,8 +13,8 @@ namespace Macau {
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(Factors &p) : model(p) {}
-    virtual INoiseModel *copyTo(Factors &p) = 0;
+    INoiseModel(Model &p) : model(p) {}
+    virtual INoiseModel *copyTo(Model &p) = 0;
 
     virtual void init()  = 0;
     virtual void update()  = 0;
@@ -25,7 +25,7 @@ class INoiseModel {
     virtual double getAlpha() = 0;
 
   protected:
-    Factors &model;
+    Model &model;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -33,10 +33,10 @@ class FixedGaussianNoise : public INoiseModel {
   public:
     double alpha;
   
-    FixedGaussianNoise(Factors &p, double a = 1.) :
+    FixedGaussianNoise(Model &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
 
-    INoiseModel *copyTo(Factors &p) override;
+    INoiseModel *copyTo(Model &p) override;
 
     void init() override { }
     void update() override {}
@@ -57,10 +57,10 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double sn_max;
     double sn_init;
 
-    AdaptiveGaussianNoise(Factors &p, double sinit = 1., double smax = 10.)
+    AdaptiveGaussianNoise(Model &p, double sinit = 1., double smax = 10.)
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
-    INoiseModel *copyTo(Factors &) override;
+    INoiseModel *copyTo(Model &) override;
 
     void init() override;
     void update() override;

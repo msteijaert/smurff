@@ -11,7 +11,7 @@ using namespace Eigen;
 
 namespace Macau {
 
-INoiseModel *FixedGaussianNoise::copyTo(Factors &p)
+INoiseModel *FixedGaussianNoise::copyTo(Model &p)
 {
     return new FixedGaussianNoise(p, alpha);
 }
@@ -22,7 +22,7 @@ std::ostream &FixedGaussianNoise::printInitStatus(std::ostream &os, std::string 
     return os;
 }
 
-INoiseModel *AdaptiveGaussianNoise::copyTo(Factors &p) 
+INoiseModel *AdaptiveGaussianNoise::copyTo(Model &p) 
 {
     return new AdaptiveGaussianNoise(p, sn_init, sn_max);
 }

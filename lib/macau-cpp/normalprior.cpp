@@ -4,7 +4,7 @@
 #include <iomanip>
 
 #include "mvnormal.h"
-#include "macau.h"
+#include "session.h"
 #include "chol.h"
 #include "linop.h"
 #include "noisemodels.h"
@@ -34,7 +34,7 @@ BaseSession &ILatentPrior::sys(int s)
     return *sessions.at(s); 
 }
 
-Factors &ILatentPrior::model(int s)
+Model &ILatentPrior::model(int s)
 {
     return *sys(s).model; 
 }

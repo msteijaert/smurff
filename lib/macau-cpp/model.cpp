@@ -29,181 +29,158 @@ using namespace Eigen;
 
 namespace Macau {
 
-int Factors::num_latent = -1;
+int Model::num_latent = -1;
 
-void Factors::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    Ytest.resize(nrows, ncols);
-    sparseFromIJV(Ytest, rows, cols, values, N);
+void Result::set(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+    for(int i=0; i<N; ++i) {
+        predictions.push_back({rows[i], cols[i], values[i]});
+    }
+    this->nrows = nrows;
+    this->ncols = ncols;
+    init();
 }
  
-void Factors::setRelationDataTest(SparseDoubleMatrix &Y) {
-    Ytest = to_eigen(Y);
+void Result::set(SparseDoubleMatrix &Y) {
+    for(unsigned i=0; i<Y.nnz; ++i) {
+        predictions.push_back({Y.rows[i], Y.cols[i], Y.vals[i]});
+    }
+    nrows = Y.nrow;
+    ncols = Y.ncol;
+    init();
 }
- 
-void Factors::setRelationDataTest(SparseMatrixD Y) {
-    Ytest = Y;
+
+void Result::set(SparseMatrixD Y) {
+    for (int k = 0; k < Y.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
+            predictions.push_back({(int)it.row(), (int)it.col(), it.value()});
+        }
+    }
+    nrows = Y.rows();
+    ncols = Y.cols();
+    init();
+}
+
+void Result::init() {
+    total_pos = 0;
+    if (classify) {
+        for(auto &t : predictions) {
+            int is_positive = t.val > threshold;
+            total_pos += is_positive;
+        }
+    }
 }
 
 //--- output model to files
 
-void Factors::savePredictions(std::string save_prefix, int iter, int burnin) {
-    VectorXd yhat_sd_raw  = getStds(iter, burnin);
-    MatrixXd testdata_raw = to_coo(Ytest);
-
+void Result::save(std::string save_prefix) {
     std::string fname_pred = save_prefix + "-predictions.csv";
     std::ofstream predfile;
     predfile.open(fname_pred);
     predfile << "row,col,y,y_pred,y_pred_std\n";
-    for (int i = 0; i < predictions.size(); i++) {
-        predfile << to_string( (int)testdata_raw(i,0) );
-        predfile << "," << to_string( (int)testdata_raw(i,1) );
-        predfile << "," << to_string( testdata_raw(i,2) );
-        predfile << "," << to_string( predictions(i) );
-        predfile << "," << to_string( yhat_sd_raw(i) );
-        predfile << "\n";
+    for ( auto &t : predictions) {
+        predfile
+                << to_string( t.row  )
+         << "," << to_string( t.col  )
+         << "," << to_string( t.val  )
+         << "," << to_string( t.pred )
+         << "," << to_string( t.stds )
+         << "\n";
     }
     predfile.close();
     printf("Saved predictions into '%s'.\n", fname_pred.c_str());
 
 }
 
-void Factors::saveGlobalParams(std::string save_prefix) {
-  VectorXd means(1);
-  means << mean_rating;
-  writeToCSVfile(save_prefix + "-meanvalue.csv", means);
-}
-
-void Factors::saveModel(std::string save_prefix, int iter, int burnin) {
+void Model::save(std::string save_prefix) {
     int i = 0;
     for(auto &U : factors) {
         writeToCSVfile(save_prefix + "-U" + std::to_string(i++) + "-latents.csv", U);
     }
-    savePredictions(save_prefix, iter, burnin);
 }
 
 ///--- update RMSE and AUC
 
-void Factors::update_predictions(int iter, int burnin)
+void Result::update(const Model &model, bool burnin)
 {
-    if (Ytest.nonZeros() == 0) return;
-    assert(last_iter <= iter);
+    if (predictions.size() == 0) return;
+    const unsigned N = predictions.size();
 
-    if (last_iter < 0) {
-        const int N = Ytest.nonZeros();
-        predictions     = VectorXd::Zero(N);
-        predictions_var = VectorXd::Zero(N);
-        stds            = VectorXd::Zero(N);
-    }
-
-    if (last_iter == iter) return;
-
-    assert(last_iter + 1 == iter);
-
-    double se = 0.0, se_avg = 0.0;
-    const double inorm = 1.0 / (iter - burnin - 1);
-#pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
-    for (int k = 0; k < Ytest.outerSize(); ++k) {
-        int idx = Ytest.outerIndexPtr()[k];
-        for (Eigen::SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-            const double pred = col(0,it.col()).dot(col(1,it.row())) + mean_rating;
-            se += square(it.value() - pred);
-
-            // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
-            double pred_avg;
-            if (iter <= burnin) {
-                pred_avg = pred;
-            } else {
-                double delta = pred - predictions[idx];
-                pred_avg = (predictions[idx] + delta / (iter - burnin + 1));
-                predictions_var[idx] += delta * (pred - pred_avg);
-            }
-            se_avg += square(it.value() - pred_avg);
-            predictions[idx] = pred_avg;
-            stds[idx] = sqrt(predictions_var[idx] * inorm);
-            idx++;
+    if (burnin) {
+        double se = 0.0;
+#pragma omp parallel for schedule(guided) reduction(+:se)
+        for(unsigned k=0; k<predictions.size(); ++k) {
+            auto &t = predictions[k];
+            t.pred = model.predict(t.row, t.col);
+            se += square(t.val - t.pred);
+            burnin_iter++;
         }
+        rmse = sqrt( se / N );
+    } else {
+        double se = 0.0, se_avg = 0.0;
+#pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
+        for(unsigned k=0; k<predictions.size(); ++k) {
+            auto &t = predictions[k];
+            const double pred = model.predict(t.row, t.col);
+            se += square(t.val - pred);
+            double delta = pred - t.pred;
+            double pred_avg = (t.pred + delta / (sample_iter + 1));
+            t.var += delta * (pred - pred_avg);
+            const double inorm = 1.0 / sample_iter;
+            t.stds = sqrt(t.var * inorm);
+            t.pred = pred_avg;
+            se_avg += square(t.val - pred_avg);
+            sample_iter++;
+        }
+        rmse = sqrt( se / N );
+        rmse_avg = sqrt( se_avg / N );
     }
 
-    const unsigned N = Ytest.nonZeros();
-    rmse = sqrt( se / N );
-    rmse_avg = sqrt( se_avg / N );
-    last_iter = iter;
+    update_auc();
 }
 
-std::pair<double,double> Factors::getRMSE(int iter, int burnin)
+
+void Result::update_auc()
 {
-    update_predictions(iter, burnin);
-    return std::make_pair(rmse, rmse_avg);
-}
+    if (!classify) return;
+    std::sort(predictions.begin(), predictions.end(),
+            [this](const Item &a, const Item &b) { return a.pred < b.pred;});
 
-const Eigen::VectorXd &Factors::getPredictions(int iter, int burnin)
-{
-    update_predictions(iter, burnin);
-    return predictions;
-}
-
-const Eigen::VectorXd &Factors::getPredictionsVar(int iter, int burnin)
-{
-    update_predictions(iter, burnin);
-    return predictions_var;
-}
-
-const Eigen::VectorXd &Factors::getStds(int iter, int burnin)
-{
-    update_predictions(iter, burnin);
-    return stds;
-}
-
-double Factors::auc(double threshold)
-{
-    if (Ytest.nonZeros() == 0) return NAN;
-    if (isnan(threshold)) return NAN;
-
-    double *test_vector = Ytest.valuePtr();
-
-    Eigen::VectorXd stack_x(predictions.size());
-    Eigen::VectorXd stack_y(predictions.size());
-
-    std::vector<unsigned int> permutation( predictions.size() );
-    for(unsigned int i = 0; i < predictions.size(); i++) {
-        permutation[i] = i;
-    }
-
-    std::sort(permutation.begin(), permutation.end(), [this](unsigned int a, unsigned int b) { return predictions[a] < predictions[b];});
-
-    //Build stack_x and stack_y
-    stack_x[0] = test_vector[permutation[0]];
-    stack_y[0] = 1-stack_x[0];
     int num_positive = 0;
     int num_negative = 0;
-    for(int i=1; i < predictions.size(); i++) {
-        int is_positive = test_vector[permutation[i]] > threshold;
+    auc = .0;
+    for(auto &t : predictions) {
+        int is_positive = t.val > threshold;
         int is_negative = !is_positive; 
-        stack_x[i] = stack_x[i-1] + is_positive;
-        stack_y[i] = stack_y[i-1] + is_negative; 
         num_positive += is_positive;
         num_negative += is_negative;
+        auc += is_positive * num_negative;
     }
 
-    double auc = .0;
-    for(int i=0; i < predictions.size() - 1; i++) {
-        auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / num_positive / num_negative;
-    }
-
-    return auc;
+    auc /= num_positive;
+    auc /= num_negative;
 }
 
-std::ostream &Factors::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &Model::printInitStatus(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
     double train_fill_rate = 100. * Ynnz() / Yrows() / Ycols();
     os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "] (" << train_fill_rate << "%)\n";
-    if (Ytest.nonZeros()) {
-        double test_fill_rate = 100. * Ytest.nonZeros() / Ytest.rows() / Ytest.cols();
-        os << indent << "Test data: " << Ytest.nonZeros() << " [" << Ytest.rows() << " x " << Ytest.cols() << "] (" << test_fill_rate << "%)\n";
+    return os;
+}
+
+std::ostream &Result::printInitStatus(std::ostream &os, std::string indent)
+{
+    if (predictions.size()) {
+        double test_fill_rate = 100. * predictions.size() / nrows / ncols;
+        os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
     } else {
         os << indent << "Test data: -\n";
+    }
+    if (classify) {
+        double pos = 100. * (double)total_pos / (double)predictions.size();
+        os << indent << "Binary classification threshold: " << threshold << "\n";
+        os << indent << "  " << pos << "% positives in test data\n";
     }
     return os;
 }
@@ -212,9 +189,10 @@ template<typename YType>
 void MF<YType>::init_base()
 {
     assert(Yrows() > 0 && Ycols() > 0);
-    if (Ytest.nonZeros() > 0) {
-        assert(Ytest.rows() == Yrows() && Ytest.cols() == Ycols() && "Size of train must be equal to size of test");
-    }
+
+//    if (pred.ncols > 0) {
+//        assert(pred.nrows == Yrows() && pred.ncols == Ycols() && "Size of train must be equal to size of test");
+//    }
 
     mean_rating = Y.sum() / Y.nonZeros();
 
@@ -351,16 +329,8 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     MatrixXd &Vf = V(f);
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
-    double start = tick();
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
-    // extra parallization for samples with >1% of nonzeros
-    //std::cout << "local_nnz : " << local_nnz << std::endl;
-    //std::cout << "total_nnz / 1000: " << total_nnz/1000. << std::endl;
     if (in_parallel) {
-#if 0
-#pragma omp critical
-        printf("%d-%d with %d nnz started on thread %d\n", f, n, local_nnz, thread_num());
-#endif
         const int task_size = ceil(local_nnz / 100.0);
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
@@ -369,10 +339,6 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
         for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(Y,Vf,rrs,MMs)
             {
-#if 0
-#pragma omp critical
-                printf("%d-%d with %d nnz running a task on thread %d\n", f, n, local_nnz, thread_num());
-#endif
                 auto &my_rr = rrs.local();
                 auto &my_MM = MMs.local();
 
@@ -386,14 +352,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
                 }
             }
         }
-#if 0
-        printf("%d-%d with %d nnz is waiting\n", f, n, local_nnz);
-#endif
 #pragma omp taskwait
-#if 0 
-#pragma omp critical
-        printf("%d-%d with %d nnz finished waiting\n", f, n, local_nnz);
-#endif
         MM += MMs.combine();
         rr += rrs.combine();
     } else {
@@ -404,14 +363,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
         }
     }
 
-    double stop = tick();
-
     MM.triangularView<Upper>() = MM.transpose();
-
-#if 0
-#pragma omp critical
-    pnm_perf.push_back({local_nnz, total_nnz, in_parallel, start, stop});
-#endif
 }
 
 void SparseMF::update_pnm(int f) {

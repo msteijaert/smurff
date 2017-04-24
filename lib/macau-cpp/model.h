@@ -9,38 +9,62 @@
 
 namespace Macau {
 
-struct Factors {
+struct Model;
+
+struct Result {
+    //-- test set
+    struct Item {
+        int row, col;
+        double val, pred, var, stds;
+    };
+    std::vector<Item> predictions;
+    int nrows, ncols;
+    void set(int* rows, int* cols, double* values, int N, int nrows, int ncols);
+    void set(SparseDoubleMatrix &Y);
+    void set(Eigen::SparseMatrix<double> Y);
+
+
+    //-- prediction metrics
+    void update(const Model &, bool burnin);
+    double rmse_avg = NAN;
+    double rmse = NAN;
+    double auc = NAN; 
+    int sample_iter = 0;
+    int burnin_iter = 0;
+
+    // general
+    void save(std::string fname_prefix);
+    void init();
+    std::ostream &printInitStatus(std::ostream &os, std::string indent);
+
+    //-- for binary classification
+    int total_pos;
+    bool classify = false;
+    double threshold;
+    void update_auc();
+    void setThreshold(double t) { threshold = t; classify = true; } 
+};
+
+struct Model {
     static int num_latent;
 
     //-- c'tor
-    Factors(int nl, int num_fac = 2)
-    {
+    Model(int nl, int num_fac = 2) {
         assert(num_fac == 2); 
         assert(num_latent == -1 || num_latent == nl);
         num_latent = nl;
         factors.resize(num_fac);
     }
 
-
     const Eigen::MatrixXd &U(int f) const { return factors.at(f); }
     Eigen::MatrixXd &U(int f) { return factors.at(f); }
     Eigen::MatrixXd &V(int f) { return factors.at((f+1)%2); }
     Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return U(f).col(i); }
+    double predict(int r, int c) const  {
+        return col(0,c).dot(col(1,r)) + mean_rating;
+    }
 
     int num_fac() const { return factors.size(); }
-
-    Eigen::SparseMatrix<double> Ytest;
-
-    void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols);
-    void setRelationDataTest(SparseDoubleMatrix &Y);
-    void setRelationDataTest(Eigen::SparseMatrix<double> Y);
-
-    std::pair<double,double> getRMSE(int iter, int burnin);
-    const Eigen::VectorXd   &getPredictions(int iter, int burnin);
-    const Eigen::VectorXd   &getPredictionsVar(int iter, int burnin);
-    const Eigen::VectorXd   &getStds(int iter, int burnin);
-
-    double auc(double threshold = .5);
 
     // helper functions for noise
     virtual double sumsq() const = 0;
@@ -51,9 +75,7 @@ struct Factors {
     virtual void update_pnm(int) = 0;
  
     //-- output to file
-    void saveGlobalParams(std::string);
-    void savePredictions(std::string, int iter, int burnin);
-    void saveModel(std::string, int iter, int burnin);
+    void save(std::string);
     std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
@@ -65,19 +87,14 @@ struct Factors {
 
     std::string name;
   private:
-    void init_predictions();
-    void update_predictions(int iter, int burnin);
-    double rmse_avg = NAN, rmse = NAN; 
-    int last_iter = -1;
-    Eigen::VectorXd predictions, predictions_var, stds;
     std::vector<Eigen::MatrixXd> factors;
 };
 
 template<typename YType>
-struct MF : public Factors {
+struct MF : public Model {
     //-- c'tor
     MF(int num_latent, int num_fac = 2)
-        : Factors(num_latent, num_fac) { }
+        : Model(num_latent, num_fac) { }
 
     void init_base();
     void init() override;

@@ -14,7 +14,7 @@
 
 #include <unsupported/Eigen/SparseExtra>
 
-#include "macau.h"
+#include "session.h"
 #include "gen_random.h"
 
 using namespace Eigen;
@@ -30,17 +30,18 @@ void test_sparse(int N, int D, int iter_max)
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
     Session macau;
     auto &master_model = macau.sparseModel(num_latent);
-    macau.setSamples(10, iter_max);
+    macau.config.burnin = 10;
+    macau.config.nsamples = iter_max;
+    macau.config.verbose = true;
 
     // fixed gaussian noise
     macau.setPrecision(1.0);
-    macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);
     auto Ytrain = ones_Ysparse(N,D,2,.8);
-    auto Ytest = extract(Ytrain,.2);
+    auto predictions = extract(Ytrain,.2);
     master_model.setRelationData(Ytrain);
-    master_model.setRelationDataTest(Ytest);
+    macau.pred.set(predictions);
 
     //-- Normal priors
     macau.addPrior<SpikeAndSlabPrior>();
@@ -58,17 +59,18 @@ void test_dense_dense(int N, int D, int iter_max)
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
     Session macau;
     auto &master_model = macau.denseDenseModel(num_latent);
-    macau.setSamples(10, iter_max);
+    macau.config.burnin = 10;
+    macau.config.nsamples = iter_max;
+    macau.config.verbose = true;
 
     // fixed gaussian noise
     macau.setPrecision(1.0);
-    macau.setVerbose(true);
 
     // = random_Ydense(N,D,3);
     auto Ytrain2 = ones_Ydense(N,D,2);
-    auto Ytest2  = extract(Ytrain2, .2);
+    auto predictions2  = extract(Ytrain2, .2);
     master_model.setRelationData(Ytrain2);
-    master_model.setRelationDataTest(Ytest2);
+    macau.pred.set(predictions2);
 
     //-- Normal priors
     macau.addPrior<SpikeAndSlabPrior>();

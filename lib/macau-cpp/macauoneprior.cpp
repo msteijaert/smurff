@@ -6,7 +6,7 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "utils.h"
-#include "macau.h"
+#include "session.h"
 #include "macauoneprior.h"
 
 using namespace std; 
@@ -205,5 +205,6 @@ void MacauOnePrior<FType>::savePriorInfo(std::string prefix) {
 
 template class MacauOnePrior<SparseFeat>;
 template class MacauOnePrior<SparseDoubleFeat>;
+template class MacauOnePrior<Eigen::MatrixXd>;
 
 } // end namespace Macau

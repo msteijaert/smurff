@@ -1,81 +1,79 @@
 from libcpp cimport bool
 from libcpp.string cimport string
+from libcpp.vector cimport vector
 
-cdef extern from "<memory>" namespace "std" nogil:
-    ctypedef void* nullptr_t;
+cdef extern from "model.h" namespace "Macau":
+    cdef cppclass Result:
+        cppclass Item:
+            int row, col
+            double val, pred, var, stds
 
-    cdef cppclass unique_ptr[T]:
-        unique_ptr()
-        unique_ptr(T*)
+        vector[Item] predictions
+        int nrows, ncols
 
-cdef extern from "Eigen/Dense" namespace "Eigen":
-    cdef cppclass MatrixXd:
-        MatrixXd()
-        MatrixXd(int nrow, int ncol)
-        int rows()
-        int cols()
-        double* data()
-    cdef cppclass VectorXd:
-        VectorXd()
-        VectorXd(int n)
-        int size()
-        double* data()
-    T Map[T](double* x, int nrows, int ncols)
+        double rmse_avg
+        double rmse
+        double auc
 
-cdef extern from "hello.h":
-    void hello(double* x, double* y, int n, int k)
-    void hello2(double* x, double* y, int n, int k)
-    MatrixXd getx()
-    void eigenQR(double* X, int nrow, int ncol)
-    void At_mul_A_eig(MatrixXd & A, MatrixXd & C)
+cdef extern from "session.h" namespace "Macau":
+    cdef cppclass MatrixConfig:
+        MatrixConfig()
+        MatrixConfig(int nrows, int ncols, double *values)
+        MatrixConfig(int nrows, int ncols, int N, int *rows, int *cols, double *values)
+                
+        int* rows
+        int* cols
+        int N
+        double* values
+        int nrows
+        int ncols
+        bool dense
 
-cdef extern from "linop.h":
-    cdef cppclass SparseFeat:
-        SparseFeat()
-        SparseFeat(int nrow, int ncol, long nnz, int* rows, int* cols)
-    cdef cppclass SparseDoubleFeat:
-        SparseDoubleFeat()
-        SparseDoubleFeat(int nrow, int ncol, long nnz, int* rows, int* cols, double* vals)
-    void At_mul_A_blas(MatrixXd & A, double* AtA)
-    int solve_blockcg(MatrixXd & out, SparseFeat & K, double reg, MatrixXd & B, double tol)
+    cdef cppclass Config:
+        #-- train and test
+        MatrixConfig config_train, config_test
+        string fname_train
+        string fname_test
+        double test_split         
 
-cdef extern from "latentprior.h":
-    cdef cppclass ILatentPrior:
-        pass
-    cdef cppclass BPMFPrior(ILatentPrior):
-        MatrixXd Lambda
-        VectorXd mu
-        BPMFPrior()
-        BPMFPrior(int num_latent)
-    cdef cppclass MacauPrior[FType](ILatentPrior):
-        MacauPrior()
-        MacauPrior(int nlatent, unique_ptr[FType] & Fmat, bool comp_FtF)
-        void setLambdaBeta(double lb)
-        void setTol(double t)
+        #-- features
+        vector[MatrixConfig] config_row_features
+        vector[string] fname_row_features
+        vector[MatrixConfig] config_col_features
+        vector[string] fname_col_features
 
-cdef extern from "macauoneprior.h":
-    cdef cppclass MacauOnePrior[FType](ILatentPrior):
-        MacauOnePrior()
-        MacauOnePrior(int nlatent, unique_ptr[FType] & Fmat)
-        void setLambdaBeta(double lb)
+        # -- priors
+        string row_prior 
+        string col_prior 
 
-cdef extern from "macau.h":
-    cdef cppclass Macau:
-        Macau()
-        Macau(int num_latent)
-        void addPrior(unique_ptr[ILatentPrior] & prior)
-        void setPrecision(double p)
-        void setAdaptivePrecision(double sn_init, double sn_max)
-        void setProbit()
-        void setSamples(int burnin, int nsamples)
-        void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols)
-        void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols)
-        void setVerbose(bool v)
-        double getRmseTest()
-        VectorXd getPredictions()
-        VectorXd getStds()
-        MatrixXd getTestData()
-        void run()
-        void setSaveModel(bool save)
-        void setSavePrefix(string pref)
+        #-- output
+        string output_prefix
+
+        #-- general
+        bool verbose              
+        int output_freq           
+        int burnin                
+        int nsamples              
+        int num_latent            
+        double lambda_beta        
+        double tol                
+
+        #-- noise model
+        string fixed_precision, adaptive_precision
+        double precision          
+        double sn_init            
+        double sn_max             
+
+        #-- binary classification
+        bool classify             
+        double threshold
+
+
+
+    cdef cppclass PythonSession:
+        PythonSession()
+        void setFromConfig(Config)
+        void step()
+        void init()
+        Result pred
 

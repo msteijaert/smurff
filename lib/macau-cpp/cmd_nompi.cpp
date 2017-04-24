@@ -18,7 +18,7 @@
 
 #include "omp_util.h"
 #include "linop.h"
-#include "macau.h"
+#include "session.h"
 #include "macauoneprior.h"
 
 using namespace Eigen;
@@ -26,8 +26,8 @@ using namespace std;
 using namespace Macau;
 
 int main(int argc, char** argv) {
-    Session macau;
-    macau.setFromArgs(argc, argv, true);
+    CmdSession macau;
+    macau.setFromArgs(argc, argv);
     macau.run();
     return 0;
 }

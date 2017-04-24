@@ -62,10 +62,10 @@ class SparseFeat {
       free_bcsr( & M);
       free_bcsr( & Mt);
     }
-    int nfeat()    {return M.ncol;}
-    int cols()     {return M.ncol;}
-    int nsamples() {return M.nrow;}
-    int rows()     {return M.nrow;}
+    int nfeat()    const {return M.ncol;}
+    int cols()     const {return M.ncol;}
+    int nsamples() const {return M.nrow;}
+    int rows()     const {return M.nrow;}
 };
 
 class SparseDoubleFeat {
@@ -83,10 +83,10 @@ class SparseDoubleFeat {
       free_csr( & M);
       free_csr( & Mt);
     }
-    int nfeat()    {return M.ncol;}
-    int cols()     {return M.ncol;}
-    int nsamples() {return M.nrow;}
-    int rows()     {return M.nrow;}
+    int nfeat()    const {return M.ncol;}
+    int cols()     const {return M.ncol;}
+    int nsamples() const {return M.nrow;}
+    int rows()     const {return M.nrow;}
 };
 
 inline double tick() {
@@ -352,6 +352,13 @@ typedef Eigen::ArrayXd ArrayNd;
 
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
+inline void die(std::string message) {
+    throw std::runtime_error(std::string("[ERROR]: ") + message +  "\n");
+}
+
+inline void not_implemented(std::string message) {
+    throw std::runtime_error(std::string("[Not implemented]: '") + message +  "'\n");
+}
 
 inline void die_unless_file_exists(std::string fname) {
     if ( fname.size() && ! file_exists(fname) ) {

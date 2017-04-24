@@ -16,20 +16,28 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 .PHONY: all clean 
 
-all: tests test_synthetic macau_nompi
 
-LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o macau.o gen_random.o model.o 
+LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o 
 LIBOBJS += macauoneprior.o spikeandslab.o macauprior.o normalprior.o
+LIBMACAU=libmacau-cpp.a
+
+all: tests test_synthetic cmd_nompi $(LIBMACAU)
 
 vpath %.cpp $(ROOT)
-test_synthetic tests macau_nompi: $(LIBOBJS)
+$(LIBMACAU): $(LIBOBJS)
+	ar -rcs $(LIBMACAU) $(LIBOBJS)
 
-macau_mpi: macau_mpi.cpp $(LIBOBJS)
-	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o macau_mpi
+
+test_synthetic tests: $(LIBMACAU)
+
+cmd_nompi: $(LIBMACAU) cmd_session.o
+
+cmd_mpi: cmd_mpi.cpp cmd_session.o $(LIBMACAU)
+	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o cmd_mpi
 
 clean:
-	rm -f *.o *.d
-	rm -f macau_mpi tests libmacau.a macau_nompi
+	rm -f *.o *.d *.a
+	rm -f cmd_mpi tests libmacau.a cmd_nompi
  
 # DFILES 
 DFILES=$(wildcard *.d)
