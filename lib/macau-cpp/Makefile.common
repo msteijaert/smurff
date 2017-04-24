@@ -4,7 +4,7 @@ CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas
 #CXXFLAGS+=-fopenmp
 
 CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
-LIBLOCS := -L/usr/local/Cellar/openblas/0.2.18_2/lib
+LIBLOCS := -L/usr/local/opt/openblas/lib
 LDFLAGS := $(LIBLOCS) -lm -lopenblas -lpthread
 
 #CXXFLAGS+=-O0 -g
@@ -26,7 +26,7 @@ all: tests test_synthetic cmd_nompi $(LIBMACAU)
 
 vpath %.cpp $(ROOT)
 $(LIBMACAU): $(LIBOBJS)
-	ar -r $(LIBMACAU) $(LIBOBJS)
+	ar -rcs $(LIBMACAU) $(LIBOBJS)
 
 
 test_synthetic tests: $(LIBMACAU)
