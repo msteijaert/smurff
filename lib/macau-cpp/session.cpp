@@ -163,7 +163,7 @@ void PythonSession::intHandler(int) {
 //-- cmdline handling stuff
 //
 template<class SideInfo>
-inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol, bool use_FtF)
+inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol, int use_FtF)
 {
     if(prior_name == "macau" || prior_name == "default"){
         auto &prior = m.addPrior<MacauPrior<SideInfo>>();
@@ -217,7 +217,7 @@ inline void addMaster(Session &macau,std::string prior_name, std::vector<std::st
     }
 }
 
-void add_prior(Session &macau, std::string prior_name, std::vector<std::string> fname_features, double lambda_beta, double tol)
+void add_prior(Session &macau, std::string prior_name, std::vector<std::string> fname_features, double lambda_beta, double tol, bool direct)
 {
     //-- row prior with side information
     if (fname_features.size()) {
@@ -227,12 +227,10 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
             die_unless_file_exists(fname);
             if (fname.find(".sdm") != std::string::npos) {
                 auto features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname.c_str()));
-                bool comp_FtF = (features->cols() * features->rows()) < 25000;
-                addMacauPrior(macau, prior_name, features, lambda_beta, tol, comp_FtF);
+                addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
             } else if (fname.find(".sbm") != std::string::npos) {
                 auto features = load_bcsr(fname.c_str());
-                bool comp_FtF = (features->cols() * features->rows()) < 25000;
-                addMacauPrior(macau, prior_name, features, lambda_beta, tol, comp_FtF);
+                addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
             } else if (fname.find(".ddm") != std::string::npos) {
                 auto feature_matrix = read_ddm<MatrixXd>(fname.c_str());
                 auto features = std::unique_ptr<MatrixXd>(new MatrixXd(feature_matrix));
@@ -374,8 +372,8 @@ void Session::setFromConfig(const Config &c)
          pred.set(predictions);
     }
 
-    add_prior(*this, config.col_prior, config.fname_col_features, config.lambda_beta, config.tol);
-    add_prior(*this, config.row_prior, config.fname_row_features, config.lambda_beta, config.tol);
+    add_prior(*this, config.col_prior, config.fname_col_features, config.lambda_beta, config.tol, config.direct);
+    add_prior(*this, config.row_prior, config.fname_row_features, config.lambda_beta, config.tol, config.direct);
 }
 
 

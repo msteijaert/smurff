@@ -62,10 +62,10 @@ class SparseFeat {
       free_bcsr( & M);
       free_bcsr( & Mt);
     }
-    int nfeat()    {return M.ncol;}
-    int cols()     {return M.ncol;}
-    int nsamples() {return M.nrow;}
-    int rows()     {return M.nrow;}
+    int nfeat()    const {return M.ncol;}
+    int cols()     const {return M.ncol;}
+    int nsamples() const {return M.nrow;}
+    int rows()     const {return M.nrow;}
 };
 
 class SparseDoubleFeat {
@@ -83,10 +83,10 @@ class SparseDoubleFeat {
       free_csr( & M);
       free_csr( & Mt);
     }
-    int nfeat()    {return M.ncol;}
-    int cols()     {return M.ncol;}
-    int nsamples() {return M.nrow;}
-    int rows()     {return M.nrow;}
+    int nfeat()    const {return M.ncol;}
+    int cols()     const {return M.ncol;}
+    int nsamples() const {return M.nrow;}
+    int rows()     const {return M.nrow;}
 };
 
 inline double tick() {

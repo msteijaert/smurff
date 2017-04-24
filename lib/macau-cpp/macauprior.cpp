@@ -142,10 +142,26 @@ void MacauPrior<FType>::savePriorInfo(std::string prefix) {
   writeToCSVfile(prefix + "-" + std::to_string(pos) + "-link.csv", this->beta);
 }
 
+std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F) {
+    os << "SparseDouble [" << F.rows() << ", " << F.cols() << "]\n";
+    return os;
+}
+
+std::ostream &printSideInfo(std::ostream &os, const Eigen::MatrixXd &F) {
+    os << "DenseDouble [" << F.rows() << ", " << F.cols() << "]\n";
+    return os;
+}
+
+std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F) {
+    os << "SparseBinary [" << F.rows() << ", " << F.cols() << "]\n";
+    return os;
+}
+
 template<class FType>
 std::ostream &MacauPrior<FType>::printInitStatus(std::ostream &os, std::string indent) {
     NormalPrior::printInitStatus(os, indent);
-    os << indent << " SideInfo: [" << F->rows() << ", " << F->cols() << "]\n";
+    os << indent << " SideInfo: "; printSideInfo(os, *F); 
+    os << indent << " Method: " << (use_FtF ? "Cholesky Decompistion" : "CG Solver") << "\n"; 
     os << indent << " Tol: " << tol << "\n";
     os << indent << " LambdaBeta: " << lambda_beta << "\n";
     return os;

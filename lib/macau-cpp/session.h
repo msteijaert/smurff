@@ -60,8 +60,11 @@ struct Config {
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;
+
+    //-- for macau priors
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
+    bool direct               = false; 
 
     //-- noise model
     std::string noise_model   = "fixed";
