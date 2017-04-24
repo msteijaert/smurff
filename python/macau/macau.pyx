@@ -12,11 +12,8 @@ class MacauResult(object):
     pass
   def __repr__(self):
     s = ("Matrix factorization results\n" +
-         "Test RMSE:        %.4f\n" % self.rmse_test +
-         "Matrix size:      [%d x %d]\n" % (self.Yshape[0], self.Yshape[1]) +
-         "Number of train:  %d\n" % self.ntrain +
-         "Number of test:   %d\n" % self.ntest  +
-         "To see predictions on test set see '.prediction' field.")
+         "Test RMSE:        %.4f\n" % self.rmse_avg +
+         "Test AUC:         %.4f\n" % self.auc)
     return s
 
 def bpmf(Y,
@@ -81,6 +78,10 @@ def macau(Y,
     # set config fields
     config.config_train = prepare_sparse(Y)
     if (Ytest): config.config_test = prepare_sparse(Ytest)
+    config.verbose = verbose
+    if (save_prefix): config.output_prefix = save_prefix
+    config.nsamples = nsamples
+    config.burnin = burnin
 
     # create session
     cdef PythonSession session
@@ -88,63 +89,14 @@ def macau(Y,
 
     # only do one step
     session.init()
-    session.step()
+    for i in range(nsamples + burnin):
+            session.step()
 
-    #cdef int D = np.int32(num_latent)
-    # cdef unique_ptr[ILatentPrior] prior_u
-    # cdef unique_ptr[ILatentPrior] prior_v
-    # if univariate:
-    #     prior_u = unique_ptr[ILatentPrior](make_one_prior(side[0], D, lambda_beta))
-    #     prior_v = unique_ptr[ILatentPrior](make_one_prior(side[1], D, lambda_beta))
-    # else:
-    #     prior_u = unique_ptr[ILatentPrior](make_prior(side[0], D, 10000, lambda_beta, tol))
-    #     prior_v = unique_ptr[ILatentPrior](make_prior(side[1], D, 10000, lambda_beta, tol))
 
-    #cdef Macau *macau = new Macau(D)
-    #macau.addPrior(prior_u)
-    #macau.addPrior(prior_v)
-    #macau.setRelationData(&irows[0], &icols[0], &ivals[0], irows.shape[0], Y.shape[0], Y.shape[1]);
-    #macau.setSamples(np.int32(burnin), np.int32(nsamples))
-    #macau.setVerbose(verbose)
-
-    #if isinstance(precision, str):
-    #  if precision == "adaptive" or precision == "sample":
-    #    macau.setAdaptivePrecision(np.float64(1.0), np.float64(sn_max))
-    #  elif precision == "probit":
-    #    macau.setProbit()
-    #  else:
-    #    raise ValueError("Parameter 'precision' has to be either a number or \"adaptive\" for adaptive precision, or \"probit\" for binary matrices.")
-    #else:
-    #  macau.setPrecision(np.float64(precision))
-
-    #cdef np.ndarray[int] trows, tcols
-    #cdef np.ndarray[np.double_t] tvals
-
-    #if Ytest is not None:
-    #    trows = Ytest.row.astype(np.int32, copy=False)
-    #    tcols = Ytest.col.astype(np.int32, copy=False)
-    #    tvals = Ytest.data.astype(np.double, copy=False)
-    #    macau.setRelationDataTest(&trows[0], &tcols[0], &tvals[0], trows.shape[0], Y.shape[0], Y.shape[1])
-
-    #if save_prefix is None:
-    #    macau.setSaveModel(0)
-    #else:
-    #    if type(save_prefix) != str:
-    #        raise ValueError("Parameter 'save_prefix' has to be a string (str) or None.")
-    #    macau.setSaveModel(1)
-    #    macau.setSavePrefix(save_prefix)
-
-    #macau.run()
-    ## restoring Python default signal handler
-    # signal.signal(signal.SIGINT, signal.default_int_handler)
-
-    # cdef VectorXd yhat_raw     = macau.getPredictions()
-    # cdef VectorXd yhat_sd_raw  = macau.getStds()
-    # cdef MatrixXd testdata_raw = macau.getTestData()
-
-    # cdef np.ndarray[np.double_t] yhat    = vecview( & yhat_raw ).copy()
-    # cdef np.ndarray[np.double_t] yhat_sd = vecview( & yhat_sd_raw ).copy()
-    # cdef np.ndarray[np.double_t, ndim=2] testdata = matview( & testdata_raw ).copy()
+    result = MacauResult()
+    result.rmse = session.pred.rmse
+    result.rmse_avg = session.pred.rmse_avg
+    result.auc = session.pred.auc
 
     # df = pd.DataFrame({
     #   "row" : pd.Series(testdata[:,0], dtype='int'),
@@ -153,15 +105,6 @@ def macau(Y,
     #   "y_pred" : pd.Series(yhat),
     #   "y_pred_std" : pd.Series(yhat_sd)
     # })
-
-    result = MacauResult()
-    result.rmse_test  = macau.getRmseTest()
-    result.Yshape     = Y.shape
-    result.ntrain     = Y.nnz
-    result.ntest      = Ytest.nnz if Ytest is not None else 0
-    #result.prediction = pd.DataFrame(df)
-
-    #del macau
 
     return result
 

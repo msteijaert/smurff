@@ -3,4 +3,4 @@ from scipy.sparse import random
 
 Y = random(300,400)
 
-macau.bpmf(Y)
+print macau.bpmf(Y, nsamples = 10, burnin = 10)
