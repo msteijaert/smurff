@@ -205,5 +205,6 @@ void MacauOnePrior<FType>::savePriorInfo(std::string prefix) {
 
 template class MacauOnePrior<SparseFeat>;
 template class MacauOnePrior<SparseDoubleFeat>;
+template class MacauOnePrior<Eigen::MatrixXd>;
 
 } // end namespace Macau

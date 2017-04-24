@@ -380,3 +380,14 @@ Eigen::VectorXd col_square_sum(SparseDoubleFeat & A) {
   }
   return out;
 }
+
+Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A) {
+  const int ncol = A.cols();
+  VectorXd out(ncol);
+#pragma omp parallel for schedule(static)
+  for (int col = 0; col < ncol; col++) {
+    out(col) = (A.col(col+1) - A.col(col)).sum();
+  }
+  return out;
+}
+

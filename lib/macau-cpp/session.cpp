@@ -89,8 +89,8 @@ std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent)
     os << indent << "  Model: {\n";
     model->printInitStatus(os, indent + "    ");
     os << indent << "  }\n";
-    os << indent << "  Predictions: {\n";
-    pred->printInitStatus(os, indent + "    ");
+    os << indent << "  Result: {\n";
+    pred.printInitStatus(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Noise: ";
     noise->printInitStatus(os, "");
@@ -102,23 +102,20 @@ std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent)
 //--- 
 
 void Session::init() {
-  threads_init();
-  init_bmrng();
-  BaseSession::init();
-  if (verbose) {
-      printInitStatus(std::cout, "");
-      std::cout << "Sampling" << endl;
-  }
-  iter = 0;
-  is_init = true;
+    threads_init();
+    init_bmrng();
+    BaseSession::init();
+    if (verbose) {
+        printInitStatus(std::cout, "");
+        std::cout << "Sampling" << endl;
+    }
+    iter = 0;
+    is_init = true;
 }
 
 void Session::run() {
     init();
-    while (iter < burnin + nsamples) {
-        step();
-        iter++;
-    }
+    while (iter < burnin + nsamples) step();
 }
 
 
@@ -133,6 +130,7 @@ void Session::step() {
 
     saveModel(iter - burnin);
     printStatus(endi - starti);
+    iter++;
 }
 
 std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
@@ -148,18 +146,12 @@ std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     return os;
 }
 
-volatile bool PythonSession::keepRunning;
+bool PythonSession::keepRunning = true;
 
-void PythonSession::run() {
-    keepRunning = true;
+void PythonSession::step() {
+    if (!keepRunning) return;
     signal(SIGINT, intHandler);
-    for (iter = 0; iter < burnin + nsamples; iter++) {
-        if (keepRunning == false) {
-            keepRunning = true;
-            break;
-        }
-        step();
-    }
+    Session::step();
 }
 
 void PythonSession::intHandler(int) {
@@ -238,6 +230,10 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
                 addMacauPrior(macau, prior_name, row_features, lambda_beta, tol);
             } else if (fname.find(".sbm") != std::string::npos) {
                 auto features = load_bcsr(fname.c_str());
+                addMacauPrior(macau, prior_name, features, lambda_beta, tol);
+            } else if (fname.find(".ddm") != std::string::npos) {
+                auto feature_matrix = read_ddm<MatrixXd>(fname.c_str());
+                auto features = std::unique_ptr<MatrixXd>(new MatrixXd(feature_matrix));
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol);
             } else {
                 throw std::runtime_error("Train row_features file: expecing .sdm or .sbm, got " + std::string(fname));
@@ -327,16 +323,16 @@ void Session::setFromConfig(Config &c)
         }
 
         if (c.test_split > .0) {
-            auto Ytest = extract(Ytrain, c.test_split);
-            pred->set(Ytest);
+            auto predictions = extract(Ytrain, c.test_split);
+            pred.set(predictions);
         }
         model->setRelationData(Ytrain);
     } else if (c.fname_train.find(".ddm") != std::string::npos) {
         DenseDenseMF& model = denseDenseModel(c.num_latent);
         auto Ytrain = read_ddm<MatrixXd>(c.fname_train.c_str());
         if (c.test_split > .0) {
-            auto Ytest = extract(Ytrain, c.test_split);
-            pred->set(Ytest);
+            auto predictions = extract(Ytrain, c.test_split);
+            pred.set(predictions);
         }
         model.setRelationData(Ytrain);
     } else {
@@ -349,7 +345,7 @@ void Session::setFromConfig(Config &c)
     verbose = c.verbose;
     save_prefix = c.output_prefix;
     save_freq = c.output_freq;
-    if (c.classify) pred->setThreshold(c.threshold);
+    if (c.classify) pred.setThreshold(c.threshold);
 
     //-- noise model
     if (c.noise_model == "adaptive") {
@@ -364,19 +360,19 @@ void Session::setFromConfig(Config &c)
     if (c.fname_test.size()) {
         die_unless_file_exists(c.fname_test);
         if (c.fname_test.find(".sbm") != std::string::npos) {
-            auto Ytest = read_sbm(c.fname_test.c_str());
-            pred->set(to_eigen(*Ytest));
-            delete Ytest;
+            auto predictions = read_sbm(c.fname_test.c_str());
+            pred.set(to_eigen(*predictions));
+            delete predictions;
         } else if (c.fname_test.find(".sdm") != std::string::npos) {
-            auto Ytest = read_sdm(c.fname_test.c_str());
-            pred->set(*Ytest);
-            delete Ytest;
+            auto predictions = read_sdm(c.fname_test.c_str());
+            pred.set(*predictions);
+            delete predictions;
         }
     } else if (c.config_test.nrows > 0) {
          auto &i = c.config_train;
-         SparseMatrixD Ytest(i.nrows, i.ncols);
-         sparseFromIJV(Ytest, i.rows, i.cols, i.values, i.N);
-         pred->set(Ytest);
+         SparseMatrixD predictions(i.nrows, i.ncols);
+         sparseFromIJV(predictions, i.rows, i.cols, i.values, i.N);
+         pred.set(predictions);
     }
 
     add_prior(*this, c.col_prior, c.fname_col_features, c.lambda_beta, c.tol);
@@ -387,7 +383,7 @@ void Session::setFromConfig(Config &c)
 void Session::printStatus(double elapsedi) {
     if(!verbose) return;
 
-    pred->update(*model, iter < burnin);
+    pred.update(*model, iter < burnin);
 
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
@@ -411,7 +407,7 @@ void Session::printStatus(double elapsedi) {
     }
 
     printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            phase.c_str(), i, from, pred->rmse_avg, pred->rmse, pred->auc,
+            phase.c_str(), i, from, pred.rmse_avg, pred.rmse, pred.auc,
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 

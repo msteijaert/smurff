@@ -151,6 +151,10 @@ class MacauPrior : public NormalPrior {
     void setTol(double t) { tol = t; };
     void savePriorInfo(std::string prefix) override;
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
+
+  private:
+    void sample_beta_direct();
+    void sample_beta_cg();
 };
 
 

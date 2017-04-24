@@ -94,22 +94,22 @@ SparseMatrixD random_Ysparse(int N, int D, int K, double s)
 
 SparseMatrixD extract(SparseMatrixD &Y, double s)
 {
-    SparseMatrixD Ytest(Y.rows(), Y.cols());
+    SparseMatrixD predictions(Y.rows(), Y.cols());
     std::default_random_engine gen;
     std::uniform_real_distribution<double> udist(0.0,1.0);
 
-    Y.prune([&udist, &gen, &Ytest, s](
+    Y.prune([&udist, &gen, &predictions, s](
                 const SparseMatrixD::Index& row,
                 const SparseMatrixD::Index& col,
                 const SparseMatrixD::Scalar& value)->bool
         {
             bool prune = udist(gen) < s;
-            if (prune) Ytest.insert(row,col) = value;
+            if (prune) predictions.insert(row,col) = value;
             return prune;
         }
     );
 
-    return Ytest;
+    return predictions;
 }
 
 SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s)

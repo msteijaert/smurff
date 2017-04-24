@@ -103,21 +103,37 @@ void MacauPrior<FType>::compute_Ft_y_omp(MatrixXd &Ft_y) {
 /** Update beta and Uhat */
 template<class FType>
 void MacauPrior<FType>::sample_beta() {
+    if (use_FtF) sample_beta_direct();
+    else         sample_beta_cg();
+}
+
+// specialization for dense matrices --> always direct method */
+template<>
+void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg() {
+    std::cout << "Whoops...\n";
+    sample_beta_direct();
+}
+
+// direct method
+template<class FType>
+void MacauPrior<FType>::sample_beta_direct() {
     MatrixXd Ft_y;
     this->compute_Ft_y_omp(Ft_y);
+    MatrixXd K(FtF.rows(), FtF.cols());
+    K.triangularView<Eigen::Lower>() = FtF;
+    K.diagonal().array() += lambda_beta;
+    chol_decomp(K);
+    chol_solve_t(K, Ft_y);
+    beta = Ft_y;
 
-    if (use_FtF) {
-        // direct method
-        MatrixXd K(FtF.rows(), FtF.cols());
-        K.triangularView<Eigen::Lower>() = FtF;
-        K.diagonal().array() += lambda_beta;
-        chol_decomp(K);
-        chol_solve_t(K, Ft_y);
-        beta = Ft_y;
-    } else {
-        // BlockCG solver
-        solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
-    }
+}
+
+// BlockCG solver
+template<class FType>
+void MacauPrior<FType>::sample_beta_cg() {
+    MatrixXd Ft_y;
+    this->compute_Ft_y_omp(Ft_y);
+    solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
 }
 
 template<class FType>
@@ -153,6 +169,7 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
 
 template class MacauPrior<SparseFeat>;
 template class MacauPrior<SparseDoubleFeat>;
+template class MacauPrior<Eigen::MatrixXd>;
 
 } // end namespace Macau
 

@@ -11,13 +11,13 @@ namespace Macau {
 
 struct Model;
 
-struct Predictions {
+struct Result {
     //-- test set
     struct Item {
         int row, col;
         double val, pred, var, stds;
     };
-    std::vector<Item> Ytest;
+    std::vector<Item> predictions;
     int nrows, ncols;
     void set(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void set(SparseDoubleMatrix &Y);

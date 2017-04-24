@@ -78,12 +78,11 @@ struct Config {
 
 class BaseSession  {
    public:
-      BaseSession() : pred(new Predictions) {}
       //-- data members
       std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
       std::unique_ptr<Model>                      model;
-      std::unique_ptr<Predictions>                pred;
+      Result                                      pred;
     
       //-- add model
       template<class Model>
@@ -102,7 +101,7 @@ class BaseSession  {
       AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
 
       void init();
-      void step();
+      virtual void step();
 
       virtual std::ostream &printInitStatus(std::ostream &, std::string indent);
 
@@ -132,7 +131,7 @@ class Session : public BaseSession {
       // execution of the sampler
       void init();
       void run();
-      void step();
+      void step() override;
 
       std::ostream &printInitStatus(std::ostream &, std::string indent) override;
 
@@ -161,13 +160,16 @@ class MPISession : public CmdSession {
 
 class PythonSession : public Session {
   public:
-    PythonSession() { name = "PythonSession"; }
+    PythonSession() {
+        name = "PythonSession"; 
+        keepRunning = true;
+    }
 
-    void run();
+    void step() override;
 
   private:
     static void intHandler(int); 
-    static volatile bool keepRunning;
+    static bool keepRunning; 
 
 };
 

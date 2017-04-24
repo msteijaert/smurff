@@ -353,7 +353,11 @@ typedef Eigen::ArrayXd ArrayNd;
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 inline void die(std::string message) {
-    throw std::runtime_error(std::string("[ERROR]\n'") + message +  "\n");
+    throw std::runtime_error(std::string("[ERROR]: ") + message +  "\n");
+}
+
+inline void not_implemented(std::string message) {
+    throw std::runtime_error(std::string("[Not implemented]: '") + message +  "'\n");
 }
 
 inline void die_unless_file_exists(std::string fname) {
