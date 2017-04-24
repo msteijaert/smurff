@@ -105,7 +105,7 @@ void Session::init() {
     threads_init();
     init_bmrng();
     BaseSession::init();
-    if (verbose) {
+    if (config.verbose) {
         printInitStatus(std::cout, "");
         std::cout << "Sampling" << endl;
     }
@@ -115,30 +115,30 @@ void Session::init() {
 
 void Session::run() {
     init();
-    while (iter < burnin + nsamples) step();
+    while (iter < config.burnin + config.nsamples) step();
 }
 
 
 void Session::step() {
     assert(is_init);
-    if (verbose && iter == burnin) {
+    if (config.verbose && iter == config.burnin) {
         printf(" ====== Burn-in complete, averaging samples ====== \n");
     }
     auto starti = tick();
     BaseSession::step();
     auto endi = tick();
 
-    saveModel(iter - burnin);
+    saveModel(iter - config.burnin);
     printStatus(endi - starti);
     iter++;
 }
 
 std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     BaseSession::printInitStatus(os, indent);
-    os << indent << "  Samples: " << burnin << " + " << nsamples << "\n";
-    if (save_freq > 0) {
-        os << indent << "  Save model every: " << save_freq << "\n";
-        os << indent << "  Output prefix: " << save_prefix << "\n";
+    os << indent << "  Samples: " << config.burnin << " + " << config.nsamples << "\n";
+    if (config.output_freq > 0) {
+        os << indent << "  Save model every: " << config.output_freq << "\n";
+        os << indent << "  Output prefix: " << config.output_prefix << "\n";
     } else {
         os << indent << "  Don't save model\n";
     }
@@ -252,7 +252,7 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
     }
 }
 
-bool Config::validate(bool throw_error) 
+bool Config::validate(bool throw_error) const 
 {
     auto validate_matrix_file = [](std::string fname) {
         if (fname.size()  == 0) return;
@@ -294,20 +294,23 @@ bool Config::validate(bool throw_error)
     return true;
  }
 
-void Session::setFromConfig(Config &c)
+void Session::setFromConfig(const Config &c)
 {
     c.validate(true);
 
-    bool train_is_sparse = (c.fname_train.size() && (c.fname_train.find(".sdm") != std::string::npos))
-        || (!c.config_train.dense);
+    //-- copy
+    config = c;
+
+    bool train_is_sparse = (config.fname_train.size() && (config.fname_train.find(".sdm") != std::string::npos))
+        || (!config.config_train.dense);
 
     // Load main Y matrix file
     if (train_is_sparse) {
         SparseMatrixD Ytrain;
-        if (c.fname_train.size()) { 
-            Ytrain = to_eigen(*read_sdm(c.fname_train.c_str()));
+        if (config.fname_train.size()) { 
+            Ytrain = to_eigen(*read_sdm(config.fname_train.c_str()));
         } else {
-            auto &i = c.config_train;
+            auto &i = config.config_train;
             Ytrain.resize(i.nrows, i.ncols);
             sparseFromIJV(Ytrain, i.rows, i.cols, i.values, i.N);
         }
@@ -315,77 +318,71 @@ void Session::setFromConfig(Config &c)
         MF<SparseMatrixD> *model;
 
         if (is_binary(Ytrain)) {
-            model = &sparseBinaryModel(c.num_latent);
-            if (!c.classify) {
-               c.classify = true;
-               c.threshold = 0.5;
+            model = &sparseBinaryModel(config.num_latent);
+            if (!config.classify) {
+               config.classify = true;
+               config.threshold = 0.5;
             }
         } else {
-            model = &sparseModel(c.num_latent);
+            model = &sparseModel(config.num_latent);
         }
 
-        if (c.test_split > .0) {
-            auto predictions = extract(Ytrain, c.test_split);
+        if (config.test_split > .0) {
+            auto predictions = extract(Ytrain, config.test_split);
             pred.set(predictions);
         }
         model->setRelationData(Ytrain);
-    } else if (c.fname_train.find(".ddm") != std::string::npos) {
-        DenseDenseMF& model = denseDenseModel(c.num_latent);
-        auto Ytrain = read_ddm<MatrixXd>(c.fname_train.c_str());
-        if (c.test_split > .0) {
-            auto predictions = extract(Ytrain, c.test_split);
+    } else if (config.fname_train.find(".ddm") != std::string::npos) {
+        DenseDenseMF& model = denseDenseModel(config.num_latent);
+        auto Ytrain = read_ddm<MatrixXd>(config.fname_train.c_str());
+        if (config.test_split > .0) {
+            auto predictions = extract(Ytrain, config.test_split);
             pred.set(predictions);
         }
         model.setRelationData(Ytrain);
     } else {
-        die("Train data file: expecing .sdm or .ddm, got " + std::string(c.fname_train));
+        die("Train data file: expecing .sdm or .ddm, got " + std::string(config.fname_train));
     }
 
-    //-- simple options
-    burnin = c.burnin;
-    nsamples = c.nsamples;
-    verbose = c.verbose;
-    save_prefix = c.output_prefix;
-    save_freq = c.output_freq;
-    if (c.classify) pred.setThreshold(c.threshold);
+    if (config.classify) pred.setThreshold(config.threshold);
 
     //-- noise model
-    if (c.noise_model == "adaptive") {
-        setAdaptivePrecision(c.sn_init, c.sn_max);
-    } else if (c.noise_model == "fixed") {
-        setPrecision(c.precision);
+    if (config.noise_model == "adaptive") {
+        setAdaptivePrecision(config.sn_init, config.sn_max);
+    } else if (config.noise_model == "fixed") {
+        setPrecision(config.precision);
     } else {
-        die("Unknown noise model; " + c.noise_model);
+        die("Unknown noise model; " + config.noise_model);
     }
 
     // test data
-    if (c.fname_test.size()) {
-        die_unless_file_exists(c.fname_test);
-        if (c.fname_test.find(".sbm") != std::string::npos) {
-            auto predictions = read_sbm(c.fname_test.c_str());
+    if (config.fname_test.size()) {
+        die_unless_file_exists(config.fname_test);
+        if (config.fname_test.find(".sbm") != std::string::npos) {
+            auto predictions = read_sbm(config.fname_test.c_str());
             pred.set(to_eigen(*predictions));
             delete predictions;
-        } else if (c.fname_test.find(".sdm") != std::string::npos) {
-            auto predictions = read_sdm(c.fname_test.c_str());
+        } else if (config.fname_test.find(".sdm") != std::string::npos) {
+            auto predictions = read_sdm(config.fname_test.c_str());
             pred.set(*predictions);
             delete predictions;
         }
-    } else if (c.config_test.nrows > 0) {
-         auto &i = c.config_train;
+    } else if (config.config_test.nrows > 0) {
+         auto &i = config.config_train;
          SparseMatrixD predictions(i.nrows, i.ncols);
          sparseFromIJV(predictions, i.rows, i.cols, i.values, i.N);
          pred.set(predictions);
     }
 
-    add_prior(*this, c.col_prior, c.fname_col_features, c.lambda_beta, c.tol);
-    add_prior(*this, c.row_prior, c.fname_row_features, c.lambda_beta, c.tol);
+    add_prior(*this, config.col_prior, config.fname_col_features, config.lambda_beta, config.tol);
+    add_prior(*this, config.row_prior, config.fname_row_features, config.lambda_beta, config.tol);
 }
 
 
 void Session::printStatus(double elapsedi) {
-    if(!verbose) return;
+    if(!config.verbose) return;
 
-    pred.update(*model, iter < burnin);
+    pred.update(*model, iter < config.burnin);
 
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
@@ -398,14 +395,14 @@ void Session::printStatus(double elapsedi) {
 
     std::string phase;
     int i, from;
-    if (iter < burnin) {
+    if (iter < config.burnin) {
         phase = "Burnin";
         i = iter;
-        from = burnin;
+        from = config.burnin;
     } else {
         phase = "Sample";
-        i = iter - burnin;
-        from = nsamples;
+        i = iter - config.burnin;
+        from = config.nsamples;
     }
 
     printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
@@ -414,9 +411,9 @@ void Session::printStatus(double elapsedi) {
 }
 
 void Session::saveModel(int isample) {
-    if (!save_freq || isample < 0) return;
-    if ((isample % save_freq) != 0) return;
-    string fprefix = save_prefix + "-sample-" + std::to_string(isample);
+    if (!config.output_freq || isample < 0) return;
+    if ((isample % config.output_freq) != 0) return;
+    string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
     model->save(fprefix);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }

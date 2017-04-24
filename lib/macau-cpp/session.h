@@ -73,7 +73,7 @@ struct Config {
     bool classify             = false;
     double threshold;
 
-    bool validate(bool);
+    bool validate(bool) const;
 };
 
 class BaseSession  {
@@ -113,20 +113,14 @@ class BaseSession  {
 
 class Session : public BaseSession {
   public:
-      bool        verbose     = true;
-      int         nsamples    = 100;
-      int         burnin      = 50;
-      int         save_freq   = 0;
-      std::string save_prefix = "model";
-
-      // while running
+      Config      config;
       int         iter;
 
       // c'tor
       Session() { name = "MacauSession"; }
 
       //-- set params
-      void setFromConfig(Config &);
+      void setFromConfig(const Config &);
 
       // execution of the sampler
       void init();

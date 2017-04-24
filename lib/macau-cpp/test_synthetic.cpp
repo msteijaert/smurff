@@ -30,9 +30,9 @@ void test_sparse(int N, int D, int iter_max)
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
     Session macau;
     auto &master_model = macau.sparseModel(num_latent);
-    macau.burnin = 10;
-    macau.nsamples = iter_max;
-    macau.verbose = true;
+    macau.config.burnin = 10;
+    macau.config.nsamples = iter_max;
+    macau.config.verbose = true;
 
     // fixed gaussian noise
     macau.setPrecision(1.0);
@@ -59,9 +59,9 @@ void test_dense_dense(int N, int D, int iter_max)
     assert(D>0 && N>0 && iter_max > 0 && "Usage GFA N D iter_max");
     Session macau;
     auto &master_model = macau.denseDenseModel(num_latent);
-    macau.burnin = 10;
-    macau.nsamples = iter_max;
-    macau.verbose = true;
+    macau.config.burnin = 10;
+    macau.config.nsamples = iter_max;
+    macau.config.verbose = true;
 
     // fixed gaussian noise
     macau.setPrecision(1.0);
