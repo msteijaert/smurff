@@ -133,7 +133,7 @@ class Session : public BaseSession {
       std::ostream &printInitStatus(std::ostream &, std::string indent) override;
 
    private:
-      void saveModel(int isample);
+      void save(int isample);
       void printStatus(double elapsedi);
 };
 

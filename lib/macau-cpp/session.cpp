@@ -128,7 +128,7 @@ void Session::step() {
     BaseSession::step();
     auto endi = tick();
 
-    saveModel(iter - config.burnin);
+    save(iter - config.burnin);
     printStatus(endi - starti);
     iter++;
 }
@@ -137,10 +137,10 @@ std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     BaseSession::printInitStatus(os, indent);
     os << indent << "  Samples: " << config.burnin << " + " << config.nsamples << "\n";
     if (config.output_freq > 0) {
-        os << indent << "  Save model every: " << config.output_freq << "\n";
+        os << indent << "  Save model: every " << config.output_freq << " iteration\n";
         os << indent << "  Output prefix: " << config.output_prefix << "\n";
     } else {
-        os << indent << "  Don't save model\n";
+        os << indent << "  Save model: never\n";
     }
     os << indent << "}\n";
     return os;
@@ -408,11 +408,12 @@ void Session::printStatus(double elapsedi) {
             snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
-void Session::saveModel(int isample) {
+void Session::save(int isample) {
     if (!config.output_freq || isample < 0) return;
     if ((isample % config.output_freq) != 0) return;
     string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
     model->save(fprefix);
+    pred.save(fprefix);
     for(auto &p : priors) p->savePriorInfo(fprefix);
 }
 
