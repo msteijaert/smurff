@@ -412,6 +412,7 @@ void Session::save(int isample) {
     if (!config.output_freq || isample < 0) return;
     if (((isample+1) % config.output_freq) != 0) return;
     string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
+    if (config.verbose) printf("-- Saving model, predictions,... into '%s*.csv'.\n", fprefix.c_str());
     model->save(fprefix);
     pred.save(fprefix);
     for(auto &p : priors) p->savePriorInfo(fprefix);

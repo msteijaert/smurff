@@ -87,7 +87,6 @@ void Result::save(std::string save_prefix) {
          << "\n";
     }
     predfile.close();
-    printf("Saved predictions into '%s'.\n", fname_pred.c_str());
 
 }
 
