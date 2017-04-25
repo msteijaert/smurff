@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include "chol.h"
 #include "utils.h"
+#include "matrix_io.h"
 
 template<typename T>
 void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess);

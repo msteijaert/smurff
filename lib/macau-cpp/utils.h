@@ -47,48 +47,6 @@ class thread_vector
 #define SHOW(m) std::cout << #m << ":\n" << m << std::endl;
 #endif
 
-class SparseFeat {
-  public:
-    BinaryCSR M;
-    BinaryCSR Mt;
-
-    SparseFeat() {}
-
-    SparseFeat(int nrow, int ncol, long nnz, int* rows, int* cols) {
-      new_bcsr(&M,  nnz, nrow, ncol, rows, cols);
-      new_bcsr(&Mt, nnz, ncol, nrow, cols, rows);
-    }
-    virtual ~SparseFeat() {
-      free_bcsr( & M);
-      free_bcsr( & Mt);
-    }
-    int nfeat()    const {return M.ncol;}
-    int cols()     const {return M.ncol;}
-    int nsamples() const {return M.nrow;}
-    int rows()     const {return M.nrow;}
-};
-
-class SparseDoubleFeat {
-  public:
-    CSR M;
-    CSR Mt;
-
-    SparseDoubleFeat() {}
-
-    SparseDoubleFeat(int nrow, int ncol, long nnz, int* rows, int* cols, double* vals) {
-      new_csr(&M,  nnz, nrow, ncol, rows, cols, vals);
-      new_csr(&Mt, nnz, ncol, nrow, cols, rows, vals);
-    }
-    virtual ~SparseDoubleFeat() {
-      free_csr( & M);
-      free_csr( & Mt);
-    }
-    int nfeat()    const {return M.ncol;}
-    int cols()     const {return M.ncol;}
-    int nsamples() const {return M.nrow;}
-    int rows()     const {return M.nrow;}
-};
-
 inline double tick() {
     return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count(); 
 }
@@ -131,79 +89,6 @@ inline void split_work_mpi(int num_latent, int num_nodes, int* work) {
       i = (i + 1) % num_nodes;
    }
 }
-
-
-struct sparse_vec_iterator {
-    sparse_vec_iterator(int *rows, int *cols, uint64_t pos)
-        : rows(rows), cols(cols), vals(0), fixed_val(1.0), pos(pos) {}
-    sparse_vec_iterator(int *rows, int *cols, double *vals, uint64_t pos)
-        : rows(rows), cols(cols), vals(vals), fixed_val(NAN), pos(pos) {}
-    sparse_vec_iterator(int *rows, int *cols, double fixed_val, uint64_t pos)
-        : rows(rows), cols(cols), vals(0), fixed_val(fixed_val), pos(pos) {}
-
-    int *rows, *cols;
-    double *vals; // can be null pointer -> use fixed value
-    double fixed_val;
-    int pos;
-    bool operator!=(const sparse_vec_iterator &other) const { 
-        assert(rows == other.rows);
-        assert(cols == other.cols);
-        assert(vals == other.vals);
-        return pos != other.pos;
-    }
-    sparse_vec_iterator &operator++() { pos++; return *this; }
-    typedef Eigen::Triplet<double> T;
-    T v;
-    T* operator->() {
-        // also convert from 1-base to 0-base
-        uint32_t row = rows[pos];
-        uint32_t col = cols[pos];
-        double val = vals ? vals[pos] : 1.0;
-        v = T(row, col, val);
-        return &v;
-    }
-};
-
-
-inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, int* rows, int* cols, double* values, int N) {
-    sparse_vec_iterator begin(rows, cols, values, 0);
-    sparse_vec_iterator end(rows, cols, values, N);
-    X.setFromTriplets(begin, end);
-}
-
-inline void sparseFromIJ(Eigen::SparseMatrix<double> &X, int* rows, int* cols, int N) {
-    sparse_vec_iterator begin(rows, cols, 1.0, 0);
-    sparse_vec_iterator end  (rows, cols, 1.0, N);
-    X.setFromTriplets(begin, end);
-}
-
-inline Eigen::SparseMatrix<double> to_eigen(SparseDoubleMatrix &Y) 
-{
-    Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
-    sparseFromIJV(out, Y.rows, Y.cols, Y.vals, Y.nnz);
-    return out;
-}
-
-inline Eigen::SparseMatrix<double> to_eigen(SparseBinaryMatrix &Y) 
-{
-   Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
-   sparseFromIJ(out, Y.rows, Y.cols, Y.nnz);
-   return out;
-}
-
-template <typename Matrix>
-inline bool is_binary(const Matrix &M) 
-{
-    auto *values = M.valuePtr();
-    for(int i=0; i<M.nonZeros(); ++i) {
-        if (values[i] != 1.0 && values[i] != 0.0) return false;
-    }
-
-    std::cout << "Detected binary matrix\n";
-
-    return true;
-}
-
 
 inline double square(double x) { return x * x; }
 
@@ -252,12 +137,6 @@ inline void row_mean_var(Eigen::VectorXd & mean, Eigen::VectorXd & var, const Ei
   var /= N;
 }
 
-inline void writeToCSVfile(std::string filename, Eigen::MatrixXd matrix) {
-  const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
-  std::ofstream file(filename.c_str());
-  file << matrix.format(csvFormat);
-}
-
 inline std::string to_string_with_precision(const double a_value, const int n = 6)
 {
     std::ostringstream out;
@@ -275,82 +154,6 @@ inline bool file_exists(const std::string fileName)
 {
    return file_exists(fileName.c_str());
 }
-
-inline std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
-   SparseBinaryMatrix* A = read_sbm(filename);
-   SparseFeat* sf = new SparseFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols);
-   free_sbm(A);
-   std::unique_ptr<SparseFeat> sf_ptr(sf);
-   return sf_ptr;
-}
-
-inline std::unique_ptr<SparseDoubleFeat> load_csr(const char* filename) {
-   struct SparseDoubleMatrix* A = read_sdm(filename);
-   SparseDoubleFeat* sf = new SparseDoubleFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols, A->vals);
-   delete A;
-   std::unique_ptr<SparseDoubleFeat> sf_ptr(sf);
-   return sf_ptr;
-}
-
-
-// assumes matrix (not tensor)
-inline Eigen::MatrixXd to_coo(const Eigen::SparseMatrix<double> &Y) {
-    Eigen::MatrixXd coords(Y.nonZeros(), 3);
-#pragma omp parallel for schedule(dynamic, 2)
-    for (int k = 0; k < Y.outerSize(); ++k) {
-        int idx = Y.outerIndexPtr()[k];
-        for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
-            coords(idx, 0) = it.row();
-            coords(idx, 1) = it.col();
-            coords(idx, 2) = it.value();
-            idx++;
-        }
-    }
-    return coords;
-}
-
-template<class Matrix>
-void write_ddm(const char* filename, const Matrix& matrix){
-    std::ofstream out(filename,std::ios::out | std::ios::binary | std::ios::trunc);
-    typename Matrix::Index rows=matrix.rows(), cols=matrix.cols();
-    out.write((char*) (&rows), sizeof(typename Matrix::Index));
-    out.write((char*) (&cols), sizeof(typename Matrix::Index));
-    out.write((char*) matrix.data(), rows*cols*sizeof(typename Matrix::Scalar) );
-    out.close();
-}
-
-template<class Matrix>
-Matrix read_ddm(const char* filename) {
-    Matrix matrix;
-    std::ifstream in(filename,std::ios::in | std::ios::binary);
-    typename Matrix::Index rows=0, cols=0;
-    in.read((char*) (&rows),sizeof(typename Matrix::Index));
-    in.read((char*) (&cols),sizeof(typename Matrix::Index));
-    matrix.resize(rows, cols);
-    in.read( (char *) matrix.data() , rows*cols*sizeof(typename Matrix::Scalar) );
-    in.close();
-    return matrix;
-}
-
-inline Eigen::MatrixXd sparse_to_dense(SparseBinaryMatrix &in)
-{
-    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
-    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = 1.;
-    return out;
-}
-
-inline Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in)
-{
-    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
-    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
-    return out;
-}
-
-typedef Eigen::VectorXd VectorNd;
-typedef Eigen::MatrixXd MatrixNNd;
-typedef Eigen::ArrayXd ArrayNd;
-
-typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 inline void die(std::string message) {
     throw std::runtime_error(std::string("[ERROR]: ") + message +  "\n");
