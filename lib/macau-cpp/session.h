@@ -52,7 +52,7 @@ struct Config {
     std::string col_prior = "default";
 
     //-- output
-    std::string output_prefix;
+    std::string output_prefix = "save";
 
     //-- general
     bool verbose              = false;

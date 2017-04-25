@@ -199,6 +199,7 @@ void MacauOnePrior<FType>::sample_lambda_beta() {
 
 template<class FType>
 void MacauOnePrior<FType>::savePriorInfo(std::string prefix) {
+  prefix += "-F" + std::to_string(pos);
   writeToCSVfile(prefix + "-latentmean.csv", mu);
   writeToCSVfile(prefix + "-link.csv", beta);
 }

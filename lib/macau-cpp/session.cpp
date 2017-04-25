@@ -128,8 +128,8 @@ void Session::step() {
     BaseSession::step();
     auto endi = tick();
 
-    save(iter - config.burnin);
     printStatus(endi - starti);
+    save(iter - config.burnin);
     iter++;
 }
 
@@ -410,7 +410,7 @@ void Session::printStatus(double elapsedi) {
 
 void Session::save(int isample) {
     if (!config.output_freq || isample < 0) return;
-    if ((isample % config.output_freq) != 0) return;
+    if (((isample+1) % config.output_freq) != 0) return;
     string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
     model->save(fprefix);
     pred.save(fprefix);
