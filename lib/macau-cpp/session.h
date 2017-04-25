@@ -52,7 +52,7 @@ struct Config {
     std::string col_prior = "default";
 
     //-- output
-    std::string output_prefix;
+    std::string output_prefix = "save";
 
     //-- general
     bool verbose              = false;
@@ -133,7 +133,7 @@ class Session : public BaseSession {
       std::ostream &printInitStatus(std::ostream &, std::string indent) override;
 
    private:
-      void saveModel(int isample);
+      void save(int isample);
       void printStatus(double elapsedi);
 };
 
