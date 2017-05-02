@@ -252,16 +252,6 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
 
 bool Config::validate(bool throw_error) const 
 {
-    auto validate_matrix_file = [](std::string fname) {
-        if (fname.size()  == 0) return;
-        die_unless_file_exists(fname);
-        std::set<std::string> matrix_file_extensions = { ".sbm", ".sdm", ".ddm" };
-        std::string extension = fname.substr(fname.size() - 4);
-        if (matrix_file_extensions.find(extension) == matrix_file_extensions.end()) {
-            die("Unknown extension: " + extension + " of filename: " + fname);
-        }
-    };
-
     if (!fname_train.size() && !config_train.rows) die("Missing train matrix");
     if (fname_train.size() && config_train.rows) die("Provided both input train pointer and input train file");
 
@@ -280,8 +270,8 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
-    validate_matrix_file(fname_train);
-    validate_matrix_file(fname_test);
+    if (!is_matrix_file(fname_row_model)) die("Not a matrix file " + fname_row_model);
+    if (!is_matrix_file(fname_col_model)) die("Not a matrix file " + fname_col_model);
 
     if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
         die("Train and test matrix should have the same number of rows");
@@ -309,8 +299,8 @@ void Session::setFromConfig(const Config &c)
             Ytrain = to_eigen(*read_sdm(config.fname_train.c_str()));
         } else {
             auto &i = config.config_train;
-            Ytrain.resize(i.nrows, i.ncols);
-            sparseFromIJV(Ytrain, i.rows, i.cols, i.values, i.N);
+            SparseDoubleMatrix S = {i.nrows, i.ncols, i.N, i.rows, i.cols, i.values};
+            Ytrain = to_eigen(S);
         }
 
         MF<SparseMatrixD> *model;
@@ -367,9 +357,8 @@ void Session::setFromConfig(const Config &c)
         }
     } else if (config.config_test.nrows > 0) {
          auto &i = config.config_train;
-         SparseMatrixD predictions(i.nrows, i.ncols);
-         sparseFromIJV(predictions, i.rows, i.cols, i.values, i.N);
-         pred.set(predictions);
+         SparseDoubleMatrix S = {i.nrows, i.ncols, i.N, i.rows, i.cols, i.values};
+         pred.set(to_eigen(S));
     }
 
     add_prior(*this, config.col_prior, config.fname_col_features, config.lambda_beta, config.tol, config.direct);

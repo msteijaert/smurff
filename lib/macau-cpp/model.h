@@ -105,8 +105,6 @@ struct MF : public Model {
     int Ynnz()    const override { return Y.nonZeros(); }
 
     void setRelationData(YType Y);
-    void setRelationData(SparseDoubleMatrix &Y);
-    void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
 
     double var_total() const override;
     double sumsq() const override;

@@ -298,17 +298,6 @@ double MF<SparseMatrixD>::sumsq() const {
     return sumsq;
 }
 
-template<>
-void MF<SparseMatrixD>::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    Y.resize(nrows, ncols);
-    sparseFromIJV(Y, rows, cols, values, N);
-}
-
-template<>
-void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
-    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
-}
-
 //
 //-- SparseMF specific stuff
 //

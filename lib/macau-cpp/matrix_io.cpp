@@ -1,68 +1,23 @@
-
+#include <set>
+#include <cstdlib>
+#include "utils.h"
 #include "matrix_io.h"
 
-struct sparse_vec_iterator {
-    sparse_vec_iterator(int *rows, int *cols, uint64_t pos)
-        : rows(rows), cols(cols), vals(0), fixed_val(1.0), pos(pos) {}
-    sparse_vec_iterator(int *rows, int *cols, double *vals, uint64_t pos)
-        : rows(rows), cols(cols), vals(vals), fixed_val(NAN), pos(pos) {}
-    sparse_vec_iterator(int *rows, int *cols, double fixed_val, uint64_t pos)
-        : rows(rows), cols(cols), vals(0), fixed_val(fixed_val), pos(pos) {}
-
-    int *rows, *cols;
-    double *vals; // can be null pointer -> use fixed value
-    double fixed_val;
-    int pos;
-    bool operator!=(const sparse_vec_iterator &other) const { 
-        assert(rows == other.rows);
-        assert(cols == other.cols);
-        assert(vals == other.vals);
-        return pos != other.pos;
-    }
-    sparse_vec_iterator &operator++() { pos++; return *this; }
-    typedef Eigen::Triplet<double> T;
-    T v;
-    T* operator->() {
-        // also convert from 1-base to 0-base
-        uint32_t row = rows[pos];
-        uint32_t col = cols[pos];
-        double val = vals ? vals[pos] : 1.0;
-        v = T(row, col, val);
-        return &v;
-    }
-};
-
-
-void sparseFromIJV(Eigen::SparseMatrix<double> &X, int* rows, int* cols, double* values, int N) {
-    sparse_vec_iterator begin(rows, cols, values, 0);
-    sparse_vec_iterator end(rows, cols, values, N);
-    X.setFromTriplets(begin, end);
-}
-
-void sparseFromIJ(Eigen::SparseMatrix<double> &X, int* rows, int* cols, int N) {
-    sparse_vec_iterator begin(rows, cols, 1.0, 0);
-    sparse_vec_iterator end  (rows, cols, 1.0, N);
-    X.setFromTriplets(begin, end);
-}
-
-Eigen::SparseMatrix<double> to_eigen(SparseDoubleMatrix &Y) 
-{
-    Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
-    sparseFromIJV(out, Y.rows, Y.cols, Y.vals, Y.nnz);
-    return out;
-}
-
-Eigen::SparseMatrix<double> to_eigen(SparseBinaryMatrix &Y) 
-{
-   Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
-   sparseFromIJ(out, Y.rows, Y.cols, Y.nnz);
-   return out;
-}
+const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
 
 void writeToCSVfile(std::string filename, Eigen::MatrixXd matrix) {
-  const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
   std::ofstream file(filename.c_str());
   file << matrix.format(csvFormat);
+}
+
+void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
+    std::ifstream file(filename.c_str());
+    std::string line;
+    while (getline(file, line)) {
+        std::stringstream lineStream(line);
+        std::string cell;
+        while (std::getline(lineStream, cell, ',')) matrix << strtod(cell.c_str(), NULL);
+    }
 }
 
 std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
@@ -94,3 +49,44 @@ Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in)
     for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
     return out;
 }
+
+static std::set<std::string> compact_matrix_file_extensions = { ".sbm", ".sdm", ".ddm" };
+static std::set<std::string> txt_matrix_file_extensions = { ".mtx", ".mm", ".csv" };
+static std::set<std::string> matrix_file_extensions = { ".sbm", ".sdm", ".ddm", ".mtx", ".mm", ".csv" };
+static std::set<std::string> sparse_file_extensions = { ".sbm", ".sdm", ".mtx", ".mm" };
+
+bool extension_in(std::string fname, const std::set<std::string> &extensions, bool = false);
+
+bool is_matrix_file(std::string fname) {
+    if (fname.size()  == 0) return false;
+    if (!file_exists(fname)) return false;
+    return extension_in(fname, matrix_file_extensions);
+}
+
+bool extension_in(std::string fname, const std::set<std::string> &extensions, bool die_if_not_found)
+{
+    std::string extension = fname.substr(fname.size() - 4);
+    if (extensions.find(extension) != extensions.end()) return true;
+    if (die_if_not_found) {
+          die("Unknown extension: " + extension + " of filename: " + fname);
+    }
+    return false;
+}
+
+bool is_sparse_file(std::string fname) {
+    return file_exists(fname) && extension_in(fname, sparse_file_extensions);
+}
+
+bool is_sparse_binary_file(std::string fname) {
+    return file_exists(fname) && extension_in(fname, { ".sbm" });
+}
+
+bool is_dense_file(std::string fname) {
+    return !is_sparse_file(fname);
+}
+
+bool is_compact_file(std::string fname) {
+    return file_exists(fname) && extension_in(fname, compact_matrix_file_extensions);
+}
+
+
