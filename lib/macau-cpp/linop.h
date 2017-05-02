@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include "chol.h"
 #include "utils.h"
+#include "matrix_io.h"
 
 template<typename T>
 void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess);
@@ -16,6 +17,7 @@ void At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
 
 Eigen::VectorXd col_square_sum(SparseFeat & A);
 Eigen::VectorXd col_square_sum(SparseDoubleFeat & A);
+Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A);
 
 template<typename T>
 void compute_uhat(Eigen::MatrixXd & uhat, T & feat, Eigen::MatrixXd & beta);
@@ -61,6 +63,8 @@ void A_mul_B(  Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B);
 void A_mul_B(  Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B);
+void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
+void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
 
 
 void makeSymmetric(Eigen::MatrixXd & A);
@@ -99,6 +103,10 @@ inline void At_mul_Bt(Eigen::VectorXd & Y, SparseDoubleFeat & X, const int col, 
   }
 }
 
+inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) {
+    not_implemented(__PRETTY_FUNCTION__);
+}
+
 // computes Z += A[:,col] * b', where a and b are vectors
 inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseFeat & A, const int col, Eigen::VectorXd & b) {
   const int* cols = A.Mt.cols;
@@ -127,6 +135,11 @@ inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseDoubleFeat & A, const int
       Z(d, c) += v * b(d);
     }
   }
+}
+//
+// computes Z += A[:,col] * b', where a and b are vectors
+inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int col, Eigen::VectorXd & b) {
+    not_implemented(__PRETTY_FUNCTION__);
 }
 
 ///////////////////////////////////

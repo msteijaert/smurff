@@ -5,4 +5,4 @@ from scipy.sparse import random
 
 Y = random(300,400)
 
-macau.bpmf(Y, verbose = True)
+print macau.bpmf(Y, nsamples = 10, burnin = 10, verbose = True)

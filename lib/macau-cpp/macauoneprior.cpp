@@ -198,12 +198,14 @@ void MacauOnePrior<FType>::sample_lambda_beta() {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-latentmean.csv", mu);
-  writeToCSVfile(prefix + "-link.csv", beta);
+void MacauOnePrior<FType>::savePriorInfo(std::string prefix, std::string suffix) {
+  prefix += "-F" + std::to_string(pos);
+  write_dense(prefix + "-latentmean" + suffix, mu);
+  write_dense(prefix + "-link" + suffix, beta);
 }
 
 template class MacauOnePrior<SparseFeat>;
 template class MacauOnePrior<SparseDoubleFeat>;
+template class MacauOnePrior<Eigen::MatrixXd>;
 
 } // end namespace Macau

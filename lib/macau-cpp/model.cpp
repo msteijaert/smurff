@@ -31,28 +31,28 @@ namespace Macau {
 
 int Model::num_latent = -1;
 
-void Predictions::set(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+void Result::set(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     for(int i=0; i<N; ++i) {
-        Ytest.push_back({rows[i], cols[i], values[i]});
+        predictions.push_back({rows[i], cols[i], values[i]});
     }
     this->nrows = nrows;
     this->ncols = ncols;
     init();
 }
  
-void Predictions::set(SparseDoubleMatrix &Y) {
+void Result::set(SparseDoubleMatrix &Y) {
     for(unsigned i=0; i<Y.nnz; ++i) {
-        Ytest.push_back({Y.rows[i], Y.cols[i], Y.vals[i]});
+        predictions.push_back({Y.rows[i], Y.cols[i], Y.vals[i]});
     }
     nrows = Y.nrow;
     ncols = Y.ncol;
     init();
 }
 
-void Predictions::set(SparseMatrixD Y) {
+void Result::set(SparseMatrixD Y) {
     for (int k = 0; k < Y.outerSize(); ++k) {
         for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
-            Ytest.push_back({(int)it.row(), (int)it.col(), it.value()});
+            predictions.push_back({(int)it.row(), (int)it.col(), it.value()});
         }
     }
     nrows = Y.rows();
@@ -60,10 +60,10 @@ void Predictions::set(SparseMatrixD Y) {
     init();
 }
 
-void Predictions::init() {
+void Result::init() {
     total_pos = 0;
     if (classify) {
-        for(auto &t : Ytest) {
+        for(auto &t : predictions) {
             int is_positive = t.val > threshold;
             total_pos += is_positive;
         }
@@ -71,13 +71,13 @@ void Predictions::init() {
 }
 
 //--- output model to files
-
-void Predictions::save(std::string save_prefix) {
+void Result::save(std::string save_prefix) {
+    if (predictions.empty()) return;
     std::string fname_pred = save_prefix + "-predictions.csv";
     std::ofstream predfile;
     predfile.open(fname_pred);
     predfile << "row,col,y,y_pred,y_pred_std\n";
-    for ( auto &t : Ytest) {
+    for ( auto &t : predictions) {
         predfile
                 << to_string( t.row  )
          << "," << to_string( t.col  )
@@ -87,29 +87,28 @@ void Predictions::save(std::string save_prefix) {
          << "\n";
     }
     predfile.close();
-    printf("Saved predictions into '%s'.\n", fname_pred.c_str());
 
 }
 
-void Model::save(std::string save_prefix) {
+void Model::save(std::string save_prefix, std::string suffix) {
     int i = 0;
     for(auto &U : factors) {
-        writeToCSVfile(save_prefix + "-U" + std::to_string(i++) + "-latents.csv", U);
+        write_dense(save_prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 
 ///--- update RMSE and AUC
 
-void Predictions::update(const Model &model, bool burnin)
+void Result::update(const Model &model, bool burnin)
 {
-    if (Ytest.size() == 0) return;
-    const unsigned N = Ytest.size();
+    if (predictions.size() == 0) return;
+    const unsigned N = predictions.size();
 
     if (burnin) {
         double se = 0.0;
 #pragma omp parallel for schedule(guided) reduction(+:se)
-        for(unsigned k=0; k<Ytest.size(); ++k) {
-            auto &t = Ytest[k];
+        for(unsigned k=0; k<predictions.size(); ++k) {
+            auto &t = predictions[k];
             t.pred = model.predict(t.row, t.col);
             se += square(t.val - t.pred);
             burnin_iter++;
@@ -118,8 +117,8 @@ void Predictions::update(const Model &model, bool burnin)
     } else {
         double se = 0.0, se_avg = 0.0;
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
-        for(unsigned k=0; k<Ytest.size(); ++k) {
-            auto &t = Ytest[k];
+        for(unsigned k=0; k<predictions.size(); ++k) {
+            auto &t = predictions[k];
             const double pred = model.predict(t.row, t.col);
             se += square(t.val - pred);
             double delta = pred - t.pred;
@@ -139,16 +138,16 @@ void Predictions::update(const Model &model, bool burnin)
 }
 
 
-void Predictions::update_auc()
+void Result::update_auc()
 {
     if (!classify) return;
-    std::sort(Ytest.begin(), Ytest.end(),
+    std::sort(predictions.begin(), predictions.end(),
             [this](const Item &a, const Item &b) { return a.pred < b.pred;});
 
     int num_positive = 0;
     int num_negative = 0;
     auc = .0;
-    for(auto &t : Ytest) {
+    for(auto &t : predictions) {
         int is_positive = t.val > threshold;
         int is_negative = !is_positive; 
         num_positive += is_positive;
@@ -169,16 +168,16 @@ std::ostream &Model::printInitStatus(std::ostream &os, std::string indent)
     return os;
 }
 
-std::ostream &Predictions::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &Result::printInitStatus(std::ostream &os, std::string indent)
 {
-    if (Ytest.size()) {
-        double test_fill_rate = 100. * Ytest.size() / nrows / ncols;
-        os << indent << "Test data: " << Ytest.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
+    if (predictions.size()) {
+        double test_fill_rate = 100. * predictions.size() / nrows / ncols;
+        os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
     } else {
         os << indent << "Test data: -\n";
     }
     if (classify) {
-        double pos = 100. * (double)total_pos / (double)Ytest.size();
+        double pos = 100. * (double)total_pos / (double)predictions.size();
         os << indent << "Binary classification threshold: " << threshold << "\n";
         os << indent << "  " << pos << "% positives in test data\n";
     }
@@ -297,17 +296,6 @@ double MF<SparseMatrixD>::sumsq() const {
     }
 
     return sumsq;
-}
-
-template<>
-void MF<SparseMatrixD>::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    Y.resize(nrows, ncols);
-    sparseFromIJV(Y, rows, cols, values, N);
-}
-
-template<>
-void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
-    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
 
 //

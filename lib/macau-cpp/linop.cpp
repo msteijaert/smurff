@@ -299,7 +299,7 @@ void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   for (int i = 0; i < n; i++) {
     for (int j = i; j < n; j++) {
       double tmp = 0;
-      for (int k = 0; k < nthreads(); k++) {
+      for (int k = 0; k <thread_limit(); k++) {
         tmp += Ys[k](j, i);
       }
       out(j, i) = tmp;
@@ -380,3 +380,14 @@ Eigen::VectorXd col_square_sum(SparseDoubleFeat & A) {
   }
   return out;
 }
+
+Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A) {
+  const int ncol = A.cols();
+  VectorXd out(ncol);
+#pragma omp parallel for schedule(static)
+  for (int col = 0; col < ncol; col++) {
+    out(col) = (A.col(col+1) - A.col(col)).sum();
+  }
+  return out;
+}
+

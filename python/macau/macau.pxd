@@ -2,6 +2,19 @@ from libcpp cimport bool
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
+cdef extern from "model.h" namespace "Macau":
+    cdef cppclass Result:
+        cppclass Item:
+            int row, col
+            double val, pred, var, stds
+
+        vector[Item] predictions
+        int nrows, ncols
+
+        double rmse_avg
+        double rmse
+        double auc
+
 cdef extern from "session.h" namespace "Macau":
     cdef cppclass MatrixConfig:
         MatrixConfig()
@@ -55,9 +68,12 @@ cdef extern from "session.h" namespace "Macau":
         bool classify             
         double threshold
 
+
+
     cdef cppclass PythonSession:
         PythonSession()
         void setFromConfig(Config)
         void step()
         void init()
+        Result pred
 

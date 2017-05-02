@@ -5,19 +5,20 @@
 #include <Eigen/Sparse>
 #include <memory>
 
+#include "matrix_io.h"
 #include "utils.h"
 
 namespace Macau {
 
 struct Model;
 
-struct Predictions {
+struct Result {
     //-- test set
     struct Item {
         int row, col;
         double val, pred, var, stds;
     };
-    std::vector<Item> Ytest;
+    std::vector<Item> predictions;
     int nrows, ncols;
     void set(int* rows, int* cols, double* values, int N, int nrows, int ncols);
     void set(SparseDoubleMatrix &Y);
@@ -75,7 +76,7 @@ struct Model {
     virtual void update_pnm(int) = 0;
  
     //-- output to file
-    void save(std::string);
+    void save(std::string, std::string);
     std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
@@ -104,8 +105,6 @@ struct MF : public Model {
     int Ynnz()    const override { return Y.nonZeros(); }
 
     void setRelationData(YType Y);
-    void setRelationData(SparseDoubleMatrix &Y);
-    void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
 
     double var_total() const override;
     double sumsq() const override;

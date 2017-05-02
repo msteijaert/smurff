@@ -33,7 +33,8 @@ void MacauPrior<FType>::init()
 {
     NormalPrior::init();
 
-    assert((F->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
+    assert((F->rows() == num_cols()) && 
+            "Number of rows in train must be equal to number of rows in features");
 
     if (use_FtF) {
         FtF.resize(F->cols(), F->cols());
@@ -103,33 +104,65 @@ void MacauPrior<FType>::compute_Ft_y_omp(MatrixXd &Ft_y) {
 /** Update beta and Uhat */
 template<class FType>
 void MacauPrior<FType>::sample_beta() {
+    if (use_FtF) sample_beta_direct();
+    else         sample_beta_cg();
+}
+
+// specialization for dense matrices --> always direct method */
+template<>
+void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg() {
+    not_implemented("Dense Matrix requires direct method");
+}
+
+// direct method
+template<class FType>
+void MacauPrior<FType>::sample_beta_direct() {
     MatrixXd Ft_y;
     this->compute_Ft_y_omp(Ft_y);
+    MatrixXd K(FtF.rows(), FtF.cols());
+    K.triangularView<Eigen::Lower>() = FtF;
+    K.diagonal().array() += lambda_beta;
+    chol_decomp(K);
+    chol_solve_t(K, Ft_y);
+    beta = Ft_y;
 
-    if (use_FtF) {
-        // direct method
-        MatrixXd K(FtF.rows(), FtF.cols());
-        K.triangularView<Eigen::Lower>() = FtF;
-        K.diagonal().array() += lambda_beta;
-        chol_decomp(K);
-        chol_solve_t(K, Ft_y);
-        beta = Ft_y;
-    } else {
-        // BlockCG solver
-        solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
-    }
+}
+
+// BlockCG solver
+template<class FType>
+void MacauPrior<FType>::sample_beta_cg() {
+    MatrixXd Ft_y;
+    this->compute_Ft_y_omp(Ft_y);
+    solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
 }
 
 template<class FType>
-void MacauPrior<FType>::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-latentmean.csv", this->mu);
-  writeToCSVfile(prefix + "-" + std::to_string(pos) + "-link.csv", this->beta);
+void MacauPrior<FType>::savePriorInfo(std::string prefix, std::string suffix) {
+  prefix += "-F" + std::to_string(pos);
+  write_dense(prefix + "-latentmean" + suffix, this->mu);
+  write_dense(prefix + "-link" + suffix, this->beta);
+}
+
+std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F) {
+    os << "SparseDouble [" << F.rows() << ", " << F.cols() << "]\n";
+    return os;
+}
+
+std::ostream &printSideInfo(std::ostream &os, const Eigen::MatrixXd &F) {
+    os << "DenseDouble [" << F.rows() << ", " << F.cols() << "]\n";
+    return os;
+}
+
+std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F) {
+    os << "SparseBinary [" << F.rows() << ", " << F.cols() << "]\n";
+    return os;
 }
 
 template<class FType>
 std::ostream &MacauPrior<FType>::printInitStatus(std::ostream &os, std::string indent) {
     NormalPrior::printInitStatus(os, indent);
-    os << indent << " SideInfo: [" << F->rows() << ", " << F->cols() << "]\n";
+    os << indent << " SideInfo: "; printSideInfo(os, *F); 
+    os << indent << " Method: " << (use_FtF ? "Cholesky Decompistion" : "CG Solver") << "\n"; 
     os << indent << " Tol: " << tol << "\n";
     os << indent << " LambdaBeta: " << lambda_beta << "\n";
     return os;
@@ -153,6 +186,7 @@ double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, do
 
 template class MacauPrior<SparseFeat>;
 template class MacauPrior<SparseDoubleFeat>;
+template class MacauPrior<Eigen::MatrixXd>;
 
 } // end namespace Macau
 
