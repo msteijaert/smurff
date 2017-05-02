@@ -71,8 +71,8 @@ void Result::init() {
 }
 
 //--- output model to files
-
 void Result::save(std::string save_prefix) {
+    if (predictions.empty()) return;
     std::string fname_pred = save_prefix + "-predictions.csv";
     std::ofstream predfile;
     predfile.open(fname_pred);

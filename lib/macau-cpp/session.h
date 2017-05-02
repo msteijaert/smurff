@@ -43,6 +43,7 @@ class BaseSession  {
       virtual void step();
 
       virtual std::ostream &printInitStatus(std::ostream &, std::string indent);
+      void save(std::string prefix, std::string suffix);
 
       std::string name;
 

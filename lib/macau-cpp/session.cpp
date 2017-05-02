@@ -385,9 +385,13 @@ void Session::save(int isample) {
     if (((isample+1) % config.output_freq) != 0) return;
     string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
     if (config.verbose) printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.output_suffix.c_str());
-    model->save(fprefix, config.output_suffix);
-    pred.save(fprefix);
-    for(auto &p : priors) p->savePriorInfo(fprefix, config.output_suffix);
+    BaseSession::save(fprefix, config.output_suffix);
+}
+
+void BaseSession::save(std::string prefix, std::string suffix) {
+    model->save(prefix, suffix);
+    pred.save(prefix);
+    for(auto &p : priors) p->savePriorInfo(prefix, suffix);
 }
 
 } // end namespace Macau

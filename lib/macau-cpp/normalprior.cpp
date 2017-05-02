@@ -208,6 +208,14 @@ std::ostream &MasterPrior<Prior>::printInitStatus(std::ostream &os, std::string 
 
 }
 
+template<class Prior>
+void MasterPrior<Prior>::savePriorInfo(std::string prefix, std::string suffix)
+{
+    Prior::savePriorInfo(prefix, suffix);
+    int i = 0;
+    for(auto &s : slaves) s.save(prefix + "-S" + to_string(i++), suffix);
+}
+ 
 template<typename P1, typename P2>
 std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
     a.first += b.first;

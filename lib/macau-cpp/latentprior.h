@@ -100,6 +100,7 @@ class MasterPrior : public Prior {
     Model& addSlave();
 
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
+    void savePriorInfo(std::string prefix, std::string suffix) override;
 
     double getLinkNorm() override;
 
