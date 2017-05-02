@@ -42,12 +42,9 @@ struct Config {
     std::string row_prior = "default";
     std::string col_prior = "default";
 
-    //-- intialize U
-    std::string fname_row_model;
-    std::string fname_col_model;
-
     //-- output
     std::string output_prefix = "save";
+    std::string output_suffix = ".csv";
 
     //-- general
     bool verbose              = false;

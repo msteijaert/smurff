@@ -34,7 +34,7 @@ class ILatentPrior {
       int num_cols();
       int num_sys() { return sessions.size(); }
 
-      virtual void savePriorInfo(std::string prefix) = 0;
+      virtual void savePriorInfo(std::string prefix, std::string suffix) = 0;
       virtual std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
       // work
@@ -82,7 +82,7 @@ class NormalPrior : public ILatentPrior {
     virtual const Eigen::VectorXd getMu(int) const { return mu; }
     void sample_latents() override;
     void sample_latent(int s, int n) override;
-    void savePriorInfo(std::string prefix) override;
+    void savePriorInfo(std::string prefix, std::string suffix) override;
 };
 
 template<class Prior>
@@ -113,7 +113,7 @@ class SlavePrior : public ILatentPrior {
     virtual ~SlavePrior() {}
 
     void sample_latent(int,int) override {};
-    void savePriorInfo(std::string prefix) override {}
+    void savePriorInfo(std::string prefix, std::string suffix) override {}
 };
 
 
@@ -149,7 +149,7 @@ class MacauPrior : public NormalPrior {
     virtual void sample_beta();
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
-    void savePriorInfo(std::string prefix) override;
+    void savePriorInfo(std::string prefix, std::string suffix) override;
     std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
 
   private:
@@ -205,7 +205,7 @@ class SpikeAndSlabPrior : public ILatentPrior {
     virtual ~SpikeAndSlabPrior() {}
     void init() override;
 
-    void savePriorInfo(std::string prefix) override {}
+    void savePriorInfo(std::string prefix, std::string suffix) override {}
     void sample_latents() override;
     void sample_latent(int s, int n) override;
 

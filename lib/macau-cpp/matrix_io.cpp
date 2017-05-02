@@ -32,11 +32,13 @@ std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
 }
 
 std::unique_ptr<SparseDoubleFeat> load_csr(const char* filename) {
-   struct SparseDoubleMatrix* A = read_sdm(filename);
-   SparseDoubleFeat* sf = new SparseDoubleFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols, A->vals);
-   delete A;
-   std::unique_ptr<SparseDoubleFeat> sf_ptr(sf);
-   return sf_ptr;
+    
+
+    struct SparseDoubleMatrix* A = read_sdm(filename);
+    SparseDoubleFeat* sf = new SparseDoubleFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols, A->vals);
+    delete A;
+    std::unique_ptr<SparseDoubleFeat> sf_ptr(sf);
+    return sf_ptr;
 }
 
 Eigen::MatrixXd sparse_to_dense(SparseBinaryMatrix &in)
@@ -104,6 +106,18 @@ void read_dense(std::string fname, Eigen::MatrixXd &X) {
     }
 }
 
+void write_dense(std::string fname, const Eigen::MatrixXd &X) {
+    assert(is_dense_file(fname));
+    std::string extension = fname.substr(fname.size() - 4);
+    if (extension == ".ddm") {
+        write_ddm(fname.c_str(), X);
+    } else if (extension == ".csv") {
+        writeToCSVfile(fname, X);
+    } else {
+        die("Unknown filename in write_dense: " + fname);
+    }
+}
+
 void write_ddm(std::string filename, const Eigen::MatrixXd& matrix) {
     std::ofstream out(filename,std::ios::out | std::ios::binary | std::ios::trunc);
     long rows = matrix.rows();
@@ -141,4 +155,3 @@ void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
         die("Unknown filename in read_sparse: " + fname);
     }
 }
-

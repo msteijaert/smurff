@@ -138,6 +138,7 @@ std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
     if (config.output_freq > 0) {
         os << indent << "  Save model: every " << config.output_freq << " iteration\n";
         os << indent << "  Output prefix: " << config.output_prefix << "\n";
+        os << indent << "  Output suffix: " << config.output_suffix << "\n";
     } else {
         os << indent << "  Save model: never\n";
     }
@@ -251,7 +252,6 @@ bool Config::validate(bool throw_error) const
     if (config_row_features.size() && fname_row_features.size()) die("Provided both row-features file and pointer");
     if (config_col_features.size() && fname_col_features.size()) die("Provided both col-features file and pointer");
 
-
     std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
     if (prior_names.find(row_prior) == prior_names.end()) die("Unknown row_prior " + row_prior);
@@ -259,14 +259,14 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
-    if (fname_row_model.size() && !is_matrix_file(fname_row_model)) die("Not a matrix file " + fname_row_model);
-    if (fname_row_model.size() && !is_matrix_file(fname_col_model)) die("Not a matrix file " + fname_col_model);
-
     if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
         die("Train and test matrix should have the same number of rows");
 
     if (config_test.cols > 0 && config_train.cols > 0 && config_test.cols != config_train.cols)
         die("Train and test matrix should have the same number of cols");
+
+    std::set<std::string> output_suffixes = { ".csv", ".ddm" };
+    if (output_suffixes.find(output_suffix) == output_suffixes.end()) die("Unknown output suffix: " + output_suffix);
 
     return true;
  }
@@ -384,10 +384,10 @@ void Session::save(int isample) {
     if (!config.output_freq || isample < 0) return;
     if (((isample+1) % config.output_freq) != 0) return;
     string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
-    if (config.verbose) printf("-- Saving model, predictions,... into '%s*.csv'.\n", fprefix.c_str());
-    model->save(fprefix);
+    if (config.verbose) printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.output_suffix.c_str());
+    model->save(fprefix, config.output_suffix);
     pred.save(fprefix);
-    for(auto &p : priors) p->savePriorInfo(fprefix);
+    for(auto &p : priors) p->savePriorInfo(fprefix, config.output_suffix);
 }
 
 } // end namespace Macau

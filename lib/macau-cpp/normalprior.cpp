@@ -163,8 +163,8 @@ void NormalPrior::sample_latent(int s, int n)
 
 }
 
-void NormalPrior::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-U" + std::to_string(pos) + "-latentmean.csv", mu);
+void NormalPrior::savePriorInfo(std::string prefix, std::string suffix) {
+  write_dense(prefix + "-U" + std::to_string(pos) + "-latentmean" + suffix, mu);
 }
 
 
@@ -238,6 +238,8 @@ void MasterPrior<Prior>::sample_latent(int s, int d) {
 
     // no slaves on slaves
     if (s>0) return;
+
+    // if s == 0 
     for(auto &slave : this->slaves) {
         auto &slave_prior = slave.priors.at(this->pos);
         slave_prior->U(s).col(d) = this->U(s).col(d);

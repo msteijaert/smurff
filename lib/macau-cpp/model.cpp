@@ -90,10 +90,10 @@ void Result::save(std::string save_prefix) {
 
 }
 
-void Model::save(std::string save_prefix) {
+void Model::save(std::string save_prefix, std::string suffix) {
     int i = 0;
     for(auto &U : factors) {
-        writeToCSVfile(save_prefix + "-U" + std::to_string(i++) + "-latents.csv", U);
+        write_dense(save_prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 

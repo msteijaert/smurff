@@ -137,10 +137,10 @@ void MacauPrior<FType>::sample_beta_cg() {
 }
 
 template<class FType>
-void MacauPrior<FType>::savePriorInfo(std::string prefix) {
+void MacauPrior<FType>::savePriorInfo(std::string prefix, std::string suffix) {
   prefix += "-F" + std::to_string(pos);
-  writeToCSVfile(prefix + "-latentmean.csv", this->mu);
-  writeToCSVfile(prefix + "-link.csv", this->beta);
+  write_dense(prefix + "-latentmean" + suffix, this->mu);
+  write_dense(prefix + "-link" + suffix, this->beta);
 }
 
 std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F) {

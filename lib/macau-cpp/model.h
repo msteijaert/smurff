@@ -76,7 +76,7 @@ struct Model {
     virtual void update_pnm(int) = 0;
  
     //-- output to file
-    void save(std::string);
+    void save(std::string, std::string);
     std::ostream &printInitStatus(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
