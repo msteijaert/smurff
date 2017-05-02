@@ -68,7 +68,7 @@ bool is_matrix_file(std::string fname) {
 
 bool extension_in(std::string fname, const std::set<std::string> &extensions, bool die_if_not_found)
 {
-    std::string extension = fname.substr(fname.size() - 4);
+    std::string extension = fname.substr(fname.find_last_of("."));
     if (extensions.find(extension) != extensions.end()) return true;
     if (die_if_not_found) {
           die("Unknown extension: " + extension + " of filename: " + fname);
@@ -126,7 +126,7 @@ void read_ddm(std::string filename, Eigen::MatrixXd &matrix) {
 
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
     assert(is_sparse_file(fname));
-    std::string extension = fname.substr(fname.size() - 4);
+    std::string extension = fname.substr(fname.find_last_of("."));
     if (extension == ".sdm") {
         auto sdm_ptr = read_sdm(fname.c_str());
         M = to_eigen(*sdm_ptr);
@@ -137,8 +137,8 @@ void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
         delete sbm_ptr;
     } else if (extension == ".mtx" || extension == ".mm") {
         loadMarket(M, fname.c_str());
+    } else  {
+        die("Unknown filename in read_sparse: " + fname);
     }
-
-    die("Unknown filename in read_dense: " + fname);
 }
 

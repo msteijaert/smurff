@@ -278,14 +278,13 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    bool train_is_sparse = (config.fname_train.size() && (config.fname_train.find(".sdm") != std::string::npos))
-        || (!config.config_train.dense);
+    bool train_is_sparse = is_sparse_file(config.fname_train) || (!config.config_train.dense);
 
     // Load main Y matrix file
     if (train_is_sparse) {
         SparseMatrixD Ytrain;
-        if (config.fname_train.size()) { 
-            Ytrain = to_eigen(*read_sdm(config.fname_train.c_str()));
+        if (config.fname_train.size()) {
+            read_sparse(config.fname_train, Ytrain);
         } else {
             Ytrain = to_eigen(config.config_train);
         }
