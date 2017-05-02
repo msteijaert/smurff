@@ -1,6 +1,6 @@
 MPICXX=mpicxx
 CXX=g++
-CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas 
+CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas  -fPIC
 #CXXFLAGS+=-fopenmp
 
 CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
