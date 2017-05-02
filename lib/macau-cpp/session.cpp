@@ -1,4 +1,3 @@
-
 #include <set>
 #include <iostream>
 #include <cassert>
@@ -183,22 +182,13 @@ template<class Prior>
 inline void add_features(MasterPrior<Prior> &p,  std::vector<std::string> fname_features)
 {
     for(auto &fname : fname_features) {
-        if (fname.find(".sdm") != std::string::npos) {
-            auto features = read_sdm(fname.c_str());
+        assert(is_matrix_file(fname));
+        if (is_sparse_file(fname)) {
             auto &slave_model = p.template addSlave<SparseDenseMF>();
-            slave_model.setRelationData(to_eigen(*features));
-            delete features;
-        } else if (fname.find(".sbm") != std::string::npos) {
-            auto features = read_sbm(fname.c_str());
-            auto &slave_model = p.template addSlave<SparseDenseMF>();
-            slave_model.setRelationData(to_eigen(*features));
-            delete features;
-        } else if (fname.find(".ddm") != std::string::npos) {
-            auto features = read_ddm<Eigen::MatrixXd>(fname.c_str());
-            auto &slave_model = p.template addSlave<DenseDenseMF>();
-            slave_model.setRelationData(features);
+            read_sparse(fname, slave_model.Y);
         } else {
-            throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname));
+            auto &slave_model = p.template addSlave<DenseDenseMF>();
+            read_dense(fname, slave_model.Y);
         }
     }
 }
@@ -224,16 +214,15 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
         if (prior_name == "macau" || prior_name == "macauone") {
             assert(fname_features.size() == 1);
             auto &fname = fname_features.at(0);
-            die_unless_file_exists(fname);
             if (fname.find(".sdm") != std::string::npos) {
-                auto features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname.c_str()));
+                auto features = load_csr(fname.c_str());
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
             } else if (fname.find(".sbm") != std::string::npos) {
                 auto features = load_bcsr(fname.c_str());
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
-            } else if (fname.find(".ddm") != std::string::npos) {
-                auto feature_matrix = read_ddm<MatrixXd>(fname.c_str());
-                auto features = std::unique_ptr<MatrixXd>(new MatrixXd(feature_matrix));
+            } else if (is_dense_file(fname)) {
+                auto features = std::unique_ptr<MatrixXd>(new MatrixXd);
+                read_dense(fname.c_str(), *features);
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, true);
             } else {
                 throw std::runtime_error("Train features file: expecing .sdm or .sbm, got " + std::string(fname));
@@ -270,8 +259,8 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
-    if (!is_matrix_file(fname_row_model)) die("Not a matrix file " + fname_row_model);
-    if (!is_matrix_file(fname_col_model)) die("Not a matrix file " + fname_col_model);
+    if (fname_row_model.size() && !is_matrix_file(fname_row_model)) die("Not a matrix file " + fname_row_model);
+    if (fname_row_model.size() && !is_matrix_file(fname_col_model)) die("Not a matrix file " + fname_col_model);
 
     if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
         die("Train and test matrix should have the same number of rows");
@@ -298,9 +287,7 @@ void Session::setFromConfig(const Config &c)
         if (config.fname_train.size()) { 
             Ytrain = to_eigen(*read_sdm(config.fname_train.c_str()));
         } else {
-            auto &i = config.config_train;
-            SparseDoubleMatrix S = {i.nrows, i.ncols, i.N, i.rows, i.cols, i.values};
-            Ytrain = to_eigen(S);
+            Ytrain = to_eigen(config.config_train);
         }
 
         MF<SparseMatrixD> *model;
@@ -320,16 +307,15 @@ void Session::setFromConfig(const Config &c)
             pred.set(predictions);
         }
         model->setRelationData(Ytrain);
-    } else if (config.fname_train.find(".ddm") != std::string::npos) {
+    } else {
         DenseDenseMF& model = denseDenseModel(config.num_latent);
-        auto Ytrain = read_ddm<MatrixXd>(config.fname_train.c_str());
+        auto Ytrain = model.Y;
+        read_dense(config.fname_train, Ytrain);
         if (config.test_split > .0) {
             auto predictions = extract(Ytrain, config.test_split);
             pred.set(predictions);
         }
         model.setRelationData(Ytrain);
-    } else {
-        die("Train data file: expecing .sdm or .ddm, got " + std::string(config.fname_train));
     }
 
     if (config.classify) pred.setThreshold(config.threshold);
@@ -355,10 +341,8 @@ void Session::setFromConfig(const Config &c)
             pred.set(*predictions);
             delete predictions;
         }
-    } else if (config.config_test.nrows > 0) {
-         auto &i = config.config_train;
-         SparseDoubleMatrix S = {i.nrows, i.ncols, i.N, i.rows, i.cols, i.values};
-         pred.set(to_eigen(S));
+    } else if (config.config_test.nrow > 0) {
+         pred.set(to_eigen(config.config_train));
     }
 
     add_prior(*this, config.col_prior, config.fname_col_features, config.lambda_beta, config.tol, config.direct);

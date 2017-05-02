@@ -13,6 +13,8 @@
 
 #include <dsparse.h>
 #include <csr.h>
+
+#include "config.h"
 #include "omp_util.h"
 
 struct sparse_vec_iterator {
@@ -25,6 +27,8 @@ struct sparse_vec_iterator {
     sparse_vec_iterator(const SparseDoubleMatrix &Y, int pos)
         : rows(Y.rows), cols(Y.cols), vals(Y.vals), fixed_val(NAN), pos(pos) {}
     sparse_vec_iterator(const SparseBinaryMatrix &Y, int pos)
+        : rows(Y.rows), cols(Y.cols), vals(0), fixed_val(1.0), pos(pos) {}
+    sparse_vec_iterator(const Macau::MatrixConfig &Y, int pos)
         : rows(Y.rows), cols(Y.cols), vals(0), fixed_val(1.0), pos(pos) {}
 
     int *rows, *cols;
@@ -123,40 +127,18 @@ void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix);
 std::unique_ptr<SparseFeat> load_bcsr(const char* filename);
 std::unique_ptr<SparseDoubleFeat> load_csr(const char* filename);
 
-template<class Matrix>
-void write_ddm(const char* filename, const Matrix& matrix){
-    std::ofstream out(filename,std::ios::out | std::ios::binary | std::ios::trunc);
-    typename Matrix::Index rows=matrix.rows(), cols=matrix.cols();
-    out.write((char*) (&rows), sizeof(typename Matrix::Index));
-    out.write((char*) (&cols), sizeof(typename Matrix::Index));
-    out.write((char*) matrix.data(), rows*cols*sizeof(typename Matrix::Scalar) );
-    out.close();
-}
-
-template<class Matrix>
-Matrix read_ddm(const char* filename) {
-    Matrix matrix;
-    std::ifstream in(filename,std::ios::in | std::ios::binary);
-    typename Matrix::Index rows=0, cols=0;
-    in.read((char*) (&rows),sizeof(typename Matrix::Index));
-    in.read((char*) (&cols),sizeof(typename Matrix::Index));
-    matrix.resize(rows, cols);
-    in.read( (char *) matrix.data() , rows*cols*sizeof(typename Matrix::Scalar) );
-    in.close();
-    return matrix;
-}
+void write_ddm(std::string filename, const Eigen::MatrixXd& matrix);
+void read_ddm(std::string filename, Eigen::MatrixXd &matrix);
 
 Eigen::MatrixXd sparse_to_dense(SparseBinaryMatrix &in);
 Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in);
-
-typedef Eigen::VectorXd VectorNd;
-typedef Eigen::MatrixXd MatrixNNd;
-typedef Eigen::ArrayXd ArrayNd;
-
-typedef Eigen::SparseMatrix<double> SparseMatrixD;
 
 bool is_matrix_file(std::string fname);
 bool is_sparse_file(std::string fname);
 bool is_sparse_binary_file(std::string fname);
 bool is_dense_file(std::string fname);
 bool is_compact_file(std::string fname);
+
+void read_dense(std::string fname, Eigen::MatrixXd &);
+void read_sparse(std::string fname, Eigen::SparseMatrix<double> &);
+

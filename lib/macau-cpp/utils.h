@@ -169,4 +169,10 @@ inline void die_unless_file_exists(std::string fname) {
     }
 }
 
+typedef Eigen::VectorXd VectorNd;
+typedef Eigen::MatrixXd MatrixNNd;
+typedef Eigen::ArrayXd ArrayNd;
+
+typedef Eigen::SparseMatrix<double> SparseMatrixD;
+
 
