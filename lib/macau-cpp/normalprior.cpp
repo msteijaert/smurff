@@ -23,7 +23,7 @@ ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
     : sessions(1, &m), pos(p), name(name), rrs(VectorNd::Zero(m.model->num_latent)),
                   MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent)) {} 
 
-std::ostream &ILatentPrior::printInitStatus(std::ostream &os, std::string indent) 
+std::ostream &ILatentPrior::info(std::ostream &os, std::string indent) 
 {
     os << indent << pos << ": " << name << "\n";
     return os;
@@ -163,7 +163,7 @@ void NormalPrior::sample_latent(int s, int n)
 
 }
 
-void NormalPrior::savePriorInfo(std::string prefix, std::string suffix) {
+void NormalPrior::save(std::string prefix, std::string suffix) {
   write_dense(prefix + "-U" + std::to_string(pos) + "-latentmean" + suffix, mu);
 }
 
@@ -198,20 +198,20 @@ void MasterPrior<Prior>::init()
 }
 
 template<class Prior>
-std::ostream &MasterPrior<Prior>::printInitStatus(std::ostream &os, std::string indent) 
+std::ostream &MasterPrior<Prior>::info(std::ostream &os, std::string indent) 
 {
-    Prior::printInitStatus(os, indent);
+    Prior::info(os, indent);
     os << indent << "with slaves {\n";
-    for(auto &s : slaves) s.printInitStatus(os, indent + "  ");
+    for(auto &s : slaves) s.info(os, indent + "  ");
     os << indent << "}\n";
     return os;
 
 }
 
 template<class Prior>
-void MasterPrior<Prior>::savePriorInfo(std::string prefix, std::string suffix)
+void MasterPrior<Prior>::save(std::string prefix, std::string suffix)
 {
-    Prior::savePriorInfo(prefix, suffix);
+    Prior::save(prefix, suffix);
     int i = 0;
     for(auto &s : slaves) s.save(prefix + "-S" + to_string(i++), suffix);
 }

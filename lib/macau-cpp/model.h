@@ -36,7 +36,7 @@ struct Result {
     // general
     void save(std::string fname_prefix);
     void init();
-    std::ostream &printInitStatus(std::ostream &os, std::string indent);
+    std::ostream &info(std::ostream &os, std::string indent);
 
     //-- for binary classification
     int total_pos;
@@ -77,7 +77,7 @@ struct Model {
  
     //-- output to file
     void save(std::string, std::string);
-    std::ostream &printInitStatus(std::ostream &os, std::string indent);
+    std::ostream &info(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
     double mean_rating = .0;

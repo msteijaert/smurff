@@ -159,7 +159,7 @@ void Result::update_auc()
     auc /= num_negative;
 }
 
-std::ostream &Model::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &Model::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
@@ -168,7 +168,7 @@ std::ostream &Model::printInitStatus(std::ostream &os, std::string indent)
     return os;
 }
 
-std::ostream &Result::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &Result::info(std::ostream &os, std::string indent)
 {
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;

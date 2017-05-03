@@ -80,19 +80,19 @@ void BaseSession::step() {
     noise->update();
 }
 
-std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent) {
+std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     os << indent << name << " {\n";
     os << indent << "  Priors: {\n";
-    for( auto &p : priors) p->printInitStatus(os, indent + "    ");
+    for( auto &p : priors) p->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Model: {\n";
-    model->printInitStatus(os, indent + "    ");
+    model->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Result: {\n";
-    pred.printInitStatus(os, indent + "    ");
+    pred.info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Noise: ";
-    noise->printInitStatus(os, "");
+    noise->info(os, "");
     return os;
 }
 
@@ -105,7 +105,7 @@ void Session::init() {
     init_bmrng();
     BaseSession::init();
     if (config.verbose) {
-        printInitStatus(std::cout, "");
+        info(std::cout, "");
         std::cout << "Sampling" << endl;
     }
     iter = 0;
@@ -132,8 +132,8 @@ void Session::step() {
     iter++;
 }
 
-std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
-    BaseSession::printInitStatus(os, indent);
+std::ostream &Session::info(std::ostream &os, std::string indent) {
+    BaseSession::info(os, indent);
     os << indent << "  Samples: " << config.burnin << " + " << config.nsamples << "\n";
     if (config.output_freq > 0) {
         os << indent << "  Save model: every " << config.output_freq << " iteration\n";
@@ -391,7 +391,7 @@ void Session::save(int isample) {
 void BaseSession::save(std::string prefix, std::string suffix) {
     model->save(prefix, suffix);
     pred.save(prefix);
-    for(auto &p : priors) p->savePriorInfo(prefix, suffix);
+    for(auto &p : priors) p->save(prefix, suffix);
 }
 
 } // end namespace Macau

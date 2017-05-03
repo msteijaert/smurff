@@ -42,7 +42,7 @@ class BaseSession  {
       void init();
       virtual void step();
 
-      virtual std::ostream &printInitStatus(std::ostream &, std::string indent);
+      virtual std::ostream &info(std::ostream &, std::string indent);
       void save(std::string prefix, std::string suffix);
 
       std::string name;
@@ -67,7 +67,7 @@ class Session : public BaseSession {
       void run();
       void step() override;
 
-      std::ostream &printInitStatus(std::ostream &, std::string indent) override;
+      std::ostream &info(std::ostream &, std::string indent) override;
 
    private:
       void save(int isample);
@@ -84,7 +84,7 @@ class MPISession : public CmdSession {
     MPISession() { name = "MPISession"; }
       
     void run();
-    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
+    std::ostream &info(std::ostream &os, std::string indent) override;
 
     int world_rank;
     int world_size;

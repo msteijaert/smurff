@@ -137,7 +137,7 @@ void MacauPrior<FType>::sample_beta_cg() {
 }
 
 template<class FType>
-void MacauPrior<FType>::savePriorInfo(std::string prefix, std::string suffix) {
+void MacauPrior<FType>::save(std::string prefix, std::string suffix) {
   prefix += "-F" + std::to_string(pos);
   write_dense(prefix + "-latentmean" + suffix, this->mu);
   write_dense(prefix + "-link" + suffix, this->beta);
@@ -159,8 +159,8 @@ std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F) {
 }
 
 template<class FType>
-std::ostream &MacauPrior<FType>::printInitStatus(std::ostream &os, std::string indent) {
-    NormalPrior::printInitStatus(os, indent);
+std::ostream &MacauPrior<FType>::info(std::ostream &os, std::string indent) {
+    NormalPrior::info(os, indent);
     os << indent << " SideInfo: "; printSideInfo(os, *F); 
     os << indent << " Method: " << (use_FtF ? "Cholesky Decompistion" : "CG Solver") << "\n"; 
     os << indent << " Tol: " << tol << "\n";

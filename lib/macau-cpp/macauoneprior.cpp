@@ -198,7 +198,7 @@ void MacauOnePrior<FType>::sample_lambda_beta() {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::savePriorInfo(std::string prefix, std::string suffix) {
+void MacauOnePrior<FType>::save(std::string prefix, std::string suffix) {
   prefix += "-F" + std::to_string(pos);
   write_dense(prefix + "-latentmean" + suffix, mu);
   write_dense(prefix + "-link" + suffix, beta);
