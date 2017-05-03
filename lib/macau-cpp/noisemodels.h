@@ -19,7 +19,7 @@ class INoiseModel {
     virtual void init()  = 0;
     virtual void update()  = 0;
 
-    virtual std::ostream &printInitStatus(std::ostream &os, std::string indent)   = 0;
+    virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
     virtual std::string getStatus()  = 0;
 
     virtual double getAlpha() = 0;
@@ -42,7 +42,7 @@ class FixedGaussianNoise : public INoiseModel {
     void update() override {}
     double getAlpha() override { return alpha; }
 
-    std::ostream &printInitStatus(std::ostream &os, std::string indent)  override;
+    std::ostream &info(std::ostream &os, std::string indent)  override;
     std::string getStatus() override { return std::string(""); }
 
     void setPrecision(double a) { alpha = a; }    
@@ -67,7 +67,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double getAlpha() override { return alpha; }
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }
-    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
+    std::ostream &info(std::ostream &os, std::string indent) override;
     std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
 };
 

@@ -137,10 +137,17 @@ void MacauPrior<FType>::sample_beta_cg() {
 }
 
 template<class FType>
-void MacauPrior<FType>::savePriorInfo(std::string prefix) {
-  prefix += "-F" + std::to_string(pos);
-  writeToCSVfile(prefix + "-latentmean.csv", this->mu);
-  writeToCSVfile(prefix + "-link.csv", this->beta);
+void MacauPrior<FType>::save(std::string prefix, std::string suffix) {
+    NormalPrior::save(prefix, suffix);
+    prefix += "-F" + std::to_string(pos);
+    write_dense(prefix + "-link" + suffix, this->beta);
+}
+
+template<class FType>
+void MacauPrior<FType>::restore(std::string prefix, std::string suffix) {
+    NormalPrior::restore(prefix, suffix);
+    prefix += "-F" + std::to_string(pos);
+    read_dense(prefix + "-link" + suffix, this->beta);
 }
 
 std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F) {
@@ -159,10 +166,10 @@ std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F) {
 }
 
 template<class FType>
-std::ostream &MacauPrior<FType>::printInitStatus(std::ostream &os, std::string indent) {
-    NormalPrior::printInitStatus(os, indent);
+std::ostream &MacauPrior<FType>::info(std::ostream &os, std::string indent) {
+    NormalPrior::info(os, indent);
     os << indent << " SideInfo: "; printSideInfo(os, *F); 
-    os << indent << " Method: " << (use_FtF ? "Cholesky Decompistion" : "CG Solver") << "\n"; 
+    os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << "\n"; 
     os << indent << " Tol: " << tol << "\n";
     os << indent << " LambdaBeta: " << lambda_beta << "\n";
     return os;

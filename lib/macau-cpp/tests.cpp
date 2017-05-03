@@ -491,10 +491,8 @@ TEST_CASE( "utils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
   int rows[3] = {0, 1, 2};
   int cols[3] = {2, 1, 0};
   double vals[3] = {1.0, 0.0, 2.0};
-  Eigen::SparseMatrix<double> Y;
-  Y.resize(3, 3);
-
-  sparseFromIJV(Y, rows, cols, vals, 3);
+  SparseDoubleMatrix S = {3, 3, 3, rows, cols, vals};
+  Eigen::SparseMatrix<double> Y = to_eigen(S);
   REQUIRE( Y.nonZeros() == 3 );
 }
 
@@ -504,7 +502,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   double vals[1] = {4.5};
   SparseMF model(2);
   Result p;
-  model.setRelationData(rows, cols, vals, 1, 1, 1);
+  SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
+  model.setRelationData(to_eigen(S));
   p.set(rows, cols, vals, 1, 1, 1);
   model.init();
   auto &t = p.predictions.at(0);

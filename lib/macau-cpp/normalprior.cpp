@@ -23,7 +23,7 @@ ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
     : sessions(1, &m), pos(p), name(name), rrs(VectorNd::Zero(m.model->num_latent)),
                   MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent)) {} 
 
-std::ostream &ILatentPrior::printInitStatus(std::ostream &os, std::string indent) 
+std::ostream &ILatentPrior::info(std::ostream &os, std::string indent) 
 {
     os << indent << pos << ": " << name << "\n";
     return os;
@@ -163,8 +163,12 @@ void NormalPrior::sample_latent(int s, int n)
 
 }
 
-void NormalPrior::savePriorInfo(std::string prefix) {
-  writeToCSVfile(prefix + "-U" + std::to_string(pos) + "-latentmean.csv", mu);
+void NormalPrior::save(std::string prefix, std::string suffix) {
+  write_dense(prefix + "-U" + std::to_string(pos) + "-latentmean" + suffix, mu);
+}
+
+void NormalPrior::restore(std::string prefix, std::string suffix) {
+  read_dense(prefix + "-U" + std::to_string(pos) + "-latentmean" + suffix, mu);
 }
 
 
@@ -198,16 +202,32 @@ void MasterPrior<Prior>::init()
 }
 
 template<class Prior>
-std::ostream &MasterPrior<Prior>::printInitStatus(std::ostream &os, std::string indent) 
+std::ostream &MasterPrior<Prior>::info(std::ostream &os, std::string indent) 
 {
-    Prior::printInitStatus(os, indent);
+    Prior::info(os, indent);
     os << indent << "with slaves {\n";
-    for(auto &s : slaves) s.printInitStatus(os, indent + "  ");
+    for(auto &s : slaves) s.info(os, indent + "  ");
     os << indent << "}\n";
     return os;
 
 }
 
+template<class Prior>
+void MasterPrior<Prior>::save(std::string prefix, std::string suffix)
+{
+    Prior::save(prefix, suffix);
+    int i = 0;
+    for(auto &s : slaves) s.save(prefix + "-S" + to_string(i++), suffix);
+}
+
+template<class Prior>
+void MasterPrior<Prior>::restore(std::string prefix, std::string suffix)
+{
+    Prior::restore(prefix, suffix);
+    int i = 0;
+    for(auto &s : slaves) s.restore(prefix + "-S" + to_string(i++), suffix);
+}
+ 
 template<typename P1, typename P2>
 std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
     a.first += b.first;
@@ -238,6 +258,8 @@ void MasterPrior<Prior>::sample_latent(int s, int d) {
 
     // no slaves on slaves
     if (s>0) return;
+
+    // if s == 0 
     for(auto &slave : this->slaves) {
         auto &slave_prior = slave.priors.at(this->pos);
         slave_prior->U(s).col(d) = this->U(s).col(d);

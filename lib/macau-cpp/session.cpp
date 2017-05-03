@@ -1,4 +1,3 @@
-
 #include <set>
 #include <iostream>
 #include <cassert>
@@ -81,19 +80,19 @@ void BaseSession::step() {
     noise->update();
 }
 
-std::ostream &BaseSession::printInitStatus(std::ostream &os, std::string indent) {
+std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     os << indent << name << " {\n";
     os << indent << "  Priors: {\n";
-    for( auto &p : priors) p->printInitStatus(os, indent + "    ");
+    for( auto &p : priors) p->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Model: {\n";
-    model->printInitStatus(os, indent + "    ");
+    model->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Result: {\n";
-    pred.printInitStatus(os, indent + "    ");
+    pred.info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Noise: ";
-    noise->printInitStatus(os, "");
+    noise->info(os, "");
     return os;
 }
 
@@ -105,8 +104,12 @@ void Session::init() {
     threads_init();
     init_bmrng();
     BaseSession::init();
+    if (config.restore_prefix.size()) {
+        if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
+        restore(config.restore_prefix, config.restore_suffix);
+    }
     if (config.verbose) {
-        printInitStatus(std::cout, "");
+        info(std::cout, "");
         std::cout << "Sampling" << endl;
     }
     iter = 0;
@@ -133,14 +136,19 @@ void Session::step() {
     iter++;
 }
 
-std::ostream &Session::printInitStatus(std::ostream &os, std::string indent) {
-    BaseSession::printInitStatus(os, indent);
-    os << indent << "  Samples: " << config.burnin << " + " << config.nsamples << "\n";
-    if (config.output_freq > 0) {
-        os << indent << "  Save model: every " << config.output_freq << " iteration\n";
-        os << indent << "  Output prefix: " << config.output_prefix << "\n";
+std::ostream &Session::info(std::ostream &os, std::string indent) {
+    BaseSession::info(os, indent);
+    os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
+    if (config.save_freq > 0) {
+        os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+        os << indent << "  Save prefix: " << config.save_prefix << "\n";
+        os << indent << "  Save suffix: " << config.save_suffix << "\n";
     } else {
         os << indent << "  Save model: never\n";
+    }
+    if (config.restore_prefix.size()) {
+        os << indent << "  Restore prefix: " << config.restore_prefix << "\n";
+        os << indent << "  Restore suffix: " << config.restore_suffix << "\n";
     }
     os << indent << "}\n";
     return os;
@@ -183,22 +191,13 @@ template<class Prior>
 inline void add_features(MasterPrior<Prior> &p,  std::vector<std::string> fname_features)
 {
     for(auto &fname : fname_features) {
-        if (fname.find(".sdm") != std::string::npos) {
-            auto features = read_sdm(fname.c_str());
+        assert(is_matrix_fname(fname));
+        if (is_sparse_fname(fname)) {
             auto &slave_model = p.template addSlave<SparseDenseMF>();
-            slave_model.setRelationData(to_eigen(*features));
-            delete features;
-        } else if (fname.find(".sbm") != std::string::npos) {
-            auto features = read_sbm(fname.c_str());
-            auto &slave_model = p.template addSlave<SparseDenseMF>();
-            slave_model.setRelationData(to_eigen(*features));
-            delete features;
-        } else if (fname.find(".ddm") != std::string::npos) {
-            auto features = read_ddm<Eigen::MatrixXd>(fname.c_str());
-            auto &slave_model = p.template addSlave<DenseDenseMF>();
-            slave_model.setRelationData(features);
+            read_sparse(fname, slave_model.Y);
         } else {
-            throw std::runtime_error("Train features file: expecing .ddm, .sdm or .sbm, got " + std::string(fname));
+            auto &slave_model = p.template addSlave<DenseDenseMF>();
+            read_dense(fname, slave_model.Y);
         }
     }
 }
@@ -224,16 +223,15 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
         if (prior_name == "macau" || prior_name == "macauone") {
             assert(fname_features.size() == 1);
             auto &fname = fname_features.at(0);
-            die_unless_file_exists(fname);
             if (fname.find(".sdm") != std::string::npos) {
-                auto features = std::unique_ptr<SparseDoubleFeat>(load_csr(fname.c_str()));
+                auto features = load_csr(fname.c_str());
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
             } else if (fname.find(".sbm") != std::string::npos) {
                 auto features = load_bcsr(fname.c_str());
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
-            } else if (fname.find(".ddm") != std::string::npos) {
-                auto feature_matrix = read_ddm<MatrixXd>(fname.c_str());
-                auto features = std::unique_ptr<MatrixXd>(new MatrixXd(feature_matrix));
+            } else if (is_dense_fname(fname)) {
+                auto features = std::unique_ptr<MatrixXd>(new MatrixXd);
+                read_dense(fname.c_str(), *features);
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, true);
             } else {
                 throw std::runtime_error("Train features file: expecing .sdm or .sbm, got " + std::string(fname));
@@ -252,16 +250,6 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
 
 bool Config::validate(bool throw_error) const 
 {
-    auto validate_matrix_file = [](std::string fname) {
-        if (fname.size()  == 0) return;
-        die_unless_file_exists(fname);
-        std::set<std::string> matrix_file_extensions = { ".sbm", ".sdm", ".ddm" };
-        std::string extension = fname.substr(fname.size() - 4);
-        if (matrix_file_extensions.find(extension) == matrix_file_extensions.end()) {
-            die("Unknown extension: " + extension + " of filename: " + fname);
-        }
-    };
-
     if (!fname_train.size() && !config_train.rows) die("Missing train matrix");
     if (fname_train.size() && config_train.rows) die("Provided both input train pointer and input train file");
 
@@ -272,7 +260,6 @@ bool Config::validate(bool throw_error) const
     if (config_row_features.size() && fname_row_features.size()) die("Provided both row-features file and pointer");
     if (config_col_features.size() && fname_col_features.size()) die("Provided both col-features file and pointer");
 
-
     std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
     if (prior_names.find(row_prior) == prior_names.end()) die("Unknown row_prior " + row_prior);
@@ -280,14 +267,14 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
-    validate_matrix_file(fname_train);
-    validate_matrix_file(fname_test);
-
     if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
         die("Train and test matrix should have the same number of rows");
 
     if (config_test.cols > 0 && config_train.cols > 0 && config_test.cols != config_train.cols)
         die("Train and test matrix should have the same number of cols");
+
+    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
+    if (save_suffixes.find(save_suffix) == save_suffixes.end()) die("Unknown output suffix: " + save_suffix);
 
     return true;
  }
@@ -299,18 +286,15 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    bool train_is_sparse = (config.fname_train.size() && (config.fname_train.find(".sdm") != std::string::npos))
-        || (!config.config_train.dense);
+    bool train_is_sparse = is_sparse_fname(config.fname_train) || (!config.config_train.dense);
 
     // Load main Y matrix file
     if (train_is_sparse) {
         SparseMatrixD Ytrain;
-        if (config.fname_train.size()) { 
-            Ytrain = to_eigen(*read_sdm(config.fname_train.c_str()));
+        if (config.fname_train.size()) {
+            read_sparse(config.fname_train, Ytrain);
         } else {
-            auto &i = config.config_train;
-            Ytrain.resize(i.nrows, i.ncols);
-            sparseFromIJV(Ytrain, i.rows, i.cols, i.values, i.N);
+            Ytrain = to_eigen(config.config_train);
         }
 
         MF<SparseMatrixD> *model;
@@ -330,16 +314,15 @@ void Session::setFromConfig(const Config &c)
             pred.set(predictions);
         }
         model->setRelationData(Ytrain);
-    } else if (config.fname_train.find(".ddm") != std::string::npos) {
+    } else {
         DenseDenseMF& model = denseDenseModel(config.num_latent);
-        auto Ytrain = read_ddm<MatrixXd>(config.fname_train.c_str());
+        auto Ytrain = model.Y;
+        read_dense(config.fname_train, Ytrain);
         if (config.test_split > .0) {
             auto predictions = extract(Ytrain, config.test_split);
             pred.set(predictions);
         }
         model.setRelationData(Ytrain);
-    } else {
-        die("Train data file: expecing .sdm or .ddm, got " + std::string(config.fname_train));
     }
 
     if (config.classify) pred.setThreshold(config.threshold);
@@ -365,11 +348,8 @@ void Session::setFromConfig(const Config &c)
             pred.set(*predictions);
             delete predictions;
         }
-    } else if (config.config_test.nrows > 0) {
-         auto &i = config.config_train;
-         SparseMatrixD predictions(i.nrows, i.ncols);
-         sparseFromIJV(predictions, i.rows, i.cols, i.values, i.N);
-         pred.set(predictions);
+    } else if (config.config_test.nrow > 0) {
+         pred.set(to_eigen(config.config_train));
     }
 
     add_prior(*this, config.col_prior, config.fname_col_features, config.lambda_beta, config.tol, config.direct);
@@ -409,12 +389,22 @@ void Session::printStatus(double elapsedi) {
 }
 
 void Session::save(int isample) {
-    if (!config.output_freq || isample < 0) return;
-    if (((isample+1) % config.output_freq) != 0) return;
-    string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
-    model->save(fprefix);
-    pred.save(fprefix);
-    for(auto &p : priors) p->savePriorInfo(fprefix);
+    if (!config.save_freq || isample < 0) return;
+    if (((isample+1) % config.save_freq) != 0) return;
+    string fprefix = config.save_prefix + "-sample-" + std::to_string(isample);
+    if (config.verbose) printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.save_suffix.c_str());
+    BaseSession::save(fprefix, config.save_suffix);
+}
+
+void BaseSession::save(std::string prefix, std::string suffix) {
+    model->save(prefix, suffix);
+    pred.save(prefix);
+    for(auto &p : priors) p->save(prefix, suffix);
+}
+
+void BaseSession::restore(std::string prefix, std::string suffix) {
+    model->restore(prefix, suffix);
+    for(auto &p : priors) p->restore(prefix, suffix);
 }
 
 } // end namespace Macau

@@ -71,9 +71,9 @@ void Result::init() {
 }
 
 //--- output model to files
-
-void Result::save(std::string save_prefix) {
-    std::string fname_pred = save_prefix + "-predictions.csv";
+void Result::save(std::string prefix) {
+    if (predictions.empty()) return;
+    std::string fname_pred = prefix + "-predictions.csv";
     std::ofstream predfile;
     predfile.open(fname_pred);
     predfile << "row,col,y,y_pred,y_pred_std\n";
@@ -87,14 +87,20 @@ void Result::save(std::string save_prefix) {
          << "\n";
     }
     predfile.close();
-    printf("Saved predictions into '%s'.\n", fname_pred.c_str());
 
 }
 
-void Model::save(std::string save_prefix) {
+void Model::save(std::string prefix, std::string suffix) {
     int i = 0;
     for(auto &U : factors) {
-        writeToCSVfile(save_prefix + "-U" + std::to_string(i++) + "-latents.csv", U);
+        write_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
+    }
+}
+
+void Model::restore(std::string prefix, std::string suffix) {
+    int i = 0;
+    for(auto &U : factors) {
+        read_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 
@@ -160,7 +166,7 @@ void Result::update_auc()
     auc /= num_negative;
 }
 
-std::ostream &Model::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &Model::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
@@ -169,7 +175,7 @@ std::ostream &Model::printInitStatus(std::ostream &os, std::string indent)
     return os;
 }
 
-std::ostream &Result::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &Result::info(std::ostream &os, std::string indent)
 {
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
@@ -297,17 +303,6 @@ double MF<SparseMatrixD>::sumsq() const {
     }
 
     return sumsq;
-}
-
-template<>
-void MF<SparseMatrixD>::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-    Y.resize(nrows, ncols);
-    sparseFromIJV(Y, rows, cols, values, N);
-}
-
-template<>
-void MF<SparseMatrixD>::setRelationData(SparseDoubleMatrix &Y) {
-    setRelationData(Y.rows, Y.cols, Y.vals, Y.nnz, Y.nrow, Y.ncol);
 }
 
 //

@@ -5,6 +5,7 @@
 #include <Eigen/Sparse>
 #include <memory>
 
+#include "matrix_io.h"
 #include "utils.h"
 
 namespace Macau {
@@ -35,7 +36,7 @@ struct Result {
     // general
     void save(std::string fname_prefix);
     void init();
-    std::ostream &printInitStatus(std::ostream &os, std::string indent);
+    std::ostream &info(std::ostream &os, std::string indent);
 
     //-- for binary classification
     int total_pos;
@@ -75,8 +76,9 @@ struct Model {
     virtual void update_pnm(int) = 0;
  
     //-- output to file
-    void save(std::string);
-    std::ostream &printInitStatus(std::ostream &os, std::string indent);
+    void save(std::string, std::string);
+    void restore(std::string, std::string);
+    std::ostream &info(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
     double mean_rating = .0;
@@ -104,8 +106,6 @@ struct MF : public Model {
     int Ynnz()    const override { return Y.nonZeros(); }
 
     void setRelationData(YType Y);
-    void setRelationData(SparseDoubleMatrix &Y);
-    void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols);
 
     double var_total() const override;
     double sumsq() const override;

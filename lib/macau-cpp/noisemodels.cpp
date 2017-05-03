@@ -16,7 +16,7 @@ INoiseModel *FixedGaussianNoise::copyTo(Model &p)
     return new FixedGaussianNoise(p, alpha);
 }
 
-std::ostream &FixedGaussianNoise::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &FixedGaussianNoise::info(std::ostream &os, std::string indent)
 { 
     os << "Fixed gaussian noise with precision: " << alpha << "\n";
     return os;
@@ -27,7 +27,7 @@ INoiseModel *AdaptiveGaussianNoise::copyTo(Model &p)
     return new AdaptiveGaussianNoise(p, sn_init, sn_max);
 }
 
-std::ostream &AdaptiveGaussianNoise::printInitStatus(std::ostream &os, std::string indent)
+std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)
 { 
     os << "Adaptive gaussian noise with max precision of " << alpha_max << "\n";
     return os;
