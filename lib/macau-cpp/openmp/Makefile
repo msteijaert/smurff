@@ -14,5 +14,5 @@ include ../Makefile.common
 #CXX = icpc
 
 #mac
-#LDFLAGS+=-largp
-#CXX=g++-6
+LDFLAGS+=-largp
+CXX=g++-6
