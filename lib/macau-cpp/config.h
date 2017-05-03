@@ -41,14 +41,18 @@ struct Config {
     // -- priors
     std::string row_prior = "default";
     std::string col_prior = "default";
+    
+    //-- restore
+    std::string restore_prefix = "";
+    std::string restore_suffix = ".csv";
 
-    //-- output
-    std::string output_prefix = "save";
-    std::string output_suffix = ".csv";
+    //-- save
+    std::string save_prefix = "save";
+    std::string save_suffix = ".csv";
+    int save_freq           = 0; // never
 
     //-- general
     bool verbose              = false;
-    int output_freq           = 0; // never
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;

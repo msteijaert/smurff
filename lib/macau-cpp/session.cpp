@@ -104,6 +104,9 @@ void Session::init() {
     threads_init();
     init_bmrng();
     BaseSession::init();
+    if (config.restore_prefix.size()) {
+        restore(config.restore_prefix, config.restore_suffix);
+    }
     if (config.verbose) {
         info(std::cout, "");
         std::cout << "Sampling" << endl;
@@ -135,10 +138,13 @@ void Session::step() {
 std::ostream &Session::info(std::ostream &os, std::string indent) {
     BaseSession::info(os, indent);
     os << indent << "  Samples: " << config.burnin << " + " << config.nsamples << "\n";
-    if (config.output_freq > 0) {
-        os << indent << "  Save model: every " << config.output_freq << " iteration\n";
-        os << indent << "  Output prefix: " << config.output_prefix << "\n";
-        os << indent << "  Output suffix: " << config.output_suffix << "\n";
+    if (config.save_freq > 0) {
+        os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+        os << indent << "  Save prefix: " << config.save_prefix << "\n";
+        os << indent << "  Save suffix: " << config.save_suffix << "\n";
+        os << indent << "  Restore prefix: " << config.restore_prefix << "\n";
+        os << indent << "  Restore suffix: " << config.restore_suffix << "\n";
+
     } else {
         os << indent << "  Save model: never\n";
     }
@@ -265,8 +271,8 @@ bool Config::validate(bool throw_error) const
     if (config_test.cols > 0 && config_train.cols > 0 && config_test.cols != config_train.cols)
         die("Train and test matrix should have the same number of cols");
 
-    std::set<std::string> output_suffixes = { ".csv", ".ddm" };
-    if (output_suffixes.find(output_suffix) == output_suffixes.end()) die("Unknown output suffix: " + output_suffix);
+    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
+    if (save_suffixes.find(save_suffix) == save_suffixes.end()) die("Unknown output suffix: " + save_suffix);
 
     return true;
  }
@@ -381,11 +387,11 @@ void Session::printStatus(double elapsedi) {
 }
 
 void Session::save(int isample) {
-    if (!config.output_freq || isample < 0) return;
-    if (((isample+1) % config.output_freq) != 0) return;
-    string fprefix = config.output_prefix + "-sample-" + std::to_string(isample);
-    if (config.verbose) printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.output_suffix.c_str());
-    BaseSession::save(fprefix, config.output_suffix);
+    if (!config.save_freq || isample < 0) return;
+    if (((isample+1) % config.save_freq) != 0) return;
+    string fprefix = config.save_prefix + "-sample-" + std::to_string(isample);
+    if (config.verbose) printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.save_suffix.c_str());
+    BaseSession::save(fprefix, config.save_suffix);
 }
 
 void BaseSession::save(std::string prefix, std::string suffix) {

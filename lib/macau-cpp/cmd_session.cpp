@@ -34,7 +34,8 @@ namespace Macau {
 enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
-    OUTPUT_PREFIX, OUTPUT_SUFFIX, OUTPUT_FREQ, THRESHOLD, VERBOSE
+    RESTORE_PREFIX, RESTORE_SUFFIX,
+    SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE
 };
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
@@ -66,9 +67,11 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case NUM_LATENT:      config.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        config.nsamples           = strtol(optarg, NULL, 10); break;
 
-        case OUTPUT_PREFIX:   config.output_prefix      = std::string(optarg); break;
-        case OUTPUT_SUFFIX:   config.output_suffix      = std::string(optarg); break;
-        case OUTPUT_FREQ:     config.output_freq        = strtol(optarg, NULL, 10); break;
+        case RESTORE_PREFIX:  config.restore_prefix      = std::string(optarg); break;
+        case RESTORE_SUFFIX:  config.restore_suffix      = std::string(optarg); break;
+        case SAVE_PREFIX:     config.save_prefix      = std::string(optarg); break;
+        case SAVE_SUFFIX:     config.save_suffix      = std::string(optarg); break;
+        case SAVE_FREQ:       config.save_freq        = strtol(optarg, NULL, 10); break;
 
         case PRECISION:       set_noise_model("fixed", optarg); break;
         case ADAPTIVE:        set_noise_model("adaptive", optarg); break;
@@ -101,9 +104,11 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"burnin",	     BURNIN	, "NUM",   0, "200  number of samples to discard"},
         {"nsamples",	     NSAMPLES	, "NUM",   0, "800  number of samples to collect"},
         {"num-latent",	     NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
-        {"output-prefix",    OUTPUT_PREFIX	, "PATH",   0, "prefix for result files"},
-        {"output-suffix",    OUTPUT_SUFFIX	, "EXT",   0, "suffix for result files (.csv or .ddm)"},
-        {"output-freq",      OUTPUT_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
+        {"restore-prefix",   RESTORE_PREFIX	, "PATH",   0, "prefix for file to initialize stae"},
+        {"restore-suffix",   RESTORE_SUFFIX	, "EXT",   0, "suffix for initialization files (.csv or .ddm)"},
+        {"save-prefix",      SAVE_PREFIX	, "PATH",   0, "prefix for result files"},
+        {"save-suffix",      SAVE_SUFFIX	, "EXT",   0, "suffix for result files (.csv or .ddm)"},
+        {"save-freq",        SAVE_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
         {"threshold",        THRESHOLD	, "NUM",   0, "threshold for binary classification"},
         {"verbose",          VERBOSE	, 0,       0, "verbose output"},
         {0,0,0,0,"Noise model:",4},
