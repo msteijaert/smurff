@@ -133,11 +133,11 @@ void read_ddm(std::string filename, Eigen::MatrixXd &matrix);
 Eigen::MatrixXd sparse_to_dense(SparseBinaryMatrix &in);
 Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in);
 
-bool is_matrix_file(std::string fname);
-bool is_sparse_file(std::string fname);
-bool is_sparse_binary_file(std::string fname);
-bool is_dense_file(std::string fname);
-bool is_compact_file(std::string fname);
+bool is_matrix_fname(std::string fname);
+bool is_sparse_fname(std::string fname);
+bool is_sparse_binary_fname(std::string fname);
+bool is_dense_fname(std::string fname);
+bool is_compact_fname(std::string fname);
 
 void read_dense(std::string fname, Eigen::MatrixXd &);
 void read_dense(std::string fname, Eigen::VectorXd &);

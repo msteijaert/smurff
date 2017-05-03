@@ -169,7 +169,7 @@ template<class FType>
 std::ostream &MacauPrior<FType>::info(std::ostream &os, std::string indent) {
     NormalPrior::info(os, indent);
     os << indent << " SideInfo: "; printSideInfo(os, *F); 
-    os << indent << " Method: " << (use_FtF ? "Cholesky Decompistion" : "CG Solver") << "\n"; 
+    os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << "\n"; 
     os << indent << " Tol: " << tol << "\n";
     os << indent << " LambdaBeta: " << lambda_beta << "\n";
     return os;

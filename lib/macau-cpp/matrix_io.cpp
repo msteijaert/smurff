@@ -10,12 +10,22 @@ const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
 
 void writeToCSVfile(std::string filename, Eigen::MatrixXd matrix) {
   std::ofstream file(filename.c_str());
+  file << matrix.rows() << std::endl;
+  file << matrix.cols() << std::endl;
   file << matrix.format(csvFormat);
 }
 
 void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
     std::ifstream file(filename.c_str());
     std::string line;
+    
+    // rows and cols
+    getline(file, line); 
+    int nrow = atol(line.c_str());
+    getline(file, line); 
+    int ncol = atol(line.c_str());
+    matrix.resize(nrow, ncol);
+
     while (getline(file, line)) {
         std::stringstream lineStream(line);
         std::string cell;
@@ -55,17 +65,15 @@ Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in)
     return out;
 }
 
-static std::set<std::string> compact_matrix_file_extensions = { ".sbm", ".sdm", ".ddm" };
-static std::set<std::string> txt_matrix_file_extensions = { ".mtx", ".mm", ".csv" };
-static std::set<std::string> matrix_file_extensions = { ".sbm", ".sdm", ".ddm", ".mtx", ".mm", ".csv" };
-static std::set<std::string> sparse_file_extensions = { ".sbm", ".sdm", ".mtx", ".mm" };
+static std::set<std::string> compact_matrix_fname_extensions = { ".sbm", ".sdm", ".ddm" };
+static std::set<std::string> txt_matrix_fname_extensions = { ".mtx", ".mm", ".csv" };
+static std::set<std::string> matrix_fname_extensions = { ".sbm", ".sdm", ".ddm", ".mtx", ".mm", ".csv" };
+static std::set<std::string> sparse_fname_extensions = { ".sbm", ".sdm", ".mtx", ".mm" };
 
 bool extension_in(std::string fname, const std::set<std::string> &extensions, bool = false);
 
-bool is_matrix_file(std::string fname) {
-    if (fname.size()  == 0) return false;
-    if (!file_exists(fname)) return false;
-    return extension_in(fname, matrix_file_extensions);
+bool is_matrix_fname(std::string fname) {
+    return extension_in(fname, matrix_fname_extensions);
 }
 
 bool extension_in(std::string fname, const std::set<std::string> &extensions, bool die_if_not_found)
@@ -78,20 +86,20 @@ bool extension_in(std::string fname, const std::set<std::string> &extensions, bo
     return false;
 }
 
-bool is_sparse_file(std::string fname) {
-    return file_exists(fname) && extension_in(fname, sparse_file_extensions);
+bool is_sparse_fname(std::string fname) {
+    return extension_in(fname, sparse_fname_extensions);
 }
 
-bool is_sparse_binary_file(std::string fname) {
-    return file_exists(fname) && extension_in(fname, { ".sbm" });
+bool is_sparse_binary_fname(std::string fname) {
+    return extension_in(fname, { ".sbm" });
 }
 
-bool is_dense_file(std::string fname) {
-    return !is_sparse_file(fname);
+bool is_dense_fname(std::string fname) {
+    return !is_sparse_fname(fname);
 }
 
-bool is_compact_file(std::string fname) {
-    return file_exists(fname) && extension_in(fname, compact_matrix_file_extensions);
+bool is_compact_fname(std::string fname) {
+    return file_exists(fname) && extension_in(fname, compact_matrix_fname_extensions);
 }
 
 void read_dense(std::string fname, Eigen::VectorXd &V) {
@@ -101,7 +109,7 @@ void read_dense(std::string fname, Eigen::VectorXd &V) {
 }
     
 void read_dense(std::string fname, Eigen::MatrixXd &X) {
-    assert(is_dense_file(fname));
+    die_unless_file_exists(fname);
     std::string extension = fname.substr(fname.size() - 4);
     if (extension == ".ddm") {
         read_ddm(fname.c_str(), X);
@@ -113,7 +121,7 @@ void read_dense(std::string fname, Eigen::MatrixXd &X) {
 }
 
 void write_dense(std::string fname, const Eigen::MatrixXd &X) {
-    assert(is_dense_file(fname));
+    assert(is_dense_fname(fname));
     std::string extension = fname.substr(fname.size() - 4);
     if (extension == ".ddm") {
         write_ddm(fname.c_str(), X);
@@ -145,7 +153,7 @@ void read_ddm(std::string filename, Eigen::MatrixXd &matrix) {
 }
 
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
-    assert(is_sparse_file(fname));
+    assert(is_sparse_fname(fname));
     std::string extension = fname.substr(fname.find_last_of("."));
     if (extension == ".sdm") {
         auto sdm_ptr = read_sdm(fname.c_str());

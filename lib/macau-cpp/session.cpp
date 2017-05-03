@@ -105,6 +105,7 @@ void Session::init() {
     init_bmrng();
     BaseSession::init();
     if (config.restore_prefix.size()) {
+        if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
         restore(config.restore_prefix, config.restore_suffix);
     }
     if (config.verbose) {
@@ -137,16 +138,17 @@ void Session::step() {
 
 std::ostream &Session::info(std::ostream &os, std::string indent) {
     BaseSession::info(os, indent);
-    os << indent << "  Samples: " << config.burnin << " + " << config.nsamples << "\n";
+    os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
     if (config.save_freq > 0) {
         os << indent << "  Save model: every " << config.save_freq << " iteration\n";
         os << indent << "  Save prefix: " << config.save_prefix << "\n";
         os << indent << "  Save suffix: " << config.save_suffix << "\n";
-        os << indent << "  Restore prefix: " << config.restore_prefix << "\n";
-        os << indent << "  Restore suffix: " << config.restore_suffix << "\n";
-
     } else {
         os << indent << "  Save model: never\n";
+    }
+    if (config.restore_prefix.size()) {
+        os << indent << "  Restore prefix: " << config.restore_prefix << "\n";
+        os << indent << "  Restore suffix: " << config.restore_suffix << "\n";
     }
     os << indent << "}\n";
     return os;
@@ -189,8 +191,8 @@ template<class Prior>
 inline void add_features(MasterPrior<Prior> &p,  std::vector<std::string> fname_features)
 {
     for(auto &fname : fname_features) {
-        assert(is_matrix_file(fname));
-        if (is_sparse_file(fname)) {
+        assert(is_matrix_fname(fname));
+        if (is_sparse_fname(fname)) {
             auto &slave_model = p.template addSlave<SparseDenseMF>();
             read_sparse(fname, slave_model.Y);
         } else {
@@ -227,7 +229,7 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
             } else if (fname.find(".sbm") != std::string::npos) {
                 auto features = load_bcsr(fname.c_str());
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
-            } else if (is_dense_file(fname)) {
+            } else if (is_dense_fname(fname)) {
                 auto features = std::unique_ptr<MatrixXd>(new MatrixXd);
                 read_dense(fname.c_str(), *features);
                 addMacauPrior(macau, prior_name, features, lambda_beta, tol, true);
@@ -284,7 +286,7 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    bool train_is_sparse = is_sparse_file(config.fname_train) || (!config.config_train.dense);
+    bool train_is_sparse = is_sparse_fname(config.fname_train) || (!config.config_train.dense);
 
     // Load main Y matrix file
     if (train_is_sparse) {
