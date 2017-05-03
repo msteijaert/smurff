@@ -25,12 +25,16 @@ void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
     getline(file, line); 
     int ncol = atol(line.c_str());
     matrix.resize(nrow, ncol);
+    int pos = 0;
 
     while (getline(file, line)) {
         std::stringstream lineStream(line);
         std::string cell;
-        while (std::getline(lineStream, cell, ',')) matrix << strtod(cell.c_str(), NULL);
+        while (std::getline(lineStream, cell, ',')) {
+            matrix.data()[pos++] = strtod(cell.c_str(), NULL);
+        }
     }
+    assert(pos == nrow*ncol);
 }
 
 std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
