@@ -35,6 +35,7 @@ class ILatentPrior {
       int num_sys() { return sessions.size(); }
 
       virtual void save(std::string prefix, std::string suffix) = 0;
+      virtual void restore(std::string prefix, std::string suffix) = 0;
       virtual std::ostream &info(std::ostream &os, std::string indent);
 
       // work
@@ -83,6 +84,7 @@ class NormalPrior : public ILatentPrior {
     void sample_latents() override;
     void sample_latent(int s, int n) override;
     void save(std::string prefix, std::string suffix) override;
+    void restore(std::string prefix, std::string suffix) override;
 };
 
 template<class Prior>
@@ -101,6 +103,7 @@ class MasterPrior : public Prior {
 
     std::ostream &info(std::ostream &os, std::string indent) override;
     void save(std::string prefix, std::string suffix) override;
+    void restore(std::string prefix, std::string suffix) override;
 
     double getLinkNorm() override;
 
@@ -115,6 +118,7 @@ class SlavePrior : public ILatentPrior {
 
     void sample_latent(int,int) override {};
     void save(std::string prefix, std::string suffix) override {}
+    void restore(std::string prefix, std::string suffix) override {}
 };
 
 
@@ -151,6 +155,7 @@ class MacauPrior : public NormalPrior {
     void setLambdaBeta(double lb) { lambda_beta = lb; };
     void setTol(double t) { tol = t; };
     void save(std::string prefix, std::string suffix) override;
+    void restore(std::string prefix, std::string suffix) override;
     std::ostream &info(std::ostream &os, std::string indent) override;
 
   private:
@@ -207,6 +212,7 @@ class SpikeAndSlabPrior : public ILatentPrior {
     void init() override;
 
     void save(std::string prefix, std::string suffix) override {}
+    void restore(std::string prefix, std::string suffix) override {}
     void sample_latents() override;
     void sample_latent(int s, int n) override;
 

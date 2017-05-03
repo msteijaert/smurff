@@ -167,6 +167,10 @@ void NormalPrior::save(std::string prefix, std::string suffix) {
   write_dense(prefix + "-U" + std::to_string(pos) + "-latentmean" + suffix, mu);
 }
 
+void NormalPrior::restore(std::string prefix, std::string suffix) {
+  read_dense(prefix + "-U" + std::to_string(pos) + "-latentmean" + suffix, mu);
+}
+
 
 /*
  * Master Prior
@@ -214,6 +218,14 @@ void MasterPrior<Prior>::save(std::string prefix, std::string suffix)
     Prior::save(prefix, suffix);
     int i = 0;
     for(auto &s : slaves) s.save(prefix + "-S" + to_string(i++), suffix);
+}
+
+template<class Prior>
+void MasterPrior<Prior>::restore(std::string prefix, std::string suffix)
+{
+    Prior::restore(prefix, suffix);
+    int i = 0;
+    for(auto &s : slaves) s.restore(prefix + "-S" + to_string(i++), suffix);
 }
  
 template<typename P1, typename P2>

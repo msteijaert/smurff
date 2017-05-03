@@ -71,9 +71,9 @@ void Result::init() {
 }
 
 //--- output model to files
-void Result::save(std::string save_prefix) {
+void Result::save(std::string prefix) {
     if (predictions.empty()) return;
-    std::string fname_pred = save_prefix + "-predictions.csv";
+    std::string fname_pred = prefix + "-predictions.csv";
     std::ofstream predfile;
     predfile.open(fname_pred);
     predfile << "row,col,y,y_pred,y_pred_std\n";
@@ -90,10 +90,17 @@ void Result::save(std::string save_prefix) {
 
 }
 
-void Model::save(std::string save_prefix, std::string suffix) {
+void Model::save(std::string prefix, std::string suffix) {
     int i = 0;
     for(auto &U : factors) {
-        write_dense(save_prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
+        write_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
+    }
+}
+
+void Model::restore(std::string prefix, std::string suffix) {
+    int i = 0;
+    for(auto &U : factors) {
+        read_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 

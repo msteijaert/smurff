@@ -94,6 +94,12 @@ bool is_compact_file(std::string fname) {
     return file_exists(fname) && extension_in(fname, compact_matrix_file_extensions);
 }
 
+void read_dense(std::string fname, Eigen::VectorXd &V) {
+   Eigen::MatrixXd X;
+   read_dense(fname, X);
+   V = X; // this will fail if X has more than one column
+}
+    
 void read_dense(std::string fname, Eigen::MatrixXd &X) {
     assert(is_dense_file(fname));
     std::string extension = fname.substr(fname.size() - 4);

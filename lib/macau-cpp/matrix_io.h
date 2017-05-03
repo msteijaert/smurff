@@ -140,6 +140,7 @@ bool is_dense_file(std::string fname);
 bool is_compact_file(std::string fname);
 
 void read_dense(std::string fname, Eigen::MatrixXd &);
+void read_dense(std::string fname, Eigen::VectorXd &);
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &);
 
 void write_dense(std::string fname, const Eigen::MatrixXd&);

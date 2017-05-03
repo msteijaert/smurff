@@ -77,6 +77,7 @@ struct Model {
  
     //-- output to file
     void save(std::string, std::string);
+    void restore(std::string, std::string);
     std::ostream &info(std::ostream &os, std::string indent);
 
     // virtual functions Y-related

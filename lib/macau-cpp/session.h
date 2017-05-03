@@ -44,6 +44,7 @@ class BaseSession  {
 
       virtual std::ostream &info(std::ostream &, std::string indent);
       void save(std::string prefix, std::string suffix);
+      void restore(std::string prefix, std::string suffix);
 
       std::string name;
 

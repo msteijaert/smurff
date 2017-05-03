@@ -138,9 +138,16 @@ void MacauPrior<FType>::sample_beta_cg() {
 
 template<class FType>
 void MacauPrior<FType>::save(std::string prefix, std::string suffix) {
-  prefix += "-F" + std::to_string(pos);
-  write_dense(prefix + "-latentmean" + suffix, this->mu);
-  write_dense(prefix + "-link" + suffix, this->beta);
+    NormalPrior::save(prefix, suffix);
+    prefix += "-F" + std::to_string(pos);
+    write_dense(prefix + "-link" + suffix, this->beta);
+}
+
+template<class FType>
+void MacauPrior<FType>::restore(std::string prefix, std::string suffix) {
+    NormalPrior::restore(prefix, suffix);
+    prefix += "-F" + std::to_string(pos);
+    read_dense(prefix + "-link" + suffix, this->beta);
 }
 
 std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F) {

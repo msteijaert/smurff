@@ -199,9 +199,16 @@ void MacauOnePrior<FType>::sample_lambda_beta() {
 
 template<class FType>
 void MacauOnePrior<FType>::save(std::string prefix, std::string suffix) {
-  prefix += "-F" + std::to_string(pos);
   write_dense(prefix + "-latentmean" + suffix, mu);
+  prefix += "-F" + std::to_string(pos);
   write_dense(prefix + "-link" + suffix, beta);
+}
+
+template<class FType>
+void MacauOnePrior<FType>::restore(std::string prefix, std::string suffix) {
+  read_dense(prefix + "-latentmean" + suffix, mu);
+  prefix += "-F" + std::to_string(pos);
+  read_dense(prefix + "-link" + suffix, beta);
 }
 
 template class MacauOnePrior<SparseFeat>;
