@@ -10,42 +10,6 @@
 
 namespace Macau {
 
-struct Model;
-
-struct Result {
-    //-- test set
-    struct Item {
-        int row, col;
-        double val, pred, var, stds;
-    };
-    std::vector<Item> predictions;
-    int nrows, ncols;
-    void set(int* rows, int* cols, double* values, int N, int nrows, int ncols);
-    void set(SparseDoubleMatrix &Y);
-    void set(Eigen::SparseMatrix<double> Y);
-
-
-    //-- prediction metrics
-    void update(const Model &, bool burnin);
-    double rmse_avg = NAN;
-    double rmse = NAN;
-    double auc = NAN; 
-    int sample_iter = 0;
-    int burnin_iter = 0;
-
-    // general
-    void save(std::string fname_prefix);
-    void init();
-    std::ostream &info(std::ostream &os, std::string indent);
-
-    //-- for binary classification
-    int total_pos;
-    bool classify = false;
-    double threshold;
-    void update_auc();
-    void setThreshold(double t) { threshold = t; classify = true; } 
-};
-
 struct Model {
     static int num_latent;
 

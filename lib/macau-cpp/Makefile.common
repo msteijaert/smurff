@@ -18,7 +18,7 @@ OUTPUT_OPTION=-MMD -MP -o $@
 .PHONY: all clean 
 
 
-LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o 
+LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
 LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o
 LIBMACAU=libmacau-cpp.a
 

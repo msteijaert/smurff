@@ -345,7 +345,7 @@ void Session::setFromConfig(const Config &c)
             delete predictions;
         } else if (config.fname_test.find(".sdm") != std::string::npos) {
             auto predictions = read_sdm(config.fname_test.c_str());
-            pred.set(*predictions);
+            pred.set(to_eigen(*predictions));
             delete predictions;
         }
     } else if (config.config_test.nrow > 0) {

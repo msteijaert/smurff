@@ -504,7 +504,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   Result p;
   SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
   model.setRelationData(to_eigen(S));
-  p.set(rows, cols, vals, 1, 1, 1);
+  p.set(to_eigen(S));
   model.init();
   auto &t = p.predictions.at(0);
 

@@ -6,6 +6,7 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <memory>
 
+#include "result.h"
 #include "model.h"
 #include "latentprior.h"
 #include "noisemodels.h"
@@ -117,6 +118,6 @@ Prior& BaseSession::addPrior()
     return *p;
 }
 
-}
+} // end namespace Macau
 
 #endif /* MACAU_H */
