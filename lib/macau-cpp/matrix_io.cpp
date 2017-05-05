@@ -39,7 +39,6 @@ void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
     }
     assert(row == nrow);
     assert(col == ncol);
-    write_dense("check_" + filename, matrix);
 }
 
 std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
