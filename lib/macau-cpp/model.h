@@ -80,8 +80,6 @@ struct Data {
 };
 
 struct MatrixData: public Data {
-    void init() override;
-
     virtual int nrow()      const = 0;
     virtual int ncol()      const = 0;
     int size()              const override { return nrow() * ncol(); }

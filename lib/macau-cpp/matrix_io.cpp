@@ -224,11 +224,11 @@ void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
     std::string extension = fname.substr(fname.find_last_of("."));
     if (extension == ".sdm") {
         auto sdm_ptr = read_sdm(fname.c_str());
-        M = to_eigen(*sdm_ptr);
+        M = sparse_to_eigen(*sdm_ptr);
         delete sdm_ptr;
     } else if (extension == ".sbm") {
         auto sbm_ptr = read_sbm(fname.c_str());
-        M = to_eigen(*sbm_ptr);
+        M = sparse_to_eigen(*sbm_ptr);
         delete sbm_ptr;
     } else if (extension == ".mtx" || extension == ".mm") {
         loadMarket(M, fname.c_str());

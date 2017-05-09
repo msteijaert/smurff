@@ -66,9 +66,8 @@ template<class FType>
 void MacauPrior<FType>::sample_latents() {
   NormalPrior::sample_latents();
 
-  assert(num_sys() == 1);
   // residual (Uhat is later overwritten):
-  Uhat.noalias() = U(0) - Uhat;
+  Uhat.noalias() = U() - Uhat;
   MatrixXd BBt = A_mul_At_combo(beta);
   // sampling Gaussian
   tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
@@ -85,11 +84,10 @@ double MacauPrior<FType>::getLinkNorm() {
 template<class FType>
 void MacauPrior<FType>::compute_Ft_y_omp(MatrixXd &Ft_y) {
     const int num_feat = beta.cols();
-    assert(num_sys() == 1);
 
     // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
     // Ft_y is [ D x F ] matrix
-    MatrixXd tmp = (U(0) + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
+    MatrixXd tmp = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
     Ft_y = A_mul_B(tmp, *F);
     MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 
@@ -139,14 +137,14 @@ void MacauPrior<FType>::sample_beta_cg() {
 template<class FType>
 void MacauPrior<FType>::save(std::string prefix, std::string suffix) {
     NormalPrior::save(prefix, suffix);
-    prefix += "-F" + std::to_string(pos);
+    prefix += "-F" + std::to_string(mode);
     write_dense(prefix + "-link" + suffix, this->beta);
 }
 
 template<class FType>
 void MacauPrior<FType>::restore(std::string prefix, std::string suffix) {
     NormalPrior::restore(prefix, suffix);
-    prefix += "-F" + std::to_string(pos);
+    prefix += "-F" + std::to_string(mode);
     read_dense(prefix + "-link" + suffix, this->beta);
 }
 

@@ -492,7 +492,7 @@ TEST_CASE( "utils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
   int cols[3] = {2, 1, 0};
   double vals[3] = {1.0, 0.0, 2.0};
   SparseDoubleMatrix S = {3, 3, 3, rows, cols, vals};
-  Eigen::SparseMatrix<double> Y = to_eigen(S);
+  Eigen::SparseMatrix<double> Y = sparse_to_eigen(S);
   REQUIRE( Y.nonZeros() == 3 );
 }
 
@@ -500,12 +500,12 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   int rows[1] = {0};
   int cols[1] = {0};
   double vals[1] = {4.5};
-  ScarceMatrixData model(2);
   Result p;
+  Model model;
   SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
-  model.set(to_eigen(S));
-  p.set(to_eigen(S));
-  model.init();
+  ScarceMatrixData data(sparse_to_eigen(S));
+  p.set(sparse_to_eigen(S));
+  data.init();
   auto &t = p.predictions.at(0);
 
   // first iteration

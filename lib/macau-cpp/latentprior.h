@@ -30,7 +30,7 @@ class ILatentPrior {
       INoiseModel &noise();
 
       int num_latent() { return model().nlatent(); }
-      int num_cols();
+      int num_cols() { return model().U(mode).cols(); }
 
       virtual void save(std::string prefix, std::string suffix) = 0;
       virtual void restore(std::string prefix, std::string suffix) = 0;
