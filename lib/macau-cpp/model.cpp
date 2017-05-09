@@ -76,13 +76,15 @@ void Result::save(std::string prefix) {
     std::string fname_pred = prefix + "-predictions.csv";
     std::ofstream predfile;
     predfile.open(fname_pred);
-    predfile << "row,col,y,y_pred,y_pred_std\n";
+    predfile << "row,col,y,pred_1samp,pred_avg,var,std\n";
     for ( auto &t : predictions) {
         predfile
                 << to_string( t.row  )
          << "," << to_string( t.col  )
          << "," << to_string( t.val  )
          << "," << to_string( t.pred )
+         << "," << to_string( t.pred_avg )
+         << "," << to_string( t.var )
          << "," << to_string( t.stds )
          << "\n";
     }
@@ -133,7 +135,8 @@ void Result::update(const Model &model, bool burnin)
             t.var += delta * (pred - pred_avg);
             const double inorm = 1.0 / sample_iter;
             t.stds = sqrt(t.var * inorm);
-            t.pred = pred_avg;
+            t.pred_avg = pred_avg;
+            t.pred = pred;
             se_avg += square(t.val - pred_avg);
             sample_iter++;
         }
