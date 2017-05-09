@@ -19,18 +19,17 @@ class ILatentPrior;
 class BaseSession  {
    public:
       //-- data members
+      Model                                       model;
+      std::unique_ptr<Data>                       data;
+      Result                                      pred;
       std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
-      std::unique_ptr<Model>                      model;
-      Result                                      pred;
     
-      //-- add model
-      template<class Model>
-      Model         &addModel(int num_latent);
-      SparseMF      &sparseModel(int num_latent);
-      SparseBinaryMF&sparseBinaryModel(int num_latent);
-      DenseDenseMF  &denseDenseModel(int num_latent);
-      SparseDenseMF &sparseDenseModel(int num_latent);
+      //-- add data
+      //void setData(const Eigen::SparseMatrix<double> &Y, bool );
+      //void sparseBinaryModel(int num_latent);
+      //void addData(int num_latent);
+      //void sparseDenseModel(int num_latent);
 
       //-- add priors
       template<class Prior>

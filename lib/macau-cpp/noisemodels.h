@@ -13,11 +13,11 @@ namespace Macau {
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(Model &p) : model(p) {}
-    virtual INoiseModel *copyTo(Model &p) = 0;
+    INoiseModel(Data &p) : data(p) {}
+    virtual INoiseModel *copyTo(Data &p) = 0;
 
     virtual void init()  = 0;
-    virtual void update()  = 0;
+    virtual void update(const Model &)  = 0;
 
     virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
     virtual std::string getStatus()  = 0;
@@ -25,7 +25,7 @@ class INoiseModel {
     virtual double getAlpha() = 0;
 
   protected:
-    Model &model;
+    Data &data;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -33,13 +33,13 @@ class FixedGaussianNoise : public INoiseModel {
   public:
     double alpha;
   
-    FixedGaussianNoise(Model &p, double a = 1.) :
+    FixedGaussianNoise(Data &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
 
-    INoiseModel *copyTo(Model &p) override;
+    INoiseModel *copyTo(Data &p) override;
 
     void init() override { }
-    void update() override {}
+    void update(const Model &) override {}
     double getAlpha() override { return alpha; }
 
     std::ostream &info(std::ostream &os, std::string indent)  override;
@@ -48,7 +48,7 @@ class FixedGaussianNoise : public INoiseModel {
     void setPrecision(double a) { alpha = a; }    
 };
 
-/** Gaussian noise that adapts to the model */
+/** Gaussian noise that adapts to the data */
 class AdaptiveGaussianNoise : public INoiseModel {
   public:
     double var_total;
@@ -57,13 +57,13 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double sn_max;
     double sn_init;
 
-    AdaptiveGaussianNoise(Model &p, double sinit = 1., double smax = 10.)
+    AdaptiveGaussianNoise(Data &p, double sinit = 1., double smax = 10.)
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
-    INoiseModel *copyTo(Model &) override;
+    INoiseModel *copyTo(Data &) override;
 
     void init() override;
-    void update() override;
+    void update(const Model &) override;
     double getAlpha() override { return alpha; }
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }

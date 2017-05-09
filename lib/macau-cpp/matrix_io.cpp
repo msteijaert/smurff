@@ -160,6 +160,65 @@ void read_ddm(std::string filename, Eigen::MatrixXd &matrix) {
     in.close();
 }
 
+Macau::MatrixConfig read_ddm(std::string filename) {
+    Macau::MatrixConfig ret;
+    ret.dense = true;
+
+    std::ifstream in(filename,std::ios::in | std::ios::binary);
+    in.read((char*) (&ret.nrow),sizeof(long));
+    in.read((char*) (&ret.ncol),sizeof(long));
+    ret.nnz = ret.nrow * ret.ncol;
+    ret.values = new double[ret.nnz];
+    in.read( (char *) ret.values, ret.nnz*sizeof(double) );
+    return ret;
+}
+
+Macau::MatrixConfig read_mtx(std::string fname) {
+    Macau::MatrixConfig ret;
+    ret.dense = false;
+    std::ifstream fin(fname);
+
+    // Ignore headers and comments:
+    while (fin.peek() == '%') fin.ignore(2048, '\n');
+
+    // Read defining parameters:
+    fin >> ret.nrow >> ret.ncol >> ret.nnz;
+
+    ret.rows   = new int[ret.nnz];
+    ret.cols   = new int[ret.nnz];
+    ret.values = new double[ret.nnz];
+
+    // Read the data
+    for (int l = 0; l < ret.nnz; l++)
+    {
+        fin >> ret.rows[l] >> ret.cols[l] >> ret.values[l];
+    }
+
+    return ret;
+}
+
+Macau::MatrixConfig read_sparse(std::string fname) {
+    assert(is_sparse_fname(fname));
+    std::string extension = fname.substr(fname.find_last_of("."));
+    if (extension == ".sdm") {
+        auto p = read_sdm(fname.c_str());
+        auto m = Macau::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, p->vals);
+        delete p;
+        return m;
+    } else if (extension == ".sbm") {
+        auto p = read_sbm(fname.c_str());
+        auto m = Macau::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols);
+        delete p;
+        return m;
+    } else if (extension == ".mtx" || extension == ".mm") {
+        return read_mtx(fname);
+    } else  {
+        die("Unknown filename in read_sparse: " + fname);
+    }
+
+    return Macau::MatrixConfig();
+}
+
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
     assert(is_sparse_fname(fname));
     std::string extension = fname.substr(fname.find_last_of("."));

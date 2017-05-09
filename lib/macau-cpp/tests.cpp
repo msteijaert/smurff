@@ -500,10 +500,10 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   int rows[1] = {0};
   int cols[1] = {0};
   double vals[1] = {4.5};
-  SparseMF model(2);
+  ScarceMatrixData model(2);
   Result p;
   SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
-  model.setRelationData(to_eigen(S));
+  model.set(to_eigen(S));
   p.set(to_eigen(S));
   model.init();
   auto &t = p.predictions.at(0);

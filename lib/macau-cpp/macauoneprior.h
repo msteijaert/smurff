@@ -33,7 +33,7 @@ class MacauOnePrior : public ILatentPrior {
     MacauOnePrior(BaseSession &, int); 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
     
-    void sample_latent(int,int) override;
+    void sample_latent(int) override;
     void sample_latents() override;
     double getLinkNorm() override { return beta.norm(); };
     double getLinkLambda() override { return lambda_beta.mean(); };
@@ -44,8 +44,6 @@ class MacauOnePrior : public ILatentPrior {
 
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
-
-     void pnm(int,int,VectorNd &, MatrixNNd &) override;
 };
 
 }

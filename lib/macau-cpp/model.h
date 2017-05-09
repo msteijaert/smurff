@@ -11,117 +11,159 @@
 namespace Macau {
 
 struct Model {
-    static int num_latent;
+    void init(int nl, const std::vector<int> &indices);
 
-    //-- c'tor
-    Model(int nl, int num_fac = 2) {
-        assert(num_fac == 2); 
-        assert(num_latent == -1 || num_latent == nl);
-        num_latent = nl;
-        factors.resize(num_fac);
+    //-- access for all
+    const Eigen::MatrixXd &U(int f) const {
+        return samples.at(f); 
+    }
+    Eigen::MatrixXd::ConstColXpr col(int f, int i) const {
+        return U(f).col(i); 
+    }
+    Eigen::MatrixXd &U(int f) {
+        return samples.at(f); 
     }
 
-    const Eigen::MatrixXd &U(int f) const { return factors.at(f); }
-    Eigen::MatrixXd &U(int f) { return factors.at(f); }
-    Eigen::MatrixXd &V(int f) { return factors.at((f+1)%2); }
-    Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return U(f).col(i); }
-    double predict(int r, int c) const  {
-        return col(0,c).dot(col(1,r)) + mean_rating;
+    double predict(const std::vector<int> &indices, double mean_rating) const  {
+        Eigen::ArrayXd P = Eigen::ArrayXd::Zero(num_latent) ;
+        for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
+        return P.sum() + mean_rating;
     }
 
-    int num_fac() const { return factors.size(); }
 
-    // helper functions for noise
-    virtual double sumsq() const = 0;
-    virtual double var_total() const = 0;
+    //-- for when nmodes == 2
+    Eigen::MatrixXd &V(int f) {
+        assert(nmodes() == 2);
+        return samples.at((f+1)%2);
+    }
+    const Eigen::MatrixXd &V(int f) const {
+        assert(nmodes() == 2);
+        return samples.at((f+1)%2);
+    }
 
-    // helper functions for priors
-    virtual void get_pnm(int,int,VectorNd &, MatrixNNd &) = 0;
-    virtual void update_pnm(int) = 0;
- 
+    // basic stuff
+    int nmodes() const { return samples.size(); }
+    int nlatent() const { return num_latent; }
+    int nsamples() const { return std::accumulate(samples.begin(), samples.end(), 0,
+            [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); }); }
+
     //-- output to file
     void save(std::string, std::string);
     void restore(std::string, std::string);
     std::ostream &info(std::ostream &os, std::string indent);
 
-    // virtual functions Y-related
-    double mean_rating = .0;
-    virtual void init() = 0;
-    virtual int Yrows()    const = 0;
-    virtual int Ycols()    const = 0;
-    virtual int Ynnz ()    const = 0;
-
-    std::string name;
   private:
-    std::vector<Eigen::MatrixXd> factors;
+    std::vector<Eigen::MatrixXd> samples;
+    int num_latent;
 };
 
-template<typename YType>
-struct MF : public Model {
-    //-- c'tor
-    MF(int num_latent, int num_fac = 2)
-        : Model(num_latent, num_fac) { }
+struct Data {
+    // helper functions for noise
+    virtual double sumsq(const Model &) const = 0;
+    virtual double var_total() const = 0;
 
+    // helper functions for priors
+    virtual void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) = 0;
+    virtual void update_pnm(const Model &,int) = 0;
+ 
+    //-- print info
+    std::ostream &info(std::ostream &os, std::string indent);
+
+    // virtual functions data-related
+    double mean_rating = .0;
+    virtual void             init()       = 0;
+    virtual int              nnz()  const = 0;
+    virtual int              size() const = 0;
+    virtual std::vector<int> dims() const = 0;
+
+    std::string name;
+};
+
+struct MatrixData: public Data {
+    void init() override;
+
+    virtual int nrow()      const = 0;
+    virtual int ncol()      const = 0;
+    int size()              const override { return nrow() * ncol(); }
+    std::vector<int> dims() const override { return {nrow(), ncol()}; }
+};
+
+struct MatricesData: public Data {
+  private:
+      std::map<std::pair<int,int>, std::unique_ptr<MatrixData>> matrices;
+
+};
+template<typename YType>
+struct MatrixDataTempl : public MatrixData {
+    MatrixDataTempl(YType Y) : Y(Y) {}
     void init_base();
     void init() override;
 
-    int Yrows()   const override { return Y.rows(); }
-    int Ycols()   const override { return Y.cols(); }
-    int Ynnz()    const override { return Y.nonZeros(); }
-
-    void setRelationData(YType Y);
+    int nrow()                      const override { return Y.rows(); }
+    int ncol()                      const override { return Y.cols(); }
+    int nnz()                       const override { return Y.nonZeros(); }
 
     double var_total() const override;
-    double sumsq() const override;
+    double sumsq(const Model &) const override;
 
     YType Y;
-    std::vector<YType> Yc; // centered version
+    std::vector<YType> Yc; // centered versions
 };
 
-struct SparseMF : public MF<SparseMatrixD> {
+struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
     //-- c'tor
-    SparseMF(int num_latent, int num_fac = 2)
-        : MF<SparseMatrixD>(num_latent, num_fac)
+    ScarceMatrixData(SparseMatrixD Y)
+        : MatrixDataTempl<SparseMatrixD>(Y) 
     {
-        name = "SparseMF";
+        name = "ScarceMatrixData [with NAs]";
     }
 
-    void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(int) override;
+    void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(const Model &,int) override {}
 };
 
-struct SparseBinaryMF : public MF<SparseMatrixD> {
+struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {
     //-- c'tor
-    SparseBinaryMF(int num_latent, int num_fac = 2)
-        : MF<SparseMatrixD>(num_latent, num_fac)
+    ScarceBinaryMatrixData(SparseMatrixD &Y) : MatrixDataTempl<SparseMatrixD>(Y) 
     {
-        name = "SparseBinaryMF (Probit Noise Sampler)";
+        name = "ScarceMatrixData [containing 0,1,NA] (Probit Noise Sampler)";
     }
 
-    void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(int) override {}
+    void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(const Model &,int) override {};
 };
 
 template<class YType>
-struct DenseMF : public MF<YType> {
+struct FullMatrixData : public MatrixDataTempl<YType> {
     //-- c'tor
-    DenseMF(int num_latent, int num_fac = 2)
-        : MF<YType>(num_latent, num_fac) 
+    FullMatrixData(YType Y) : MatrixDataTempl<YType>(Y)
     {
-        VV.resize(num_fac);
-        this->name = "DenseMF";
+        this->name = "MatrixData [fully known]";
     }
 
-    void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(int) override;
+    void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(const Model &,int) override;
 
   private:
-    std::vector<MatrixNNd> VV;
+    Eigen::MatrixXd VV[2];
 };
 
-typedef DenseMF<Eigen::MatrixXd> DenseDenseMF;
-typedef DenseMF<SparseMatrixD> SparseDenseMF;
+struct DenseMatrixData : public FullMatrixData<Eigen::MatrixXd> {
+    //-- c'tor
+    DenseMatrixData(Eigen::MatrixXd Y) : FullMatrixData<Eigen::MatrixXd>(Y)
+    {
+        this->name = "DenseMatrixData [fully known]";
+    }
+};
 
-}
+struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
+    //-- c'tor
+    SparseMatrixData(Eigen::SparseMatrix<double> Y) : FullMatrixData<Eigen::SparseMatrix<double>>(Y)
+    {
+        this->name = "SparseMatrixData [fully known]";
+    }
+};
+
+}; // end namespace Macau
 
 #endif

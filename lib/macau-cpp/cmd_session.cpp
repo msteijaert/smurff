@@ -56,14 +56,20 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
     switch (key) {
         case ROW_PRIOR:       config.row_prior          = optarg; break;
         case COL_PRIOR:       config.col_prior          = optarg; break;
-        case ROW_FEATURES:    config.fname_row_features.push_back(optarg); break;
-        case COL_FEATURES:    config.fname_col_features.push_back(optarg); break;
-        case FNAME_TRAIN:     config.fname_train        = optarg; break;
+
+        case ROW_FEATURES:    config.row_features.push_back(read_matrix(optarg)); break;
+        case COL_FEATURES:    config.col_features.push_back(read_matrix(optarg)); break;
+
+        case FNAME_TRAIN:     config.train              = read_sparse(optarg); break;
         case LAMBDA_BETA:     config.lambda_beta        = strtod(optarg, NULL); break;
         case BURNIN:          config.burnin             = strtol(optarg, NULL, 10); break;
         case TOL:             config.tol                = atof(optarg); break;
-        case DIRECT:          config.direct            = true; break;
-        case FNAME_TEST:      config.fname_test         = optarg; break;
+        case DIRECT:          config.direct             = true; break;
+        case FNAME_TEST:
+                              //-- check if fname_test is actually a number
+                              if ((config.test_split = atof(optarg)) <= .0) {
+                                  config.test           = read_sparse(optarg); break;
+                              }
         case NUM_LATENT:      config.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        config.nsamples           = strtol(optarg, NULL, 10); break;
 
@@ -125,11 +131,6 @@ void CmdSession::setFromArgs(int argc, char** argv) {
     Config config;
     struct argp argp = { options, parse_opts, 0, doc };
     argp_parse (&argp, argc, argv, 0, 0, &config);
-
-    //-- check if fname_test is actually a number
-    if ((config.test_split = atof(config.fname_test.c_str())) > .0) {
-        config.fname_test.clear();
-    }
 
     setFromConfig(config);
 }

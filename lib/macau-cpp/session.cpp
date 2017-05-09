@@ -33,60 +33,58 @@ namespace Macau {
 
 //-- add model
 //
-template<class Model>
-Model &BaseSession::addModel(int num_latent) {
-    Model *n = new Model(num_latent);
-    model.reset(n);
-    return *n;
-}
+//Model &BaseSession::addModel(int num_latent) {
+//    Model *n = new Model(num_latent);
+//    model.reset(n);
+//    return *n;
+//}
+//
+//ScarceMatrixData &BaseSession::sparseModel(int num_latent) {
+//    return addModel<ScarceMatrixData>(num_latent);
+//}
+//
+//SparseBinaryMF &BaseSession::sparseBinaryModel(int num_latent) {
+//    return addModel<SparseBinaryMF>(num_latent);
+//}
+//
+//DenseMatrixData &BaseSession::denseDenseModel(int num_latent) {
+//    return addModel<DenseMatrixData>(num_latent);
+//}
+//
+//SparseMatrixData &BaseSession::sparseDenseModel(int num_latent) {
+//    return addModel<SparseMatrixData>(num_latent);
+//}
 
-SparseMF &BaseSession::sparseModel(int num_latent) {
-    return addModel<SparseMF>(num_latent);
-}
-
-SparseBinaryMF &BaseSession::sparseBinaryModel(int num_latent) {
-    return addModel<SparseBinaryMF>(num_latent);
-}
-
-DenseDenseMF &BaseSession::denseDenseModel(int num_latent) {
-    return addModel<DenseDenseMF>(num_latent);
-}
-
-SparseDenseMF &BaseSession::sparseDenseModel(int num_latent) {
-    return addModel<SparseDenseMF>(num_latent);
-}
-
-FixedGaussianNoise &BaseSession::setPrecision(double p) {
-  FixedGaussianNoise *n = new FixedGaussianNoise(*model, p);
-  noise.reset(n);
-  return *n;
-}
-
-AdaptiveGaussianNoise &BaseSession::setAdaptivePrecision(double sn_init, double sn_max) {
-  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*model, sn_init, sn_max);
-  noise.reset(n);
-  return *n;
-}
+//FixedGaussianNoise &BaseSession::setPrecision(double p) {
+//  FixedGaussianNoise *n = new FixedGaussianNoise(*model, p);
+//  noise.reset(n);
+//  return *n;
+//}
+//
+//AdaptiveGaussianNoise &BaseSession::setAdaptivePrecision(double sn_init, double sn_max) {
+//  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*model, sn_init, sn_max);
+//  noise.reset(n);
+//  return *n;
+//}
 
 void BaseSession::init() {
-    if (priors.size() != 2) throw std::runtime_error("Only 2 priors are supported (have" + std::to_string(priors.size()) + ").");
-    model->init();
-    for( auto &p : priors) p->init();
-    noise->init();
 }
 
 void BaseSession::step() {
     for(auto &p : priors) p->sample_latents();
-    noise->update();
+    noise->update(model);
 }
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     os << indent << name << " {\n";
-    os << indent << "  Priors: {\n";
-    for( auto &p : priors) p->info(os, indent + "    ");
+    os << indent << "  Data: {\n";
+    model.info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Model: {\n";
-    model->info(os, indent + "    ");
+    model.info(os, indent + "    ");
+    os << indent << "  }\n";
+    os << indent << "  Priors: {\n";
+    for( auto &p : priors) p->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Result: {\n";
     pred.info(os, indent + "    ");
@@ -103,7 +101,11 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
 void Session::init() {
     threads_init();
     init_bmrng();
-    BaseSession::init();
+
+    data->init();
+    model.init(config.num_latent, data->dims());
+    for( auto &p : priors) p->init();
+    noise->init();
     if (config.restore_prefix.size()) {
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
         restore(config.restore_prefix, config.restore_suffix);
@@ -171,8 +173,10 @@ void PythonSession::intHandler(int) {
 //-- cmdline handling stuff
 //
 template<class SideInfo>
-inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInfo> &features, double lambda_beta, double tol, int use_FtF)
+inline void addMacauPrior(Session &m, std::string prior_name, SideInfo *f, double lambda_beta, double tol, int use_FtF)
 {
+    std::unique_ptr<SideInfo> features(f);
+
     if(prior_name == "macau" || prior_name == "default"){
         auto &prior = m.addPrior<MacauPrior<SideInfo>>();
         prior.addSideInfo(features, use_FtF);
@@ -187,57 +191,53 @@ inline void addMacauPrior(Session &m, std::string prior_name, unique_ptr<SideInf
     }
 }
 
-template<class Prior>
-inline void add_features(MasterPrior<Prior> &p,  std::vector<std::string> fname_features)
-{
-    for(auto &fname : fname_features) {
-        assert(is_matrix_fname(fname));
-        if (is_sparse_fname(fname)) {
-            auto &slave_model = p.template addSlave<SparseDenseMF>();
-            read_sparse(fname, slave_model.Y);
-        } else {
-            auto &slave_model = p.template addSlave<DenseDenseMF>();
-            read_dense(fname, slave_model.Y);
-        }
-    }
-}
+//template<class Prior>
+//inline void add_features(MasterPrior<Prior> &p, const std::vector<MatrixConfig> &features)
+//{
+//    for(auto &f : features) {
+//        if (f.dense) {
+//            auto &slave_model = p.template addSlave<DenseMatrixData>();
+//            slave_model.data = std::unique_ptr<DenseMatrixData>(new DenseMatrixData(dense_to_eigen(f)));
+//        } else {
+//            auto &slave_model = p.template addSlave<SparseMatrixData>(sparse_to_eigen(f));
+//        }
+//    }
+//}
 
 
-inline void addMaster(Session &macau,std::string prior_name, std::vector<std::string> fname_features)
-{
-    if(prior_name == "normal" || prior_name == "default") {
-       auto &prior = macau.addPrior<MasterPrior<NormalPrior>>();
-       add_features(prior, fname_features);
-    } else if(prior_name == "spikeandslab") {
-       auto &prior = macau.addPrior<MasterPrior<SpikeAndSlabPrior>>();
-       add_features(prior, fname_features);
-    } else {
-        throw std::runtime_error("Unknown prior with side info: " + prior_name);
-    }
-}
+//inline void addMaster(Session &macau,std::string prior_name, const std::vector<MatrixConfig> &features)
+//{
+//    if(prior_name == "normal" || prior_name == "default") {
+//       auto &prior = macau.addPrior<MasterPrior<NormalPrior>>();
+//       add_features(prior, features);
+//    } else if(prior_name == "spikeandslab") {
+//       auto &prior = macau.addPrior<MasterPrior<SpikeAndSlabPrior>>();
+//       add_features(prior, features);
+//    } else {
+//        throw std::runtime_error("Unknown prior with side info: " + prior_name);
+//    }
+//}
 
-void add_prior(Session &macau, std::string prior_name, std::vector<std::string> fname_features, double lambda_beta, double tol, bool direct)
+void add_prior(Session &macau, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
 {
     //-- row prior with side information
-    if (fname_features.size()) {
+    if (features.size()) {
         if (prior_name == "macau" || prior_name == "macauone") {
-            assert(fname_features.size() == 1);
-            auto &fname = fname_features.at(0);
-            if (fname.find(".sdm") != std::string::npos) {
-                auto features = load_csr(fname.c_str());
-                addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
-            } else if (fname.find(".sbm") != std::string::npos) {
-                auto features = load_bcsr(fname.c_str());
-                addMacauPrior(macau, prior_name, features, lambda_beta, tol, direct);
-            } else if (is_dense_fname(fname)) {
-                auto features = std::unique_ptr<MatrixXd>(new MatrixXd);
-                read_dense(fname.c_str(), *features);
-                addMacauPrior(macau, prior_name, features, lambda_beta, tol, true);
+            assert(features.size() == 1);
+            auto &s = features.at(0);
+
+            if (s.binary) {
+                auto sideinfo = new SparseFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols);
+                addMacauPrior(macau, prior_name, sideinfo, lambda_beta, tol, direct);
+            } else if (s.dense) {
+                auto sideinfo = new MatrixXd(dense_to_eigen(s));
+                addMacauPrior(macau, prior_name, sideinfo, lambda_beta, tol, direct);
             } else {
-                throw std::runtime_error("Train features file: expecing .sdm or .sbm, got " + std::string(fname));
-            }
+                auto sideinfo = new SparseDoubleFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols, s.values);
+                addMacauPrior(macau, prior_name, sideinfo, lambda_beta, tol, direct);
+            } 
         } else {
-            addMaster(macau, prior_name, fname_features);
+            //addMaster(macau, prior_name, features);
         }
     } else if(prior_name == "normal" || prior_name == "default") {
         macau.addPrior<NormalPrior>();
@@ -250,15 +250,8 @@ void add_prior(Session &macau, std::string prior_name, std::vector<std::string> 
 
 bool Config::validate(bool throw_error) const 
 {
-    if (!fname_train.size() && !config_train.rows) die("Missing train matrix");
-    if (fname_train.size() && config_train.rows) die("Provided both input train pointer and input train file");
-
-    if (fname_test.size() && config_test.rows) die("Provided both input test pointer and input test file");
-    if (fname_test.size() && test_split)       die("Provided both input test file and split ratio");
-    if (config_test.rows  && test_split)       die("Provided both input test pointer and split ratio");
-
-    if (config_row_features.size() && fname_row_features.size()) die("Provided both row-features file and pointer");
-    if (config_col_features.size() && fname_col_features.size()) die("Provided both col-features file and pointer");
+    if (!train.rows)              die("Missing train matrix");
+    if (test.rows  && test_split) die("Provided both input test pointer and split ratio");
 
     std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
@@ -267,10 +260,10 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
-    if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
+    if (test.nrow > 0 && train.nrow > 0 && test.rows != train.rows)
         die("Train and test matrix should have the same number of rows");
 
-    if (config_test.cols > 0 && config_train.cols > 0 && config_test.cols != config_train.cols)
+    if (test.ncol > 0 && train.ncol > 0 && test.cols != train.cols)
         die("Train and test matrix should have the same number of cols");
 
     std::set<std::string> save_suffixes = { ".csv", ".ddm" };
@@ -286,43 +279,29 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    bool train_is_sparse = is_sparse_fname(config.fname_train) || (!config.config_train.dense);
-
     // Load main Y matrix file
-    if (train_is_sparse) {
-        SparseMatrixD Ytrain;
-        if (config.fname_train.size()) {
-            read_sparse(config.fname_train, Ytrain);
-        } else {
-            Ytrain = to_eigen(config.config_train);
-        }
-
-        MF<SparseMatrixD> *model;
-
+    if (!config.train.dense) {
+        SparseMatrixD Ytrain = sparse_to_eigen(config.train);
         if (is_binary(Ytrain)) {
-            model = &sparseBinaryModel(config.num_latent);
             if (!config.classify) {
                config.classify = true;
                config.threshold = 0.5;
             }
         } else {
-            model = &sparseModel(config.num_latent);
+            data = std::unique_ptr<Data>(new ScarceMatrixData(Ytrain));
         }
 
         if (config.test_split > .0) {
             auto predictions = extract(Ytrain, config.test_split);
             pred.set(predictions);
         }
-        model->setRelationData(Ytrain);
     } else {
-        DenseDenseMF& model = denseDenseModel(config.num_latent);
-        auto Ytrain = model.Y;
-        read_dense(config.fname_train, Ytrain);
+        Eigen::MatrixXd Ytrain = dense_to_eigen(config.train);
+        data = std::unique_ptr<Data>(new DenseMatrixData(Ytrain));
         if (config.test_split > .0) {
             auto predictions = extract(Ytrain, config.test_split);
             pred.set(predictions);
         }
-        model.setRelationData(Ytrain);
     }
 
     if (config.classify) pred.setThreshold(config.threshold);
@@ -337,39 +316,27 @@ void Session::setFromConfig(const Config &c)
     }
 
     // test data
-    if (config.fname_test.size()) {
-        die_unless_file_exists(config.fname_test);
-        if (config.fname_test.find(".sbm") != std::string::npos) {
-            auto predictions = read_sbm(config.fname_test.c_str());
-            pred.set(to_eigen(*predictions));
-            delete predictions;
-        } else if (config.fname_test.find(".sdm") != std::string::npos) {
-            auto predictions = read_sdm(config.fname_test.c_str());
-            pred.set(to_eigen(*predictions));
-            delete predictions;
-        }
-    } else if (config.config_test.nrow > 0) {
-         pred.set(to_eigen(config.config_train));
-    }
+     pred.set(sparse_to_eigen(config.test));
 
-    add_prior(*this, config.col_prior, config.fname_col_features, config.lambda_beta, config.tol, config.direct);
-    add_prior(*this, config.row_prior, config.fname_row_features, config.lambda_beta, config.tol, config.direct);
+
+    add_prior(*this, config.row_prior, config.row_features, config.lambda_beta, config.tol, config.direct);
+    add_prior(*this, config.col_prior, config.col_features, config.lambda_beta, config.tol, config.direct);
 }
 
 
 void Session::printStatus(double elapsedi) {
     if(!config.verbose) return;
 
-    pred.update(*model, iter < config.burnin);
+    pred.update(model, iter < config.burnin);
 
     double norm0 = priors[0]->getLinkNorm();
     double norm1 = priors[1]->getLinkNorm();
 
-    double snorm0 = model->U(0).norm();
-    double snorm1 = model->U(1).norm();
+    double snorm0 = model.U(0).norm();
+    double snorm1 = model.U(1).norm();
 
-    auto nnz_per_sec = (model->Ynnz()) / elapsedi;
-    auto samples_per_sec = (model->Yrows() + model->Ycols()) / elapsedi;
+    auto nnz_per_sec = (data->nnz()) / elapsedi;
+    auto samples_per_sec = (model.nsamples()) / elapsedi;
 
     std::string phase;
     int i, from;
@@ -397,13 +364,13 @@ void Session::save(int isample) {
 }
 
 void BaseSession::save(std::string prefix, std::string suffix) {
-    model->save(prefix, suffix);
+    model.save(prefix, suffix);
     pred.save(prefix);
     for(auto &p : priors) p->save(prefix, suffix);
 }
 
 void BaseSession::restore(std::string prefix, std::string suffix) {
-    model->restore(prefix, suffix);
+    model.restore(prefix, suffix);
     for(auto &p : priors) p->restore(prefix, suffix);
 }
 

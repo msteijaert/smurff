@@ -29,54 +29,63 @@ using namespace Eigen;
 
 namespace Macau {
 
-int Model::num_latent = -1;
+void Model::init(int nl, const std::vector<int> &dims) {
+    num_latent = nl;
+    for(int d = 0; d < nmodes(); ++d) {
+        samples.push_back(Eigen::MatrixXd(num_latent, dims[d]));
+        bmrandn(samples.back());
+    }
+}
 
 void Model::save(std::string prefix, std::string suffix) {
     int i = 0;
-    for(auto &U : factors) {
+    for(auto &U : samples) {
         write_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 
 void Model::restore(std::string prefix, std::string suffix) {
     int i = 0;
-    for(auto &U : factors) {
+    for(auto &U : samples) {
         read_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 
 std::ostream &Model::info(std::ostream &os, std::string indent)
 {
-    os << indent << "Type: " << name << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
-    double train_fill_rate = 100. * Ynnz() / Yrows() / Ycols();
-    os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "] (" << train_fill_rate << "%)\n";
+    return os;
+}
+
+
+////----- Data below
+
+
+std::ostream &Data::info(std::ostream &os, std::string indent)
+{
+    os << indent << "Type: " << name << "\n";
+    double train_fill_rate = 100. * nnz() / size();
+    //os << indent << "Train data: " << nnz() << " [" << nrow() << " x " << ncol() << "] (" << train_fill_rate << "%)\n";
     return os;
 }
 
 template<typename YType>
-void MF<YType>::init_base()
+void MatrixDataTempl<YType>::init_base()
 {
-    assert(Yrows() > 0 && Ycols() > 0);
+    assert(nrow() > 0 && ncol() > 0);
 
 //    if (pred.ncols > 0) {
-//        assert(pred.nrows == Yrows() && pred.ncols == Ycols() && "Size of train must be equal to size of test");
+//        assert(pred.nrows == nrow() && pred.ncols == ncol() && "Size of train must be equal to size of test");
 //    }
 
     mean_rating = Y.sum() / Y.nonZeros();
-
-    U(0).resize(num_latent, Y.cols());
-    U(1).resize(num_latent, Y.rows());
-
-    bmrandn(U(0));
-    bmrandn(U(1));
 
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
 }
 
 template<>
-void MF<SparseMatrixD>::init()
+void MatrixDataTempl<SparseMatrixD>::init()
 {
     init_base();
     Yc.at(0).coeffs() -= mean_rating;
@@ -86,7 +95,7 @@ void MF<SparseMatrixD>::init()
 
 
 template<>
-void MF<Eigen::MatrixXd>::init()
+void MatrixDataTempl<Eigen::MatrixXd>::init()
 {
     init_base();
     Yc.at(0).array() -= this->mean_rating;
@@ -94,14 +103,8 @@ void MF<Eigen::MatrixXd>::init()
     name = "Dense" + name;
 }
 
-template<typename YType>
-void MF<YType>::setRelationData(YType Y) {
-    this->Y = Y;
-}
-
-
 template<>
-double MF<Eigen::MatrixXd>::var_total() const {
+double MatrixDataTempl<Eigen::MatrixXd>::var_total() const {
     auto &Y = Yc.at(0);
     double se = Y.array().square().sum();
 
@@ -115,7 +118,7 @@ double MF<Eigen::MatrixXd>::var_total() const {
 }
 
 template<>
-double MF<SparseMatrixD>::var_total() const {
+double MatrixDataTempl<SparseMatrixD>::var_total() const {
     double se = 0.0;
     auto &Y = Yc.at(0);
 
@@ -137,14 +140,13 @@ double MF<SparseMatrixD>::var_total() const {
 
 // for the adaptive gaussian noise
 template<>
-double MF<Eigen::MatrixXd>::sumsq() const {
+double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const Model &model) const {
     double sumsq = 0.0;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-    for (int j = 0; j < this->Y.cols(); j++) {
-        auto Vj = this->U(1).col(j);
-        for (int i = 0; i < this->Y.rows(); i++) {
-            double Yhat = Vj.dot( this->U(0).col(j) ) + this->mean_rating;
+    for (int j = 0; j < this->ncol(); j++) {
+        for (int i = 0; i < this->nrow(); i++) {
+            double Yhat = model.predict({i,j}, this->mean_rating);
             sumsq += square(Yhat - this->Y(i,j));
         }
     }
@@ -153,14 +155,14 @@ double MF<Eigen::MatrixXd>::sumsq() const {
 }
 
 template<>
-double MF<SparseMatrixD>::sumsq() const {
+double MatrixDataTempl<SparseMatrixD>::sumsq(const Model &model) const {
     double sumsq = 0.0;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < Y.outerSize(); j++) {
-        auto Uj = col(0, j);
         for (SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
-            double Yhat = Uj.dot( col(1, it.row()) ) + mean_rating;
+            int i = it.row();
+            double Yhat = model.predict({i,j}, this->mean_rating);
             sumsq += square(Yhat - it.value());
         }
     }
@@ -169,24 +171,15 @@ double MF<SparseMatrixD>::sumsq() const {
 }
 
 //
-//-- SparseMF specific stuff
-//
-//
-//
+//-- ScarceMatrixData specific stuff
 
-struct pnm_perf_item {
-    int local_nnz, total_nnz;
-    bool in_parallel;
-    double start, stop;
-};
-
-static std::vector<pnm_perf_item> pnm_perf;
-
-void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
+void ScarceMatrixData::get_pnm(const Model &model, int f, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(f);
-    MatrixXd &Vf = V(f);
+    const int num_latent = model.nlatent();
+    const MatrixXd &Vf = model.V(f);
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
+
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
     if (in_parallel) {
         const int task_size = ceil(local_nnz / 100.0);
@@ -224,40 +217,11 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     MM.triangularView<Upper>() = MM.transpose();
 }
 
-void SparseMF::update_pnm(int f) {
-    return;
-    if (pnm_perf.size()) {
-        printf("==========\n"); 
-        for(auto &item: pnm_perf) printf("%d;%d;%d;%f;%f\n", item.local_nnz, item.total_nnz, item.in_parallel, item.start, item.stop);
-        pnm_perf.clear();
-    }
-
-    auto &Y = Yc.at(f);
-
-    int bin = 1;
-    int count = 0;
-    int total = 0;
-    while (count < Y.cols()) {
-        count = 0;
-        for(int i=0; i<Y.cols();++i) if (Y.col(i).nonZeros() < bin) count++;
-        auto bin_count = count - total;
-        auto bin_nnz = bin_count * bin;
-        auto bin_percent = (100. * bin_nnz) / Y.nonZeros();
-            printf("fac: %d\t%5d < bin < %5d;\t#samples: %4d;\t%5d < #nnz < %5d;\t %.1f < %%nnz < %.1f\n",
-                    f, bin/2, bin, bin_count, bin_nnz/2, bin_nnz, bin_percent/2, bin_percent);
-        bin *= 2;
-        total = count;
-    }
-
-    std::cout << "Total samples: " << Y.cols() << std::endl;
-    std::cout << "Total nnz: " << Y.nonZeros() << std::endl;
-}
-
-void SparseBinaryMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)
+void ScarceBinaryMatrixData::get_pnm(const Model &model, int f, int n, VectorXd &rr, MatrixXd &MM)
 {
-    auto u = U(f).col(n);
+    auto u = model.U(f).col(n);
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
-        const auto &col = V(f).col(it.row());
+        const auto &col = model.V(f).col(it.row());
         MM.noalias() += col * col.transpose();
         auto z = (2 * it.value() - 1) * fabs(col.dot(u) + bmrandn_single());
         rr.noalias() += col * z;
@@ -266,20 +230,21 @@ void SparseBinaryMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)
 
 
 //
-//-- DenseMF specific stuff
+//-- FullMatrixData specific stuff
 //
 
 template<class YType>
-void DenseMF<YType>::get_pnm(int f, int d, VectorXd &rr, MatrixXd &MM) {
+void FullMatrixData<YType>::get_pnm(const Model &model, int f, int d, VectorXd &rr, MatrixXd &MM) {
     auto &Y = this->Yc.at(f);
-    rr.noalias() += (this->V(f) * Y.col(d));
-    MM.noalias() += VV.at(f); 
+    rr.noalias() += (model.V(f) * Y.col(d));
+    MM.noalias() += VV[f]; 
 }
 
 template<class YType>
-void DenseMF<YType>::update_pnm(int f) {
-    auto &Vf = this->V(f);
-    thread_vector<MatrixXd> VVs(MatrixXd::Zero(this->num_latent, this->num_latent));
+void FullMatrixData<YType>::update_pnm(const Model &model, int f) {
+    auto &Vf = model.V(f);
+    const int nl = model.nlatent();
+    thread_vector<MatrixXd> VVs(MatrixXd::Zero(nl, nl));
 
 #pragma omp parallel for schedule(dynamic, 8) shared(VVs)
     for(int n = 0; n < Vf.cols(); n++) {
@@ -287,14 +252,8 @@ void DenseMF<YType>::update_pnm(int f) {
         VVs.local() += v * v.transpose();
     }
 
-    VV.at(f) = VVs.combine();
+    VV[f] = VVs.combine();
 }
-
-template struct MF<SparseMatrix<double>>;
-template struct MF<MatrixXd>;
-template struct DenseMF<Eigen::MatrixXd>;
-template struct DenseMF<SparseMatrixD>;
-
 } //end namespace Macau
 
 #ifdef BENCH

@@ -67,7 +67,7 @@ void MPISession::run()
 }
 
 template<class FType>
-MPIMacauPrior<FType>::MPIMacauPrior(SparseMF &m, int p, INoiseModel &n) 
+MPIMacauPrior<FType>::MPIMacauPrior(ScarceMatrixData &m, int p, INoiseModel &n) 
  : MacauPrior<FType>(m, p, n)
 {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);

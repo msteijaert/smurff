@@ -15,7 +15,7 @@ namespace Macau {
 
 template<class FType>
 MacauOnePrior<FType>::MacauOnePrior(BaseSession &m, int p)
-    : ILatentPrior(m, p), Yc(dynamic_cast<SparseMF &>(*m.model).Yc.at(p))
+    : ILatentPrior(m, p), Yc(dynamic_cast<ScarceMatrixData &>(*m.model).Yc.at(p))
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);

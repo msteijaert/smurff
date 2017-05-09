@@ -55,13 +55,19 @@ struct sparse_vec_iterator {
 };
 
 template<typename Matrix>
-Eigen::SparseMatrix<double> to_eigen(Matrix &Y)
+Eigen::SparseMatrix<double> sparse_to_eigen(Matrix &Y)
 {
     Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
     sparse_vec_iterator begin(Y, 0);
     sparse_vec_iterator end(Y, Y.nnz);
     out.setFromTriplets(begin, end);
     return out;
+}
+
+template<typename Matrix>
+Eigen::MatrixXd dense_to_eigen(Matrix &Y)
+{
+    return Eigen::Map<Eigen::MatrixXd>(Y.values, Y.nrow, Y.ncol);
 }
 
 class SparseFeat {
@@ -142,6 +148,11 @@ bool is_compact_fname(std::string fname);
 void read_dense(std::string fname, Eigen::MatrixXd &);
 void read_dense(std::string fname, Eigen::VectorXd &);
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &);
+
+Macau::MatrixConfig read_dense(std::string fname);
+Macau::MatrixConfig read_sparse(std::string fname);
+Macau::MatrixConfig read_matrix(std::string fname);
+
 
 void write_dense(std::string fname, const Eigen::MatrixXd&);
 
