@@ -6,9 +6,10 @@
 #include <iomanip>
 #include "utils.h"
 
-#include "model.h"
-
 namespace Macau {
+
+struct Data;
+struct Model;
 
 /** interface */
 class INoiseModel {

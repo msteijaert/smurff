@@ -27,8 +27,10 @@ std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
 }
 
 Model &ILatentPrior::model() { return session.model; }
+Data &ILatentPrior::data() { return *session.data; }
+INoiseModel &ILatentPrior::noise() { return *data().noise; }
 MatrixXd &ILatentPrior::U() { return model().U(mode); }
-INoiseModel &ILatentPrior::noise() { return *session.noise; }
+MatrixXd &ILatentPrior::V() { return model().V(mode); }
 
 void ILatentPrior::sample_latents() 
 {
@@ -82,7 +84,6 @@ void NormalPrior::sample_latents() {
 void NormalPrior::sample_latent(int n)
 {
     const auto &mu_u = getMu(n);
-    const double alpha = noise().getAlpha();
 
     VectorNd &rr = rrs.local();
     MatrixNNd &MM = MMs.local();
@@ -92,10 +93,6 @@ void NormalPrior::sample_latent(int n)
 
     // add pnm
     session.data->get_pnm(model(),mode,n,rr,MM);
-
-    // add noise
-    rr.array() *= alpha;
-    MM.array() *= alpha;
 
     // add hyperparams
     rr.noalias() += Lambda * mu_u;

@@ -25,9 +25,10 @@ class ILatentPrior {
 
       // utility
       Model &model();
+      Data  &data();
+      INoiseModel &noise();
       Eigen::MatrixXd &U();
       Eigen::MatrixXd &V();
-      INoiseModel &noise();
 
       int num_latent() { return model().nlatent(); }
       int num_cols() { return model().U(mode).cols(); }

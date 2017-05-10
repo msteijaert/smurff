@@ -149,10 +149,11 @@ void read_dense(std::string fname, Eigen::MatrixXd &);
 void read_dense(std::string fname, Eigen::VectorXd &);
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &);
 
+Macau::MatrixConfig read_ddm(std::string filename);
+Macau::MatrixConfig read_csv(std::string filename);
 Macau::MatrixConfig read_dense(std::string fname);
 Macau::MatrixConfig read_sparse(std::string fname);
 Macau::MatrixConfig read_matrix(std::string fname);
-
 
 void write_dense(std::string fname, const Eigen::MatrixXd&);
 

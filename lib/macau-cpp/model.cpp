@@ -66,7 +66,22 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
     os << indent << "Type: " << name << "\n";
     double train_fill_rate = 100. * nnz() / size();
     //os << indent << "Train data: " << nnz() << " [" << nrow() << " x " << ncol() << "] (" << train_fill_rate << "%)\n";
+    os << indent << "Noise: ";
+    noise->info(os, "");
     return os;
+}
+
+FixedGaussianNoise &Data::setPrecision(double p) {
+  FixedGaussianNoise *n = new FixedGaussianNoise(*this, p);
+  noise.reset(n);
+  return *n;
+}
+
+
+AdaptiveGaussianNoise &Data::setAdaptivePrecision(double sn_init, double sn_max) {
+  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*this, sn_init, sn_max);
+  noise.reset(n);
+  return *n;
 }
 
 template<typename YType>
@@ -82,6 +97,8 @@ void MatrixDataTempl<YType>::init_base()
 
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
+
+    noise->init();
 }
 
 template<>
@@ -179,6 +196,7 @@ void ScarceMatrixData::get_pnm(const Model &model, int f, int n, VectorXd &rr, M
     const MatrixXd &Vf = model.V(f);
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
+    const double alpha = noise->getAlpha();
 
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
     if (in_parallel) {
@@ -201,24 +219,41 @@ void ScarceMatrixData::get_pnm(const Model &model, int f, int n, VectorXd &rr, M
                     my_rr.noalias() += col * val;
                     my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
                 }
+                
+                // make MM complete
+                my_MM.triangularView<Upper>() = my_MM.transpose();
+
             }
         }
 #pragma omp taskwait
-        MM += MMs.combine();
-        rr += rrs.combine();
+        // accumulate + add noise
+        MM += MMs.combine() * alpha;
+        rr += rrs.combine() * alpha;
     } else {
+        VectorXd my_rr = VectorXd::Zero(num_latent);
+        MatrixXd my_MM = MatrixXd::Zero(num_latent, num_latent);
         for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
             const auto &col = Vf.col(it.row());
-            rr.noalias() += col * it.value();
-            MM.triangularView<Lower>() += col * col.transpose();
+            my_rr.noalias() += col * it.value();
+            my_MM.triangularView<Lower>() += col * col.transpose();
         }
-    }
 
-    MM.triangularView<Upper>() = MM.transpose();
+        // make MM complete
+        my_MM.triangularView<Upper>() = my_MM.transpose();
+
+        //add noise
+        my_rr.array() *= alpha;
+        my_MM.array() *= alpha;
+
+        // add to global
+        rr += my_rr;
+        MM += my_MM;
+    }
 }
 
 void ScarceBinaryMatrixData::get_pnm(const Model &model, int f, int n, VectorXd &rr, MatrixXd &MM)
 {
+    // todo : check noise == probit noise
     auto u = model.U(f).col(n);
     for (SparseMatrix<double>::InnerIterator it(Yc.at(f), n); it; ++it) {
         const auto &col = model.V(f).col(it.row());
@@ -235,9 +270,10 @@ void ScarceBinaryMatrixData::get_pnm(const Model &model, int f, int n, VectorXd 
 
 template<class YType>
 void FullMatrixData<YType>::get_pnm(const Model &model, int f, int d, VectorXd &rr, MatrixXd &MM) {
+    const double alpha = this->noise->getAlpha();
     auto &Y = this->Yc.at(f);
-    rr.noalias() += (model.V(f) * Y.col(d));
-    MM.noalias() += VV[f]; 
+    rr.noalias() += (model.V(f) * Y.col(d)) * alpha;
+    MM.noalias() += VV[f] * alpha; 
 }
 
 template<class YType>
@@ -254,6 +290,11 @@ void FullMatrixData<YType>::update_pnm(const Model &model, int f) {
 
     VV[f] = VVs.combine();
 }
+
+
+template struct FullMatrixData<Eigen::MatrixXd>;
+template struct FullMatrixData<Eigen::SparseMatrix<double>>;
+
 } //end namespace Macau
 
 #ifdef BENCH

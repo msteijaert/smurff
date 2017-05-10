@@ -9,7 +9,6 @@
 #include "result.h"
 #include "model.h"
 #include "latentprior.h"
-#include "noisemodels.h"
 
 
 namespace Macau {
@@ -22,7 +21,6 @@ class BaseSession  {
       Model                                       model;
       std::unique_ptr<Data>                       data;
       Result                                      pred;
-      std::unique_ptr<INoiseModel>                noise;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
     
       //-- add data
@@ -34,10 +32,6 @@ class BaseSession  {
       //-- add priors
       template<class Prior>
       inline Prior& addPrior();
-
-      // set noise models
-      FixedGaussianNoise &setPrecision(double p);
-      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
 
       void init();
       virtual void step();

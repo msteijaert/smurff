@@ -41,6 +41,37 @@ void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
     assert(col == ncol);
 }
 
+Macau::MatrixConfig read_csv(std::string filename) {
+    Macau::MatrixConfig ret;
+    std::ifstream file(filename.c_str());
+    std::string line;
+    ret.dense = true;
+
+    // rows and cols
+    getline(file, line); 
+    ret.nrow = atol(line.c_str());
+    getline(file, line); 
+    ret.ncol = atol(line.c_str());
+    ret.nnz = ret.nrow * ret.ncol;
+    ret.values = new double[ret.nnz];
+
+    int row = 0;
+    int col = 0;
+    while (getline(file, line)) {
+        col = 0;
+        std::stringstream lineStream(line);
+        std::string cell;
+        while (std::getline(lineStream, cell, ',')) {
+            ret.values[row + (ret.nrow*col++)] = strtod(cell.c_str(), NULL);
+        }
+        row++;
+    }
+    assert(row == ret.nrow);
+    assert(col == ret.ncol);
+
+    return ret;
+}
+
 std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
    SparseBinaryMatrix* A = read_sbm(filename);
    SparseFeat* sf = new SparseFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols);
@@ -126,6 +157,19 @@ void read_dense(std::string fname, Eigen::MatrixXd &X) {
     } else {
         die("Unknown filename in read_dense: " + fname);
     }
+}
+    
+Macau::MatrixConfig read_dense(std::string fname) {
+    die_unless_file_exists(fname);
+    std::string extension = fname.substr(fname.size() - 4);
+    if (extension == ".ddm") {
+        return read_ddm(fname);
+    } else if (extension == ".csv") {
+        return read_csv(fname);
+    } else {
+        die("Unknown filename in read_dense: " + fname);
+    }
+    return Macau::MatrixConfig();
 }
 
 void write_dense(std::string fname, const Eigen::MatrixXd &X) {
@@ -235,4 +279,9 @@ void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
     } else  {
         die("Unknown filename in read_sparse: " + fname);
     }
+}
+
+Macau::MatrixConfig read_matrix(std::string fname) {
+    if (is_sparse_fname(fname)) return read_sparse(fname);
+    else return read_dense(fname);
 }

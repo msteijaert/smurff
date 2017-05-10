@@ -5,6 +5,7 @@
 #include <Eigen/Sparse>
 #include <memory>
 
+#include "noisemodels.h"
 #include "matrix_io.h"
 #include "utils.h"
 
@@ -62,12 +63,17 @@ struct Data {
     virtual double sumsq(const Model &) const = 0;
     virtual double var_total() const = 0;
 
-    // helper functions for priors
+    // update noise and precision/mean
+    virtual void update(const Model &model) { noise->update(model); }
     virtual void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) = 0;
     virtual void update_pnm(const Model &,int) = 0;
- 
+
     //-- print info
     std::ostream &info(std::ostream &os, std::string indent);
+
+    // set noise models
+    FixedGaussianNoise &setPrecision(double p);
+    AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
 
     // virtual functions data-related
     double mean_rating = .0;
@@ -76,7 +82,8 @@ struct Data {
     virtual int              size() const = 0;
     virtual std::vector<int> dims() const = 0;
 
-    std::string name;
+    std::string                  name;
+    std::unique_ptr<INoiseModel> noise;
 };
 
 struct MatrixData: public Data {

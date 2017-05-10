@@ -55,24 +55,12 @@ namespace Macau {
 //    return addModel<SparseMatrixData>(num_latent);
 //}
 
-//FixedGaussianNoise &BaseSession::setPrecision(double p) {
-//  FixedGaussianNoise *n = new FixedGaussianNoise(*model, p);
-//  noise.reset(n);
-//  return *n;
-//}
-//
-//AdaptiveGaussianNoise &BaseSession::setAdaptivePrecision(double sn_init, double sn_max) {
-//  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*model, sn_init, sn_max);
-//  noise.reset(n);
-//  return *n;
-//}
-
 void BaseSession::init() {
 }
 
 void BaseSession::step() {
     for(auto &p : priors) p->sample_latents();
-    noise->update(model);
+    data->update(model);
 }
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
@@ -89,8 +77,6 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     os << indent << "  Result: {\n";
     pred.info(os, indent + "    ");
     os << indent << "  }\n";
-    os << indent << "  Noise: ";
-    noise->info(os, "");
     return os;
 }
 
@@ -105,7 +91,6 @@ void Session::init() {
     data->init();
     model.init(config.num_latent, data->dims());
     for( auto &p : priors) p->init();
-    noise->init();
     if (config.restore_prefix.size()) {
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
         restore(config.restore_prefix, config.restore_suffix);
@@ -308,9 +293,9 @@ void Session::setFromConfig(const Config &c)
 
     //-- noise model
     if (config.noise_model == "adaptive") {
-        setAdaptivePrecision(config.sn_init, config.sn_max);
+        data->setAdaptivePrecision(config.sn_init, config.sn_max);
     } else if (config.noise_model == "fixed") {
-        setPrecision(config.precision);
+        data->setPrecision(config.precision);
     } else {
         die("Unknown noise model; " + config.noise_model);
     }
@@ -335,6 +320,8 @@ void Session::printStatus(double elapsedi) {
     double snorm0 = model.U(0).norm();
     double snorm1 = model.U(1).norm();
 
+    // add noise status
+
     auto nnz_per_sec = (data->nnz()) / elapsedi;
     auto samples_per_sec = (model.nsamples()) / elapsedi;
 
@@ -350,9 +337,9 @@ void Session::printStatus(double elapsedi) {
         from = config.nsamples;
     }
 
-    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
             phase.c_str(), i, from, pred.rmse_avg, pred.rmse, pred.auc,
-            snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
+            snorm0, snorm1, norm0, norm1, elapsedi, samples_per_sec, nnz_per_sec);
 }
 
 void Session::save(int isample) {
