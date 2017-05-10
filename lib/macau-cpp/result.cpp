@@ -73,17 +73,17 @@ void Result::update(const Model &model, bool burnin)
 #pragma omp parallel for schedule(guided) reduction(+:se)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            t.pred = model.predict({t.row, t.col}, 0.0);
+            t.pred = model.predict({t.col, t.row});
             se += square(t.val - t.pred);
-            burnin_iter++;
         }
+        burnin_iter++;
         rmse = sqrt( se / N );
     } else {
         double se = 0.0, se_avg = 0.0;
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            const double pred = model.predict({ t.row, t.col}, .0);
+            const double pred = model.predict({t.col, t.row});
             se += square(t.val - pred);
             double delta = pred - t.pred;
             double pred_avg = (t.pred + delta / (sample_iter + 1));
@@ -92,8 +92,8 @@ void Result::update(const Model &model, bool burnin)
             t.stds = sqrt(t.var * inorm);
             t.pred = pred_avg;
             se_avg += square(t.val - pred_avg);
-            sample_iter++;
         }
+        sample_iter++;
         rmse = sqrt( se / N );
         rmse_avg = sqrt( se_avg / N );
     }
