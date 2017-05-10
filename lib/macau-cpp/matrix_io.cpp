@@ -236,6 +236,8 @@ Macau::MatrixConfig read_mtx(std::string fname) {
     for (int l = 0; l < ret.nnz; l++)
     {
         fin >> ret.rows[l] >> ret.cols[l] >> ret.values[l];
+        ret.rows[l]--;
+        ret.cols[l]--;
     }
 
     return ret;
