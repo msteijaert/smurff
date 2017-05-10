@@ -29,7 +29,7 @@ struct sparse_vec_iterator {
     sparse_vec_iterator(const SparseBinaryMatrix &Y, int pos)
         : rows(Y.rows), cols(Y.cols), vals(0), fixed_val(1.0), pos(pos) {}
     sparse_vec_iterator(const Macau::MatrixConfig &Y, int pos)
-        : rows(Y.rows), cols(Y.cols), vals(0), fixed_val(1.0), pos(pos) {}
+        : rows(Y.rows), cols(Y.cols), vals(Y.values), fixed_val(Y.binary), pos(pos) {}
 
     int *rows, *cols;
     double *vals; // can be null pointer -> use fixed value
