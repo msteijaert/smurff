@@ -120,8 +120,8 @@ void Result::update(const Model &model, bool burnin)
             auto &t = predictions[k];
             t.pred = model.predict(t.row, t.col);
             se += square(t.val - t.pred);
-            burnin_iter++;
         }
+        burnin_iter++;
         rmse = sqrt( se / N );
     } else {
         double se = 0.0, se_avg = 0.0;
@@ -138,8 +138,8 @@ void Result::update(const Model &model, bool burnin)
             t.pred_avg = pred_avg;
             t.pred = pred;
             se_avg += square(t.val - pred_avg);
-            sample_iter++;
         }
+        sample_iter++;
         rmse = sqrt( se / N );
         rmse_avg = sqrt( se_avg / N );
     }
