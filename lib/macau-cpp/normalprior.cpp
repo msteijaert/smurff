@@ -16,9 +16,7 @@ using namespace Eigen;
 namespace Macau {
 
 ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
-    : session(m), mode(p), name(name),
-      rrs(VectorNd::Zero(m.model.nlatent())),
-      MMs(MatrixNNd::Zero(m.model.nlatent(), m.model.nlatent())) {} 
+    : session(m), mode(p), name(name) {} 
 
 std::ostream &ILatentPrior::info(std::ostream &os, std::string indent) 
 {
@@ -31,6 +29,12 @@ Data &ILatentPrior::data() { return *session.data; }
 INoiseModel &ILatentPrior::noise() { return *data().noise; }
 MatrixXd &ILatentPrior::U() { return model().U(mode); }
 MatrixXd &ILatentPrior::V() { return model().V(mode); }
+
+void ILatentPrior::init() 
+{
+    rrs.init(VectorNd::Zero(num_latent()));
+    MMs.init(MatrixNNd::Zero(num_latent(), num_latent()));
+}
 
 void ILatentPrior::sample_latents() 
 {
@@ -47,10 +51,14 @@ void ILatentPrior::sample_latents()
  */
 
 NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
-    : ILatentPrior(m, p, name),
-      Ucol(VectorNd::Zero(num_latent())),
-      UUcol(MatrixNNd::Zero(num_latent(), num_latent()))
-{
+    : ILatentPrior(m, p, name) {}
+
+void NormalPrior::init() {
+    ILatentPrior::init();
+
+    Ucol.init(VectorNd::Zero(num_latent())),
+    UUcol.init(MatrixNNd::Zero(num_latent(), num_latent()));
+
     const int K = num_latent();
     mu.resize(K);
     mu.setZero();

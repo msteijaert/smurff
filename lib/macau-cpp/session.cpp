@@ -31,33 +31,6 @@ using namespace Eigen;
 
 namespace Macau {
 
-//-- add model
-//
-//Model &BaseSession::addModel(int num_latent) {
-//    Model *n = new Model(num_latent);
-//    model.reset(n);
-//    return *n;
-//}
-//
-//ScarceMatrixData &BaseSession::sparseModel(int num_latent) {
-//    return addModel<ScarceMatrixData>(num_latent);
-//}
-//
-//SparseBinaryMF &BaseSession::sparseBinaryModel(int num_latent) {
-//    return addModel<SparseBinaryMF>(num_latent);
-//}
-//
-//DenseMatrixData &BaseSession::denseDenseModel(int num_latent) {
-//    return addModel<DenseMatrixData>(num_latent);
-//}
-//
-//SparseMatrixData &BaseSession::sparseDenseModel(int num_latent) {
-//    return addModel<SparseMatrixData>(num_latent);
-//}
-
-void BaseSession::init() {
-}
-
 void BaseSession::step() {
     for(auto &p : priors) p->sample_latents();
     data->update(model);
@@ -66,7 +39,7 @@ void BaseSession::step() {
 std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     os << indent << name << " {\n";
     os << indent << "  Data: {\n";
-    model.info(os, indent + "    ");
+    data->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Model: {\n";
     model.info(os, indent + "    ");
@@ -245,10 +218,10 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
-    if (test.nrow > 0 && train.nrow > 0 && test.rows != train.rows)
+    if (test.nrow > 0 && train.nrow > 0 && test.nrow != train.nrow)
         die("Train and test matrix should have the same number of rows");
 
-    if (test.ncol > 0 && train.ncol > 0 && test.cols != train.cols)
+    if (test.ncol > 0 && train.ncol > 0 && test.ncol != train.ncol)
         die("Train and test matrix should have the same number of cols");
 
     std::set<std::string> save_suffixes = { ".csv", ".ddm" };
@@ -268,9 +241,11 @@ void Session::setFromConfig(const Config &c)
     if (!config.train.dense) {
         SparseMatrixD Ytrain = sparse_to_eigen(config.train);
         if (is_binary(Ytrain)) {
+            data = std::unique_ptr<Data>(new ScarceBinaryMatrixData(Ytrain));
             if (!config.classify) {
                config.classify = true;
                config.threshold = 0.5;
+               config.noise_model = "probit";
             }
         } else {
             data = std::unique_ptr<Data>(new ScarceMatrixData(Ytrain));
@@ -296,6 +271,8 @@ void Session::setFromConfig(const Config &c)
         data->setAdaptivePrecision(config.sn_init, config.sn_max);
     } else if (config.noise_model == "fixed") {
         data->setPrecision(config.precision);
+    } else if (config.noise_model == "probit") {
+        data->setProbit();
     } else {
         die("Unknown noise model; " + config.noise_model);
     }

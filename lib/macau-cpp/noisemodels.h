@@ -15,8 +15,6 @@ struct Model;
 class INoiseModel {
   public:
     INoiseModel(Data &p) : data(p) {}
-    virtual INoiseModel *copyTo(Data &p) = 0;
-
     virtual void init()  = 0;
     virtual void update(const Model &)  = 0;
 
@@ -36,8 +34,6 @@ class FixedGaussianNoise : public INoiseModel {
   
     FixedGaussianNoise(Data &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
-
-    INoiseModel *copyTo(Data &p) override;
 
     void init() override { }
     void update(const Model &) override {}
@@ -61,8 +57,6 @@ class AdaptiveGaussianNoise : public INoiseModel {
     AdaptiveGaussianNoise(Data &p, double sinit = 1., double smax = 10.)
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
-    INoiseModel *copyTo(Data &) override;
-
     void init() override;
     void update(const Model &) override;
     double getAlpha() override { return alpha; }
@@ -70,6 +64,18 @@ class AdaptiveGaussianNoise : public INoiseModel {
     void setSNMax(double a) { sn_max  = a; }
     std::ostream &info(std::ostream &os, std::string indent) override;
     std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
+};
+
+/** Gaussian noise that adapts to the data */
+class ProbitNoise : public INoiseModel {
+  public:
+    ProbitNoise(Data &p) : INoiseModel(p) {}
+
+    void init() override {}
+    void update(const Model &) override {}
+    double getAlpha() override { assert(false); return NAN; }
+    std::ostream &info(std::ostream &os, std::string indent) override;
+    std::string getStatus() override { return std::string(); }
 };
 
 }

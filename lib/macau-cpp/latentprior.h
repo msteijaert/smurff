@@ -21,7 +21,7 @@ class ILatentPrior {
       // c-tor
       ILatentPrior(BaseSession &s, int m, std::string name = "xxxx");
       virtual ~ILatentPrior() {}
-      virtual void init() {}
+      virtual void init();
 
       // utility
       Model &model();
@@ -29,9 +29,8 @@ class ILatentPrior {
       INoiseModel &noise();
       Eigen::MatrixXd &U();
       Eigen::MatrixXd &V();
-
-      int num_latent() { return model().nlatent(); }
-      int num_cols() { return model().U(mode).cols(); }
+      int num_latent() { assert(model().nlatent() > 0); return model().nlatent(); }
+      int num_cols()   { return model().U(mode).cols(); }
 
       virtual void save(std::string prefix, std::string suffix) = 0;
       virtual void restore(std::string prefix, std::string suffix) = 0;
@@ -62,6 +61,7 @@ class NormalPrior : public ILatentPrior {
   public:
     NormalPrior(BaseSession &m, int p, std::string name = "NormalPrior");
     virtual ~NormalPrior() {}
+    void init() override;
     
     // updated by every thread
     thread_vector<VectorNd> Ucol;

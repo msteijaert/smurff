@@ -31,7 +31,7 @@ namespace Macau {
 
 void Model::init(int nl, const std::vector<int> &dims) {
     num_latent = nl;
-    for(int d = 0; d < nmodes(); ++d) {
+    for(unsigned d = 0; d < dims.size(); ++d) {
         samples.push_back(Eigen::MatrixXd(num_latent, dims[d]));
         bmrandn(samples.back());
     }
@@ -72,17 +72,24 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
 }
 
 FixedGaussianNoise &Data::setPrecision(double p) {
-  FixedGaussianNoise *n = new FixedGaussianNoise(*this, p);
+  auto *n = new FixedGaussianNoise(*this, p);
   noise.reset(n);
   return *n;
 }
 
 
 AdaptiveGaussianNoise &Data::setAdaptivePrecision(double sn_init, double sn_max) {
-  AdaptiveGaussianNoise *n = new AdaptiveGaussianNoise(*this, sn_init, sn_max);
+  auto *n = new AdaptiveGaussianNoise(*this, sn_init, sn_max);
   noise.reset(n);
   return *n;
 }
+
+ProbitNoise &Data::setProbit() {
+  auto *n = new ProbitNoise(*this);
+  noise.reset(n);
+  return *n;
+}
+
 
 template<typename YType>
 void MatrixDataTempl<YType>::init_base()
@@ -107,7 +114,6 @@ void MatrixDataTempl<SparseMatrixD>::init()
     init_base();
     Yc.at(0).coeffs() -= mean_rating;
     Yc.at(1).coeffs() -= mean_rating;
-    name = name + " [with NAs]";
 }
 
 
@@ -117,7 +123,6 @@ void MatrixDataTempl<Eigen::MatrixXd>::init()
     init_base();
     Yc.at(0).array() -= this->mean_rating;
     Yc.at(1).array() -= this->mean_rating;
-    name = "Dense" + name;
 }
 
 template<>

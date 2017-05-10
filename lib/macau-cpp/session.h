@@ -22,18 +22,11 @@ class BaseSession  {
       std::unique_ptr<Data>                       data;
       Result                                      pred;
       std::vector< std::unique_ptr<ILatentPrior>> priors;
-    
-      //-- add data
-      //void setData(const Eigen::SparseMatrix<double> &Y, bool );
-      //void sparseBinaryModel(int num_latent);
-      //void addData(int num_latent);
-      //void sparseDenseModel(int num_latent);
-
+ 
       //-- add priors
       template<class Prior>
       inline Prior& addPrior();
 
-      void init();
       virtual void step();
 
       virtual std::ostream &info(std::ostream &, std::string indent);

@@ -11,20 +11,10 @@ using namespace Eigen;
 
 namespace Macau {
 
-INoiseModel *FixedGaussianNoise::copyTo(Data &p)
-{
-    return new FixedGaussianNoise(p, alpha);
-}
-
 std::ostream &FixedGaussianNoise::info(std::ostream &os, std::string indent)
 { 
     os << "Fixed gaussian noise with precision: " << alpha << "\n";
     return os;
-}
-
-INoiseModel *AdaptiveGaussianNoise::copyTo(Data &p) 
-{
-    return new AdaptiveGaussianNoise(p, sn_init, sn_max);
 }
 
 std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)
@@ -55,6 +45,12 @@ void AdaptiveGaussianNoise::update(const Model &m)
     if (alpha > alpha_max) {
         alpha = alpha_max;
     }
+}
+
+std::ostream &ProbitNoise::info(std::ostream &os, std::string indent)
+{ 
+    os << "Probit Noise\n";
+    return os;
 }
 
 } // end namespace Macau

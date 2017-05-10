@@ -12,6 +12,7 @@
 namespace Macau {
 
 struct Model {
+    Model() : num_latent(-1) {}
     void init(int nl, const std::vector<int> &indices);
 
     //-- access for all
@@ -74,6 +75,7 @@ struct Data {
     // set noise models
     FixedGaussianNoise &setPrecision(double p);
     AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
+    ProbitNoise &setProbit();
 
     // virtual functions data-related
     double mean_rating = .0;
@@ -90,7 +92,7 @@ struct MatrixData: public Data {
     virtual int nrow()      const = 0;
     virtual int ncol()      const = 0;
     int size()              const override { return nrow() * ncol(); }
-    std::vector<int> dims() const override { return {nrow(), ncol()}; }
+    std::vector<int> dims() const override { return {ncol(), nrow()}; }
 };
 
 struct MatricesData: public Data {
@@ -131,7 +133,7 @@ struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {
     //-- c'tor
     ScarceBinaryMatrixData(SparseMatrixD &Y) : MatrixDataTempl<SparseMatrixD>(Y) 
     {
-        name = "ScarceMatrixData [containing 0,1,NA] (Probit Noise Sampler)";
+        name = "ScarceBinaryMatrixData [containing 0,1,NA]";
     }
 
     void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
