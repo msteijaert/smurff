@@ -16,7 +16,7 @@ struct Result {
     //-- test set
     struct Item {
         int row, col;
-        double val, pred, var, stds;
+        double val, pred, pred_avg, var, stds;
     };
     std::vector<Item> predictions;
     int nrows, ncols;
