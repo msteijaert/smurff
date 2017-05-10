@@ -29,8 +29,9 @@ using namespace Eigen;
 
 namespace Macau {
 
-void Model::init(int nl, const std::vector<int> &dims) {
+void Model::init(int nl, double mr, const std::vector<int> &dims) {
     num_latent = nl;
+    mean_rating = mr;
     for(unsigned d = 0; d < dims.size(); ++d) {
         samples.push_back(Eigen::MatrixXd(num_latent, dims[d]));
         bmrandn(samples.back());
@@ -64,8 +65,6 @@ std::ostream &Model::info(std::ostream &os, std::string indent)
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
-    double train_fill_rate = 100. * nnz() / size();
-    //os << indent << "Train data: " << nnz() << " [" << nrow() << " x " << ncol() << "] (" << train_fill_rate << "%)\n";
     os << indent << "Noise: ";
     noise->info(os, "");
     return os;
@@ -88,6 +87,15 @@ ProbitNoise &Data::setProbit() {
   auto *n = new ProbitNoise(*this);
   noise.reset(n);
   return *n;
+}
+
+
+std::ostream &MatrixData::info(std::ostream &os, std::string indent)
+{
+    Data::info(os, indent);
+    double train_fill_rate = 100. * nnz() / size();
+    os << indent << "Size: " << nnz() << " [" << nrow() << " x " << ncol() << "] (" << train_fill_rate << "%)\n";
+    return os;
 }
 
 
@@ -168,7 +176,7 @@ double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const Model &model) const {
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < this->ncol(); j++) {
         for (int i = 0; i < this->nrow(); i++) {
-            double Yhat = model.predict({i,j}, this->mean_rating);
+            double Yhat = model.predict({i,j});
             sumsq += square(Yhat - this->Y(i,j));
         }
     }
@@ -184,7 +192,7 @@ double MatrixDataTempl<SparseMatrixD>::sumsq(const Model &model) const {
     for (int j = 0; j < Y.outerSize(); j++) {
         for (SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
             int i = it.row();
-            double Yhat = model.predict({i,j}, this->mean_rating);
+            double Yhat = model.predict({i,j});
             sumsq += square(Yhat - it.value());
         }
     }

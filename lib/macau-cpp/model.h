@@ -13,7 +13,7 @@ namespace Macau {
 
 struct Model {
     Model() : num_latent(-1) {}
-    void init(int nl, const std::vector<int> &indices);
+    void init(int nl, double mean_rating, const std::vector<int> &indices);
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
@@ -26,8 +26,8 @@ struct Model {
         return samples.at(f); 
     }
 
-    double predict(const std::vector<int> &indices, double mean_rating) const  {
-        Eigen::ArrayXd P = Eigen::ArrayXd::Zero(num_latent) ;
+    double predict(const std::vector<int> &indices) const  {
+        Eigen::ArrayXd P = Eigen::ArrayXd::Ones(num_latent);
         for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
         return P.sum() + mean_rating;
     }
@@ -57,6 +57,7 @@ struct Model {
   private:
     std::vector<Eigen::MatrixXd> samples;
     int num_latent;
+    double mean_rating;
 };
 
 struct Data {
@@ -70,7 +71,7 @@ struct Data {
     virtual void update_pnm(const Model &,int) = 0;
 
     //-- print info
-    std::ostream &info(std::ostream &os, std::string indent);
+    virtual std::ostream &info(std::ostream &os, std::string indent);
 
     // set noise models
     FixedGaussianNoise &setPrecision(double p);
@@ -93,6 +94,7 @@ struct MatrixData: public Data {
     virtual int ncol()      const = 0;
     int size()              const override { return nrow() * ncol(); }
     std::vector<int> dims() const override { return {ncol(), nrow()}; }
+    std::ostream &info(std::ostream &os, std::string indent) override;
 };
 
 struct MatricesData: public Data {

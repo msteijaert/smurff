@@ -62,7 +62,7 @@ void Session::init() {
     init_bmrng();
 
     data->init();
-    model.init(config.num_latent, data->dims());
+    model.init(config.num_latent, data->mean_rating, data->dims());
     for( auto &p : priors) p->init();
     if (config.restore_prefix.size()) {
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
