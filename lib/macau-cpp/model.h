@@ -12,7 +12,7 @@
 namespace Macau {
 
 struct Model {
-    Model() : num_latent(-1) {}
+    Model() : num_latent(-1), mean_rating(NAN) {}
     void init(int nl, double mean_rating, const std::vector<int> &indices);
 
     //-- access for all
