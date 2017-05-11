@@ -53,8 +53,6 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     return os;
 }
 
-
-
 //--- 
 
 void Session::init() {
@@ -149,33 +147,6 @@ inline void addMacauPrior(Session &m, std::string prior_name, SideInfo *f, doubl
     }
 }
 
-//template<class Prior>
-//inline void add_features(MasterPrior<Prior> &p, const std::vector<MatrixConfig> &features)
-//{
-//    for(auto &f : features) {
-//        if (f.dense) {
-//            auto &slave_model = p.template addSlave<DenseMatrixData>();
-//            slave_model.data = std::unique_ptr<DenseMatrixData>(new DenseMatrixData(dense_to_eigen(f)));
-//        } else {
-//            auto &slave_model = p.template addSlave<SparseMatrixData>(sparse_to_eigen(f));
-//        }
-//    }
-//}
-
-
-//inline void addMaster(Session &macau,std::string prior_name, const std::vector<MatrixConfig> &features)
-//{
-//    if(prior_name == "normal" || prior_name == "default") {
-//       auto &prior = macau.addPrior<MasterPrior<NormalPrior>>();
-//       add_features(prior, features);
-//    } else if(prior_name == "spikeandslab") {
-//       auto &prior = macau.addPrior<MasterPrior<SpikeAndSlabPrior>>();
-//       add_features(prior, features);
-//    } else {
-//        throw std::runtime_error("Unknown prior with side info: " + prior_name);
-//    }
-//}
-
 void add_prior(Session &macau, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
 {
     //-- row prior with side information
@@ -228,7 +199,69 @@ bool Config::validate(bool throw_error) const
     if (save_suffixes.find(save_suffix) == save_suffixes.end()) die("Unknown output suffix: " + save_suffix);
 
     return true;
- }
+}
+
+std::ostream &MatrixConfig::info(std::ostream &os) const
+{
+    os << nrow << " x " << ncol;
+    return os;
+}
+
+void Config::save(std::string fname) const 
+{
+    ofstream os(fname);
+
+    os << "# train = "; train.info(os); os << std::endl;
+    os << "# test = "; test.info(os); os << std::endl;
+    os << "test_split = " << test_split << std::endl;
+
+    //-- features
+    auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
+        os << "[" << name << "]\n";
+        for (int i=0; i<vec.size(); ++i) {
+            os << "# " << i << " ";
+            vec.at(i).info(os);
+            os << std::endl;
+        }
+    };
+    print_features("row_features", row_features);
+    print_features("col_features", col_features);
+
+    // -- priors
+    os << "row_prior = " << row_prior << std::endl;
+    os << "col_prior = " << col_prior << std::endl;
+
+    //-- restore
+    os << "restore_prefix = " << restore_prefix << std::endl;
+    os << "restore_suffix = " << restore_suffix << std::endl;
+
+    //-- save
+    os << "save_prefix = " << save_prefix << std::endl;
+    os << "save_suffix = " << save_suffix << std::endl;
+    os << "save_freq = " << save_freq << std::endl;
+
+    //-- general
+    os << "verbose = " << verbose << std::endl;
+    os << "burnin = " << burnin << std::endl;
+    os << "nsamples = " << nsamples << std::endl;
+    os << "num_latent = " << num_latent << std::endl;
+
+    //-- for macau priors
+    os << "lambda_beta = " << lambda_beta << std::endl;
+    os << "tol = " << tol << std::endl;
+    os << "direct = " << direct << std::endl;
+
+    //-- noise model
+    os << "noise_model = " << noise_model << std::endl;
+    os << "precision = " << precision << std::endl;
+    os << "sn_init = " << sn_init << std::endl;
+    os << "sn_max = " << sn_max << std::endl;
+
+    //-- binary classification
+    os << "classify = " << classify << std::endl;
+    os << "threshold = " << threshold << std::endl;
+}
+ 
 
 void Session::setFromConfig(const Config &c)
 {
