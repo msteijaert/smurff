@@ -58,18 +58,17 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
 void Session::init() {
     threads_init();
     init_bmrng();
-
     data->init();
     model.init(config.num_latent, data->mean_rating, data->dims());
     for( auto &p : priors) p->init();
+    if (config.verbose) info(std::cout, "");
     if (config.restore_prefix.size()) {
+        iter = -1;
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
         restore(config.restore_prefix, config.restore_suffix);
+        if (config.verbose) printStatus(0);
     }
-    if (config.verbose) {
-        info(std::cout, "");
-        std::cout << "Sampling" << endl;
-    }
+    if (config.verbose) std::cout << "Sampling" << endl;
     iter = 0;
     is_init = true;
 }
@@ -337,7 +336,11 @@ void Session::printStatus(double elapsedi) {
 
     std::string phase;
     int i, from;
-    if (iter < config.burnin) {
+    if (iter < 0) {
+        phase = "Restored state: ";
+        i = 0;
+        from = 0;
+    } else if (iter < config.burnin) {
         phase = "Burnin";
         i = iter;
         from = config.burnin;
