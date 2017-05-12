@@ -165,6 +165,7 @@ void add_prior(Session &macau, std::string prior_name, const std::vector<MatrixC
                 addMacauPrior(macau, prior_name, sideinfo, lambda_beta, tol, direct);
             } 
         } else {
+            assert(false && "Not yet");
             //addMaster(macau, prior_name, features);
         }
     } else if(prior_name == "normal" || prior_name == "default") {
@@ -214,7 +215,7 @@ void Config::save(std::string fname) const
     os << "# test = "; test.info(os); os << std::endl;
     os << "test_split = " << test_split << std::endl;
 
-    //-- features
+    os << "# features" << std::endl;
     auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
         os << "[" << name << "]\n";
         for (int i=0; i<vec.size(); ++i) {
@@ -226,37 +227,37 @@ void Config::save(std::string fname) const
     print_features("row_features", row_features);
     print_features("col_features", col_features);
 
-    // -- priors
+    os << "# priors" << std::endl;
     os << "row_prior = " << row_prior << std::endl;
     os << "col_prior = " << col_prior << std::endl;
 
-    //-- restore
+    os << "# restore" << std::endl;
     os << "restore_prefix = " << restore_prefix << std::endl;
     os << "restore_suffix = " << restore_suffix << std::endl;
 
-    //-- save
+    os << "# save" << std::endl;
     os << "save_prefix = " << save_prefix << std::endl;
     os << "save_suffix = " << save_suffix << std::endl;
     os << "save_freq = " << save_freq << std::endl;
 
-    //-- general
+    os << "# general" << std::endl;
     os << "verbose = " << verbose << std::endl;
     os << "burnin = " << burnin << std::endl;
     os << "nsamples = " << nsamples << std::endl;
     os << "num_latent = " << num_latent << std::endl;
 
-    //-- for macau priors
+    os << "# for macau priors" << std::endl;
     os << "lambda_beta = " << lambda_beta << std::endl;
     os << "tol = " << tol << std::endl;
     os << "direct = " << direct << std::endl;
 
-    //-- noise model
+    os << "# noise model" << std::endl;
     os << "noise_model = " << noise_model << std::endl;
     os << "precision = " << precision << std::endl;
     os << "sn_init = " << sn_init << std::endl;
     os << "sn_max = " << sn_max << std::endl;
 
-    //-- binary classification
+    os << "# binary classification" << std::endl;
     os << "classify = " << classify << std::endl;
     os << "threshold = " << threshold << std::endl;
 }
@@ -265,6 +266,7 @@ void Config::save(std::string fname) const
 void Session::setFromConfig(const Config &c)
 {
     c.validate(true);
+    c.save("macau.ini");
 
     //-- copy
     config = c;
@@ -323,8 +325,8 @@ void Session::printStatus(double elapsedi) {
 
     pred.update(model, iter < config.burnin);
 
-    double norm0 = priors[0]->getLinkNorm();
-    double norm1 = priors[1]->getLinkNorm();
+    double norm0 = priors.at(0)->getLinkNorm();
+    double norm1 = priors.at(0)->getLinkNorm();
 
     double snorm0 = model.U(0).norm();
     double snorm1 = model.U(1).norm();
