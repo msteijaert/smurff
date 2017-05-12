@@ -127,6 +127,10 @@ void NormalPrior::save(std::string prefix, std::string suffix) {
 
 void NormalPrior::restore(std::string prefix, std::string suffix) {
   read_dense(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
+  UUcol.reset();
+  Ucol.reset();
+  UUcol.local() = U() * U().transpose();
+  Ucol.local() = U().rowwise().sum();
 }
 
 } // end namespace Macau
