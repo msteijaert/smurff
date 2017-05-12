@@ -22,6 +22,8 @@ struct MatrixConfig {
     int nnz;
     int nrow;
     int ncol;
+
+    std::ostream &info(std::ostream &) const;
 };
 
 struct Config {
@@ -73,6 +75,8 @@ struct Config {
     double threshold;
 
     bool validate(bool) const;
+    void save(std::string) const;
+
 };
 
 } // end namespace Macau

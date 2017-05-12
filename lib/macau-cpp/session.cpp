@@ -277,7 +277,67 @@ bool Config::validate(bool throw_error) const
     if (save_suffixes.find(save_suffix) == save_suffixes.end()) die("Unknown output suffix: " + save_suffix);
 
     return true;
- }
+}
+
+std::ostream &MatrixConfig::info(std::ostream &os) const
+{
+    os << nrow << " x " << ncol;
+    return os;
+}
+
+void Config::save(std::string fname) const
+{
+    ofstream os(fname);
+
+    os << "fname_train = " << fname_train << std::endl;
+    os << "fname_test = " << fname_test << std::endl;
+    os << "test_split = " << test_split << std::endl;
+
+    os << "# features" << std::endl;
+    auto print_features = [&os](std::string name, const std::vector<std::string> &vec) -> void {
+        os << "[" << name << "]\n";
+        for (int i=0; i<vec.size(); ++i) {
+            os << name << "_" << i << " = " << vec[i] ;
+            os << std::endl;
+        }
+    };
+    print_features("row_features", fname_row_features);
+    print_features("col_features", fname_col_features);
+
+    os << "# priors" << std::endl;
+    os << "row_prior = " << row_prior << std::endl;
+    os << "col_prior = " << col_prior << std::endl;
+
+    os << "# restore" << std::endl;
+    os << "restore_prefix = " << restore_prefix << std::endl;
+    os << "restore_suffix = " << restore_suffix << std::endl;
+
+    os << "# save" << std::endl;
+    os << "save_prefix = " << save_prefix << std::endl;
+    os << "save_suffix = " << save_suffix << std::endl;
+    os << "save_freq = " << save_freq << std::endl;
+
+    os << "# general" << std::endl;
+    os << "verbose = " << verbose << std::endl;
+    os << "burnin = " << burnin << std::endl;
+    os << "nsamples = " << nsamples << std::endl;
+    os << "num_latent = " << num_latent << std::endl;
+
+    os << "# for macau priors" << std::endl;
+    os << "lambda_beta = " << lambda_beta << std::endl;
+    os << "tol = " << tol << std::endl;
+    os << "direct = " << direct << std::endl;
+
+    os << "# noise model" << std::endl;
+    os << "noise_model = " << noise_model << std::endl;
+    os << "precision = " << precision << std::endl;
+    os << "sn_init = " << sn_init << std::endl;
+    os << "sn_max = " << sn_max << std::endl;
+
+    os << "# binary classification" << std::endl;
+    os << "classify = " << classify << std::endl;
+    os << "threshold = " << threshold << std::endl;
+}
 
 void Session::setFromConfig(const Config &c)
 {
@@ -285,6 +345,11 @@ void Session::setFromConfig(const Config &c)
 
     //-- copy
     config = c;
+
+    if (config.save_freq > 0) {
+        if (config.verbose) printf("-- Saving config in %s.ini\n", config.save_prefix.c_str());
+        config.save(config.save_prefix + ".ini");
+    }
 
     bool train_is_sparse = is_sparse_fname(config.fname_train) || (!config.config_train.dense);
 
