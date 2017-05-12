@@ -104,14 +104,14 @@ void Session::init() {
     threads_init();
     init_bmrng();
     BaseSession::init();
+    if (config.verbose) info(std::cout, "");
     if (config.restore_prefix.size()) {
+        iter = -1;
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
         restore(config.restore_prefix, config.restore_suffix);
+        if (config.verbose) printStatus(0);
     }
-    if (config.verbose) {
-        info(std::cout, "");
-        std::cout << "Sampling" << endl;
-    }
+    if (config.verbose) std::cout << "Sampling" << endl;
     iter = 0;
     is_init = true;
 }
@@ -267,10 +267,10 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
-    if (config_test.rows > 0 && config_train.rows > 0 && config_test.rows != config_train.rows)
+    if (config_test.nrow > 0 && config_train.nrow > 0 && config_test.nrow != config_train.nrow)
         die("Train and test matrix should have the same number of rows");
 
-    if (config_test.cols > 0 && config_train.cols > 0 && config_test.cols != config_train.cols)
+    if (config_test.ncol > 0 && config_train.ncol > 0 && config_test.ncol != config_train.ncol)
         die("Train and test matrix should have the same number of cols");
 
     std::set<std::string> save_suffixes = { ".csv", ".ddm" };
@@ -373,7 +373,11 @@ void Session::printStatus(double elapsedi) {
 
     std::string phase;
     int i, from;
-    if (iter < config.burnin) {
+    if (iter < 0) {
+        phase = "Restored state: ";
+        i = 0;
+        from = 0;
+    } else if (iter < config.burnin) {
         phase = "Burnin";
         i = iter;
         from = config.burnin;
