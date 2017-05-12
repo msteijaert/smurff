@@ -75,6 +75,7 @@ struct Config {
 
     bool validate(bool) const;
     void save(std::string) const;
+    void restore(std::string);
 };
 
 } // end namespace Macau

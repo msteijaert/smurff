@@ -11,6 +11,8 @@
 #include <cmath>
 #include <argp.h>
 
+#include <INIReader.h>
+
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 
@@ -261,6 +263,50 @@ void Config::save(std::string fname) const
     os << "classify = " << classify << std::endl;
     os << "threshold = " << threshold << std::endl;
 }
+
+void Config::restore(std::string fname) {
+    INIReader reader(fname);
+    
+    if (reader.ParseError() < 0) {
+        std::cout << "Can't load '" << fname << "'\n";
+    }
+
+    test_split = reader.GetReal("", "test_split",  .0);
+
+    // -- priors
+    row_prior = reader.Get("", "row_prior",  "default");
+    col_prior = reader.Get("", "col_prior",  "default");
+    
+    //-- restore
+    restore_prefix = reader.Get("", "restore_prefix",  "");
+    restore_suffix = reader.Get("", "restore_suffix",  ".csv");
+
+    //-- save
+    save_prefix = reader.Get("", "save_prefix",  "save");
+    save_suffix = reader.Get("", "save_suffix",  ".csv");
+    save_freq = reader.GetInteger("", "save_freq",  0); // never
+
+    //-- general
+    verbose = reader.GetBoolean("", "verbose",  false);
+    burnin = reader.GetInteger("", "burnin",  200);
+    nsamples = reader.GetInteger("", "nsamples",  800);
+    num_latent = reader.GetInteger("", "num_latent",  96);
+
+    //-- for macau priors
+    lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
+    tol = reader.GetReal("", "tol",  1e-6);
+    direct = reader.GetBoolean("", "direct",  false); 
+
+    //-- noise model
+    noise_model = reader.Get("", "noise_model",  "fixed");
+    precision = reader.GetReal("", "precision",  5.0);
+    sn_init = reader.GetReal("", "sn_init",  1.0);
+    sn_max = reader.GetReal("", "sn_max",  10.0);
+
+    //-- binary classification
+    classify = reader.GetBoolean("", "classify",  false);
+    threshold = reader.GetReal("", "threshold",  .0);
+};
  
 
 void Session::setFromConfig(const Config &c)
