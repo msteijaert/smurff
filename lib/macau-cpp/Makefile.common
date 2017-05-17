@@ -3,7 +3,7 @@ CXX=g++
 CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas  -fPIC
 #CXXFLAGS+=-fopenmp
 
-CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse -I$(ROOT)/../inih/cpp
+CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
 LIBLOCS += -L/usr/local/opt/openblas/lib
 LDFLAGS := $(LIBLOCS) -lm -lopenblas -lpthread
 
@@ -18,19 +18,20 @@ OUTPUT_OPTION=-MMD -MP -o $@
 .PHONY: all clean 
 
 LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
-LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o
+LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o data.o
+LIBOBJS += ini.o INIReader.o
 LIBMACAU = libmacau-cpp.a
-
-LDFLAGS +=-L$(ROOT)/../inih
-LDFLAGS += -lini
 
 all: tests cmd_nompi $(LIBMACAU)
 
 vpath %.cpp $(ROOT)
+vpath %.c $(ROOT)
 $(LIBMACAU): $(LIBOBJS)
 	ar -rcs $(LIBMACAU) $(LIBOBJS)
 
 cmd_nompi: $(LIBMACAU) cmd_session.o
+
+tests: $(LIBMACAU)
 
 cmd_mpi: cmd_mpi.cpp cmd_session.o $(LIBMACAU)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o cmd_mpi
