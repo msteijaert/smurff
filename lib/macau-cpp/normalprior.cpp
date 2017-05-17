@@ -9,6 +9,7 @@
 #include "linop.h"
 #include "noisemodels.h"
 #include "latentprior.h"
+#include "data.h"
 
 using namespace std; 
 using namespace Eigen;
@@ -56,8 +57,7 @@ NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
 void NormalPrior::init() {
     ILatentPrior::init();
 
-    Ucol.init(VectorNd::Zero(num_latent())),
-    UUcol.init(MatrixNNd::Zero(num_latent(), num_latent()));
+    initUU();
 
     const int K = num_latent();
     mu.resize(K);
@@ -74,6 +74,14 @@ void NormalPrior::init() {
     mu0.setZero();
     b0 = 2;
     df = K;
+}
+
+void NormalPrior::initUU() 
+{
+  Ucol.init(VectorNd::Zero(num_latent())),
+  UUcol.init(MatrixNNd::Zero(num_latent(), num_latent()));
+  UUcol.local() = U() * U().transpose();
+  Ucol.local() = U().rowwise().sum();
 }
 
 void NormalPrior::sample_latents() {
@@ -127,10 +135,7 @@ void NormalPrior::save(std::string prefix, std::string suffix) {
 
 void NormalPrior::restore(std::string prefix, std::string suffix) {
   read_dense(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
-  UUcol.reset();
-  Ucol.reset();
-  UUcol.local() = U() * U().transpose();
-  Ucol.local() = U().rowwise().sum();
+  initUU();
 }
 
 } // end namespace Macau

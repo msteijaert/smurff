@@ -20,6 +20,7 @@
 
 #include <signal.h>
 
+#include "model.h"
 #include "utils.h"
 #include "data.h"
 #include "mvnormal.h"

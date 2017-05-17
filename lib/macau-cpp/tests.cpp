@@ -7,6 +7,8 @@
 #include "latentprior.h"
 #include "macauprior.h"
 #include "utils.h"
+#include "data.h"
+#include "model.h"
 #include <cmath>
 
 using namespace Macau;

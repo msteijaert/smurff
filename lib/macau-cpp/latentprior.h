@@ -62,10 +62,6 @@ class NormalPrior : public ILatentPrior {
     NormalPrior(BaseSession &m, int p, std::string name = "NormalPrior");
     virtual ~NormalPrior() {}
     void init() override;
-    
-    // updated by every thread
-    thread_vector<VectorNd> Ucol;
-    thread_vector<MatrixNNd> UUcol;
 
     // hyperparams
     Eigen::VectorXd mu; 
@@ -82,6 +78,12 @@ class NormalPrior : public ILatentPrior {
     void sample_latent(int n) override;
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
+
+  private:
+    // for effiency, we keep + update Ucol and UUcol by every thread
+    thread_vector<VectorNd> Ucol;
+    thread_vector<MatrixNNd> UUcol;
+    void initUU();
 };
 
 /** Prior with side information */

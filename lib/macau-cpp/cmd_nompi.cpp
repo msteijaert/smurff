@@ -20,6 +20,7 @@
 #include "linop.h"
 #include "session.h"
 #include "macauoneprior.h"
+#include "data.h"
 
 using namespace Eigen;
 using namespace std;

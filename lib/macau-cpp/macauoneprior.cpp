@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "session.h"
 #include "macauoneprior.h"
+#include "data.h"
 
 using namespace std; 
 using namespace Eigen;

@@ -1,5 +1,6 @@
 #include "noisemodels.h"
 #include "session.h"
+#include "data.h"
 
 using namespace Eigen;
 

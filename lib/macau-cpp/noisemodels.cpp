@@ -6,6 +6,7 @@
 #include "mvnormal.h"
 #include "noisemodels.h"
 #include "model.h"
+#include "data.h"
 
 using namespace Eigen;
 

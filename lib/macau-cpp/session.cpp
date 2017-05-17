@@ -27,6 +27,7 @@
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
+#include "data.h"
 
 using namespace std; 
 using namespace Eigen;

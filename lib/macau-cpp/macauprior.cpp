@@ -10,6 +10,7 @@
 #include "noisemodels.h"
 #include "latentprior.h"
 #include "macauprior.h"
+#include "data.h"
 
 extern "C" {
   #include <sparse.h>
