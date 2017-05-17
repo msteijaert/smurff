@@ -111,6 +111,7 @@ void Session::init() {
         restore(config.restore_prefix, config.restore_suffix);
         if (config.verbose) printStatus(0);
     }
+    if (config.verbose) std::cout << "RMSE when predicting using columnwise mean: " << pred.colmean_rmse(*model) << endl;
     if (config.verbose) std::cout << "Sampling" << endl;
     iter = 0;
     is_init = true;
@@ -412,6 +413,10 @@ void Session::setFromConfig(const Config &c)
             auto predictions = read_sdm(config.fname_test.c_str());
             pred.set(*predictions);
             delete predictions;
+        } else if (config.fname_test.find(".mtx") != std::string::npos) {
+            SparseMatrixD M;
+            loadMarket(M, config.fname_test.c_str());
+            pred.set(M);
         }
     } else if (config.config_test.nrow > 0) {
          pred.set(to_eigen(config.config_train));

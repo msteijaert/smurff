@@ -108,6 +108,16 @@ void Model::restore(std::string prefix, std::string suffix) {
 
 ///--- update RMSE and AUC
 
+double Result::colmean_rmse(const Model &model) {
+    const unsigned N = predictions.size();
+    double se = 0.;
+    for(auto t : predictions) {
+        const double pred = model.colmean(t.col);
+        se += square(t.val - pred);
+    }
+    return sqrt( se / N );
+}
+
 void Result::update(const Model &model, bool burnin)
 {
     if (predictions.size() == 0) return;

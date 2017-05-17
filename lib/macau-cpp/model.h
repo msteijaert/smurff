@@ -26,6 +26,7 @@ struct Result {
 
 
     //-- prediction metrics
+    double colmean_rmse(const Model &);
     void update(const Model &, bool burnin);
     double rmse_avg = NAN;
     double rmse = NAN;
@@ -87,6 +88,9 @@ struct Model {
     virtual int Ycols()    const = 0;
     virtual int Ynnz ()    const = 0;
 
+    // colwise mean for a simple predictor
+    virtual double colmean(int) const = 0;
+
     std::string name;
   private:
     std::vector<Eigen::MatrixXd> factors;
@@ -104,6 +108,11 @@ struct MF : public Model {
     int Yrows()   const override { return Y.rows(); }
     int Ycols()   const override { return Y.cols(); }
     int Ynnz()    const override { return Y.nonZeros(); }
+    double colmean(int c) const override { 
+        auto &col = Y.col(c);
+        if (col.nonZeros() == 0) { printf("-- col %d empty --\n", c); }
+        return col.sum() / col.nonZeros();
+    }
 
     void setRelationData(YType Y);
 
