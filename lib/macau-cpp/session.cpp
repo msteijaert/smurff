@@ -89,7 +89,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     model->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Result: {\n";
-    pred.info(os, indent + "    ");
+    pred.info(os, indent + "    ", *model);
     os << indent << "  }\n";
     os << indent << "  Noise: ";
     noise->info(os, "");
@@ -111,8 +111,7 @@ void Session::init() {
         restore(config.restore_prefix, config.restore_suffix);
         if (config.verbose) printStatus(0);
     }
-    if (config.verbose) std::cout << "RMSE when predicting using columnwise mean: " << pred.colmean_rmse(*model) << endl;
-    if (config.verbose) std::cout << "Sampling" << endl;
+   if (config.verbose) std::cout << "Sampling" << endl;
     iter = 0;
     is_init = true;
 }

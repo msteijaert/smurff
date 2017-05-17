@@ -26,7 +26,7 @@ struct Result {
 
 
     //-- prediction metrics
-    double colmean_rmse(const Model &);
+    double modemean_rmse(int mode, const Model &);
     void update(const Model &, bool burnin);
     double rmse_avg = NAN;
     double rmse = NAN;
@@ -37,7 +37,7 @@ struct Result {
     // general
     void save(std::string fname_prefix);
     void init();
-    std::ostream &info(std::ostream &os, std::string indent);
+    std::ostream &info(std::ostream &os, std::string indent, const Model &model);
 
     //-- for binary classification
     int total_pos;
@@ -79,7 +79,7 @@ struct Model {
     //-- output to file
     void save(std::string, std::string);
     void restore(std::string, std::string);
-    std::ostream &info(std::ostream &os, std::string indent);
+    virtual std::ostream &info(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
     double mean_rating = .0;
@@ -88,8 +88,8 @@ struct Model {
     virtual int Ycols()    const = 0;
     virtual int Ynnz ()    const = 0;
 
-    // colwise mean for a simple predictor
-    virtual double colmean(int) const = 0;
+    // col/row-wise mean for a simple predictor
+    virtual double mean(int, int) const = 0;
 
     std::string name;
   private:
@@ -108,14 +108,15 @@ struct MF : public Model {
     int Yrows()   const override { return Y.rows(); }
     int Ycols()   const override { return Y.cols(); }
     int Ynnz()    const override { return Y.nonZeros(); }
-    double colmean(int c) const override { 
-        auto &col = Y.col(c);
-        if (col.nonZeros() == 0) { printf("-- col %d empty --\n", c); }
+    double mean(int mode, int c) const override { 
+        auto &col = Yc.at(mode).col(c);
+        if (col.nonZeros() == 0) return .0;
         return col.sum() / col.nonZeros();
     }
 
-    void setRelationData(YType Y);
-
+    void setRelationData(YType Y) { 
+        this->Y = Y;
+    }
     double var_total() const override;
     double sumsq() const override;
 
@@ -130,9 +131,15 @@ struct SparseMF : public MF<SparseMatrixD> {
     {
         name = "SparseMF";
     }
+    void init() override;
+
+    std::ostream &info(std::ostream &os, std::string indent) override;
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(int) override;
+  private:
+    int num_empty[2] = {0,0}; 
+
 };
 
 struct SparseBinaryMF : public MF<SparseMatrixD> {

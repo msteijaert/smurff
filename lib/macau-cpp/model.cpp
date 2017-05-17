@@ -108,11 +108,14 @@ void Model::restore(std::string prefix, std::string suffix) {
 
 ///--- update RMSE and AUC
 
-double Result::colmean_rmse(const Model &model) {
+double Result::modemean_rmse(int mode, const Model &model) {
     const unsigned N = predictions.size();
     double se = 0.;
+    double pred;
     for(auto t : predictions) {
-        const double pred = model.colmean(t.col);
+        int n = mode == 0 ? t.col : t.row;
+        pred = mode >= 0 ? model.mean(mode, n) : .0;
+        pred += model.mean_rating;
         se += square(t.val - pred);
     }
     return sqrt( se / N );
@@ -188,12 +191,15 @@ std::ostream &Model::info(std::ostream &os, std::string indent)
     return os;
 }
 
-std::ostream &Result::info(std::ostream &os, std::string indent)
+std::ostream &Result::info(std::ostream &os, std::string indent, const Model &model)
 {
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
-    } else {
+        os << indent << "RMSE using globalmean: " << modemean_rmse(-1,model) << endl;
+        os << indent << "RMSE using colmean: " << modemean_rmse(0,model) << endl;
+        os << indent << "RMSE using rowmean: " << modemean_rmse(1,model) << endl;
+     } else {
         os << indent << "Test data: -\n";
     }
     if (classify) {
@@ -243,12 +249,6 @@ void MF<Eigen::MatrixXd>::init()
     Yc.at(1).array() -= this->mean_rating;
     name = "Dense" + name;
 }
-
-template<typename YType>
-void MF<YType>::setRelationData(YType Y) {
-    this->Y = Y;
-}
-
 
 template<>
 double MF<Eigen::MatrixXd>::var_total() const {
@@ -323,6 +323,26 @@ double MF<SparseMatrixD>::sumsq() const {
 //
 //
 //
+
+void SparseMF::init() {
+    MF<SparseMatrixD>::init();
+
+    // check no rows, nor cols withouth data
+    for(unsigned i=0; i<Yc.size(); ++i) {
+        auto &v = Yc[i];
+        auto &count = num_empty[i]; 
+        for (int j = 0; j < v.cols(); j++) {
+            if (v.col(j).nonZeros() == 0) count++; 
+        }
+    }
+}
+
+std::ostream &SparseMF::info(std::ostream &os, std::string indent) {
+    MF<SparseMatrixD>::info(os, indent);
+    if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty cols\n"; 
+    if (num_empty[1]) os << indent << "  Warning: " << num_empty[0] << " empty rows\n"; 
+    return os;
+}
 
 struct pnm_perf_item {
     int local_nnz, total_nnz;
