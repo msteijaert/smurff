@@ -143,8 +143,8 @@ void Result::update(const Model &model, bool burnin)
             auto &t = predictions[k];
             const double pred = model.predict(t.row, t.col);
             se += square(t.val - pred);
-            double delta = pred - t.pred;
-            double pred_avg = (t.pred + delta / (sample_iter + 1));
+            double delta = pred - t.pred_avg;
+            double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
             t.var += delta * (pred - pred_avg);
             const double inorm = 1.0 / sample_iter;
             t.stds = sqrt(t.var * inorm);
