@@ -78,23 +78,27 @@ void NormalPrior::init() {
 
 void NormalPrior::initUU() 
 {
-  Ucol.init(VectorNd::Zero(num_latent())),
-  UUcol.init(MatrixNNd::Zero(num_latent(), num_latent()));
-  UUcol.local() = U() * U().transpose();
-  Ucol.local() = U().rowwise().sum();
+    const int K = num_latent();
+    Ucol.init(VectorNd::Zero(K));
+    UUcol.init(MatrixNNd::Zero(K, K));
+    UUcol.local() = U() * U().transpose();
+    Ucol.local() = U().rowwise().sum();
 }
 
-void NormalPrior::sample_latents() {
+void NormalPrior::sample_latents()
+{
+    ILatentPrior::sample_latents();
 
     const int N = num_cols();
-    const auto cov = UUcol.combine();
-    const auto sum = Ucol.combine();
-    tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
+    const auto cov = UUcol.combine_and_reset();
+    const auto sum = Ucol.combine_and_reset();
+    //tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
+    //tie(mu, Lambda) = CondNormalWishart(U(), mu0, b0, WI, df);
 
-    UUcol.reset();
-    Ucol.reset();
 
-    ILatentPrior::sample_latents();
+    SHOW(N);
+    SHOW(mu.norm());
+    SHOW(Lambda.norm());
 }
 
 void NormalPrior::sample_latent(int n)
