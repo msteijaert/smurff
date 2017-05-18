@@ -34,6 +34,17 @@ class thread_vector
         void reset() {
             for(auto &t: _m) t = _i;
         }
+        template<typename F>
+        T combine_and_reset(F f) const {
+            T ret = combine(f);
+            reset();
+            return ret;
+        }
+        T combine_and_reset() {
+            T ret = combine();
+            reset();
+            return ret;
+        }
         void init(const T &t) {
             _i = t;
             reset();
