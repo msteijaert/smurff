@@ -62,16 +62,17 @@ void Session::init() {
     threads_init();
     init_bmrng();
     data->init();
-    model.init(config.num_latent, data->mean_rating, data->dims());
+    model.init(config.num_latent, data->mean_rating, data->dims(), config.init_model);
     for( auto &p : priors) p->init();
     if (config.verbose) info(std::cout, "");
     if (config.restore_prefix.size()) {
-        iter = -1;
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
         restore(config.restore_prefix, config.restore_suffix);
-        if (config.verbose) printStatus(0);
     }
-    if (config.verbose) std::cout << "Sampling" << endl;
+    if (config.verbose) {
+       printStatus(0);
+       printf(" ====== Sampling (burning phase) ====== \n");
+    }
     iter = 0;
     is_init = true;
 }
@@ -92,7 +93,7 @@ void Session::step() {
     auto endi = tick();
 
     printStatus(endi - starti);
-    save(iter - config.burnin);
+    save(iter - config.burnin + 1);
     iter++;
 }
 
@@ -201,6 +202,10 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> save_suffixes = { ".csv", ".ddm" };
     if (save_suffixes.find(save_suffix) == save_suffixes.end()) die("Unknown output suffix: " + save_suffix);
 
+    std::set<std::string> init_models = { "random", "zero" };
+    if (init_models.find(init_model) == init_models.end()) die("Unknown init model " + init_model);
+
+
     return true;
 }
 
@@ -221,7 +226,7 @@ void Config::save(std::string fname) const
     os << "# features" << std::endl;
     auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
         os << "[" << name << "]\n";
-        for (int i=0; i<vec.size(); ++i) {
+        for (unsigned i=0; i<vec.size(); ++i) {
             os << "# " << i << " ";
             vec.at(i).info(os);
             os << std::endl;
@@ -237,6 +242,7 @@ void Config::save(std::string fname) const
     os << "# restore" << std::endl;
     os << "restore_prefix = " << restore_prefix << std::endl;
     os << "restore_suffix = " << restore_suffix << std::endl;
+    os << "init_model = " << init_model << std::endl;
 
     os << "# save" << std::endl;
     os << "save_prefix = " << save_prefix << std::endl;
@@ -281,6 +287,7 @@ void Config::restore(std::string fname) {
     //-- restore
     restore_prefix = reader.Get("", "restore_prefix",  "");
     restore_suffix = reader.Get("", "restore_suffix",  ".csv");
+    init_model     = reader.Get("", "init_model", "random");
 
     //-- save
     save_prefix = reader.Get("", "save_prefix",  "save");
@@ -378,24 +385,22 @@ void Session::printStatus(double elapsedi) {
     double snorm0 = model.U(0).norm();
     double snorm1 = model.U(1).norm();
 
-    // add noise status
-
     auto nnz_per_sec = (data->nnz()) / elapsedi;
     auto samples_per_sec = (model.nsamples()) / elapsedi;
 
     std::string phase;
     int i, from;
     if (iter < 0) {
-        phase = "Restored state: ";
+        phase = "Intial: ";
         i = 0;
         from = 0;
     } else if (iter < config.burnin) {
         phase = "Burnin";
-        i = iter;
+        i = iter + 1;
         from = config.burnin;
     } else {
         phase = "Sample";
-        i = iter - config.burnin;
+        i = iter - config.burnin + 1; 
         from = config.nsamples;
     }
 

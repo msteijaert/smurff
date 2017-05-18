@@ -35,8 +35,8 @@ namespace Macau {
 enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
-    RESTORE_PREFIX, RESTORE_SUFFIX,
-    SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE
+    RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE,
+    INIT_MODEL
 };
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
@@ -85,6 +85,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 
         case THRESHOLD:       config.threshold          = strtod(optarg, 0); config.classify = true; break;
         case VERBOSE:         config.verbose            = true; break;
+        case INIT_MODEL:      config.init_model         = optarg; break;
         default:              return ARGP_ERR_UNKNOWN;
     }
 
@@ -113,6 +114,7 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"num-latent",	     NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
         {"restore-prefix",   RESTORE_PREFIX	, "PATH",   0, "prefix for file to initialize stae"},
         {"restore-suffix",   RESTORE_SUFFIX	, "EXT",   0, "suffix for initialization files (.csv or .ddm)"},
+        {"init-model",       INIT_MODEL	, "NAME",   0, "One of <random|zero>"},
         {"save-prefix",      SAVE_PREFIX	, "PATH",   0, "prefix for result files"},
         {"save-suffix",      SAVE_SUFFIX	, "EXT",   0, "suffix for result files (.csv or .ddm)"},
         {"save-freq",        SAVE_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},

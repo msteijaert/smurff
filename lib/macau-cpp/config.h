@@ -47,6 +47,8 @@ struct Config {
     std::string restore_prefix = "";
     std::string restore_suffix = ".csv";
 
+    std::string init_model = "random";
+
     //-- save
     std::string save_prefix = "save";
     std::string save_suffix = ".csv";

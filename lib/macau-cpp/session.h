@@ -42,7 +42,7 @@ class BaseSession  {
 class Session : public BaseSession {
   public:
       Config      config;
-      int         iter;
+      int         iter = -1;
 
       // c'tor
       Session() { name = "MacauSession"; }

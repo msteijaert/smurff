@@ -13,7 +13,7 @@ namespace Macau {
 
 struct Model {
     Model() : num_latent(-1), mean_rating(NAN) {}
-    void init(int nl, double mean_rating, const std::vector<int> &indices);
+    void init(int nl, double mean_rating, const std::vector<int> &indices, std::string init_model);
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
