@@ -50,16 +50,17 @@ struct MatrixData: public Data {
 
 struct MatricesData: public MatrixData {
     // add data
-    void add(int, int, std::unique_ptr<MatrixData>);
+    MatrixData &add(int, int, const MatrixConfig &, bool = true);
 
     // helper functions for noise
+    // but 
     double sumsq(const Model &) const override { assert(false); return NAN; }
     double var_total() const override { assert(false); return NAN; }
 
     // update noise and precision/mean
     void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const Model &,int) override;
-
+    void update_pnm(const Model &model, int mode) override;
+  
     //-- print info
     std::ostream &info(std::ostream &os, std::string indent) override;
 
@@ -70,8 +71,8 @@ struct MatricesData: public MatrixData {
     std::vector<int> dims() const override;
 
   private:
-    std::map<std::pair<int,int>, std::unique_ptr<MatrixData>> matrices;
-
+    Eigen::Matrix<std::unique_ptr<MatrixData>, Eigen::Dynamic, Eigen::Dynamic> matrices;
+    std::vector<int> rowdims, coldims;
 };
 
 

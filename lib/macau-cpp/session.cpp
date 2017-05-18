@@ -11,7 +11,7 @@
 #include <cmath>
 #include <argp.h>
 
-#include <INIReader.h>
+#include "INIReader.h"
 
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
