@@ -92,13 +92,7 @@ void NormalPrior::sample_latents()
     const int N = num_cols();
     const auto cov = UUcol.combine_and_reset();
     const auto sum = Ucol.combine_and_reset();
-    //tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
-    //tie(mu, Lambda) = CondNormalWishart(U(), mu0, b0, WI, df);
-
-
-    SHOW(N);
-    SHOW(mu.norm());
-    SHOW(Lambda.norm());
+    tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
 }
 
 void NormalPrior::sample_latent(int n)
