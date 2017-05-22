@@ -11,7 +11,6 @@
 #include <cmath>
 #include <argp.h>
 
-#include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 
 #include <getopt.h>
