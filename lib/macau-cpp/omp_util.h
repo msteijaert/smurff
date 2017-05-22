@@ -4,6 +4,7 @@
 #if defined(_OPENMP)
 #include <iostream>
 #include <omp.h>
+#include <cblas.h>
 
 inline int nthreads() { return omp_get_num_threads(); }
 inline int thread_limit() 
@@ -22,6 +23,9 @@ inline int thread_num() { return omp_get_thread_num(); }
 
 inline void threads_init() {
     std::cout << "Using OpenMP with up to " << thread_limit() << " threads.\n";
+#ifdef OPENBLAS
+    std::cout << "Using BLAS with up to " << openblas_get_num_threads() << " threads.\n";
+#endif
 }
 #else
 inline int thread_num() { return 0; }
