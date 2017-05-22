@@ -43,7 +43,7 @@ class FixedGaussianNoise : public INoiseModel {
     double getAlpha() override { return alpha; }
 
     std::ostream &info(std::ostream &os, std::string indent)  override;
-    std::string getStatus() override { return std::string(""); }
+    std::string getStatus() override { return std::string("Fixed: ") = std::to_string(alpha); }
 
     void setPrecision(double a) { alpha = a; }    
 };

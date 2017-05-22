@@ -292,9 +292,9 @@ double MF<Eigen::MatrixXd>::sumsq() const {
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < this->Y.cols(); j++) {
-        auto Vj = this->U(1).col(j);
+        auto Vj = this->U(0).col(j);
         for (int i = 0; i < this->Y.rows(); i++) {
-            double Yhat = Vj.dot( this->U(0).col(j) ) + this->mean_rating;
+            double Yhat = Vj.dot( this->U(1).col(i) ) + this->mean_rating;
             sumsq += square(Yhat - this->Y(i,j));
         }
     }

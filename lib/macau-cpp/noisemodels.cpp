@@ -35,7 +35,7 @@ std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)
 
 //  AdaptiveGaussianNoise  ////
 void AdaptiveGaussianNoise::init() {
-    double var_total = model.var_total();
+    var_total = model.var_total();
  
     // Var(noise) = Var(total) / (SN + 1)
     alpha     = (sn_init + 1.0) / var_total;
