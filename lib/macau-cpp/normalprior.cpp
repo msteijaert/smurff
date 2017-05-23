@@ -9,10 +9,7 @@
 #include "linop.h"
 #include "noisemodels.h"
 #include "latentprior.h"
-
-extern "C" {
-  #include <sparse.h>
-}
+#include "data.h"
 
 using namespace std; 
 using namespace Eigen;
@@ -20,69 +17,34 @@ using namespace Eigen;
 namespace Macau {
 
 ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
-    : sessions(1, &m), pos(p), name(name), rrs(VectorNd::Zero(m.model->num_latent)),
-                  MMs(MatrixNNd::Zero(m.model->num_latent, m.model->num_latent)) {} 
+    : session(m), mode(p), name(name) {} 
 
-std::ostream &ILatentPrior::printInitStatus(std::ostream &os, std::string indent) 
+std::ostream &ILatentPrior::info(std::ostream &os, std::string indent) 
 {
-    os << indent << pos << ": " << name << "\n";
+    os << indent << mode << ": " << name << "\n";
     return os;
 }
 
-BaseSession &ILatentPrior::sys(int s)
-{
-    return *sessions.at(s); 
-}
+Model &ILatentPrior::model() { return session.model; }
+Data &ILatentPrior::data() { return *session.data; }
+INoiseModel &ILatentPrior::noise() { return *data().noise; }
+MatrixXd &ILatentPrior::U() { return model().U(mode); }
+MatrixXd &ILatentPrior::V() { return model().V(mode); }
 
-Model &ILatentPrior::model(int s)
+void ILatentPrior::init() 
 {
-    return *sys(s).model; 
-}
-
-MatrixXd &ILatentPrior::U(int s)
-{
-    return model(s).U(pos);
-}
-
-MatrixXd &ILatentPrior::V(int s)
-{
-    return model(s).V(pos);
-}
-
-INoiseModel &ILatentPrior::noise(int s)
-{
-    return *sys(s).noise;
-}
-
-int ILatentPrior::num_cols()
-{
-    int ret = 0;
-    for(int i = 0; i<num_sys(); ++i) ret += U(i).cols();
-    return ret;
-}
-
-void ILatentPrior::add(BaseSession &b)
-{
-    sessions.push_back(&b);
+    rrs.init(VectorNd::Zero(num_latent()));
+    MMs.init(MatrixNNd::Zero(num_latent(), num_latent()));
 }
 
 void ILatentPrior::sample_latents() 
 {
-    for(unsigned s = 0; s < sessions.size(); s++) {
-        auto &model = *sessions.at(s)->model;
-        model.update_pnm(pos);
+    session.data->update_pnm(model(), mode);
 #pragma omp parallel for schedule(guided)
-        for(int n = 0; n < model.U(pos).cols(); n++) {
+    for(int n = 0; n < U().cols(); n++) {
 #pragma omp task
-            sample_latent(s, n); 
-        }
+        sample_latent(n); 
     }
-}
-
-void ILatentPrior::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
-{
-    auto &model = *sessions.at(s)->model;
-    model.get_pnm(pos, n, rr, MM); 
 }
 
 /**
@@ -90,10 +52,13 @@ void ILatentPrior::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM)
  */
 
 NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
-    : ILatentPrior(m, p, name),
-      Ucol(VectorNd::Zero(num_latent())),
-      UUcol(MatrixNNd::Zero(num_latent(), num_latent()))
-{
+    : ILatentPrior(m, p, name) {}
+
+void NormalPrior::init() {
+    ILatentPrior::init();
+
+    initUU();
+
     const int K = num_latent();
     mu.resize(K);
     mu.setZero();
@@ -111,25 +76,28 @@ NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
     df = K;
 }
 
-void NormalPrior::sample_latents() {
-
-    const int N = num_cols();
-    const auto cov = UUcol.combine();
-    const auto sum = Ucol.combine();
-    tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
-
-    UUcol.reset();
-    Ucol.reset();
-
-    ILatentPrior::sample_latents();
+void NormalPrior::initUU() 
+{
+    const int K = num_latent();
+    Ucol.init(VectorNd::Zero(K));
+    UUcol.init(MatrixNNd::Zero(K, K));
+    UUcol.local() = U() * U().transpose();
+    Ucol.local() = U().rowwise().sum();
 }
 
-void NormalPrior::sample_latent(int s, int n)
+void NormalPrior::sample_latents()
 {
-    auto &U = this->U(s);
-    const auto &mu_u = getMu(n);
-    const double alpha = noise(s).getAlpha();
+    ILatentPrior::sample_latents();
 
+    const int N = num_cols();
+    const auto cov = UUcol.combine_and_reset();
+    const auto sum = Ucol.combine_and_reset();
+    tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
+}
+
+void NormalPrior::sample_latent(int n)
+{
+    const auto &mu_u = getMu(n);
 
     VectorNd &rr = rrs.local();
     MatrixNNd &MM = MMs.local();
@@ -138,11 +106,7 @@ void NormalPrior::sample_latent(int s, int n)
     MM.setZero();
 
     // add pnm
-    pnm(s,n,rr,MM);
-
-    // add noise
-    rr.array() *= alpha;
-    MM.array() *= alpha;
+    session.data->get_pnm(model(),mode,n,rr,MM);
 
     // add hyperparams
     rr.noalias() += Lambda * mu_u;
@@ -157,143 +121,19 @@ void NormalPrior::sample_latent(int s, int n)
     rr.noalias() += nrandn(num_latent());
     chol.matrixU().solveInPlace(rr);
 
-    U.col(n).noalias() = rr;
+    U().col(n).noalias() = rr;
     Ucol.local().noalias() += rr;
     UUcol.local().noalias() += rr * rr.transpose();
 
 }
 
-void NormalPrior::savePriorInfo(std::string prefix, std::string suffix) {
-  write_dense(prefix + "-U" + std::to_string(pos) + "-latentmean" + suffix, mu);
+void NormalPrior::save(std::string prefix, std::string suffix) {
+  write_dense(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
 }
 
-
-/*
- * Master Prior
- */
-
-template<class Prior>
-MasterPrior<Prior>::MasterPrior(BaseSession &m, int p) 
-    : Prior(m, p)
-{
-    this->name = "Master" + this->name;
+void NormalPrior::restore(std::string prefix, std::string suffix) {
+  read_dense(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
+  initUU();
 }
-
-template<class Prior>
-void MasterPrior<Prior>::init() 
-{
-    Prior::init();
- 
-    // create+init slave priors
-    for(auto &s : slaves) {
-        for(auto &p : this->sys().priors) {
-            s.template addPrior<SlavePrior>();
-            if (p->pos != this->pos) p->add(s);
-        }
-
-        s.init();
-
-        assert(this->U().cols() == s.priors.at(this->pos)->U().cols());
-   }
-}
-
-template<class Prior>
-std::ostream &MasterPrior<Prior>::printInitStatus(std::ostream &os, std::string indent) 
-{
-    Prior::printInitStatus(os, indent);
-    os << indent << "with slaves {\n";
-    for(auto &s : slaves) s.printInitStatus(os, indent + "  ");
-    os << indent << "}\n";
-    return os;
-
-}
-
-template<class Prior>
-void MasterPrior<Prior>::savePriorInfo(std::string prefix, std::string suffix)
-{
-    Prior::savePriorInfo(prefix, suffix);
-    int i = 0;
-    for(auto &s : slaves) s.save(prefix + "-S" + to_string(i++), suffix);
-}
- 
-template<typename P1, typename P2>
-std::pair<P1, P2> &operator+=(std::pair<P1, P2> &a, const std::pair<P1, P2> &b) {
-    a.first += b.first;
-    a.second += b.second;
-    return a;
-}
-
-template<class Prior>
-void MasterPrior<Prior>::pnm(int s, int n, VectorNd &rr, MatrixNNd &MM) 
-{
-    // first the master
-    Prior::pnm(s, n, rr, MM);
-
-    // no slaves for the slaves
-    if (s > 0) return;
-
-    // then the slaves
-    assert(slaves.size() > 0 && "No slaves");
-    for(auto &slave : slaves) {
-        auto &slave_prior = slave.priors.at(this->pos);
-        slave_prior->pnm(s, n, rr, MM);
-    }
-}
-
-template<class Prior>
-void MasterPrior<Prior>::sample_latent(int s, int d) {
-    Prior::sample_latent(s,d);
-
-    // no slaves on slaves
-    if (s>0) return;
-
-    // if s == 0 
-    for(auto &slave : this->slaves) {
-        auto &slave_prior = slave.priors.at(this->pos);
-        slave_prior->U(s).col(d) = this->U(s).col(d);
-    }
-}
-
-
-template<class Prior>
-void MasterPrior<Prior>::sample_latents() {
-    assert(slaves.size() > 0 && "No slaves");
-    for(auto &s : this->slaves) s.model->update_pnm(this->pos);
-    Prior::sample_latents(); // includes slaves!
-    for(auto &s : this->slaves) s.noise->update();
-}
-
-template<class Prior>
-template<class Model>
-Model& MasterPrior<Prior>::addSlave()
-{
-    slaves.push_back(BaseSession());
-    auto &slave_macau = slaves.back();
-    slave_macau.name = "Slave " + std::to_string(slaves.size());
-    Model *n = new Model(this->num_latent());
-    slave_macau.model.reset(n);
-    slave_macau.noise.reset(this->noise().copyTo(*n)); 
-    return *n;
-}
-
-template<class Prior>
-double MasterPrior<Prior>::getLinkNorm() {
-    assert(slaves.size() > 0 && "No slaves");
-    double ret = .0;
-    for(auto &s : this->slaves) {
-        ret += s.model->V(this->pos).norm();
-    }
-    return ret;
-}
-
-template class MasterPrior<NormalPrior>;
-template DenseDenseMF &MasterPrior<NormalPrior>::addSlave();
-template SparseDenseMF &MasterPrior<NormalPrior>::addSlave();
-template SparseMF &MasterPrior<NormalPrior>::addSlave();
-
-template class MasterPrior<SpikeAndSlabPrior>;
-template DenseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
-template SparseDenseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
-template SparseMF &MasterPrior<SpikeAndSlabPrior>::addSlave();
 
 } // end namespace Macau

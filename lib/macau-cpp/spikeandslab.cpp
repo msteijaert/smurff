@@ -1,5 +1,6 @@
 #include "noisemodels.h"
 #include "session.h"
+#include "data.h"
 
 using namespace Eigen;
 
@@ -21,11 +22,11 @@ void SpikeAndSlabPrior::init() {
     r = VectorNd::Constant(K,.5);
 }
 
-void SpikeAndSlabPrior::sample_latent(int s, int d)
+void SpikeAndSlabPrior::sample_latent(int d)
 {
     const int K = num_latent();
 
-    auto &W = U(s); // aliases
+    auto &W = U(); // aliases
     VectorNd Wcol = W.col(d); // local copy
     
     std::default_random_engine generator;
@@ -35,8 +36,8 @@ void SpikeAndSlabPrior::sample_latent(int s, int d)
 
     MatrixNNd XX = MatrixNNd::Zero(num_latent(), num_latent());
     VectorNd yX = VectorNd::Zero(num_latent());
-    pnm(s, d, yX, XX);
-    double t = noise(s).getAlpha();
+    session.data->get_pnm(model(),mode,d,yX,XX);
+    double t = noise().getAlpha();
 
     for(int k=0;k<K;++k) {
         double lambda = t * XX(k,k) + alpha(k);

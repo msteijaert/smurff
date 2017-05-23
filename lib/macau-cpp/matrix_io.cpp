@@ -10,17 +10,66 @@ const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
 
 void writeToCSVfile(std::string filename, Eigen::MatrixXd matrix) {
   std::ofstream file(filename.c_str());
+  file << matrix.rows() << std::endl;
+  file << matrix.cols() << std::endl;
   file << matrix.format(csvFormat);
 }
 
 void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
     std::ifstream file(filename.c_str());
     std::string line;
+    
+    // rows and cols
+    getline(file, line); 
+    int nrow = atol(line.c_str());
+    getline(file, line); 
+    int ncol = atol(line.c_str());
+    matrix.resize(nrow, ncol);
+
+    int row = 0;
+    int col = 0;
     while (getline(file, line)) {
+        col = 0;
         std::stringstream lineStream(line);
         std::string cell;
-        while (std::getline(lineStream, cell, ',')) matrix << strtod(cell.c_str(), NULL);
+        while (std::getline(lineStream, cell, ',')) {
+            matrix(row, col++) = strtod(cell.c_str(), NULL);
+        }
+        row++;
     }
+    assert(row == nrow);
+    assert(col == ncol);
+}
+
+Macau::MatrixConfig read_csv(std::string filename) {
+    Macau::MatrixConfig ret;
+    std::ifstream file(filename.c_str());
+    std::string line;
+    ret.dense = true;
+
+    // rows and cols
+    getline(file, line); 
+    ret.nrow = atol(line.c_str());
+    getline(file, line); 
+    ret.ncol = atol(line.c_str());
+    ret.nnz = ret.nrow * ret.ncol;
+    ret.values = new double[ret.nnz];
+
+    int row = 0;
+    int col = 0;
+    while (getline(file, line)) {
+        col = 0;
+        std::stringstream lineStream(line);
+        std::string cell;
+        while (std::getline(lineStream, cell, ',')) {
+            ret.values[row + (ret.nrow*col++)] = strtod(cell.c_str(), NULL);
+        }
+        row++;
+    }
+    assert(row == ret.nrow);
+    assert(col == ret.ncol);
+
+    return ret;
 }
 
 std::unique_ptr<SparseFeat> load_bcsr(const char* filename) {
@@ -55,17 +104,15 @@ Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in)
     return out;
 }
 
-static std::set<std::string> compact_matrix_file_extensions = { ".sbm", ".sdm", ".ddm" };
-static std::set<std::string> txt_matrix_file_extensions = { ".mtx", ".mm", ".csv" };
-static std::set<std::string> matrix_file_extensions = { ".sbm", ".sdm", ".ddm", ".mtx", ".mm", ".csv" };
-static std::set<std::string> sparse_file_extensions = { ".sbm", ".sdm", ".mtx", ".mm" };
+static std::set<std::string> compact_matrix_fname_extensions = { ".sbm", ".sdm", ".ddm" };
+static std::set<std::string> txt_matrix_fname_extensions = { ".mtx", ".mm", ".csv" };
+static std::set<std::string> matrix_fname_extensions = { ".sbm", ".sdm", ".ddm", ".mtx", ".mm", ".csv" };
+static std::set<std::string> sparse_fname_extensions = { ".sbm", ".sdm", ".mtx", ".mm" };
 
 bool extension_in(std::string fname, const std::set<std::string> &extensions, bool = false);
 
-bool is_matrix_file(std::string fname) {
-    if (fname.size()  == 0) return false;
-    if (!file_exists(fname)) return false;
-    return extension_in(fname, matrix_file_extensions);
+bool is_matrix_fname(std::string fname) {
+    return extension_in(fname, matrix_fname_extensions);
 }
 
 bool extension_in(std::string fname, const std::set<std::string> &extensions, bool die_if_not_found)
@@ -78,24 +125,30 @@ bool extension_in(std::string fname, const std::set<std::string> &extensions, bo
     return false;
 }
 
-bool is_sparse_file(std::string fname) {
-    return file_exists(fname) && extension_in(fname, sparse_file_extensions);
+bool is_sparse_fname(std::string fname) {
+    return extension_in(fname, sparse_fname_extensions);
 }
 
-bool is_sparse_binary_file(std::string fname) {
-    return file_exists(fname) && extension_in(fname, { ".sbm" });
+bool is_sparse_binary_fname(std::string fname) {
+    return extension_in(fname, { ".sbm" });
 }
 
-bool is_dense_file(std::string fname) {
-    return !is_sparse_file(fname);
+bool is_dense_fname(std::string fname) {
+    return !is_sparse_fname(fname);
 }
 
-bool is_compact_file(std::string fname) {
-    return file_exists(fname) && extension_in(fname, compact_matrix_file_extensions);
+bool is_compact_fname(std::string fname) {
+    return file_exists(fname) && extension_in(fname, compact_matrix_fname_extensions);
 }
 
+void read_dense(std::string fname, Eigen::VectorXd &V) {
+   Eigen::MatrixXd X;
+   read_dense(fname, X);
+   V = X; // this will fail if X has more than one column
+}
+    
 void read_dense(std::string fname, Eigen::MatrixXd &X) {
-    assert(is_dense_file(fname));
+    die_unless_file_exists(fname);
     std::string extension = fname.substr(fname.size() - 4);
     if (extension == ".ddm") {
         read_ddm(fname.c_str(), X);
@@ -105,9 +158,22 @@ void read_dense(std::string fname, Eigen::MatrixXd &X) {
         die("Unknown filename in read_dense: " + fname);
     }
 }
+    
+Macau::MatrixConfig read_dense(std::string fname) {
+    die_unless_file_exists(fname);
+    std::string extension = fname.substr(fname.size() - 4);
+    if (extension == ".ddm") {
+        return read_ddm(fname);
+    } else if (extension == ".csv") {
+        return read_csv(fname);
+    } else {
+        die("Unknown filename in read_dense: " + fname);
+    }
+    return Macau::MatrixConfig();
+}
 
 void write_dense(std::string fname, const Eigen::MatrixXd &X) {
-    assert(is_dense_file(fname));
+    assert(is_dense_fname(fname));
     std::string extension = fname.substr(fname.size() - 4);
     if (extension == ".ddm") {
         write_ddm(fname.c_str(), X);
@@ -138,20 +204,86 @@ void read_ddm(std::string filename, Eigen::MatrixXd &matrix) {
     in.close();
 }
 
+Macau::MatrixConfig read_ddm(std::string filename) {
+    Macau::MatrixConfig ret;
+    ret.dense = true;
+
+    std::ifstream in(filename,std::ios::in | std::ios::binary);
+    in.read((char*) (&ret.nrow),sizeof(long));
+    in.read((char*) (&ret.ncol),sizeof(long));
+    ret.nnz = ret.nrow * ret.ncol;
+    ret.values = new double[ret.nnz];
+    in.read( (char *) ret.values, ret.nnz*sizeof(double) );
+    return ret;
+}
+
+Macau::MatrixConfig read_mtx(std::string fname) {
+    Macau::MatrixConfig ret;
+    ret.dense = false;
+    std::ifstream fin(fname);
+
+    // Ignore headers and comments:
+    while (fin.peek() == '%') fin.ignore(2048, '\n');
+
+    // Read defining parameters:
+    fin >> ret.nrow >> ret.ncol >> ret.nnz;
+
+    ret.rows   = new int[ret.nnz];
+    ret.cols   = new int[ret.nnz];
+    ret.values = new double[ret.nnz];
+
+    // Read the data
+    for (int l = 0; l < ret.nnz; l++)
+    {
+        fin >> ret.rows[l] >> ret.cols[l] >> ret.values[l];
+        ret.rows[l]--;
+        ret.cols[l]--;
+    }
+
+    return ret;
+}
+
+Macau::MatrixConfig read_sparse(std::string fname) {
+    assert(is_sparse_fname(fname));
+    std::string extension = fname.substr(fname.find_last_of("."));
+    if (extension == ".sdm") {
+        auto p = read_sdm(fname.c_str());
+        auto m = Macau::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, p->vals);
+        delete p;
+        return m;
+    } else if (extension == ".sbm") {
+        auto p = read_sbm(fname.c_str());
+        auto m = Macau::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols);
+        delete p;
+        return m;
+    } else if (extension == ".mtx" || extension == ".mm") {
+        return read_mtx(fname);
+    } else  {
+        die("Unknown filename in read_sparse: " + fname);
+    }
+
+    return Macau::MatrixConfig();
+}
+
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
-    assert(is_sparse_file(fname));
+    assert(is_sparse_fname(fname));
     std::string extension = fname.substr(fname.find_last_of("."));
     if (extension == ".sdm") {
         auto sdm_ptr = read_sdm(fname.c_str());
-        M = to_eigen(*sdm_ptr);
+        M = sparse_to_eigen(*sdm_ptr);
         delete sdm_ptr;
     } else if (extension == ".sbm") {
         auto sbm_ptr = read_sbm(fname.c_str());
-        M = to_eigen(*sbm_ptr);
+        M = sparse_to_eigen(*sbm_ptr);
         delete sbm_ptr;
     } else if (extension == ".mtx" || extension == ".mm") {
         loadMarket(M, fname.c_str());
     } else  {
         die("Unknown filename in read_sparse: " + fname);
     }
+}
+
+Macau::MatrixConfig read_matrix(std::string fname) {
+    if (is_sparse_fname(fname)) return read_sparse(fname);
+    else return read_dense(fname);
 }

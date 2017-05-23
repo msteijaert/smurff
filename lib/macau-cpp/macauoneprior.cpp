@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "session.h"
 #include "macauoneprior.h"
+#include "data.h"
 
 using namespace std; 
 using namespace Eigen;
@@ -15,7 +16,7 @@ namespace Macau {
 
 template<class FType>
 MacauOnePrior<FType>::MacauOnePrior(BaseSession &m, int p)
-    : ILatentPrior(m, p), Yc(dynamic_cast<SparseMF &>(*m.model).Yc.at(p))
+    : ILatentPrior(m, p), Yc(dynamic_cast<ScarceMatrixData &>(*m.data).Yc.at(p))
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);
@@ -43,11 +44,11 @@ void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool) {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_latent(int s, int i)
+void MacauOnePrior<FType>::sample_latent(int i)
 {
     const int K = num_latent();
-    auto &Us = U(s);
-    auto &Vs = V(s);
+    auto &Us = U();
+    auto &Vs = V();
 
     const int nnz = Yc.outerIndexPtr()[i + 1] - Yc.outerIndexPtr()[i];
     VectorXd Yhat(nnz);
@@ -56,7 +57,7 @@ void MacauOnePrior<FType>::sample_latent(int s, int i)
     int idx = 0;
     VectorXd Qi = lambda;
     for (SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++) {
-      double alpha = noise(s).getAlpha();
+      double alpha = noise().getAlpha();
       Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
       Yhat(idx)     = Us.col(i).dot( Vs.col(it.row()) );
     }
@@ -72,7 +73,7 @@ void MacauOnePrior<FType>::sample_latent(int s, int i)
         for ( SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++) {
             const double vjd = Vs(d, it.row());
             // L_id += alpha * (Y_ij - k_ijd) * v_jd
-            double alpha = noise(s).getAlpha();
+            double alpha = noise().getAlpha();
             Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
             //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
         }
@@ -93,18 +94,11 @@ void MacauOnePrior<FType>::sample_latent(int s, int i)
 }
 
 template<class FType>
-void MacauOnePrior<FType>::pnm(int,int,VectorNd &, MatrixNNd &)
-{
-    assert(false);
-};
-
-template<class FType>
 void MacauOnePrior<FType>::sample_latents() {
     ILatentPrior::sample_latents();
 
-    assert(num_sys() == 1);
-    sample_mu_lambda(U(0));
-    sample_beta(U(0));
+    sample_mu_lambda(U());
+    sample_beta(U());
     compute_uhat(Uhat, *F, beta);
     sample_lambda_beta();
 }
@@ -198,10 +192,17 @@ void MacauOnePrior<FType>::sample_lambda_beta() {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::savePriorInfo(std::string prefix, std::string suffix) {
-  prefix += "-F" + std::to_string(pos);
+void MacauOnePrior<FType>::save(std::string prefix, std::string suffix) {
   write_dense(prefix + "-latentmean" + suffix, mu);
+  prefix += "-F" + std::to_string(mode);
   write_dense(prefix + "-link" + suffix, beta);
+}
+
+template<class FType>
+void MacauOnePrior<FType>::restore(std::string prefix, std::string suffix) {
+  read_dense(prefix + "-latentmean" + suffix, mu);
+  prefix += "-F" + std::to_string(mode);
+  read_dense(prefix + "-link" + suffix, beta);
 }
 
 template class MacauOnePrior<SparseFeat>;

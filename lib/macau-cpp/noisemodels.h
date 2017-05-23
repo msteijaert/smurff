@@ -6,26 +6,25 @@
 #include <iomanip>
 #include "utils.h"
 
-#include "model.h"
-
 namespace Macau {
+
+struct Data;
+struct Model;
 
 /** interface */
 class INoiseModel {
   public:
-    INoiseModel(Model &p) : model(p) {}
-    virtual INoiseModel *copyTo(Model &p) = 0;
-
+    INoiseModel(Data &p) : data(p) {}
     virtual void init()  = 0;
-    virtual void update()  = 0;
+    virtual void update(const Model &)  = 0;
 
-    virtual std::ostream &printInitStatus(std::ostream &os, std::string indent)   = 0;
+    virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
     virtual std::string getStatus()  = 0;
 
     virtual double getAlpha() = 0;
 
   protected:
-    Model &model;
+    Data &data;
 };
 
 /** Gaussian noise is fixed for the whole run */
@@ -33,22 +32,20 @@ class FixedGaussianNoise : public INoiseModel {
   public:
     double alpha;
   
-    FixedGaussianNoise(Model &p, double a = 1.) :
+    FixedGaussianNoise(Data &p, double a = 1.) :
         INoiseModel(p), alpha(a)  {}
 
-    INoiseModel *copyTo(Model &p) override;
-
     void init() override { }
-    void update() override {}
+    void update(const Model &) override {}
     double getAlpha() override { return alpha; }
 
-    std::ostream &printInitStatus(std::ostream &os, std::string indent)  override;
+    std::ostream &info(std::ostream &os, std::string indent)  override;
     std::string getStatus() override { return std::string(""); }
 
     void setPrecision(double a) { alpha = a; }    
 };
 
-/** Gaussian noise that adapts to the model */
+/** Gaussian noise that adapts to the data */
 class AdaptiveGaussianNoise : public INoiseModel {
   public:
     double var_total;
@@ -57,18 +54,28 @@ class AdaptiveGaussianNoise : public INoiseModel {
     double sn_max;
     double sn_init;
 
-    AdaptiveGaussianNoise(Model &p, double sinit = 1., double smax = 10.)
+    AdaptiveGaussianNoise(Data &p, double sinit = 1., double smax = 10.)
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
-    INoiseModel *copyTo(Model &) override;
-
     void init() override;
-    void update() override;
+    void update(const Model &) override;
     double getAlpha() override { return alpha; }
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }
-    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
+    std::ostream &info(std::ostream &os, std::string indent) override;
     std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
+};
+
+/** Gaussian noise that adapts to the data */
+class ProbitNoise : public INoiseModel {
+  public:
+    ProbitNoise(Data &p) : INoiseModel(p) {}
+
+    void init() override {}
+    void update(const Model &) override {}
+    double getAlpha() override { assert(false); return NAN; }
+    std::ostream &info(std::ostream &os, std::string indent) override;
+    std::string getStatus() override { return std::string(); }
 };
 
 }

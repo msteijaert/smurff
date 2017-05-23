@@ -6,9 +6,9 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <memory>
 
+#include "result.h"
 #include "model.h"
 #include "latentprior.h"
-#include "noisemodels.h"
 
 
 namespace Macau {
@@ -18,32 +18,20 @@ class ILatentPrior;
 class BaseSession  {
    public:
       //-- data members
-      std::unique_ptr<INoiseModel>                noise;
-      std::vector< std::unique_ptr<ILatentPrior>> priors;
-      std::unique_ptr<Model>                      model;
+      Model                                       model;
+      std::unique_ptr<Data>                       data;
       Result                                      pred;
-    
-      //-- add model
-      template<class Model>
-      Model         &addModel(int num_latent);
-      SparseMF      &sparseModel(int num_latent);
-      SparseBinaryMF&sparseBinaryModel(int num_latent);
-      DenseDenseMF  &denseDenseModel(int num_latent);
-      SparseDenseMF &sparseDenseModel(int num_latent);
-
+      std::vector< std::unique_ptr<ILatentPrior>> priors;
+ 
       //-- add priors
       template<class Prior>
       inline Prior& addPrior();
 
-      // set noise models
-      FixedGaussianNoise &setPrecision(double p);
-      AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
-
-      void init();
       virtual void step();
 
-      virtual std::ostream &printInitStatus(std::ostream &, std::string indent);
+      virtual std::ostream &info(std::ostream &, std::string indent);
       void save(std::string prefix, std::string suffix);
+      void restore(std::string prefix, std::string suffix);
 
       std::string name;
 
@@ -54,7 +42,7 @@ class BaseSession  {
 class Session : public BaseSession {
   public:
       Config      config;
-      int         iter;
+      int         iter = -1;
 
       // c'tor
       Session() { name = "MacauSession"; }
@@ -67,7 +55,7 @@ class Session : public BaseSession {
       void run();
       void step() override;
 
-      std::ostream &printInitStatus(std::ostream &, std::string indent) override;
+      std::ostream &info(std::ostream &, std::string indent) override;
 
    private:
       void save(int isample);
@@ -84,7 +72,7 @@ class MPISession : public CmdSession {
     MPISession() { name = "MPISession"; }
       
     void run();
-    std::ostream &printInitStatus(std::ostream &os, std::string indent) override;
+    std::ostream &info(std::ostream &os, std::string indent) override;
 
     int world_rank;
     int world_size;
@@ -116,6 +104,6 @@ Prior& BaseSession::addPrior()
     return *p;
 }
 
-}
+} // end namespace Macau
 
 #endif /* MACAU_H */

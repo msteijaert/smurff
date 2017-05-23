@@ -8,47 +8,54 @@ namespace Macau {
 
 struct MatrixConfig {
     MatrixConfig()
-        : dense(true), rows(0), cols(0), values(0), nnz(0), nrow(0), ncol(0) {}
+        : dense(true), binary(false), rows(0), cols(0), values(0), nnz(0), nrow(0), ncol(0) {}
     MatrixConfig(int nrow, int ncol, double *values)
-        : dense(true), rows(0), cols(0), values(values), nnz(nrow*ncol), nrow(nrow), ncol(ncol) {}
-
+        : dense(true), binary(false), rows(0), cols(0), values(values), nnz(nrow*ncol), nrow(nrow), ncol(ncol) {}
     MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols, double *values)
-        : dense(false), rows(rows), cols(cols), values(values), nnz(nnz), nrow(nrow), ncol(ncol) {}
+        : dense(false), binary(false), rows(rows), cols(cols), values(values), nnz(nnz), nrow(nrow), ncol(ncol) {}
+    MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols)
+        : dense(false), binary(true), rows(rows), cols(cols), values(0), nnz(nnz), nrow(nrow), ncol(ncol) {}
 
     bool dense;
+    bool binary;
+
     int* rows;
     int* cols;
     double* values;
     int nnz;
     int nrow;
     int ncol;
+
+    std::ostream &info(std::ostream &) const;
 };
 
 struct Config {
     
     //-- train and test
-    MatrixConfig config_train, config_test;
-    std::string fname_train;
-    std::string fname_test;
+    MatrixConfig train, test;
     double test_split         = .0;
 
     //-- features
-    std::vector<MatrixConfig> config_row_features;
-    std::vector<std::string> fname_row_features;
-    std::vector<MatrixConfig> config_col_features;
-    std::vector<std::string> fname_col_features;
+    std::vector<MatrixConfig> row_features;
+    std::vector<MatrixConfig> col_features;
 
     // -- priors
     std::string row_prior = "default";
     std::string col_prior = "default";
+    
+    //-- restore
+    std::string restore_prefix = "";
+    std::string restore_suffix = ".csv";
 
-    //-- output
-    std::string output_prefix = "save";
-    std::string output_suffix = ".csv";
+    std::string init_model = "random";
+
+    //-- save
+    std::string save_prefix = "save";
+    std::string save_suffix = ".csv";
+    int save_freq           = 0; // never
 
     //-- general
     bool verbose              = false;
-    int output_freq           = 0; // never
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;
@@ -69,6 +76,8 @@ struct Config {
     double threshold;
 
     bool validate(bool) const;
+    void save(std::string) const;
+    void restore(std::string);
 };
 
 } // end namespace Macau

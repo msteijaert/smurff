@@ -25,6 +25,7 @@
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
+#include "data.h"
 
 using namespace std; 
 using namespace Eigen;
@@ -34,7 +35,8 @@ namespace Macau {
 enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
-    OUTPUT_PREFIX, OUTPUT_SUFFIX, OUTPUT_FREQ, THRESHOLD, VERBOSE
+    RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE,
+    INIT_MODEL
 };
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
@@ -55,26 +57,35 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
     switch (key) {
         case ROW_PRIOR:       config.row_prior          = optarg; break;
         case COL_PRIOR:       config.col_prior          = optarg; break;
-        case ROW_FEATURES:    config.fname_row_features.push_back(optarg); break;
-        case COL_FEATURES:    config.fname_col_features.push_back(optarg); break;
-        case FNAME_TRAIN:     config.fname_train        = optarg; break;
+
+        case ROW_FEATURES:    config.row_features.push_back(read_matrix(optarg)); break;
+        case COL_FEATURES:    config.col_features.push_back(read_matrix(optarg)); break;
+
+        case FNAME_TRAIN:     config.train              = read_sparse(optarg); break;
         case LAMBDA_BETA:     config.lambda_beta        = strtod(optarg, NULL); break;
         case BURNIN:          config.burnin             = strtol(optarg, NULL, 10); break;
         case TOL:             config.tol                = atof(optarg); break;
-        case DIRECT:          config.direct            = true; break;
-        case FNAME_TEST:      config.fname_test         = optarg; break;
+        case DIRECT:          config.direct             = true; break;
+        case FNAME_TEST:
+                              //-- check if fname_test is actually a number
+                              if ((config.test_split = atof(optarg)) <= .0) {
+                                  config.test           = read_sparse(optarg); break;
+                              }
         case NUM_LATENT:      config.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        config.nsamples           = strtol(optarg, NULL, 10); break;
 
-        case OUTPUT_PREFIX:   config.output_prefix      = std::string(optarg); break;
-        case OUTPUT_SUFFIX:   config.output_suffix      = std::string(optarg); break;
-        case OUTPUT_FREQ:     config.output_freq        = strtol(optarg, NULL, 10); break;
+        case RESTORE_PREFIX:  config.restore_prefix      = std::string(optarg); break;
+        case RESTORE_SUFFIX:  config.restore_suffix      = std::string(optarg); break;
+        case SAVE_PREFIX:     config.save_prefix      = std::string(optarg); break;
+        case SAVE_SUFFIX:     config.save_suffix      = std::string(optarg); break;
+        case SAVE_FREQ:       config.save_freq        = strtol(optarg, NULL, 10); break;
 
         case PRECISION:       set_noise_model("fixed", optarg); break;
         case ADAPTIVE:        set_noise_model("adaptive", optarg); break;
 
         case THRESHOLD:       config.threshold          = strtod(optarg, 0); config.classify = true; break;
         case VERBOSE:         config.verbose            = true; break;
+        case INIT_MODEL:      config.init_model         = optarg; break;
         default:              return ARGP_ERR_UNKNOWN;
     }
 
@@ -101,9 +112,12 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"burnin",	     BURNIN	, "NUM",   0, "200  number of samples to discard"},
         {"nsamples",	     NSAMPLES	, "NUM",   0, "800  number of samples to collect"},
         {"num-latent",	     NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
-        {"output-prefix",    OUTPUT_PREFIX	, "PATH",   0, "prefix for result files"},
-        {"output-suffix",    OUTPUT_SUFFIX	, "EXT",   0, "suffix for result files (.csv or .ddm)"},
-        {"output-freq",      OUTPUT_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
+        {"restore-prefix",   RESTORE_PREFIX	, "PATH",   0, "prefix for file to initialize stae"},
+        {"restore-suffix",   RESTORE_SUFFIX	, "EXT",   0, "suffix for initialization files (.csv or .ddm)"},
+        {"init-model",       INIT_MODEL	, "NAME",   0, "One of <random|zero>"},
+        {"save-prefix",      SAVE_PREFIX	, "PATH",   0, "prefix for result files"},
+        {"save-suffix",      SAVE_SUFFIX	, "EXT",   0, "suffix for result files (.csv or .ddm)"},
+        {"save-freq",        SAVE_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
         {"threshold",        THRESHOLD	, "NUM",   0, "threshold for binary classification"},
         {"verbose",          VERBOSE	, 0,       0, "verbose output"},
         {0,0,0,0,"Noise model:",4},
@@ -120,11 +134,6 @@ void CmdSession::setFromArgs(int argc, char** argv) {
     Config config;
     struct argp argp = { options, parse_opts, 0, doc };
     argp_parse (&argp, argc, argv, 0, 0, &config);
-
-    //-- check if fname_test is actually a number
-    if ((config.test_split = atof(config.fname_test.c_str())) > .0) {
-        config.fname_test.clear();
-    }
 
     setFromConfig(config);
 }
