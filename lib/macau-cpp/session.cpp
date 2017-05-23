@@ -296,7 +296,7 @@ void Config::save(std::string fname) const
     os << "# features" << std::endl;
     auto print_features = [&os](std::string name, const std::vector<std::string> &vec) -> void {
         os << "[" << name << "]\n";
-        for (int i=0; i<vec.size(); ++i) {
+        for (unsigned i=0; i<vec.size(); ++i) {
             os << name << "_" << i << " = " << vec[i] ;
             os << std::endl;
         }
