@@ -319,9 +319,12 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
   }
   std::vector<MatrixXd> Ys;
   Ys.resize(thread_limit(), MatrixXd(n, n));
+  int actual_threads = -1;
 
 #pragma omp parallel
   {
+#pragma omp single
+    actual_threads = nthreads();
     const int ithread  = thread_num();
     int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads());
     int row_start = rows_per_thread * ithread;
@@ -341,10 +344,11 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
       Y.triangularView<Eigen::Lower>() = X * X2.transpose();
     }
   }
+
   for (int i = 0; i < n; i++) {
     for (int j = i; j < n; j++) {
       double tmp = 0;
-      for (int k = 0; k < nthreads(); k++) {
+      for (int k = 0; k < actual_threads; k++) {
         tmp += Ys[k](j, i);
       }
       out(j, i) = tmp;
