@@ -20,6 +20,7 @@ OUTPUT_OPTION=-MMD -MP -o $@
 LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
 LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o data.o
 LIBOBJS += ini.o INIReader.o
+LIBOBJS += counters.o
 LIBMACAU = libmacau-cpp.a
 
 all: tests cmd_nompi $(LIBMACAU)
