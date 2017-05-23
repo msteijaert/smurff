@@ -112,6 +112,7 @@ NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
 }
 
 void NormalPrior::sample_latents() {
+    ILatentPrior::sample_latents();
 
     const int N = num_cols();
     const auto cov = UUcol.combine();
@@ -121,7 +122,6 @@ void NormalPrior::sample_latents() {
     UUcol.reset();
     Ucol.reset();
 
-    ILatentPrior::sample_latents();
 }
 
 void NormalPrior::sample_latent(int s, int n)
