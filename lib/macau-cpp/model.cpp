@@ -108,14 +108,18 @@ void Model::restore(std::string prefix, std::string suffix) {
 
 ///--- update RMSE and AUC
 
-double Result::modemean_rmse(int mode, const Model &model) {
+double Result::globalmean_rmse(const Model &model) {
+    double se = 0.;
+    for(auto t : predictions) se += square(t.val - model.global_mean);
+    return sqrt( se / predictions.size() );
+}
+
+
+double Result::colmean_rmse(const Model &model) {
     const unsigned N = predictions.size();
     double se = 0.;
-    double pred;
     for(auto t : predictions) {
-        int n = mode == 0 ? t.col : t.row;
-        pred = mode >= 0 ? model.mode_mean(mode, n) : .0;
-        pred += model.offset_to_mean(t.row, t.col);
+        double pred = model.colmean(t.col);
         se += square(t.val - pred);
     }
     return sqrt( se / N );
@@ -198,9 +202,8 @@ std::ostream &Result::info(std::ostream &os, std::string indent, const Model &mo
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
-        os << indent << "RMSE using globalmean: " << modemean_rmse(-1,model) << endl;
-        os << indent << "RMSE using colmean: " << modemean_rmse(0,model) << endl;
-        os << indent << "RMSE using rowmean: " << modemean_rmse(1,model) << endl;
+        os << indent << "RMSE using globalmean: " << globalmean_rmse(model) << endl;
+        os << indent << "RMSE using colmean: " << colmean_rmse(model) << endl;
      } else {
         os << indent << "Test data: -\n";
     }
@@ -226,6 +229,8 @@ void MF<YType>::init_base()
     assert(Yrows() > 0 && Ycols() > 0);
     Yc.resize(2);
 
+    global_mean = Y.sum() / Y.nonZeros();
+
     U(0).resize(num_latent, Y.cols());
     U(1).resize(num_latent, Y.rows());
 
@@ -248,15 +253,11 @@ void MF<SparseMatrixD>::init()
 {
     init_base();
 
-    global_mean = Y.sum() / Y.nonZeros();
-
     if (center == CENTER_GLOBAL) {
         Yc[0] = Y;
         Yc[0].coeffs() -= global_mean;
         Yc[1] = Yc[0].transpose();
-    }
-
-    if (center == CENTER_ROWS) {
+    } else if (center == CENTER_ROWS) {
         Yc[0] = Y;
         center_cols(Yc[0], mean_vec);
         Yc[1] = Yc[0].transpose();
@@ -264,6 +265,9 @@ void MF<SparseMatrixD>::init()
         Yc[1] = Y.transpose();
         center_cols(Yc[1], mean_vec);
         Yc[0] = Yc[1].transpose();
+    } else {
+        Yc[0] = Y;
+        Yc[1] = Yc[0].transpose();
     }
 
     name = "Sparse" + name;
@@ -276,18 +280,15 @@ void MF<Eigen::MatrixXd>::init()
     init_base();
 
     if (center == CENTER_GLOBAL) {
-        global_mean = Y.sum() / Y.nonZeros();
         Yc[0] = Y.array() - global_mean;
-    } else {
-        global_mean = .0;
-    }
-
-    if (center == CENTER_ROWS) {
+    } else if (center == CENTER_ROWS) {
         mean_vec = Y.rowwise().mean();
         Yc[0] = Y.colwise() - mean_vec;
     } else if (center == CENTER_COLS) {
         mean_vec = Y.colwise().mean();
         Yc[0] = Y.rowwise() - mean_vec.transpose();
+    } else {
+        Yc[0] = Y;
     }
 
     Yc[1] = Yc[0].transpose();

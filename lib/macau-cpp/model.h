@@ -26,7 +26,8 @@ struct Result {
 
 
     //-- prediction metrics
-    double modemean_rmse(int mode, const Model &);
+    double colmean_rmse(const Model &);
+    double globalmean_rmse(const Model &);
     void update(const Model &, bool burnin);
     double rmse_avg = NAN;
     double rmse = NAN;
@@ -89,12 +90,12 @@ struct Model {
     virtual double  offset_to_mean(int row, int col) const = 0;
 
     // col/row-wise mean for a simple predictor
-    virtual double mode_mean(int, int) const = 0;
+    virtual double colmean(int) const = 0;
+    double global_mean = .0;
 
     std::string name;
     enum { CENTER_NONE = 0, CENTER_GLOBAL, CENTER_COLS, CENTER_ROWS } center;
   protected:
-    double global_mean = .0;
     Eigen::VectorXd mean_vec;
 
   private:
@@ -114,9 +115,9 @@ struct MF : public Model {
     int Ycols()   const override { return Y.cols(); }
     int Ynnz()    const override { return Y.nonZeros(); }
     double  offset_to_mean(int row, int col) const override;
-    double mode_mean(int mode, int c) const override { 
-        auto &col = Yc.at(mode).col(c);
-        if (col.nonZeros() == 0) return .0;
+    double colmean(int c) const override { 
+        auto &col = Y.col(c);
+        if (col.nonZeros() == 0) return global_mean;
         return col.sum() / col.nonZeros();
     }
 
