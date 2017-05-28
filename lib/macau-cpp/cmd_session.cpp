@@ -35,7 +35,7 @@ enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
     RESTORE_PREFIX, RESTORE_SUFFIX,
-    SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE
+    SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, CENTER
 };
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
@@ -58,6 +58,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case COL_PRIOR:       config.col_prior          = optarg; break;
         case ROW_FEATURES:    config.fname_row_features.push_back(optarg); break;
         case COL_FEATURES:    config.fname_col_features.push_back(optarg); break;
+        case CENTER:          config.center             = optarg; break;
+
         case FNAME_TRAIN:     config.fname_train        = optarg; break;
         case LAMBDA_BETA:     config.lambda_beta        = strtod(optarg, NULL); break;
         case BURNIN:          config.burnin             = strtol(optarg, NULL, 10); break;
@@ -96,6 +98,7 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"col-features",     COL_FEATURES	, "FILE",  0, "side info for cols"},
         {"row-model",        FNAME_ROW_MODEL	, "FILE",  0, "initialization matrix for row model"},
         {"col-model",        FNAME_COL_MODEL	, "FILE",  0, "initialization matrix for col model"},
+        {"center",           CENTER	        , "MODE",  0, "center <global|rows|cols|none>"},
         {0,0,0,0,"Test and train matrices:",2},
         {"test",	     FNAME_TEST    , "FILE",  0, "test data (for computing RMSE)"},
         {"test",	     FNAME_TEST    , "NUM",   0, "fraction of train matrix to extract for computing RMSE (e.g. 0.2)"},

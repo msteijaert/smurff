@@ -63,7 +63,7 @@ struct Model {
     Eigen::MatrixXd &V(int f) { return factors.at((f+1)%2); }
     Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return U(f).col(i); }
     double predict(int r, int c) const  {
-        return col(0,c).dot(col(1,r)) + mean_rating;
+        return col(0,c).dot(col(1,r)) + global_mean;
     }
 
     int num_fac() const { return factors.size(); }
@@ -82,16 +82,21 @@ struct Model {
     virtual std::ostream &info(std::ostream &os, std::string indent);
 
     // virtual functions Y-related
-    double mean_rating = .0;
     virtual void init() = 0;
     virtual int Yrows()    const = 0;
     virtual int Ycols()    const = 0;
     virtual int Ynnz ()    const = 0;
+    virtual double  offset_to_mean(int row, int col) const = 0;
 
     // col/row-wise mean for a simple predictor
-    virtual double mean(int, int) const = 0;
+    virtual double mode_mean(int, int) const = 0;
 
     std::string name;
+    enum { CENTER_NONE = 0, CENTER_GLOBAL, CENTER_COLS, CENTER_ROWS } center;
+  protected:
+    double global_mean = .0;
+    Eigen::VectorXd mean_vec;
+
   private:
     std::vector<Eigen::MatrixXd> factors;
 };
@@ -108,7 +113,8 @@ struct MF : public Model {
     int Yrows()   const override { return Y.rows(); }
     int Ycols()   const override { return Y.cols(); }
     int Ynnz()    const override { return Y.nonZeros(); }
-    double mean(int mode, int c) const override { 
+    double  offset_to_mean(int row, int col) const override;
+    double mode_mean(int mode, int c) const override { 
         auto &col = Yc.at(mode).col(c);
         if (col.nonZeros() == 0) return .0;
         return col.sum() / col.nonZeros();

@@ -114,8 +114,8 @@ double Result::modemean_rmse(int mode, const Model &model) {
     double pred;
     for(auto t : predictions) {
         int n = mode == 0 ? t.col : t.row;
-        pred = mode >= 0 ? model.mean(mode, n) : .0;
-        pred += model.mean_rating;
+        pred = mode >= 0 ? model.mode_mean(mode, n) : .0;
+        pred += model.offset_to_mean(t.row, t.col);
         se += square(t.val - pred);
     }
     return sqrt( se / N );
@@ -184,7 +184,9 @@ void Result::update_auc()
 
 std::ostream &Model::info(std::ostream &os, std::string indent)
 {
+    std::string center_names[4] = { "none", "global", "cols", "rows" };
     os << indent << "Type: " << name << "\n";
+    os << indent << "Center: " << center_names[center] << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
     double train_fill_rate = 100. * Ynnz() / Yrows() / Ycols();
     os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "] (" << train_fill_rate << "%)\n";
@@ -211,33 +213,60 @@ std::ostream &Result::info(std::ostream &os, std::string indent, const Model &mo
 }
 
 template<typename YType>
+double  MF<YType>::offset_to_mean(int row, int col) const {
+    if (center == CENTER_GLOBAL) return global_mean;
+    else if (center == CENTER_ROWS) return mean_vec(row);
+    else if (center == CENTER_COLS) return mean_vec(col);
+    else return .0;
+}
+
+template<typename YType>
 void MF<YType>::init_base()
 {
     assert(Yrows() > 0 && Ycols() > 0);
-
-//    if (pred.ncols > 0) {
-//        assert(pred.nrows == Yrows() && pred.ncols == Ycols() && "Size of train must be equal to size of test");
-//    }
-
-    mean_rating = Y.sum() / Y.nonZeros();
+    Yc.resize(2);
 
     U(0).resize(num_latent, Y.cols());
     U(1).resize(num_latent, Y.rows());
 
     bmrandn(U(0));
     bmrandn(U(1));
+}
 
-    Yc.push_back(Y);
-    Yc.push_back(Y.transpose());
+void center_cols(SparseMatrixD &Y, VectorXd &mean_vec) {
+    mean_vec.resize(Y.cols());
+    for (int k = 0; k < Y.outerSize(); ++k) {
+        double m = mean_vec(k) = Y.col(k).sum() / Y.col(k).nonZeros();
+        for (SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
+            it.valueRef() -= m;
+        }
+    }
 }
 
 template<>
 void MF<SparseMatrixD>::init()
 {
     init_base();
-    Yc.at(0).coeffs() -= mean_rating;
-    Yc.at(1).coeffs() -= mean_rating;
-    name = name + " [with NAs]";
+
+    global_mean = Y.sum() / Y.nonZeros();
+
+    if (center == CENTER_GLOBAL) {
+        Yc[0] = Y;
+        Yc[0].coeffs() -= global_mean;
+        Yc[1] = Yc[0].transpose();
+    }
+
+    if (center == CENTER_ROWS) {
+        Yc[0] = Y;
+        center_cols(Yc[0], mean_vec);
+        Yc[1] = Yc[0].transpose();
+    } else if (center == CENTER_COLS) {
+        Yc[1] = Y.transpose();
+        center_cols(Yc[1], mean_vec);
+        Yc[0] = Yc[1].transpose();
+    }
+
+    name = "Sparse" + name;
 }
 
 
@@ -245,8 +274,23 @@ template<>
 void MF<Eigen::MatrixXd>::init()
 {
     init_base();
-    Yc.at(0).array() -= this->mean_rating;
-    Yc.at(1).array() -= this->mean_rating;
+
+    if (center == CENTER_GLOBAL) {
+        global_mean = Y.sum() / Y.nonZeros();
+        Yc[0] = Y.array() - global_mean;
+    } else {
+        global_mean = .0;
+    }
+
+    if (center == CENTER_ROWS) {
+        mean_vec = Y.rowwise().mean();
+        Yc[0] = Y.colwise() - mean_vec;
+    } else if (center == CENTER_COLS) {
+        mean_vec = Y.colwise().mean();
+        Yc[0] = Y.rowwise() - mean_vec.transpose();
+    }
+
+    Yc[1] = Yc[0].transpose();
     name = "Dense" + name;
 }
 
@@ -294,7 +338,7 @@ double MF<Eigen::MatrixXd>::sumsq() const {
     for (int j = 0; j < this->Y.cols(); j++) {
         auto Vj = this->U(0).col(j);
         for (int i = 0; i < this->Y.rows(); i++) {
-            double Yhat = Vj.dot( this->U(1).col(i) ) + this->mean_rating;
+            double Yhat = Vj.dot( this->U(1).col(i) ) + offset_to_mean(i,j);
             sumsq += square(Yhat - this->Y(i,j));
         }
     }
@@ -310,7 +354,7 @@ double MF<SparseMatrixD>::sumsq() const {
     for (int j = 0; j < Y.outerSize(); j++) {
         auto Uj = col(0, j);
         for (SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
-            double Yhat = Uj.dot( col(1, it.row()) ) + mean_rating;
+            double Yhat = Uj.dot( col(1, it.row()) ) + offset_to_mean(it.row(),j);
             sumsq += square(Yhat - it.value());
         }
     }

@@ -58,6 +58,8 @@ struct Config {
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;
+    std::string center        = "global";
+
 
     //-- for macau priors
     double lambda_beta        = 10.0;

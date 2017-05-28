@@ -267,6 +267,10 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
+    std::set<std::string> center_modes = { "none", "global", "rows", "cols" };
+    if (center_modes.find(center) == center_modes.end()) die("Unknown center mode " + center);
+
+
     if (config_test.nrow > 0 && config_train.nrow > 0 && config_test.nrow != config_train.nrow)
         die("Train and test matrix should have the same number of rows");
 
@@ -322,6 +326,7 @@ void Config::save(std::string fname) const
     os << "burnin = " << burnin << std::endl;
     os << "nsamples = " << nsamples << std::endl;
     os << "num_latent = " << num_latent << std::endl;
+    os << "center = " << center << std::endl;
 
     os << "# for macau priors" << std::endl;
     os << "lambda_beta = " << lambda_beta << std::endl;
@@ -400,6 +405,13 @@ void Session::setFromConfig(const Config &c)
     } else {
         die("Unknown noise model; " + config.noise_model);
     }
+
+    //-- noise model
+         if (config.center == "none")   model->center = Model::CENTER_NONE;
+    else if (config.center == "global") model->center = Model::CENTER_GLOBAL;
+    else if (config.center == "rows")   model->center = Model::CENTER_ROWS;
+    else if (config.center == "cols")   model->center = Model::CENTER_COLS;
+    else assert(false);
 
     // test data
     if (config.fname_test.size()) {
