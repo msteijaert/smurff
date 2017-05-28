@@ -384,7 +384,7 @@ void SparseMF::init() {
 std::ostream &SparseMF::info(std::ostream &os, std::string indent) {
     MF<SparseMatrixD>::info(os, indent);
     if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty cols\n"; 
-    if (num_empty[1]) os << indent << "  Warning: " << num_empty[0] << " empty rows\n"; 
+    if (num_empty[1]) os << indent << "  Warning: " << num_empty[1] << " empty rows\n"; 
     return os;
 }
 
