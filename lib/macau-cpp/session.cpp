@@ -406,12 +406,7 @@ void Session::setFromConfig(const Config &c)
         die("Unknown noise model; " + config.noise_model);
     }
 
-    //-- centering model
-         if (config.center == "none")   model->center = Model::CENTER_NONE;
-    else if (config.center == "global") model->center = Model::CENTER_GLOBAL;
-    else if (config.center == "rows")   model->center = Model::CENTER_ROWS;
-    else if (config.center == "cols")   model->center = Model::CENTER_COLS;
-    else assert(false);
+    model->setCenter(config.center);
 
     // test data
     if (config.fname_test.size()) {

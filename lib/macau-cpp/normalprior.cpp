@@ -289,6 +289,7 @@ Model& MasterPrior<Prior>::addSlave()
     Model *n = new Model(this->num_latent());
     slave_macau.model.reset(n);
     slave_macau.noise.reset(this->noise().copyTo(*n)); 
+    slave_macau.model->center = this->model(0).center;
     return *n;
 }
 

@@ -52,7 +52,9 @@ struct Model {
     static int num_latent;
 
     //-- c'tor
-    Model(int nl, int num_fac = 2) {
+    Model(int nl, int num_fac = 2)
+        : center(CENTER_INVALID)
+    {
         assert(num_fac == 2); 
         assert(num_latent == -1 || num_latent == nl);
         num_latent = nl;
@@ -94,7 +96,8 @@ struct Model {
     double global_mean = .0;
 
     std::string name;
-    enum { CENTER_NONE = 0, CENTER_GLOBAL, CENTER_COLS, CENTER_ROWS } center;
+    void setCenter(std::string c);
+    enum { CENTER_INVALID = -1, CENTER_NONE = 0, CENTER_GLOBAL, CENTER_COLS, CENTER_ROWS } center;
   protected:
     Eigen::VectorXd mean_vec;
 

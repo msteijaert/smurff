@@ -31,6 +31,17 @@ namespace Macau {
 
 int Model::num_latent = -1;
 
+
+void Model::setCenter(std::string c)
+{
+    //-- centering model
+         if (c == "none")   center = CENTER_NONE;
+    else if (c == "global") center = CENTER_GLOBAL;
+    else if (c == "rows")   center = CENTER_ROWS;
+    else if (c == "cols")   center = CENTER_COLS;
+    else assert(false);
+}
+
 void Result::set(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
     for(int i=0; i<N; ++i) {
         predictions.push_back({rows[i], cols[i], values[i]});
@@ -188,7 +199,7 @@ void Result::update_auc()
 
 std::ostream &Model::info(std::ostream &os, std::string indent)
 {
-    std::vector<std::string> center_names = { "none", "global", "cols", "rows" };
+    std::vector<std::string> center_names { "none", "global", "cols", "rows" };
     os << indent << "Type: " << name << "\n";
     os << indent << "Center: " << center_names.at(center) << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
@@ -225,13 +236,28 @@ double  MF<YType>::offset_to_mean(int row, int col) const {
     return .0;
 }
 
-template<typename YType>
-YType MF<YType>::center_cols(VectorXd &mean_vec) {
-    YType Yout(Y.rows(), Y.cols());
+template<>
+SparseMatrixD MF<SparseMatrixD>::center_cols(VectorXd &mean_vec) {
+    SparseMatrixD Yout(Y.rows(), Y.cols());
     mean_vec.resize(Y.cols());
     for (int k = 0; k < Y.cols(); ++k) {
         auto mean  = mean_vec(k) = colmean(k);
-        Yout.col(k) = Y.col(k) - mean * VectorXd::Ones(Y.rows());
+        Yout.col(k) = Y.col(k);
+        for (SparseMatrix<double>::InnerIterator it(Yout,k); it; ++it) {
+            it.valueRef() -= mean;
+        }
+    }
+    return Yout;
+}
+
+template<>
+MatrixXd MF<MatrixXd>::center_cols(VectorXd &mean_vec) {
+    MatrixXd Yout(Y.rows(), Y.cols());
+    mean_vec.resize(Y.cols());
+    for (int k = 0; k < Y.cols(); ++k) {
+        auto mean  = mean_vec(k) = colmean(k);
+        Yout.col(k) = Y.col(k);
+        Yout.col(k).array() -= mean;
     }
     return Yout;
 }
@@ -387,6 +413,8 @@ std::ostream &SparseMF::info(std::ostream &os, std::string indent) {
     MF<SparseMatrixD>::info(os, indent);
     if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty cols\n"; 
     if (num_empty[1]) os << indent << "  Warning: " << num_empty[1] << " empty rows\n"; 
+    os << indent << " Yc[0] : " << Yc[0].nonZeros() << " [ " << Yc[0].rows() << " x " << Yc[0].cols() << "]\n";
+    os << indent << " Yc[1] : " << Yc[1].nonZeros() << " [ " << Yc[1].rows() << " x " << Yc[1].cols() << "]\n";
     return os;
 }
 
