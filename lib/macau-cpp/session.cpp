@@ -105,15 +105,15 @@ void Session::init() {
     init_bmrng();
     BaseSession::init();
     if (config.verbose) info(std::cout, "");
+    iter = -1;
     if (config.restore_prefix.size()) {
-        iter = -1;
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
         restore(config.restore_prefix, config.restore_suffix);
-        if (config.verbose) printStatus(0);
-    }
+   }
+   if (config.verbose) printStatus(0);
    if (config.verbose) std::cout << "Sampling" << endl;
-    iter = 0;
-    is_init = true;
+   iter = 0;
+   is_init = true;
 }
 
 void Session::run() {
@@ -406,7 +406,7 @@ void Session::setFromConfig(const Config &c)
         die("Unknown noise model; " + config.noise_model);
     }
 
-    //-- noise model
+    //-- centering model
          if (config.center == "none")   model->center = Model::CENTER_NONE;
     else if (config.center == "global") model->center = Model::CENTER_GLOBAL;
     else if (config.center == "rows")   model->center = Model::CENTER_ROWS;
@@ -455,7 +455,7 @@ void Session::printStatus(double elapsedi) {
     std::string phase;
     int i, from;
     if (iter < 0) {
-        phase = "Restored state: ";
+        phase = "Initial state: ";
         i = 0;
         from = 0;
     } else if (iter < config.burnin) {

@@ -64,7 +64,7 @@ struct Model {
     Eigen::MatrixXd &V(int f) { return factors.at((f+1)%2); }
     Eigen::MatrixXd::ConstColXpr col(int f, int i) const { return U(f).col(i); }
     double predict(int r, int c) const  {
-        return col(0,c).dot(col(1,r)) + global_mean;
+        return col(0,c).dot(col(1,r)) + offset_to_mean(r, c);
     }
 
     int num_fac() const { return factors.size(); }
@@ -115,6 +115,8 @@ struct MF : public Model {
     int Ycols()   const override { return Y.cols(); }
     int Ynnz()    const override { return Y.nonZeros(); }
     double  offset_to_mean(int row, int col) const override;
+
+    YType center_cols(Eigen::VectorXd &);
     double colmean(int c) const override { 
         auto &col = Y.col(c);
         if (col.nonZeros() == 0) return global_mean;

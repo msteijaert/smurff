@@ -188,9 +188,9 @@ void Result::update_auc()
 
 std::ostream &Model::info(std::ostream &os, std::string indent)
 {
-    std::string center_names[4] = { "none", "global", "cols", "rows" };
+    std::vector<std::string> center_names = { "none", "global", "cols", "rows" };
     os << indent << "Type: " << name << "\n";
-    os << indent << "Center: " << center_names[center] << "\n";
+    os << indent << "Center: " << center_names.at(center) << "\n";
     os << indent << "Num-latents: " << num_latent << "\n";
     double train_fill_rate = 100. * Ynnz() / Yrows() / Ycols();
     os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "] (" << train_fill_rate << "%)\n";
@@ -217,10 +217,23 @@ std::ostream &Result::info(std::ostream &os, std::string indent, const Model &mo
 
 template<typename YType>
 double  MF<YType>::offset_to_mean(int row, int col) const {
-    if (center == CENTER_GLOBAL) return global_mean;
-    else if (center == CENTER_ROWS) return mean_vec(row);
-    else if (center == CENTER_COLS) return mean_vec(col);
-    else return .0;
+         if (center == CENTER_GLOBAL) return global_mean;
+    else if (center == CENTER_ROWS)   return mean_vec(row);
+    else if (center == CENTER_COLS)   return mean_vec(col);
+    else if (center == CENTER_NONE)   return .0;
+    assert(false);
+    return .0;
+}
+
+template<typename YType>
+YType MF<YType>::center_cols(VectorXd &mean_vec) {
+    YType Yout(Y.rows(), Y.cols());
+    mean_vec.resize(Y.cols());
+    for (int k = 0; k < Y.cols(); ++k) {
+        auto mean  = mean_vec(k) = colmean(k);
+        Yout.col(k) = Y.col(k) - mean * VectorXd::Ones(Y.rows());
+    }
+    return Yout;
 }
 
 template<typename YType>
@@ -234,17 +247,22 @@ void MF<YType>::init_base()
     U(0).resize(num_latent, Y.cols());
     U(1).resize(num_latent, Y.rows());
 
-    bmrandn(U(0));
-    bmrandn(U(1));
-}
+    U(0).setZero();
+    U(1).setZero();
+    //bmrandn(U(0));
+    //bmrandn(U(1));
 
-void center_cols(SparseMatrixD &Y, VectorXd &mean_vec) {
-    mean_vec.resize(Y.cols());
-    for (int k = 0; k < Y.outerSize(); ++k) {
-        double m = mean_vec(k) = Y.col(k).sum() / Y.col(k).nonZeros();
-        for (SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
-            it.valueRef() -= m;
-        }
+    //-- center data
+    if (center == CENTER_GLOBAL) {
+        // different for sparse/dense
+    } else if (center == CENTER_ROWS) {
+        assert(false);
+    } else if (center == CENTER_COLS) {
+        Yc[0] = center_cols(mean_vec);
+        Yc[1] = Yc[0].transpose();
+    } else {
+        Yc[0] = Y;
+        Yc[1] = Yc[0].transpose();
     }
 }
 
@@ -253,20 +271,10 @@ void MF<SparseMatrixD>::init()
 {
     init_base();
 
+    // different for sparse/dense
     if (center == CENTER_GLOBAL) {
         Yc[0] = Y;
         Yc[0].coeffs() -= global_mean;
-        Yc[1] = Yc[0].transpose();
-    } else if (center == CENTER_ROWS) {
-        Yc[0] = Y;
-        center_cols(Yc[0], mean_vec);
-        Yc[1] = Yc[0].transpose();
-    } else if (center == CENTER_COLS) {
-        Yc[1] = Y.transpose();
-        center_cols(Yc[1], mean_vec);
-        Yc[0] = Yc[1].transpose();
-    } else {
-        Yc[0] = Y;
         Yc[1] = Yc[0].transpose();
     }
 
@@ -279,19 +287,12 @@ void MF<Eigen::MatrixXd>::init()
 {
     init_base();
 
+    // different for sparse/dense
     if (center == CENTER_GLOBAL) {
         Yc[0] = Y.array() - global_mean;
-    } else if (center == CENTER_ROWS) {
-        mean_vec = Y.rowwise().mean();
-        Yc[0] = Y.colwise() - mean_vec;
-    } else if (center == CENTER_COLS) {
-        mean_vec = Y.colwise().mean();
-        Yc[0] = Y.rowwise() - mean_vec.transpose();
-    } else {
-        Yc[0] = Y;
+        Yc[1] = Yc[0].transpose();
     }
 
-    Yc[1] = Yc[0].transpose();
     name = "Dense" + name;
 }
 
