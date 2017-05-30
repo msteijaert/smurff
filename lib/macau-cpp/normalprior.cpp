@@ -25,8 +25,8 @@ std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
     return os;
 }
 
-Model &ILatentPrior::model() { return session.model; }
-Data &ILatentPrior::data() { return *session.data; }
+Model &ILatentPrior::model() const { return session.model; }
+Data &ILatentPrior::data() const { return *session.data; }
 INoiseModel &ILatentPrior::noise() { return *data().noise; }
 MatrixXd &ILatentPrior::U() { return model().U(mode); }
 MatrixXd &ILatentPrior::V() { return model().V(mode); }
@@ -134,6 +134,10 @@ void NormalPrior::save(std::string prefix, std::string suffix) {
 void NormalPrior::restore(std::string prefix, std::string suffix) {
   read_dense(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
   initUU();
+}
+
+std::string NormalPrior::status() const {
+    return "mu: " + std::to_string(mu.norm());
 }
 
 } // end namespace Macau

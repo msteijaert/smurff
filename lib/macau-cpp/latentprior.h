@@ -24,21 +24,20 @@ class ILatentPrior {
       virtual void init();
 
       // utility
-      Model &model();
-      Data  &data();
+      Model &model() const;
+      Data  &data() const;
       INoiseModel &noise();
       Eigen::MatrixXd &U();
       Eigen::MatrixXd &V();
-      int num_latent() { assert(model().nlatent() > 0); return model().nlatent(); }
-      int num_cols()   { return model().U(mode).cols(); }
+      int num_latent() const { return model().nlatent(); }
+      int num_cols()   const { return model().U(mode).cols(); }
 
       virtual void save(std::string prefix, std::string suffix) = 0;
       virtual void restore(std::string prefix, std::string suffix) = 0;
       virtual std::ostream &info(std::ostream &os, std::string indent);
+      virtual std::string status() const = 0;
 
       // work
-      virtual double getLinkNorm() { return NAN; };
-      virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
 
       virtual void sample_latents();
@@ -78,6 +77,7 @@ class NormalPrior : public ILatentPrior {
     void sample_latent(int n) override;
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
+    virtual std::string status() const override;
 
   private:
     // for effiency, we keep + update Ucol and UUcol by every thread
@@ -110,8 +110,7 @@ class MacauPrior : public NormalPrior {
             
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
-    double getLinkNorm() override;
-    double getLinkLambda() override { return lambda_beta; };
+    double getLinkLambda() { return lambda_beta; };
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
 
     void compute_Ft_y_omp(Eigen::MatrixXd &);
@@ -121,6 +120,7 @@ class MacauPrior : public NormalPrior {
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
     std::ostream &info(std::ostream &os, std::string indent) override;
+    std::string status() const override;
 
   private:
     void sample_beta_direct();
@@ -181,7 +181,7 @@ class SpikeAndSlabPrior : public ILatentPrior {
     void sample_latent(int n) override;
 
     // mean value of Z
-    double getLinkNorm() override { return Zkeep.sum(); }
+    std::string status() const override;
 };
 
 }

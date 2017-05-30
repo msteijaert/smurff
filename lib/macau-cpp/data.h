@@ -26,6 +26,7 @@ struct Data {
     virtual double var_total() const = 0;
 
     // update noise and precision/mean
+    virtual double train_rmse(const SubModel &) const = 0;
     virtual void update(const SubModel &model) { noise->update(model); }
     virtual void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) = 0;
     virtual void update_pnm(const SubModel &,int) = 0;
@@ -55,8 +56,12 @@ struct Data {
 
     virtual void setCenterMode(std::string c);
     enum { CENTER_INVALID = -10, CENTER_NONE = -3, CENTER_GLOBAL = -2, CENTER_VIEW = -1, CENTER_COLS = 0, CENTER_ROWS = 1}
-                                  center_mode;
+    center_mode;
 
+    // helper for predictions
+    double predict(const std::vector<int> &pos, const SubModel &model) const;
+
+    // name
     std::string                  name;
 
     // noise model for this dataset
@@ -94,6 +99,7 @@ struct MatricesData: public MatrixData {
     // but 
     double sumsq(const SubModel &) const override { assert(false); return NAN; }
     double var_total() const override { assert(false); return NAN; }
+    double train_rmse(const SubModel &) const override;
 
     // update noise and precision/mean
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
@@ -160,6 +166,8 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
     void center(double) override;
     double compute_mode_mean(int,int) override;
 
+    double train_rmse(const SubModel &) const override;
+
     std::ostream &info(std::ostream &os, std::string indent) override;
 
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
@@ -213,6 +221,7 @@ struct DenseMatrixData : public FullMatrixData<Eigen::MatrixXd> {
         this->name = "DenseMatrixData [fully known]";
     }
     void center(double) override;
+    double train_rmse(const SubModel &) const override;
 };
 
 struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
@@ -222,6 +231,7 @@ struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
         this->name = "SparseMatrixData [fully known]";
     }
     void center(double) override;
+    double train_rmse(const SubModel &) const override;
 };
 
 }; // end namespace Macau

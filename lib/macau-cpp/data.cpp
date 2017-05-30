@@ -75,6 +75,12 @@ void Data::setCenterMode(std::string c)
     else assert(false);
 }
 
+double Data::predict(const std::vector<int> &pos, const SubModel &model) const
+{
+       return model.dot(pos) + offset_to_mean(pos);
+}
+
+
 std::ostream &MatrixData::info(std::ostream &os, std::string indent)
 {
     Data::info(os, indent);
@@ -237,6 +243,31 @@ double MatricesData::offset_to_mean(std::vector<int> pos) const {
     }
     assert(false);
     return .0;
+}
+
+double MatricesData::train_rmse(const SubModel &model) const {
+    double sum = .0;
+    int N = 0;
+    int count = 0;
+
+
+    for(auto &p : matrices) {
+        int brow = p.first.first;
+        int bcol = p.first.second;
+
+        auto off = boffs(brow, bcol);
+        auto dim = bdims(brow, bcol);
+
+        auto &mtx = *p.second;
+        double local_rmse = mtx.train_rmse(SubModel(model, off, dim));
+        sum += (local_rmse * local_rmse) * (mtx.size() - mtx.nna());
+        N += (mtx.size() - mtx.nna());
+        count++;
+    }
+
+    assert(N>0);
+
+    return sqrt(sum / N);
 }
 
 template<typename YType>
@@ -476,6 +507,16 @@ void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd 
     }
 }
 
+double ScarceMatrixData::train_rmse(const SubModel &model) const {
+    double se = 0.;
+    for(int c=0; c<Y.cols();++c) {
+        for (SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
+            se += square(it.value() - predict({(int)it.col(), (int)it.row()}, model));
+        }
+    }
+    return sqrt( se / Y.nonZeros() );
+}
+
 void ScarceBinaryMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM)
 {
     // todo : check noise == probit noise
@@ -550,6 +591,19 @@ void SparseMatrixData::center(double global_mean)
     }
 }
 
+double SparseMatrixData::train_rmse(const SubModel &model) const {
+    double se = 0.;
+    for(int c=0; c<Y.cols();++c) {
+        int r = 0;
+        for (SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
+            while (r<it.row()) se += square(predict({c,r++}, model));
+            se += square(it.value() - predict({c,r}, model));
+        }
+        for(;r<Y.rows();r++) se += square(predict({c,r}, model));
+    }
+    return sqrt( se / Y.rows() / Y.cols() );
+}
+
 void DenseMatrixData::center(double global_mean)
 {
     this->global_mean = global_mean;
@@ -567,6 +621,19 @@ void DenseMatrixData::center(double global_mean)
         Yc.at(0) = Yc.at(1).transpose();
     }
 }
+
+double DenseMatrixData::train_rmse(const SubModel &model) const
+{
+    double se = 0.;
+    for(int c=0; c<Y.cols();++c) {
+        for(int m=0; m<Y.rows(); ++m) {
+            se += square(Y(m,c) - predict({c,m}, model));
+        }
+    }
+    return sqrt( se / Y.rows() / Y.cols() );
+}
+
+
 
 } //end namespace Macau
 

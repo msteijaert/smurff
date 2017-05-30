@@ -1,4 +1,4 @@
-#include <Eigen/Dense>
+
 #include <Eigen/Sparse>
 
 #include <iostream>
@@ -21,6 +21,7 @@
 #include <signal.h>
 
 #include "utils.h"
+#include "data.h"
 #include "model.h"
 #include "mvnormal.h"
 
@@ -63,5 +64,11 @@ SubModel Model::full()
 {
     return SubModel(*this);
 }
+
+double Model::predict(const std::vector<int> &pos, const Data &data) const
+{
+    return dot(pos) + data.offset_to_mean(pos);
+}
+
 
 } // end namespace

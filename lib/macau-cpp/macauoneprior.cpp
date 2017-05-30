@@ -205,6 +205,11 @@ void MacauOnePrior<FType>::restore(std::string prefix, std::string suffix) {
   read_dense(prefix + "-link" + suffix, beta);
 }
 
+template<class FType>
+std::string MacauOnePrior<FType>::status() const {
+    return "Beta:" + std::to_string(beta.norm());
+}
+
 template class MacauOnePrior<SparseFeat>;
 template class MacauOnePrior<SparseDoubleFeat>;
 template class MacauOnePrior<Eigen::MatrixXd>;
