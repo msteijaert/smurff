@@ -413,18 +413,10 @@ std::ostream &SparseMF::info(std::ostream &os, std::string indent) {
     MF<SparseMatrixD>::info(os, indent);
     if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty cols\n"; 
     if (num_empty[1]) os << indent << "  Warning: " << num_empty[1] << " empty rows\n"; 
-    os << indent << " Yc[0] : " << Yc[0].nonZeros() << " [ " << Yc[0].rows() << " x " << Yc[0].cols() << "]\n";
-    os << indent << " Yc[1] : " << Yc[1].nonZeros() << " [ " << Yc[1].rows() << " x " << Yc[1].cols() << "]\n";
+    //os << indent << " Yc[0] : " << Yc[0].nonZeros() << " [ " << Yc[0].rows() << " x " << Yc[0].cols() << "]\n";
+    //os << indent << " Yc[1] : " << Yc[1].nonZeros() << " [ " << Yc[1].rows() << " x " << Yc[1].cols() << "]\n";
     return os;
 }
-
-struct pnm_perf_item {
-    int local_nnz, total_nnz;
-    bool in_parallel;
-    double start, stop;
-};
-
-static std::vector<pnm_perf_item> pnm_perf;
 
 void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(f);
@@ -468,33 +460,14 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     MM.triangularView<Upper>() = MM.transpose();
 }
 
-void SparseMF::update_pnm(int f) {
-    return;
-    if (pnm_perf.size()) {
-        printf("==========\n"); 
-        for(auto &item: pnm_perf) printf("%d;%d;%d;%f;%f\n", item.local_nnz, item.total_nnz, item.in_parallel, item.start, item.stop);
-        pnm_perf.clear();
+double SparseMF::train_rmse() const {
+    double se = 0.;
+    for(int c=0; c<Y.cols();++c) {
+        for (SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
+            se += square(it.value() - predict(it.row(), it.col()));
+        }
     }
-
-    auto &Y = Yc.at(f);
-
-    int bin = 1;
-    int count = 0;
-    int total = 0;
-    while (count < Y.cols()) {
-        count = 0;
-        for(int i=0; i<Y.cols();++i) if (Y.col(i).nonZeros() < bin) count++;
-        auto bin_count = count - total;
-        auto bin_nnz = bin_count * bin;
-        auto bin_percent = (100. * bin_nnz) / Y.nonZeros();
-            printf("fac: %d\t%5d < bin < %5d;\t#samples: %4d;\t%5d < #nnz < %5d;\t %.1f < %%nnz < %.1f\n",
-                    f, bin/2, bin, bin_count, bin_nnz/2, bin_nnz, bin_percent/2, bin_percent);
-        bin *= 2;
-        total = count;
-    }
-
-    std::cout << "Total samples: " << Y.cols() << std::endl;
-    std::cout << "Total nnz: " << Y.nonZeros() << std::endl;
+    return sqrt( se / Y.nonZeros() );
 }
 
 void SparseBinaryMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)
@@ -532,6 +505,31 @@ void DenseMF<YType>::update_pnm(int f) {
     }
 
     VV.at(f) = VVs.combine();
+}
+
+template<>
+double DenseMF<SparseMatrixD>::train_rmse() const {
+    double se = 0.;
+    for(int c=0; c<Y.cols();++c) {
+        int r = 0;
+        for (SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
+            while (r<it.row()) se += square(predict(r++, c));
+            se += square(it.value() - predict(r, c));
+        }
+        for(;r<Y.rows();r++) se += square(predict(r, c));
+    }
+    return sqrt( se / Y.rows() / Y.cols() );
+}
+
+template<>
+double DenseMF<MatrixXd>::train_rmse() const {
+    double se = 0.;
+    for(int c=0; c<Y.cols();++c) {
+        for(int m=0; m<Y.rows(); ++m) {
+            se += square(Y(m,c) - predict(m, c));
+        }
+    }
+    return sqrt( se / Y.rows() / Y.cols() );
 }
 
 template struct MF<SparseMatrix<double>>;

@@ -175,6 +175,10 @@ void NormalPrior::restore(std::string prefix, std::string suffix) {
   Ucol.local() = U().rowwise().sum();
 }
 
+std::string NormalPrior::status() const {
+    return "mu: " + std::to_string(mu.norm());
+}
+
 
 /*
  * Master Prior
@@ -294,12 +298,13 @@ Model& MasterPrior<Prior>::addSlave()
 }
 
 template<class Prior>
-double MasterPrior<Prior>::getLinkNorm() {
+std::string MasterPrior<Prior>::status() const {
     assert(slaves.size() > 0 && "No slaves");
-    double ret = .0;
+    std::string ret {"slaves train rmse [ "};
     for(auto &s : this->slaves) {
-        ret += s.model->V(this->pos).norm();
+        ret += std::to_string(s.model->train_rmse()) + " ";
     }
+    ret += "]";
     return ret;
 }
 

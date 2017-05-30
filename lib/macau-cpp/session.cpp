@@ -438,9 +438,6 @@ void Session::printStatus(double elapsedi) {
 
     pred.update(*model, iter < config.burnin);
 
-    double norm0 = priors[0]->getLinkNorm();
-    double norm1 = priors[1]->getLinkNorm();
-
     double snorm0 = model->U(0).norm();
     double snorm1 = model->U(1).norm();
 
@@ -463,9 +460,15 @@ void Session::printStatus(double elapsedi) {
         from = config.nsamples;
     }
 
-    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            phase.c_str(), i, from, pred.rmse_avg, pred.rmse, pred.auc,
-            snorm0, snorm1, norm0, norm1, noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
+    double train_rmse = model->train_rmse();
+
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f, train: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]",
+            phase.c_str(), i, from, pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1);
+
+    printf(" Priors: %s, %s ", priors[0]->status().c_str(), priors[1]->status().c_str());
+
+    printf(" %s [took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
+            noise->getStatus().c_str(), elapsedi, samples_per_sec, nnz_per_sec);
 }
 
 void Session::save(int isample) {

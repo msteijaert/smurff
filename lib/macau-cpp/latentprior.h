@@ -30,17 +30,16 @@ class ILatentPrior {
       Eigen::MatrixXd &V(int s = 0);
       INoiseModel &noise(int s = 0);
 
-      int num_latent() { return Model::num_latent; }
+      int num_latent() const { return Model::num_latent; }
       int num_cols();
-      int num_sys() { return sessions.size(); }
+      int num_sys() const { return sessions.size(); }
 
       virtual void save(std::string prefix, std::string suffix) = 0;
       virtual void restore(std::string prefix, std::string suffix) = 0;
       virtual std::ostream &info(std::ostream &os, std::string indent);
+      virtual std::string status() const = 0;
 
       // work
-      virtual double getLinkNorm() { return NAN; };
-      virtual double getLinkLambda() { return NAN; };
       virtual bool run_slave() { return false; } // returns true if some work happened...
 
       virtual void sample_latents();
@@ -85,6 +84,8 @@ class NormalPrior : public ILatentPrior {
     void sample_latent(int s, int n) override;
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
+
+    std::string status() const override;
 };
 
 template<class Prior>
@@ -105,7 +106,7 @@ class MasterPrior : public Prior {
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
 
-    double getLinkNorm() override;
+    std::string status() const override;
 
   private:
     std::vector<BaseSession> slaves;
@@ -119,6 +120,7 @@ class SlavePrior : public ILatentPrior {
     void sample_latent(int,int) override {};
     void save(std::string prefix, std::string suffix) override {}
     void restore(std::string prefix, std::string suffix) override {}
+    std::string status() const override { return ""; }
 };
 
 
@@ -146,8 +148,7 @@ class MacauPrior : public NormalPrior {
             
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false);
 
-    double getLinkNorm() override;
-    double getLinkLambda() override { return lambda_beta; };
+    double getLinkLambda() { return lambda_beta; };
     const Eigen::VectorXd getMu(int n) const override { return this->mu + Uhat.col(n); }
 
     void compute_Ft_y_omp(Eigen::MatrixXd &);
@@ -157,6 +158,7 @@ class MacauPrior : public NormalPrior {
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
     std::ostream &info(std::ostream &os, std::string indent) override;
+    std::string status() const override;
 
   private:
     void sample_beta_direct();
@@ -217,7 +219,7 @@ class SpikeAndSlabPrior : public ILatentPrior {
     void sample_latent(int s, int n) override;
 
     // mean value of Z
-    double getLinkNorm() override { return Zkeep.sum(); }
+    std::string status() const override;
 };
 
 }

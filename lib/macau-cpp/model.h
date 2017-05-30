@@ -94,6 +94,7 @@ struct Model {
     // col/row-wise mean for a simple predictor
     virtual double colmean(int) const = 0;
     double global_mean = .0;
+    virtual double train_rmse() const = 0;
 
     std::string name;
     void setCenter(std::string c);
@@ -148,22 +149,23 @@ struct SparseMF : public MF<SparseMatrixD> {
     std::ostream &info(std::ostream &os, std::string indent) override;
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(int) override;
+    void update_pnm(int) override {}
+
   private:
+    double train_rmse() const override;
     int num_empty[2] = {0,0}; 
 
 };
 
-struct SparseBinaryMF : public MF<SparseMatrixD> {
+struct SparseBinaryMF : public SparseMF {
     //-- c'tor
     SparseBinaryMF(int num_latent, int num_fac = 2)
-        : MF<SparseMatrixD>(num_latent, num_fac)
+        : SparseMF(num_latent, num_fac)
     {
         name = "SparseBinaryMF (Probit Noise Sampler)";
     }
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(int) override {}
 };
 
 template<class YType>
@@ -180,6 +182,7 @@ struct DenseMF : public MF<YType> {
     void update_pnm(int) override;
 
   private:
+    double train_rmse() const override;
     std::vector<MatrixNNd> VV;
 };
 
