@@ -267,10 +267,10 @@ MatrixXd MF<MatrixXd>::center_cols(VectorXd &mean_vec) {
 template<typename YType>
 void MF<YType>::init_base()
 {
-    assert(Yrows() > 0 && Ycols() > 0);
+    assert(Y.rows() > 0 && Y.cols() > 0);
     Yc.resize(2);
 
-    global_mean = Y.sum() / Y.nonZeros();
+    global_mean = Y.sum() / Ynnz();
 
     U(0).resize(num_latent, Y.cols());
     U(1).resize(num_latent, Y.rows());
@@ -306,7 +306,7 @@ void MF<SparseMatrixD>::init()
         Yc[1] = Yc[0].transpose();
     }
 
-    name = "Sparse" + name;
+    name = "sparse " + name;
 }
 
 
@@ -321,7 +321,7 @@ void MF<Eigen::MatrixXd>::init()
         Yc[1] = Yc[0].transpose();
     }
 
-    name = "Dense" + name;
+    name = "dense " + name;
 }
 
 template<>
@@ -329,7 +329,7 @@ double MF<Eigen::MatrixXd>::var_total() const {
     auto &Y = Yc.at(0);
     double se = Y.array().square().sum();
 
-    double var_total = se / Y.nonZeros();
+    double var_total = se / Ynnz();
     if (var_total <= 0.0 || std::isnan(var_total)) {
         // if var cannot be computed using 1.0
         var_total = 1.0;
@@ -350,7 +350,7 @@ double MF<SparseMatrixD>::var_total() const {
         }
     }
 
-    double var_total = se / Y.nonZeros();
+    double var_total = se / Ynnz();
     if (var_total <= 0.0 || std::isnan(var_total)) {
         // if var cannot be computed using 1.0
         var_total = 1.0;
@@ -424,7 +424,7 @@ void SparseMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(f);
     MatrixXd &Vf = V(f);
     const int local_nnz = Y.col(n).nonZeros();
-    const int total_nnz = Y.nonZeros();
+    const int total_nnz = Ynnz();
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
     if (in_parallel) {
         const int task_size = ceil(local_nnz / 100.0);
@@ -469,7 +469,7 @@ double SparseMF::train_rmse() const {
             se += square(it.value() - predict(it.row(), it.col()));
         }
     }
-    return sqrt( se / Y.nonZeros() );
+    return sqrt( se / Ynnz() );
 }
 
 void SparseBinaryMF::get_pnm(int f, int n, VectorXd &rr, MatrixXd &MM)

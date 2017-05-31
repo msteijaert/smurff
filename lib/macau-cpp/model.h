@@ -142,7 +142,7 @@ struct SparseMF : public MF<SparseMatrixD> {
     SparseMF(int num_latent, int num_fac = 2)
         : MF<SparseMatrixD>(num_latent, num_fac)
     {
-        name = "SparseMF";
+        name = "with unknowns";
     }
     void init() override;
 
@@ -162,7 +162,7 @@ struct SparseBinaryMF : public SparseMF {
     SparseBinaryMF(int num_latent, int num_fac = 2)
         : SparseMF(num_latent, num_fac)
     {
-        name = "SparseBinaryMF (Probit Noise Sampler)";
+        name = "binary with unknowns (Probit Noise Sampler)";
     }
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
@@ -175,8 +175,10 @@ struct DenseMF : public MF<YType> {
         : MF<YType>(num_latent, num_fac) 
     {
         VV.resize(num_fac);
-        this->name = "DenseMF";
+        this->name = "fully known";
     }
+
+    int Ynnz()    const override { return this->Y.cols() * this->Y.rows(); }
 
     void get_pnm(int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(int) override;

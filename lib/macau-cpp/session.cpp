@@ -434,9 +434,10 @@ void Session::setFromConfig(const Config &c)
 
 
 void Session::printStatus(double elapsedi) {
-    if(!config.verbose) return;
 
     pred.update(*model, iter < config.burnin);
+
+    if(!config.verbose) return;
 
     double snorm0 = model->U(0).norm();
     double snorm1 = model->U(1).norm();
@@ -462,8 +463,9 @@ void Session::printStatus(double elapsedi) {
 
     double train_rmse = model->train_rmse();
 
-    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f, train: %.4f) AUC:%.4f  U:[%1.2e, %1.2e] [took: %0.1f]\n",
-            phase.c_str(), i, from, pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1, elapsedi);
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f, train: %.4f)", phase.c_str(), i, from, pred.rmse_avg, pred.rmse, train_rmse);
+    if (config.classify) printf(" AUC:%.4f", pred.auc);
+    printf(" U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
 
     if (config.verbose > 1) {
         printf("  Priors:\n    col: %s\n    row: %s\n", priors[0]->status().c_str(), priors[1]->status().c_str());

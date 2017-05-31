@@ -174,6 +174,8 @@ void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
         delete sbm_ptr;
     } else if (extension == ".mtx" || extension == ".mm") {
         loadMarket(M, fname.c_str());
+        // fix for reading binary matrices
+        if (M.sum() == .0) M.coeffs() = 1.0;
     } else  {
         die("Unknown filename in read_sparse: " + fname);
     }
