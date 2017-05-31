@@ -205,6 +205,8 @@ std::ostream &Model::info(std::ostream &os, std::string indent)
     os << indent << "Num-latents: " << num_latent << "\n";
     double train_fill_rate = 100. * Ynnz() / Yrows() / Ycols();
     os << indent << "Train data: " << Ynnz() << " [" << Yrows() << " x " << Ycols() << "] (" << train_fill_rate << "%)\n";
+    os << indent << "Mean value: " << global_mean << "\n";
+
     return os;
 }
 

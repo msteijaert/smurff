@@ -54,7 +54,7 @@ struct Config {
     int save_freq           = 0; // never
 
     //-- general
-    bool verbose              = false;
+    int verbose               = 1;
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;

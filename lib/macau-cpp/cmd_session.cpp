@@ -35,7 +35,7 @@ enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
     RESTORE_PREFIX, RESTORE_SUFFIX,
-    SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, CENTER
+    SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET, CENTER
 };
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
@@ -79,7 +79,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case ADAPTIVE:        set_noise_model("adaptive", optarg); break;
 
         case THRESHOLD:       config.threshold          = strtod(optarg, 0); config.classify = true; break;
-        case VERBOSE:         config.verbose            = true; break;
+        case VERBOSE:         config.verbose            = optarg ? strtol(optarg, NULL, 0) : 1; break;
+        case QUIET:           config.verbose            = 0; break;
         default:              return ARGP_ERR_UNKNOWN;
     }
 
@@ -113,7 +114,8 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"save-suffix",      SAVE_SUFFIX	, "EXT",   0, "suffix for result files (.csv or .ddm)"},
         {"save-freq",        SAVE_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
         {"threshold",        THRESHOLD	, "NUM",   0, "threshold for binary classification"},
-        {"verbose",          VERBOSE	, 0,       0, "verbose output"},
+        {"verbose",          VERBOSE	, "NUM",   OPTION_ARG_OPTIONAL, "verbose output (default = 1)"},
+        {"quiet",            QUIET	, 0,   0, "no output"},
         {0,0,0,0,"Noise model:",4},
         {"precision",	     PRECISION	, "NUM",   0, "5.0  precision of observations"},
         {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adavtive precision of observations"},
