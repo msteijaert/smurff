@@ -453,13 +453,16 @@ void Session::printStatus(double elapsedi) {
 
     double train_rmse = data->train_rmse(model);
 
-    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f, train: %.4f) AUC:%.4f  U:[%1.2e, %1.2e]",
-            phase.c_str(), i, from, pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1);
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f, train: %.4f) AUC:%.4f  U:[%1.2e, %1.2e] [took: %0.1f]\n",
+            phase.c_str(), i, from, pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1, elapsedi);
 
-    printf(" Priors: %s, %s ", priors[0]->status().c_str(), priors[1]->status().c_str());
-
-    printf("[took %0.1fs, %.0f samples/sec, %.0f nnz/sec]\n",
-            elapsedi, samples_per_sec, nnz_per_sec);
+    if (config.verbose > 1) {
+        printf("  Priors:\n    col: %s\n    row: %s\n", priors[0]->status().c_str(), priors[1]->status().c_str());
+    }
+    
+    if (config.verbose > 2) {
+        printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
+    }
 }
 
 void Session::save(int isample) {
