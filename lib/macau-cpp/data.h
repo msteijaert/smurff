@@ -50,7 +50,7 @@ struct MatrixData: public Data {
 
 struct MatricesData: public MatrixData {
     // add data
-    MatrixData &add(int, int, const MatrixConfig &, bool = true);
+    MatrixData &add(int, int, std::unique_ptr<Data>);
 
     // helper functions for noise
     // but 
@@ -65,10 +65,10 @@ struct MatricesData: public MatrixData {
     std::ostream &info(std::ostream &os, std::string indent) override;
 
     // virtual functions data-related
-    void             init()       override;
-    int              nnz()  const override;
-    int              size() const override;
-    std::vector<int> dims() const override;
+    void init()       override;
+    int  nnz()  const override;
+    int  nrow() const override;           
+    int  ncol() const override;           
 
   private:
     Eigen::Matrix<std::unique_ptr<MatrixData>, Eigen::Dynamic, Eigen::Dynamic> matrices;

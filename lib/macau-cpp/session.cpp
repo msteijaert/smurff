@@ -150,7 +150,7 @@ inline void addMacauPrior(Session &m, std::string prior_name, SideInfo *f, doubl
     }
 }
 
-void add_prior(Session &macau, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
+void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
 {
     //-- row prior with side information
     if (features.size()) {
@@ -160,22 +160,21 @@ void add_prior(Session &macau, std::string prior_name, const std::vector<MatrixC
 
             if (s.binary) {
                 auto sideinfo = new SparseFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols);
-                addMacauPrior(macau, prior_name, sideinfo, lambda_beta, tol, direct);
+                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
             } else if (s.dense) {
                 auto sideinfo = new MatrixXd(dense_to_eigen(s));
-                addMacauPrior(macau, prior_name, sideinfo, lambda_beta, tol, direct);
+                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
             } else {
                 auto sideinfo = new SparseDoubleFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols, s.values);
-                addMacauPrior(macau, prior_name, sideinfo, lambda_beta, tol, direct);
+                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
             } 
         } else {
-            assert(false && "Not yet");
-            //addMaster(macau, prior_name, features);
+            assert(false && "SideInfo only with macau(one) prior");
         }
     } else if(prior_name == "normal" || prior_name == "default") {
-        macau.addPrior<NormalPrior>();
+        sess.addPrior<NormalPrior>();
     } else if(prior_name == "spikeandslab") {
-        macau.addPrior<SpikeAndSlabPrior>();
+        sess.addPrior<SpikeAndSlabPrior>();
     } else {
         throw std::runtime_error("Unknown prior without side info: " + prior_name);
     }
@@ -317,41 +316,80 @@ void Config::restore(std::string fname) {
 };
  
 
+std::unique_ptr<Data> toData(const MatrixConfig &config, bool scarce) 
+{
+    std::unique_ptr<Data> data;
+
+    if (!config.dense) {
+        SparseMatrixD Ytrain = sparse_to_eigen(config);
+        if (!scarce) {
+            data = std::unique_ptr<Data>(new SparseMatrixData(Ytrain));
+        } else if (is_binary(Ytrain)) {
+            data = std::unique_ptr<Data>(new ScarceBinaryMatrixData(Ytrain));
+        } else {
+            data = std::unique_ptr<Data>(new ScarceMatrixData(Ytrain));
+        }
+    } else {
+        Eigen::MatrixXd Ytrain = dense_to_eigen(config);
+        data = std::unique_ptr<Data>(new DenseMatrixData(Ytrain));
+    }
+
+    return data;
+}
+
+std::unique_ptr<Data> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, 
+     const std::vector<MatrixConfig> &col_features) 
+{
+    if (row_features.empty() && col_features.empty()) {
+        return toData(train, true);
+    }
+
+    // multiple matrices
+    auto data = new MatricesData();
+    data->add(0,0,toData(train, true /*scarce*/));
+    for(int i=0; i<row_features.size(); ++i) {
+        data->add(i+1, 0, toData(row_features[i], false)); 
+    }
+    for(int i=0; i<col_features.size(); ++i) {
+        data->add(0, i+1, toData(row_features[i], false)); 
+    }
+
+    return std::unique_ptr<Data>(data);
+}
+
+
 void Session::setFromConfig(const Config &c)
 {
     c.validate(true);
-    c.save("macau.ini");
+    c.save("smurff.ini");
 
     //-- copy
     config = c;
 
-    // Load main Y matrix file
-    if (!config.train.dense) {
-        SparseMatrixD Ytrain = sparse_to_eigen(config.train);
-        if (is_binary(Ytrain)) {
-            data = std::unique_ptr<Data>(new ScarceBinaryMatrixData(Ytrain));
-            if (!config.classify) {
-               config.classify = true;
-               config.threshold = 0.5;
-               config.noise_model = "probit";
-            }
-        } else {
-            data = std::unique_ptr<Data>(new ScarceMatrixData(Ytrain));
-        }
-
-        if (config.test_split > .0) {
-            auto predictions = extract(Ytrain, config.test_split);
-            pred.set(predictions);
-        }
-    } else {
-        Eigen::MatrixXd Ytrain = dense_to_eigen(config.train);
-        data = std::unique_ptr<Data>(new DenseMatrixData(Ytrain));
-        if (config.test_split > .0) {
-            auto predictions = extract(Ytrain, config.test_split);
-            pred.set(predictions);
-        }
+    // split if needed
+    if (config.test_split > .0) {
+        auto predictions = extract(config.train, config.test_split);
+        pred.set(sparse_to_eigen(predictions));
     }
 
+    std::vector<MatrixConfig> row_matrices, col_matrices;
+    if (config.row_prior != "macau" && config.row_prior != "macauone") {
+        row_matrices = config.row_features;
+    } 
+    if (config.col_prior != "macau" && config.col_prior != "macauone") {
+        col_matrices = config.col_features;
+    } 
+    data = toData(config.train, row_matrices, col_matrices);
+
+    // check if data is ScarceBinary
+    if (0)
+            if (!config.classify) {
+                config.classify = true;
+                config.threshold = 0.5;
+                config.noise_model = "probit";
+            }
+ 
+ 
     if (config.classify) pred.setThreshold(config.threshold);
 
     //-- noise model

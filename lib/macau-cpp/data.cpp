@@ -70,7 +70,7 @@ std::ostream &MatrixData::info(std::ostream &os, std::string indent)
     return os;
 }
 
-MatrixData& MatricesData::add(int row, int col, const MatrixConfig &c, bool scarce) {
+MatrixData& MatricesData::add(int row, int col, std::unique_ptr<Data> &c) {
 }
 
 void MatricesData::get_pnm(const Model &model, int mode, int n, VectorNd &rr, MatrixNNd &MM) {
@@ -87,10 +87,6 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent) {
 void             MatricesData::init()       {
 }
 int              MatricesData::nnz()  const {
-}
-int              MatricesData::size() const {
-}
-std::vector<int> MatricesData::dims() const {
 }
 
 template<typename YType>
