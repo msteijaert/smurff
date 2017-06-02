@@ -74,6 +74,7 @@ struct Config {
 
     //-- general
     int verbose               = 1;
+    std::string csv_status    = "";
     int burnin                = 200;
     int nsamples              = 800;
     int num_latent            = 96;

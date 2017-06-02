@@ -36,7 +36,7 @@ enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
     RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET,
-    INIT_MODEL, CENTER
+    INIT_MODEL, CENTER, STATUS_FILE
 };
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
@@ -89,6 +89,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case INIT_MODEL:      config.init_model         = optarg; break;
         case VERBOSE:         config.verbose            = optarg ? strtol(optarg, NULL, 0) : 1; break;
         case QUIET:           config.verbose            = 0; break;
+        case STATUS_FILE:     config.csv_status         = optarg; break;
         default:              return ARGP_ERR_UNKNOWN;
     }
 
@@ -125,6 +126,7 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"threshold",        THRESHOLD	, "NUM",   0, "threshold for binary classification"},
         {"verbose",          VERBOSE	, "NUM",   OPTION_ARG_OPTIONAL, "verbose output (default = 1)"},
         {"quiet",            QUIET	, 0,   0, "no output"},
+        {"status",           STATUS_FILE, "FILE",  0, "output progress to csv file"},
         {0,0,0,0,"Noise model:",4},
         {"precision",	     PRECISION	, "NUM",   0, "5.0  precision of observations"},
         {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adavtive precision of observations"},

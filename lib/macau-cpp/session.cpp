@@ -64,6 +64,12 @@ void Session::init() {
     data->init();
     model.init(config.num_latent, data->dims(), config.init_model);
     for( auto &p : priors) p->init();
+
+    if (config.csv_status.size()) {
+        auto f = fopen(config.csv_status.c_str(), "w");
+        fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc;U0;U1;elapsed\n");
+        fclose(f);
+    }
     if (config.verbose) info(std::cout, "");
     if (config.restore_prefix.size()) {
         if (config.verbose) printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
@@ -438,7 +444,7 @@ void Session::printStatus(double elapsedi) {
     std::string phase;
     int i, from;
     if (iter < 0) {
-        phase = "Intial: ";
+        phase = "Initial";
         i = 0;
         from = 0;
     } else if (iter < config.burnin) {
@@ -463,6 +469,18 @@ void Session::printStatus(double elapsedi) {
     
     if (config.verbose > 2) {
         printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
+    }
+
+    if (config.csv_status.size()) {
+        double colmean_rmse = pred.colmean_rmse(*model);
+        double globalmean_rmse = pred.globalmean_rmse(*model);
+
+        auto f = fopen(config.csv_status.c_str(), "a");
+        fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
+                phase.c_str(), i, from, 
+                globalmean_rmse, colmean_rmse,
+                pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1, elapsedi);
+        fclose(f);
     }
 }
 
