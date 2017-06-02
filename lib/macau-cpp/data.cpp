@@ -70,7 +70,9 @@ std::ostream &MatrixData::info(std::ostream &os, std::string indent)
     return os;
 }
 
-MatrixData& MatricesData::add(int row, int col, std::unique_ptr<Data> &c) {
+MatrixData& MatricesData::add(int row, int col, std::unique_ptr<MatrixData> c) {
+    matrices(row, col) = std::move(c);
+    return *matrices(row,col);
 }
 
 void MatricesData::get_pnm(const Model &model, int mode, int n, VectorNd &rr, MatrixNNd &MM) {

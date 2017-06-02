@@ -316,28 +316,28 @@ void Config::restore(std::string fname) {
 };
  
 
-std::unique_ptr<Data> toData(const MatrixConfig &config, bool scarce) 
+std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce) 
 {
-    std::unique_ptr<Data> data;
+    std::unique_ptr<MatrixData> data;
 
     if (!config.dense) {
         SparseMatrixD Ytrain = sparse_to_eigen(config);
         if (!scarce) {
-            data = std::unique_ptr<Data>(new SparseMatrixData(Ytrain));
+            data = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
         } else if (is_binary(Ytrain)) {
-            data = std::unique_ptr<Data>(new ScarceBinaryMatrixData(Ytrain));
+            data = std::unique_ptr<MatrixData>(new ScarceBinaryMatrixData(Ytrain));
         } else {
-            data = std::unique_ptr<Data>(new ScarceMatrixData(Ytrain));
+            data = std::unique_ptr<MatrixData>(new ScarceMatrixData(Ytrain));
         }
     } else {
         Eigen::MatrixXd Ytrain = dense_to_eigen(config);
-        data = std::unique_ptr<Data>(new DenseMatrixData(Ytrain));
+        data = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
 
     return data;
 }
 
-std::unique_ptr<Data> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, 
+std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, 
      const std::vector<MatrixConfig> &col_features) 
 {
     if (row_features.empty() && col_features.empty()) {
@@ -354,7 +354,7 @@ std::unique_ptr<Data> toData(const MatrixConfig &train, const std::vector<Matrix
         data->add(0, i+1, toData(row_features[i], false)); 
     }
 
-    return std::unique_ptr<Data>(data);
+    return std::unique_ptr<MatrixData>(data);
 }
 
 

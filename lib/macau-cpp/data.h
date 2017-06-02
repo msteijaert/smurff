@@ -50,7 +50,7 @@ struct MatrixData: public Data {
 
 struct MatricesData: public MatrixData {
     // add data
-    MatrixData &add(int, int, std::unique_ptr<Data>);
+    MatrixData &add(int, int, const std::unique_ptr<MatrixData>);
 
     // helper functions for noise
     // but 
