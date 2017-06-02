@@ -1,6 +1,8 @@
+#include <limits>
 #include <iostream>
 #include "mvnormal.h"
 
+#include "config.h"
 #include "gen_random.h"
 
 using namespace Eigen;
@@ -125,6 +127,44 @@ SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s)
             if(p < s) Yout.coeffRef(l,k) = Yin(l,k);
         }
     }
+    return Yout;
+}
+
+using namespace Macau;
+
+MatrixConfig extract(MatrixConfig &Yin, double s, bool remove)
+{
+    unsigned M = rand() * std::numeric_limits<unsigned>().max();
+    unsigned Yout_nnz = Yin.nnz * s;
+    MatrixConfig Yout(Yin.nrow, Yin.ncol, Yout_nnz);
+    Yout.alloc();
+
+    int pos = M % Yin.nnz;
+    for(int i=0; i<Yout.nnz; ++i) {
+        Yout.cols[i] = Yin.cols[pos];
+        Yout.rows[i] = Yin.rows[pos];
+        Yout.values[i] = Yin.values[pos];
+        pos = (pos + M) % Yin.nnz;
+
+        //schedule for removal
+        if (remove) Yin.values[pos] = NAN; 
+    }
+
+    if (remove) {
+        unsigned Ynew_nnz = Yin.nnz - Yout.nnz;
+        MatrixConfig Ynew(Yin.nrow, Yin.ncol, Ynew_nnz);
+        Ynew.alloc();
+
+        for(int i=0, j=0; i<Yin.nnz; ++i) {
+            if (Yin.values[i] != Yin.values[i]) continue;
+            Ynew.cols[j]   = Yin.cols[i];
+            Ynew.rows[j]   = Yin.rows[i];
+            Ynew.values[j] = Yin.values[i];
+            j++;
+        }
+        std::swap(Yin, Ynew);
+    }
+
     return Yout;
 }
 

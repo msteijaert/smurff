@@ -11,3 +11,8 @@ SparseMatrixD random_Ysparse(int N, int D, int K, double s);
 SparseMatrixD extract(SparseMatrixD &Y, double s);
 SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s);
 
+
+#include "config.h"
+
+Macau::MatrixConfig extract(Macau::MatrixConfig &, double s);
+
