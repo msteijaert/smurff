@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,10 @@ struct MatrixConfig {
         : dense(false), binary(false), rows(rows), cols(cols), values(values), nnz(nnz), nrow(nrow), ncol(ncol) {}
     MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols)
         : dense(false), binary(true), rows(rows), cols(cols), values(0), nnz(nnz), nrow(nrow), ncol(ncol) {}
+    MatrixConfig(int nrow, int ncol, bool dense, bool binary)
+        : dense(dense), binary(binary), rows(0), cols(0), values(0), nnz(0), nrow(nrow), ncol(ncol) {}
+    MatrixConfig(int nrow, int ncol, int nnz, bool binary = false)
+        : dense(nnz == nrow*ncol), binary(binary), rows(0), cols(0), values(0), nnz(nnz), nrow(nrow), ncol(ncol) {}
 
     bool dense;
     bool binary;
@@ -25,6 +30,17 @@ struct MatrixConfig {
     int nnz;
     int nrow;
     int ncol;
+
+    void alloc() {
+        assert(!cols);
+        assert(!rows);
+        assert(!values);
+        if (!dense) {
+            rows = new int[nnz];
+            cols = new int[nnz];
+        }
+        values = new double[nnz];
+    }
 
     std::ostream &info(std::ostream &) const;
 };
