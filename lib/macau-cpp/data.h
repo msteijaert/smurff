@@ -3,6 +3,8 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+
+#include <numeric>
 #include <memory>
 
 #include "noisemodels.h"
@@ -66,12 +68,13 @@ struct MatricesData: public MatrixData {
 
     // virtual functions data-related
     void init()       override;
-    int  nnz()  const override;
-    int  nrow() const override;           
-    int  ncol() const override;           
+    int  nnz()  const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
+            [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nnz(); });  }           
+    int  nrow() const override { return std::accumulate(rowdims.begin(), rowdims.end(), 0); }           
+    int  ncol() const override { return std::accumulate(coldims.begin(), coldims.end(), 0); }           
 
   private:
-    Eigen::Matrix<std::unique_ptr<MatrixData>, Eigen::Dynamic, Eigen::Dynamic> matrices;
+    std::map<std::pair<int,int>, std::unique_ptr<MatrixData>> matrices;
     std::vector<int> rowdims, coldims;
 };
 
