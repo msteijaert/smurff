@@ -227,17 +227,36 @@ Macau::MatrixConfig read_mtx(std::string fname) {
 
     // Read defining parameters:
     fin >> ret.nrow >> ret.ncol >> ret.nnz;
+    fin.ignore(2048, '\n'); // skip to end of line
 
     ret.rows   = new int[ret.nnz];
     ret.cols   = new int[ret.nnz];
     ret.values = new double[ret.nnz];
 
     // Read the data
+    char line[2048];
+    int r,c;
+    double v;
     for (int l = 0; l < ret.nnz; l++)
     {
-        fin >> ret.rows[l] >> ret.cols[l] >> ret.values[l];
-        ret.rows[l]--;
-        ret.cols[l]--;
+        fin.getline(line, 2048);
+        std::stringstream ls(line);
+        ls >> r >> c;
+        assert(!ls.fail());
+        ls >> v;
+        if (ls.fail()) v = 1.0;
+        
+        r--;
+        c--;
+        
+        assert(r < ret.nrow);
+        assert(r >= 0);
+        assert(c < ret.ncol);
+        assert(c >= 0);
+
+        ret.rows[l] = r;
+        ret.cols[l] = c;
+        ret.values[l] = v;
     }
 
     return ret;
