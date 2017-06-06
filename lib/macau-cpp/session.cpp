@@ -348,10 +348,10 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
     auto data = new MatricesData();
     data->add(0,0,toData(train, true /*scarce*/));
     for(int i=0; i<row_features.size(); ++i) {
-        data->add(i+1, 0, toData(row_features[i], false)); 
+        data->add(0, i+1, toData(row_features[i], false)); 
     }
     for(int i=0; i<col_features.size(); ++i) {
-        data->add(0, i+1, toData(row_features[i], false)); 
+        data->add(i+1, 0, toData(row_features[i], false)); 
     }
 
     return std::unique_ptr<MatrixData>(data);
@@ -373,10 +373,16 @@ void Session::setFromConfig(const Config &c)
     }
 
     std::vector<MatrixConfig> row_matrices, col_matrices;
-    if (config.row_prior != "macau" && config.row_prior != "macauone") {
+    std::vector<MatrixConfig> row_sideinfo, col_sideinfo;
+    if (config.row_prior == "macau" || config.row_prior == "macauone") {
+        row_sideinfo = config.row_features;
+    } else {
         row_matrices = config.row_features;
     } 
-    if (config.col_prior != "macau" && config.col_prior != "macauone") {
+
+    if (config.col_prior == "macau" || config.col_prior == "macauone") {
+        col_sideinfo = config.col_features;
+    } else {
         col_matrices = config.col_features;
     } 
     data = toData(config.train, row_matrices, col_matrices);
@@ -407,8 +413,8 @@ void Session::setFromConfig(const Config &c)
      pred.set(sparse_to_eigen(config.test));
 
 
-    add_prior(*this, config.row_prior, config.row_features, config.lambda_beta, config.tol, config.direct);
-    add_prior(*this, config.col_prior, config.col_features, config.lambda_beta, config.tol, config.direct);
+    add_prior(*this, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);
+    add_prior(*this, config.col_prior, col_sideinfo, config.lambda_beta, config.tol, config.direct);
 }
 
 

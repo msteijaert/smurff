@@ -7,14 +7,16 @@ using namespace Eigen;
 namespace Macau {
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(BaseSession &m, int p)
-    : ILatentPrior(m, p, "SpikeAndSlabPrior"),
-      Zcol(VectorXd::Zero(num_latent())),
-      W2col(VectorXd::Zero(num_latent())) {}
+    : ILatentPrior(m, p, "SpikeAndSlabPrior") {}
+
 
 void SpikeAndSlabPrior::init() {
     const int K = num_latent();
     const int D = num_cols();
     assert(D > 0);
+
+    Zcol.init(VectorXd::Zero(num_latent()));
+    W2col.init(VectorXd::Zero(num_latent()));
     
     //-- prior params
     alpha = ArrayNd::Ones(K);

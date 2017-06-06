@@ -77,32 +77,75 @@ MatrixData& MatricesData::add(int row, int col, std::unique_ptr<MatrixData> c) {
 }
 
 void MatricesData::get_pnm(const Model &model, int mode, int n, VectorNd &rr, MatrixNNd &MM) {
-        
+    auto &dims = (mode == 0) ? coldims : rowdims;
+    int off = 0;
+    int s = 0;
+    for(const auto &p : dims) {
+        if (n < off + p.second) break;
+        off += p.second;
+        s++;
+    }
 
+    for(auto &p : matrices) {
+        int row_or_col = (mode == 0) ? p.first.second : p.first.first;
+        if (row_or_col != s) continue;
+        get_pnm(model, mode, n - off, rr, MM);
+    }
 }
 
-void MatricesData::update_pnm(const Model &,int) {
+void MatricesData::update_pnm(const Model &model, int m) {
+    for(auto &p : matrices) {
+        update_pnm(model, m);
+    }
 }
 
-std::ostream &MatricesData::info(std::ostream &os, std::string indent) {
+std::ostream &MatricesData::info(std::ostream &os, std::string indent)
+{
+    MatrixData::info(os, indent);
+    os << indent << "Sub-Matrices:\n";
+    for(auto &p : matrices) {
+        os << indent <<  "[ " << p.first.first << "," << p.first.second << " ]:\n";
+           p.second->info(os, indent + "  ");
+           os << std::endl;
+    }
+    return os;
 }
 
 void MatricesData::init() 
 {
+    // FIXME: noise!
+    for(auto &p : matrices) p.second->setPrecision(5.);
+
+    // init sub-matrices
+    for(auto &p : matrices) p.second->init();
+
+    info(std::cout, "  ");
+
+    // init coldims
     for(auto &p : matrices) {
-        std::cout << p.first.first << "," << p.first.second << std::endl;
+        auto row = p.first.first;
+        auto col = p.first.second;
+        auto &m = p.second;
+
+        if (coldims.find(col) != coldims.end()) {
+            assert(coldims[col] = m->ncol());
+        } else {
+            coldims[col] = m->ncol();
+        }
+
+        if (rowdims.find(row) != rowdims.end()) {
+            assert(rowdims[row] = m->nrow());
+        } else {
+            rowdims[row] = m->nrow();
+        }
     }
+
 }
 
 template<typename YType>
 void MatrixDataTempl<YType>::init_base()
 {
     assert(nrow() > 0 && ncol() > 0);
-
-//    if (pred.ncols > 0) {
-//        assert(pred.nrows == nrow() && pred.ncols == ncol() && "Size of train must be equal to size of test");
-//    }
-
     mean_rating = Y.sum() / Y.nonZeros();
 
     Yc.push_back(Y);

@@ -32,7 +32,7 @@ struct Data {
     ProbitNoise &setProbit();
 
     // virtual functions data-related
-    double mean_rating = .0;
+    double mean_rating                    = NAN;
     virtual void             init()       = 0;
     virtual int              nnz()  const = 0;
     virtual int              size() const = 0;
@@ -70,12 +70,14 @@ struct MatricesData: public MatrixData {
     void init()       override;
     int  nnz()  const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
             [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nnz(); });  }           
-    int  nrow() const override { return std::accumulate(rowdims.begin(), rowdims.end(), 0); }           
-    int  ncol() const override { return std::accumulate(coldims.begin(), coldims.end(), 0); }           
+    int  nrow() const override { return std::accumulate(rowdims.begin(), rowdims.end(), 0,
+            [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
+    int  ncol() const override { return std::accumulate(coldims.begin(), coldims.end(), 0,
+            [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
 
   private:
     std::map<std::pair<int,int>, std::unique_ptr<MatrixData>> matrices;
-    std::vector<int> rowdims, coldims;
+    std::map<int,int> rowdims, coldims;
 };
 
 
