@@ -14,6 +14,12 @@
 namespace Macau {
 
 struct Data {
+
+    // init
+    virtual void init_base() = 0;
+    virtual void center(double) = 0;
+    virtual void init();
+
     // helper functions for noise
     virtual double sumsq(const SubModel &) const = 0;
     virtual double var_total() const = 0;
@@ -33,11 +39,17 @@ struct Data {
 
     // virtual functions data-related
     double mean_rating                    = NAN;
-    virtual void             init()       = 0;
     virtual int              nnz()  const = 0;
     virtual int              size() const = 0;
+    virtual int              nna()  const = 0;
     virtual std::vector<int> dims() const = 0;
     virtual double           sum()  const = 0;
+            double           mean() { 
+                SHOW(name);
+                SHOW(sum());
+                SHOW(size());
+                SHOW(nna());
+                return sum() / (size() - nna()); }
 
     std::string                  name;
     std::unique_ptr<INoiseModel> noise;
@@ -56,6 +68,9 @@ struct MatricesData: public MatrixData {
         name = "MatricesData";
     }
 
+    void init_base() override;
+    void center(double) override;
+
     // add data
     MatrixData &add(int, int, const std::unique_ptr<MatrixData>);
 
@@ -72,7 +87,7 @@ struct MatricesData: public MatrixData {
     std::ostream &info(std::ostream &os, std::string indent) override;
 
     // virtual functions data-related
-    void init()       override;
+
     int  nnz()  const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
             [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nnz(); });  }           
     int  nrow() const override { return std::accumulate(rowdims.begin(), rowdims.end(), 0,
@@ -81,7 +96,8 @@ struct MatricesData: public MatrixData {
             [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
     double sum() const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
             [](double s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> double { return  s + m.second->sum(); });  }        
-
+    int  nna()  const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
+            [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nna(); });  }           
 
     // specific stuff 
     std::vector<int> bdims(int brow, int bcol) const;
@@ -97,8 +113,10 @@ struct MatricesData: public MatrixData {
 template<typename YType>
 struct MatrixDataTempl : public MatrixData {
     MatrixDataTempl(YType Y) : Y(Y) {}
-    void init_base();
-    void init() override;
+
+    //init and center
+    void init_base() override;
+    void center(double) override;
 
     int    nrow()  const override { return Y.rows(); }
     int    ncol()  const override { return Y.cols(); }
@@ -122,6 +140,8 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
 
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(const SubModel &,int) override {}
+
+    int    nna()   const override { return size() - nnz(); }
 };
 
 struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {
@@ -133,6 +153,9 @@ struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {
 
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(const SubModel &,int) override {};
+
+    int    nna()   const override { return size() - nnz(); }
+
 };
 
 template<class YType>
@@ -145,6 +168,8 @@ struct FullMatrixData : public MatrixDataTempl<YType> {
 
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(const SubModel &,int) override;
+
+    int    nna()   const override { return 0; }
 
   private:
     Eigen::MatrixXd VV[2];

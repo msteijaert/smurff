@@ -37,6 +37,7 @@ namespace Macau {
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
+    os << indent << "Mean: " << mean_rating << "\n";
     os << indent << "Noise: ";
     noise->info(os, "");
     return os;
@@ -132,17 +133,13 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
     return os;
 }
 
-void MatricesData::init() 
+void MatricesData::init_base() 
 {
     // FIXME: noise!
     for(auto &p : matrices) p.second->setPrecision(5.);
 
     // init sub-matrices
-    for(auto &p : matrices) p.second->init();
-
-    info(std::cout, "  ");
-
-    mean_rating = sum() / nnz();
+    for(auto &p : matrices) p.second->init_base();
 
     // init coldims and 
     for(auto &p : matrices) {
@@ -162,6 +159,14 @@ void MatricesData::init()
             rowdims[row] = m->nrow();
         }
     }
+}
+
+void MatricesData::center(double mean) 
+{
+    mean_rating = mean;
+
+    // center sub-matrices
+    for(auto &p : matrices) p.second->center(mean_rating);
 
 }
 
@@ -169,7 +174,6 @@ template<typename YType>
 void MatrixDataTempl<YType>::init_base()
 {
     assert(nrow() > 0 && ncol() > 0);
-    mean_rating = Y.sum() / Y.nonZeros();
 
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
@@ -177,22 +181,29 @@ void MatrixDataTempl<YType>::init_base()
     noise->init();
 }
 
-template<>
-void MatrixDataTempl<SparseMatrixD>::init()
+void Data::init()
 {
     init_base();
-    Yc.at(0).coeffs() -= mean_rating;
-    Yc.at(1).coeffs() -= mean_rating;
+    center(mean());
+}
+
+template<>
+void MatrixDataTempl<SparseMatrixD>::center(double mean)
+{
+    mean_rating = mean;
+    Yc.at(0).coeffs() -= mean;
+    Yc.at(1).coeffs() -= mean;
 }
 
 
 template<>
-void MatrixDataTempl<Eigen::MatrixXd>::init()
+void MatrixDataTempl<Eigen::MatrixXd>::center(double mean)
 {
-    init_base();
-    Yc.at(0).array() -= this->mean_rating;
-    Yc.at(1).array() -= this->mean_rating;
+    mean_rating = mean;
+    Yc.at(0).array() -= mean;
+    Yc.at(1).array() -= mean;
 }
+
 
 template<>
 double MatrixDataTempl<Eigen::MatrixXd>::var_total() const {
