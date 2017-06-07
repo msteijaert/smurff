@@ -76,26 +76,47 @@ MatrixData& MatricesData::add(int row, int col, std::unique_ptr<MatrixData> c) {
     return *matrices[pos];
 }
 
-void MatricesData::get_pnm(const Model &model, int mode, int n, VectorNd &rr, MatrixNNd &MM) {
-    auto &dims = (mode == 0) ? coldims : rowdims;
-    int off = 0;
-    int s = 0;
-    for(const auto &p : dims) {
-        if (n < off + p.second) break;
-        off += p.second;
-        s++;
-    }
 
+std::vector<int> MatricesData::bdims(int brow, int bcol) const
+{
+    std::vector<int> ret;
+    ret.push_back(rowdims.find(brow)->second);
+    ret.push_back(coldims.find(bcol)->second);
+    return ret;
+}
+
+
+std::vector<int> MatricesData::boffs(int brow, int bcol) const
+{
+    std::vector<int> ret {0, 0};
+    for(int i=0; i<brow; ++i) ret[0] += rowdims.find(i)->second;
+    for(int i=0; i<bcol; ++i) ret[1] += coldims.find(i)->second;
+    return ret;
+}
+
+SubModel MatricesData::submodel(const SubModel &model, int brow, int bcol) 
+{
+    return SubModel(model, bdims(brow, bcol), boffs(brow, bcol));
+}
+
+
+void MatricesData::get_pnm(const SubModel &model, int mode, int n, VectorNd &rr, MatrixNNd &MM) {
     for(auto &p : matrices) {
-        int row_or_col = (mode == 0) ? p.first.second : p.first.first;
-        if (row_or_col != s) continue;
-        get_pnm(model, mode, n - off, rr, MM);
+        int brow = p.first.first;
+        int bcol = p.first.second;
+
+        auto off = boffs(brow, bcol);
+        auto dim = bdims(brow, bcol);
+
+        if (off[mode] < n || off[mode] + dim[mode] >= n) continue;
+
+        p.second->get_pnm(submodel(model, brow, bcol), mode, n - off[mode], rr, MM);
     }
 }
 
-void MatricesData::update_pnm(const Model &model, int m) {
+void MatricesData::update_pnm(const SubModel &model, int m) {
     for(auto &p : matrices) {
-        update_pnm(model, m);
+        p.second->update_pnm(model, m);
     }
 }
 
@@ -121,7 +142,9 @@ void MatricesData::init()
 
     info(std::cout, "  ");
 
-    // init coldims
+    mean_rating = sum() / nnz();
+
+    // init coldims and 
     for(auto &p : matrices) {
         auto row = p.first.first;
         auto col = p.first.second;
@@ -208,7 +231,7 @@ double MatrixDataTempl<SparseMatrixD>::var_total() const {
 
 // for the adaptive gaussian noise
 template<>
-double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const Model &model) const {
+double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel &model) const {
     double sumsq = 0.0;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
@@ -223,7 +246,7 @@ double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const Model &model) const {
 }
 
 template<>
-double MatrixDataTempl<SparseMatrixD>::sumsq(const Model &model) const {
+double MatrixDataTempl<SparseMatrixD>::sumsq(const SubModel &model) const {
     double sumsq = 0.0;
 
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
@@ -241,10 +264,10 @@ double MatrixDataTempl<SparseMatrixD>::sumsq(const Model &model) const {
 //
 //-- ScarceMatrixData specific stuff
 
-void ScarceMatrixData::get_pnm(const Model &model, int mode, int n, VectorXd &rr, MatrixXd &MM) {
+void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(mode);
     const int num_latent = model.nlatent();
-    const MatrixXd &Vf = model.V(mode);
+    const auto &Vf = model.V(mode);
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
     const double alpha = noise->getAlpha();
@@ -266,7 +289,7 @@ void ScarceMatrixData::get_pnm(const Model &model, int mode, int n, VectorXd &rr
                 {
                     auto val = Y.valuePtr()[i];
                     auto idx = Y.innerIndexPtr()[i];
-                    const auto &col = Vf.col(idx);
+                    const auto &col = model.V(mode).col(idx);
                     my_rr.noalias() += col * val;
                     my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
                 }
@@ -302,7 +325,7 @@ void ScarceMatrixData::get_pnm(const Model &model, int mode, int n, VectorXd &rr
     }
 }
 
-void ScarceBinaryMatrixData::get_pnm(const Model &model, int mode, int n, VectorXd &rr, MatrixXd &MM)
+void ScarceBinaryMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM)
 {
     // todo : check noise == probit noise
     auto u = model.U(mode).col(n);
@@ -320,7 +343,7 @@ void ScarceBinaryMatrixData::get_pnm(const Model &model, int mode, int n, Vector
 //
 
 template<class YType>
-void FullMatrixData<YType>::get_pnm(const Model &model, int mode, int d, VectorXd &rr, MatrixXd &MM) {
+void FullMatrixData<YType>::get_pnm(const SubModel &model, int mode, int d, VectorXd &rr, MatrixXd &MM) {
     const double alpha = this->noise->getAlpha();
     auto &Y = this->Yc.at(mode);
     rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
@@ -328,7 +351,7 @@ void FullMatrixData<YType>::get_pnm(const Model &model, int mode, int d, VectorX
 }
 
 template<class YType>
-void FullMatrixData<YType>::update_pnm(const Model &model, int mode) {
+void FullMatrixData<YType>::update_pnm(const SubModel &model, int mode) {
     auto &Vf = model.V(mode);
     const int nl = model.nlatent();
     thread_vector<MatrixXd> VVs(MatrixXd::Zero(nl, nl));

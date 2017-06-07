@@ -61,4 +61,9 @@ std::ostream &Model::info(std::ostream &os, std::string indent)
     return os;
 }
 
+SubModel Model::full()
+{
+    return SubModel(*this);
+}
+
 } // end namespace

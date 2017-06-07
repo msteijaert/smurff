@@ -11,6 +11,8 @@
 
 namespace Macau {
 
+struct SubModel;
+
 struct Model {
     Model() : num_latent(-1), mean_rating(NAN) {}
     void init(int nl, double mean_rating, const std::vector<int> &indices, std::string init_model);
@@ -32,7 +34,6 @@ struct Model {
         return P.sum() + mean_rating;
     }
 
-
     //-- for when nmodes == 2
     Eigen::MatrixXd &V(int f) {
         assert(nmodes() == 2);
@@ -48,6 +49,13 @@ struct Model {
     int nlatent() const { return num_latent; }
     int nsamples() const { return std::accumulate(samples.begin(), samples.end(), 0,
             [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); }); }
+    std::vector<int> dims() const {
+        std::vector<int> ret;
+        for(auto s : samples) ret.push_back(s.cols());
+        return ret;
+    }
+
+    SubModel full();
 
     //-- output to file
     void save(std::string, std::string);
@@ -59,6 +67,48 @@ struct Model {
     int num_latent;
     double mean_rating;
 };
+
+struct SubModel {
+    SubModel(const Model &m, const std::vector<int> o, const std::vector<int> d) 
+        : model(m), off(o), dims(d) {}
+
+    SubModel(const SubModel &m, const std::vector<int> o, const std::vector<int> d) 
+        : model(m.model), dims(d)
+    {
+        for(int i=0; i<nmodes(); ++i) {
+            off[i] = o[i] + m.off[i];
+        }
+    }
+
+    SubModel(const Model &m) : model(m), off(std::vector<int>(m.nmodes(), 0)), dims(m.dims()) {}
+
+    Eigen::MatrixXd::ConstBlockXpr U(int f) const {
+        return model.U(f).block(0, off.at(f), model.nlatent(), dims.at(f));
+    }
+
+    Eigen::MatrixXd::ConstBlockXpr V(int f) const {
+        assert(nmodes() == 2);
+        return U((f+1)%2);
+    }
+
+    double predict(const std::vector<int> &indices) const  {
+        auto oi = indices;
+        std::transform(oi.begin(), oi.end(), off.begin(), oi.begin(), std::plus<int>());
+        return model.predict(indices);
+    }
+
+    int nlatent() const { return model.nlatent(); }
+    int nmodes() const { return model.nmodes(); }
+
+private:
+    const Model &model;
+    std::vector<int> off;
+    std::vector<int> dims;
+};
+
+
+
+
 
 }; // end namespace Macau
 

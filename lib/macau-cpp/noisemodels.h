@@ -9,14 +9,14 @@
 namespace Macau {
 
 struct Data;
-struct Model;
+struct SubModel;
 
 /** interface */
 class INoiseModel {
   public:
     INoiseModel(Data &p) : data(p) {}
     virtual void init()  = 0;
-    virtual void update(const Model &)  = 0;
+    virtual void update(const SubModel &)  = 0;
 
     virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
     virtual std::string getStatus()  = 0;
@@ -36,7 +36,7 @@ class FixedGaussianNoise : public INoiseModel {
         INoiseModel(p), alpha(a)  {}
 
     void init() override { }
-    void update(const Model &) override {}
+    void update(const SubModel &) override {}
     double getAlpha() override { return alpha; }
 
     std::ostream &info(std::ostream &os, std::string indent)  override;
@@ -58,7 +58,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
         : INoiseModel(p), sn_max(smax), sn_init(sinit) {}
 
     void init() override;
-    void update(const Model &) override;
+    void update(const SubModel &) override;
     double getAlpha() override { return alpha; }
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }
@@ -72,7 +72,7 @@ class ProbitNoise : public INoiseModel {
     ProbitNoise(Data &p) : INoiseModel(p) {}
 
     void init() override {}
-    void update(const Model &) override {}
+    void update(const SubModel &) override {}
     double getAlpha() override { assert(false); return NAN; }
     std::ostream &info(std::ostream &os, std::string indent) override;
     std::string getStatus() override { return std::string(); }

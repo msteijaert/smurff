@@ -15,13 +15,13 @@ namespace Macau {
 
 struct Data {
     // helper functions for noise
-    virtual double sumsq(const Model &) const = 0;
+    virtual double sumsq(const SubModel &) const = 0;
     virtual double var_total() const = 0;
 
     // update noise and precision/mean
-    virtual void update(const Model &model) { noise->update(model); }
-    virtual void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) = 0;
-    virtual void update_pnm(const Model &,int) = 0;
+    virtual void update(const SubModel &model) { noise->update(model); }
+    virtual void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) = 0;
+    virtual void update_pnm(const SubModel &,int) = 0;
 
     //-- print info
     virtual std::ostream &info(std::ostream &os, std::string indent);
@@ -37,6 +37,7 @@ struct Data {
     virtual int              nnz()  const = 0;
     virtual int              size() const = 0;
     virtual std::vector<int> dims() const = 0;
+    virtual double           sum()  const = 0;
 
     std::string                  name;
     std::unique_ptr<INoiseModel> noise;
@@ -45,23 +46,27 @@ struct Data {
 struct MatrixData: public Data {
     virtual int nrow()      const = 0;
     virtual int ncol()      const = 0;
-    int size()              const override { return nrow() * ncol(); }
+            int size()      const override { return nrow() * ncol(); }
     std::vector<int> dims() const override { return {ncol(), nrow()}; }
     std::ostream &info(std::ostream &os, std::string indent) override;
 };
 
 struct MatricesData: public MatrixData {
+    MatricesData() {
+        name = "MatricesData";
+    }
+
     // add data
     MatrixData &add(int, int, const std::unique_ptr<MatrixData>);
 
     // helper functions for noise
     // but 
-    double sumsq(const Model &) const override { assert(false); return NAN; }
+    double sumsq(const SubModel &) const override { assert(false); return NAN; }
     double var_total() const override { assert(false); return NAN; }
 
     // update noise and precision/mean
-    void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const Model &model, int mode) override;
+    void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(const SubModel &model, int mode) override;
   
     //-- print info
     std::ostream &info(std::ostream &os, std::string indent) override;
@@ -74,6 +79,14 @@ struct MatricesData: public MatrixData {
             [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
     int  ncol() const override { return std::accumulate(coldims.begin(), coldims.end(), 0,
             [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
+    double sum() const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
+            [](double s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> double { return  s + m.second->sum(); });  }        
+
+
+    // specific stuff 
+    std::vector<int> bdims(int brow, int bcol) const;
+    std::vector<int> boffs(int brow, int bcol) const;
+    SubModel submodel(const SubModel &model, int brow, int bcol); 
 
   private:
     std::map<std::pair<int,int>, std::unique_ptr<MatrixData>> matrices;
@@ -87,12 +100,13 @@ struct MatrixDataTempl : public MatrixData {
     void init_base();
     void init() override;
 
-    int nrow()                      const override { return Y.rows(); }
-    int ncol()                      const override { return Y.cols(); }
-    int nnz()                       const override { return Y.nonZeros(); }
+    int    nrow()  const override { return Y.rows(); }
+    int    ncol()  const override { return Y.cols(); }
+    int    nnz()   const override { return Y.nonZeros(); }
+    double sum()   const override { return Y.sum(); }
 
     double var_total() const override;
-    double sumsq(const Model &) const override;
+    double sumsq(const SubModel &) const override;
 
     YType Y;
     std::vector<YType> Yc; // centered versions
@@ -106,8 +120,8 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
         name = "ScarceMatrixData [with NAs]";
     }
 
-    void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const Model &,int) override {}
+    void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(const SubModel &,int) override {}
 };
 
 struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {
@@ -117,8 +131,8 @@ struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {
         name = "ScarceBinaryMatrixData [containing 0,1,NA]";
     }
 
-    void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const Model &,int) override {};
+    void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(const SubModel &,int) override {};
 };
 
 template<class YType>
@@ -129,8 +143,8 @@ struct FullMatrixData : public MatrixDataTempl<YType> {
         this->name = "MatrixData [fully known]";
     }
 
-    void get_pnm(const Model &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const Model &,int) override;
+    void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
+    void update_pnm(const SubModel &,int) override;
 
   private:
     Eigen::MatrixXd VV[2];
