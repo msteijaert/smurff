@@ -14,6 +14,7 @@
 namespace Macau {
 
 struct Data {
+    Data() : center_mode(CENTER_INVALID) {}
 
     // init
     virtual void init_base() = 0;
@@ -37,6 +38,9 @@ struct Data {
     AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
     ProbitNoise &setProbit();
 
+    // set centering mode
+    void setCenterMode(std::string c);
+
     // virtual functions data-related
     double mean_rating                    = NAN;
     virtual int              nnz()  const = 0;
@@ -52,6 +56,7 @@ struct Data {
                 return sum() / (size() - nna()); }
 
     std::string                  name;
+    enum { CENTER_INVALID = -1, CENTER_NONE = 0, CENTER_GLOBAL, CENTER_COLS, CENTER_ROWS } center_mode;
     std::unique_ptr<INoiseModel> noise;
 };
 

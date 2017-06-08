@@ -62,6 +62,15 @@ ProbitNoise &Data::setProbit() {
   return *n;
 }
 
+void Data::setCenterMode(std::string c)
+{
+    //-- centering model
+         if (c == "none")   center_mode = CENTER_NONE;
+    else if (c == "global") center_mode = CENTER_GLOBAL;
+    else if (c == "rows")   center_mode = CENTER_ROWS;
+    else if (c == "cols")   center_mode = CENTER_COLS;
+    else assert(false);
+}
 
 std::ostream &MatrixData::info(std::ostream &os, std::string indent)
 {
