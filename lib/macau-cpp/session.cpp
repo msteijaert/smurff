@@ -192,6 +192,9 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
     if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
 
+    std::set<std::string> center_modes = { "none", "global", "rows", "cols" };
+    if (center_modes.find(center_mode) == center_modes.end()) die("Unknown center mode " + center_mode);
+
     if (test.nrow > 0 && train.nrow > 0 && test.nrow != train.nrow)
         die("Train and test matrix should have the same number of rows");
 
@@ -409,8 +412,11 @@ void Session::setFromConfig(const Config &c)
         die("Unknown noise model; " + config.noise_model);
     }
 
+    // center mode
+    data->setCenterMode(config.center_mode);
+
     // test data
-     pred.set(sparse_to_eigen(config.test));
+    pred.set(sparse_to_eigen(config.test));
 
 
     add_prior(*this, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);

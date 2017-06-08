@@ -50,6 +50,7 @@ struct Config {
     //-- train and test
     MatrixConfig train, test;
     double test_split         = .0;
+    std::string center_mode   = "global";
 
     //-- features
     std::vector<MatrixConfig> row_features;
@@ -63,6 +64,7 @@ struct Config {
     std::string restore_prefix = "";
     std::string restore_suffix = ".csv";
 
+    //-- init model
     std::string init_model = "zero";
 
     //-- save

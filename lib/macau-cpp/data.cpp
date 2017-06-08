@@ -38,6 +38,8 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
     os << indent << "Mean: " << mean_rating << "\n";
+    std::vector<std::string> center_names { "none", "global", "cols", "rows" };
+    os << indent << "Center: " << center_names[center_mode] << "\n";
     os << indent << "Noise: ";
     noise->info(os, "");
     return os;
