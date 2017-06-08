@@ -138,10 +138,18 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
         name = "ScarceMatrixData [with NAs]";
     }
 
+    void init_base() override;
+
+    std::ostream &info(std::ostream &os, std::string indent) override;
+
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(const SubModel &,int) override {}
 
     int    nna()   const override { return size() - nnz(); }
+
+  private:
+    int num_empty[2] = {0,0};
+
 };
 
 struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {

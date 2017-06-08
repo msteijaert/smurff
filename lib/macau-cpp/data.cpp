@@ -275,6 +275,27 @@ double MatrixDataTempl<SparseMatrixD>::sumsq(const SubModel &model) const {
 //
 //-- ScarceMatrixData specific stuff
 
+void ScarceMatrixData::init_base() {
+    MatrixDataTempl<SparseMatrixD>::init_base();
+
+    // check no rows, nor cols withouth data
+    for(unsigned i=0; i<Yc.size(); ++i) {
+        auto &v = Yc[i];
+        auto &count = num_empty[i];
+        for (int j = 0; j < v.cols(); j++) {
+            if (v.col(j).nonZeros() == 0) count++;
+        }
+    }
+}
+
+std::ostream &ScarceMatrixData::info(std::ostream &os, std::string indent)
+{
+    MatrixDataTempl<SparseMatrixD>::info(os, indent);
+    if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty cols\n";
+    if (num_empty[1]) os << indent << "  Warning: " << num_empty[1] << " empty rows\n";
+    return os;
+}
+
 void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM) {
     auto &Y = Yc.at(mode);
     const int num_latent = model.nlatent();
