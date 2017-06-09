@@ -14,8 +14,8 @@ namespace Macau {
 struct SubModel;
 
 struct Model {
-    Model() : num_latent(-1), mean_rating(NAN) {}
-    void init(int nl, double mean_rating, const std::vector<int> &indices, std::string init_model);
+    Model() : num_latent(-1), global_mean(NAN) {}
+    void init(int nl, double global_mean, const std::vector<int> &indices, std::string init_model);
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
@@ -31,7 +31,7 @@ struct Model {
     double predict(const std::vector<int> &indices) const  {
         Eigen::ArrayXd P = Eigen::ArrayXd::Ones(num_latent);
         for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
-        return P.sum() + mean_rating;
+        return P.sum() + global_mean;
     }
 
     //-- for when nmodes == 2
@@ -65,7 +65,7 @@ struct Model {
   private:
     std::vector<Eigen::MatrixXd> samples;
     int num_latent;
-    double mean_rating;
+    double global_mean;
 };
 
 struct SubModel {

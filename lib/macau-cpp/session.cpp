@@ -62,7 +62,7 @@ void Session::init() {
     threads_init();
     init_bmrng();
     data->init();
-    model.init(config.num_latent, data->mean_rating, data->dims(), config.init_model);
+    model.init(config.num_latent, data->global_mean, data->dims(), config.init_model);
     for( auto &p : priors) p->init();
     if (config.verbose) info(std::cout, "");
     if (config.restore_prefix.size()) {

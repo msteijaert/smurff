@@ -18,7 +18,7 @@ struct Data {
 
     // init
     virtual void init_base() = 0;
-    virtual void center(double) = 0;
+    virtual void center() = 0;
     virtual void init();
 
     // helper functions for noise
@@ -38,29 +38,34 @@ struct Data {
     AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
     ProbitNoise &setProbit();
 
-    // set centering mode
-    void setCenterMode(std::string c);
-
     // virtual functions data-related
-    double mean_rating                    = NAN;
-    virtual int              nnz()  const = 0;
-    virtual int              size() const = 0;
-    virtual int              nna()  const = 0;
-    virtual std::vector<int> dims() const = 0;
-    virtual double           sum()  const = 0;
-            double           mean() { 
-                SHOW(name);
-                SHOW(sum());
-                SHOW(size());
-                SHOW(nna());
-                return sum() / (size() - nna()); }
+    virtual int              nmode() const = 0;
+    virtual int              nnz()   const = 0;
+    virtual int              size()  const = 0;
+    virtual int              nna()   const = 0;
+    virtual std::vector<int> dims()  const = 0;
+    virtual double           sum()   const = 0;
+
+    // mean & centering
+    double                        global_mean = NAN;
+    double mean(int m, int c) const { return mode_mean.at(m)(c); }
+
+    void setCenterMode(std::string c);
+    enum { CENTER_INVALID = -10, CENTER_NONE = -3, CENTER_GLOBAL = -2, CENTER_VIEW = -1, CENTER_COLS = 0, CENTER_ROWS = 1}
+                                  center_mode;
 
     std::string                  name;
-    enum { CENTER_INVALID = -1, CENTER_NONE = 0, CENTER_GLOBAL, CENTER_COLS, CENTER_ROWS } center_mode;
+
+    // noise model for this dataset
     std::unique_ptr<INoiseModel> noise;
+
+  private:
+    std::vector<Eigen::VectorXd>  mode_mean;
+    virtual double compute_mode_mean(int,int) = 0;
 };
 
 struct MatrixData: public Data {
+            int nmode()     const override { return 2; }
     virtual int nrow()      const = 0;
     virtual int ncol()      const = 0;
             int size()      const override { return nrow() * ncol(); }
@@ -69,12 +74,11 @@ struct MatrixData: public Data {
 };
 
 struct MatricesData: public MatrixData {
-    MatricesData() {
-        name = "MatricesData";
-    }
+    MatricesData() { name = "MatricesData"; }
 
     void init_base() override;
-    void center(double) override;
+    void center() override;
+    double compute_mode_mean(int,int) override { return NAN; }
 
     // add data
     MatrixData &add(int, int, const std::unique_ptr<MatrixData>);
@@ -121,7 +125,7 @@ struct MatrixDataTempl : public MatrixData {
 
     //init and center
     void init_base() override;
-    void center(double) override;
+    void center() override;
 
     int    nrow()  const override { return Y.rows(); }
     int    ncol()  const override { return Y.cols(); }
@@ -133,6 +137,7 @@ struct MatrixDataTempl : public MatrixData {
 
     YType Y;
     std::vector<YType> Yc; // centered versions
+
 };
 
 struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
@@ -144,22 +149,23 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
     }
 
     void init_base() override;
+    double compute_mode_mean(int,int) override;
 
     std::ostream &info(std::ostream &os, std::string indent) override;
 
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(const SubModel &,int) override {}
 
-    int    nna()   const override { return size() - nnz(); }
+    int    nna()             const override { return size() - nnz(); }
 
   private:
     int num_empty[2] = {0,0};
 
 };
 
-struct ScarceBinaryMatrixData : public MatrixDataTempl<SparseMatrixD> {
+struct ScarceBinaryMatrixData : public ScarceMatrixData {
     //-- c'tor
-    ScarceBinaryMatrixData(SparseMatrixD &Y) : MatrixDataTempl<SparseMatrixD>(Y) 
+    ScarceBinaryMatrixData(SparseMatrixD &Y) : ScarceMatrixData(Y) 
     {
         name = "ScarceBinaryMatrixData [containing 0,1,NA]";
     }
@@ -179,6 +185,7 @@ struct FullMatrixData : public MatrixDataTempl<YType> {
         this->name = "MatrixData [fully known]";
     }
 
+
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(const SubModel &,int) override;
 
@@ -186,6 +193,8 @@ struct FullMatrixData : public MatrixDataTempl<YType> {
 
   private:
     Eigen::MatrixXd VV[2];
+
+    double compute_mode_mean(int,int) override;
 };
 
 struct DenseMatrixData : public FullMatrixData<Eigen::MatrixXd> {

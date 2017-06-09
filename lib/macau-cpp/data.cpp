@@ -37,7 +37,7 @@ namespace Macau {
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
-    os << indent << "Mean: " << mean_rating << "\n";
+    os << indent << "Mean: " << global_mean << "\n";
     std::vector<std::string> center_names { "none", "global", "cols", "rows" };
     os << indent << "Center: " << center_names[center_mode] << "\n";
     os << indent << "Noise: ";
@@ -172,13 +172,10 @@ void MatricesData::init_base()
     }
 }
 
-void MatricesData::center(double mean) 
+void MatricesData::center() 
 {
-    mean_rating = mean;
-
     // center sub-matrices
-    for(auto &p : matrices) p.second->center(mean_rating);
-
+    for(auto &p : matrices) p.second->center();
 }
 
 template<typename YType>
@@ -195,24 +192,34 @@ void MatrixDataTempl<YType>::init_base()
 void Data::init()
 {
     init_base();
-    center(mean());
+
+    //compute global mean & mode-wise means
+    global_mean = sum() / (size() - nna());
+
+    mode_mean.resize(nmode());
+    for(int m=0; m<nmode(); ++m) {
+        auto &M = mode_mean.at(m);
+        const auto d = dims().at(m);
+        M.resize(d);
+        for(int n=0; n<d; n++) M(n) = compute_mode_mean(m, n);
+    }
+
+    center();
 }
 
 template<>
-void MatrixDataTempl<SparseMatrixD>::center(double mean)
+void MatrixDataTempl<SparseMatrixD>::center()
 {
-    mean_rating = mean;
-    Yc.at(0).coeffs() -= mean;
-    Yc.at(1).coeffs() -= mean;
+    Yc.at(0).coeffs() -= global_mean;
+    Yc.at(1).coeffs() -= global_mean;
 }
 
 
 template<>
-void MatrixDataTempl<Eigen::MatrixXd>::center(double mean)
+void MatrixDataTempl<Eigen::MatrixXd>::center()
 {
-    mean_rating = mean;
-    Yc.at(0).array() -= mean;
-    Yc.at(1).array() -= mean;
+    Yc.at(0).array() -= global_mean;
+    Yc.at(1).array() -= global_mean;
 }
 
 
@@ -297,6 +304,13 @@ void ScarceMatrixData::init_base() {
             if (v.col(j).nonZeros() == 0) count++;
         }
     }
+}
+
+double ScarceMatrixData::compute_mode_mean(int m, int c)
+{
+    const auto &col = Yc.at(m).col(c);
+    if (col.nonZeros() == 0) return global_mean;
+    return col.sum() / col.nonZeros();
 }
 
 std::ostream &ScarceMatrixData::info(std::ostream &os, std::string indent)
@@ -406,6 +420,15 @@ void FullMatrixData<YType>::update_pnm(const SubModel &model, int mode) {
     }
 
     VV[mode] = VVs.combine();
+}
+
+
+template<class YType>
+double FullMatrixData<YType>::compute_mode_mean(int m, int c)
+{
+    const auto &col = this->Yc.at(m).col(c);
+    if (col.nonZeros() == 0) return this->global_mean;
+    return col.sum() / this->Yc.at(m).rows();
 }
 
 
