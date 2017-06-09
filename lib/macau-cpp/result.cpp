@@ -11,6 +11,7 @@
 #include <memory>
 #include <cmath>
 
+#include "data.h"
 #include "model.h"
 #include "utils.h"
 #include "result.h"
@@ -39,6 +40,24 @@ void Result::init() {
             total_pos += is_positive;
         }
     }
+}
+
+
+double Result::rmse_using_globalmean(const Data &data) {
+    double se = 0.;
+    for(auto t : predictions) se += square(t.val - data.global_mean);
+    return sqrt( se / predictions.size() );
+}
+
+double Result::rmse_using_modemean(const Data &data, int mode) {
+     const unsigned N = predictions.size();
+     double se = 0.;
+     for(auto t : predictions) {
+        int n = mode == 0 ? t.col : t.row;
+        double pred = data.mean(mode, n);
+        se += square(t.val - pred);
+     }
+     return sqrt( se / N );
 }
 
 //--- output model to files
@@ -126,11 +145,14 @@ void Result::update_auc()
     auc /= num_negative;
 }
 
-std::ostream &Result::info(std::ostream &os, std::string indent)
+std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
 {
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
+        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data) << endl;
+        os << indent << "RMSE using colmean: " << rmse_using_modemean(data,0) << endl;
+        os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,1) << endl;
     } else {
         os << indent << "Test data: -\n";
     }

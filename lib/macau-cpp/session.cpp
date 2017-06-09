@@ -51,7 +51,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     for( auto &p : priors) p->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Result: {\n";
-    pred.info(os, indent + "    ");
+    pred.info(os, indent + "    ", *data);
     os << indent << "  }\n";
     return os;
 }

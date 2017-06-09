@@ -11,6 +11,7 @@
 namespace Macau {
 
 struct Model;
+struct Data;
 
 struct Result {
     //-- test set
@@ -31,10 +32,13 @@ struct Result {
     int sample_iter = 0;
     int burnin_iter = 0;
 
+    double rmse_using_globalmean(const Data &data);
+    double rmse_using_modemean(const Data &data, int mode);
+
     // general
     void save(std::string fname_prefix);
     void init();
-    std::ostream &info(std::ostream &os, std::string indent);
+    std::ostream &info(std::ostream &os, std::string indent, const Data &data);
 
     //-- for binary classification
     int total_pos;
