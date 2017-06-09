@@ -59,7 +59,7 @@ struct Data {
     // noise model for this dataset
     std::unique_ptr<INoiseModel> noise;
 
-  private:
+  protected:
     std::vector<Eigen::VectorXd>  mode_mean;
     virtual double compute_mode_mean(int,int) = 0;
 };
@@ -125,7 +125,6 @@ struct MatrixDataTempl : public MatrixData {
 
     //init and center
     void init_base() override;
-    void center() override;
 
     int    nrow()  const override { return Y.rows(); }
     int    ncol()  const override { return Y.cols(); }
@@ -149,6 +148,7 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
     }
 
     void init_base() override;
+    void center() override;
     double compute_mode_mean(int,int) override;
 
     std::ostream &info(std::ostream &os, std::string indent) override;
@@ -203,6 +203,7 @@ struct DenseMatrixData : public FullMatrixData<Eigen::MatrixXd> {
     {
         this->name = "DenseMatrixData [fully known]";
     }
+    void center() override;
 };
 
 struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
@@ -211,6 +212,7 @@ struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
     {
         this->name = "SparseMatrixData [fully known]";
     }
+    void center() override;
 };
 
 }; // end namespace Macau
