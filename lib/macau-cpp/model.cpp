@@ -29,9 +29,8 @@ using namespace Eigen;
 
 namespace Macau {
 
-void Model::init(int nl, double mr, const std::vector<int> &dims, std::string init_model) {
+void Model::init(int nl, const std::vector<int> &dims, std::string init_model) {
     num_latent = nl;
-    global_mean = mr;
     for(unsigned d = 0; d < dims.size(); ++d) {
         samples.push_back(Eigen::MatrixXd(num_latent, dims[d]));
         if (init_model == "random") bmrandn(samples.back());
@@ -57,7 +56,6 @@ void Model::restore(std::string prefix, std::string suffix) {
 std::ostream &Model::info(std::ostream &os, std::string indent)
 {
     os << indent << "Num-latents: " << num_latent << "\n";
-    os << indent << "Mean: " << global_mean << "\n";
     return os;
 }
 

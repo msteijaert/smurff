@@ -25,7 +25,7 @@ struct Result {
 
 
     //-- prediction metrics
-    void update(const Model &, bool burnin);
+    void update(const Model &, const Data &, bool burnin);
     double rmse_avg = NAN;
     double rmse = NAN;
     double auc = NAN; 

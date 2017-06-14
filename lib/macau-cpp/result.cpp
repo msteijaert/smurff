@@ -84,7 +84,7 @@ void Result::save(std::string prefix) {
 
 ///--- update RMSE and AUC
 
-void Result::update(const Model &model, bool burnin)
+void Result::update(const Model &model, const Data &data,  bool burnin)
 {
     if (predictions.size() == 0) return;
     const unsigned N = predictions.size();
@@ -94,7 +94,7 @@ void Result::update(const Model &model, bool burnin)
 #pragma omp parallel for schedule(guided) reduction(+:se)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            t.pred = model.predict({t.col, t.row});
+            t.pred = model.dot({t.col, t.row}) + data.offset_to_mean({t.row, t.col});
             se += square(t.val - t.pred);
         }
         burnin_iter++;
@@ -104,7 +104,7 @@ void Result::update(const Model &model, bool burnin)
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            const double pred = model.predict({t.col, t.row});
+            const double pred = model.dot({t.col, t.row}) + data.offset_to_mean({t.row, t.col});
             se += square(t.val - pred);
             double delta = pred - t.pred_avg;
             double pred_avg = (t.pred_avg + delta / (sample_iter + 1));

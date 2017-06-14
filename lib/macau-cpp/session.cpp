@@ -62,7 +62,7 @@ void Session::init() {
     threads_init();
     init_bmrng();
     data->init();
-    model.init(config.num_latent, data->global_mean, data->dims(), config.init_model);
+    model.init(config.num_latent, data->dims(), config.init_model);
     for( auto &p : priors) p->init();
     if (config.verbose) info(std::cout, "");
     if (config.restore_prefix.size()) {
@@ -427,7 +427,7 @@ void Session::setFromConfig(const Config &c)
 void Session::printStatus(double elapsedi) {
     if(!config.verbose) return;
 
-    pred.update(model, iter < config.burnin);
+    pred.update(model, *data, iter < config.burnin);
 
     double norm0 = priors.at(0)->getLinkNorm();
     double norm1 = priors.at(0)->getLinkNorm();

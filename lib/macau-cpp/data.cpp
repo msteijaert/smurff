@@ -37,7 +37,7 @@ namespace Macau {
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
-    os << indent << "Mean: " << global_mean << "\n";
+    os << indent << "Global mean: " << global_mean << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
     os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
     os << indent << "Noise: ";
@@ -179,6 +179,23 @@ void MatricesData::center()
     for(auto &p : matrices) p.second->center();
 }
 
+double MatricesData::offset_to_mean(std::vector<int> pos) const {
+    for(auto &p : matrices) {
+        int brow = p.first.first;
+        int bcol = p.first.second;
+
+        auto off = boffs(brow, bcol);
+        auto dim = bdims(brow, bcol);
+
+        if (off[0] < pos[0] || off[0] + dim[0] >= pos[0]) continue;
+        if (off[1] < pos[1] || off[1] + dim[1] >= pos[1]) continue;
+
+        return p.second->offset_to_mean(off);
+    }
+    assert(false);
+    return .0;
+}
+
 template<typename YType>
 void MatrixDataTempl<YType>::init_base()
 {
@@ -251,7 +268,7 @@ double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel &model) const {
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < this->ncol(); j++) {
         for (int i = 0; i < this->nrow(); i++) {
-            double Yhat = model.predict({i,j});
+            double Yhat = model.dot({i,j}) + offset_to_mean({i,j});
             sumsq += square(Yhat - this->Y(i,j));
         }
     }
@@ -267,12 +284,22 @@ double MatrixDataTempl<SparseMatrixD>::sumsq(const SubModel &model) const {
     for (int j = 0; j < Y.outerSize(); j++) {
         for (SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
             int i = it.row();
-            double Yhat = model.predict({i,j});
+            double Yhat = model.dot({i,j}) + offset_to_mean({i,j});
             sumsq += square(Yhat - it.value());
         }
     }
 
     return sumsq;
+}
+
+template<typename YType>
+double MatrixDataTempl<YType>::offset_to_mean(std::vector<int> pos) const {
+         if (center_mode == CENTER_GLOBAL) return global_mean;
+    else if (center_mode == CENTER_ROWS)   return mean(1,pos.at(1));
+    else if (center_mode == CENTER_COLS)   return mean(0,pos.at(0));
+    else if (center_mode == CENTER_NONE)   return .0;
+    assert(false);
+    return .0;
 }
 
 //

@@ -49,6 +49,7 @@ struct Data {
     // mean & centering
     double                        global_mean = NAN;
     double mean(int m, int c) const { return mode_mean.at(m)(c); }
+    virtual double offset_to_mean(std::vector<int> pos) const = 0;
 
     void setCenterMode(std::string c);
     enum { CENTER_INVALID = -10, CENTER_NONE = -3, CENTER_GLOBAL = -2, CENTER_VIEW = -1, CENTER_COLS = 0, CENTER_ROWS = 1}
@@ -79,6 +80,7 @@ struct MatricesData: public MatrixData {
     void init_base() override;
     void center() override;
     double compute_mode_mean(int,int) override { return NAN; }
+    double offset_to_mean(std::vector<int> pos) const override;
 
     // add data
     MatrixData &add(int, int, const std::unique_ptr<MatrixData>);
@@ -130,6 +132,8 @@ struct MatrixDataTempl : public MatrixData {
     int    ncol()  const override { return Y.cols(); }
     int    nnz()   const override { return Y.nonZeros(); }
     double sum()   const override { return Y.sum(); }
+
+    double offset_to_mean(std::vector<int> pos) const override;
 
     double var_total() const override;
     double sumsq(const SubModel &) const override;

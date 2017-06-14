@@ -14,8 +14,8 @@ namespace Macau {
 struct SubModel;
 
 struct Model {
-    Model() : num_latent(-1), global_mean(NAN) {}
-    void init(int nl, double global_mean, const std::vector<int> &indices, std::string init_model);
+    Model() : num_latent(-1) {}
+    void init(int nl, const std::vector<int> &indices, std::string init_model);
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
@@ -28,10 +28,10 @@ struct Model {
         return samples.at(f); 
     }
 
-    double predict(const std::vector<int> &indices) const  {
+    double dot(const std::vector<int> &indices) const  {
         Eigen::ArrayXd P = Eigen::ArrayXd::Ones(num_latent);
         for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
-        return P.sum() + global_mean;
+        return P.sum();
     }
 
     //-- for when nmodes == 2
@@ -65,7 +65,6 @@ struct Model {
   private:
     std::vector<Eigen::MatrixXd> samples;
     int num_latent;
-    double global_mean;
 };
 
 struct SubModel {
@@ -91,10 +90,10 @@ struct SubModel {
         return U((f+1)%2);
     }
 
-    double predict(const std::vector<int> &indices) const  {
+    double dot(const std::vector<int> &indices) const  {
         auto oi = indices;
         std::transform(oi.begin(), oi.end(), off.begin(), oi.begin(), std::plus<int>());
-        return model.predict(indices);
+        return model.dot(indices);
     }
 
     int nlatent() const { return model.nlatent(); }
