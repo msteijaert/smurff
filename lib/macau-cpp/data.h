@@ -49,9 +49,10 @@ struct Data {
     // mean & centering
     double                        global_mean = NAN;
     double mean(int m, int c) const { return mode_mean.at(m)(c); }
+    virtual double compute_mode_mean(int,int) = 0;
     virtual double offset_to_mean(std::vector<int> pos) const = 0;
 
-    void setCenterMode(std::string c);
+    virtual void setCenterMode(std::string c);
     enum { CENTER_INVALID = -10, CENTER_NONE = -3, CENTER_GLOBAL = -2, CENTER_VIEW = -1, CENTER_COLS = 0, CENTER_ROWS = 1}
                                   center_mode;
 
@@ -62,7 +63,6 @@ struct Data {
 
   protected:
     std::vector<Eigen::VectorXd>  mode_mean;
-    virtual double compute_mode_mean(int,int) = 0;
 };
 
 struct MatrixData: public Data {
@@ -78,8 +78,10 @@ struct MatricesData: public MatrixData {
     MatricesData() { name = "MatricesData"; }
 
     void init_base() override;
+    void setCenterMode(std::string c) override;
+
     void center() override;
-    double compute_mode_mean(int,int) override { return NAN; }
+    double compute_mode_mean(int,int) override;
     double offset_to_mean(std::vector<int> pos) const override;
 
     // add data

@@ -39,7 +39,7 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
     os << indent << "Type: " << name << "\n";
     os << indent << "Global mean: " << global_mean << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
-    os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
+    os << indent << "Center: " << center_names.at(center_mode + 4) << "\n";
     os << indent << "Noise: ";
     noise->info(os, "");
     return os;
@@ -93,8 +93,8 @@ MatrixData& MatricesData::add(int row, int col, std::unique_ptr<MatrixData> c) {
 std::vector<int> MatricesData::bdims(int brow, int bcol) const
 {
     std::vector<int> ret;
-    ret.push_back(rowdims.find(brow)->second);
     ret.push_back(coldims.find(bcol)->second);
+    ret.push_back(rowdims.find(brow)->second);
     return ret;
 }
 
@@ -102,18 +102,19 @@ std::vector<int> MatricesData::bdims(int brow, int bcol) const
 std::vector<int> MatricesData::boffs(int brow, int bcol) const
 {
     std::vector<int> ret {0, 0};
-    for(int i=0; i<brow; ++i) ret[0] += rowdims.find(i)->second;
-    for(int i=0; i<bcol; ++i) ret[1] += coldims.find(i)->second;
+    for(int i=0; i<brow; ++i) ret[1] += rowdims.find(i)->second;
+    for(int i=0; i<bcol; ++i) ret[0] += coldims.find(i)->second;
     return ret;
 }
 
 SubModel MatricesData::submodel(const SubModel &model, int brow, int bcol) 
 {
-    return SubModel(model, bdims(brow, bcol), boffs(brow, bcol));
+    return SubModel(model, boffs(brow, bcol), bdims(brow, bcol));
 }
 
 
-void MatricesData::get_pnm(const SubModel &model, int mode, int n, VectorNd &rr, MatrixNNd &MM) {
+void MatricesData::get_pnm(const SubModel &model, int mode, int pos, VectorNd &rr, MatrixNNd &MM) {
+    int count = 0;
     for(auto &p : matrices) {
         int brow = p.first.first;
         int bcol = p.first.second;
@@ -121,10 +122,12 @@ void MatricesData::get_pnm(const SubModel &model, int mode, int n, VectorNd &rr,
         auto off = boffs(brow, bcol);
         auto dim = bdims(brow, bcol);
 
-        if (off[mode] < n || off[mode] + dim[mode] >= n) continue;
+        if (off[mode] > pos || off[mode] + dim[mode] <= pos) continue;
 
-        p.second->get_pnm(submodel(model, brow, bcol), mode, n - off[mode], rr, MM);
+        p.second->get_pnm(submodel(model, brow, bcol), mode, pos - off[mode], rr, MM);
+        count++;
     }
+    assert(count>0);
 }
 
 void MatricesData::update_pnm(const SubModel &model, int m) {
@@ -151,7 +154,7 @@ void MatricesData::init_base()
     for(auto &p : matrices) p.second->setPrecision(5.);
 
     // init sub-matrices
-    for(auto &p : matrices) p.second->init_base();
+    for(auto &p : matrices) p.second->init();
 
     // init coldims and 
     for(auto &p : matrices) {
@@ -173,10 +176,43 @@ void MatricesData::init_base()
     }
 }
 
+void MatricesData::setCenterMode(std::string mode) 
+{
+    Data::setCenterMode(mode);
+    for(auto &p : matrices) p.second->setCenterMode(mode);
+}
+
+
 void MatricesData::center() 
 {
     // center sub-matrices
     for(auto &p : matrices) p.second->center();
+}
+
+double MatricesData::compute_mode_mean(int mode, int pos) {
+    double sum = .0;
+    int N = 0;
+    int count = 0;
+
+
+    for(auto &p : matrices) {
+        int brow = p.first.first;
+        int bcol = p.first.second;
+
+        auto off = boffs(brow, bcol);
+        auto dim = bdims(brow, bcol);
+
+        if (off[mode] > pos || off[mode] + dim[mode] <= pos) continue;
+
+        double local_mean = p.second->compute_mode_mean(mode, pos - off[mode]);
+        sum += local_mean * dim[mode];
+        N += dim[mode];
+        count++;
+    }
+
+    assert(N>0);
+
+    return sum / N;
 }
 
 double MatricesData::offset_to_mean(std::vector<int> pos) const {
@@ -187,8 +223,8 @@ double MatricesData::offset_to_mean(std::vector<int> pos) const {
         auto off = boffs(brow, bcol);
         auto dim = bdims(brow, bcol);
 
-        if (off[0] < pos[0] || off[0] + dim[0] >= pos[0]) continue;
-        if (off[1] < pos[1] || off[1] + dim[1] >= pos[1]) continue;
+        if (off[0] > pos[0] || off[0] + dim[0] <= pos[0]) continue;
+        if (off[1] > pos[1] || off[1] + dim[1] <= pos[1]) continue;
 
         return p.second->offset_to_mean(off);
     }

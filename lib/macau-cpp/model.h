@@ -75,7 +75,7 @@ struct SubModel {
         : model(m.model), dims(d)
     {
         for(int i=0; i<nmodes(); ++i) {
-            off[i] = o[i] + m.off[i];
+            off.push_back(o[i] + m.off[i]);
         }
     }
 
