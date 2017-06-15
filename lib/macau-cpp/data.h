@@ -47,7 +47,7 @@ struct Data {
     virtual double           sum()   const = 0;
 
     // mean & centering
-    double mean() const { assert(mean_computed); return cwise_mean; }
+    double cwise_mean = NAN, global_mean = NAN;
     double mean(int m, int c) const { assert(mean_computed); return mode_mean.at(m)(c); }
     virtual double compute_mode_mean(int,int) = 0;
             void compute_mode_mean();
@@ -63,7 +63,6 @@ struct Data {
     std::unique_ptr<INoiseModel> noise;
 
   protected:
-    double cwise_mean;
     std::vector<Eigen::VectorXd>  mode_mean;
     bool mean_computed = false;
     bool centered = false;
@@ -111,7 +110,7 @@ struct MatricesData: public MatrixData {
             [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
     int  ncol() const override { return std::accumulate(coldims.begin(), coldims.end(), 0,
             [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
-    double sum() const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
+    double sum() const override { return std::accumulate(matrices.begin(), matrices.end(), .0,
             [](double s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> double { return  s + m.second->sum(); });  }        
     int  nna()  const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
             [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nna(); });  }           
