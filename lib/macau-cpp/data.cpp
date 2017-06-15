@@ -37,7 +37,7 @@ namespace Macau {
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
-    os << indent << "Global mean: " << global_mean << "\n";
+    os << indent << "Global mean: " << mean() << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
     os << indent << "Center: " << center_names.at(center_mode + 4) << "\n";
     os << indent << "Noise: ";
@@ -154,7 +154,10 @@ void MatricesData::init_base()
     for(auto &p : matrices) p.second->setPrecision(5.);
 
     // init sub-matrices
-    for(auto &p : matrices) p.second->init();
+    for(auto &p : matrices) {
+        p.second->init_base();
+        p.second->compute_mode_mean();
+    }
 
     // init coldims and 
     for(auto &p : matrices) {
@@ -183,10 +186,11 @@ void MatricesData::setCenterMode(std::string mode)
 }
 
 
-void MatricesData::center() 
+void MatricesData::center(double global_mean) 
 {
     // center sub-matrices
-    for(auto &p : matrices) p.second->center();
+    assert(global_mean == mean());
+    for(auto &p : matrices) p.second->center(mean());
 }
 
 double MatricesData::compute_mode_mean(int mode, int pos) {
@@ -248,8 +252,14 @@ void Data::init()
     init_base();
 
     //compute global mean & mode-wise means
-    global_mean = sum() / (size() - nna());
+    cwise_mean = sum() / (size() - nna());
+    compute_mode_mean();
+    center(mean());
+}
 
+void Data::compute_mode_mean()
+{
+    assert(!mean_computed);
     mode_mean.resize(nmode());
     for(int m=0; m<nmode(); ++m) {
         auto &M = mode_mean.at(m);
@@ -258,8 +268,9 @@ void Data::init()
         for(int n=0; n<d; n++) M(n) = compute_mode_mean(m, n);
     }
 
-    center();
+    mean_computed = true;
 }
+
 
 template<>
 double MatrixDataTempl<Eigen::MatrixXd>::var_total() const {
@@ -330,7 +341,7 @@ double MatrixDataTempl<SparseMatrixD>::sumsq(const SubModel &model) const {
 
 template<typename YType>
 double MatrixDataTempl<YType>::offset_to_mean(std::vector<int> pos) const {
-         if (center_mode == CENTER_GLOBAL) return global_mean;
+         if (center_mode == CENTER_GLOBAL) return mean();
     else if (center_mode == CENTER_ROWS)   return mean(1,pos.at(1));
     else if (center_mode == CENTER_COLS)   return mean(0,pos.at(0));
     else if (center_mode == CENTER_NONE)   return .0;
@@ -357,12 +368,14 @@ void ScarceMatrixData::init_base() {
 double ScarceMatrixData::compute_mode_mean(int m, int c)
 {
     const auto &col = Yc.at(m).col(c);
-    if (col.nonZeros() == 0) return global_mean;
+    if (col.nonZeros() == 0) return cwise_mean;
     return col.sum() / col.nonZeros();
 }
 
-void ScarceMatrixData::center()
+void ScarceMatrixData::center(double global_mean)
 {
+    assert(!centered);
+
     auto center_cols = [this](SparseMatrixD &Y, int m) {
         for (int k = 0; k < Y.outerSize(); ++k) {
             double v = mean(m, k);
@@ -375,6 +388,9 @@ void ScarceMatrixData::center()
     if (center_mode == CENTER_GLOBAL) {
         Yc.at(0).coeffs() -= global_mean;
         Yc.at(1).coeffs() -= global_mean;
+    } else if (center_mode == CENTER_VIEW) {
+        Yc.at(0).coeffs() -= mean();
+        Yc.at(1).coeffs() -= mean();
     } else if (center_mode == CENTER_COLS) {
         center_cols(Yc.at(0), 0);
         Yc.at(1) = Yc.at(0).transpose();
@@ -382,6 +398,8 @@ void ScarceMatrixData::center()
         center_cols(Yc.at(1), 1);
         Yc.at(0) = Yc.at(1).transpose();
     }
+
+    centered = true;
 }
 
 std::ostream &ScarceMatrixData::info(std::ostream &os, std::string indent)
@@ -498,7 +516,7 @@ template<class YType>
 double FullMatrixData<YType>::compute_mode_mean(int m, int c)
 {
     const auto &col = this->Yc.at(m).col(c);
-    if (col.nonZeros() == 0) return this->global_mean;
+    if (col.nonZeros() == 0) return this->cwise_mean;
     return col.sum() / this->Yc.at(m).rows();
 }
 
@@ -507,23 +525,33 @@ template struct FullMatrixData<Eigen::MatrixXd>;
 template struct FullMatrixData<Eigen::SparseMatrix<double>>;
 
 
-void SparseMatrixData::center()
+void SparseMatrixData::center(double global_mean)
 {
     if (center_mode == CENTER_GLOBAL) {
         Yc.at(0).coeffs() -= global_mean;
         Yc.at(1).coeffs() -= global_mean;
+    } else if (center_mode == CENTER_VIEW) {
+        Yc.at(0).coeffs() -= mean();
+        Yc.at(1).coeffs() -= mean();
     } else if (center_mode == CENTER_COLS) {
+        // you cannot col/row center fully know sparse matrices
+        // without converting to dense
         assert(false);
     } else if (center_mode == CENTER_ROWS) {
+        // you cannot col/row center fully know sparse matrices
+        // without converting to dense
         assert(false);
     }
 }
 
-void DenseMatrixData::center()
+void DenseMatrixData::center(double global_mean)
 {
     if (center_mode == CENTER_GLOBAL) {
         Yc.at(0).array() -= global_mean;
         Yc.at(1).array() -= global_mean;
+    } else if (center_mode == CENTER_VIEW) {
+        Yc.at(0).array() -= mean();
+        Yc.at(1).array() -= mean();
     } else if (center_mode == CENTER_COLS) {
         Yc.at(0).colwise() -= mode_mean.at(0);
         Yc.at(1) = Yc.at(0).transpose();

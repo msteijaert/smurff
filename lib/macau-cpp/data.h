@@ -18,7 +18,7 @@ struct Data {
 
     // init
     virtual void init_base() = 0;
-    virtual void center() = 0;
+    virtual void center(double upper_mean) = 0;
     virtual void init();
 
     // helper functions for noise
@@ -47,9 +47,10 @@ struct Data {
     virtual double           sum()   const = 0;
 
     // mean & centering
-    double                        global_mean = NAN;
-    double mean(int m, int c) const { return mode_mean.at(m)(c); }
+    double mean() const { assert(mean_computed); return cwise_mean; }
+    double mean(int m, int c) const { assert(mean_computed); return mode_mean.at(m)(c); }
     virtual double compute_mode_mean(int,int) = 0;
+            double compute_mode_mean();
     virtual double offset_to_mean(std::vector<int> pos) const = 0;
 
     virtual void setCenterMode(std::string c);
@@ -62,7 +63,10 @@ struct Data {
     std::unique_ptr<INoiseModel> noise;
 
   protected:
+    double cwise_mean;
     std::vector<Eigen::VectorXd>  mode_mean;
+    bool mean_computed = false;
+    bool centered = false;
 };
 
 struct MatrixData: public Data {
@@ -80,7 +84,7 @@ struct MatricesData: public MatrixData {
     void init_base() override;
     void setCenterMode(std::string c) override;
 
-    void center() override;
+    void center(double) override;
     double compute_mode_mean(int,int) override;
     double offset_to_mean(std::vector<int> pos) const override;
 
@@ -154,7 +158,7 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
     }
 
     void init_base() override;
-    void center() override;
+    void center(double) override;
     double compute_mode_mean(int,int) override;
 
     std::ostream &info(std::ostream &os, std::string indent) override;
@@ -209,7 +213,7 @@ struct DenseMatrixData : public FullMatrixData<Eigen::MatrixXd> {
     {
         this->name = "DenseMatrixData [fully known]";
     }
-    void center() override;
+    void center(double) override;
 };
 
 struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
@@ -218,7 +222,7 @@ struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
     {
         this->name = "SparseMatrixData [fully known]";
     }
-    void center() override;
+    void center(double) override;
 };
 
 }; // end namespace Macau
