@@ -204,7 +204,7 @@ double MatricesData::compute_mode_mean(int mode, int pos) {
 
         if (off[mode] > pos || off[mode] + dim[mode] <= pos) continue;
 
-        double local_mean = p.second->compute_mode_mean(mode, pos - off[mode]);
+        double local_mean = p.second->mean(mode, pos - off[mode]);
         sum += local_mean * dim[mode];
         N += dim[mode];
         count++;
