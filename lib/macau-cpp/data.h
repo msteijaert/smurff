@@ -50,7 +50,7 @@ struct Data {
     double mean() const { assert(mean_computed); return cwise_mean; }
     double mean(int m, int c) const { assert(mean_computed); return mode_mean.at(m)(c); }
     virtual double compute_mode_mean(int,int) = 0;
-            double compute_mode_mean();
+            void compute_mode_mean();
     virtual double offset_to_mean(std::vector<int> pos) const = 0;
 
     virtual void setCenterMode(std::string c);

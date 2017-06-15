@@ -32,7 +32,7 @@ struct Result {
     int sample_iter = 0;
     int burnin_iter = 0;
 
-    double rmse_using_globalmean(const Data &data);
+    double rmse_using_globalmean(double);
     double rmse_using_modemean(const Data &data, int mode);
 
     // general
