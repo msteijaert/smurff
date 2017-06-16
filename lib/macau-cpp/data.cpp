@@ -509,6 +509,7 @@ void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd 
 
 double ScarceMatrixData::train_rmse(const SubModel &model) const {
     double se = 0.;
+#pragma omp parallel for schedule(guided) reduction(+:se)
     for(int c=0; c<Y.cols();++c) {
         for (SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
             se += square(it.value() - predict({(int)it.col(), (int)it.row()}, model));
@@ -593,6 +594,7 @@ void SparseMatrixData::center(double global_mean)
 
 double SparseMatrixData::train_rmse(const SubModel &model) const {
     double se = 0.;
+#pragma omp parallel for schedule(guided) reduction(+:se)
     for(int c=0; c<Y.cols();++c) {
         int r = 0;
         for (SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
@@ -625,6 +627,7 @@ void DenseMatrixData::center(double global_mean)
 double DenseMatrixData::train_rmse(const SubModel &model) const
 {
     double se = 0.;
+#pragma omp parallel for schedule(guided) reduction(+:se)
     for(int c=0; c<Y.cols();++c) {
         for(int m=0; m<Y.rows(); ++m) {
             se += square(Y(m,c) - predict({c,m}, model));
