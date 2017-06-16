@@ -9,6 +9,7 @@ CXXFLAGS+=-DEIGEN_DONT_PARALLELIZE
 #LIBLOCS+=-Wl,-rpath,$(EBROOTGCC)/lib64
 #LIBLOCS+=-Wl,-rpath,$(EBROOTOPENBLAS)/lib -lgfortran
 LIBLOCS+=-L/usr/local/Cellar/openblas/0.2.19_1/lib
+CXXFLAGS+=-I/usr/local/Cellar/openblas/0.2.19_1/include
 
 include ../Makefile.common
 
@@ -17,5 +18,5 @@ include ../Makefile.common
 #CXX = icpc
 
 #mac
-LDFLAGS+=-largp
-CXX=g++-6
+#LDFLAGS+=-largp
+#CXX=g++-6
