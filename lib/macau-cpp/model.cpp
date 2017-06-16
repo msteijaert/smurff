@@ -30,12 +30,14 @@ using namespace Eigen;
 
 namespace Macau {
 
-void Model::init(int nl, const std::vector<int> &dims, std::string init_model) {
+void Model::init(int nl, const std::vector<int> &d, std::string init_model) {
     num_latent = nl;
-    for(unsigned d = 0; d < dims.size(); ++d) {
-        samples.push_back(Eigen::MatrixXd(num_latent, dims[d]));
-        if (init_model == "random") bmrandn(samples.back());
-        else if (init_model == "zero") samples.back().setZero();
+    dims = d;
+    for(unsigned i = 0; i < d.size(); ++i) {
+        samples.push_back(Eigen::MatrixXd(num_latent, d[i]));
+        auto &M = samples.back();
+        if (init_model == "random") bmrandn(M);
+        else if (init_model == "zero") M.setZero();
         else assert(false);
     }
 }

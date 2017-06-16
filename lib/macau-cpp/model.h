@@ -50,12 +50,7 @@ struct Model {
     int nlatent() const { return num_latent; }
     int nsamples() const { return std::accumulate(samples.begin(), samples.end(), 0,
             [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); }); }
-    std::vector<int> dims() const {
-        std::vector<int> ret;
-        for(auto s : samples) ret.push_back(s.cols());
-        return ret;
-    }
-
+    std::vector<int> dims;
     SubModel full();
 
     //-- output to file
@@ -80,7 +75,7 @@ struct SubModel {
         }
     }
 
-    SubModel(const Model &m) : model(m), off(std::vector<int>(m.nmodes(), 0)), dims(m.dims()) {}
+    SubModel(const Model &m) : model(m), off(std::vector<int>(m.nmodes(), 0)), dims(m.dims) {}
 
     Eigen::MatrixXd::ConstBlockXpr U(int f) const {
         return model.U(f).block(0, off.at(f), model.nlatent(), dims.at(f));
