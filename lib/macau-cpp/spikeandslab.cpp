@@ -79,16 +79,13 @@ void SpikeAndSlabPrior::sample_latents() {
 
 
     Zkeep = Zc.array();
-    std::cout << " S&S: Zc    = " << (Zc.array() / (double)D).transpose() << std::endl;
-    std::cout << " S&S: alpha = " << alpha.transpose() << std::endl;
-    std::cout << " S&S: r     = " << r.transpose() << std::endl;
     Zcol.reset();
     W2col.reset();
 }
 
 std::string SpikeAndSlabPrior::status() const {
     int Zcount = (Zkeep.array() > 0).count();
-    return "Z: " + std::to_string(Zcount) + "/" + std::to_string(num_latent());
+    return name + " Z = " + std::to_string(Zcount) + "/" + std::to_string(num_latent());
 }
 
 } // end namespace Macau

@@ -137,7 +137,7 @@ void NormalPrior::restore(std::string prefix, std::string suffix) {
 }
 
 std::string NormalPrior::status() const {
-    return "mu: " + std::to_string(mu.norm());
+    return name + ": mu = " + std::to_string(mu.norm());
 }
 
 } // end namespace Macau
