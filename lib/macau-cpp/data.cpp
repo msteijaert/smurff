@@ -39,7 +39,7 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
     os << indent << "Type: " << name << "\n";
     os << indent << "Component-wise mean: " << cwise_mean << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
-    os << indent << "Center: " << center_names.at(center_mode + 4) << "\n";
+    os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
     os << indent << "Noise: ";
     noise->info(os, "");
     return os;
@@ -233,7 +233,7 @@ double MatricesData::offset_to_mean(std::vector<int> pos) const {
         if (off[0] > pos[0] || off[0] + dim[0] <= pos[0]) continue;
         if (off[1] > pos[1] || off[1] + dim[1] <= pos[1]) continue;
 
-        return p.second->offset_to_mean(off);
+        return p.second->offset_to_mean({pos[0] - off[0], pos[1] - off[1]});
     }
     assert(false);
     return .0;
@@ -560,10 +560,10 @@ void DenseMatrixData::center(double global_mean)
         Yc.at(0).array() -= cwise_mean;
         Yc.at(1).array() -= cwise_mean;
     } else if (center_mode == CENTER_COLS) {
-        Yc.at(0).colwise() -= mode_mean.at(0);
+        Yc.at(0).rowwise() -= mode_mean.at(0).transpose();
         Yc.at(1) = Yc.at(0).transpose();
     } else if (center_mode == CENTER_ROWS) {
-        Yc.at(1).colwise() -= mode_mean.at(1);
+        Yc.at(1).rowwise() -= mode_mean.at(1).transpose();
         Yc.at(0) = Yc.at(1).transpose();
     }
 }
