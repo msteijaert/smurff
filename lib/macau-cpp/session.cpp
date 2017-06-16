@@ -472,8 +472,8 @@ void Session::printStatus(double elapsedi) {
     }
 
     if (config.csv_status.size()) {
-        double colmean_rmse = pred.colmean_rmse(*model);
-        double globalmean_rmse = pred.globalmean_rmse(*model);
+        double colmean_rmse = pred.rmse_using_modemean(*data, 0);
+        double globalmean_rmse = pred.rmse_using_modemean(*data, 1);
 
         auto f = fopen(config.csv_status.c_str(), "a");
         fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
