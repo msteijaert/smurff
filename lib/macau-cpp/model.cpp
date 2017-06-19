@@ -30,7 +30,7 @@ using namespace Eigen;
 
 namespace Macau {
 
-void Model::init(int nl, const std::vector<int> &d, std::string init_model) {
+void Model::init(int nl, const PVec &d, std::string init_model) {
     num_latent = nl;
     dims = d;
     for(unsigned i = 0; i < d.size(); ++i) {
@@ -67,7 +67,7 @@ SubModel Model::full()
     return SubModel(*this);
 }
 
-double Model::predict(const std::vector<int> &pos, const Data &data) const
+double Model::predict(const PVec &pos, const Data &data) const
 {
     return dot(pos) + data.offset_to_mean(pos);
 }

@@ -75,7 +75,7 @@ void Data::setCenterMode(std::string c)
     else assert(false);
 }
 
-double Data::predict(const std::vector<int> &pos, const SubModel &model) const
+double Data::predict(const PVec &pos, const SubModel &model) const
 {
        return model.dot(pos) + offset_to_mean(pos);
 }
@@ -96,18 +96,15 @@ MatrixData& MatricesData::add(int row, int col, std::unique_ptr<MatrixData> c) {
 }
 
 
-std::vector<int> MatricesData::bdims(int brow, int bcol) const
+PVec MatricesData::bdims(int brow, int bcol) const
 {
-    std::vector<int> ret;
-    ret.push_back(coldims.find(bcol)->second);
-    ret.push_back(rowdims.find(brow)->second);
-    return ret;
+    return PVec(coldims.find(bcol)->second, rowdims.find(brow)->second);
 }
 
 
-std::vector<int> MatricesData::boffs(int brow, int bcol) const
+PVec MatricesData::boffs(int brow, int bcol) const
 {
-    std::vector<int> ret {0, 0};
+    PVec ret(0,0);
     for(int i=0; i<brow; ++i) ret[1] += rowdims.find(i)->second;
     for(int i=0; i<bcol; ++i) ret[0] += coldims.find(i)->second;
     return ret;
@@ -228,7 +225,7 @@ double MatricesData::compute_mode_mean(int mode, int pos) {
     return sum / N;
 }
 
-double MatricesData::offset_to_mean(std::vector<int> pos) const {
+double MatricesData::offset_to_mean(const PVec &pos) const {
     for(auto &p : matrices) {
         int brow = p.first.first;
         int bcol = p.first.second;
@@ -374,7 +371,7 @@ double MatrixDataTempl<SparseMatrixD>::sumsq(const SubModel &model) const {
 }
 
 template<typename YType>
-double MatrixDataTempl<YType>::offset_to_mean(std::vector<int> pos) const {
+double MatrixDataTempl<YType>::offset_to_mean(const PVec &pos) const {
          if (center_mode == CENTER_GLOBAL) return global_mean;
     else if (center_mode == CENTER_VIEW)   return cwise_mean;
     else if (center_mode == CENTER_ROWS)   return mean(1,pos.at(1));

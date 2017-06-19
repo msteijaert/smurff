@@ -10,10 +10,43 @@
 #include <iostream>
 #include <numeric>
 #include <memory>
+#include <array>
 
 #include <csr.h>
 #include <dsparse.h>
 #include "omp_util.h"
+
+struct PVec {
+    // c'tor
+    PVec() : n(0) {}
+    PVec(int n) : n(n), v({{0}}) { assert(n <= max); }
+    PVec(int a, int b) : n(2), v({{a,b}}) {}
+
+    // meta info
+    int size() const { return n; }
+
+    // const accessor
+    const int &operator[](int p) const { return v[p]; }
+    const int &at(int p) const { assert(p>=0 && p < n); return v[p]; }
+
+    // non-const accessor
+    int &operator[](int p) { return v[p]; }
+    int &at(int p) { assert(p>=0 && p < n); return v[p]; }
+
+    // operator+
+    PVec operator+(const PVec &other) const {
+        assert(n == other.n);
+        PVec ret = *this;
+        for(int i=0; i<n; ++i) { ret[i] += other[i]; }
+        return ret;
+    }
+
+  private:
+    static const unsigned int max = 2; // only matrices for the moment
+    int n;
+    std::array<int, max> v;
+};
+
 
 template<typename T>
 class thread_vector

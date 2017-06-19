@@ -44,7 +44,7 @@ struct Data {
     virtual int              nnz()   const = 0;
     virtual int              size()  const = 0;
     virtual int              nna()   const = 0;
-    virtual std::vector<int> dims()  const = 0;
+    virtual PVec dims()  const = 0;
     virtual double           sum()   const = 0;
 
     // mean & centering
@@ -52,14 +52,14 @@ struct Data {
     double mean(int m, int c) const { assert(mean_computed); return mode_mean.at(m)(c); }
     virtual double compute_mode_mean(int,int) = 0;
             void compute_mode_mean();
-    virtual double offset_to_mean(std::vector<int> pos) const = 0;
+    virtual double offset_to_mean(const PVec &pos) const = 0;
 
     virtual void setCenterMode(std::string c);
     enum { CENTER_INVALID = -10, CENTER_NONE = -3, CENTER_GLOBAL = -2, CENTER_VIEW = -1, CENTER_COLS = 0, CENTER_ROWS = 1}
     center_mode;
 
     // helper for predictions
-    double predict(const std::vector<int> &pos, const SubModel &model) const;
+    double predict(const PVec &pos, const SubModel &model) const;
 
     // name
     std::string                  name;
@@ -78,7 +78,7 @@ struct MatrixData: public Data {
     virtual int nrow()      const = 0;
     virtual int ncol()      const = 0;
             int size()      const override { return nrow() * ncol(); }
-    std::vector<int> dims() const override { return {ncol(), nrow()}; }
+    PVec dims() const override { return PVec(ncol(), nrow()); }
     std::ostream &info(std::ostream &os, std::string indent) override;
 };
 
@@ -90,7 +90,7 @@ struct MatricesData: public MatrixData {
 
     void center(double) override;
     double compute_mode_mean(int,int) override;
-    double offset_to_mean(std::vector<int> pos) const override;
+    double offset_to_mean(const PVec &pos) const override;
 
     // add data
     MatrixData &add(int, int, const std::unique_ptr<MatrixData>);
@@ -122,8 +122,8 @@ struct MatricesData: public MatrixData {
             [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nna(); });  }           
 
     // specific stuff 
-    std::vector<int> bdims(int brow, int bcol) const;
-    std::vector<int> boffs(int brow, int bcol) const;
+    PVec bdims(int brow, int bcol) const;
+    PVec boffs(int brow, int bcol) const;
     SubModel submodel(const SubModel &model, int brow, int bcol); 
 
   private:
@@ -144,7 +144,7 @@ struct MatrixDataTempl : public MatrixData {
     int    nnz()   const override { return Y.nonZeros(); }
     double sum()   const override { return Y.sum(); }
 
-    double offset_to_mean(std::vector<int> pos) const override;
+    double offset_to_mean(const PVec &pos) const override;
 
     double var_total() const override;
     double sumsq(const SubModel &) const override;

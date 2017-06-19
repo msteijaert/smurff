@@ -15,7 +15,7 @@ struct SubModel;
 
 struct Model {
     Model() : num_latent(-1) {}
-    void init(int nl, const std::vector<int> &indices, std::string init_model);
+    void init(int nl, const PVec &indices, std::string init_model);
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
@@ -28,12 +28,12 @@ struct Model {
         return samples.at(f); 
     }
 
-    double dot(const std::vector<int> &indices) const  {
+    double dot(const PVec &indices) const  {
         Eigen::ArrayXd P = Eigen::ArrayXd::Ones(num_latent);
         for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
         return P.sum();
     }
-    double predict(const std::vector<int> &pos, const Data &data) const;
+    double predict(const PVec &pos, const Data &data) const;
 
     //-- for when nmodes == 2
     Eigen::MatrixXd &V(int f) {
@@ -50,7 +50,7 @@ struct Model {
     int nlatent() const { return num_latent; }
     int nsamples() const { return std::accumulate(samples.begin(), samples.end(), 0,
             [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); }); }
-    std::vector<int> dims;
+    PVec dims;
     SubModel full();
 
     //-- output to file
@@ -64,18 +64,13 @@ struct Model {
 };
 
 struct SubModel {
-    SubModel(const Model &m, const std::vector<int> o, const std::vector<int> d) 
+    SubModel(const Model &m, const PVec o, const PVec d) 
         : model(m), off(o), dims(d) {}
 
-    SubModel(const SubModel &m, const std::vector<int> o, const std::vector<int> d) 
-        : model(m.model), dims(d)
-    {
-        for(int i=0; i<nmodes(); ++i) {
-            off.push_back(o[i] + m.off[i]);
-        }
-    }
+    SubModel(const SubModel &m, const PVec o, const PVec d) 
+        : model(m.model), off(o + m.off), dims(d) {}
 
-    SubModel(const Model &m) : model(m), off(std::vector<int>(m.nmodes(), 0)), dims(m.dims) {}
+    SubModel(const Model &m) : model(m), off(m.nmodes()), dims(m.dims) {}
 
     Eigen::MatrixXd::ConstBlockXpr U(int f) const {
         return model.U(f).block(0, off.at(f), model.nlatent(), dims.at(f));
@@ -86,10 +81,8 @@ struct SubModel {
         return U((f+1)%2);
     }
 
-    double dot(const std::vector<int> &indices) const  {
-        auto oi = indices;
-        std::transform(oi.begin(), oi.end(), off.begin(), oi.begin(), std::plus<int>());
-        return model.dot(indices);
+    double dot(const PVec &pos) const  {
+        return model.dot(off + pos);
     }
 
     int nlatent() const { return model.nlatent(); }
@@ -97,8 +90,8 @@ struct SubModel {
 
 private:
     const Model &model;
-    std::vector<int> off;
-    std::vector<int> dims;
+    PVec off;
+    PVec dims;
 };
 
 
