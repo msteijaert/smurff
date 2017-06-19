@@ -12,7 +12,7 @@ void writeToCSVfile(std::string filename, Eigen::MatrixXd matrix) {
   std::ofstream file(filename.c_str());
   file << matrix.rows() << std::endl;
   file << matrix.cols() << std::endl;
-  file << matrix.format(csvFormat);
+  file << matrix.format(csvFormat) << std::endl;
 }
 
 void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
