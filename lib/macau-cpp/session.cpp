@@ -457,13 +457,15 @@ void Session::printStatus(double elapsedi) {
         from = config.nsamples;
     }
 
-    double train_rmse = data->train_rmse(model);
 
-    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f, train: %.4f)", phase.c_str(), i, from, pred.rmse_avg, pred.rmse, train_rmse);
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, pred.rmse_avg, pred.rmse);
     if (config.classify) printf(" AUC:%.4f", pred.auc);
-    printf(" U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
+    printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
+
 
     if (config.verbose > 1) {
+        double train_rmse = data->train_rmse(model);
+        printf("  RMSE train: %.4f\n", train_rmse);
         printf("  Priors:\n    col: %s\n    row: %s\n", priors[0]->status().c_str(), priors[1]->status().c_str());
     }
     
@@ -474,6 +476,7 @@ void Session::printStatus(double elapsedi) {
     if (config.csv_status.size()) {
         double colmean_rmse = pred.rmse_using_modemean(*data, 0);
         double globalmean_rmse = pred.rmse_using_modemean(*data, 1);
+        double train_rmse = data->train_rmse(model);
 
         auto f = fopen(config.csv_status.c_str(), "a");
         fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
