@@ -5,7 +5,7 @@
 #include <vector>
 
 
-namespace Macau {
+namespace smurff {
 
 struct MatrixConfig {
     MatrixConfig()
@@ -99,5 +99,5 @@ struct Config {
     void restore(std::string);
 };
 
-} // end namespace Macau
+} // end namespace smurff
 

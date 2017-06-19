@@ -6,7 +6,7 @@
 #include <iomanip>
 #include "utils.h"
 
-namespace Macau {
+namespace smurff {
 
 struct Data;
 struct SubModel;

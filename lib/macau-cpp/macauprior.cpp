@@ -23,7 +23,7 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
-namespace Macau {
+namespace smurff {
 
 template<class FType>
 MacauPrior<FType>::MacauPrior(BaseSession &m, int p)
@@ -194,7 +194,7 @@ template class MacauPrior<SparseFeat>;
 template class MacauPrior<SparseDoubleFeat>;
 template class MacauPrior<Eigen::MatrixXd>;
 
-} // end namespace Macau
+} // end namespace smurff
 
 /**
  *

@@ -5,7 +5,7 @@
 #include <memory>
 #include "latentprior.h"
 
-namespace Macau {
+namespace smurff {
 
 template<class FType>
 class MacauOnePrior : public ILatentPrior {

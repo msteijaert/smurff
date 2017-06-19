@@ -28,7 +28,7 @@
 using namespace std; 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 void Model::init(int nl, const PVec &d, std::string init_model) {
     num_latent = nl;

@@ -11,7 +11,7 @@
 #include "model.h"
 #include <cmath>
 
-using namespace Macau;
+using namespace smurff;
 
 TEST_CASE( "SparseFeat/At_mul_A_bcsr", "[At_mul_A] for BinaryCSR" ) {
   int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };

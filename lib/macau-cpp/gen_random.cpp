@@ -130,7 +130,7 @@ SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s)
     return Yout;
 }
 
-using namespace Macau;
+using namespace smurff;
 
 MatrixConfig extract(MatrixConfig &Yin, double s, bool remove)
 {

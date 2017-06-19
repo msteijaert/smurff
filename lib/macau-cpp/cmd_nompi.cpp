@@ -24,7 +24,7 @@
 
 using namespace Eigen;
 using namespace std;
-using namespace Macau;
+using namespace smurff;
 
 int main(int argc, char** argv) {
     CmdSession macau;

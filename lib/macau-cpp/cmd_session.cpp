@@ -30,7 +30,7 @@
 using namespace std; 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
@@ -144,4 +144,4 @@ void CmdSession::setFromArgs(int argc, char** argv) {
 
     setFromConfig(config);
 }
-} // end namespace Macau
+} // end namespace smurff

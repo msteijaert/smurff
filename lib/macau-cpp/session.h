@@ -11,7 +11,7 @@
 #include "latentprior.h"
 
 
-namespace Macau {
+namespace smurff {
 
 class ILatentPrior;
 
@@ -104,6 +104,6 @@ Prior& BaseSession::addPrior()
     return *p;
 }
 
-} // end namespace Macau
+} // end namespace smurff
 
 #endif /* MACAU_H */

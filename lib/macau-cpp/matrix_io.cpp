@@ -41,8 +41,8 @@ void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix) {
     assert(col == ncol);
 }
 
-Macau::MatrixConfig read_csv(std::string filename) {
-    Macau::MatrixConfig ret;
+smurff::MatrixConfig read_csv(std::string filename) {
+    smurff::MatrixConfig ret;
     std::ifstream file(filename.c_str());
     std::string line;
     ret.dense = true;
@@ -159,7 +159,7 @@ void read_dense(std::string fname, Eigen::MatrixXd &X) {
     }
 }
     
-Macau::MatrixConfig read_dense(std::string fname) {
+smurff::MatrixConfig read_dense(std::string fname) {
     die_unless_file_exists(fname);
     std::string extension = fname.substr(fname.size() - 4);
     if (extension == ".ddm") {
@@ -169,7 +169,7 @@ Macau::MatrixConfig read_dense(std::string fname) {
     } else {
         die("Unknown filename in read_dense: " + fname);
     }
-    return Macau::MatrixConfig();
+    return smurff::MatrixConfig();
 }
 
 void write_dense(std::string fname, const Eigen::MatrixXd &X) {
@@ -204,8 +204,8 @@ void read_ddm(std::string filename, Eigen::MatrixXd &matrix) {
     in.close();
 }
 
-Macau::MatrixConfig read_ddm(std::string filename) {
-    Macau::MatrixConfig ret;
+smurff::MatrixConfig read_ddm(std::string filename) {
+    smurff::MatrixConfig ret;
     ret.dense = true;
 
     std::ifstream in(filename,std::ios::in | std::ios::binary);
@@ -217,8 +217,8 @@ Macau::MatrixConfig read_ddm(std::string filename) {
     return ret;
 }
 
-Macau::MatrixConfig read_mtx(std::string fname) {
-    Macau::MatrixConfig ret;
+smurff::MatrixConfig read_mtx(std::string fname) {
+    smurff::MatrixConfig ret;
     ret.dense = false;
     std::ifstream fin(fname);
 
@@ -262,17 +262,17 @@ Macau::MatrixConfig read_mtx(std::string fname) {
     return ret;
 }
 
-Macau::MatrixConfig read_sparse(std::string fname) {
+smurff::MatrixConfig read_sparse(std::string fname) {
     assert(is_sparse_fname(fname));
     std::string extension = fname.substr(fname.find_last_of("."));
     if (extension == ".sdm") {
         auto p = read_sdm(fname.c_str());
-        auto m = Macau::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, p->vals);
+        auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, p->vals);
         delete p;
         return m;
     } else if (extension == ".sbm") {
         auto p = read_sbm(fname.c_str());
-        auto m = Macau::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols);
+        auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols);
         delete p;
         return m;
     } else if (extension == ".mtx" || extension == ".mm") {
@@ -281,7 +281,7 @@ Macau::MatrixConfig read_sparse(std::string fname) {
         die("Unknown filename in read_sparse: " + fname);
     }
 
-    return Macau::MatrixConfig();
+    return smurff::MatrixConfig();
 }
 
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
@@ -302,7 +302,7 @@ void read_sparse(std::string fname, Eigen::SparseMatrix<double> &M) {
     }
 }
 
-Macau::MatrixConfig read_matrix(std::string fname) {
+smurff::MatrixConfig read_matrix(std::string fname) {
     if (is_sparse_fname(fname)) return read_sparse(fname);
     else return read_dense(fname);
 }

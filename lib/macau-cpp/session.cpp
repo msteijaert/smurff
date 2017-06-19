@@ -32,7 +32,7 @@
 using namespace std; 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 void BaseSession::step() {
     for(auto &p : priors) p->sample_latents();
@@ -506,4 +506,4 @@ void BaseSession::restore(std::string prefix, std::string suffix) {
     for(auto &p : priors) p->restore(prefix, suffix);
 }
 
-} // end namespace Macau
+} // end namespace smurff

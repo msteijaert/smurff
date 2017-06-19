@@ -14,9 +14,9 @@ SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s);
 
 #include "config.h"
 
-Macau::MatrixConfig extract(Macau::MatrixConfig &, double s, bool rm);
+smurff::MatrixConfig extract(smurff::MatrixConfig &, double s, bool rm);
 
-inline Macau::MatrixConfig extract(Macau::MatrixConfig &in, double s) {
+inline smurff::MatrixConfig extract(smurff::MatrixConfig &in, double s) {
     return extract(in, s, !in.dense);
 }
 

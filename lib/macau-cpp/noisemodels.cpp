@@ -10,7 +10,7 @@
 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 std::ostream &FixedGaussianNoise::info(std::ostream &os, std::string indent)
 { 
@@ -54,4 +54,4 @@ std::ostream &ProbitNoise::info(std::ostream &os, std::string indent)
     return os;
 }
 
-} // end namespace Macau
+} // end namespace smurff

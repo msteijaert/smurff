@@ -19,7 +19,7 @@
 
 using namespace Eigen;
 using namespace std;
-using namespace Macau;
+using namespace smurff;
 
 const int num_latent = 5;
 

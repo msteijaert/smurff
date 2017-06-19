@@ -28,7 +28,7 @@
 using namespace std; 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 
 ////----- Data below
@@ -635,7 +635,7 @@ double DenseMatrixData::train_rmse(const SubModel &model) const
 
 
 
-} //end namespace Macau
+} //end namespace smurff
 
 #ifdef BENCH
 

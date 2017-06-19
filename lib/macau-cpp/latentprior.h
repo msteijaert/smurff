@@ -10,7 +10,7 @@
 #include "model.h"
 #include "session.h"
 
-namespace Macau {
+namespace smurff {
 
 class INoiseModel;
 class BaseSession;

@@ -19,7 +19,7 @@
 using namespace std; 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 void Result::set(SparseMatrixD Y) {
     for (int k = 0; k < Y.outerSize(); ++k) {

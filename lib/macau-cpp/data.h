@@ -11,7 +11,7 @@
 #include "matrix_io.h"
 #include "utils.h"
 
-namespace Macau {
+namespace smurff {
 
 struct Data {
     Data() : center_mode(CENTER_INVALID) {}
@@ -234,6 +234,6 @@ struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
     double train_rmse(const SubModel &) const override;
 };
 
-}; // end namespace Macau
+}; // end namespace smurff
 
 #endif

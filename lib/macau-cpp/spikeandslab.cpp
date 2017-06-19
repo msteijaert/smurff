@@ -4,7 +4,7 @@
 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(BaseSession &m, int p)
     : ILatentPrior(m, p, "SpikeAndSlabPrior") {}
@@ -88,4 +88,4 @@ std::string SpikeAndSlabPrior::status() const {
     return name + " Z = " + std::to_string(Zcount) + "/" + std::to_string(num_latent());
 }
 
-} // end namespace Macau
+} // end namespace smurff

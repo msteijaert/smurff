@@ -28,7 +28,7 @@ struct sparse_vec_iterator {
         : rows(Y.rows), cols(Y.cols), vals(Y.vals), fixed_val(NAN), pos(pos) {}
     sparse_vec_iterator(const SparseBinaryMatrix &Y, int pos)
         : rows(Y.rows), cols(Y.cols), vals(0), fixed_val(1.0), pos(pos) {}
-    sparse_vec_iterator(const Macau::MatrixConfig &Y, int pos)
+    sparse_vec_iterator(const smurff::MatrixConfig &Y, int pos)
         : rows(Y.rows), cols(Y.cols), vals(Y.values), fixed_val(Y.binary), pos(pos) {}
 
     int *rows, *cols;
@@ -149,11 +149,11 @@ void read_dense(std::string fname, Eigen::MatrixXd &);
 void read_dense(std::string fname, Eigen::VectorXd &);
 void read_sparse(std::string fname, Eigen::SparseMatrix<double> &);
 
-Macau::MatrixConfig read_ddm(std::string filename);
-Macau::MatrixConfig read_csv(std::string filename);
-Macau::MatrixConfig read_dense(std::string fname);
-Macau::MatrixConfig read_sparse(std::string fname);
-Macau::MatrixConfig read_matrix(std::string fname);
+smurff::MatrixConfig read_ddm(std::string filename);
+smurff::MatrixConfig read_csv(std::string filename);
+smurff::MatrixConfig read_dense(std::string fname);
+smurff::MatrixConfig read_sparse(std::string fname);
+smurff::MatrixConfig read_matrix(std::string fname);
 
 void write_dense(std::string fname, const Eigen::MatrixXd&);
 

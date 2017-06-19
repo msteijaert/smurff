@@ -12,7 +12,7 @@
 
 using namespace std; 
 using namespace Eigen;
-namespace Macau {
+namespace smurff {
 
 template<class FType>
 MacauOnePrior<FType>::MacauOnePrior(BaseSession &m, int p)
@@ -214,4 +214,4 @@ template class MacauOnePrior<SparseFeat>;
 template class MacauOnePrior<SparseDoubleFeat>;
 template class MacauOnePrior<Eigen::MatrixXd>;
 
-} // end namespace Macau
+} // end namespace smurff

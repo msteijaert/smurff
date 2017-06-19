@@ -8,7 +8,7 @@
 #include "matrix_io.h"
 #include "utils.h"
 
-namespace Macau {
+namespace smurff {
 
 struct Model;
 struct Data;
@@ -48,6 +48,6 @@ struct Result {
     void setThreshold(double t) { threshold = t; classify = true; } 
 };
 
-}; // end namespace Macau
+}; // end namespace smurff
 
 #endif

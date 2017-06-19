@@ -14,7 +14,7 @@
 using namespace std; 
 using namespace Eigen;
 
-namespace Macau {
+namespace smurff {
 
 ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
     : session(m), mode(p), name(name) {} 
@@ -140,4 +140,4 @@ std::string NormalPrior::status() const {
     return name + ": mu = " + std::to_string(mu.norm());
 }
 
-} // end namespace Macau
+} // end namespace smurff

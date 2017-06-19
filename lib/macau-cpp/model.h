@@ -9,7 +9,7 @@
 #include "matrix_io.h"
 #include "utils.h"
 
-namespace Macau {
+namespace smurff {
 
 struct SubModel;
 
@@ -98,6 +98,6 @@ private:
 
 
 
-}; // end namespace Macau
+}; // end namespace smurff
 
 #endif
