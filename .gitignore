@@ -5,3 +5,4 @@ MANIFEST
 dist
 .DS_Store
 *.cpp
+*.egg-info
