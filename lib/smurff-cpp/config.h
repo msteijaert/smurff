@@ -73,7 +73,6 @@ struct Config {
     int save_freq           = 0; // never
 
     //-- general
-    static std::string version;
     int verbose               = 1;
     std::string csv_status    = "";
     int burnin                = 200;
@@ -98,6 +97,7 @@ struct Config {
     bool validate(bool) const;
     void save(std::string) const;
     void restore(std::string);
+    static std::string version();
 };
 
 } // end namespace smurff

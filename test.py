@@ -1,6 +1,6 @@
 import smurff
 
-print smurff.version()
+print smurff.__version__
 
 from scipy.sparse import random
 

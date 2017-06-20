@@ -105,7 +105,7 @@ void Session::step() {
 
 std::ostream &Session::info(std::ostream &os, std::string indent) {
     BaseSession::info(os, indent);
-    os << indent << "  Version: " << config.version << "\n" ;
+    os << indent << "  Version: " << Config::version() << "\n" ;
     os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
     if (config.save_freq > 0) {
         os << indent << "  Save model: every " << config.save_freq << " iteration\n";
@@ -187,13 +187,15 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
     }
 }
 
-std::string Config::version = 
+std::string Config::version() {
+    return
 #ifdef SMURFF_VERSION
     SMURFF_VERSION
 #else
     "unknown"
 #endif
-;
+    ;
+}
 
 bool Config::validate(bool throw_error) const 
 {
