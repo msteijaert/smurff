@@ -1,4 +1,7 @@
 ROOT=..
 
-CXXFLAGS+=-O1 -g
+CXXFLAGS+=-O0 -g
 include ../Makefile.common
+
+LDFLAGS+=-largp
+
