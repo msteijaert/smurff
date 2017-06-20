@@ -2,7 +2,7 @@ from libcpp cimport bool
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
-cdef extern from "model.h" namespace "Macau":
+cdef extern from "model.h" namespace "smurff":
     cdef cppclass Result:
         cppclass Item:
             int row, col
@@ -15,7 +15,7 @@ cdef extern from "model.h" namespace "Macau":
         double rmse
         double auc
 
-cdef extern from "session.h" namespace "Macau":
+cdef extern from "session.h" namespace "smurff":
     cdef cppclass MatrixConfig:
         MatrixConfig()
         MatrixConfig(int nrows, int ncols, double *values)

@@ -26,13 +26,13 @@ import shutil
 import subprocess
 
 blas_libs = ['blas', 'lapack']
-macau_libs = ['macau-cpp']
-inc = ['lib/macau-cpp', 'lib/eigen3', 'lib/libfastsparse', np.get_include(), get_python_inc()]
-ldirs = ['lib/macau-cpp']
+macau_libs = ['smurff-cpp']
+inc = ['lib/smurff-cpp', 'lib/eigen3', 'lib/libfastsparse', np.get_include(), get_python_inc()]
+ldirs = ['lib/smurff-cpp']
 
 ext_modules=[
-    Extension("macau.macau",
-              sources = ["python/macau/macau.pyx"],
+    Extension("smurff.smurff",
+              sources = ["python/smurff/smurff.pyx"],
               include_dirs = inc,
               libraries = blas_libs + macau_libs,
               library_dirs = ldirs,
@@ -59,17 +59,17 @@ CLASSIFIERS = [
 
 def main():
     ## reading __version__:
-    exec(open('python/macau/version.py').read())
+    exec(open('python/smurff/version.py').read())
 
     setup(
-        name = 'macau',
+        name = 'smurff',
         version = __version__ + "-" + datetime.now().strftime("%Y%m%d%H%M"),
-        packages = ["macau"],
+        packages = ["smurff"],
         package_dir = {'' : 'python'},
-        url = "http://github.com/jaak-s/macau",
+        url = "http://github.com/jaak-s/smurff",
         license = "MIT",
         description = 'Bayesian Factorization Methods',
-        long_description = 'Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and Macau. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. Macau method provides also the ability to incorporate high-dimensional side information to the factorization.',
+        long_description = 'Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and smurff. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. smurff method provides also the ability to incorporate high-dimensional side information to the factorization.',
         author = "Jaak Simm",
         author_email = "jaak.simm@gmail.com",
         cmdclass = {'build_clib': build_clib, 'build_ext': build_ext},

@@ -1,8 +1,8 @@
-import macau
+import smurff
 
-print macau.__version__ 
+print smurff.__version__ 
 from scipy.sparse import random
 
 Y = random(300,400)
 
-print macau.bpmf(Y, nsamples = 10, burnin = 10, verbose = True)
+print smurff.bpmf(Y, nsamples = 10, burnin = 10, verbose = True)

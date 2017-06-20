@@ -227,12 +227,12 @@ class build_clibx(build_clib):
                                             debug=self.debug)
 
 blas_libs = get_blas_libs()
-inc = ['lib/macau-cpp', 'lib/eigen3', 'lib/libfastsparse', np.get_include(), get_python_inc(), "/usr/local/include", "/usr/local/opt/openblas/include"]
+inc = ['lib/smurff-cpp', 'lib/eigen3', 'lib/libfastsparse', np.get_include(), get_python_inc(), "/usr/local/include", "/usr/local/opt/openblas/include"]
 ldirs = ["/opt/OpenBLAS/lib", "/usr/local/lib", "/usr/lib/openblas-base", "/usr/local/opt/openblas/lib", "/usr/local/opt/gcc/lib/gcc/5"]
 
-libmacau = ('macau-cpp', dict(
-    package='macau',
-    sources = filter(lambda a: a.find("test") < 0 and a.find("cmd") < 0, glob('lib/macau-cpp/*.cpp')),
+libmacau = ('smurff-cpp', dict(
+    package='smurff',
+    sources = filter(lambda a: a.find("test") < 0 and a.find("cmd") < 0, glob('lib/smurff-cpp/*.cpp')),
     include_dirs = inc,
     extra_compile_args = ['-fopenmp', '-O3', '-fstrict-aliasing', '-std=c++11'],
     #extra_link_args = ['-fopenmp'],
@@ -242,8 +242,8 @@ libmacau = ('macau-cpp', dict(
 print blas_libs
 
 ext_modules=[
-    Extension("macau.macau",
-              sources = ["python/macau/macau.pyx"],
+    Extension("smurff.smurff",
+              sources = ["python/smurff/smurff.pyx"],
               include_dirs = inc,
               libraries = blas_libs,
               library_dirs = ldirs,
@@ -274,19 +274,19 @@ def main():
     checkout_libfastsparse()
 
     ## reading __version__:
-    exec(open('python/macau/version.py').read())
+    exec(open('python/smurff/version.py').read())
 
     setup(
-        name = 'macau',
+        name = 'smurff',
         version = __version__,
         requires = ['numpy', 'scipy', 'cython', 'pandas'],
         libraries = [libmacau],
-        packages = ["macau"],
+        packages = ["smurff"],
         package_dir = {'' : 'python'},
-        url = "http://github.com/jaak-s/macau",
+        url = "http://github.com/jaak-s/smurff",
         license = "MIT",
         description = 'Bayesian Factorization Methods',
-        long_description = 'Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and Macau. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. Macau method provides also the ability to incorporate high-dimensional side information to the factorization.',
+        long_description = 'Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and smurff. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. smurff method provides also the ability to incorporate high-dimensional side information to the factorization.',
         author = "Jaak Simm",
         author_email = "jaak.simm@gmail.com",
         cmdclass = {'build_clib': build_clibx, 'build_ext': build_ext},
