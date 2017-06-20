@@ -33,7 +33,7 @@ smurff: $(LIBSMURFF) cmd_session.o
 
 tests: $(LIBSMURFF)
 
-mpi_smurff: cmd_mpi.cpp cmd_session.o $(LIBSMURFF)
+mpi_smurff: mpi_smurff.cpp cmd_session.o $(LIBSMURFF)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o mpi_smurff
 
 clean:
