@@ -1,3 +1,6 @@
 build/
 .*.swp
 MANIFEST
+*.pyc
+dist
+.DS_Store
