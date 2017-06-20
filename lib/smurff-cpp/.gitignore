@@ -6,3 +6,4 @@ macau_mpi
 test_synthetic
 macau_nompi
 tests
+*.a

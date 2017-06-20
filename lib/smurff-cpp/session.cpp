@@ -225,6 +225,8 @@ std::ostream &MatrixConfig::info(std::ostream &os) const
 
 void Config::save(std::string fname) const 
 {
+    if (!save_freq) return;
+
     ofstream os(fname);
 
     os << "# train = "; train.info(os); os << std::endl;
@@ -370,7 +372,7 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
 void Session::setFromConfig(const Config &c)
 {
     c.validate(true);
-    c.save("smurff.ini");
+    c.save(config.save_prefix + ".ini");
 
     //-- copy
     config = c;
