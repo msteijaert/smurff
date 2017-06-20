@@ -4,7 +4,6 @@ CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas  -fPIC
 #CXXFLAGS+=-fopenmp
 
 CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
-LIBLOCS += -L/usr/local/opt/openblas/lib
 LDFLAGS := $(LIBLOCS) -lm -lopenblas -lpthread
 
 #CXXFLAGS+=-O0 -g
@@ -21,25 +20,26 @@ LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o
 LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o data.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
-LIBMACAU = libmacau-cpp.a
+LIBSMURFF = libsmurff-cpp.a
 
-all: tests cmd_nompi $(LIBMACAU)
+all: tests smurff $(LIBSMURFF)
 
 vpath %.cpp $(ROOT)
 vpath %.c $(ROOT)
-$(LIBMACAU): $(LIBOBJS)
-	ar -rcs $(LIBMACAU) $(LIBOBJS)
+$(LIBSMURFF): $(LIBOBJS)
+	ar -rcs $(LIBSMURFF) $(LIBOBJS)
 
-cmd_nompi: $(LIBMACAU) cmd_session.o
+smurff: $(LIBSMURFF) cmd_session.o
 
-tests: $(LIBMACAU)
+tests: $(LIBSMURFF)
 
-cmd_mpi: cmd_mpi.cpp cmd_session.o $(LIBMACAU)
-	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o cmd_mpi
+mpi_smurff: cmd_mpi.cpp cmd_session.o $(LIBSMURFF)
+	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o mpi_smurff
 
 clean:
-	rm -f *.o *.d *.a
-	rm -f cmd_mpi tests libmacau.a cmd_nompi
+	rm -f *.o *.d *.a *.csv *.ini
+	rm -rf *.dSYM
+	rm -f mpi_smurff tests libsmurff.a smurff
  
 # DFILES 
 DFILES=$(wildcard *.d)
