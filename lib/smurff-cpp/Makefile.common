@@ -4,6 +4,7 @@ CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas  -fPIC
 #CXXFLAGS+=-fopenmp
 
 CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
+CXXFLAGS += -DSMURFF_VERSION=\"$(shell git describe)\"
 LDFLAGS := $(LIBLOCS) -lm -lopenblas -lpthread
 
 #CXXFLAGS+=-O0 -g

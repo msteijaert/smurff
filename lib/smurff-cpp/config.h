@@ -73,6 +73,15 @@ struct Config {
     int save_freq           = 0; // never
 
     //-- general
+
+    std::string version       = 
+#ifdef SMURFF_VERSION
+    SMURFF_VERSION
+#else
+    "unknown"
+#endif
+    ;
+
     int verbose               = 1;
     std::string csv_status    = "";
     int burnin                = 200;
