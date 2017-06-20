@@ -16,6 +16,10 @@ class PythonResult(object):
          "Test AUC:         %.4f\n" % self.auc)
     return s
 
+def version():
+    cdef Config c
+    return c.version
+
 def bpmf(Y,
          Ytest      = None,
          num_latent = 10,

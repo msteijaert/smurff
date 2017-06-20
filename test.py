@@ -1,6 +1,7 @@
 import smurff
 
-print smurff.__version__ 
+print smurff.version()
+
 from scipy.sparse import random
 
 Y = random(300,400)

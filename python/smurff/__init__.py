@@ -1,2 +1,1 @@
-from .version import __version__
-from .smurff import macau, bpmf, PythonResult
+from .smurff import macau, bpmf, PythonResult, version

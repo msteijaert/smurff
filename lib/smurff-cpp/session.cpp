@@ -187,6 +187,14 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
     }
 }
 
+std::string Config::version = 
+#ifdef SMURFF_VERSION
+    SMURFF_VERSION
+#else
+    "unknown"
+#endif
+;
+
 bool Config::validate(bool throw_error) const 
 {
     if (!train.rows)              die("Missing train matrix");

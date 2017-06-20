@@ -46,6 +46,7 @@ cdef extern from "config.h" namespace "smurff":
         string save_prefix
 
         #-- general
+        string version
         bool verbose              
         int save_freq           
         int burnin                

@@ -1,6 +1,8 @@
 import sys
 import numpy as np
 from glob import glob
+import subprocess
+
 
 from distutils.command.build_clib import build_clib
 from distutils.errors    import DistutilsSetupError
@@ -37,7 +39,7 @@ ext_modules=[
               libraries = blas_libs + macau_libs,
               library_dirs = ldirs,
               runtime_library_dirs = ldirs,
-              extra_compile_args = ['-std=c++11'],
+              extra_compile_args = ['-std=c++11', '-g'],
               language = "c++")
 ]
 
@@ -58,12 +60,9 @@ CLASSIFIERS = [
 ]
 
 def main():
-    ## reading __version__:
-    exec(open('python/smurff/version.py').read())
-
     setup(
         name = 'smurff',
-        version = __version__ + "-" + datetime.now().strftime("%Y%m%d%H%M"),
+        version = subprocess.check_output("git describe", shell=True).rstrip(),
         packages = ["smurff"],
         package_dir = {'' : 'python'},
         url = "http://github.com/jaak-s/smurff",
