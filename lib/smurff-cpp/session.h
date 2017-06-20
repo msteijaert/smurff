@@ -6,6 +6,7 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <memory>
 
+#include "data.h"
 #include "result.h"
 #include "model.h"
 #include "latentprior.h"

@@ -2,7 +2,7 @@ from libcpp cimport bool
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
-cdef extern from "model.h" namespace "smurff":
+cdef extern from "result.h" namespace "smurff":
     cdef cppclass Result:
         cppclass Item:
             int row, col
@@ -15,7 +15,7 @@ cdef extern from "model.h" namespace "smurff":
         double rmse
         double auc
 
-cdef extern from "session.h" namespace "smurff":
+cdef extern from "config.h" namespace "smurff":
     cdef cppclass MatrixConfig:
         MatrixConfig()
         MatrixConfig(int nrows, int ncols, double *values)
@@ -31,27 +31,23 @@ cdef extern from "session.h" namespace "smurff":
 
     cdef cppclass Config:
         #-- train and test
-        MatrixConfig config_train, config_test
-        string fname_train
-        string fname_test
+        MatrixConfig train, test
         double test_split         
 
         #-- features
-        vector[MatrixConfig] config_row_features
-        vector[string] fname_row_features
-        vector[MatrixConfig] config_col_features
-        vector[string] fname_col_features
+        vector[MatrixConfig] row_features
+        vector[MatrixConfig] col_features
 
         # -- priors
         string row_prior 
         string col_prior 
 
         #-- output
-        string output_prefix
+        string save_prefix
 
         #-- general
         bool verbose              
-        int output_freq           
+        int save_freq           
         int burnin                
         int nsamples              
         int num_latent            
@@ -69,7 +65,7 @@ cdef extern from "session.h" namespace "smurff":
         double threshold
 
 
-
+cdef extern from "session.h" namespace "smurff":
     cdef cppclass PythonSession:
         PythonSession()
         void setFromConfig(Config)

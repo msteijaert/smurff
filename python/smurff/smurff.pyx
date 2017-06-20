@@ -7,7 +7,7 @@ import numbers
 import pandas as pd
 import signal
 
-class MacauResult(object):
+class PythonResult(object):
   def __init__(self):
     pass
   def __repr__(self):
@@ -76,10 +76,10 @@ def macau(Y,
     cdef Config config
 
     # set config fields
-    config.config_train = prepare_sparse(Y)
-    if (Ytest): config.config_test = prepare_sparse(Ytest)
+    config.train = prepare_sparse(Y)
+    if (Ytest): config.test = prepare_sparse(Ytest)
     config.verbose = verbose
-    if (save_prefix): config.output_prefix = save_prefix
+    if (save_prefix): config.save_prefix = save_prefix
     config.nsamples = nsamples
     config.burnin = burnin
 
@@ -87,13 +87,13 @@ def macau(Y,
     cdef PythonSession session
     session.setFromConfig(config)
 
-    # only do one step
+    # only do one step at a time
     session.init()
     for i in range(nsamples + burnin):
             session.step()
 
 
-    result = MacauResult()
+    result = PythonResult()
     result.rmse = session.pred.rmse
     result.rmse_avg = session.pred.rmse_avg
     result.auc = session.pred.auc
