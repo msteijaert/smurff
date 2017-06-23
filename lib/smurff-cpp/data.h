@@ -40,12 +40,17 @@ struct Data {
     ProbitNoise &setProbit();
 
     // virtual functions data-related
-    virtual int              nmode() const = 0;
-    virtual int              nnz()   const = 0;
-    virtual int              size()  const = 0;
-    virtual int              nna()   const = 0;
-    virtual PVec dims()  const = 0;
-    virtual double           sum()   const = 0;
+    virtual int    nmode() const = 0;
+    virtual int    nnz()   const = 0;
+    virtual int    size()  const = 0;
+    virtual int    nna()   const = 0;
+    virtual PVec   dims()  const = 0;
+    virtual double sum()   const = 0;
+    
+    virtual int dim(int m) const { return dims().at(m); }
+    // for matrices (nmode() == 2)
+    virtual int nrow()     const { return dim(1); }
+    virtual int ncol()     const { return dim(0); }
 
     // mean & centering
     double cwise_mean = NAN, global_mean = NAN;
@@ -75,8 +80,6 @@ struct Data {
 
 struct MatrixData: public Data {
             int nmode()     const override { return 2; }
-    virtual int nrow()      const = 0;
-    virtual int ncol()      const = 0;
             int size()      const override { return nrow() * ncol(); }
     PVec dims() const override { return PVec(ncol(), nrow()); }
     std::ostream &info(std::ostream &os, std::string indent) override;
@@ -108,28 +111,61 @@ struct MatricesData: public MatrixData {
     //-- print info
     std::ostream &info(std::ostream &os, std::string indent) override;
 
-    // virtual functions data-related
+    // accumulate on data in a block
+    template<typename T, typename F>
+    T accumulate(T init, F func) const { 
+        return std::accumulate(blocks.begin(), blocks.end(), init,
+            [func](T s, const Block &b) -> T { return  s + (b.data().*func)(); });
+    }           
 
-    int  nnz()  const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
-            [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nnz(); });  }           
-    int  nrow() const override { return std::accumulate(rowdims.begin(), rowdims.end(), 0,
-            [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
-    int  ncol() const override { return std::accumulate(coldims.begin(), coldims.end(), 0,
-            [](int s, const std::pair<int,int> &p) -> int { return  s + p.second; }); }           
-    double sum() const override { return std::accumulate(matrices.begin(), matrices.end(), .0,
-            [](double s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> double { return  s + m.second->sum(); });  }        
-    int  nna()  const override { return std::accumulate(matrices.begin(), matrices.end(), 0,
-            [](int s, const std::pair<const std::pair<int,int>, std::unique_ptr<MatrixData>> &m) -> int { return  s + m.second->nna(); });  }           
-
-    // specific stuff 
-    PVec bdims(int brow, int bcol) const;
-    PVec boffs(int brow, int bcol) const;
-    SubModel submodel(const SubModel &model, int brow, int bcol); 
+    int    nnz()         const override { return accumulate(0, &MatrixData::nnz); }           
+    int    nna()         const override { return accumulate(0, &MatrixData::nna); }           
+    double sum()         const override { return accumulate(.0, &MatrixData::sum); }           
+    int    dim(int mode) const override {
+        return std::accumulate(mode_dims.at(mode).begin(), mode_dims.at(mode).end(), 0); 
+    }
 
   private:
-    std::map<std::pair<int,int>, std::unique_ptr<MatrixData>> matrices;
-    std::map<int,int> rowdims, coldims;
-};
+    struct Block {
+        // c'tor
+        Block(PVec p, std::unique_ptr<MatrixData> c) 
+            : pos(p), m(std::move(c)) {}
+
+        // handy position functions
+        const PVec start() const  { return off; }
+        const PVec end() const  { return start() + dims(); }
+        const PVec dims() const { return data().dims(); }
+
+        int start(int mode) const { return start().at(mode); }
+        int end(int mode) const { return end().at(mode); }
+        int dim(int mode) const { return dims().at(mode); }
+
+        MatrixData &data() const { return *m; }
+ 
+        PVec pos, off;
+        std::unique_ptr<MatrixData> m;
+
+        bool in(const PVec &p) const { return p.in(start(), end()); }
+        bool in(int mode, int p) const { return p >= start(mode) && p < end(mode); }
+           
+        SubModel submodel(const SubModel &model) const; 
+    };
+    std::vector<Block> blocks;
+
+    typedef std::vector<Block>::iterator bit;
+
+    std::vector<Block>::const_iterator find(const PVec &p, std::vector<Block>::const_iterator begin) const {
+        return std::find_if(begin, blocks.end(), 
+                [p](const Block &b) -> bool { return b.in(p); });
+    }
+
+    bit find(int mode, int p, bit begin) {
+        return std::find_if(begin, blocks.end(), 
+                [mode, p](const Block &b) -> bool { return b.in(mode, p); });
+    }
+    
+    std::vector<std::vector<int>> mode_dims;
+ };
 
 
 template<typename YType>

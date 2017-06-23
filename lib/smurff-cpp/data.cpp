@@ -89,53 +89,18 @@ std::ostream &MatrixData::info(std::ostream &os, std::string indent)
     return os;
 }
 
-MatrixData& MatricesData::add(int row, int col, std::unique_ptr<MatrixData> c) {
-    auto pos = std::make_pair(row, col);
-    matrices[pos] = std::move(c);
-    return *matrices[pos];
-}
-
-
-PVec MatricesData::bdims(int brow, int bcol) const
-{
-    return PVec(coldims.find(bcol)->second, rowdims.find(brow)->second);
-}
-
-
-PVec MatricesData::boffs(int brow, int bcol) const
-{
-    PVec ret(0,0);
-    for(int i=0; i<brow; ++i) ret[1] += rowdims.find(i)->second;
-    for(int i=0; i<bcol; ++i) ret[0] += coldims.find(i)->second;
-    return ret;
-}
-
-SubModel MatricesData::submodel(const SubModel &model, int brow, int bcol) 
-{
-    return SubModel(model, boffs(brow, bcol), bdims(brow, bcol));
-}
-
-
 void MatricesData::get_pnm(const SubModel &model, int mode, int pos, VectorNd &rr, MatrixNNd &MM) {
     int count = 0;
-    for(auto &p : matrices) {
-        int brow = p.first.first;
-        int bcol = p.first.second;
-
-        auto off = boffs(brow, bcol);
-        auto dim = bdims(brow, bcol);
-
-        if (off[mode] > pos || off[mode] + dim[mode] <= pos) continue;
-
-        p.second->get_pnm(submodel(model, brow, bcol), mode, pos - off[mode], rr, MM);
+    for(auto b = find(mode, pos, blocks.begin()); b != blocks.end(); b = find(mode, pos, b)) {
+        b->data().get_pnm(b->submodel(model), mode, pos - b->start(mode), rr, MM);
         count++;
     }
     assert(count>0);
 }
 
 void MatricesData::update_pnm(const SubModel &model, int m) {
-    for(auto &p : matrices) {
-        p.second->update_pnm(model, m);
+    for(auto &b : blocks) {
+        b.data().update_pnm(b.submodel(model), m);
     }
 }
 
@@ -143,10 +108,12 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
 {
     MatrixData::info(os, indent);
     os << indent << "Sub-Matrices:\n";
-    for(auto &p : matrices) {
-        os << indent <<  "[ " << p.first.first << "," << p.first.second << " ]:\n";
-           p.second->info(os, indent + "  ");
-           os << std::endl;
+    for(auto &p : blocks) {
+        os << indent;
+        p.pos.info(os); 
+        os << ":\n";
+        p.data().info(os, indent + "  ");
+        os << std::endl;
     }
     return os;
 }
@@ -154,40 +121,34 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
 void MatricesData::init_base() 
 {
     // FIXME: noise!
-    for(auto &p : matrices) p.second->setPrecision(5.);
+    for(auto &p : blocks) p.data().setPrecision(5.);
 
     // init coldims and 
-    for(auto &p : matrices) {
-        auto row = p.first.first;
-        auto col = p.first.second;
-        auto &m = p.second;
-
-        if (coldims.find(col) != coldims.end()) {
-            assert(coldims[col] = m->ncol());
-        } else {
-            coldims[col] = m->ncol();
-        }
-
-        if (rowdims.find(row) != rowdims.end()) {
-            assert(rowdims[row] = m->nrow());
-        } else {
-            rowdims[row] = m->nrow();
+    for(auto &p : blocks) {
+        for(int n = 0; n<nmode(); ++n) {
+            int q = p.pos.at(n);
+            int size = p.dim(n);
+            assert(size > 0);
+            auto &md = mode_dims.at(n);
+            md.resize(q);
+            assert(md.at(q) == 0 || md.at(q) == size);
+            md[q] = size;
         }
     }
 
     cwise_mean = sum() / (double)(size() - nna());
 
     // init sub-matrices
-    for(auto &p : matrices) {
-        p.second->init_base();
-        p.second->compute_mode_mean();
+    for(auto &p : blocks) {
+        p.data().init_base();
+        p.data().compute_mode_mean();
     }
 }
 
 void MatricesData::setCenterMode(std::string mode) 
 {
     Data::setCenterMode(mode);
-    for(auto &p : matrices) p.second->setCenterMode(mode);
+    for(auto &p : blocks) p.data().setCenterMode(mode);
 }
 
 
@@ -196,7 +157,7 @@ void MatricesData::center(double global_mean)
     // center sub-matrices
     assert(global_mean == cwise_mean);
     this->global_mean = global_mean;
-    for(auto &p : matrices) p.second->center(cwise_mean);
+    for(auto &p : blocks) p.data().center(cwise_mean);
 }
 
 double MatricesData::compute_mode_mean(int mode, int pos) {
@@ -204,19 +165,10 @@ double MatricesData::compute_mode_mean(int mode, int pos) {
     int N = 0;
     int count = 0;
 
-
-    for(auto &p : matrices) {
-        int brow = p.first.first;
-        int bcol = p.first.second;
-
-        auto off = boffs(brow, bcol);
-        auto dim = bdims(brow, bcol);
-
-        if (off[mode] > pos || off[mode] + dim[mode] <= pos) continue;
-
-        double local_mean = p.second->mean(mode, pos - off[mode]);
-        sum += local_mean * dim[mode];
-        N += dim[mode];
+    for(auto p = find(mode, pos, blocks.begin()); p != blocks.end(); p = find(mode, pos, p)) {
+        double local_mean = p->data().mean(mode, pos - p->start(mode));
+        sum += local_mean * p->dim(mode);
+        N += p->dim(mode);
         count++;
     }
 
@@ -226,17 +178,8 @@ double MatricesData::compute_mode_mean(int mode, int pos) {
 }
 
 double MatricesData::offset_to_mean(const PVec &pos) const {
-    for(auto &p : matrices) {
-        int brow = p.first.first;
-        int bcol = p.first.second;
-
-        auto off = boffs(brow, bcol);
-        auto dim = bdims(brow, bcol);
-
-        if (off[0] > pos[0] || off[0] + dim[0] <= pos[0]) continue;
-        if (off[1] > pos[1] || off[1] + dim[1] <= pos[1]) continue;
-
-        return p.second->offset_to_mean({pos[0] - off[0], pos[1] - off[1]});
+    for(auto p = find(pos, blocks.begin()); p != blocks.end(); p = find(pos, p)) {
+        return p->data().offset_to_mean(pos - p->start());
     }
     assert(false);
     return .0;
@@ -248,15 +191,9 @@ double MatricesData::train_rmse(const SubModel &model) const {
     int count = 0;
 
 
-    for(auto &p : matrices) {
-        int brow = p.first.first;
-        int bcol = p.first.second;
-
-        auto off = boffs(brow, bcol);
-        auto dim = bdims(brow, bcol);
-
-        auto &mtx = *p.second;
-        double local_rmse = mtx.train_rmse(SubModel(model, off, dim));
+    for(auto &p : blocks) {
+        auto &mtx = p.data();
+        double local_rmse = mtx.train_rmse(p.submodel(model));
         sum += (local_rmse * local_rmse) * (mtx.size() - mtx.nna());
         N += (mtx.size() - mtx.nna());
         count++;
