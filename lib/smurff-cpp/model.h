@@ -56,7 +56,8 @@ struct Model {
     //-- output to file
     void save(std::string, std::string);
     void restore(std::string, std::string);
-    std::ostream &info(std::ostream &os, std::string indent);
+    std::ostream &info(std::ostream &os, std::string indent) const;
+    std::ostream &status(std::ostream &os, std::string indent) const;
 
   private:
     std::vector<Eigen::MatrixXd> samples;

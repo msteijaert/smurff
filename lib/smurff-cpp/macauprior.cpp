@@ -78,8 +78,9 @@ void MacauPrior<FType>::sample_latents() {
 }
 
 template<class FType>
-std::string MacauPrior<FType>::status() const {
-    return name +  ": Beta = " + std::to_string(beta.norm());
+std::ostream &MacauPrior<FType>::status(std::ostream &os, std::string inden) const {
+    os << indent << "  " x<< name << ": Beta = " << beta.norm() << "\n";
+    return os;
 }
 
 template<class FType>

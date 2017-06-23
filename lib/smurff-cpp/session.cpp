@@ -479,7 +479,11 @@ void Session::printStatus(double elapsedi) {
     if (config.verbose > 1) {
         double train_rmse = data->train_rmse(model);
         printf("  RMSE train: %.4f\n", train_rmse);
-        printf("  Priors:\n    col: %s\n    row: %s\n", priors[0]->status().c_str(), priors[1]->status().c_str());
+        printf("  Priors:\n");
+        for(unsigned i=0; i<priors.size(); ++i) {
+            print("%d: %s\n", i, priors.at(i)->status().c_str());
+        }
+        printf("  Model: %s\n", model.status(config.verbose));
     }
     
     if (config.verbose > 2) {

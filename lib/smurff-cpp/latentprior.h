@@ -35,7 +35,7 @@ class ILatentPrior {
       virtual void save(std::string prefix, std::string suffix) = 0;
       virtual void restore(std::string prefix, std::string suffix) = 0;
       virtual std::ostream &info(std::ostream &os, std::string indent);
-      virtual std::string status() const = 0;
+      virtual std::ostream &status(std::ostream &os) const = 0;
 
       // work
       virtual bool run_slave() { return false; } // returns true if some work happened...
@@ -77,7 +77,7 @@ class NormalPrior : public ILatentPrior {
     void sample_latent(int n) override;
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
-    virtual std::string status() const override;
+    virtual std::ostream &status(std::ostream &os) const override;
 
   private:
     // for effiency, we keep + update Ucol and UUcol by every thread
@@ -120,7 +120,7 @@ class MacauPrior : public NormalPrior {
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
     std::ostream &info(std::ostream &os, std::string indent) override;
-    std::string status() const override;
+    std::ostream &status(std::ostream &os) const override;
 
   private:
     void sample_beta_direct();
@@ -181,7 +181,7 @@ class SpikeAndSlabPrior : public ILatentPrior {
     void sample_latent(int n) override;
 
     // mean value of Z
-    std::string status() const override;
+    std::ostream &status(std::ostream &os) const override;
 };
 
 }

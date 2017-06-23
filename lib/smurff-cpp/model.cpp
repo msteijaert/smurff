@@ -62,6 +62,14 @@ std::ostream &Model::info(std::ostream &os, std::string indent)
     return os;
 }
 
+std::ostream &Model::status(std::ostream &os, std::string indent) const
+{
+    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(num_latent);
+    for(int d = 0; d < nmodes(); ++d) P *= U(d).rowwise().norm().array();
+    os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
+    return os;
+}
+
 SubModel Model::full()
 {
     return SubModel(*this);

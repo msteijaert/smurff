@@ -136,8 +136,9 @@ void NormalPrior::restore(std::string prefix, std::string suffix) {
   initUU();
 }
 
-std::string NormalPrior::status() const {
-    return name + ": mu = " + std::to_string(mu.norm());
+std::ostream &NormalPrior::status(std::ostream &os) const {
+    os << name << ": mu = " <<  mu.norm();
+    return os;
 }
 
 } // end namespace smurff

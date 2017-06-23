@@ -206,8 +206,9 @@ void MacauOnePrior<FType>::restore(std::string prefix, std::string suffix) {
 }
 
 template<class FType>
-std::string MacauOnePrior<FType>::status() const {
-    return name + ": Beta = " + std::to_string(beta.norm());
+std::ostream &MacauOnePrior<FType>::status(std::ostream &os, std::string indent) const {
+    os << indent << "  " x<< name << ": Beta = " << beta.norm() << "\n";
+    return os;
 }
 
 template class MacauOnePrior<SparseFeat>;
