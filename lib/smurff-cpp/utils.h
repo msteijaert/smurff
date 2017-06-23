@@ -40,6 +40,32 @@ struct PVec {
         for(int i=0; i<n; ++i) { ret[i] += other[i]; }
         return ret;
     }
+    //
+    // operator-
+    PVec operator-(const PVec &other) const {
+        assert(n == other.n);
+        PVec ret = *this;
+        for(int i=0; i<n; ++i) { ret[i] -= other[i]; }
+        return ret;
+    }
+
+    bool in(const PVec &start, const PVec &end) const {
+        for(int i=0; i<n; ++i) {
+            if (at(i) < start.at(i)) return false;
+            if (at(i) >= end.at(i)) return false;
+        }
+        return true;
+    }
+
+    std::ostream &info(std::ostream &os) {
+        os << "[ ";
+        for(int i=0; i<n; ++i) {
+            os << n;
+            if (i != n-1) os << " x ";
+        }
+        os << " ]";
+        return os;
+    }
 
   private:
     static const unsigned int max = 2; // only matrices for the moment
