@@ -57,7 +57,14 @@ struct PVec {
         return true;
     }
 
-    std::ostream &info(std::ostream &os) {
+    int dot() const {
+        int ret = 1;
+        for(int i=0; i<n; ++i) ret *= at(i);
+        return ret;
+    }
+
+
+    std::ostream &info(std::ostream &os) const {
         os << "[ ";
         for(int i=0; i<n; ++i) {
             os << n;

@@ -89,12 +89,22 @@ std::ostream &MatrixData::info(std::ostream &os, std::string indent)
     return os;
 }
 
+SubModel MatricesData::Block::submodel(const SubModel &model) const { 
+    return SubModel(model, start(), dim()); 
+}
+
+MatrixData &MatricesData::add(const PVec &p, std::unique_ptr<MatrixData> data) {
+    blocks.push_back(Block(p, std::move(data)));
+    return blocks.back().data();
+}
+
+
 void MatricesData::get_pnm(const SubModel &model, int mode, int pos, VectorNd &rr, MatrixNNd &MM) {
     int count = 0;
-    for(auto b = find(mode, pos, blocks.begin()); b != blocks.end(); b = find(mode, pos, b)) {
-        b->data().get_pnm(b->submodel(model), mode, pos - b->start(mode), rr, MM);
+    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
+        b.data().get_pnm(b.submodel(model), mode, pos - b.start(mode), rr, MM);
         count++;
-    }
+    });
     assert(count>0);
 }
 
@@ -110,7 +120,7 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
     os << indent << "Sub-Matrices:\n";
     for(auto &p : blocks) {
         os << indent;
-        p.pos.info(os); 
+        p.pos().info(os); 
         os << ":\n";
         p.data().info(os, indent + "  ");
         os << std::endl;
@@ -121,19 +131,31 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
 void MatricesData::init_base() 
 {
     // FIXME: noise!
-    for(auto &p : blocks) p.data().setPrecision(5.);
+    for(auto &blk : blocks) blk.data().setPrecision(5.);
 
-    // init coldims and 
-    for(auto &p : blocks) {
-        for(int n = 0; n<nmode(); ++n) {
-            int q = p.pos.at(n);
-            int size = p.dim(n);
+    for(int n = 0; n<nmode(); ++n) {
+        std::vector<int> S(blocks.size());
+        std::vector<int> O(blocks.size());
+        int max_pos = -1;
+        for(auto &blk : blocks) {
+            int pos  = blk.pos(n);
+            int size = blk.dim(n);
             assert(size > 0);
-            auto &md = mode_dims.at(n);
-            md.resize(q);
-            assert(md.at(q) == 0 || md.at(q) == size);
-            md[q] = size;
+            assert(S.at(pos) == 0 || S.at(pos) == size);
+            S.at(pos) = size;
+            max_pos = std::max(max_pos, pos);
         }
+        int off = 0;
+        for(int pos=0; pos<=max_pos; ++pos) {
+            O[pos] = off;
+            off += S[pos];
+        }
+        _dim.at(n) = off;
+        for(auto &blk : blocks) {
+            int pos = blk.pos(n);
+            blk._start.at(n) = O[pos]; 
+        }
+
     }
 
     cwise_mean = sum() / (double)(size() - nna());
@@ -165,12 +187,12 @@ double MatricesData::compute_mode_mean(int mode, int pos) {
     int N = 0;
     int count = 0;
 
-    for(auto p = find(mode, pos, blocks.begin()); p != blocks.end(); p = find(mode, pos, p)) {
-        double local_mean = p->data().mean(mode, pos - p->start(mode));
-        sum += local_mean * p->dim(mode);
-        N += p->dim(mode);
+    apply(mode, pos, [&](const Block &b) {
+        double local_mean = b.data().mean(mode, pos - b.start(mode));
+        sum += local_mean * b.dim(mode);
+        N += b.dim(mode);
         count++;
-    }
+    });
 
     assert(N>0);
 
@@ -178,18 +200,14 @@ double MatricesData::compute_mode_mean(int mode, int pos) {
 }
 
 double MatricesData::offset_to_mean(const PVec &pos) const {
-    for(auto p = find(pos, blocks.begin()); p != blocks.end(); p = find(pos, p)) {
-        return p->data().offset_to_mean(pos - p->start());
-    }
-    assert(false);
-    return .0;
+    const Block &b = find(pos);
+    return b.data().offset_to_mean(pos - b.start());
 }
 
 double MatricesData::train_rmse(const SubModel &model) const {
     double sum = .0;
     int N = 0;
     int count = 0;
-
 
     for(auto &p : blocks) {
         auto &mtx = p.data();
@@ -231,9 +249,8 @@ void Data::compute_mode_mean()
     mode_mean.resize(nmode());
     for(int m=0; m<nmode(); ++m) {
         auto &M = mode_mean.at(m);
-        const auto d = dims().at(m);
-        M.resize(d);
-        for(int n=0; n<d; n++) M(n) = compute_mode_mean(m, n);
+        M.resize(dim(m));
+        for(int n=0; n<dim(m); n++) M(n) = compute_mode_mean(m, n);
     }
 
     mean_computed = true;

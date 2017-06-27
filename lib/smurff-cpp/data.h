@@ -42,12 +42,11 @@ struct Data {
     // virtual functions data-related
     virtual int    nmode() const = 0;
     virtual int    nnz()   const = 0;
-    virtual int    size()  const = 0;
+            int    size()  const { return dim().dot(); }
     virtual int    nna()   const = 0;
-    virtual PVec   dims()  const = 0;
+    virtual PVec   dim()  const = 0;
     virtual double sum()   const = 0;
-    
-    virtual int dim(int m) const { return dims().at(m); }
+            int dim(int m) const { return dim().at(m); }
     // for matrices (nmode() == 2)
     virtual int nrow()     const { return dim(1); }
     virtual int ncol()     const { return dim(0); }
@@ -79,14 +78,12 @@ struct Data {
 };
 
 struct MatrixData: public Data {
-            int nmode()     const override { return 2; }
-            int size()      const override { return nrow() * ncol(); }
-    PVec dims() const override { return PVec(ncol(), nrow()); }
+    int nmode() const override { return 2; }
     std::ostream &info(std::ostream &os, std::string indent) override;
 };
 
 struct MatricesData: public MatrixData {
-    MatricesData() { name = "MatricesData"; }
+    MatricesData() : _dim(2) { name = "MatricesData"; }
 
     void init_base() override;
     void setCenterMode(std::string c) override;
@@ -96,7 +93,7 @@ struct MatricesData: public MatrixData {
     double offset_to_mean(const PVec &pos) const override;
 
     // add data
-    MatrixData &add(int, int, const std::unique_ptr<MatrixData>);
+    MatrixData &add(const PVec &, std::unique_ptr<MatrixData>);
 
     // helper functions for noise
     // but 
@@ -118,53 +115,54 @@ struct MatricesData: public MatrixData {
             [func](T s, const Block &b) -> T { return  s + (b.data().*func)(); });
     }           
 
-    int    nnz()         const override { return accumulate(0, &MatrixData::nnz); }           
-    int    nna()         const override { return accumulate(0, &MatrixData::nna); }           
-    double sum()         const override { return accumulate(.0, &MatrixData::sum); }           
-    int    dim(int mode) const override {
-        return std::accumulate(mode_dims.at(mode).begin(), mode_dims.at(mode).end(), 0); 
-    }
+    int    nnz() const override { return accumulate(0, &MatrixData::nnz); }           
+    int    nna() const override { return accumulate(0, &MatrixData::nna); }           
+    double sum() const override { return accumulate(.0, &MatrixData::sum); }           
+    PVec   dim() const override { return _dim; }           
 
   private:
+    PVec _dim;
     struct Block {
+        friend struct MatricesData;
         // c'tor
         Block(PVec p, std::unique_ptr<MatrixData> c) 
-            : pos(p), m(std::move(c)) {}
+            : _pos(p), _start(2),  m(std::move(c)) {}
 
         // handy position functions
-        const PVec start() const  { return off; }
-        const PVec end() const  { return start() + dims(); }
-        const PVec dims() const { return data().dims(); }
+        const PVec start() const  { return _start; }
+        const PVec end() const  { return start() + dim(); }
+        const PVec dim() const { return data().dim(); }
+        const PVec pos()  const { return _pos; }
 
         int start(int mode) const { return start().at(mode); }
         int end(int mode) const { return end().at(mode); }
-        int dim(int mode) const { return dims().at(mode); }
+        int dim(int mode) const { return dim().at(mode); }
+        int pos(int mode) const { return pos().at(mode); }
 
         MatrixData &data() const { return *m; }
- 
-        PVec pos, off;
-        std::unique_ptr<MatrixData> m;
 
         bool in(const PVec &p) const { return p.in(start(), end()); }
         bool in(int mode, int p) const { return p >= start(mode) && p < end(mode); }
            
-        SubModel submodel(const SubModel &model) const; 
+        SubModel submodel(const SubModel &model) const;
+ 
+      private:
+        PVec _pos, _start;
+        std::unique_ptr<MatrixData> m;
+
     };
     std::vector<Block> blocks;
 
-    typedef std::vector<Block>::iterator bit;
-
-    std::vector<Block>::const_iterator find(const PVec &p, std::vector<Block>::const_iterator begin) const {
-        return std::find_if(begin, blocks.end(), 
-                [p](const Block &b) -> bool { return b.in(p); });
+    template<typename Func>
+    void apply(int mode, int p, Func f) const {
+        for(auto &b : blocks) if (b.in(mode, p)) f(b); 
     }
 
-    bit find(int mode, int p, bit begin) {
-        return std::find_if(begin, blocks.end(), 
-                [mode, p](const Block &b) -> bool { return b.in(mode, p); });
+    const Block& find(const PVec &p) const {
+        return *std::find_if(blocks.begin(), blocks.end(), [p](const Block &b) -> bool { return b.in(p); });
     }
-    
-    std::vector<std::vector<int>> mode_dims;
+
+    std::vector<std::vector<int>> mode_dim;
  };
 
 
@@ -175,10 +173,9 @@ struct MatrixDataTempl : public MatrixData {
     //init and center
     void init_base() override;
 
-    int    nrow()  const override { return Y.rows(); }
-    int    ncol()  const override { return Y.cols(); }
-    int    nnz()   const override { return Y.nonZeros(); }
-    double sum()   const override { return Y.sum(); }
+    PVec   dim() const override { return PVec(Y.cols(), Y.rows()); }
+    int    nnz() const override { return Y.nonZeros(); }
+    double sum() const override { return Y.sum(); }
 
     double offset_to_mean(const PVec &pos) const override;
 
