@@ -43,7 +43,7 @@ class MacauOnePrior : public ILatentPrior {
 
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
-    std::string status() const override;
+    std::ostream &status(std::ostream &os, std::string indent) const override;
 };
 
 }

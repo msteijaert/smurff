@@ -83,9 +83,10 @@ void SpikeAndSlabPrior::sample_latents() {
     W2col.reset();
 }
 
-std::string SpikeAndSlabPrior::status() const {
+std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) const {
     int Zcount = (Zkeep.array() > 0).count();
-    return name + " Z = " + std::to_string(Zcount) + "/" + std::to_string(num_latent());
+    os << indent << name << ": Z = " << Zcount << "/" << num_latent() << "\n";
+    return os;
 }
 
 } // end namespace smurff

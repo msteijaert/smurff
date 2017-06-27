@@ -62,7 +62,7 @@ void Session::init() {
     threads_init();
     init_bmrng();
     data->init();
-    model.init(config.num_latent, data->dims(), config.init_model);
+    model.init(config.num_latent, data->dim(), config.init_model);
     for( auto &p : priors) p->init();
 
     if (config.csv_status.size()) {
@@ -368,12 +368,12 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
 
     // multiple matrices
     auto data = new MatricesData();
-    data->add(0,0,toData(train, true /*scarce*/));
+    data->add(PVec(0,0),toData(train, true /*scarce*/));
     for(int i=0; i<row_features.size(); ++i) {
-        data->add(0, i+1, toData(row_features[i], false)); 
+        data->add(PVec(i+1, 0), toData(row_features[i], false)); 
     }
     for(int i=0; i<col_features.size(); ++i) {
-        data->add(i+1, 0, toData(row_features[i], false)); 
+        data->add(PVec(0, i+1), toData(col_features[i], false)); 
     }
 
     return std::unique_ptr<MatrixData>(data);
@@ -480,10 +480,9 @@ void Session::printStatus(double elapsedi) {
         double train_rmse = data->train_rmse(model);
         printf("  RMSE train: %.4f\n", train_rmse);
         printf("  Priors:\n");
-        for(unsigned i=0; i<priors.size(); ++i) {
-            print("%d: %s\n", i, priors.at(i)->status().c_str());
-        }
-        printf("  Model: %s\n", model.status(config.verbose));
+        for(const auto &p : priors) p->status(std::cout, "     ");
+        printf("  Model:\n");
+        model.status(std::cout, "    ");
     }
     
     if (config.verbose > 2) {

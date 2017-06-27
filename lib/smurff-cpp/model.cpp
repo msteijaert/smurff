@@ -56,7 +56,7 @@ void Model::restore(std::string prefix, std::string suffix) {
     }
 }
 
-std::ostream &Model::info(std::ostream &os, std::string indent)
+std::ostream &Model::info(std::ostream &os, std::string indent) const
 {
     os << indent << "Num-latents: " << num_latent << "\n";
     return os;
