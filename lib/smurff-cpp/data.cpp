@@ -133,9 +133,9 @@ void MatricesData::init_base()
     // FIXME: noise!
     for(auto &blk : blocks) blk.data().setPrecision(5.);
 
+    mode_dim.resize(nmode());
     for(int n = 0; n<nmode(); ++n) {
         std::vector<int> S(blocks.size());
-        std::vector<int> O(blocks.size());
         int max_pos = -1;
         for(auto &blk : blocks) {
             int pos  = blk.pos(n);
@@ -146,11 +146,13 @@ void MatricesData::init_base()
             max_pos = std::max(max_pos, pos);
         }
         int off = 0;
+        auto &O = mode_dim.at(n);
+        O.resize(max_pos+1);
         for(int pos=0; pos<=max_pos; ++pos) {
-            O[pos] = off;
+            O.at(pos) = off;
             off += S[pos];
         }
-        _dim.at(n) = off;
+        total_dim.at(n) = off;
         for(auto &blk : blocks) {
             int pos = blk.pos(n);
             blk._start.at(n) = O[pos]; 

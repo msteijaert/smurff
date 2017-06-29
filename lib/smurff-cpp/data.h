@@ -83,7 +83,7 @@ struct MatrixData: public Data {
 };
 
 struct MatricesData: public MatrixData {
-    MatricesData() : _dim(2) { name = "MatricesData"; }
+    MatricesData() : total_dim(2) { name = "MatricesData"; }
 
     void init_base() override;
     void setCenterMode(std::string c) override;
@@ -118,10 +118,9 @@ struct MatricesData: public MatrixData {
     int    nnz() const override { return accumulate(0, &MatrixData::nnz); }           
     int    nna() const override { return accumulate(0, &MatrixData::nna); }           
     double sum() const override { return accumulate(.0, &MatrixData::sum); }           
-    PVec   dim() const override { return _dim; }           
+    PVec   dim() const override { return total_dim; }           
 
   private:
-    PVec _dim;
     struct Block {
         friend struct MatricesData;
         // c'tor
@@ -162,7 +161,21 @@ struct MatricesData: public MatrixData {
         return *std::find_if(blocks.begin(), blocks.end(), [p](const Block &b) -> bool { return b.in(p); });
     }
 
+    int nview(int mode) { return mode_dim.at(mode).size(); }
+    int view(int mode, int pos) {
+        assert(pos < MatrixData::dim(mode)); 
+        const auto &v = mode_dim.at(mode);
+        int off = 0;
+        for(int i=0; i<nview(mode); ++i) {
+           off += v.at(i);
+           if (pos < off) return i;
+        }
+        assert(false);
+        return -1;
+    }
+
     std::vector<std::vector<int>> mode_dim;
+    PVec total_dim;
  };
 
 
