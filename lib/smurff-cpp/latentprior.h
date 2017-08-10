@@ -158,12 +158,12 @@ class MPIMacauPrior : public MacauPrior<FType> {
 class SpikeAndSlabPrior : public ILatentPrior {
    public:
     // updated by every thread
-    thread_vector<VectorNd> Zcol, W2col;
+    thread_vector<MatrixNNd> Zcol, W2col;
 
     // read-only during sampling
-    VectorNd Zkeep;
-    ArrayNd alpha;
-    VectorNd r;
+    MatrixNNd Zkeep;
+    ArrayNNd alpha;
+    MatrixNNd r;
 
     //-- hyper params
     const double prior_beta = 1; //for r

@@ -44,12 +44,15 @@ struct Data {
     virtual int    nnz()   const = 0;
             int    size()  const { return dim().dot(); }
     virtual int    nna()   const = 0;
-    virtual PVec   dim()  const = 0;
+    virtual PVec   dim()   const = 0;
     virtual double sum()   const = 0;
             int dim(int m) const { return dim().at(m); }
     // for matrices (nmode() == 2)
     virtual int nrow()     const { return dim(1); }
     virtual int ncol()     const { return dim(0); }
+
+    virtual int nview(int)    const { return 1; }
+    virtual int view(int,int) const { return 0; }
 
     // mean & centering
     double cwise_mean = NAN, global_mean = NAN;
@@ -161,8 +164,10 @@ struct MatricesData: public MatrixData {
         return *std::find_if(blocks.begin(), blocks.end(), [p](const Block &b) -> bool { return b.in(p); });
     }
 
-    int nview(int mode) { return mode_dim.at(mode).size(); }
-    int view(int mode, int pos) {
+    int nview(int mode) const override {
+        return mode_dim.at(mode).size();
+    }
+    int view(int mode, int pos) const override {
         assert(pos < MatrixData::dim(mode)); 
         const auto &v = mode_dim.at(mode);
         int off = 0;

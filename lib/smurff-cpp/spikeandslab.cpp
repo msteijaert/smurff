@@ -13,41 +13,43 @@ SpikeAndSlabPrior::SpikeAndSlabPrior(BaseSession &m, int p)
 void SpikeAndSlabPrior::init() {
     const int K = num_latent();
     const int D = num_cols();
+    const int V = data().nview(mode);
     assert(D > 0);
 
-    Zcol.init(VectorXd::Zero(num_latent()));
-    W2col.init(VectorXd::Zero(num_latent()));
+    Zcol.init(MatrixXd::Zero(K,V));
+    W2col.init(MatrixXd::Zero(K,V));
     
     //-- prior params
-    alpha = ArrayNd::Ones(K);
-    Zkeep = VectorNd::Constant(K, D);
-    r = VectorNd::Constant(K,.5);
+    alpha = ArrayNNd::Ones(K,V);
+    Zkeep = MatrixNNd::Constant(K, V, D);
+    r = MatrixNNd::Constant(K,V,.5);
 }
 
 void SpikeAndSlabPrior::sample_latent(int d)
 {
     const int K = num_latent();
+    const int v = data.view(mode, d);
 
-    auto &W = U(); // aliases
+    auto &W = U(); // alias
     VectorNd Wcol = W.col(d); // local copy
     
     std::default_random_engine generator;
     std::uniform_real_distribution<double> udist(0,1);
-    ArrayNd log_alpha = alpha.log();
-    ArrayNd log_r = - r.array().log() + (VectorNd::Ones(K) - r).array().log();
+    ArrayNd log_alpha = alpha.col(v).log();
+    ArrayNd log_r = - r.col(v).array().log() + (VectorNd::Ones(K) - r.col(v)).array().log();
 
-    MatrixNNd XX = MatrixNNd::Zero(num_latent(), num_latent());
-    VectorNd yX = VectorNd::Zero(num_latent());
-    session.data->get_pnm(model(),mode,d,yX,XX);
+    MatrixNNd XX = MatrixNNd::Zero(K, K);
+    VectorNd yX = VectorNd::Zero(K);
+    data().get_pnm(model(),mode,d,yX,XX);
     double t = noise().getAlpha();
 
     for(int k=0;k<K;++k) {
-        double lambda = t * XX(k,k) + alpha(k);
+        double lambda = t * XX(k,k) + alpha(k,v);
         double mu = t / lambda * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
         double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
         double z = 1 / (1 + exp(z1));
         double p = udist(generator);
-        if (Zkeep(k) > 0 && p < z) {
+        if (Zkeep(k,v) > 0 && p < z) {
             Zcol.local()(k)++;
             double var = randn() / sqrt(lambda);
             Wcol(k) = mu + var;
