@@ -1,3 +1,5 @@
+//#define EIGEN_USE_BLAS
+
 #include <Eigen/Dense>
 #include <math.h>
 extern "C" {
@@ -19,6 +21,7 @@ extern "C" void dsyrk_(char *uplo, char *trans, int *m, int *n, double *alpha, d
 extern "C" void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha,
             double a[], int *lda, double b[], int *ldb, double *beta, double c[],
             int *ldc);
+
 /*
 extern "C" void dsymm_(char *side, char *uplo, int *m, int *n, double *alpha, double a[],
             int *lda, double b[], int *ldb, double *beta, double c[], int *ldc);

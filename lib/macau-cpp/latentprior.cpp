@@ -15,15 +15,53 @@ extern "C" {
 using namespace std; 
 using namespace Eigen;
 
-void ILatentPrior::sample_latents(FixedGaussianNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
+void ILatentPrior::sample_latents(FixedGaussianNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                     double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
-  this->sample_latents(U, mat, mean_value, samples, noise->alpha, num_latent);
+  this->sample_latents(U, mat, mean_value, samples, noise.alpha, num_latent);
 }
 
-void ILatentPrior::sample_latents(AdaptiveGaussianNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
+void ILatentPrior::sample_latents(AdaptiveGaussianNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                     double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
-  this->sample_latents(U, mat, mean_value, samples, noise->alpha, num_latent);
+  this->sample_latents(U, mat, mean_value, samples, noise.alpha, num_latent);
 }
+
+void ILatentPrior::sample_latents(FixedGaussianNoise & noiseModel, MatrixData & matrixData,
+                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+  if (mode == 0) {
+    this->sample_latents(noiseModel, *samples[0], matrixData.Yt, matrixData.mean_value, *samples[1], num_latent);
+  } else {
+    this->sample_latents(noiseModel, *samples[1], matrixData.Y,  matrixData.mean_value, *samples[0], num_latent);
+  }
+}
+
+void ILatentPrior::sample_latents(AdaptiveGaussianNoise & noiseModel, MatrixData & matrixData,
+                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+  if (mode == 0) {
+    this->sample_latents(noiseModel, *samples[0], matrixData.Yt, matrixData.mean_value, *samples[1], num_latent);
+  } else {
+    this->sample_latents(noiseModel, *samples[1], matrixData.Y,  matrixData.mean_value, *samples[0], num_latent);
+  }
+}
+
+void ILatentPrior::sample_latents(ProbitNoise & noiseModel, MatrixData & matrixData,
+                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+  if (mode == 0) {
+    this->sample_latents(noiseModel, *samples[0], matrixData.Yt, matrixData.mean_value, *samples[1], num_latent);
+  } else {
+    this->sample_latents(noiseModel, *samples[1], matrixData.Y,  matrixData.mean_value, *samples[0], num_latent);
+  }
+}
+
+void ILatentPrior::sample_latents(FixedGaussianNoise& noiseModel, TensorData & data,
+                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+  sample_latents(noiseModel.alpha, data, samples, mode, num_latent);
+}
+
+void ILatentPrior::sample_latents(AdaptiveGaussianNoise& noiseModel, TensorData & data,
+                            std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+  sample_latents(noiseModel.alpha, data, samples, mode, num_latent);
+}
+
 
 /** BPMFPrior */
 void BPMFPrior::sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
@@ -58,7 +96,7 @@ void BPMFPrior::init(const int num_latent) {
   df = num_latent;
 }
 
-void BPMFPrior::sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
+void BPMFPrior::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                                double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
   const int N = U.cols();
 
@@ -67,6 +105,73 @@ void BPMFPrior::sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eig
     sample_latent_blas_probit(U, n, mat, mean_value, samples, mu, Lambda, num_latent);
   }
  
+}
+
+void BPMFPrior::sample_latents(ProbitNoise& noiseModel, TensorData & data,
+                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+  // TODO
+  throw std::runtime_error("Unimplemented: sample_latents");
+}
+
+void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
+                          int n,
+                          std::unique_ptr<SparseMode> & sparseMode,
+                          VectorView<Eigen::MatrixXd> & view,
+                          double mean_value,
+                          double alpha,
+                          Eigen::VectorXd & mu,
+                          Eigen::MatrixXd & Lambda) {
+  const int nmodes1 = view.size();
+  const int num_latent = U->rows();
+
+  MatrixXd MM(num_latent, num_latent);
+  MM = Lambda;
+  VectorXd rr = VectorXd::Zero(mu.size());
+
+  Eigen::VectorXi & row_ptr = sparseMode->row_ptr;
+  Eigen::MatrixXi & indices = sparseMode->indices;
+  Eigen::VectorXd & values  = sparseMode->values;
+
+  Eigen::MatrixXd* S0 = view.get(0);
+
+  for (int j = row_ptr(n); j < row_ptr(n + 1); j++) {
+    VectorXd col = S0->col(indices(j, 0));
+    for (int m = 1; m < nmodes1; m++) {
+      col.noalias() = col.cwiseProduct(view.get(m)->col(indices(j, m)));
+    }
+
+    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose();
+    rr.noalias() += col * ((values(j) - mean_value) * alpha);
+  }
+
+  Eigen::LLT<MatrixXd> chol = MM.llt();
+  if(chol.info() != Eigen::Success) {
+    throw std::runtime_error("Cholesky Decomposition failed!");
+  }
+
+  rr.noalias() += Lambda * mu;
+  chol.matrixL().solveInPlace(rr);
+  for (int i = 0; i < num_latent; i++) {
+    rr[i] += randn0();
+  }
+  chol.matrixU().solveInPlace(rr);
+  U->col(n).noalias() = rr;
+}
+
+void BPMFPrior::sample_latents(double noisePrecision,
+                               TensorData & data,
+                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
+                               const int mode,
+                               const int num_latent) {
+  auto& sparseMode = (*data.Y)[mode];
+  auto& U = samples[mode];
+  const int N = U->cols();
+  VectorView<Eigen::MatrixXd> view(samples, mode);
+
+#pragma omp parallel for schedule(dynamic, 2)
+  for (int n = 0; n < N; n++) {
+    sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu, Lambda);
+  }
 }
 
 /** MacauPrior */
@@ -120,6 +225,31 @@ void MacauPrior<FType>::sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMa
 }
 
 template<class FType>
+void MacauPrior<FType>::sample_latents(ProbitNoise& noiseModel, TensorData & data,
+                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+  // TODO:
+}
+
+template<class FType>
+void MacauPrior<FType>::sample_latents(double noisePrecision,
+                                       TensorData & data,
+                                       std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
+                                       int mode,
+                                       const int num_latent) {
+  auto& sparseMode = (*data.Y)[mode];
+  auto& U = samples[mode];
+  const int N = U->cols();
+  VectorView<Eigen::MatrixXd> view(samples, mode);
+
+#pragma omp parallel for schedule(dynamic, 2)
+  for (int n = 0; n < N; n++) {
+    Eigen::VectorXd mu2 = mu + Uhat.col(n);
+    sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu2, Lambda);
+  }
+}
+
+
+template<class FType>
 void MacauPrior<FType>::update_prior(const Eigen::MatrixXd &U) {
   // residual (Uhat is later overwritten):
   Uhat.noalias() = U - Uhat;
@@ -161,7 +291,7 @@ void MacauPrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
 }
 
 template<class FType>
-void MacauPrior<FType>::sample_latents(ProbitNoise* noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
+void MacauPrior<FType>::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                                        double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
     const int N = U.cols();
 #pragma omp parallel for schedule(dynamic, 2)
@@ -301,7 +431,18 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) {
   return out;
 }
 
+MacauPrior<Eigen::MatrixXd>* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF) {
+	MatrixXd* Fmat = new MatrixXd(0, 0);
+	if (colMajor) {
+		*Fmat = Map<Matrix<double, Dynamic, Dynamic, ColMajor> >(ptr, nrows, ncols);
+	} else {
+		*Fmat = Map<Matrix<double, Dynamic, Dynamic, RowMajor> >(ptr, nrows, ncols);
+	}
+	unique_ptr<MatrixXd> Fmat_ptr = unique_ptr<MatrixXd>(Fmat);
+	return new MacauPrior<MatrixXd>(nlatent, Fmat_ptr, comp_FtF);
+}
+
 template class MacauPrior<SparseFeat>;
 template class MacauPrior<SparseDoubleFeat>;
-//template class MacauPrior<Eigen::MatrixXd>;
+template class MacauPrior<Eigen::MatrixXd>;
 

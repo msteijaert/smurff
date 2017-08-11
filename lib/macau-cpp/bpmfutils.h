@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <memory>
+
+#include "sparsetensor.h"
 
 inline double tick() {
     return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count(); 
@@ -61,6 +64,23 @@ inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, int* rows, int* cols, 
   X.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
+inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, Eigen::MatrixXi &idx, Eigen::VectorXd &values) {
+  if (idx.rows() != values.size()) {
+    throw std::runtime_error("sparseFromIJV: idx.rows() must equal values.size().");
+  }
+  if (idx.cols() != 2) {
+    throw std::runtime_error("sparseFromIJV: idx.cols() must be equal to 2.");
+  }
+  typedef Eigen::Triplet<double> T;
+  std::vector<T> tripletList;
+  int N = values.size();
+  tripletList.reserve(N);
+  for (int n = 0; n < N; n++) {
+    tripletList.push_back(T(idx(n, 0), idx(n, 1), values(n)));
+  }
+  X.setFromTriplets(tripletList.begin(), tripletList.end());
+}
+
 inline double square(double x) { return x * x; }
 
 inline std::pair<double,double> eval_rmse(Eigen::SparseMatrix<double> & P, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var, const Eigen::MatrixXd &sample_m, const Eigen::MatrixXd &sample_u, double mean_rating)
@@ -92,6 +112,14 @@ inline std::pair<double,double> eval_rmse(Eigen::SparseMatrix<double> & P, const
   const double rmse_avg = sqrt( se_avg / N );
   return std::make_pair(rmse, rmse_avg);
 }
+
+std::pair<double,double> eval_rmse_tensor(
+		SparseMode & sparseMode,
+		const int Nepoch,
+		Eigen::VectorXd & predictions,
+		Eigen::VectorXd & predictions_var,
+		std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
+		double mean_value);
 
 inline void row_mean_var(Eigen::VectorXd & mean, Eigen::VectorXd & var, const Eigen::MatrixXd X) {
   const int N = X.cols();
@@ -153,29 +181,33 @@ inline std::string to_string_with_precision(const double a_value, const int n = 
 
 inline double auc(Eigen::VectorXd & pred, Eigen::VectorXd & test)
 {
-   Eigen::VectorXd stack_x(pred.size());
-   Eigen::VectorXd stack_y(pred.size());
-   double auc = 0.0;
- 
-   std::vector<unsigned int> permutation( pred.size() );
-   for(unsigned int i = 0; i < pred.size(); i++) {
-     permutation[i] = i;
-   }
-   std::sort(permutation.begin(), permutation.end(), [&pred](unsigned int a, unsigned int b) { return pred[a] < pred[b];});
+	Eigen::VectorXd stack_x(pred.size());
+	Eigen::VectorXd stack_y(pred.size());
+	double auc = 0.0;
 
-   int NP = test.sum();
-   int NN = test.size() - NP;
-   //Build stack_x and stack_y
-     stack_x[0] = test[permutation[0]];
-     stack_y[0] = 1-stack_x[0];
-   for(int i=1; i < pred.size(); i++) {
-     stack_x[i] = stack_x[i-1] + test[permutation[i]];
-     stack_y[i] = stack_y[i-1] + 1 - test[permutation[i]];
-   }
-   
-   for(int i=0; i < pred.size() - 1; i++) {
-	auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1) / (NP*NN); //TODO:Make it Eigen
-   }
+	if (pred.size() == 0) {
+		return NAN;
+	}
 
-return auc;
+	std::vector<unsigned int> permutation( pred.size() );
+	for(unsigned int i = 0; i < pred.size(); i++) {
+		permutation[i] = i;
+	}
+	std::sort(permutation.begin(), permutation.end(), [&pred](unsigned int a, unsigned int b) { return pred[a] < pred[b];});
+
+	double NP = test.sum();
+	double NN = test.size() - NP;
+	//Build stack_x and stack_y
+	stack_x[0] = test[permutation[0]];
+	stack_y[0] = 1-stack_x[0];
+	for(int i=1; i < pred.size(); i++) {
+		stack_x[i] = stack_x[i-1] + test[permutation[i]];
+		stack_y[i] = stack_y[i-1] + 1 - test[permutation[i]];
+	}
+
+	for(int i=0; i < pred.size() - 1; i++) {
+		auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1); //TODO:Make it Eigen
+	}
+
+	return auc / (NP*NN);
 }

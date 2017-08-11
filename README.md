@@ -52,11 +52,26 @@ cd macau
 CC=g++-5 CXX=g++-5 python setup.py install
 ```
 
+## Docker
+Macau is also available using Docker image at `stadius/macau`.
+
+Without mounting a local directory the docker can be executed by
+```bash
+docker run -it --rm -p 8888:8888 stadius/macau
+```
+
+To mount a local directory add `-v ~/my_data_dir:/data` where 
+`~/my_data_dir` is on the local system and `/data` will be the folder
+in the container:
+```bash
+docker run -v ~/my_data_dir:/data -it --rm -p 8888:8888 stadius/macau
+```
+
 ## Binary installion on Ubuntu
 There is a plan to support Python wheel packages. Currently, we do not have one built yet.
 
 # Contributors
-- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version)
+- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version, Tensor factorization)
 - Adam Arany (Probit noise model)
 - Tom Vander Aa (OpenMP optimized BPMF)
 - Tom Haber (Original BPMF code)
