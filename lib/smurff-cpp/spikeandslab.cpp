@@ -28,7 +28,7 @@ void SpikeAndSlabPrior::init() {
 void SpikeAndSlabPrior::sample_latent(int d)
 {
     const int K = num_latent();
-    const int v = data.view(mode, d);
+    const int v = data().view(mode, d);
 
     auto &W = U(); // alias
     VectorNd Wcol = W.col(d); // local copy
