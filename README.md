@@ -1,4 +1,4 @@
-# Macau-cpp - Bayesian Factorization with Side Information
+# Smurff-cpp - Bayesian Factorization with Side Information
 Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and Macau. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. Macau method provides also the ability to incorporate high-dimensional side information to the factorization.
 
 # Examples
@@ -18,7 +18,7 @@ cd smurff
 git checkout smurff
 git submodules init
 git submodules install
-cd lib/smurff-lib/makefiles/linux
+cd lib/smurff-cpp/makefiles/linux
 make
 
 # test Smurff
