@@ -16,8 +16,8 @@ sudo apt-get install libopenblas-dev autoconf gfortran
 git clone https://github.com/ExaScience/smurff.git
 cd smurff
 git checkout smurff
-git submodules init
-git submodules update
+git submodule init
+git submodule update
 cd lib/smurff-cpp/makefiles/linux
 make
 
