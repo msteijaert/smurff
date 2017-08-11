@@ -22,7 +22,7 @@ smurff: libsmurff cmd_session.o
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/smurff.cpp $(LIBSMURFF) $(LDFLAGS) cmd_session.o -o $@
 
 tests: libsmurff
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/tests.cpp $(LIBSMURFF) $(LDFLAGS)	-o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/tests.cpp $(LIBSMURFF) $(LDFLAGS) -o $@
 
 libsmurff: $(LIBOBJS)
 	ar -rcs $(LIBSMURFF) $(LIBOBJS)
