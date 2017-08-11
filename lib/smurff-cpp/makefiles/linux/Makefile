@@ -11,20 +11,20 @@ LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
 LIBSMURFF = libsmurff-cpp.a
 
-.PHONY: all clean smurff tests libsmurff
+.PHONY: all clean smurff tests
 
 all: smurff
 
 clean:
 	rm -f *.o *.a smurff tests
 
-smurff: libsmurff cmd_session.o
+smurff: $(LIBSMURFF) cmd_session.o
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/smurff.cpp $(LIBSMURFF) $(LDFLAGS) cmd_session.o -o $@
 
-tests: libsmurff
+tests: $(LIBSMURFF)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/tests.cpp $(LIBSMURFF) $(LDFLAGS) -o $@
 
-libsmurff: $(LIBOBJS)
+$(LIBSMURFF): $(LIBOBJS)
 	ar -rcs $(LIBSMURFF) $(LIBOBJS)
 
 %.o : $(ROOT)/smurff-cpp/%.cpp
