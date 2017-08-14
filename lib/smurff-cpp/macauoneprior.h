@@ -9,6 +9,8 @@ namespace smurff {
 
 template<class FType>
 class MacauOnePrior : public ILatentPrior {
+	
+  // smurff variables
   public:
     Eigen::MatrixXd Uhat;
 
@@ -29,6 +31,7 @@ class MacauOnePrior : public ILatentPrior {
 
     Eigen::SparseMatrix<double> &Yc;
 
+  // smurff methods
   public:
     MacauOnePrior(BaseSession &, int); 
     void addSideInfo(std::unique_ptr<FType> &Fmat, bool);
@@ -44,6 +47,32 @@ class MacauOnePrior : public ILatentPrior {
     void save(std::string prefix, std::string suffix) override;
     void restore(std::string prefix, std::string suffix) override;
     std::ostream &status(std::ostream &os, std::string indent) const override;
+	
+  /*
+  // master variables
+  public:
+	int num_latent;
+  
+  // master methods
+  public:
+    MacauOnePrior(const int nlatent, std::unique_ptr<FType> &Fmat) { init(nlatent, Fmat); }
+    MacauOnePrior() {}
+
+    void init(const int nlatent, std::unique_ptr<FType> &Fmat);
+
+    void sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
+                                   const Eigen::MatrixXd &samples, double alpha, const int num_latent) override;
+    void sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
+                                   double mean_value, const Eigen::MatrixXd &samples, const int num_latent) override;
+    void sample_latents(ProbitNoise& noiseModel, TensorData & data,
+                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) override;
+    void sample_latents(double noisePrecision, TensorData & data,
+                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) override;
+    void update_prior(const Eigen::MatrixXd &U) override;
+    double getLinkNorm() override { return beta.norm(); };
+    void setLambdaBeta(double lb) { lambda_beta = Eigen::VectorXd::Constant(num_latent, lb); };
+    void saveModel(std::string prefix) override;
+	*/
 };
 
 }

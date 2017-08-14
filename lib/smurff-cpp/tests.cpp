@@ -11,6 +11,15 @@
 #include "model.h"
 #include <cmath>
 
+/* master
+#include <Eigen/Dense>
+#include <cmath>
+
+#include "bpmfutils.h"
+#include "sparsetensor.h"
+#include "macauoneprior.h"
+*/
+
 using namespace smurff;
 
 TEST_CASE( "SparseFeat/At_mul_A_bcsr", "[At_mul_A] for BinaryCSR" ) {
@@ -179,6 +188,34 @@ TEST_CASE( "MatrixXd/compute_uhat", "compute_uhat for MatrixXd" ) {
     }
   }
 }
+
+/* master
+TEST_CASE( "linop/solve_blockcg_dense", "BlockCG solver for dense (3rhs separately)" ) {
+  int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+  int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+  Eigen::MatrixXd B(3, 4), X(3, 4), X_true(3, 4), sf(6, 4);
+
+	sf = Eigen::MatrixXd::Zero(6, 4);
+	for (int i = 0; i < 9; i++) {
+		sf(rows[i], cols[i]) = 1.0;
+	}
+
+  B << 0.56,  0.55,  0.3 , -1.78,
+       0.34,  0.05, -1.48,  1.11,
+       0.09,  0.51, -0.63,  1.59;
+
+  X_true << 0.35555556,  0.40709677, -0.16444444, -0.87483871,
+            1.69333333, -0.12709677, -1.94666667,  0.49483871,
+            0.66      , -0.04064516, -0.78      ,  0.65225806;
+
+  solve_blockcg(X, sf, 0.5, B, 1e-6);
+  for (int i = 0; i < X.rows(); i++) {
+    for (int j = 0; j < X.cols(); j++) {
+      REQUIRE( X(i,j) == Approx(X_true(i,j)) );
+    }
+  }
+}
+*/
 
 TEST_CASE( "chol/chol_solve_t", "[chol_solve_t]" ) {
   Eigen::MatrixXd m(3,3), rhs(5,3), xopt(5,3);
@@ -459,6 +496,12 @@ TEST_CASE( "linop/A_mul_Bt_blas", "A_mul_Bt_blas is correct") {
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
 
+/* master
+TEST_CASE( "bpmfutils/split_work_mpi", "Test if work splitting is correct") {
+*/
+	
+// smurff
+	
 TEST_CASE( "utils/split_work_mpi", "Test if work splitting is correct") {
    int work3[3], work5[5];
    split_work_mpi(96, 3, work3);
@@ -489,6 +532,8 @@ TEST_CASE( "utils/split_work_mpi", "Test if work splitting is correct") {
    REQUIRE( work5[4] == 2 );
 }
 
+// smurff
+
 TEST_CASE( "utils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
   int rows[3] = {0, 1, 2};
   int cols[3] = {2, 1, 0};
@@ -497,6 +542,44 @@ TEST_CASE( "utils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
   Eigen::SparseMatrix<double> Y = sparse_to_eigen(S);
   REQUIRE( Y.nonZeros() == 3 );
 }
+
+/* master
+TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
+  int rows[3] = {0, 1, 2};
+  int cols[3] = {2, 1, 0};
+  double vals[3] = {1.0, 0.0, 2.0};
+  Eigen::SparseMatrix<double> Y;
+  Eigen::MatrixXd Ytrue(3, 3), Ydense(3, 3);
+  Ytrue << 0.0, 0.0, 1.0,
+           0.0, 0.0, 0.0,
+           2.0, 0.0, 0.0;
+
+  Y.resize(3, 3);
+  sparseFromIJV(Y, rows, cols, vals, 3);
+  REQUIRE( Y.nonZeros() == 3 );
+
+  Ydense = Eigen::MatrixXd(Y);
+  REQUIRE( (Ytrue - Ydense).norm() == Approx(0.0));
+
+  // testing idx version of sparseFromIJV
+  Eigen::MatrixXi idx(3, 2);
+  Eigen::VectorXd valx(3);
+  idx << 0, 2,
+         1, 1,
+         2, 0;
+  valx << 1.0, 0.0, 2.0;
+
+  Eigen::SparseMatrix<double> Y2;
+  Y2.resize(3, 3);
+  sparseFromIJV(Y2, idx, valx);
+
+  REQUIRE( Y2.nonZeros() == 3 );
+  Ydense = Eigen::MatrixXd(Y2);
+  REQUIRE( (Ytrue - Ydense).norm() == Approx(0.0));
+}
+*/
+
+// smurff
 
 TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
   int rows[1] = {0};
@@ -538,6 +621,55 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   REQUIRE(p.rmse_avg == 3.0);
 }
 
+/* master
+TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calculated") {
+  int rows[1] = {0};
+  int cols[1] = {0};
+  double vals[1] = {4.5};
+  Eigen::SparseMatrix<double> Y;
+  Y.resize(1, 1);
+  sparseFromIJV(Y, rows, cols, vals, 1);
+  double mean_value = 2.0;
+
+  Eigen::VectorXd pred     = Eigen::VectorXd::Zero(1);
+  Eigen::VectorXd pred_var = Eigen::VectorXd::Zero(1);
+  Eigen::MatrixXd U(2, 1), V(2, 1);
+
+  // first iteration
+  U << 1.0, 0.0;
+  V << 1.0, 0.0;
+  auto rmse0 = eval_rmse(Y, 0, pred, pred_var, U, V, mean_value);
+  REQUIRE(pred(0)      == Approx(3.0));
+  REQUIRE(pred_var(0)  == Approx(0.0));
+  REQUIRE(rmse0.first  == Approx(1.5));
+  REQUIRE(rmse0.second == Approx(1.5));
+
+  //// second iteration
+  U << 2.0, 0.0;
+  V << 1.0, 0.0;
+  auto rmse1 = eval_rmse(Y, 1, pred, pred_var, U, V, mean_value);
+  REQUIRE(pred(0)      == Approx((3.0 + 4.0) / 2));
+  REQUIRE(pred_var(0)  == Approx(0.5));
+  REQUIRE(rmse1.first  == 0.5);
+  REQUIRE(rmse1.second == 1.0);
+
+  //// third iteration
+  U << 2.0, 0.0;
+  V << 3.0, 0.0;
+  auto rmse2 = eval_rmse(Y, 2, pred, pred_var, U, V, mean_value);
+  REQUIRE(pred(0)      == Approx((3.0 + 4.0 + 8.0) / 3));
+  REQUIRE(pred_var(0)  == Approx(14.0)); // accumulated variance
+  REQUIRE(rmse2.first  == 3.5);
+  REQUIRE(rmse2.second == 0.5);
+}
+*/
+
+/* master
+TEST_CASE( "bpmfutils/row_mean_var", "Test if row_mean_var is correct") {	
+*/
+
+// smurff
+
 TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   Eigen::VectorXd mean(3), var(3), mean_tr(3), var_tr(3);
   Eigen::MatrixXd C(3, 5);
@@ -551,6 +683,12 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
 
+/* master
+TEST_CASE("bpmfutils/auc","AUC ROC") {	
+*/
+
+// smurff
+
 /*
 TEST_CASE("utils/auc","AUC ROC") {
   Eigen::VectorXd pred(20);
@@ -560,5 +698,278 @@ TEST_CASE("utils/auc","AUC ROC") {
   pred << 20.0, 19.0, 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, 12.0, 11.0,
           10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0;
   REQUIRE ( auc(pred, test) == Approx(0.84) );
+}
+*/
+
+/* master
+TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {
+  Eigen::MatrixXi C(5, 3);
+  C << 0, 1, 0,
+       0, 0, 0,
+       1, 3, 1,
+       2, 3, 0,
+       1, 0, 1;
+  Eigen::VectorXd v(5);
+  v << 0.1, 0.2, 0.3, 0.4, 0.5;
+
+  // mode 0
+  SparseMode sm0(C, v, 0, 4);
+
+  REQUIRE( sm0.num_modes == 3);
+  REQUIRE( sm0.row_ptr.size() == 5 ); 
+  REQUIRE( sm0.nnz == 5 ); 
+  REQUIRE( sm0.row_ptr(0) == 0 ); 
+  REQUIRE( sm0.row_ptr(1) == 2 ); 
+  REQUIRE( sm0.row_ptr(2) == 4 ); 
+  REQUIRE( sm0.row_ptr(3) == 5 ); 
+  REQUIRE( sm0.row_ptr(4) == 5 ); 
+  REQUIRE( sm0.modeSize() == 4 );
+
+  Eigen::MatrixXi I0(5, 2);
+  I0 << 1, 0,
+        0, 0,
+        3, 1,
+        0, 1,
+        3, 0;
+  Eigen::VectorXd v0(5);
+  v0 << 0.1, 0.2, 0.3, 0.5, 0.4;
+  REQUIRE( (sm0.indices - I0).norm() == 0 );
+  REQUIRE( (sm0.values  - v0).norm() == 0 );
+
+  // mode 1
+  SparseMode sm1(C, v, 1, 4);
+  Eigen::VectorXi ptr1(5);
+  ptr1 << 0, 2, 3, 3, 5;
+  I0   << 0, 0,
+          1, 1,
+          0, 0,
+          1, 1,
+          2, 0;
+  v0 << 0.2, 0.5, 0.1, 0.3, 0.4;
+  REQUIRE( sm1.num_modes == 3);
+  REQUIRE( (sm1.row_ptr - ptr1).norm() == 0 );
+  REQUIRE( (sm1.indices - I0).norm()   == 0 );
+  REQUIRE( (sm1.values  - v0).norm()   == 0 );
+  REQUIRE( sm1.modeSize() == 4 );
+}
+
+TEST_CASE("bpmfutils/eval_rmse_tensor", "Testing eval_rmse_tensor") {
+  Eigen::MatrixXi C(5, 3);
+  C << 0, 1, 0,
+       0, 0, 0,
+       1, 3, 1,
+       1, 0, 1,
+       2, 3, 0;
+  Eigen::VectorXd v(5);
+  v << 0.1, 0.2, 0.3, 0.4, 0.5;
+
+  // mode 0
+  SparseMode sm0(C, v, 0, 4);
+  int nlatent = 5;
+  double gmean = 0.9;
+
+  std::vector< std::unique_ptr<Eigen::MatrixXd> > samples;
+  Eigen::VectorXi dims(3);
+  dims << 4, 5, 2;
+
+  for (int d = 0; d < 3; d++) {
+    Eigen::MatrixXd* x = new Eigen::MatrixXd(nlatent, dims(d));
+    bmrandn(*x);
+    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXd>(x)) );
+  }
+
+  Eigen::VectorXd pred(5);
+  Eigen::VectorXd pred_var(5);
+  pred.setZero();
+  pred_var.setZero();
+
+  eval_rmse_tensor(sm0, 0, pred, pred_var, samples, gmean);
+
+  for (int i = 0; i < C.rows(); i++) {
+    auto v0 = gmean + samples[0]->col(C(i, 0)).
+                  cwiseProduct( samples[1]->col(C(i, 1)) ).
+                  cwiseProduct( samples[2]->col(C(i, 2)) ).sum();
+    REQUIRE(v0 == Approx(pred(i)));
+  }
+}
+
+TEST_CASE("sparsetensor/sparsetensor", "TensorData constructor") {
+  Eigen::MatrixXi C(5, 3);
+  C << 0, 1, 0,
+       0, 0, 0,
+       1, 3, 1,
+       2, 3, 0,
+       1, 0, 1;
+  Eigen::VectorXd v(5);
+  v << 0.1, 0.2, 0.3, 0.4, 0.5;
+  Eigen::VectorXi dims(3);
+  dims << 4, 4, 2;
+
+  TensorData st(3);
+  st.setTrain(C, v, dims);
+  REQUIRE( st.Y->size() == 3 );
+  REQUIRE( (*st.Y)[0]->nonZeros() == 5 );
+  REQUIRE( st.mean_value == Approx(v.mean()) );
+  REQUIRE( st.N == 3 );
+  REQUIRE( st.dims(0) == dims(0) );
+  REQUIRE( st.dims(1) == dims(1) );
+  REQUIRE( st.dims(2) == dims(2) );
+
+  // test data
+  Eigen::MatrixXi Cte(6, 3);
+  Cte << 1, 1, 0,
+         0, 0, 0,
+         1, 3, 0,
+         0, 3, 0,
+         2, 3, 1,
+         2, 0, 0;
+  Eigen::VectorXd vte(6);
+  vte << -0.1, -0.2, -0.3, -0.4, -0.5, -0.6;
+  st.setTest(Cte, vte, dims);
+
+  // fetch test data:
+  Eigen::MatrixXd testData = st.getTestData();
+
+  REQUIRE( st.getTestNonzeros() == Cte.rows() );
+  REQUIRE( testData.rows() == Cte.rows() );
+  REQUIRE( testData.cols() == 4 );
+
+  Eigen::MatrixXd testDataTr(6, 4);
+  testDataTr << 0, 0, 0, -0.2,
+                0, 3, 0, -0.4,
+                1, 1, 0, -0.1,
+                1, 3, 0, -0.3,
+                2, 3, 1, -0.5,
+                2, 0, 0, -0.6;
+  REQUIRE( (testDataTr - testData).norm() == 0);
+}
+
+TEST_CASE("sparsetensor/vectorview", "VectorView test") {
+	std::vector<std::unique_ptr<int> > vec2;
+	vec2.push_back( std::unique_ptr<int>(new int(0)) );
+	vec2.push_back( std::unique_ptr<int>(new int(2)) );
+	vec2.push_back( std::unique_ptr<int>(new int(4)) );
+	vec2.push_back( std::unique_ptr<int>(new int(6)) );
+	vec2.push_back( std::unique_ptr<int>(new int(8)) );
+	VectorView<int> vv2(vec2, 1);
+	REQUIRE( *vv2.get(0) == 0 );
+	REQUIRE( *vv2.get(1) == 4 );
+	REQUIRE( *vv2.get(2) == 6 );
+	REQUIRE( *vv2.get(3) == 8 );
+	REQUIRE( vv2.size() == 4 );
+}
+
+TEST_CASE("latentprior/sample_tensor", "Test whether sampling tensor is correct") {
+  Eigen::MatrixXi C(5, 3);
+  C << 0, 1, 0,
+       0, 0, 0,
+       1, 3, 1,
+       2, 3, 0,
+       1, 0, 1;
+  Eigen::VectorXd v(5);
+  v << 0.15, 0.23, 0.31, 0.47, 0.59;
+
+	Eigen::VectorXd mu(3);
+	Eigen::MatrixXd Lambda(3, 3);
+	mu << 0.03, -0.08, 0.12;
+	Lambda << 1.2, 0.11, 0.17,
+				    0.11, 1.4, 0.08,
+						0.17, 0.08, 1.7;
+
+	double mvalue = 0.2;
+	double alpha  = 7.5;
+  int nlatent = 3;
+
+  std::vector< std::unique_ptr<Eigen::MatrixXd> > samples;
+	std::vector< std::unique_ptr<SparseMode> > sparseModes;
+
+  Eigen::VectorXi dims(3);
+  dims << 4, 5, 2;
+  TensorData st(3);
+  st.setTrain(C, v, dims);
+
+  for (int d = 0; d < 3; d++) {
+    Eigen::MatrixXd* x = new Eigen::MatrixXd(nlatent, dims(d));
+    bmrandn(*x);
+    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXd>(x)) );
+
+		SparseMode* sm  = new SparseMode(C, v, d, dims(d));
+		sparseModes.push_back( std::move(std::unique_ptr<SparseMode>(sm)) );
+  }
+
+	VectorView<Eigen::MatrixXd> vv0(samples, 0);
+  sample_latent_tensor(samples[0], 0, sparseModes[0], vv0, mvalue, alpha, mu, Lambda);
+}
+
+TEST_CASE("macauoneprior/sample_tensor_uni", "Testing sampling tensor univariate") {
+  int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+  int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+  SparseFeat* sf = new SparseFeat(6, 4, 9, rows, cols);
+  auto sfptr = std::unique_ptr<SparseFeat>(sf);
+
+  Eigen::MatrixXi C(5, 3);
+  C << 0, 1, 0,
+       0, 0, 0,
+       1, 3, 1,
+       2, 3, 0,
+       1, 0, 1;
+  Eigen::VectorXd v(5);
+  v << 0.15, 0.23, 0.31, 0.47, 0.59;
+
+	Eigen::VectorXd mu(3);
+	Eigen::MatrixXd Lambda(3, 3);
+	mu << 0.03, -0.08, 0.12;
+	Lambda << 1.2, 0.11, 0.17,
+				    0.11, 1.4, 0.08,
+						0.17, 0.08, 1.7;
+
+	double mvalue = 0.2;
+	double alpha  = 7.5;
+  int nlatent = 3;
+
+  MacauOnePrior<SparseFeat> prior(nlatent, sfptr);
+
+  std::vector< std::unique_ptr<Eigen::MatrixXd> > samples;
+
+  Eigen::VectorXi dims(3);
+  dims << 6, 5, 2;
+  TensorData st(3);
+  st.setTrain(C, v, dims);
+
+  for (int d = 0; d < 3; d++) {
+    Eigen::MatrixXd* x = new Eigen::MatrixXd(nlatent, dims(d));
+    bmrandn(*x);
+    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXd>(x)) );
+  }
+
+  prior.sample_latents(alpha, st, samples, 0, nlatent);
+}
+
+TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
+ 	double x[6] = {0.1, 0.4, -0.7, 0.3, 0.11, 0.23};
+
+	// ColMajor case
+  auto prior = make_dense_prior(3, x, 3, 2, true, true);
+  Eigen::MatrixXd Ftrue(3, 2);
+  Ftrue <<  0.1, 0.3,
+						0.4, 0.11,
+					 -0.7, 0.23;
+  REQUIRE( (*(prior->F) - Ftrue).norm() == Approx(0) );
+	Eigen::MatrixXd tmp = Eigen::MatrixXd::Zero(2, 2);
+	tmp.triangularView<Eigen::Lower>()  = prior->FtF;
+	tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
+  REQUIRE( tmp.norm() == Approx(0) );
+
+	// RowMajor case
+  auto prior2 = make_dense_prior(3, x, 3, 2, false, true);
+	Eigen::MatrixXd Ftrue2(3, 2);
+	Ftrue2 << 0.1,  0.4,
+				   -0.7,  0.3,
+					  0.11, 0.23;
+  REQUIRE( (*(prior2->F) - Ftrue2).norm() == Approx(0) );
+	Eigen::MatrixXd tmp2 = Eigen::MatrixXd::Zero(2, 2);
+	tmp2.triangularView<Eigen::Lower>()  = prior2->FtF;
+	tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;
+  REQUIRE( tmp2.norm() == Approx(0) );
 }
 */

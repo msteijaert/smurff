@@ -1,4 +1,7 @@
 build/
+dist/
+tmp/
+lib/eigen3*/
 .*.swp
 MANIFEST
 *.pyc

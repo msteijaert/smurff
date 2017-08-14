@@ -27,7 +27,7 @@ wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
 ```
 
 # Contributors
-- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version)
+- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version, Tensor factorization)
 - Adam Arany (Probit noise model)
 - Tom Vander Aa (OpenMP optimized BPMF)
 - Tom Haber (Original BPMF code)

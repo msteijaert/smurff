@@ -19,7 +19,12 @@ using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
 
+// smurff variable
 std::vector<std::mt19937> bmrngs;
+
+/* master variable
+std::mt19937 **bmrngs;
+*/
 
 /*
   We need a functor that can pretend it's const,
@@ -37,6 +42,8 @@ thread_local static std::random_device srd;
 static std::random_device srd;
 #endif
 
+// smurff rndgen
+
 double randn(double) {
   return bmrandn_single() ;
 }
@@ -44,6 +51,26 @@ double randn(double) {
 double randn0() {
   return bmrandn_single();
 }
+
+/* master rndgen
+#ifndef __clang__
+thread_local 
+#endif 
+static std::mt19937 rng(srd());
+
+#ifndef __clang__
+thread_local 
+#endif 
+static std::normal_distribution<> nd;
+
+double randn(double) {
+  return nd(rng);
+}
+
+double randn0() {
+  return nd(rng);
+}
+*/
 
 auto
 nrandn(int n) -> decltype( VectorXd::NullaryExpr(n, std::cref(randn)) ) 
@@ -56,6 +83,8 @@ auto nrandn(int n, int m) -> decltype( ArrayXXd::NullaryExpr(n, m, ptr_fun(randn
     return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); 
 }
 
+// smurff
+
 void init_bmrng(int seed) {
 
    bmrngs.clear();
@@ -64,12 +93,24 @@ void init_bmrng(int seed) {
    }
 }
 
+/* master
+void init_bmrng(int seed) {
+
+   bmrngs = new std::mt19937*[nthreads()];
+   for (int i = 0; i < nthreads(); i++) {
+      bmrngs[i] = new std::mt19937(seed + i * 1999);
+   }
+}
+*/
+
 void init_bmrng() {
    auto ms = (duration_cast< milliseconds >(
              system_clock::now().time_since_epoch()
          )).count();
    init_bmrng(ms);
 }
+
+// smurff
 
 void bmrandn(double* x, long n) {
 #pragma omp parallel 
@@ -94,10 +135,37 @@ void bmrandn(double* x, long n) {
   }
 }
 
+/* master
+void bmrandn(double* x, long n) {
+#pragma omp parallel 
+  {
+    std::uniform_real_distribution<double> unif(-1.0, 1.0);
+    std::mt19937* bmrng = bmrngs[thread_num()];
+#pragma omp for schedule(static)
+    for (long i = 0; i < n; i += 2) {
+      double x1, x2, w;
+      do {
+        x1 = unif(*bmrng);
+        x2 = unif(*bmrng);
+        w = x1 * x1 + x2 * x2;
+      } while ( w >= 1.0 );
+
+      w = sqrt( (-2.0 * log( w ) ) / w );
+      x[i] = x1 * w;
+      if (i + 1 < n) {
+        x[i+1] = x2 * w;
+      }
+    }
+  }
+}
+*/
+
 void bmrandn(MatrixXd & X) {
   long n = X.rows() * (long)X.cols();
   bmrandn(X.data(), n);
 }
+
+// smurff
 
 // to be called within OpenMP parallel loop (also from serial code is fine)
 void bmrandn_single(double* x, long n) {
@@ -119,6 +187,30 @@ void bmrandn_single(double* x, long n) {
   }
 }
 
+/* master
+// to be called within OpenMP parallel loop (also from serial code is fine)
+void bmrandn_single(double* x, long n) {
+  std::uniform_real_distribution<double> unif(-1.0, 1.0);
+  std::mt19937* bmrng = bmrngs[thread_num()];
+  for (long i = 0; i < n; i += 2) {
+    double x1, x2, w;
+    do {
+      x1 = unif(*bmrng);
+      x2 = unif(*bmrng);
+      w = x1 * x1 + x2 * x2;
+    } while ( w >= 1.0 );
+
+    w = sqrt( (-2.0 * log( w ) ) / w );
+    x[i] = x1 * w;
+    if (i + 1 < n) {
+      x[i+1] = x2 * w;
+    }
+  }
+}
+*/
+
+// smurff
+
 double bmrandn_single() {
   //TODO: add bmrng as input
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
@@ -135,6 +227,24 @@ double bmrandn_single() {
     return x1 * w;
 }
 
+/* master
+double bmrandn_single() {
+  //TODO: add bmrng as input
+  std::uniform_real_distribution<double> unif(-1.0, 1.0);
+  std::mt19937* bmrng = bmrngs[thread_num()];
+  
+    double x1, x2, w;
+    do {
+      x1 = unif(*bmrng);
+      x2 = unif(*bmrng);
+      w = x1 * x1 + x2 * x2;
+    } while ( w >= 1.0 );
+
+    w = sqrt( (-2.0 * log( w ) ) / w );
+    return x1 * w;
+}
+*/
+
 void bmrandn_single(Eigen::VectorXd & x) {
   bmrandn_single(x.data(), x.size());
 }
@@ -144,12 +254,23 @@ void bmrandn_single(MatrixXd & X) {
   bmrandn_single(X.data(), n);
 }
 
+// smurff
+
 /** returns random number according to Gamma distribution
  *  with the given shape (k) and scale (theta). See wiki. */
 double rgamma(double shape, double scale) {
   std::gamma_distribution<double> gamma(shape, scale);
   return gamma(bmrngs.at(thread_num()));
 }
+
+/** returns random number according to Gamma distribution
+ *  with the given shape (k) and scale (theta). See wiki. */
+/* master
+double rgamma(double shape, double scale) {
+  std::gamma_distribution<double> gamma(shape, scale);
+  return gamma(*bmrngs[0]);
+}
+*/
 
 /** Normal(0, Lambda^-1) for nn columns */
 MatrixXd MvNormal_prec(const MatrixXd & Lambda, int nn = 1)
@@ -272,6 +393,32 @@ std::pair<VectorXd, MatrixXd> NormalWishart(const VectorXd & mu, double kappa, c
 
   return std::make_pair(mu_o , Lam);
 }
+
+/* master
+std::pair<VectorXd, MatrixXd> OldCondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
+{
+  int N = U.cols();
+
+  auto Um = U.rowwise().mean();
+
+  // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
+  MatrixXd C = U.colwise() - Um;
+  MatrixXd S = (C * C.adjoint()) / double(N - 1);
+  VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
+  double kappa_c = kappa + N;
+  MatrixXd T_c = ( T + N * S.transpose() + (kappa * N)/(kappa + N) * (mu - Um) * ((mu - Um).transpose())).inverse();
+  int nu_c = nu + N;
+
+#ifdef TEST_MVNORMAL
+  cout << "mu_c:\n" << mu_c << endl;
+  cout << "kappa_c:\n" << kappa_c << endl;
+  cout << "T_c:\n" << T_c << endl;
+  cout << "nu_c:\n" << nu_c << endl;
+#endif
+
+  return NormalWishart(mu_c, kappa_c, T_c, nu_c);
+}
+*/
 
 std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S, const VectorNd &Um, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
 {
@@ -423,5 +570,105 @@ int main()
 #endif
 }
 
+/* master
+// from bpmf.jl -- verified
+std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
+{
+  /// TODO: parallelize (for computing C and C * C')
+  int N = U.cols();
+
+	auto NU = U.rowwise().sum();
+	auto NS = U * U.adjoint();
+
+	int nu_c = nu + N;
+	double kappa_c = kappa + N;
+	auto mu_c = (kappa * mu + NU) / (kappa + N);
+	auto X    = (T + NS + kappa * mu * mu.adjoint() - kappa_c * mu_c * mu_c.adjoint());
+	Eigen::MatrixXd T_c = X.inverse();
+
+#ifdef TEST_MVNORMAL
+  cout << "mu_c:\n" << mu_c << endl;
+  cout << "kappa_c:\n" << kappa_c << endl;
+  cout << "T_c:\n" << T_c << endl;
+  cout << "nu_c:\n" << nu_c << endl;
+#endif
+
+  return NormalWishart(mu_c, kappa_c, T_c, nu_c);
+}
+
+#if defined(TEST_MVNORMAL) || defined (BENCH_MVNORMAL)
+
+int main()
+{
+
+    MatrixXd U(32,32 * 1024);
+    U.setOnes();
+
+    VectorXd mu(32);
+    mu.setZero();
+
+    double kappa = 2;
+
+    MatrixXd T(32,32);
+    T.setIdentity(32,32);
+    T.array() /= 4;
+
+    int nu = 3;
+
+    VectorXd mu_out;
+    MatrixXd T_out;
+
+#ifdef BENCH_MVNORMAL
+    for(int i=0; i<300; ++i) {
+        tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
+        cout << i << "\r" << flush;
+    }
+    cout << endl << flush;
+
+    for(int i=0; i<7; ++i) {
+        cout << i << ": " << (int)(100.0 * acc[i] / acc[7])  << endl;
+    }
+    cout << "total: " << acc[7] << endl;
+
+    for(int i=0; i<300; ++i) {
+        tie(mu_out, T_out) = OldCondNormalWishart(U, mu, kappa, T, nu);
+        cout << i << "\r" << flush;
+    }
+    cout << endl << flush;
+
+    cout << "total: " << acc[8] << endl;
+
+
+#else
+#if 1
+    cout << "COND NORMAL WISHART\n" << endl;
+
+    tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
+
+    cout << "mu_out:\n" << mu_out << endl;
+    cout << "T_out:\n" << T_out << endl;
+
+    cout << "\n-----\n\n";
+#endif
+
+#if 0
+    cout << "NORMAL WISHART\n" << endl;
+
+    tie(mu_out, T_out) = NormalWishart(mu, kappa, T, nu);
+    cout << "mu_out:\n" << mu_out << endl;
+    cout << "T_out:\n" << T_out << endl;
+
+#endif
+
+#if 0
+    cout << "MVNORMAL\n" << endl;
+    MatrixXd out = MvNormal(T, mu, 10);
+    cout << "mu:\n" << mu << endl;
+    cout << "T:\n" << T << endl;
+    cout << "out:\n" << out << endl;
+#endif
+#endif
+}
+*/
 
 #endif
