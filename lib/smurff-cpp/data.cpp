@@ -232,7 +232,9 @@ void MatrixDataTempl<YType>::init_base()
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
 
-    noise->init();
+    if (noise)
+        noise->init();
+
     cwise_mean = sum() / (size() - nna());
 }
 
