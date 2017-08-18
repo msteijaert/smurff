@@ -165,6 +165,18 @@ void bmrandn(MatrixXd & X) {
   bmrandn(X.data(), n);
 }
 
+double rand_unif() {
+  std::uniform_real_distribution<double> unif(0.0, 1.0);
+  std::mt19937& bmrng = bmrngs.at(thread_num());
+  return unif(bmrng);
+}
+
+double rand_unif(double low, double high) {
+  std::uniform_real_distribution<double> unif(low, high);
+  std::mt19937& bmrng = bmrngs.at(thread_num());
+  return unif(bmrng);
+}
+
 // smurff
 
 // to be called within OpenMP parallel loop (also from serial code is fine)
