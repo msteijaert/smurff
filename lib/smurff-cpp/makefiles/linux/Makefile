@@ -11,18 +11,27 @@ LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
 LIBSMURFF = libsmurff-cpp.a
 
-.PHONY: all clean smurff tests
+.PHONY: all clean smurff tests bench_nrandn bench_wishart bench_mvnormal
 
 all: smurff
 
 clean:
-	rm -f *.o *.a smurff tests
+	rm -f *.o *.a smurff tests bench_nrandn bench_wishart bench_mvnormal
 
 smurff: $(LIBSMURFF) cmd_session.o
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/smurff.cpp $(LIBSMURFF) $(LDFLAGS) cmd_session.o -o $@
 
 tests: $(LIBSMURFF)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/tests.cpp $(LIBSMURFF) $(LDFLAGS) -o $@
+
+bench_nrandn:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DTEST -DTEST_MVNORMAL -DBENCH -DBENCH_NRANDN -o $@
+
+bench_wishart:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DTEST -DTEST_MVNORMAL -DBENCH -DBENCH_COND_NORMALWISHART -DBENCH_NORMAL_WISHART -o $@
+
+bench_mvnormal:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DTEST -DTEST_MVNORMAL -DBENCH -DBENCH_MVNORMAL -o $@
 
 $(LIBSMURFF): $(LIBOBJS)
 	ar -rcs $(LIBSMURFF) $(LIBOBJS)
@@ -32,3 +41,4 @@ $(LIBSMURFF): $(LIBOBJS)
 
 %.o : $(ROOT)/smurff-cpp/%.c
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
