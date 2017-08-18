@@ -36,6 +36,7 @@ namespace smurff {
 
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
+    assert(noise);
     os << indent << "Type: " << name << "\n";
     os << indent << "Component-wise mean: " << cwise_mean << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
@@ -402,6 +403,8 @@ std::ostream &ScarceMatrixData::info(std::ostream &os, std::string indent)
 }
 
 void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM) {
+    assert(noise);
+
     auto &Y = Yc.at(mode);
     const int num_latent = model.nlatent();
     const auto &Vf = model.V(mode);
@@ -492,6 +495,7 @@ void ScarceBinaryMatrixData::get_pnm(const SubModel &model, int mode, int n, Vec
 
 template<class YType>
 void FullMatrixData<YType>::get_pnm(const SubModel &model, int mode, int d, VectorXd &rr, MatrixXd &MM) {
+    assert(this->noise);
     const double alpha = this->noise->getAlpha();
     auto &Y = this->Yc.at(mode);
     rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
