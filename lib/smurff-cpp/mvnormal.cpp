@@ -364,16 +364,17 @@ MatrixXd Wishart(const MatrixXd &sigma, const int df)
 {
 //  Get R, the upper triangular Cholesky factor of SIGMA.
   auto chol = sigma.llt();
+  MatrixXd r = chol.matrixL();
 
 //  Get AU, a sample from the unit Wishart distribution.
   MatrixXd au = WishartUnit(sigma.cols(), df);
 
 //  Construct the matrix A = R' * AU * R.
-  MatrixXd a = chol.matrixL() * au * chol.matrixU();
+  MatrixXd a = r * au * chol.matrixU();
 
 #ifdef TEST_MVNORMAL
     cout << "WISHART {\n" << endl;
-    cout << "  sigma::\n" << sigma << endl;
+    cout << "  sigma:\n" << sigma << endl;
     cout << "  r:\n" << r << endl;
     cout << "  au:\n" << au << endl;
     cout << "  df:\n" << df << endl;
