@@ -420,15 +420,13 @@ std::pair<VectorXd, MatrixXd> OldCondNormalWishart(const MatrixXd &U, const Vect
 }
 */
 
-std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S, const VectorNd &Um, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
+std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &NS, const VectorNd &NU, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
 {
-    VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
-    double kappa_c = kappa + N;
-    auto mu_m = (mu - Um);
-    double kappa_m = (kappa * N)/(kappa + N);
-    auto X = ( T + N * S + kappa_m * (mu_m * mu_m.transpose()));
-    MatrixXd T_c = X.inverse();
-    int nu_c = nu + N;
+	int nu_c = nu + N;
+	double kappa_c = kappa + N;
+	auto mu_c = (kappa * mu + NU) / (kappa + N);
+	auto X    = (T + NS + kappa * mu * mu.adjoint() - kappa_c * mu_c * mu_c.adjoint());
+	Eigen::MatrixXd T_c = X.inverse();
 
 #ifdef TEST_MVNORMAL
     cout << "mu_c:\n" << mu_c << endl;
@@ -442,14 +440,10 @@ std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S
 
 std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
 {
-    int N = U.cols();
-    auto Um = U.rowwise().mean();
-
-    // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
-    MatrixXd C = U.colwise() - Um;
-    MatrixXd S = (C * C.adjoint()) / double(N - 1);
-
-    return CondNormalWishart(N, S, Um, mu, kappa, T, nu);
+    auto N = U.cols();
+	auto NS = U * U.adjoint();
+	auto NU = U.rowwise().sum();
+    return CondNormalWishart(N, NS, NU, mu, kappa, T, nu);
 }
 
 #if defined(TEST) || defined (BENCH)
