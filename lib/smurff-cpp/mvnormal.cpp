@@ -506,7 +506,7 @@ int main()
     return 0;
 
 #else
-
+    init_bmrng(1234);
     {
         MatrixXd U(32,32 * 1024);
         U.setOnes();
