@@ -407,32 +407,6 @@ std::pair<VectorXd, MatrixXd> NormalWishart(const VectorXd & mu, double kappa, c
   return std::make_pair(mu_o , Lam);
 }
 
-/* master
-std::pair<VectorXd, MatrixXd> OldCondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
-{
-  int N = U.cols();
-
-  auto Um = U.rowwise().mean();
-
-  // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
-  MatrixXd C = U.colwise() - Um;
-  MatrixXd S = (C * C.adjoint()) / double(N - 1);
-  VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
-  double kappa_c = kappa + N;
-  MatrixXd T_c = ( T + N * S.transpose() + (kappa * N)/(kappa + N) * (mu - Um) * ((mu - Um).transpose())).inverse();
-  int nu_c = nu + N;
-
-#ifdef TEST_MVNORMAL
-  cout << "mu_c:\n" << mu_c << endl;
-  cout << "kappa_c:\n" << kappa_c << endl;
-  cout << "T_c:\n" << T_c << endl;
-  cout << "nu_c:\n" << nu_c << endl;
-#endif
-
-  return NormalWishart(mu_c, kappa_c, T_c, nu_c);
-}
-*/
-
 std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &NS, const VectorNd &NU, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
 {
 	int nu_c = nu + N;
@@ -524,27 +498,6 @@ int main()
 
         VectorXd mu_out;
         MatrixXd T_out;
-
-#ifdef BENCH_OLD_VS_NEW
-        for(int i=0; i<300; ++i) {
-            tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
-            cout << i << "\r" << flush;
-        }
-        cout << endl << flush;
-
-        for(int i=0; i<7; ++i) {
-            cout << i << ": " << (int)(100.0 * acc[i] / acc[7])  << endl;
-        }
-        cout << "total: " << acc[7] << endl;
-
-        for(int i=0; i<300; ++i) {
-            tie(mu_out, T_out) = OldCondNormalWishart(U, mu, kappa, T, nu);
-            cout << i << "\r" << flush;
-        }
-        cout << endl << flush;
-
-        cout << "total: " << acc[8] << endl;
-#endif
 
 #if defined(BENCH_COND_NORMALWISHART)
         cout << "COND NORMAL WISHART\n" << endl;
