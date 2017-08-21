@@ -25,13 +25,13 @@ tests: $(LIBSMURFF)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/tests.cpp $(LIBSMURFF) $(LDFLAGS) -o $@
 
 bench_nrandn:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DTEST -DTEST_MVNORMAL -DBENCH -DBENCH_NRANDN -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_NRANDN -o $@
 
 bench_wishart:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DTEST -DTEST_MVNORMAL -DBENCH -DBENCH_COND_NORMALWISHART -DBENCH_NORMAL_WISHART -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_COND_NORMALWISHART -DBENCH_NORMAL_WISHART -o $@
 
 bench_mvnormal:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DTEST -DTEST_MVNORMAL -DBENCH -DBENCH_MVNORMAL -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff-cpp/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_MVNORMAL -o $@
 
 $(LIBSMURFF): $(LIBOBJS)
 	ar -rcs $(LIBSMURFF) $(LIBOBJS)
