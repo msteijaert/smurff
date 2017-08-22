@@ -189,7 +189,6 @@ TEST_CASE( "MatrixXd/compute_uhat", "compute_uhat for MatrixXd" ) {
   }
 }
 
-/* master
 TEST_CASE( "linop/solve_blockcg_dense", "BlockCG solver for dense (3rhs separately)" ) {
   int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
   int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
@@ -215,7 +214,6 @@ TEST_CASE( "linop/solve_blockcg_dense", "BlockCG solver for dense (3rhs separate
     }
   }
 }
-*/
 
 TEST_CASE( "chol/chol_solve_t", "[chol_solve_t]" ) {
   Eigen::MatrixXd m(3,3), rhs(5,3), xopt(5,3);
@@ -495,12 +493,6 @@ TEST_CASE( "linop/A_mul_Bt_blas", "A_mul_Bt_blas is correct") {
   Ctr = A * B.transpose();
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
-
-/* master
-TEST_CASE( "bpmfutils/split_work_mpi", "Test if work splitting is correct") {
-*/
-	
-// smurff
 	
 TEST_CASE( "utils/split_work_mpi", "Test if work splitting is correct") {
    int work3[3], work5[5];
@@ -579,8 +571,6 @@ TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") 
 }
 */
 
-// smurff
-
 TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
   int rows[1] = {0};
   int cols[1] = {0};
@@ -621,55 +611,6 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   REQUIRE(p.rmse_avg == 3.0);
 }
 
-/* master
-TEST_CASE( "bpmfutils/eval_rmse", "Test if prediction variance is correctly calculated") {
-  int rows[1] = {0};
-  int cols[1] = {0};
-  double vals[1] = {4.5};
-  Eigen::SparseMatrix<double> Y;
-  Y.resize(1, 1);
-  sparseFromIJV(Y, rows, cols, vals, 1);
-  double mean_value = 2.0;
-
-  Eigen::VectorXd pred     = Eigen::VectorXd::Zero(1);
-  Eigen::VectorXd pred_var = Eigen::VectorXd::Zero(1);
-  Eigen::MatrixXd U(2, 1), V(2, 1);
-
-  // first iteration
-  U << 1.0, 0.0;
-  V << 1.0, 0.0;
-  auto rmse0 = eval_rmse(Y, 0, pred, pred_var, U, V, mean_value);
-  REQUIRE(pred(0)      == Approx(3.0));
-  REQUIRE(pred_var(0)  == Approx(0.0));
-  REQUIRE(rmse0.first  == Approx(1.5));
-  REQUIRE(rmse0.second == Approx(1.5));
-
-  //// second iteration
-  U << 2.0, 0.0;
-  V << 1.0, 0.0;
-  auto rmse1 = eval_rmse(Y, 1, pred, pred_var, U, V, mean_value);
-  REQUIRE(pred(0)      == Approx((3.0 + 4.0) / 2));
-  REQUIRE(pred_var(0)  == Approx(0.5));
-  REQUIRE(rmse1.first  == 0.5);
-  REQUIRE(rmse1.second == 1.0);
-
-  //// third iteration
-  U << 2.0, 0.0;
-  V << 3.0, 0.0;
-  auto rmse2 = eval_rmse(Y, 2, pred, pred_var, U, V, mean_value);
-  REQUIRE(pred(0)      == Approx((3.0 + 4.0 + 8.0) / 3));
-  REQUIRE(pred_var(0)  == Approx(14.0)); // accumulated variance
-  REQUIRE(rmse2.first  == 3.5);
-  REQUIRE(rmse2.second == 0.5);
-}
-*/
-
-/* master
-TEST_CASE( "bpmfutils/row_mean_var", "Test if row_mean_var is correct") {	
-*/
-
-// smurff
-
 TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   Eigen::VectorXd mean(3), var(3), mean_tr(3), var_tr(3);
   Eigen::MatrixXd C(3, 5);
@@ -683,13 +624,6 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
 
-/* master
-TEST_CASE("bpmfutils/auc","AUC ROC") {	
-*/
-
-// smurff
-
-/*
 TEST_CASE("utils/auc","AUC ROC") {
   Eigen::VectorXd pred(20);
   Eigen::VectorXd test(20);
@@ -699,7 +633,6 @@ TEST_CASE("utils/auc","AUC ROC") {
           10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0;
   REQUIRE ( auc(pred, test) == Approx(0.84) );
 }
-*/
 
 /* master
 TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {
