@@ -5,7 +5,7 @@ CXXFLAGS=-std=c++11 -Wall -Wno-unknown-pragmas -fPIC
 INCLUDES=-I $(ROOT)/eigen3 -I $(ROOT)/libfastsparse
 LDFLAGS=-lm -lopenblas -lpthread
 
-LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
+LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
 LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o data.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
