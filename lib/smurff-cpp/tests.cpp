@@ -9,6 +9,10 @@
 #include "utils.h"
 #include "data.h"
 #include "model.h"
+#include "sparsetensor.h"
+#include "macauoneprior.h"
+#include "inv_norm_cdf.h"
+#include "truncnorm.h"
 #include <cmath>
 
 /* master
@@ -16,10 +20,6 @@
 #include <cmath>
 
 #include "bpmfutils.h"
-#include "sparsetensor.h"
-#include "macauoneprior.h"
-#include "inv_norm_cdf.h"
-#include "truncnorm.h"
 */
 
 using namespace smurff;
@@ -910,6 +910,7 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
 	tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;
   REQUIRE( tmp2.norm() == Approx(0) );
 }
+*/
 
 TEST_CASE("inv_norm_cdf/inv_norm_cdf", "Inverse normal CDF") {
 	REQUIRE( inv_norm_cdf(0.0)  == -1.0 / 0.0 );
@@ -935,4 +936,4 @@ TEST_CASE( "truncnorm/rand_truncnorm", "generaring random truncnorm variable" ) 
     REQUIRE( rand_truncnorm(30, 2.0, 50.0) >= 50.0 );
   }
 }
-*/
+
