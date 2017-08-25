@@ -27,6 +27,18 @@ class INoiseModel {
     Data &data;
 };
 
+class Noiseless : public INoiseModel {
+  public:
+    Noiseless(Data &p) : INoiseModel(p) {}
+
+    void init() override { }
+    void update(const SubModel &) override {}
+    double getAlpha() override { return 1.; }
+
+    std::ostream &info(std::ostream &os, std::string indent)  override;
+    std::string getStatus() override { return std::string("No noise"); }
+};
+
 /** Gaussian noise is fixed for the whole run */
 class FixedGaussianNoise : public INoiseModel {
   public:

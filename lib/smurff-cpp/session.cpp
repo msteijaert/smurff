@@ -206,8 +206,8 @@ bool Config::validate(bool throw_error) const
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
     if (prior_names.find(row_prior) == prior_names.end()) die("Unknown row_prior " + row_prior);
 
-    std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
-    if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
+    std::set<std::string> noise_models = { "noiseless", "fixed", "adaptive", "probit" };
+    if (noise_models.find(noise.name) == noise_models.end()) die("Unknown noise model " + noise.name);
 
     std::set<std::string> center_modes = { "none", "global", "rows", "cols" };
     if (center_modes.find(center_mode) == center_modes.end()) die("Unknown center mode " + center_mode);
@@ -282,10 +282,10 @@ void Config::save(std::string fname) const
     os << "direct = " << direct << std::endl;
 
     os << "# noise model" << std::endl;
-    os << "noise_model = " << noise_model << std::endl;
-    os << "precision = " << precision << std::endl;
-    os << "sn_init = " << sn_init << std::endl;
-    os << "sn_max = " << sn_max << std::endl;
+    os << "noise_model = " << noise.name << std::endl;
+    os << "precision = " << noise.precision << std::endl;
+    os << "sn_init = " << noise.sn_init << std::endl;
+    os << "sn_max = " << noise.sn_max << std::endl;
 
     os << "# binary classification" << std::endl;
     os << "classify = " << classify << std::endl;
@@ -327,10 +327,10 @@ void Config::restore(std::string fname) {
     direct = reader.GetBoolean("", "direct",  false); 
 
     //-- noise model
-    noise_model = reader.Get("", "noise_model",  "fixed");
-    precision = reader.GetReal("", "precision",  5.0);
-    sn_init = reader.GetReal("", "sn_init",  1.0);
-    sn_max = reader.GetReal("", "sn_max",  10.0);
+    noise.name = reader.Get("", "noise_model",  "fixed");
+    noise.precision = reader.GetReal("", "precision",  5.0);
+    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
+    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
 
     //-- binary classification
     classify = reader.GetBoolean("", "classify",  false);
@@ -414,7 +414,7 @@ void Session::setFromConfig(const Config &c)
             if (!config.classify) {
                 config.classify = true;
                 config.threshold = 0.5;
-                config.noise_model = "probit";
+                config.noise.name = "probit";
             }
  
  
