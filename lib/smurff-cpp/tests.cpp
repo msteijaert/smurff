@@ -629,6 +629,7 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
 
+/*
 TEST_CASE("utils/auc","AUC ROC") {
   Eigen::VectorXd pred(20);
   Eigen::VectorXd test(20);
@@ -638,6 +639,7 @@ TEST_CASE("utils/auc","AUC ROC") {
           10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0;
   REQUIRE ( auc(pred, test) == Approx(0.84) );
 }
+*/
 
 /* master
 TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {
