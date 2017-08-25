@@ -19,25 +19,25 @@
 struct PVec {
     // c'tor
     PVec() : n(0) {}
-    PVec(int n) : n(n), v({{0}}) { assert(n <= max); }
+    PVec(size_t n) : n(n), v({{0}}) { assert(n <= max); }
     PVec(int a, int b) : n(2), v({{a,b}}) {}
 
     // meta info
-    int size() const { return n; }
+    size_t size() const { return n; }
 
     // const accessor
-    const int &operator[](int p) const { return v[p]; }
-    const int &at(int p) const { assert(p>=0 && p < n); return v[p]; }
+    const int &operator[](size_t p) const { return v[p]; }
+    const int &at(size_t p) const { assert(p>=0 && p < n); return v[p]; }
 
     // non-const accessor
-    int &operator[](int p) { return v[p]; }
-    int &at(int p) { assert(p>=0 && p < n); return v[p]; }
+    int &operator[](size_t p) { return v[p]; }
+    int &at(size_t p) { assert(p>=0 && p < n); return v[p]; }
 
     // operator+
     PVec operator+(const PVec &other) const {
         assert(n == other.n);
         PVec ret = *this;
-        for(int i=0; i<n; ++i) { ret[i] += other[i]; }
+        for(size_t i=0; i<n; ++i) { ret[i] += other[i]; }
         return ret;
     }
     //
@@ -45,12 +45,12 @@ struct PVec {
     PVec operator-(const PVec &other) const {
         assert(n == other.n);
         PVec ret = *this;
-        for(int i=0; i<n; ++i) { ret[i] -= other[i]; }
+        for(size_t i=0; i<n; ++i) { ret[i] -= other[i]; }
         return ret;
     }
 
     bool in(const PVec &start, const PVec &end) const {
-        for(int i=0; i<n; ++i) {
+        for(size_t i=0; i<n; ++i) {
             if (at(i) < start.at(i)) return false;
             if (at(i) >= end.at(i)) return false;
         }
@@ -59,14 +59,14 @@ struct PVec {
 
     int dot() const {
         int ret = 1;
-        for(int i=0; i<n; ++i) ret *= at(i);
+        for(size_t i=0; i<n; ++i) ret *= at(i);
         return ret;
     }
 
 
     std::ostream &info(std::ostream &os) const {
         os << "[ ";
-        for(int i=0; i<n; ++i) {
+        for(size_t i=0; i<n; ++i) {
             os << n;
             if (i != n-1) os << " x ";
         }
@@ -76,7 +76,7 @@ struct PVec {
 
   private:
     static const unsigned int max = 2; // only matrices for the moment
-    int n;
+    size_t n;
     std::array<int, max> v;
 };
 

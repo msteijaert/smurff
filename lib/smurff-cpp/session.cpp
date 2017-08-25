@@ -369,10 +369,10 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
     // multiple matrices
     auto data = new MatricesData();
     data->add(PVec(0,0),toData(train, true /*scarce*/));
-    for(int i=0; i<row_features.size(); ++i) {
+    for(size_t i=0; i<row_features.size(); ++i) {
         data->add(PVec(i+1, 0), toData(row_features[i], false)); 
     }
-    for(int i=0; i<col_features.size(); ++i) {
+    for(size_t i=0; i<col_features.size(); ++i) {
         data->add(PVec(0, i+1), toData(col_features[i], false)); 
     }
 
