@@ -134,36 +134,40 @@ using namespace smurff;
 
 MatrixConfig extract(MatrixConfig &Yin, double s, bool remove)
 {
-    unsigned M = rand() * std::numeric_limits<unsigned>().max();
     unsigned Yout_nnz = Yin.nnz * s;
+    unsigned Ynew_nnz = Yin.nnz - Yout_nnz;
+
+    std::default_random_engine gen;
+    std::uniform_real_distribution<double> udist(0.0,1.0);
+
     MatrixConfig Yout(Yin.nrow, Yin.ncol, Yout_nnz);
+    MatrixConfig Ynew(Yin.nrow, Yin.ncol, Ynew_nnz);
     Yout.alloc();
+    if (remove) Ynew.alloc();
 
-    int pos = M % Yin.nnz;
-    for(int i=0; i<Yout.nnz; ++i) {
-        Yout.cols[i] = Yin.cols[pos];
-        Yout.rows[i] = Yin.rows[pos];
-        Yout.values[i] = Yin.values[pos];
-        pos = (pos + M) % Yin.nnz;
-
-        //schedule for removal
-        if (remove) Yin.values[pos] = NAN; 
-    }
-
-    if (remove) {
-        unsigned Ynew_nnz = Yin.nnz - Yout.nnz;
-        MatrixConfig Ynew(Yin.nrow, Yin.ncol, Ynew_nnz);
-        Ynew.alloc();
-
-        for(int i=0, j=0; i<Yin.nnz; ++i) {
-            if (Yin.values[i] != Yin.values[i]) continue;
-            Ynew.cols[j]   = Yin.cols[i];
-            Ynew.rows[j]   = Yin.rows[i];
-            Ynew.values[j] = Yin.values[i];
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    for(; i<Yin.nnz; ++i) {
+        auto p=udist(gen);
+        if(p < s && j < Yout.nnz) {
+            Yout.cols[j] = Yin.cols[i];
+            Yout.rows[j] = Yin.rows[i];
+            Yout.values[j] = Yin.values[i];
             j++;
+        } else if (remove) {
+            assert(k < Ynew.nnz);
+            Ynew.cols[k] = Yin.cols[i];
+            Ynew.rows[k] = Yin.rows[i];
+            Ynew.values[k] = Yin.values[i];
+            k++;
         }
-        std::swap(Yin, Ynew);
     }
+
+    assert(j == Yout.nnz);
+    if (remove) assert(k == Ynew.nnz);
+
+    if (remove) std::swap(Yin, Ynew);
 
     return Yout;
 }
