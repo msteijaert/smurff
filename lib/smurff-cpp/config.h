@@ -8,8 +8,16 @@
 namespace smurff {
 
 struct NoiseConfig {
+    NoiseConfig(std::string n = "noiseless") : name(n) {}
+    NoiseConfig(double p) : name("fixed"), precision(p) {}
+    NoiseConfig(double i, double m) : name("adaptive"), sn_init(i), sn_max(m) {}
+
     std::string name  = "noiseless";
+    
+    // for fixed gaussian noise
     double precision  = 5.0;
+  
+    // for adaptive gausssian noise
     double sn_init    = 1.0;
     double sn_max     = 10.0;
 };

@@ -337,6 +337,29 @@ void Config::restore(std::string fname) {
     threshold = reader.GetReal("", "threshold",  .0);
 };
  
+std::unique_ptr<INoiseModel> toNoiseModel(const NoiseConfig &config, Data &data)
+{
+
+    std::unique_ptr<INoiseModel> noise;
+
+    if (config.name == "fixed") {
+        auto *n = new FixedGaussianNoise(data, config.precision);
+        noise.reset(n);
+    } else if (config.name == "fixed") {
+        auto *n = new AdaptiveGaussianNoise(data, config.sn_init, config.sn_max);
+        noise.reset(n);
+    } else if (config.name == "probit") {
+        auto *n = new ProbitNoise(data);
+        noise.reset(n);
+    } else if (config.name == "noiseless") {
+        auto *n = new Noiseless(data);
+        noise.reset(n);
+    } else {
+        die("Unknown noise model; " + config.name);
+    }
+
+    return noise;
+}
 
 std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce) 
 {
@@ -355,6 +378,8 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
         Eigen::MatrixXd Ytrain = dense_to_eigen(config);
         data = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
+
+    data->noise = toNoiseModel(config.noise, *data);
 
     return data;
 }
@@ -419,18 +444,7 @@ void Session::setFromConfig(const Config &c)
  
  
     if (config.classify) pred.setThreshold(config.threshold);
-
-    //-- noise model
-    if (config.noise_model == "adaptive") {
-        data->setAdaptivePrecision(config.sn_init, config.sn_max);
-    } else if (config.noise_model == "fixed") {
-        data->setPrecision(config.precision);
-    } else if (config.noise_model == "probit") {
-        data->setProbit();
-    } else {
-        die("Unknown noise model; " + config.noise_model);
-    }
-
+    
     // center mode
     data->setCenterMode(config.center_mode);
 
