@@ -77,8 +77,9 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case FNAME_TEST:
                               //-- check if fname_test is actually a number
                               if ((config.test_split = atof(optarg)) <= .0) {
-                                  config.test           = read_sparse(optarg); break;
+                                  config.test           = read_sparse(optarg);
                               }
+                              break;
         case NUM_LATENT:      config.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        config.nsamples           = strtol(optarg, NULL, 10); break;
 

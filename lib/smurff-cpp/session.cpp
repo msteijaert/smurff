@@ -413,10 +413,13 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
+    // test data
     // split if needed
     if (config.test_split > .0) {
         auto predictions = extract(config.train, config.test_split);
         pred.set(sparse_to_eigen(predictions));
+    } else {
+        pred.set(sparse_to_eigen(config.test));
     }
 
     std::vector<MatrixConfig> row_matrices, col_matrices;
@@ -447,9 +450,6 @@ void Session::setFromConfig(const Config &c)
     
     // center mode
     data->setCenterMode(config.center_mode);
-
-    // test data
-    pred.set(sparse_to_eigen(config.test));
 
 
     add_prior(*this, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);
