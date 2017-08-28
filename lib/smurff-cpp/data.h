@@ -81,7 +81,10 @@ struct MatrixData: public Data {
 };
 
 struct MatricesData: public MatrixData {
-    MatricesData() : total_dim(2) { name = "MatricesData"; }
+    MatricesData() : total_dim(2) { 
+        name = "MatricesData"; 
+        noise = std::unique_ptr<INoiseModel>(new UnusedNoise(*this));
+    }
 
     void init_base() override;
     void setCenterMode(std::string c) override;

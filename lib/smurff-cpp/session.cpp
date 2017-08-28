@@ -413,7 +413,8 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    // split if needed
+    // test data
+    // extract from train if needed
     if (config.test_split > .0) {
         auto predictions = extract(config.train, config.test_split);
         pred.set(sparse_to_eigen(predictions));

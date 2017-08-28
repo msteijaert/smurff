@@ -12,6 +12,12 @@ using namespace Eigen;
 
 namespace smurff {
 
+std::ostream &UnusedNoise::info(std::ostream &os, std::string indent)
+{ 
+    os << "Noisemodel is not used here.\n";
+    return os;
+}
+
 std::ostream &Noiseless::info(std::ostream &os, std::string indent)
 { 
     os << "No noise\n";

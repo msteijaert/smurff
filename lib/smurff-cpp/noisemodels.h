@@ -27,6 +27,19 @@ class INoiseModel {
     Data &data;
 };
 
+class UnusedNoise : public INoiseModel {
+  public:
+    UnusedNoise(Data &p) : INoiseModel(p) {}
+
+    void init() override {}
+    void update(const SubModel &) override {}
+    double getAlpha() override { assert(false); }
+
+    std::ostream &info(std::ostream &os, std::string indent)  override;
+    std::string getStatus() override { return std::string("Unused"); }
+};
+
+
 class Noiseless : public INoiseModel {
   public:
     Noiseless(Data &p) : INoiseModel(p) {}
