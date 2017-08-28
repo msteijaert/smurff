@@ -12,6 +12,12 @@ using namespace Eigen;
 
 namespace smurff {
 
+std::ostream &Noiseless::info(std::ostream &os, std::string indent)
+{ 
+    os << "No noise\n";
+    return os;
+}
+
 std::ostream &FixedGaussianNoise::info(std::ostream &os, std::string indent)
 { 
     os << "Fixed gaussian noise with precision: " << alpha << "\n";
