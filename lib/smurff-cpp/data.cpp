@@ -46,25 +46,6 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
     return os;
 }
 
-FixedGaussianNoise &Data::setPrecision(double p) {
-  auto *n = new FixedGaussianNoise(*this, p);
-  noise.reset(n);
-  return *n;
-}
-
-
-AdaptiveGaussianNoise &Data::setAdaptivePrecision(double sn_init, double sn_max) {
-  auto *n = new AdaptiveGaussianNoise(*this, sn_init, sn_max);
-  noise.reset(n);
-  return *n;
-}
-
-ProbitNoise &Data::setProbit() {
-  auto *n = new ProbitNoise(*this);
-  noise.reset(n);
-  return *n;
-}
-
 void Data::setCenterMode(std::string c)
 {
     //-- centering model
@@ -131,9 +112,6 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
 
 void MatricesData::init_base() 
 {
-    // FIXME: noise!
-    for(auto &blk : blocks) blk.data().setPrecision(5.);
-
     mode_dim.resize(nmode());
     for(int n = 0; n<nmode(); ++n) {
         std::vector<int> S(blocks.size());

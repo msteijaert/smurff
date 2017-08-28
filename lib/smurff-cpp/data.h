@@ -34,11 +34,6 @@ struct Data {
     //-- print info
     virtual std::ostream &info(std::ostream &os, std::string indent);
 
-    // set noise models
-    FixedGaussianNoise &setPrecision(double p);
-    AdaptiveGaussianNoise &setAdaptivePrecision(double sn_init, double sn_max);
-    ProbitNoise &setProbit();
-
     // virtual functions data-related
     virtual int    nmode() const = 0;
     virtual int    nnz()   const = 0;

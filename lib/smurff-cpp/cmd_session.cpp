@@ -44,14 +44,20 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
     Config &config = *(Config *)(state->input);
 
     auto set_noise_model = [&config](std::string name, std::string optarg) {
-        config.noise_model = name;
+        NoiseConfig c;
+        c.name = name;
         if (name == "adaptive") {
             char *token, *str = strdup(optarg.c_str());
-            if(str && (token = strsep(&str, ","))) config.sn_init = strtod(token, NULL); 
-            if(str && (token = strsep(&str, ","))) config.sn_max = strtod(token, NULL); 
+            if(str && (token = strsep(&str, ","))) c.sn_init = strtod(token, NULL); 
+            if(str && (token = strsep(&str, ","))) c.sn_max = strtod(token, NULL); 
         } else if (name == "fixed") {
-            config.precision = strtod(optarg.c_str(), NULL);
+            c.precision = strtod(optarg.c_str(), NULL);
         }
+
+        if (config.noise.name == "noiseless") config.noise = c; 
+        for(auto m: config.row_features) if (m.noise.name == "noiseless") config.noise = c; 
+        for(auto m: config.col_features) if (m.noise.name == "noiseless") config.noise = c; 
+
     };
 
     switch (key) {
@@ -71,8 +77,9 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case FNAME_TEST:
                               //-- check if fname_test is actually a number
                               if ((config.test_split = atof(optarg)) <= .0) {
-                                  config.test           = read_sparse(optarg); break;
+                                  config.test           = read_sparse(optarg);
                               }
+                              break;
         case NUM_LATENT:      config.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        config.nsamples           = strtol(optarg, NULL, 10); break;
 

@@ -206,8 +206,8 @@ bool Config::validate(bool throw_error) const
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
     if (prior_names.find(row_prior) == prior_names.end()) die("Unknown row_prior " + row_prior);
 
-    std::set<std::string> noise_models = { "fixed", "adaptive", "probit" };
-    if (noise_models.find(noise_model) == noise_models.end()) die("Unknown noise model " + noise_model);
+    std::set<std::string> noise_models = { "noiseless", "fixed", "adaptive", "probit" };
+    if (noise_models.find(noise.name) == noise_models.end()) die("Unknown noise model " + noise.name);
 
     std::set<std::string> center_modes = { "none", "global", "rows", "cols" };
     if (center_modes.find(center_mode) == center_modes.end()) die("Unknown center mode " + center_mode);
@@ -282,10 +282,10 @@ void Config::save(std::string fname) const
     os << "direct = " << direct << std::endl;
 
     os << "# noise model" << std::endl;
-    os << "noise_model = " << noise_model << std::endl;
-    os << "precision = " << precision << std::endl;
-    os << "sn_init = " << sn_init << std::endl;
-    os << "sn_max = " << sn_max << std::endl;
+    os << "noise_model = " << noise.name << std::endl;
+    os << "precision = " << noise.precision << std::endl;
+    os << "sn_init = " << noise.sn_init << std::endl;
+    os << "sn_max = " << noise.sn_max << std::endl;
 
     os << "# binary classification" << std::endl;
     os << "classify = " << classify << std::endl;
@@ -327,16 +327,39 @@ void Config::restore(std::string fname) {
     direct = reader.GetBoolean("", "direct",  false); 
 
     //-- noise model
-    noise_model = reader.Get("", "noise_model",  "fixed");
-    precision = reader.GetReal("", "precision",  5.0);
-    sn_init = reader.GetReal("", "sn_init",  1.0);
-    sn_max = reader.GetReal("", "sn_max",  10.0);
+    noise.name = reader.Get("", "noise_model",  "fixed");
+    noise.precision = reader.GetReal("", "precision",  5.0);
+    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
+    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
 
     //-- binary classification
     classify = reader.GetBoolean("", "classify",  false);
     threshold = reader.GetReal("", "threshold",  .0);
 };
  
+std::unique_ptr<INoiseModel> toNoiseModel(const NoiseConfig &config, Data &data)
+{
+
+    std::unique_ptr<INoiseModel> noise;
+
+    if (config.name == "fixed") {
+        auto *n = new FixedGaussianNoise(data, config.precision);
+        noise.reset(n);
+    } else if (config.name == "fixed") {
+        auto *n = new AdaptiveGaussianNoise(data, config.sn_init, config.sn_max);
+        noise.reset(n);
+    } else if (config.name == "probit") {
+        auto *n = new ProbitNoise(data);
+        noise.reset(n);
+    } else if (config.name == "noiseless") {
+        auto *n = new Noiseless(data);
+        noise.reset(n);
+    } else {
+        die("Unknown noise model; " + config.name);
+    }
+
+    return noise;
+}
 
 std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce) 
 {
@@ -355,6 +378,8 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
         Eigen::MatrixXd Ytrain = dense_to_eigen(config);
         data = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
+
+    data->noise = toNoiseModel(config.noise, *data);
 
     return data;
 }
@@ -388,10 +413,13 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
+    // test data
     // split if needed
     if (config.test_split > .0) {
         auto predictions = extract(config.train, config.test_split);
         pred.set(sparse_to_eigen(predictions));
+    } else {
+        pred.set(sparse_to_eigen(config.test));
     }
 
     std::vector<MatrixConfig> row_matrices, col_matrices;
@@ -414,28 +442,14 @@ void Session::setFromConfig(const Config &c)
             if (!config.classify) {
                 config.classify = true;
                 config.threshold = 0.5;
-                config.noise_model = "probit";
+                config.noise.name = "probit";
             }
  
  
     if (config.classify) pred.setThreshold(config.threshold);
-
-    //-- noise model
-    if (config.noise_model == "adaptive") {
-        data->setAdaptivePrecision(config.sn_init, config.sn_max);
-    } else if (config.noise_model == "fixed") {
-        data->setPrecision(config.precision);
-    } else if (config.noise_model == "probit") {
-        data->setProbit();
-    } else {
-        die("Unknown noise model; " + config.noise_model);
-    }
-
+    
     // center mode
     data->setCenterMode(config.center_mode);
-
-    // test data
-    pred.set(sparse_to_eigen(config.test));
 
 
     add_prior(*this, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);
