@@ -1,11 +1,10 @@
 MPICXX=mpicxx
 CXX=g++
-CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas  -fPIC
-#CXXFLAGS+=-fopenmp
+CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas -fPIC
 
-CXXFLAGS += -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
-CXXFLAGS += -DSMURFF_VERSION=\"$(shell git describe)\"
-LDFLAGS := $(LIBLOCS) -lm -lopenblas -lpthread
+INCLUDES=-I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
+CXXFLAGS+=-DSMURFF_VERSION=\"$(shell git describe)\"
+LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 
 #CXXFLAGS+=-O0 -g
 #CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto
@@ -17,32 +16,50 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 .PHONY: all clean 
 
-LIBOBJS = mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
+LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
 LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o data.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
 LIBSMURFF = libsmurff-cpp.a
 
-all: tests smurff $(LIBSMURFF)
+.PHONY: all clean smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
-vpath %.cpp $(ROOT)
-vpath %.c $(ROOT)
-$(LIBSMURFF): $(LIBOBJS)
-	ar -rcs $(LIBSMURFF) $(LIBOBJS)
+all: smurff tests
+
+clean:
+	rm -f *.o *.d *.a *.csv *.ini
+	rm -f *.dSYM
+	rm -f smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
 smurff: $(LIBSMURFF) cmd_session.o
-
-tests: $(LIBSMURFF)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff.cpp $(LIBSMURFF) $(LDFLAGS) cmd_session.o -o $@
 
 mpi_smurff: mpi_smurff.cpp cmd_session.o $(LIBSMURFF)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o mpi_smurff
 
-clean:
-	rm -f *.o *.d *.a *.csv *.ini
-	rm -rf *.dSYM
-	rm -f mpi_smurff tests libsmurff.a smurff
+tests: $(LIBSMURFF)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/tests.cpp $(LIBSMURFF) $(LDFLAGS) -o $@
+
+bench_nrandn:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_NRANDN -o $@
+
+bench_wishart:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_COND_NORMALWISHART -DBENCH_NORMAL_WISHART -o $@
+
+bench_mvnormal:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_MVNORMAL -o $@
+
+$(LIBSMURFF): $(LIBOBJS)
+	ar -rcs $(LIBSMURFF) $(LIBOBJS)
+
+%.o : $(ROOT)/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+%.o : $(ROOT)/%.c
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
  
 # DFILES 
 DFILES=$(wildcard *.d)
 
 -include $(DFILES)
+
