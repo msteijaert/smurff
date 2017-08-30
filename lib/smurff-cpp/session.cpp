@@ -504,6 +504,8 @@ void Session::printStatus(double elapsedi) {
         for(const auto &p : priors) p->status(std::cout, "     ");
         printf("  Model:\n");
         model.status(std::cout, "    ");
+        printf("  Noise:\n");
+        data->status(std::cout, "    ");
     }
     
     if (config.verbose > 2) {

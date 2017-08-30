@@ -33,6 +33,7 @@ struct Data {
 
     //-- print info
     virtual std::ostream &info(std::ostream &os, std::string indent);
+    virtual std::ostream &status(std::ostream &os, std::string indent) const;
 
     // virtual functions data-related
     virtual int    nmode() const = 0;
@@ -108,6 +109,7 @@ struct MatricesData: public MatrixData {
   
     //-- print info
     std::ostream &info(std::ostream &os, std::string indent) override;
+    std::ostream &status(std::ostream &os, std::string indent) const override;
 
     // accumulate on data in a block
     template<typename T, typename F>

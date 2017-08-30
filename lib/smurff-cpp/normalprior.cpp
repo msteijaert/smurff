@@ -137,7 +137,7 @@ void NormalPrior::restore(std::string prefix, std::string suffix) {
 }
 
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const {
-    os << indent << name << ": mu = " <<  mu.norm();
+    os << indent << name << ": mu = " <<  mu.norm() << std::endl;
     return os;
 }
 

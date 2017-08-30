@@ -65,7 +65,7 @@ class FixedGaussianNoise : public INoiseModel {
     double getAlpha() override { return alpha; }
 
     std::ostream &info(std::ostream &os, std::string indent)  override;
-    std::string getStatus() override { return std::string("Fixed: ") = std::to_string(alpha); }
+    std::string getStatus() override { return std::string("Fixed: ") + std::to_string(alpha); }
 
     void setPrecision(double a) { alpha = a; }    
 };
@@ -88,7 +88,7 @@ class AdaptiveGaussianNoise : public INoiseModel {
     void setSNInit(double a) { sn_init = a; }
     void setSNMax(double a) { sn_max  = a; }
     std::ostream &info(std::ostream &os, std::string indent) override;
-    std::string getStatus() override { return std::string("Prec:") + to_string_with_precision(alpha, 2); }
+    std::string getStatus() override { return std::string("Prec: ") + to_string_with_precision(alpha, 2); }
 };
 
 /** Gaussian noise that adapts to the data */

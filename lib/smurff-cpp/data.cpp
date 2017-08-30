@@ -46,6 +46,12 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
     return os;
 }
 
+std::ostream &Data::status(std::ostream &os, std::string indent) const
+{
+    os << indent << noise->getStatus() << "\n";
+    return os;
+}
+
 void Data::setCenterMode(std::string c)
 {
     //-- centering model
@@ -106,6 +112,17 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
         os << ":\n";
         p.data().info(os, indent + "  ");
         os << std::endl;
+    }
+    return os;
+}
+
+std::ostream &MatricesData::status(std::ostream &os, std::string indent) const
+{
+    os << indent << "Sub-Matrices:\n";
+    for(auto &p : blocks) {
+        os << indent << "  ";
+        p.pos().info(os); 
+        os << ": " << p.data().noise->getStatus() << "\n";
     }
     return os;
 }
