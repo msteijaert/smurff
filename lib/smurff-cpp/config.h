@@ -8,11 +8,16 @@
 namespace smurff {
 
 struct NoiseConfig {
-    NoiseConfig(std::string n = "noiseless") : name(n) {}
-    NoiseConfig(double p) : name("fixed"), precision(p) {}
-    NoiseConfig(double i, double m) : name("adaptive"), sn_init(i), sn_max(m) {}
+    NoiseConfig(std::string n = "noiseless") : name(n) {
+      static int c = 0;
+      c++;
+      cccc = c;
+    }
+    //NoiseConfig(double p) : name("fixed"), precision(p) {}
+    //NoiseConfig(double i, double m) : name("adaptive"), sn_init(i), sn_max(m) {}
 
     std::string name  = "noiseless";
+    int cccc;
     
     // for fixed gaussian noise
     double precision  = 5.0;
@@ -20,6 +25,8 @@ struct NoiseConfig {
     // for adaptive gausssian noise
     double sn_init    = 1.0;
     double sn_max     = 10.0;
+
+    bool validate(bool = true) const;
 };
 
 struct MatrixConfig {
@@ -101,14 +108,11 @@ struct Config {
     double tol                = 1e-6;
     bool direct               = false; 
 
-    //-- noise model
-    NoiseConfig noise;
-
     //-- binary classification
     bool classify             = false;
     double threshold;
 
-    bool validate(bool) const;
+    bool validate(bool = true) const;
     void save(std::string) const;
     void restore(std::string);
     static std::string version();
