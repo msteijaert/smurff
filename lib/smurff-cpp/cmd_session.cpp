@@ -57,8 +57,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         // set global noise model
         if (c.train.noise.name == "noiseless") c.train.noise = nc; 
         //set for row/col feautres
-        for(auto m: c.row_features) if (m.noise.name == "noiseless") m.noise = nc; 
-        for(auto m: c.col_features) if (m.noise.name == "noiseless") m.noise = nc; 
+        for(auto &m: c.row_features) if (m.noise.name == "noiseless") m.noise = nc; 
+        for(auto &m: c.col_features) if (m.noise.name == "noiseless") m.noise = nc; 
 
     };
 
