@@ -26,7 +26,7 @@ std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
 }
 
 Model &ILatentPrior::model() const { return session.model; }
-Data &ILatentPrior::data() const { return *session.data; }
+Data &ILatentPrior::data() const { return session.data(); }
 INoiseModel &ILatentPrior::noise() { return data().noise(); }
 MatrixXd &ILatentPrior::U() { return model().U(mode); }
 MatrixXd &ILatentPrior::V() { return model().V(mode); }
@@ -39,7 +39,7 @@ void ILatentPrior::init()
 
 void ILatentPrior::sample_latents() 
 {
-    session.data->update_pnm(model(), mode);
+    data().update_pnm(model(), mode);
 #pragma omp parallel for schedule(guided)
     for(int n = 0; n < U().cols(); n++) {
 #pragma omp task
@@ -106,7 +106,7 @@ void NormalPrior::sample_latent(int n)
     MM.setZero();
 
     // add pnm
-    session.data->get_pnm(model(),mode,n,rr,MM);
+    data().get_pnm(model(),mode,n,rr,MM);
 
     // add hyperparams
     rr.noalias() += Lambda * mu_u;

@@ -20,8 +20,8 @@ class BaseSession  {
    public:
       //-- data members
       Model                                       model;
-      std::unique_ptr<Data>                       data;
       Result                                      pred;
+      Data &                                      data() { assert(data_ptr); return *data_ptr; }
       std::vector< std::unique_ptr<ILatentPrior>> priors;
  
       //-- add priors
@@ -38,6 +38,7 @@ class BaseSession  {
 
    protected:
       bool is_init = false;
+      std::unique_ptr<Data> data_ptr;
 };
 
 class Session : public BaseSession {

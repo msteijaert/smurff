@@ -16,7 +16,7 @@ namespace smurff {
 
 template<class FType>
 MacauOnePrior<FType>::MacauOnePrior(BaseSession &m, int p)
-    : ILatentPrior(m, p), Yc(dynamic_cast<ScarceMatrixData &>(*m.data).Yc.at(p))
+    : ILatentPrior(m, p), Yc(dynamic_cast<ScarceMatrixData &>(m.data()).Yc.at(p))
 {
   // parameters of Normal-Gamma distributions
   mu     = VectorXd::Constant(num_latent(), 0.0);
