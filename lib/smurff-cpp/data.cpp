@@ -36,19 +36,18 @@ namespace smurff {
 
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
-    assert(noise);
     os << indent << "Type: " << name << "\n";
     os << indent << "Component-wise mean: " << cwise_mean << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
     os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
     os << indent << "Noise: ";
-    noise->info(os, "");
+    noise().info(os, "");
     return os;
 }
 
 std::ostream &Data::status(std::ostream &os, std::string indent) const
 {
-    os << indent << noise->getStatus() << "\n";
+    os << indent << noise().getStatus() << "\n";
     return os;
 }
 
@@ -122,7 +121,7 @@ std::ostream &MatricesData::status(std::ostream &os, std::string indent) const
     for(auto &p : blocks) {
         os << indent << "  ";
         p.pos().info(os); 
-        os << ": " << p.data().noise->getStatus() << "\n";
+        os << ": " << p.data().noise().getStatus() << "\n";
     }
     return os;
 }
@@ -228,8 +227,7 @@ void MatrixDataTempl<YType>::init_base()
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
 
-    if (noise)
-        noise->init();
+    noise().init();
 
     cwise_mean = sum() / (size() - nna());
 }
@@ -398,14 +396,12 @@ std::ostream &ScarceMatrixData::info(std::ostream &os, std::string indent)
 }
 
 void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM) {
-    assert(noise);
-
     auto &Y = Yc.at(mode);
     const int num_latent = model.nlatent();
     const auto &Vf = model.V(mode);
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
-    const double alpha = noise->getAlpha();
+    const double alpha = noise().getAlpha();
 
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
     if (in_parallel) {
@@ -490,8 +486,7 @@ void ScarceBinaryMatrixData::get_pnm(const SubModel &model, int mode, int n, Vec
 
 template<class YType>
 void FullMatrixData<YType>::get_pnm(const SubModel &model, int mode, int d, VectorXd &rr, MatrixXd &MM) {
-    assert(this->noise);
-    const double alpha = this->noise->getAlpha();
+    const double alpha = this->noise().getAlpha();
     auto &Y = this->Yc.at(mode);
     rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
     MM.noalias() += VV[mode] * alpha; 

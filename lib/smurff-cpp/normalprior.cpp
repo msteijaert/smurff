@@ -27,7 +27,7 @@ std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
 
 Model &ILatentPrior::model() const { return session.model; }
 Data &ILatentPrior::data() const { return *session.data; }
-INoiseModel &ILatentPrior::noise() { return *data().noise; }
+INoiseModel &ILatentPrior::noise() { return data().noise(); }
 MatrixXd &ILatentPrior::U() { return model().U(mode); }
 MatrixXd &ILatentPrior::V() { return model().V(mode); }
 

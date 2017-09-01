@@ -24,10 +24,11 @@ struct Data {
     // helper functions for noise
     virtual double sumsq(const SubModel &) const = 0;
     virtual double var_total() const = 0;
+    INoiseModel &noise() const { assert(noise_ptr); return *noise_ptr; }
 
     // update noise and precision/mean
     virtual double train_rmse(const SubModel &) const = 0;
-    virtual void update(const SubModel &model) { noise->update(model); }
+    virtual void update(const SubModel &model) { noise().update(model); }
     virtual void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) = 0;
     virtual void update_pnm(const SubModel &,int) = 0;
 
@@ -67,13 +68,14 @@ struct Data {
     // name
     std::string                  name;
 
-    // noise model for this dataset
-    std::unique_ptr<INoiseModel> noise;
-
   protected:
     std::vector<Eigen::VectorXd>  mode_mean;
     bool mean_computed = false;
     bool centered = false;
+ 
+  public:
+    // noise model for this dataset
+    std::unique_ptr<INoiseModel> noise_ptr;
 };
 
 struct MatrixData: public Data {
@@ -84,7 +86,7 @@ struct MatrixData: public Data {
 struct MatricesData: public MatrixData {
     MatricesData() : total_dim(2) { 
         name = "MatricesData"; 
-        noise = std::unique_ptr<INoiseModel>(new UnusedNoise(*this));
+        noise_ptr = std::unique_ptr<INoiseModel>(new UnusedNoise(*this));
     }
 
     void init_base() override;

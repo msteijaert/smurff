@@ -344,28 +344,24 @@ void Config::restore(std::string fname) {
     threshold = reader.GetReal("", "threshold",  .0);
 };
  
-std::unique_ptr<INoiseModel> toNoiseModel(const NoiseConfig &config, Data &data)
+void setNoiseModel(const NoiseConfig &config, Data &data)
 {
-
-    std::unique_ptr<INoiseModel> noise;
 
     if (config.name == "fixed") {
         auto *n = new FixedGaussianNoise(data, config.precision);
-        noise.reset(n);
-    } else if (config.name == "fixed") {
+        data.noise_ptr.reset(n);
+    } else if (config.name == "adaptive") {
         auto *n = new AdaptiveGaussianNoise(data, config.sn_init, config.sn_max);
-        noise.reset(n);
+        data.noise_ptr.reset(n);
     } else if (config.name == "probit") {
         auto *n = new ProbitNoise(data);
-        noise.reset(n);
+        data.noise_ptr.reset(n);
     } else if (config.name == "noiseless") {
         auto *n = new Noiseless(data);
-        noise.reset(n);
+        data.noise_ptr.reset(n);
     } else {
         die("Unknown noise model; " + config.name);
     }
-
-    return noise;
 }
 
 std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce) 
@@ -386,7 +382,7 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
         data = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
 
-    data->noise = toNoiseModel(config.noise, *data);
+    setNoiseModel(config.noise, *data);
 
     return data;
 }
