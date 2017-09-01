@@ -32,6 +32,11 @@ namespace smurff {
 
 
 ////----- Data below
+Data::Data() : center_mode(Data::CENTER_INVALID) 
+{
+    noise_ptr.reset(new Noiseless(*this));
+
+}
 
 
 std::ostream &Data::info(std::ostream &os, std::string indent)
