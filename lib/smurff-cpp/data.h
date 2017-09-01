@@ -109,6 +109,7 @@ struct MatricesData: public MatrixData {
     double train_rmse(const SubModel &) const override;
 
     // update noise and precision/mean
+    void update(const SubModel &model) override;
     void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
     void update_pnm(const SubModel &model, int mode) override;
   
