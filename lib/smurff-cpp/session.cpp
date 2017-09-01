@@ -36,13 +36,13 @@ namespace smurff {
 
 void BaseSession::step() {
     for(auto &p : priors) p->sample_latents();
-    data->update(model);
+    data().update(model);
 }
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     os << indent << name << " {\n";
     os << indent << "  Data: {\n";
-    data->info(os, indent + "    ");
+    data().info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Model: {\n";
     model.info(os, indent + "    ");
@@ -51,7 +51,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     for( auto &p : priors) p->info(os, indent + "    ");
     os << indent << "  }\n";
     os << indent << "  Result: {\n";
-    pred.info(os, indent + "    ", *data);
+    pred.info(os, indent + "    ", data());
     os << indent << "  }\n";
     return os;
 }
@@ -61,8 +61,8 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
 void Session::init() {
     threads_init();
     init_bmrng();
-    data->init();
-    model.init(config.num_latent, data->dim(), config.init_model);
+    data().init();
+    model.init(config.num_latent, data().dim(), config.init_model);
     for( auto &p : priors) p->init();
 
     if (config.csv_status.size()) {
@@ -366,25 +366,25 @@ void setNoiseModel(const NoiseConfig &config, Data &data)
 
 std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce) 
 {
-    std::unique_ptr<MatrixData> data;
+    std::unique_ptr<MatrixData> local_data_ptr;
 
     if (!config.dense) {
         SparseMatrixD Ytrain = sparse_to_eigen(config);
         if (!scarce) {
-            data = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
+            local_data_ptr = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
         } else if (is_binary(Ytrain)) {
-            data = std::unique_ptr<MatrixData>(new ScarceBinaryMatrixData(Ytrain));
+            local_data_ptr = std::unique_ptr<MatrixData>(new ScarceBinaryMatrixData(Ytrain));
         } else {
-            data = std::unique_ptr<MatrixData>(new ScarceMatrixData(Ytrain));
+            local_data_ptr = std::unique_ptr<MatrixData>(new ScarceMatrixData(Ytrain));
         }
     } else {
         Eigen::MatrixXd Ytrain = dense_to_eigen(config);
-        data = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
+        local_data_ptr = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
 
-    setNoiseModel(config.noise, *data);
+    setNoiseModel(config.noise, *local_data_ptr);
 
-    return data;
+    return local_data_ptr;
 }
 
 std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, 
@@ -395,16 +395,16 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
     }
 
     // multiple matrices
-    auto data = new MatricesData();
-    data->add(PVec(0,0),toData(train, true /*scarce*/));
+    auto local_data_ptr = new MatricesData();
+    local_data_ptr->add(PVec(0,0),toData(train, true /*scarce*/));
     for(int i=0; i<row_features.size(); ++i) {
-        data->add(PVec(i+1, 0), toData(row_features[i], false)); 
+        local_data_ptr->add(PVec(i+1, 0), toData(row_features[i], false)); 
     }
     for(int i=0; i<col_features.size(); ++i) {
-        data->add(PVec(0, i+1), toData(col_features[i], false)); 
+        local_data_ptr->add(PVec(0, i+1), toData(col_features[i], false)); 
     }
 
-    return std::unique_ptr<MatrixData>(data);
+    return std::unique_ptr<MatrixData>(local_data_ptr);
 }
 
 
@@ -438,7 +438,7 @@ void Session::setFromConfig(const Config &c)
     } else {
         col_matrices = config.col_features;
     } 
-    data = toData(config.train, row_matrices, col_matrices);
+    data_ptr = toData(config.train, row_matrices, col_matrices);
 
     // check if data is ScarceBinary
     if (0)
@@ -452,7 +452,7 @@ void Session::setFromConfig(const Config &c)
     if (config.classify) pred.setThreshold(config.threshold);
     
     // center mode
-    data->setCenterMode(config.center_mode);
+    data().setCenterMode(config.center_mode);
 
 
     add_prior(*this, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);
@@ -461,14 +461,14 @@ void Session::setFromConfig(const Config &c)
 
 
 void Session::printStatus(double elapsedi) {
-    pred.update(model, *data, iter < config.burnin);
+    pred.update(model, data(), iter < config.burnin);
 
     if(!config.verbose) return;
 
     double snorm0 = model.U(0).norm();
     double snorm1 = model.U(1).norm();
 
-    auto nnz_per_sec = (data->nnz()) / elapsedi;
+    auto nnz_per_sec = (data().nnz()) / elapsedi;
     auto samples_per_sec = (model.nsamples()) / elapsedi;
 
     std::string phase;
@@ -494,14 +494,14 @@ void Session::printStatus(double elapsedi) {
 
 
     if (config.verbose > 1) {
-        double train_rmse = data->train_rmse(model);
+        double train_rmse = data().train_rmse(model);
         printf("  RMSE train: %.4f\n", train_rmse);
         printf("  Priors:\n");
         for(const auto &p : priors) p->status(std::cout, "     ");
         printf("  Model:\n");
         model.status(std::cout, "    ");
         printf("  Noise:\n");
-        data->status(std::cout, "    ");
+        data().status(std::cout, "    ");
     }
     
     if (config.verbose > 2) {
@@ -509,9 +509,9 @@ void Session::printStatus(double elapsedi) {
     }
 
     if (config.csv_status.size()) {
-        double colmean_rmse = pred.rmse_using_modemean(*data, 0);
-        double globalmean_rmse = pred.rmse_using_modemean(*data, 1);
-        double train_rmse = data->train_rmse(model);
+        double colmean_rmse = pred.rmse_using_modemean(data(), 0);
+        double globalmean_rmse = pred.rmse_using_modemean(data(), 1);
+        double train_rmse = data().train_rmse(model);
 
         auto f = fopen(config.csv_status.c_str(), "a");
         fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
