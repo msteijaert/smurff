@@ -66,10 +66,7 @@ struct PVec {
 
     std::ostream &info(std::ostream &os) const {
         os << "[ ";
-        for(int i=0; i<n; ++i) {
-            os << n;
-            if (i != n-1) os << " x ";
-        }
+        for(int i=0; i<n; ++i) os << at(i) << ((i != n-1) ? " x " : "");
         os << " ]";
         return os;
     }
