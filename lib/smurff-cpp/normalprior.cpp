@@ -27,7 +27,7 @@ std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
 
 Model &ILatentPrior::model() const { return session.model; }
 Data &ILatentPrior::data() const { return *session.data; }
-INoiseModel &ILatentPrior::noise() { return *data().noise; }
+INoiseModel &ILatentPrior::noise() { return data().noise(); }
 MatrixXd &ILatentPrior::U() { return model().U(mode); }
 MatrixXd &ILatentPrior::V() { return model().V(mode); }
 
@@ -137,7 +137,7 @@ void NormalPrior::restore(std::string prefix, std::string suffix) {
 }
 
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const {
-    os << indent << name << ": mu = " <<  mu.norm();
+    os << indent << name << ": mu = " <<  mu.norm() << std::endl;
     return os;
 }
 

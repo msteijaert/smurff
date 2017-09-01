@@ -37,13 +37,19 @@ namespace smurff {
 
 std::ostream &Data::info(std::ostream &os, std::string indent)
 {
-    assert(noise);
     os << indent << "Type: " << name << "\n";
     os << indent << "Component-wise mean: " << cwise_mean << "\n";
+    os << indent << "Component-wise variance: " << var_total() << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
     os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
     os << indent << "Noise: ";
-    noise->info(os, "");
+    noise().info(os, "");
+    return os;
+}
+
+std::ostream &Data::status(std::ostream &os, std::string indent) const
+{
+    os << indent << noise().getStatus() << "\n";
     return os;
 }
 
@@ -91,6 +97,12 @@ void MatricesData::get_pnm(const SubModel &model, int mode, int pos, VectorNd &r
     assert(count>0);
 }
 
+void MatricesData::update(const SubModel &model) {
+    for(auto &b : blocks) {
+        b.data().noise().update(b.submodel(model));
+    }
+}
+
 void MatricesData::update_pnm(const SubModel &model, int m) {
     for(auto &b : blocks) {
         b.data().update_pnm(b.submodel(model), m);
@@ -111,7 +123,18 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
     return os;
 }
 
-void MatricesData::init_base() 
+std::ostream &MatricesData::status(std::ostream &os, std::string indent) const
+{
+    os << indent << "Sub-Matrices:\n";
+    for(auto &p : blocks) {
+        os << indent << "  ";
+        p.pos().info(os); 
+        os << ": " << p.data().noise().getStatus() << "\n";
+    }
+    return os;
+}
+
+void MatricesData::init_pre() 
 {
     mode_dim.resize(nmode());
     for(int n = 0; n<nmode(); ++n) {
@@ -144,8 +167,18 @@ void MatricesData::init_base()
 
     // init sub-matrices
     for(auto &p : blocks) {
-        p.data().init_base();
+        p.data().init_pre();
         p.data().compute_mode_mean();
+    }
+}
+
+void MatricesData::init_post()
+{
+    Data::init_post();
+
+    // init sub-matrices
+    for(auto &p : blocks) {
+        p.data().init_post();
     }
 }
 
@@ -205,26 +238,26 @@ double MatricesData::train_rmse(const SubModel &model) const {
 }
 
 template<typename YType>
-void MatrixDataTempl<YType>::init_base()
+void MatrixDataTempl<YType>::init_pre()
 {
     assert(nrow() > 0 && ncol() > 0);
 
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
 
-    if (noise)
-        noise->init();
 
     cwise_mean = sum() / (size() - nna());
 }
 
 void Data::init()
 {
-    init_base();
+    init_pre();
 
     //compute global mean & mode-wise means
     compute_mode_mean();
     center(cwise_mean);
+
+    init_post();
 }
 
 void Data::compute_mode_mean()
@@ -240,19 +273,22 @@ void Data::compute_mode_mean()
     mean_computed = true;
 }
 
+void Data::init_post() {
+    noise().init();
+}
+
 
 template<>
 double MatrixDataTempl<Eigen::MatrixXd>::var_total() const {
     auto &Y = Yc.at(0);
     double se = Y.array().square().sum();
-
-    double var_total = se / Y.nonZeros();
-    if (var_total <= 0.0 || std::isnan(var_total)) {
+    double var = se / Y.nonZeros();
+    if (var <= 0.0 || std::isnan(var)) {
         // if var cannot be computed using 1.0
-        var_total = 1.0;
+        var = 1.0;
     }
 
-    return var_total;
+    return var;
 }
 
 template<>
@@ -267,13 +303,13 @@ double MatrixDataTempl<SparseMatrixD>::var_total() const {
         }
     }
 
-    double var_total = se / Y.nonZeros();
-    if (var_total <= 0.0 || std::isnan(var_total)) {
+    double var = se / Y.nonZeros();
+    if (var <= 0.0 || std::isnan(var)) {
         // if var cannot be computed using 1.0
-        var_total = 1.0;
+        var = 1.0;
     }
 
-    return var_total;
+    return var;
 }
 
 // for the adaptive gaussian noise
@@ -284,7 +320,7 @@ double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel &model) const {
 #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
     for (int j = 0; j < this->ncol(); j++) {
         for (int i = 0; i < this->nrow(); i++) {
-            double Yhat = model.dot({i,j}) + offset_to_mean({i,j});
+            double Yhat = model.dot({j,i}) + offset_to_mean({j,i});
             sumsq += square(Yhat - this->Y(i,j));
         }
     }
@@ -300,7 +336,7 @@ double MatrixDataTempl<SparseMatrixD>::sumsq(const SubModel &model) const {
     for (int j = 0; j < Y.outerSize(); j++) {
         for (SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
             int i = it.row();
-            double Yhat = model.dot({i,j}) + offset_to_mean({i,j});
+            double Yhat = model.dot({j,i}) + offset_to_mean({j,i});
             sumsq += square(Yhat - it.value());
         }
     }
@@ -322,8 +358,8 @@ double MatrixDataTempl<YType>::offset_to_mean(const PVec &pos) const {
 //
 //-- ScarceMatrixData specific stuff
 
-void ScarceMatrixData::init_base() {
-    MatrixDataTempl<SparseMatrixD>::init_base();
+void ScarceMatrixData::init_pre() {
+    MatrixDataTempl<SparseMatrixD>::init_pre();
 
     // check no rows, nor cols withouth data
     for(unsigned i=0; i<Yc.size(); ++i) {
@@ -382,14 +418,12 @@ std::ostream &ScarceMatrixData::info(std::ostream &os, std::string indent)
 }
 
 void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM) {
-    assert(noise);
-
     auto &Y = Yc.at(mode);
     const int num_latent = model.nlatent();
     const auto &Vf = model.V(mode);
     const int local_nnz = Y.col(n).nonZeros();
     const int total_nnz = Y.nonZeros();
-    const double alpha = noise->getAlpha();
+    const double alpha = noise().getAlpha();
 
     bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
     if (in_parallel) {
@@ -475,8 +509,7 @@ void ScarceBinaryMatrixData::get_pnm(const SubModel &model, int mode, int n, Vec
 
 template<class YType>
 void FullMatrixData<YType>::get_pnm(const SubModel &model, int mode, int d, VectorXd &rr, MatrixXd &MM) {
-    assert(this->noise);
-    const double alpha = this->noise->getAlpha();
+    const double alpha = this->noise().getAlpha();
     auto &Y = this->Yc.at(mode);
     rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
     MM.noalias() += VV[mode] * alpha; 

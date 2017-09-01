@@ -41,62 +41,64 @@ enum OPT_ENUM {
 
 static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
-    Config &config = *(Config *)(state->input);
+    Config &c = *(Config *)(state->input);
 
-    auto set_noise_model = [&config](std::string name, std::string optarg) {
-        NoiseConfig c;
-        c.name = name;
+    auto set_noise_model = [&c](std::string name, std::string optarg) {
+        NoiseConfig nc;
+        nc.name = name;
         if (name == "adaptive") {
             char *token, *str = strdup(optarg.c_str());
-            if(str && (token = strsep(&str, ","))) c.sn_init = strtod(token, NULL); 
-            if(str && (token = strsep(&str, ","))) c.sn_max = strtod(token, NULL); 
+            if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL); 
+            if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL); 
         } else if (name == "fixed") {
-            c.precision = strtod(optarg.c_str(), NULL);
+            nc.precision = strtod(optarg.c_str(), NULL);
         }
 
-        if (config.noise.name == "noiseless") config.noise = c; 
-        for(auto m: config.row_features) if (m.noise.name == "noiseless") config.noise = c; 
-        for(auto m: config.col_features) if (m.noise.name == "noiseless") config.noise = c; 
+        // set global noise model
+        if (c.train.noise.name == "noiseless") c.train.noise = nc; 
+        //set for row/col feautres
+        for(auto &m: c.row_features) if (m.noise.name == "noiseless") m.noise = nc; 
+        for(auto &m: c.col_features) if (m.noise.name == "noiseless") m.noise = nc; 
 
     };
 
     switch (key) {
-        case ROW_PRIOR:       config.row_prior          = optarg; break;
-        case COL_PRIOR:       config.col_prior          = optarg; break;
+        case ROW_PRIOR:       c.row_prior          = optarg; break;
+        case COL_PRIOR:       c.col_prior          = optarg; break;
 
-        case ROW_FEATURES:    config.row_features.push_back(read_matrix(optarg)); break;
-        case COL_FEATURES:    config.col_features.push_back(read_matrix(optarg)); break;
-        case CENTER:          config.center_mode        = optarg; break;
+        case ROW_FEATURES:    c.row_features.push_back(read_matrix(optarg)); break;
+        case COL_FEATURES:    c.col_features.push_back(read_matrix(optarg)); break;
+        case CENTER:          c.center_mode        = optarg; break;
 
 
-        case FNAME_TRAIN:     config.train              = read_sparse(optarg); break;
-        case LAMBDA_BETA:     config.lambda_beta        = strtod(optarg, NULL); break;
-        case BURNIN:          config.burnin             = strtol(optarg, NULL, 10); break;
-        case TOL:             config.tol                = atof(optarg); break;
-        case DIRECT:          config.direct             = true; break;
+        case FNAME_TRAIN:     c.train              = read_sparse(optarg); break;
+        case LAMBDA_BETA:     c.lambda_beta        = strtod(optarg, NULL); break;
+        case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
+        case TOL:             c.tol                = atof(optarg); break;
+        case DIRECT:          c.direct             = true; break;
         case FNAME_TEST:
                               //-- check if fname_test is actually a number
-                              if ((config.test_split = atof(optarg)) <= .0) {
-                                  config.test           = read_sparse(optarg);
+                              if ((c.test_split = atof(optarg)) <= .0) {
+                                  c.test           = read_sparse(optarg);
                               }
                               break;
-        case NUM_LATENT:      config.num_latent         = strtol(optarg, NULL, 10); break;
-        case NSAMPLES:        config.nsamples           = strtol(optarg, NULL, 10); break;
+        case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
+        case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
 
-        case RESTORE_PREFIX:  config.restore_prefix      = std::string(optarg); break;
-        case RESTORE_SUFFIX:  config.restore_suffix      = std::string(optarg); break;
-        case SAVE_PREFIX:     config.save_prefix      = std::string(optarg); break;
-        case SAVE_SUFFIX:     config.save_suffix      = std::string(optarg); break;
-        case SAVE_FREQ:       config.save_freq        = strtol(optarg, NULL, 10); break;
+        case RESTORE_PREFIX:  c.restore_prefix      = std::string(optarg); break;
+        case RESTORE_SUFFIX:  c.restore_suffix      = std::string(optarg); break;
+        case SAVE_PREFIX:     c.save_prefix      = std::string(optarg); break;
+        case SAVE_SUFFIX:     c.save_suffix      = std::string(optarg); break;
+        case SAVE_FREQ:       c.save_freq        = strtol(optarg, NULL, 10); break;
 
         case PRECISION:       set_noise_model("fixed", optarg); break;
         case ADAPTIVE:        set_noise_model("adaptive", optarg); break;
 
-        case THRESHOLD:       config.threshold          = strtod(optarg, 0); config.classify = true; break;
-        case INIT_MODEL:      config.init_model         = optarg; break;
-        case VERBOSE:         config.verbose            = optarg ? strtol(optarg, NULL, 0) : 1; break;
-        case QUIET:           config.verbose            = 0; break;
-        case STATUS_FILE:     config.csv_status         = optarg; break;
+        case THRESHOLD:       c.threshold          = strtod(optarg, 0); c.classify = true; break;
+        case INIT_MODEL:      c.init_model         = optarg; break;
+        case VERBOSE:         c.verbose            = optarg ? strtol(optarg, NULL, 0) : 1; break;
+        case QUIET:           c.verbose            = 0; break;
+        case STATUS_FILE:     c.csv_status         = optarg; break;
         default:              return ARGP_ERR_UNKNOWN;
     }
 
@@ -145,10 +147,10 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {0}
     };
 
-    Config config;
+    Config c;
     struct argp argp = { options, parse_opts, 0, doc };
-    argp_parse (&argp, argc, argv, 0, 0, &config);
+    argp_parse (&argp, argc, argv, 0, 0, &c);
 
-    setFromConfig(config);
+    setFromConfig(c);
 }
 } // end namespace smurff
