@@ -14,7 +14,7 @@
 namespace smurff {
 
 struct Data {
-    Data() : center_mode(CENTER_INVALID) {}
+    Data();
 
     // init
     virtual void init_pre() = 0;
