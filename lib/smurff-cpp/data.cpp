@@ -38,6 +38,7 @@ std::ostream &Data::info(std::ostream &os, std::string indent)
 {
     os << indent << "Type: " << name << "\n";
     os << indent << "Component-wise mean: " << cwise_mean << "\n";
+    os << indent << "Component-wise variance: " << var_total() << "\n";
     std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
     os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
     os << indent << "Noise: ";
@@ -126,7 +127,7 @@ std::ostream &MatricesData::status(std::ostream &os, std::string indent) const
     return os;
 }
 
-void MatricesData::init_base() 
+void MatricesData::init_pre() 
 {
     mode_dim.resize(nmode());
     for(int n = 0; n<nmode(); ++n) {
@@ -159,8 +160,18 @@ void MatricesData::init_base()
 
     // init sub-matrices
     for(auto &p : blocks) {
-        p.data().init_base();
+        p.data().init_pre();
         p.data().compute_mode_mean();
+    }
+}
+
+void MatricesData::init_post()
+{
+    Data::init_post();
+
+    // init sub-matrices
+    for(auto &p : blocks) {
+        p.data().init_post();
     }
 }
 
@@ -220,25 +231,26 @@ double MatricesData::train_rmse(const SubModel &model) const {
 }
 
 template<typename YType>
-void MatrixDataTempl<YType>::init_base()
+void MatrixDataTempl<YType>::init_pre()
 {
     assert(nrow() > 0 && ncol() > 0);
 
     Yc.push_back(Y);
     Yc.push_back(Y.transpose());
 
-    noise().init();
 
     cwise_mean = sum() / (size() - nna());
 }
 
 void Data::init()
 {
-    init_base();
+    init_pre();
 
     //compute global mean & mode-wise means
     compute_mode_mean();
     center(cwise_mean);
+
+    init_post();
 }
 
 void Data::compute_mode_mean()
@@ -254,19 +266,22 @@ void Data::compute_mode_mean()
     mean_computed = true;
 }
 
+void Data::init_post() {
+    noise().init();
+}
+
 
 template<>
 double MatrixDataTempl<Eigen::MatrixXd>::var_total() const {
     auto &Y = Yc.at(0);
     double se = Y.array().square().sum();
-
-    double var_total = se / Y.nonZeros();
-    if (var_total <= 0.0 || std::isnan(var_total)) {
+    double var = se / Y.nonZeros();
+    if (var <= 0.0 || std::isnan(var)) {
         // if var cannot be computed using 1.0
-        var_total = 1.0;
+        var = 1.0;
     }
 
-    return var_total;
+    return var;
 }
 
 template<>
@@ -281,13 +296,13 @@ double MatrixDataTempl<SparseMatrixD>::var_total() const {
         }
     }
 
-    double var_total = se / Y.nonZeros();
-    if (var_total <= 0.0 || std::isnan(var_total)) {
+    double var = se / Y.nonZeros();
+    if (var <= 0.0 || std::isnan(var)) {
         // if var cannot be computed using 1.0
-        var_total = 1.0;
+        var = 1.0;
     }
 
-    return var_total;
+    return var;
 }
 
 // for the adaptive gaussian noise
@@ -336,8 +351,8 @@ double MatrixDataTempl<YType>::offset_to_mean(const PVec &pos) const {
 //
 //-- ScarceMatrixData specific stuff
 
-void ScarceMatrixData::init_base() {
-    MatrixDataTempl<SparseMatrixD>::init_base();
+void ScarceMatrixData::init_pre() {
+    MatrixDataTempl<SparseMatrixD>::init_pre();
 
     // check no rows, nor cols withouth data
     for(unsigned i=0; i<Yc.size(); ++i) {

@@ -17,7 +17,8 @@ struct Data {
     Data() : center_mode(CENTER_INVALID) {}
 
     // init
-    virtual void init_base() = 0;
+    virtual void init_pre() = 0;
+    virtual void init_post();
     virtual void center(double upper_mean) = 0;
     virtual void init();
 
@@ -53,6 +54,7 @@ struct Data {
 
     // mean & centering
     double cwise_mean = NAN, global_mean = NAN;
+    double var = NAN;
     double mean(int m, int c) const { assert(mean_computed); return mode_mean.at(m)(c); }
     virtual double compute_mode_mean(int,int) = 0;
             void compute_mode_mean();
@@ -89,7 +91,8 @@ struct MatricesData: public MatrixData {
         noise_ptr = std::unique_ptr<INoiseModel>(new UnusedNoise(*this));
     }
 
-    void init_base() override;
+    void init_pre() override;
+    void init_post() override;
     void setCenterMode(std::string c) override;
 
     void center(double) override;
@@ -102,7 +105,7 @@ struct MatricesData: public MatrixData {
     // helper functions for noise
     // but 
     double sumsq(const SubModel &) const override { assert(false); return NAN; }
-    double var_total() const override { assert(false); return NAN; }
+    double var_total() const override { return NAN; }
     double train_rmse(const SubModel &) const override;
 
     // update noise and precision/mean
@@ -191,7 +194,7 @@ struct MatrixDataTempl : public MatrixData {
     MatrixDataTempl(YType Y) : Y(Y) {}
 
     //init and center
-    void init_base() override;
+    void init_pre() override;
 
     PVec   dim() const override { return PVec(Y.cols(), Y.rows()); }
     int    nnz() const override { return Y.nonZeros(); }
@@ -215,7 +218,7 @@ struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
         name = "ScarceMatrixData [with NAs]";
     }
 
-    void init_base() override;
+    void init_pre() override;
     void center(double) override;
     double compute_mode_mean(int,int) override;
 
