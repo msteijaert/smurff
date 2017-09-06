@@ -7,7 +7,7 @@
 #include "session.h"
 #include "chol.h"
 #include "linop.h"
-#include "noisemodels.h"
+
 #include "latentprior.h"
 #include "data.h"
 

@@ -16,8 +16,9 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 .PHONY: all clean 
 
-LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o noisemodels.o session.o gen_random.o model.o result.o
-LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o data.o
+LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o session.o gen_random.o model.o data.o result.o
+LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.o UnusedNoise.o
+LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
 LIBSMURFF = libsmurff-cpp.a

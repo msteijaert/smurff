@@ -3,7 +3,7 @@
 #include <iostream>
 #include "sparsetensor.h"
 #include "latentprior.h"
-#include "noisemodels.h"
+
 
 using namespace Eigen;
 

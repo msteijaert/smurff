@@ -26,6 +26,8 @@
 #include "mvnormal.h"
 #include "truncnorm.h"
 
+#include "Noiseless.h"
+
 using namespace std; 
 using namespace Eigen;
 
@@ -35,8 +37,7 @@ namespace smurff {
 ////----- Data below
 Data::Data() : center_mode(Data::CENTER_INVALID) 
 {
-    noise_ptr.reset(new Noiseless(*this));
-
+    noise_ptr.reset(new Noiseless(this));
 }
 
 

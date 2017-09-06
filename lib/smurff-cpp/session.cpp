@@ -29,6 +29,11 @@
 #include "gen_random.h"
 #include "data.h"
 
+#include "AdaptiveGaussianNoise.h"
+#include "FixedGaussianNoise.h"
+#include "ProbitNoise.h"
+#include "Noiseless.h"
+
 using namespace std; 
 using namespace Eigen;
 
@@ -344,21 +349,21 @@ void Config::restore(std::string fname) {
     threshold = reader.GetReal("", "threshold",  .0);
 };
  
-void setNoiseModel(const NoiseConfig &config, Data &data)
+void setNoiseModel(const NoiseConfig &config, Data* data)
 {
 
     if (config.name == "fixed") {
         auto *n = new FixedGaussianNoise(data, config.precision);
-        data.noise_ptr.reset(n);
+        data->noise_ptr.reset(n);
     } else if (config.name == "adaptive") {
         auto *n = new AdaptiveGaussianNoise(data, config.sn_init, config.sn_max);
-        data.noise_ptr.reset(n);
+        data->noise_ptr.reset(n);
     } else if (config.name == "probit") {
         auto *n = new ProbitNoise(data);
-        data.noise_ptr.reset(n);
+        data->noise_ptr.reset(n);
     } else if (config.name == "noiseless") {
         auto *n = new Noiseless(data);
-        data.noise_ptr.reset(n);
+        data->noise_ptr.reset(n);
     } else {
         die("Unknown noise model; " + config.name);
     }
@@ -382,7 +387,7 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
         local_data_ptr = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
 
-    setNoiseModel(config.noise, *local_data_ptr);
+    setNoiseModel(config.noise, local_data_ptr.get());
 
     return local_data_ptr;
 }

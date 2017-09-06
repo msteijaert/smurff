@@ -5,11 +5,14 @@
 #include <Eigen/Sparse>
 #include <memory>
 
-#include "noisemodels.h"
+
 #include "matrix_io.h"
 #include "utils.h"
 
 namespace smurff {
+
+// AGE: I dont like this cross reference between Data and Model. Need to think how we can eliminate it.
+struct Data;
 
 struct SubModel;
 

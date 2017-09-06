@@ -7,7 +7,7 @@
 #include "macau.h"
 #include "chol.h"
 #include "linop.h"
-#include "noisemodels.h"
+
 #include "truncnorm.h"
 extern "C" {
   #include <sparse.h>

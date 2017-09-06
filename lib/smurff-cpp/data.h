@@ -7,9 +7,14 @@
 #include <numeric>
 #include <memory>
 
-#include "noisemodels.h"
 #include "matrix_io.h"
 #include "utils.h"
+
+#include "model.h"
+#include "INoiseModel.h"
+
+// AGE: I dont like the idea of adding this include. this all happens because we have implementation of MatricesData in header.
+#include "UnusedNoise.h"
 
 namespace smurff {
 
@@ -88,7 +93,7 @@ struct MatrixData: public Data {
 struct MatricesData: public MatrixData {
     MatricesData() : total_dim(2) { 
         name = "MatricesData"; 
-        noise_ptr = std::unique_ptr<INoiseModel>(new UnusedNoise(*this));
+        noise_ptr = std::unique_ptr<INoiseModel>(new UnusedNoise(this));
     }
 
     void init_pre() override;
