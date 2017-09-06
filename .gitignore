@@ -7,6 +7,5 @@ MANIFEST
 *.pyc
 dist
 .DS_Store
-*.cpp
 *.egg-info
 *.so
