@@ -17,7 +17,7 @@ namespace smurff {
 class AdaptiveGaussianNoise : public INoiseModel 
 {
 public:
-   double var_total;
+   double var_total = NAN;
    double alpha = NAN;
    double alpha_max = NAN;
    double sn_max;

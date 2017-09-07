@@ -123,6 +123,42 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
     update_auc();
 }
 
+//macau ProbitNoise eval
+/*
+eval_rmse(MatrixData & data, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var,
+        std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
+{
+ const unsigned N = data.Ytest.nonZeros();
+  Eigen::VectorXd pred(N);
+  Eigen::VectorXd test(N);
+  Eigen::MatrixXd & rows = *samples[0];
+  Eigen::MatrixXd & cols = *samples[1];
+
+// #pragma omp parallel for schedule(dynamic,8) reduction(+:se, se_avg) <- dark magic :)
+  for (int k = 0; k < data.Ytest.outerSize(); ++k) {
+    int idx = data.Ytest.outerIndexPtr()[k];
+    for (Eigen::SparseMatrix<double>::InnerIterator it(data.Ytest,k); it; ++it) {
+     pred[idx] = nCDF(cols.col(it.col()).dot(rows.col(it.row())));
+     test[idx] = it.value();
+
+      // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+      double pred_avg;
+      if (n == 0) {
+        pred_avg = pred[idx];
+      } else {
+        double delta = pred[idx] - predictions[idx];
+        pred_avg = (predictions[idx] + delta / (n + 1));
+        predictions_var[idx] += delta * (pred[idx] - pred_avg);
+      }
+      predictions[idx++] = pred_avg;
+
+   }
+  }
+  auc_test_onesample = auc(pred,test);
+  auc_test = auc(predictions, test);
+}
+*/
+
 //macau tensor eval
 /*
 std::pair<double,double> eval_rmse_tensor(
