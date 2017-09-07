@@ -91,7 +91,7 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
 
     if (burnin) {
         double se = 0.0;
-#pragma omp parallel for schedule(guided) reduction(+:se)
+        #pragma omp parallel for schedule(guided) reduction(+:se)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
             t.pred = model.predict({t.col, t.row}, data);
@@ -101,7 +101,7 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
         rmse = sqrt( se / N );
     } else {
         double se = 0.0, se_avg = 0.0;
-#pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
+        #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
             const double pred = model.predict({t.col, t.row}, data);
@@ -123,6 +123,73 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
     update_auc();
 }
 
+//macau tensor eval
+/*
+std::pair<double,double> eval_rmse_tensor(
+		SparseMode & sparseMode,
+		const int Nepoch,
+		Eigen::VectorXd & predictions,
+		Eigen::VectorXd & predictions_var,
+		std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
+		double mean_value)
+{
+  auto& U = samples[0];
+
+  const int nmodes = samples.size();
+  const int num_latents = U->rows();
+
+  const unsigned N = sparseMode.values.size();
+  double se = 0.0, se_avg = 0.0;
+
+  if (N == 0) {
+    // No test data, returning NaN's
+    return std::make_pair(std::numeric_limits<double>::quiet_NaN(),
+                          std::numeric_limits<double>::quiet_NaN());
+  }
+
+  if (N != predictions.size()) {
+    throw std::runtime_error("Ytest.size() and predictions.size() must be equal.");
+  }
+	if (sparseMode.row_ptr.size() - 1 != U->cols()) {
+    throw std::runtime_error("U.cols() and sparseMode size must be equal.");
+	}
+
+#pragma omp parallel for schedule(dynamic, 2) reduction(+:se, se_avg)
+  for (int n = 0; n < U->cols(); n++) {
+    Eigen::VectorXd u = U->col(n);
+    for (int j = sparseMode.row_ptr(n);
+             j < sparseMode.row_ptr(n + 1);
+             j++)
+    {
+      VectorXi idx = sparseMode.indices.row(j);
+      double pred = mean_value;
+      for (int d = 0; d < num_latents; d++) {
+        double tmp = u(d);
+
+        for (int m = 1; m < nmodes; m++) {
+          tmp *= (*samples[m])(d, idx(m - 1));
+        }
+        pred += tmp;
+      }
+
+      double pred_avg;
+      if (Nepoch == 0) {
+        pred_avg = pred;
+      } else {
+        double delta = pred - predictions(j);
+        pred_avg = (predictions(j) + delta / (Nepoch + 1));
+        predictions_var(j) += delta * (pred - pred_avg);
+      }
+      se     += square(sparseMode.values(j) - pred);
+      se_avg += square(sparseMode.values(j) - pred_avg);
+      predictions(j) = pred_avg;
+    }
+  }
+  const double rmse = sqrt(se / N);
+  const double rmse_avg = sqrt(se_avg / N);
+  return std::make_pair(rmse, rmse_avg);
+}
+*/
 
 void Result::update_auc()
 {
@@ -144,6 +211,41 @@ void Result::update_auc()
     auc /= num_positive;
     auc /= num_negative;
 }
+
+/*
+inline double auc(Eigen::VectorXd & pred, Eigen::VectorXd & test)
+{
+	Eigen::VectorXd stack_x(pred.size());
+	Eigen::VectorXd stack_y(pred.size());
+	double auc = 0.0;
+
+	if (pred.size() == 0) {
+		return NAN;
+	}
+
+	std::vector<unsigned int> permutation( pred.size() );
+	for(unsigned int i = 0; i < pred.size(); i++) {
+		permutation[i] = i;
+	}
+	std::sort(permutation.begin(), permutation.end(), [&pred](unsigned int a, unsigned int b) { return pred[a] < pred[b];});
+
+	double NP = test.sum();
+	double NN = test.size() - NP;
+	//Build stack_x and stack_y
+	stack_x[0] = test[permutation[0]];
+	stack_y[0] = 1-stack_x[0];
+	for(int i=1; i < pred.size(); i++) {
+		stack_x[i] = stack_x[i-1] + test[permutation[i]];
+		stack_y[i] = stack_y[i-1] + 1 - test[permutation[i]];
+	}
+
+	for(int i=0; i < pred.size() - 1; i++) {
+		auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1); //TODO:Make it Eigen
+	}
+
+	return auc / (NP*NN);
+}
+*/
 
 std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
 {

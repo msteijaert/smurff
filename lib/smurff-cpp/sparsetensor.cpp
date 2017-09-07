@@ -7,6 +7,35 @@
 
 using namespace Eigen;
 
+//from macau bpmfutils
+inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, int* rows, int* cols, double* values, int N) {
+   typedef Eigen::Triplet<double> T;
+   std::vector<T> tripletList;
+   tripletList.reserve(N);
+   for (int n = 0; n < N; n++) {
+     tripletList.push_back(T(rows[n], cols[n], values[n]));
+   }
+   X.setFromTriplets(tripletList.begin(), tripletList.end());
+ }
+ 
+ //from macau bpmfutils
+ inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, Eigen::MatrixXi &idx, Eigen::VectorXd &values) {
+   if (idx.rows() != values.size()) {
+     throw std::runtime_error("sparseFromIJV: idx.rows() must equal values.size().");
+   }
+   if (idx.cols() != 2) {
+     throw std::runtime_error("sparseFromIJV: idx.cols() must be equal to 2.");
+   }
+   typedef Eigen::Triplet<double> T;
+   std::vector<T> tripletList;
+   int N = values.size();
+   tripletList.reserve(N);
+   for (int n = 0; n < N; n++) {
+     tripletList.push_back(T(idx(n, 0), idx(n, 1), values(n)));
+   }
+   X.setFromTriplets(tripletList.begin(), tripletList.end());
+ }
+
 
 void SparseMode::init(Eigen::MatrixXi &idx, Eigen::VectorXd &vals, int m, int mode_size) {
   if (idx.rows() != vals.size()) {
