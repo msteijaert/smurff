@@ -18,6 +18,9 @@ class ILatentPrior;
 
 class BaseSession  {
    public:
+      virtual ~BaseSession() {}
+
+   public:
       //-- data members
       Model                                       model;
       Result                                      pred;

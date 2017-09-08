@@ -20,9 +20,13 @@ namespace smurff {
       Data* data;
 
    public:
-      INoiseModel(Data* p) 
+      INoiseModel(Data* p)
          : data(p) {}
 
+   public:
+      virtual ~INoiseModel() {}
+
+   public:
       virtual void init()  = 0;
       virtual void update(const SubModel &)  = 0;
 
