@@ -9,8 +9,6 @@
 #include "data.h"
 #include "result.h"
 #include "model.h"
-#include "latentprior.h"
-
 
 namespace smurff {
 

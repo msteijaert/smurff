@@ -20,12 +20,13 @@
 #include "session.h"
 #include "mvnormal.h"
 #include "utils.h"
-#include "latentprior.h"
-#include "macauoneprior.h"
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
 #include "data.h"
+
+#include "ILatentPrior.h"
+#include "MacauOnePrior.h"
 
 using namespace std; 
 using namespace Eigen;

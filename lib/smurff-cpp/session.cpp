@@ -22,8 +22,6 @@
 #include "session.h"
 #include "mvnormal.h"
 #include "utils.h"
-#include "latentprior.h"
-#include "macauoneprior.h"
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
@@ -33,6 +31,11 @@
 #include "FixedGaussianNoise.h"
 #include "ProbitNoise.h"
 #include "Noiseless.h"
+
+#include "MacauOnePrior.h"
+#include "MacauPrior.h"
+#include "NormalPrior.h"
+#include "SpikeAndSlabPrior.h"
 
 using namespace std; 
 using namespace Eigen;

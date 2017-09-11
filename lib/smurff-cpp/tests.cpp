@@ -4,16 +4,17 @@
 #include "chol.h"
 #include "mvnormal.h"
 #include "session.h"
-#include "latentprior.h"
-#include "macauprior.h"
 #include "utils.h"
 #include "data.h"
 #include "model.h"
 #include "sparsetensor.h"
-#include "macauoneprior.h"
 #include "inv_norm_cdf.h"
 #include "truncnorm.h"
 #include <cmath>
+
+#include "ILatentPrior.h"
+#include "MacauPrior.h"
+#include "MacauOnePrior.h"
 
 /* master
 #include <Eigen/Dense>
@@ -256,11 +257,11 @@ TEST_CASE( "latentprior/sample_lambda_beta", "sampling lambda beta from gamma di
           1.0,  0.91, -0.2;
   Lambda_u << 0.5, 0.1,
               0.1, 0.3;
-  auto post = posterior_lambda_beta(beta, Lambda_u, 0.01, 0.05);
+  auto post = smurff::posterior_lambda_beta(beta, Lambda_u, 0.01, 0.05);
   REQUIRE( post.first  == Approx(3.005) );
   REQUIRE( post.second == Approx(0.2631083888) );
 
-  double lambda_beta = sample_lambda_beta(beta, Lambda_u, 0.01, 0.05);
+  double lambda_beta = smurff::sample_lambda_beta(beta, Lambda_u, 0.01, 0.05);
   REQUIRE( lambda_beta > 0 );
 }
 

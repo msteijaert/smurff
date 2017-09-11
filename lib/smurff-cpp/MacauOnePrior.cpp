@@ -1,3 +1,5 @@
+#include "MacauOnePrior.h"
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <math.h>
@@ -7,7 +9,6 @@
 #include "linop.h"
 #include "utils.h"
 #include "session.h"
-#include "macauoneprior.h"
 #include "data.h"
 
 using namespace std; 
@@ -28,7 +29,8 @@ MacauOnePrior<FType>::MacauOnePrior(BaseSession &m, int p)
 }
 
 template<class FType>
-void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool) {
+void MacauOnePrior<FType>::addSideInfo(std::unique_ptr<FType> &Fmat, bool) 
+{
   // side information
   F       = std::move(Fmat);
   F_colsq = col_square_sum(*F);
@@ -94,7 +96,8 @@ void MacauOnePrior<FType>::sample_latent(int i)
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_latents() {
+void MacauOnePrior<FType>::sample_latents() 
+{
     ILatentPrior::sample_latents();
 
     sample_mu_lambda(U());
@@ -104,25 +107,14 @@ void MacauOnePrior<FType>::sample_latents() {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_mu_lambda(const Eigen::MatrixXd &U) {
-  MatrixXd Lambda(num_latent(), num_latent());
-  MatrixXd WI(num_latent(), num_latent());
-  WI.setIdentity();
-  int N = U.cols();
-
-  MatrixXd Udelta(num_latent(), N);
-#pragma omp parallel for schedule(static)
-  for (int i = 0; i < N; i++) {
-    for (int d = 0; d < num_latent(); d++) {
-      Udelta(d, i) = U(d, i) - Uhat(d, i);
-    }
-  }
-  tie(mu, Lambda) = CondNormalWishart(Udelta, VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
-  lambda = Lambda.diagonal();
+double MacauOnePrior<FType>::getLinkLambda() 
+{
+   return lambda_beta.mean(); 
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
+void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) 
+{
   // updating beta and beta_var
   const int nfeat = beta.cols();
   const int N = U.cols();
@@ -166,7 +158,27 @@ void MacauOnePrior<FType>::sample_beta(const Eigen::MatrixXd &U) {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::sample_lambda_beta() {
+void MacauOnePrior<FType>::sample_mu_lambda(const Eigen::MatrixXd &U) 
+{
+  MatrixXd Lambda(num_latent(), num_latent());
+  MatrixXd WI(num_latent(), num_latent());
+  WI.setIdentity();
+  int N = U.cols();
+
+  MatrixXd Udelta(num_latent(), N);
+#pragma omp parallel for schedule(static)
+  for (int i = 0; i < N; i++) {
+    for (int d = 0; d < num_latent(); d++) {
+      Udelta(d, i) = U(d, i) - Uhat(d, i);
+    }
+  }
+  std::tie(mu, Lambda) = CondNormalWishart(Udelta, VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
+  lambda = Lambda.diagonal();
+}
+
+template<class FType>
+void MacauOnePrior<FType>::sample_lambda_beta() 
+{
   double lambda_beta_a = lambda_beta_a0 + beta.cols() / 2.0;
   VectorXd lambda_beta_b = VectorXd::Constant(beta.rows(), lambda_beta_b0);
   const int D = beta.rows();
@@ -192,21 +204,30 @@ void MacauOnePrior<FType>::sample_lambda_beta() {
 }
 
 template<class FType>
-void MacauOnePrior<FType>::save(std::string prefix, std::string suffix) {
+void MacauOnePrior<FType>::setLambdaBeta(double lb) 
+{
+   lambda_beta = Eigen::VectorXd::Constant(this->num_latent(), lb);
+}
+
+template<class FType>
+void MacauOnePrior<FType>::save(std::string prefix, std::string suffix) 
+{
   write_dense(prefix + "-latentmean" + suffix, mu);
   prefix += "-F" + std::to_string(mode);
   write_dense(prefix + "-link" + suffix, beta);
 }
 
 template<class FType>
-void MacauOnePrior<FType>::restore(std::string prefix, std::string suffix) {
+void MacauOnePrior<FType>::restore(std::string prefix, std::string suffix) 
+{
   read_dense(prefix + "-latentmean" + suffix, mu);
   prefix += "-F" + std::to_string(mode);
   read_dense(prefix + "-link" + suffix, beta);
 }
 
 template<class FType>
-std::ostream &MacauOnePrior<FType>::status(std::ostream &os, std::string indent) const {
+std::ostream &MacauOnePrior<FType>::status(std::ostream &os, std::string indent) const 
+{
     os << indent << "  " << name << ": Beta = " << beta.norm() << "\n";
     return os;
 }
@@ -215,7 +236,7 @@ template class MacauOnePrior<SparseFeat>;
 template class MacauOnePrior<SparseDoubleFeat>;
 template class MacauOnePrior<Eigen::MatrixXd>;
 
-} // end namespace smurff
+}
 
 /* macau
 #include <Eigen/Dense>
