@@ -20,6 +20,7 @@ namespace smurff {
 
 struct Data {
     Data();
+    virtual ~Data() {}
 
     // init
     virtual void init_pre() = 0;
