@@ -15,6 +15,8 @@
 namespace smurff 
 {
 
+//why not use init method ?
+
 // Prior with side information
 template<class FType>
 class MPIMacauPrior : public MacauPrior<FType> 

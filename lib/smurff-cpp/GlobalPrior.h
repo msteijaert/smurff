@@ -1,15 +1,5 @@
 #pragma once
 
-/*
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <memory>
-
-#include "mvnormal.h"
-#include "linop.h"
-#include "model.h"
-*/
-
 /* macau
 void sample_latent(Eigen::MatrixXd &s,
                    int mm,
@@ -21,16 +11,6 @@ void sample_latent(Eigen::MatrixXd &s,
                    const Eigen::MatrixXd &Lambda_u,
                    const int num_latent);
 
-void sample_latent_blas(Eigen::MatrixXd &s,
-                        int mm,
-                        const Eigen::SparseMatrix<double> &mat,
-                        double mean_rating,
-                        const Eigen::MatrixXd &samples,
-                        double alpha,
-                        const Eigen::VectorXd &mu_u,
-                        const Eigen::MatrixXd &Lambda_u,
-                        const int num_latent);
-
 void sample_latent_blas_probit(Eigen::MatrixXd &s,
                         int mm,
                         const Eigen::SparseMatrix<double> &mat,
@@ -39,6 +19,7 @@ void sample_latent_blas_probit(Eigen::MatrixXd &s,
                         const Eigen::VectorXd &mu_u,
                         const Eigen::MatrixXd &Lambda_u,
                         const int num_latent);
+                        
 void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
                           int n,
                           std::unique_ptr<SparseMode> & sparseMode,
