@@ -4,70 +4,9 @@
 #include <string>
 #include <vector>
 
+#include "MatrixConfig.h"
 
 namespace smurff {
-
-struct NoiseConfig {
-    NoiseConfig(std::string n = "noiseless") : name(n) {
-      static int c = 0;
-      c++;
-      cccc = c;
-    }
-    //NoiseConfig(double p) : name("fixed"), precision(p) {}
-    //NoiseConfig(double i, double m) : name("adaptive"), sn_init(i), sn_max(m) {}
-
-    std::string name  = "noiseless";
-    int cccc;
-    
-    // for fixed gaussian noise
-    double precision  = 5.0;
-  
-    // for adaptive gausssian noise
-    double sn_init    = 1.0;
-    double sn_max     = 10.0;
-
-    bool validate(bool = true) const;
-};
-
-struct MatrixConfig {
-    MatrixConfig()
-        : dense(true), binary(false), rows(0), cols(0), values(0), nnz(0), nrow(0), ncol(0) {}
-    MatrixConfig(int nrow, int ncol, double *values)
-        : dense(true), binary(false), rows(0), cols(0), values(values), nnz(nrow*ncol), nrow(nrow), ncol(ncol) {}
-    MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols, double *values)
-        : dense(false), binary(false), rows(rows), cols(cols), values(values), nnz(nnz), nrow(nrow), ncol(ncol) {}
-    MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols)
-        : dense(false), binary(true), rows(rows), cols(cols), values(0), nnz(nnz), nrow(nrow), ncol(ncol) {}
-    MatrixConfig(int nrow, int ncol, bool dense, bool binary)
-        : dense(dense), binary(binary), rows(0), cols(0), values(0), nnz(0), nrow(nrow), ncol(ncol) {}
-    MatrixConfig(int nrow, int ncol, int nnz, bool binary = false)
-        : dense(nnz == nrow*ncol), binary(binary), rows(0), cols(0), values(0), nnz(nnz), nrow(nrow), ncol(ncol) {}
-
-    bool dense;
-    bool binary;
-
-    int* rows;
-    int* cols;
-    double* values;
-    int nnz;
-    int nrow;
-    int ncol;
-
-    NoiseConfig noise;
-
-    void alloc() {
-        assert(!cols);
-        assert(!rows);
-        assert(!values);
-        if (!dense) {
-            rows = new int[nnz];
-            cols = new int[nnz];
-        }
-        values = new double[nnz];
-    }
-
-    std::ostream &info(std::ostream &) const;
-};
 
 struct Config {
     

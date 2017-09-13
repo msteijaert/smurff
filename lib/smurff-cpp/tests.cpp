@@ -1,5 +1,11 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
+
+#include <cmath>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
 #include "linop.h"
 #include "chol.h"
 #include "mvnormal.h"
@@ -13,7 +19,9 @@
 #include "macauoneprior.h"
 #include "inv_norm_cdf.h"
 #include "truncnorm.h"
-#include <cmath>
+#include "MatrixConfig.h"
+#include "matrix_io.h"
+#include "gen_random.h"
 
 /* master
 #include <Eigen/Dense>
@@ -939,3 +947,508 @@ TEST_CASE( "truncnorm/rand_truncnorm", "generaring random truncnorm variable" ) 
   }
 }
 
+TEST_CASE("Comparing results of creating matrix from updated matrix config and directly reading matrix from file")
+{
+   // There should be a matrix file beside test executable
+   const std::string matrixFilePath = "./chembl-IC50-346targets.mm";
+   REQUIRE(std::ifstream(matrixFilePath));
+
+   // Reading sparse matrix using an updated matrix config that is based on a new tensor config
+   MatrixConfig matrix1Config = read_sparse(matrixFilePath);
+   Eigen::SparseMatrix<double> matrix1 = sparse_to_eigen(matrix1Config);
+
+   // Reading sparse matrix directly from file bypassing updated matrix config
+   Eigen::SparseMatrix<double> matrix2;
+   read_sparse(matrixFilePath, matrix2);
+
+   // "isApprox" is Eigen matrix method that can be used to compare two matrices
+   // https://codeyarns.com/2016/02/16/how-to-compare-eigen-matrices-for-equality/
+   REQUIRE(matrix1.isApprox(matrix2));
+}
+
+TEST_CASE("TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims)")
+{
+   std::vector<int> actualMatrixConfigColumns = { 0, 0, 0, 1, 1, 1, 2, 2, 2,
+                                                  0, 1, 2, 0, 1, 2, 0, 1, 2 
+                                                };
+   std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+
+   MatrixConfig actualMatrixConfig(3, 3, 9, actualMatrixConfigColumns.data(), actualMatrixConfigValues.data());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(int nrow, int ncol, double *values)")
+{
+   Eigen::MatrixXd matrix1(3, 3);
+   matrix1(0, 0) = 1; matrix1(0, 1) = 2; matrix1(0, 2) = 3;
+   matrix1(1, 0) = 4; matrix1(1, 1) = 5; matrix1(1, 2) = 6;
+   matrix1(2, 0) = 7; matrix1(2, 1) = 8; matrix1(2, 2) = 9;
+
+   double matrix2ConfigValues[9] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig matrix2Config(3, 3, matrix2ConfigValues);
+   Eigen::MatrixXd matrix2 = dense_to_eigen(matrix2Config);
+
+   // std::cout << matrix1 << std::endl << std::endl;
+   // std::cout << matrix2 << std::endl;
+
+   REQUIRE(matrix1.isApprox(matrix2));
+}
+
+TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols, double *values)")
+{
+   Eigen::SparseMatrix<double> matrix1(3, 3);
+   std::vector<Eigen::Triplet<double> > matrix1Triplets;
+   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   matrix1.setFromTriplets(matrix1Triplets.begin(), matrix1Triplets.end());
+
+   int matrix2ConfigRows[6]      = { 0, 0, 0, 2, 2, 2 };
+   int matrix2ConfigCols[6]      = { 0, 1, 2, 0, 1, 2 };
+   double matrix2ConfigValues[6] = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols, matrix2ConfigValues);
+   Eigen::SparseMatrix<double> matrix2 = sparse_to_eigen(matrix2Config);
+
+   REQUIRE(matrix1.isApprox(matrix2));
+}
+
+TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols)")
+{
+   Eigen::SparseMatrix<double> matrix1(3, 3);
+   std::vector<Eigen::Triplet<double> > matrix1Triplets;
+   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   matrix1.setFromTriplets(matrix1Triplets.begin(), matrix1Triplets.end());
+
+   int matrix2ConfigRows[6] = { 0, 0, 0, 2, 2, 2 };
+   int matrix2ConfigCols[6] = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols);
+   Eigen::SparseMatrix<double> matrix2 = sparse_to_eigen(matrix2Config);
+
+   REQUIRE(matrix1.isApprox(matrix2));   
+}
+
+TEST_CASE("gen_random/extract(SparseMatrixD)", "[!hide]")
+{
+   const double s = 0.3;
+   const int seed = 1234;
+
+   SparseMatrixD inMatrix1(3, 3);
+   std::vector<Eigen::Triplet<double> > inMatrix1Triplets;
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(1, 0, 4));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(1, 1, 5));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(1, 2, 6));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   inMatrix1Triplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   inMatrix1.setFromTriplets(inMatrix1Triplets.begin(), inMatrix1Triplets.end());
+
+   // std::cout << inMatrix1 << std::endl << std::endl;
+
+   SparseMatrixD outMatrix1 = extract(inMatrix1, s, seed);
+
+   // std::cout << inMatrix1 << std::endl << std::endl;
+   // std::cout << outMatrix1 << std::endl << std::endl;
+}
+
+TEST_CASE("gen_random/extract(MatrixConfig, remove = true). Sparse matrix input", "[!hide]")
+{
+   const double s = 0.3;
+   const bool remove = true;
+   const int seed = 1234;
+
+   double actualInMatrixConfigValues[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   MatrixConfig actualInMatrix2Config(3, 3, actualInMatrixConfigValues);
+   MatrixConfig actualOutMatrix2Config = extract(actualInMatrix2Config, s, remove, seed);
+
+   SparseMatrixD actualInMatrix = sparse_to_eigen(actualInMatrix2Config);
+   SparseMatrixD actualOutMatrix = sparse_to_eigen(actualOutMatrix2Config);
+
+   SparseMatrixD expectedInMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedInMatrixTriplets;
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(1, 0, 4));
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(1, 1, 5));
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(1, 2, 6));
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedInMatrix.setFromTriplets(expectedInMatrixTriplets.begin(), expectedInMatrixTriplets.end());
+
+   SparseMatrixD expectedOutMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedOutMatrixTriplets;
+   expectedOutMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedOutMatrix.setFromTriplets(expectedOutMatrixTriplets.begin(), expectedOutMatrixTriplets.end());
+
+   // std::cout << expectedInMatrix << std::endl << std::endl;
+   // std::cout << expectedOutMatrix << std::endl << std::endl;
+
+   // std::cout << actualInMatrix << std::endl << std::endl;
+   // std::cout << actualOutMatrix << std::endl << std::endl;
+
+   REQUIRE(actualInMatrix.isApprox(expectedInMatrix));
+   REQUIRE(actualOutMatrix.isApprox(expectedOutMatrix));
+}
+
+TEST_CASE("gen_random/extract(MatrixConfig, remove = false). Dense matrix input", "[!hide]")
+{
+   const double s = 0.3;
+   const bool remove = false;
+   const int seed = 1234;
+
+   double actualInMatrixConfigValues[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   MatrixConfig actualInMatrixConfig(3, 3, actualInMatrixConfigValues);
+   MatrixConfig actualOutMatrixConfig = extract(actualInMatrixConfig, s, remove, seed);
+
+   SparseMatrixD actualInMatrix = sparse_to_eigen(actualInMatrixConfig);
+   SparseMatrixD actualOutMatrix = sparse_to_eigen(actualOutMatrixConfig);
+
+   Eigen::MatrixXd expectedInMatrix(3, 3);
+   expectedInMatrix(0, 0) = 1; expectedInMatrix(0, 1) = 2; expectedInMatrix(0, 2) = 3;
+   expectedInMatrix(1, 0) = 4; expectedInMatrix(1, 1) = 5; expectedInMatrix(1, 2) = 6;
+   expectedInMatrix(2, 0) = 7; expectedInMatrix(2, 1) = 8; expectedInMatrix(2, 2) = 9;
+
+   SparseMatrixD expectedOutMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedOutMatrixTriplets;
+   expectedOutMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedOutMatrix.setFromTriplets(expectedOutMatrixTriplets.begin(), expectedOutMatrixTriplets.end());
+
+   REQUIRE(actualInMatrix.isApprox(expectedInMatrix));
+   REQUIRE(actualOutMatrix.isApprox(expectedOutMatrix));
+}
+
+TEST_CASE("matrix_io/read_csv(std::istream& in)")
+{
+   std::stringstream ss;
+   ss << "3" << std::endl << "3" << std::endl;
+   ss << "1, 2, 3" << std::endl;
+   ss << "4,5,6" << std::endl;
+   ss << "7, 8, 9" << std::endl;
+   MatrixConfig actualMatrixConfig = read_csv(ss);
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   // std::cout << actualMatrix << std::endl << std::endl;
+   // std::cout << expectedMatrix << std::endl;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matix_io/read_ddm(std::istream& in)")
+{
+   long nrow = 3;
+   long ncol = 3;
+   std::vector<double> values = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+
+   std::stringstream ss;
+   ss.write(reinterpret_cast<char*>(&nrow), sizeof(long));
+   ss.write(reinterpret_cast<char*>(&ncol), sizeof(long));
+   ss.write(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
+
+   MatrixConfig actualMatrixConfig = read_ddm(ss);
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType). DenseMatrixType::csv")
+{
+   std::stringstream ss;
+   ss << "3" << std::endl << "3" << std::endl;
+   ss << "1, 2, 3" << std::endl;
+   ss << "4,5,6" << std::endl;
+   ss << "7, 8, 9" << std::endl;
+   MatrixConfig actualMatrixConfig = read_dense(ss, DenseMatrixType::csv);
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType). DenseMatrixType::ddm")
+{
+   long nrow = 3;
+   long ncol = 3;
+   std::vector<double> values = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+
+   std::stringstream ss;
+   ss.write(reinterpret_cast<char*>(&nrow), sizeof(long));
+   ss.write(reinterpret_cast<char*>(&ncol), sizeof(long));
+   ss.write(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
+
+   MatrixConfig actualMatrixConfig = read_dense(ss, DenseMatrixType::ddm);
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_mtx(std::istream& in)")
+{
+   std::stringstream ss;
+   ss << 3 << '\t' << 3 << '\t' << 9 << std::endl;
+
+   ss << 1 << '\t' << 1 << '\t' << 1 << std::endl;
+   ss << 1 << '\t' << 2 << '\t' << 2 << std::endl;
+   ss << 1 << '\t' << 3 << '\t' << 3 << std::endl;
+
+   ss << 2 << '\t' << 1 << '\t' << 4 << std::endl;
+   ss << 2 << '\t' << 2 << '\t' << 5 << std::endl;
+   ss << 2 << '\t' << 3 << '\t' << 6 << std::endl;
+   
+   ss << 3 << '\t' << 1 << '\t' << 7 << std::endl;
+   ss << 3 << '\t' << 2 << '\t' << 8 << std::endl;
+   ss << 3 << '\t' << 3 << '\t' << 9 << std::endl;
+
+   MatrixConfig actualMatrixConfig = read_mtx(ss);
+   SparseMatrixD actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/writeToCSVstream")
+{
+   std::stringstream actualMatrixOutputStream;
+   Eigen::MatrixXd actualMatrix(3, 3);
+   actualMatrix(0, 0) = 1; actualMatrix(0, 1) = 2; actualMatrix(0, 2) = 3;
+   actualMatrix(1, 0) = 4; actualMatrix(1, 1) = 5; actualMatrix(1, 2) = 6;
+   actualMatrix(2, 0) = 7; actualMatrix(2, 1) = 8; actualMatrix(2, 2) = 9;
+   writeToCSVstream(actualMatrixOutputStream, actualMatrix);
+
+   std::stringstream expectedMatrixOutputStream;
+   expectedMatrixOutputStream << 3 << std::endl;
+   expectedMatrixOutputStream << 3 << std::endl;
+   expectedMatrixOutputStream << "1,2,3" << std::endl;
+   expectedMatrixOutputStream << "4,5,6" << std::endl;
+   expectedMatrixOutputStream << "7,8,9" << std::endl;
+   
+   REQUIRE(actualMatrixOutputStream.str() == expectedMatrixOutputStream.str());
+}
+
+TEST_CASE("matrix_io/readFromCSVstream")
+{
+   std::stringstream actualMatrixInputStream;
+   actualMatrixInputStream << 3 << std::endl;
+   actualMatrixInputStream << 3 << std::endl;
+   actualMatrixInputStream << "1,2,3" << std::endl;
+   actualMatrixInputStream << "4,5,6" << std::endl;
+   actualMatrixInputStream << "7,8,9" << std::endl;
+   Eigen::MatrixXd actualMatrix;
+   readFromCSVstream(actualMatrixInputStream, actualMatrix);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/write_ddm(std::ostream& out, const Eigen::MatrixXd& matrix)")
+{
+   std::stringstream actualMatrixOutputStream;
+   Eigen::MatrixXd actualMatrix(3, 3);
+   actualMatrix(0, 0) = 1; actualMatrix(0, 1) = 2; actualMatrix(0, 2) = 3;
+   actualMatrix(1, 0) = 4; actualMatrix(1, 1) = 5; actualMatrix(1, 2) = 6;
+   actualMatrix(2, 0) = 7; actualMatrix(2, 1) = 8; actualMatrix(2, 2) = 9;
+   write_ddm(actualMatrixOutputStream, actualMatrix);
+
+   long expectedMatrixNRow = 3;
+   long expectedMatrixNCol = 3;
+   double expectedMatrixValues[9] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   std::stringstream expectedMatrixOutputStream;
+   expectedMatrixOutputStream.write(reinterpret_cast<char*>(&expectedMatrixNRow), sizeof(long));
+   expectedMatrixOutputStream.write(reinterpret_cast<char*>(&expectedMatrixNCol), sizeof(long));
+   expectedMatrixOutputStream.write(reinterpret_cast<char*>(expectedMatrixValues), 9 * sizeof(double));
+   
+   REQUIRE(actualMatrixOutputStream.str() == expectedMatrixOutputStream.str());
+}
+
+TEST_CASE("matrix_io/read_ddm(std::istream& in, Eigen::MatrixXd& matrix)")
+{
+   long actualMatrixNRow = 3;
+   long actualMatrixNCol = 3;
+   double actualMatrixValues[9] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   std::stringstream actualMatrixInputStream;
+   actualMatrixInputStream.write(reinterpret_cast<char*>(&actualMatrixNRow), sizeof(long));
+   actualMatrixInputStream.write(reinterpret_cast<char*>(&actualMatrixNCol), sizeof(long));
+   actualMatrixInputStream.write(reinterpret_cast<char*>(actualMatrixValues), 9 * sizeof(double));
+   Eigen::MatrixXd actualMatrix;
+   read_ddm(actualMatrixInputStream, actualMatrix);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::MatrixXd& X). DenseMatrixType::ddm")
+{
+   long actualMatrixNRow = 3;
+   long actualMatrixNCol = 3;
+   std::vector<double> actualMatrixValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+
+   std::stringstream actualMatrixInputStream;
+   actualMatrixInputStream.write(reinterpret_cast<char*>(&actualMatrixNRow), sizeof(long));
+   actualMatrixInputStream.write(reinterpret_cast<char*>(&actualMatrixNCol), sizeof(long));
+   actualMatrixInputStream.write(reinterpret_cast<char*>(actualMatrixValues.data()), actualMatrixValues.size() * sizeof(double));
+   
+   Eigen::MatrixXd actualMatrix;
+   read_dense(actualMatrixInputStream, DenseMatrixType::ddm, actualMatrix);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::MatrixXd& X). DenseMatrixType::csv")
+{
+   long actualMatrixNRow = 3;
+   long actualMatrixNCol = 3;
+   std::vector<double> actualMatrixValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+
+   std::stringstream actualMatrixInputStream;
+   actualMatrixInputStream << "3" << std::endl << "3" << std::endl;
+   actualMatrixInputStream << "1, 2, 3" << std::endl;
+   actualMatrixInputStream << "4,5,6" << std::endl;
+   actualMatrixInputStream << "7, 8, 9" << std::endl;
+   Eigen::MatrixXd actualMatrix;
+   read_dense(actualMatrixInputStream, DenseMatrixType::csv, actualMatrix);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::VectorXd& V). DenseMatrixType::ddm")
+{
+   long actualVectorNRow = 3;
+   long actualVectorNCol = 1;
+   std::vector<double> actualVectorValues = { 1, 4, 7 };
+
+   std::stringstream actualVectorInputStream;
+   actualVectorInputStream.write(reinterpret_cast<char*>(&actualVectorNRow), sizeof(long));
+   actualVectorInputStream.write(reinterpret_cast<char*>(&actualVectorNCol), sizeof(long));
+   actualVectorInputStream.write(reinterpret_cast<char*>(actualVectorValues.data()), actualVectorValues.size() * sizeof(double));
+
+   Eigen::VectorXd actualVector;
+   read_dense(actualVectorInputStream, DenseMatrixType::ddm, actualVector);
+
+   Eigen::VectorXd expectedVector(3, 1);
+   expectedVector(0, 0) = 1;
+   expectedVector(1, 0) = 4;
+   expectedVector(2, 0) = 7;
+
+   REQUIRE(actualVector.isApprox(expectedVector));
+}
+
+TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::VectorXd& V). DenseMatrixType::csv")
+{
+   long actualVectorNRow = 3;
+   long actualVectorNCol = 1;
+   std::vector<double> actualVectorValues = { 1, 4, 7 };
+
+   std::stringstream actualVectorInputStream;
+   actualVectorInputStream << "3" << std::endl << "1" << std::endl;
+   actualVectorInputStream << "1" << std::endl;
+   actualVectorInputStream << "4" << std::endl;
+   actualVectorInputStream << "7" << std::endl;
+   Eigen::VectorXd actualVector;
+   read_dense(actualVectorInputStream, DenseMatrixType::csv, actualVector);
+
+   Eigen::VectorXd expectedVector(3, 1);
+   expectedVector(0, 0) = 1;
+   expectedVector(1, 0) = 4;
+   expectedVector(2, 0) = 7;
+
+   REQUIRE(actualVector.isApprox(expectedVector));
+}
+
+TEST_CASE("matrix_io/write_dense(std::ostream& out, DenseMatrixType denseMatrixType, const Eigen::MatrixXd &X). DenseMatrixType::ddm")
+{
+   Eigen::MatrixXd actualMatrix(3, 3);
+   actualMatrix(0, 0) = 1; actualMatrix(0, 1) = 2; actualMatrix(0, 2) = 3;
+   actualMatrix(1, 0) = 4; actualMatrix(1, 1) = 5; actualMatrix(1, 2) = 6;
+   actualMatrix(2, 0) = 7; actualMatrix(2, 1) = 8; actualMatrix(2, 2) = 9;
+
+   std::stringstream actualMatrixOutputStream;
+   write_dense(actualMatrixOutputStream, DenseMatrixType::ddm, actualMatrix);
+
+   long expectedMatrixNRow = 3;
+   long expectedMatrixNCol = 3;
+   std::vector<double> expectedMatrixValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   std::stringstream expectedMatrixOutputStream;
+   expectedMatrixOutputStream.write(reinterpret_cast<char*>(&expectedMatrixNRow), sizeof(long));
+   expectedMatrixOutputStream.write(reinterpret_cast<char*>(&expectedMatrixNCol), sizeof(long));
+   expectedMatrixOutputStream.write(reinterpret_cast<char*>(expectedMatrixValues.data()), expectedMatrixValues.size() * sizeof(double));
+
+   REQUIRE(actualMatrixOutputStream.str() == expectedMatrixOutputStream.str());
+}
+
+TEST_CASE("matrix_io/write_dense(std::ostream& out, DenseMatrixType denseMatrixType, const Eigen::MatrixXd &X). DenseMatrixType::csv")
+{
+   Eigen::MatrixXd actualMatrix(3, 3);
+   actualMatrix(0, 0) = 1; actualMatrix(0, 1) = 2; actualMatrix(0, 2) = 3;
+   actualMatrix(1, 0) = 4; actualMatrix(1, 1) = 5; actualMatrix(1, 2) = 6;
+   actualMatrix(2, 0) = 7; actualMatrix(2, 1) = 8; actualMatrix(2, 2) = 9;
+
+   std::stringstream actualMatrixOutputStream;
+   write_dense(actualMatrixOutputStream, DenseMatrixType::csv, actualMatrix);
+
+   std::stringstream expectedMatrixOutputStream;
+   expectedMatrixOutputStream << 3 << std::endl;
+   expectedMatrixOutputStream << 3 << std::endl;
+   expectedMatrixOutputStream << "1,2,3" << std::endl;
+   expectedMatrixOutputStream << "4,5,6" << std::endl;
+   expectedMatrixOutputStream << "7,8,9" << std::endl;
+
+   REQUIRE(actualMatrixOutputStream.str() == expectedMatrixOutputStream.str());
+}

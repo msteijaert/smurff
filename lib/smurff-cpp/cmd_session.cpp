@@ -43,26 +43,37 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
     Config &c = *(Config *)(state->input);
 
-    auto set_noise_model = [&c](std::string name, std::string optarg) {
+    auto set_noise_model = [&c](std::string name, std::string optarg)
+    {
         NoiseConfig nc;
         nc.name = name;
-        if (name == "adaptive") {
+        if (name == "adaptive")
+        {
             char *token, *str = strdup(optarg.c_str());
             if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL); 
             if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL); 
-        } else if (name == "fixed") {
+        }
+        else if (name == "fixed")
+        {
             nc.precision = strtod(optarg.c_str(), NULL);
         }
 
         // set global noise model
-        if (c.train.noise.name == "noiseless") c.train.noise = nc; 
-        //set for row/col feautres
-        for(auto &m: c.row_features) if (m.noise.name == "noiseless") m.noise = nc; 
-        for(auto &m: c.col_features) if (m.noise.name == "noiseless") m.noise = nc; 
+        if (c.train.getNoiseConfig().name == "noiseless")
+            c.train.setNoiseConfig(nc);
 
+        //set for row/col feautres
+        for(auto &m: c.row_features)
+            if (m.getNoiseConfig().name == "noiseless")
+               m.setNoiseConfig(nc);
+
+        for(auto &m: c.col_features)
+            if (m.getNoiseConfig().name == "noiseless")
+               m.setNoiseConfig(nc);
     };
 
-    switch (key) {
+    switch (key)
+    {
         case ROW_PRIOR:       c.row_prior          = optarg; break;
         case COL_PRIOR:       c.col_prior          = optarg; break;
 

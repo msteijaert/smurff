@@ -164,32 +164,76 @@ inline void addMacauPrior(Session &m, std::string prior_name, SideInfo *f, doubl
 
 void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
 {
-    //-- row prior with side information
-    if (features.size()) {
-        if (prior_name == "macau" || prior_name == "macauone") {
-            assert(features.size() == 1);
-            auto &s = features.at(0);
+   //-- row prior with side information
+   if (features.size())
+   {
+      if (prior_name == "macau" || prior_name == "macauone")
+      {
+         assert(features.size() == 1);
+         auto &s = features.at(0);
 
-            if (s.binary) {
-                auto sideinfo = new SparseFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols);
-                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
-            } else if (s.dense) {
-                auto sideinfo = new MatrixXd(dense_to_eigen(s));
-                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
-            } else {
-                auto sideinfo = new SparseDoubleFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols, s.values);
-                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
-            } 
-        } else {
-            assert(false && "SideInfo only with macau(one) prior");
-        }
-    } else if(prior_name == "normal" || prior_name == "default") {
-        sess.addPrior<NormalPrior>();
-    } else if(prior_name == "spikeandslab") {
-        sess.addPrior<SpikeAndSlabPrior>();
-    } else {
-        throw std::runtime_error("Unknown prior without side info: " + prior_name);
-    }
+         if (s.isBinary())
+         {
+            int nrow = s.getNRow();
+            int ncol = s.getNCol();
+            int nnz = s.getNNZ();
+            std::vector<int> rows = s.getRows();
+            std::vector<int> cols = s.getCols();
+
+            // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
+            // we will remove these extra memory allocation and manipulation
+            int* rowsPtr = new int[nrow];
+            int* colsPtr = new int[ncol];
+            std::copy(rows.begin(), rows.end(), rowsPtr);
+            std::copy(cols.begin(), cols.end(), colsPtr);
+
+            auto sideinfo = new SparseFeat(nrow, ncol, nnz, rowsPtr, colsPtr);
+            addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
+         }
+         else if (s.isDense())
+         {
+            auto sideinfo = new MatrixXd(dense_to_eigen(s));
+            addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
+         }
+         else
+         {
+            int nrow = s.getNRow();
+            int ncol = s.getNCol();
+            int nnz = s.getNNZ();
+            std::vector<int> rows = s.getRows();
+            std::vector<int> cols = s.getCols();
+            std::vector<double> values = s.getValues();
+
+            // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
+            // we will remove these extra memory allocation and manipulation
+            int* rowsPtr = new int[nrow];
+            int* colsPtr = new int[ncol];
+            double* valuesPtr = new double[nnz];
+            std::copy(rows.begin(), rows.end(), rowsPtr);
+            std::copy(cols.begin(), cols.end(), colsPtr);
+            std::copy(values.begin(), values.end(), valuesPtr);
+
+            auto sideinfo = new SparseDoubleFeat(nrow, ncol, nnz, rowsPtr, colsPtr, valuesPtr);
+            addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
+         }
+      }
+      else
+      {
+         assert(false && "SideInfo only with macau(one) prior");
+      }
+   }
+   else if(prior_name == "normal" || prior_name == "default")
+   {
+      sess.addPrior<NormalPrior>();
+   }
+   else if(prior_name == "spikeandslab")
+   {
+      sess.addPrior<SpikeAndSlabPrior>();
+   }
+   else
+   {
+      throw std::runtime_error("Unknown prior without side info: " + prior_name);
+   }
 }
 
 std::string Config::version() {
@@ -213,8 +257,8 @@ bool NoiseConfig::validate(bool throw_error) const
 
 bool Config::validate(bool throw_error) const 
 {
-    if (!train.rows)              die("Missing train matrix");
-    if (test.rows  && test_split) die("Provided both input test pointer and split ratio");
+    if (!train.getRows().size())             die("Missing train matrix");
+    if (test.getRows().size() && test_split) die("Provided both input test pointer and split ratio");
 
     std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
@@ -223,10 +267,10 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> center_modes = { "none", "global", "rows", "cols" };
     if (center_modes.find(center_mode) == center_modes.end()) die("Unknown center mode " + center_mode);
 
-    if (test.nrow > 0 && train.nrow > 0 && test.nrow != train.nrow)
+    if (test.getNRow() > 0 && train.getNRow() > 0 && test.getNRow() != train.getNRow())
         die("Train and test matrix should have the same number of rows");
 
-    if (test.ncol > 0 && train.ncol > 0 && test.ncol != train.ncol)
+    if (test.getNCol() > 0 && train.getNCol() > 0 && test.getNCol() != train.getNCol())
         die("Train and test matrix should have the same number of cols");
 
     std::set<std::string> save_suffixes = { ".csv", ".ddm" };
@@ -235,15 +279,9 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> init_models = { "random", "zero" };
     if (init_models.find(init_model) == init_models.end()) die("Unknown init model " + init_model);
 
-    train.noise.validate();
+    train.getNoiseConfig().validate();
 
     return true;
-}
-
-std::ostream &MatrixConfig::info(std::ostream &os) const
-{
-    os << nrow << " x " << ncol;
-    return os;
 }
 
 void Config::save(std::string fname) const 
@@ -294,10 +332,10 @@ void Config::save(std::string fname) const
     os << "direct = " << direct << std::endl;
 
     os << "# noise model" << std::endl;
-    os << "noise_model = " << train.noise.name << std::endl;
-    os << "precision = " << train.noise.precision << std::endl;
-    os << "sn_init = " << train.noise.sn_init << std::endl;
-    os << "sn_max = " << train.noise.sn_max << std::endl;
+    os << "noise_model = " << train.getNoiseConfig().name << std::endl;
+    os << "precision = " << train.getNoiseConfig().precision << std::endl;
+    os << "sn_init = " << train.getNoiseConfig().sn_init << std::endl;
+    os << "sn_max = " << train.getNoiseConfig().sn_max << std::endl;
 
     os << "# binary classification" << std::endl;
     os << "classify = " << classify << std::endl;
@@ -339,10 +377,12 @@ void Config::restore(std::string fname) {
     direct = reader.GetBoolean("", "direct",  false); 
 
     //-- noise model
-    train.noise.name = reader.Get("", "noise_model",  "fixed");
-    train.noise.precision = reader.GetReal("", "precision",  5.0);
-    train.noise.sn_init = reader.GetReal("", "sn_init",  1.0);
-    train.noise.sn_max = reader.GetReal("", "sn_max",  10.0);
+    NoiseConfig noise;
+    noise.name = reader.Get("", "noise_model",  "fixed");
+    noise.precision = reader.GetReal("", "precision",  5.0);
+    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
+    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
+    train.setNoiseConfig(noise);
 
     //-- binary classification
     classify = reader.GetBoolean("", "classify",  false);
@@ -373,7 +413,7 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
 {
     std::unique_ptr<MatrixData> local_data_ptr;
 
-    if (!config.dense) {
+    if (!config.isDense()) {
         SparseMatrixD Ytrain = sparse_to_eigen(config);
         if (!scarce) {
             local_data_ptr = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
@@ -387,7 +427,7 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
         local_data_ptr = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
 
-    setNoiseModel(config.noise, local_data_ptr.get());
+    setNoiseModel(config.getNoiseConfig(), local_data_ptr.get());
 
     return local_data_ptr;
 }
@@ -446,13 +486,14 @@ void Session::setFromConfig(const Config &c)
     data_ptr = toData(config.train, row_matrices, col_matrices);
 
     // check if data is ScarceBinary
+    /*
     if (0)
             if (!config.classify) {
                 config.classify = true;
                 config.threshold = 0.5;
                 config.train.noise.name = "probit";
             }
- 
+    */
  
     if (config.classify) pred.setThreshold(config.threshold);
     

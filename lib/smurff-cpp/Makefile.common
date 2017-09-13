@@ -21,6 +21,7 @@ LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.
 LIBOBJS += matrix_io.o macauoneprior.o spikeandslab.o macauprior.o normalprior.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
+LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o
 LIBSMURFF = libsmurff-cpp.a
 
 .PHONY: all clean smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal

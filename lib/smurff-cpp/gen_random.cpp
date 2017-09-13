@@ -1,13 +1,12 @@
 #include <limits>
 #include <iostream>
-#include "mvnormal.h"
 
+#include "mvnormal.h"
 #include "config.h"
 #include "gen_random.h"
 
 using namespace Eigen;
-
-typedef Eigen::SparseMatrix<double> SparseMatrixD;
+using namespace smurff;
 
 MatrixXd ones_Ydense(int N, int D, int K)
 {
@@ -94,81 +93,107 @@ SparseMatrixD random_Ysparse(int N, int D, int K, double s)
     return sparsify(X, W, s);
 }
 
-SparseMatrixD extract(SparseMatrixD &Y, double s)
+SparseMatrixD extract(SparseMatrixD &Y, double s, std::default_random_engine::result_type seed)
 {
-    SparseMatrixD predictions(Y.rows(), Y.cols());
-    std::default_random_engine gen;
-    std::uniform_real_distribution<double> udist(0.0,1.0);
+   unsigned Yout_nnz = Y.nonZeros() * s;
+   unsigned Ynew_nnz = Y.nonZeros() - Yout_nnz;
 
-    Y.prune([&udist, &gen, &predictions, s](
-                const SparseMatrixD::Index& row,
-                const SparseMatrixD::Index& col,
-                const SparseMatrixD::Scalar& value)->bool
-        {
-            bool prune = udist(gen) < s;
-            if (prune) predictions.insert(row,col) = value;
-            return prune;
-        }
-    );
+   SparseMatrixD predictions(Y.rows(), Y.cols());
+   std::default_random_engine gen(seed);
+   std::uniform_real_distribution<double> udist(0.0,1.0);
 
-    return predictions;
+   Y.prune([&udist, &gen, &predictions, s](
+               const SparseMatrixD::Index& row,
+               const SparseMatrixD::Index& col,
+               const SparseMatrixD::Scalar& value)->bool
+      {
+         bool prune = udist(gen) < s;
+         if (prune) predictions.insert(row,col) = value;
+         return !prune;
+      }
+   );
+
+   assert(Y.nonZeros() == Ynew_nnz);
+   assert(predictions.nonZeros() == Yout_nnz);
+
+   return predictions;
 }
 
-SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s)
+SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s, std::default_random_engine::result_type seed)
 {
-    SparseMatrixD Yout(Yin.rows(), Yin.cols());
+   unsigned Yout_nnz = Yin.nonZeros() * s;
+   SparseMatrixD Yout(Yin.rows(), Yin.cols());
 
-    std::default_random_engine gen;
-    std::uniform_real_distribution<double> udist(0.0,1.0);
+   std::default_random_engine gen(seed);
+   std::uniform_real_distribution<double> udist(0.0,1.0);
 
-    for (int k = 0; k < Yin.cols(); ++k) {
-        for (int l = 0; l < Yin.rows(); ++l) {
-            auto p=udist(gen);
-            if(p < s) Yout.coeffRef(l,k) = Yin(l,k);
-        }
-    }
-    return Yout;
+   for (int k = 0; k < Yin.cols(); ++k)
+   {
+      for (int l = 0; l < Yin.rows(); ++l)
+      {
+         auto p = udist(gen);
+         if(p < s)
+            Yout.coeffRef(l,k) = Yin(l,k);
+      }
+   }
+
+   assert(Yout.nonZeros() == Yout_nnz);
+
+   return Yout;
 }
 
-using namespace smurff;
-
-MatrixConfig extract(MatrixConfig &Yin, double s, bool remove)
+MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_random_engine::result_type seed)
 {
-    unsigned Yout_nnz = Yin.nnz * s;
-    unsigned Ynew_nnz = Yin.nnz - Yout_nnz;
+   unsigned Yout_nnz = Yin.getNNZ() * s;
+   unsigned Ynew_nnz = Yin.getNNZ() - Yout_nnz;
 
-    std::default_random_engine gen;
-    std::uniform_real_distribution<double> udist(0.0,1.0);
+   std::default_random_engine gen(seed);
+   std::uniform_real_distribution<double> udist(0.0, 1.0);
 
-    MatrixConfig Yout(Yin.nrow, Yin.ncol, Yout_nnz);
-    MatrixConfig Ynew(Yin.nrow, Yin.ncol, Ynew_nnz);
-    Yout.alloc();
-    if (remove) Ynew.alloc();
+   std::vector<int> Yin_rows = Yin.getRows();
+   std::vector<int> Yin_cols = Yin.getCols();
+   std::vector<double> Yin_values = Yin.getValues();
 
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    for(; i<Yin.nnz; ++i) {
-        auto p=udist(gen);
-        if(p < s && j < Yout.nnz) {
-            Yout.cols[j] = Yin.cols[i];
-            Yout.rows[j] = Yin.rows[i];
-            Yout.values[j] = Yin.values[i];
-            j++;
-        } else if (remove) {
-            assert(k < Ynew.nnz);
-            Ynew.cols[k] = Yin.cols[i];
-            Ynew.rows[k] = Yin.rows[i];
-            Ynew.values[k] = Yin.values[i];
-            k++;
-        }
-    }
+   std::vector<int> Yout_rows;
+   std::vector<int> Yout_cols;
+   std::vector<double> Yout_values;
 
-    assert(j == Yout.nnz);
-    if (remove) assert(k == Ynew.nnz);
+   std::vector<int> Ynew_rows;
+   std::vector<int> Ynew_cols;
+   std::vector<double> Ynew_values;
 
-    if (remove) std::swap(Yin, Ynew);
+   for (int i = 0; i < Yin.getNNZ(); i++)
+   {
+      if (udist(gen) < s && Yout_rows.size() < Yout_nnz)
+      {
+         Yout_rows.push_back(Yin_rows[i]);
+         Yout_cols.push_back(Yin_cols[i]);
+         Yout_values.push_back(Yin_values[i]);
+      }
+      else if (remove) // Applies only to sparse matrix
+      {
+         assert(Ynew_values.size() < Ynew_nnz);
+         Ynew_rows.push_back(Yin_rows[i]);
+         Ynew_cols.push_back(Yin_cols[i]);
+         Ynew_values.push_back(Yin_values[i]);
+      }
+   }
 
-    return Yout;
+   assert(Yout_values.size() == Yout_nnz);
+   // Applies only to sparse matrix
+   if (remove)
+   {
+      assert(Ynew_values.size() == Ynew_nnz);
+      MatrixConfig Ynew(Yin.getNRow(), Yin.getNCol(), Ynew_values.size(), Ynew_rows.data(), Ynew_cols.data(), Ynew_values.data());
+      Ynew.setNoiseConfig(Yin.getNoiseConfig());
+      std::swap(Yin, Ynew);
+   }
+
+   MatrixConfig Yout(Yin.getNRow(), Yin.getNCol(), Yout_values.size(), Yout_rows.data(), Yout_cols.data(), Yout_values.data());
+   return Yout;
 }
 
+MatrixConfig extract(MatrixConfig &in, double s, std::default_random_engine::result_type seed)
+{
+   return extract(in, s, !in.isDense(), seed);
+}
