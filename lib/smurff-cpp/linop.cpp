@@ -57,6 +57,34 @@ void A_mul_Bt(Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B) {
   csr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
 }
 
+//method is identical
+
+//X = A * B
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B) 
+{
+   Eigen::MatrixXd out(A.rows(), B.cols());
+   A_mul_B_blas(out, A, B);
+   return out;
+}
+
+//method is identical
+ 
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B) 
+{
+   Eigen::MatrixXd out(A.rows(), B.cols());
+   A_mul_Bt(out, B.Mt, A);
+   return out;
+}
+
+//method is identical
+ 
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) 
+{
+   Eigen::MatrixXd out(A.rows(), B.cols());
+   A_mul_Bt(out, B.Mt, A);
+   return out;
+}
+
 void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
   if (out.cols() != A.cols()) {
     throw std::runtime_error("At_mul_A(SparseFeat): out.cols() must equal A.cols()");

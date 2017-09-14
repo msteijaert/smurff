@@ -68,6 +68,9 @@ void A_mul_Bt( Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B);
 void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
 
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 void makeSymmetric(Eigen::MatrixXd & A);
 
