@@ -143,7 +143,7 @@ smurff::MatrixConfig read_csv(std::istream& in)
    assert(row == nrow);
    assert(col == ncol);
 
-   smurff::MatrixConfig ret(nrow, ncol, values);
+   smurff::MatrixConfig ret(nrow, ncol, values, smurff::NoiseConfig());
    delete[] values;
    return ret;
 }
@@ -356,7 +356,7 @@ smurff::MatrixConfig read_ddm(std::istream& in)
    double* values = new double[nnz];
    in.read( (char *) values, nnz*sizeof(double) );
 
-   smurff::MatrixConfig ret(nrow, ncol, values);
+   smurff::MatrixConfig ret(nrow, ncol, values, smurff::NoiseConfig());
    delete[] values;
    return ret;
 }
@@ -409,7 +409,7 @@ smurff::MatrixConfig read_mtx(std::istream& in)
       values[l] = v;
    }
 
-   smurff::MatrixConfig ret(nrow, ncol, nnz, rows, cols, values);
+   smurff::MatrixConfig ret(nrow, ncol, nnz, rows, cols, values, smurff::NoiseConfig());
    delete[] rows;
    delete[] cols;
    delete[] values;
@@ -425,14 +425,14 @@ smurff::MatrixConfig read_sparse(const std::string& fname)
       case SparseMatrixType::sdm:
          {
             auto p = read_sdm(fname.c_str());
-            auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, p->vals);
+            auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, p->vals, smurff::NoiseConfig());
             delete p;
             return m;
          }
       case SparseMatrixType::sbm:
          {
             auto p = read_sbm(fname.c_str());
-            auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols);
+            auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, smurff::NoiseConfig());
             delete p;
             return m;
          }
