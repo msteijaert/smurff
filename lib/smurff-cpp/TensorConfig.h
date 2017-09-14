@@ -24,10 +24,10 @@ namespace smurff
       std::vector<double> m_values;
       
    protected:
-      TensorConfig(bool isDense, bool isBinary, int nmodes, int nnz);
+      TensorConfig(bool isDense, bool isBinary, int nmodes, int nnz, const NoiseConfig& noiseConfig);
       
    public:
-      TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims);
+      TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims, const NoiseConfig& noiseConfig);
    
    public:
       virtual ~TensorConfig();

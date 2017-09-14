@@ -184,12 +184,25 @@ MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_rand
    if (remove)
    {
       assert(Ynew_values.size() == Ynew_nnz);
-      MatrixConfig Ynew(Yin.getNRow(), Yin.getNCol(), Ynew_values.size(), Ynew_rows.data(), Ynew_cols.data(), Ynew_values.data());
-      Ynew.setNoiseConfig(Yin.getNoiseConfig());
+      MatrixConfig Ynew( Yin.getNRow()
+                       , Yin.getNCol()
+                       , Ynew_values.size()
+                       , Ynew_rows.data()
+                       , Ynew_cols.data()
+                       , Ynew_values.data()
+                       , Yin.getNoiseConfig()
+                       );
       std::swap(Yin, Ynew);
    }
 
-   MatrixConfig Yout(Yin.getNRow(), Yin.getNCol(), Yout_values.size(), Yout_rows.data(), Yout_cols.data(), Yout_values.data());
+   MatrixConfig Yout( Yin.getNRow()
+                    , Yin.getNCol()
+                    , Yout_values.size()
+                    , Yout_rows.data()
+                    , Yout_cols.data()
+                    , Yout_values.data()
+                    , Yin.getNoiseConfig()
+                    );
    return Yout;
 }
 

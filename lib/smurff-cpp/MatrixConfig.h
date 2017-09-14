@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "TensorConfig.h"
+#include "NoiseConfig.h"
 
 namespace smurff
 {
@@ -11,12 +12,10 @@ namespace smurff
    {
    public:
       MatrixConfig();
-      MatrixConfig(int nrow, int ncol, double* values);
-      MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, double* values);
-      MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols);
-      MatrixConfig(int nrow, int ncol, int nnz, int* columns, double* values);
-      // MatrixConfig(int nrow, int ncol, bool dense, bool binary);
-      // MatrixConfig(int nrow, int ncol, int nnz, bool binary = false);
+      MatrixConfig(int nrow, int ncol, double* values, const NoiseConfig& noiseConfig);
+      MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, double* values, const NoiseConfig& noiseConfig);
+      MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, const NoiseConfig& noiseConfig);
+      MatrixConfig(int nrow, int ncol, int nnz, int* columns, double* values, const NoiseConfig& noiseConfig);
 
    public:
       std::vector<int> getRows() const;

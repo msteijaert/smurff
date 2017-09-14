@@ -6,7 +6,7 @@ using namespace smurff;
 
 // TODO: probably remove default constructor
 MatrixConfig::MatrixConfig()
-   : TensorConfig(true, false, 2, 0)
+   : TensorConfig(true, false, 2, 0, NoiseConfig())
 {
    m_dims.push_back(0);
    m_dims.push_back(0);
@@ -14,8 +14,8 @@ MatrixConfig::MatrixConfig()
    m_values.clear();
 }
 
-MatrixConfig::MatrixConfig(int nrow, int ncol, double* values)
-   : TensorConfig(true, false, 2, nrow * ncol)
+MatrixConfig::MatrixConfig(int nrow, int ncol, double* values, const NoiseConfig& noiseConfig)
+   : TensorConfig(true, false, 2, nrow * ncol, noiseConfig)
 {
    m_dims.push_back(nrow);
    m_dims.push_back(ncol);
@@ -37,8 +37,8 @@ MatrixConfig::MatrixConfig(int nrow, int ncol, double* values)
    }
 }
 
-MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, double* values)
-   : TensorConfig(false, false, 2, nnz)
+MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, double* values, const NoiseConfig& noiseConfig)
+   : TensorConfig(false, false, 2, nnz, noiseConfig)
 {
    m_dims.push_back(nrow);
    m_dims.push_back(ncol);
@@ -53,8 +53,8 @@ MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, do
    }
 }
 
-MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols)
-   : TensorConfig(false, true, 2, nnz)
+MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, const NoiseConfig& noiseConfig)
+   : TensorConfig(false, true, 2, nnz, noiseConfig)
 {
    m_dims.push_back(nrow);
    m_dims.push_back(ncol);
@@ -68,36 +68,10 @@ MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols)
    }
 }
 
-MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* columns, double* values)
-   : TensorConfig(columns, 2, values, nnz, std::vector<int>({ nrow, ncol }).data())
+MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* columns, double* values, const NoiseConfig& noiseConfig)
+   : TensorConfig(columns, 2, values, nnz, std::vector<int>({ nrow, ncol }).data(), noiseConfig)
 {
 }
-
-/*
-MatrixConfig::MatrixConfig(int nrow, int ncol, bool dense, bool binary)
-{
-   m_isDense = dense;
-   m_isBinary = binary;
-   m_nmodes = 2;
-   m_nnz = 0;
-   m_dims.push_back(nrow);
-   m_dims.push_back(ncol);
-   m_columns.clear();
-   m_values.clear();
-}
-
-MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, bool binary)
-{
-   m_isDense = (nnz == nrow * ncol);
-   m_isBinary = binary;
-   m_nmodes = 2;
-   m_nnz = nnz;
-   m_dims.push_back(nrow);
-   m_dims.push_back(ncol);
-   m_columns.clear();
-   m_values.clear();
-}
-*/
 
 // TODO: cache the data
 std::vector<int> MatrixConfig::getRows() const

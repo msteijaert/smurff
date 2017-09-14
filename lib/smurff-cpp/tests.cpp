@@ -974,7 +974,7 @@ TEST_CASE("TensorConfig(int* columns, int nmodes, double* values, int nnz, int* 
                                                 };
    std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
 
-   MatrixConfig actualMatrixConfig(3, 3, 9, actualMatrixConfigColumns.data(), actualMatrixConfigValues.data());
+   MatrixConfig actualMatrixConfig(3, 3, 9, actualMatrixConfigColumns.data(), actualMatrixConfigValues.data(), NoiseConfig());
    Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 3);
@@ -993,7 +993,7 @@ TEST_CASE("MatrixConfig(int nrow, int ncol, double *values)")
    matrix1(2, 0) = 7; matrix1(2, 1) = 8; matrix1(2, 2) = 9;
 
    double matrix2ConfigValues[9] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
-   MatrixConfig matrix2Config(3, 3, matrix2ConfigValues);
+   MatrixConfig matrix2Config(3, 3, matrix2ConfigValues, NoiseConfig());
    Eigen::MatrixXd matrix2 = dense_to_eigen(matrix2Config);
 
    // std::cout << matrix1 << std::endl << std::endl;
@@ -1017,7 +1017,7 @@ TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols, doubl
    int matrix2ConfigRows[6]      = { 0, 0, 0, 2, 2, 2 };
    int matrix2ConfigCols[6]      = { 0, 1, 2, 0, 1, 2 };
    double matrix2ConfigValues[6] = { 1, 2, 3, 7, 8, 9 };
-   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols, matrix2ConfigValues);
+   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols, matrix2ConfigValues, NoiseConfig());
    Eigen::SparseMatrix<double> matrix2 = sparse_to_eigen(matrix2Config);
 
    REQUIRE(matrix1.isApprox(matrix2));
@@ -1037,7 +1037,7 @@ TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols)")
 
    int matrix2ConfigRows[6] = { 0, 0, 0, 2, 2, 2 };
    int matrix2ConfigCols[6] = { 0, 1, 2, 0, 1, 2 };
-   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols);
+   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols, NoiseConfig());
    Eigen::SparseMatrix<double> matrix2 = sparse_to_eigen(matrix2Config);
 
    REQUIRE(matrix1.isApprox(matrix2));   
@@ -1076,7 +1076,7 @@ TEST_CASE("gen_random/extract(MatrixConfig, remove = true). Sparse matrix input"
    const int seed = 1234;
 
    double actualInMatrixConfigValues[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-   MatrixConfig actualInMatrix2Config(3, 3, actualInMatrixConfigValues);
+   MatrixConfig actualInMatrix2Config(3, 3, actualInMatrixConfigValues, NoiseConfig());
    MatrixConfig actualOutMatrix2Config = extract(actualInMatrix2Config, s, remove, seed);
 
    SparseMatrixD actualInMatrix = sparse_to_eigen(actualInMatrix2Config);
@@ -1116,7 +1116,7 @@ TEST_CASE("gen_random/extract(MatrixConfig, remove = false). Dense matrix input"
    const int seed = 1234;
 
    double actualInMatrixConfigValues[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-   MatrixConfig actualInMatrixConfig(3, 3, actualInMatrixConfigValues);
+   MatrixConfig actualInMatrixConfig(3, 3, actualInMatrixConfigValues, NoiseConfig());
    MatrixConfig actualOutMatrixConfig = extract(actualInMatrixConfig, s, remove, seed);
 
    SparseMatrixD actualInMatrix = sparse_to_eigen(actualInMatrixConfig);

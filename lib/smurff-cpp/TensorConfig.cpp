@@ -2,16 +2,18 @@
 
 using namespace smurff;
 
-TensorConfig::TensorConfig(bool isDense, bool isBinary, int nmodes, int nnz)
-   : m_isDense(isDense)
+TensorConfig::TensorConfig(bool isDense, bool isBinary, int nmodes, int nnz, const NoiseConfig& noiseConfig)
+   : m_noiseConfig(noiseConfig)
+   , m_isDense(isDense)
    , m_isBinary(isBinary)
    , m_nmodes(nmodes)
    , m_nnz(nnz)
 {
 }
 
-TensorConfig::TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims)
-   : m_nmodes(nmodes)
+TensorConfig::TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims, const NoiseConfig& noiseConfig)
+   : m_noiseConfig(noiseConfig)
+   , m_nmodes(nmodes)
    , m_nnz(nnz)
 {
    m_columns.reserve(nmodes * nnz);
