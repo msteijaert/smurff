@@ -337,7 +337,7 @@ void read_ddm(std::istream& in, Eigen::MatrixXd& matrix)
    in.read((char*) (&rows),sizeof(long));
    in.read((char*) (&cols),sizeof(long));
    matrix.resize(rows, cols);
-   in.read( (char *) matrix.data() , rows*cols*sizeof(long) );
+   in.read( (char *) matrix.data() , rows*cols*sizeof(double) );
 }
 
 smurff::MatrixConfig read_ddm(const std::string& filename)
