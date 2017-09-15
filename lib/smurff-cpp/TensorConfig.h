@@ -39,9 +39,6 @@ namespace smurff
                   , std::shared_ptr<std::vector<double> > values
                   , const NoiseConfig& noiseConfig
                   );
-
-   public:
-      TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims, const NoiseConfig& noiseConfig);
    
    public:
       virtual ~TensorConfig();

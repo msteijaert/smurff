@@ -124,68 +124,6 @@ MatrixConfig::MatrixConfig()
    m_values->clear();
 }
 
-MatrixConfig::MatrixConfig(int nrow, int ncol, double* values, const NoiseConfig& noiseConfig)
-   : TensorConfig(true, false, 2, static_cast<size_t>(nrow) * static_cast<size_t>(ncol), noiseConfig)
-{
-   size_t nrow_st = static_cast<size_t>(nrow);
-   size_t ncol_st = static_cast<size_t>(ncol);
-
-   m_dims->push_back(nrow_st);
-   m_dims->push_back(ncol_st);
-   m_columns->resize(m_nnz * m_nmodes);
-   m_values->resize(m_nnz);
-
-   for (size_t row = 0; row < nrow_st; row++)
-   {
-      for (size_t col = 0; col < ncol_st; col++)
-      {
-         m_columns->operator[](nrow_st * col + row) = row;
-         m_columns->operator[](nrow_st * col + row + m_nnz) = col;
-      }
-   }
-
-   for (size_t i = 0; i < m_nnz; i++)
-   {
-      m_values->operator[](i) = values[i];
-   }
-}
-
-MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, double* values, const NoiseConfig& noiseConfig)
-   : TensorConfig(false, false, 2, static_cast<size_t>(nnz), noiseConfig)
-{
-   m_dims->push_back(static_cast<size_t>(nrow));
-   m_dims->push_back(static_cast<size_t>(ncol));
-   m_columns->resize(m_nnz * m_nmodes);
-   m_values->resize(m_nnz);
-
-   for (size_t i = 0; i < m_nnz; i++)
-   {
-      m_columns->operator[](i) = rows[i];
-      m_columns->operator[](i + m_nnz) = cols[i];
-      m_values->operator[](i) = values[i];
-   }
-}
-
-MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, const NoiseConfig& noiseConfig)
-   : TensorConfig(false, true, 2, static_cast<size_t>(nnz), noiseConfig)
-{
-   m_dims->push_back(static_cast<size_t>(nrow));
-   m_dims->push_back(static_cast<size_t>(ncol));
-   m_columns->resize(m_nnz * m_nmodes);
-   m_values->clear();
-
-   for (size_t i = 0; i < m_nnz; i++)
-   {
-      m_columns->operator[](i) = rows[i];
-      m_columns->operator[](i + m_nnz) = cols[i];
-   }
-}
-
-MatrixConfig::MatrixConfig(int nrow, int ncol, int nnz, int* columns, double* values, const NoiseConfig& noiseConfig)
-   : TensorConfig(columns, 2, values, nnz, std::vector<int>({ nrow, ncol }).data(), noiseConfig)
-{
-}
-
 size_t MatrixConfig::getNRow() const
 {
    return m_dims->operator[](0);

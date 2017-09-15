@@ -125,7 +125,8 @@ smurff::MatrixConfig read_csv(std::istream& in)
    getline(in, line);
    int ncol = stol(line);
    int nnz = nrow * ncol;
-   double* values = new double[nnz];
+   std::vector<double> values;
+   values.resize(nnz);
 
    int row = 0;
    int col = 0;
@@ -144,7 +145,6 @@ smurff::MatrixConfig read_csv(std::istream& in)
    assert(col == ncol);
 
    smurff::MatrixConfig ret(nrow, ncol, values, smurff::NoiseConfig());
-   delete[] values;
    return ret;
 }
 
@@ -353,11 +353,11 @@ smurff::MatrixConfig read_ddm(std::istream& in)
    in.read((char*) (&nrow),sizeof(long));
    in.read((char*) (&ncol),sizeof(long));
    int nnz = nrow * ncol;
-   double* values = new double[nnz];
-   in.read( (char *) values, nnz*sizeof(double) );
+   std::vector<double> values;
+   values.resize(nnz);
+   in.read( (char *) values.data(), nnz*sizeof(double) );
 
    smurff::MatrixConfig ret(nrow, ncol, values, smurff::NoiseConfig());
-   delete[] values;
    return ret;
 }
 
@@ -373,21 +373,24 @@ smurff::MatrixConfig read_mtx(std::istream& in)
    while (in.peek() == '%') in.ignore(2048, '\n');
 
    // Read defining parameters:
-   int nrow;
-   int ncol;
-   int nnz;
+   size_t nrow;
+   size_t ncol;
+   size_t nnz;
    in >> nrow >> ncol >> nnz;
    in.ignore(2048, '\n'); // skip to end of line
 
-   int* rows   = new int[nnz];
-   int* cols   = new int[nnz];
-   double* values = new double[nnz];
+   std::vector<size_t> rows;
+   std::vector<size_t> cols;
+   std::vector<double> values;
+   rows.resize(nnz);
+   cols.resize(nnz);
+   values.resize(nnz);
 
    // Read the data
    char line[2048];
-   int r,c;
+   size_t r,c;
    double v;
-   for (int l = 0; l < nnz; l++)
+   for (size_t l = 0; l < nnz; l++)
    {
       in.getline(line, 2048);
       std::stringstream ls(line);
@@ -409,10 +412,7 @@ smurff::MatrixConfig read_mtx(std::istream& in)
       values[l] = v;
    }
 
-   smurff::MatrixConfig ret(nrow, ncol, nnz, rows, cols, values, smurff::NoiseConfig());
-   delete[] rows;
-   delete[] cols;
-   delete[] values;
+   smurff::MatrixConfig ret(nrow, ncol, rows, cols, values, smurff::NoiseConfig());
    return ret;
 }
 

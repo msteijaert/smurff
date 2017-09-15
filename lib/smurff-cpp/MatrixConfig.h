@@ -53,10 +53,6 @@ namespace smurff
 
    public:
       MatrixConfig();
-      MatrixConfig(int nrow, int ncol, double* values, const NoiseConfig& noiseConfig);
-      MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, double* values, const NoiseConfig& noiseConfig);
-      MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, const NoiseConfig& noiseConfig);
-      MatrixConfig(int nrow, int ncol, int nnz, int* columns, double* values, const NoiseConfig& noiseConfig);
 
    public:
       size_t getNRow() const;

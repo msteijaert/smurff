@@ -51,27 +51,6 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<size_t> > dims
       throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
 }
 
-TensorConfig::TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims, const NoiseConfig& noiseConfig)
-   : m_noiseConfig(noiseConfig)
-   , m_nmodes(static_cast<size_t>(nmodes))
-   , m_nnz(static_cast<size_t>(nnz))
-   , m_dims(std::make_shared<std::vector<size_t> >())
-   , m_columns(std::make_shared<std::vector<size_t> >())
-   , m_values(std::make_shared<std::vector<double> >())
-{
-   m_columns->reserve(m_nmodes * m_nnz);
-   m_values->reserve(m_nnz);
-
-   for (size_t i = 0; i < m_nmodes; i++)
-      m_dims->push_back(static_cast<size_t>(dims[i]));
-
-   for (size_t i = 0; i < m_nmodes * m_nnz; i++)
-      m_columns->push_back(static_cast<size_t>(columns[i]));
-
-   for (size_t i = 0; i < m_nnz; i++)
-      m_values->push_back(static_cast<double>(values[i]));
-}
-
 TensorConfig::~TensorConfig()
 {
 }
