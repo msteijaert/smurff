@@ -26,7 +26,7 @@
 #include "data.h"
 
 #include "ILatentPrior.h"
-#include "MacauOnePrior.h"
+#include "MacauOnePrior.hpp"
 
 using namespace std; 
 using namespace Eigen;

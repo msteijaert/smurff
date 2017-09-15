@@ -32,8 +32,8 @@
 #include "ProbitNoise.h"
 #include "Noiseless.h"
 
-#include "MacauOnePrior.h"
-#include "MacauPrior.h"
+#include "MacauOnePrior.hpp"
+#include "MacauPrior.hpp"
 #include "NormalPrior.h"
 #include "SpikeAndSlabPrior.h"
 

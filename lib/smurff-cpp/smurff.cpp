@@ -21,7 +21,7 @@
 #include "session.h"
 #include "data.h"
 
-#include "MacauOnePrior.h"
+#include "MacauOnePrior.hpp"
 
 using namespace Eigen;
 using namespace std;

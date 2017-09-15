@@ -21,8 +21,8 @@
 #include "gen_random.h"
 
 #include "ILatentPrior.h"
-#include "MacauPrior.h"
-#include "MacauOnePrior.h"
+#include "MacauPrior.hpp"
+#include "MacauOnePrior.hpp"
 
 /* master
 #include <Eigen/Dense>
@@ -265,11 +265,11 @@ TEST_CASE( "latentprior/sample_lambda_beta", "sampling lambda beta from gamma di
           1.0,  0.91, -0.2;
   Lambda_u << 0.5, 0.1,
               0.1, 0.3;
-  auto post = smurff::posterior_lambda_beta(beta, Lambda_u, 0.01, 0.05);
+  auto post = MacauPrior<Eigen::MatrixXd>::posterior_lambda_beta(beta, Lambda_u, 0.01, 0.05);
   REQUIRE( post.first  == Approx(3.005) );
   REQUIRE( post.second == Approx(0.2631083888) );
 
-  double lambda_beta = smurff::sample_lambda_beta(beta, Lambda_u, 0.01, 0.05);
+  double lambda_beta = MacauPrior<Eigen::MatrixXd>::sample_lambda_beta(beta, Lambda_u, 0.01, 0.05);
   REQUIRE( lambda_beta > 0 );
 }
 
