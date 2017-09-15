@@ -416,6 +416,13 @@ smurff::MatrixConfig read_mtx(std::istream& in)
    return ret;
 }
 
+void free_sdm(SparseDoubleMatrix* sdm)
+{
+   free(sdm->rows);
+   free(sdm->cols);
+   free(sdm->vals);
+}
+
 smurff::MatrixConfig read_sparse(const std::string& fname)
 {
    assert(is_sparse_fname(fname));
@@ -424,17 +431,30 @@ smurff::MatrixConfig read_sparse(const std::string& fname)
    {
       case SparseMatrixType::sdm:
          {
-            auto p = read_sdm(fname.c_str());
-            auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, p->vals, smurff::NoiseConfig());
-            delete p;
-            return m;
+            SparseDoubleMatrix* p = read_sdm(fname.c_str());
+            smurff::MatrixConfig matrixConfig( p->nrow
+                                             , p->ncol
+                                             , std::vector<size_t>(p->rows, p->rows + p->nnz)
+                                             , std::vector<size_t>(p->cols, p->cols + p->nnz)
+                                             , std::vector<double>(p->vals, p->vals + p->nnz)
+                                             , smurff::NoiseConfig()
+                                             );
+            free_sdm(p);
+            free(p);
+            return matrixConfig;
          }
       case SparseMatrixType::sbm:
          {
-            auto p = read_sbm(fname.c_str());
-            auto m = smurff::MatrixConfig(p->nrow, p->ncol, p->nnz, p->rows, p->cols, smurff::NoiseConfig());
-            delete p;
-            return m;
+            SparseBinaryMatrix* p = read_sbm(fname.c_str());
+            smurff::MatrixConfig matrixConfig( p->nrow
+                                             , p->ncol
+                                             , std::vector<size_t>(p->rows, p->rows + p->nnz)
+                                             , std::vector<size_t>(p->cols, p->cols + p->nnz)
+                                             , smurff::NoiseConfig()
+                                             );
+            free_sbm(p);
+            free(p);
+            return matrixConfig;
          }
       case SparseMatrixType::mtx:
          return read_mtx(fname);
@@ -486,12 +506,20 @@ template<>
 Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
 {
    Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
-   std::vector<int> rows = matrixConfig.getRows();
-   std::vector<int> cols = matrixConfig.getCols();
-   std::vector<double> values = matrixConfig.getValues();
-   sparse_vec_iterator begin(rows.data(), cols.data(), values.data(), 0);
-   sparse_vec_iterator end(rows.data(), cols.data(), values.data(), matrixConfig.getNNZ());
-   out.setFromTriplets(begin, end);
+   std::shared_ptr<std::vector<size_t> > rowsPtr = matrixConfig.getRowsPtr();
+   std::shared_ptr<std::vector<size_t> > colsPtr = matrixConfig.getColsPtr();
+   std::shared_ptr<std::vector<double> > valuesPtr = matrixConfig.getValuesPtr();
+
+   std::vector<Eigen::Triplet<double> > eigenTriplets;
+   for (size_t i = 0; i < matrixConfig.getNNZ(); i++)
+   {
+      size_t row = rowsPtr->operator[](i);
+      size_t col = colsPtr->operator[](i);
+      double val = matrixConfig.isBinary() ? 1.0 : valuesPtr->operator[](i);
+      eigenTriplets.push_back(Eigen::Triplet<double>(row, col, val));
+   }
+
+   out.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
    return out;
 }
 

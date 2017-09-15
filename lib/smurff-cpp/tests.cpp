@@ -967,7 +967,117 @@ TEST_CASE("Comparing results of creating matrix from updated matrix config and d
    REQUIRE(matrix1.isApprox(matrix2));
 }
 
-TEST_CASE("TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims)")
+TEST_CASE("MatrixConfig(int nrow, int ncol, double* values)")
+{
+   double actualMatrixConfigValues[9] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigValues, NoiseConfig());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig::MatrixConfig(size_t nrow, size_t ncol, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigValues, NoiseConfig());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols, double* values)")
+{
+   int actualMatrixConfigRows[6]      = { 0, 0, 0, 2, 2, 2 };
+   int actualMatrixConfigCols[6]      = { 0, 1, 2, 0, 1, 2 };
+   double actualMatrixConfigValues[6] = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig actualMatrixConfig(3, 3, 6, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& rows, const std::vector<size_t>& cols, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<size_t> actualMatrixConfigRows   = { 0, 0, 0, 2, 2, 2 };
+   std::vector<size_t> actualMatrixConfigCols   = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> actualMatrixConfigValues = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int* rows, int* cols)")
+{
+   int actualMatrixConfigRows[6] = { 0, 0, 0, 2, 2, 2 };
+   int actualMatrixConfigCols[6] = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig actualMatrixConfig(3, 3, 6, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& rows, const std::vector<size_t>& cols, const NoiseConfig& noiseConfig)")
+{
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::vector<size_t> actualMatrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<size_t> actualMatrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int* columns, double* values, const NoiseConfig& noiseConfig)")
 {
    std::vector<int> actualMatrixConfigColumns = { 0, 0, 0, 1, 1, 1, 2, 2, 2,
                                                   0, 1, 2, 0, 1, 2, 0, 1, 2 
@@ -985,62 +1095,45 @@ TEST_CASE("TensorConfig(int* columns, int nmodes, double* values, int nnz, int* 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-TEST_CASE("MatrixConfig(int nrow, int ncol, double *values)")
+TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& columns, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
 {
-   Eigen::MatrixXd matrix1(3, 3);
-   matrix1(0, 0) = 1; matrix1(0, 1) = 2; matrix1(0, 2) = 3;
-   matrix1(1, 0) = 4; matrix1(1, 1) = 5; matrix1(1, 2) = 6;
-   matrix1(2, 0) = 7; matrix1(2, 1) = 8; matrix1(2, 2) = 9;
+   std::vector<size_t> actualMatrixConfigColumns = { 0, 0, 0, 1, 1, 1, 2, 2, 2,
+                                                     0, 1, 2, 0, 1, 2, 0, 1, 2
+                                                   };
+   std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
 
-   double matrix2ConfigValues[9] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
-   MatrixConfig matrix2Config(3, 3, matrix2ConfigValues, NoiseConfig());
-   Eigen::MatrixXd matrix2 = dense_to_eigen(matrix2Config);
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigColumns, actualMatrixConfigValues, NoiseConfig());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
 
-   // std::cout << matrix1 << std::endl << std::endl;
-   // std::cout << matrix2 << std::endl;
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
 
-   REQUIRE(matrix1.isApprox(matrix2));
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols, double *values)")
+TEST_CASE("MatrixConfig( size_t nrow, size_t ncol, std::shared_ptr<std::vector<size_t> > columns, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
 {
-   Eigen::SparseMatrix<double> matrix1(3, 3);
-   std::vector<Eigen::Triplet<double> > matrix1Triplets;
-   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 0, 1));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 1, 2));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 2, 9));
-   matrix1.setFromTriplets(matrix1Triplets.begin(), matrix1Triplets.end());
+   std::shared_ptr<std::vector<size_t> > actualMatrixConfigColumns =
+      std::make_shared<std::vector<size_t> >(
+         std::initializer_list<size_t>{ 0, 0, 0, 1, 1, 1, 2, 2, 2,
+                                        0, 1, 2, 0, 1, 2, 0, 1, 2 
+                                      }
+         );
+   std::shared_ptr<std::vector<double> > actualMatrixConfigValues =
+      std::make_shared<std::vector<double> >(
+         std::initializer_list<double>{ 1, 4, 7, 2, 5, 8, 3, 6, 9 }
+      );
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigColumns, actualMatrixConfigValues, NoiseConfig());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
 
-   int matrix2ConfigRows[6]      = { 0, 0, 0, 2, 2, 2 };
-   int matrix2ConfigCols[6]      = { 0, 1, 2, 0, 1, 2 };
-   double matrix2ConfigValues[6] = { 1, 2, 3, 7, 8, 9 };
-   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols, matrix2ConfigValues, NoiseConfig());
-   Eigen::SparseMatrix<double> matrix2 = sparse_to_eigen(matrix2Config);
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
 
-   REQUIRE(matrix1.isApprox(matrix2));
-}
-
-TEST_CASE("MatrixConfig(int nrow, int ncol, int nnz, int *rows, int *cols)")
-{
-   Eigen::SparseMatrix<double> matrix1(3, 3);
-   std::vector<Eigen::Triplet<double> > matrix1Triplets;
-   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 0, 1));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 1, 1));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(0, 2, 1));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 0, 1));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 1, 1));
-   matrix1Triplets.push_back(Eigen::Triplet<double>(2, 2, 1));
-   matrix1.setFromTriplets(matrix1Triplets.begin(), matrix1Triplets.end());
-
-   int matrix2ConfigRows[6] = { 0, 0, 0, 2, 2, 2 };
-   int matrix2ConfigCols[6] = { 0, 1, 2, 0, 1, 2 };
-   MatrixConfig matrix2Config(3, 3, 6, matrix2ConfigRows, matrix2ConfigCols, NoiseConfig());
-   Eigen::SparseMatrix<double> matrix2 = sparse_to_eigen(matrix2Config);
-
-   REQUIRE(matrix1.isApprox(matrix2));   
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
 TEST_CASE("gen_random/extract(SparseMatrixD)", "[!hide]")
@@ -1075,7 +1168,7 @@ TEST_CASE("gen_random/extract(MatrixConfig, remove = true). Sparse matrix input"
    const bool remove = true;
    const int seed = 1234;
 
-   double actualInMatrixConfigValues[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   std::vector<double> actualInMatrixConfigValues = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
    MatrixConfig actualInMatrix2Config(3, 3, actualInMatrixConfigValues, NoiseConfig());
    MatrixConfig actualOutMatrix2Config = extract(actualInMatrix2Config, s, remove, seed);
 
@@ -1115,7 +1208,7 @@ TEST_CASE("gen_random/extract(MatrixConfig, remove = false). Dense matrix input"
    const bool remove = false;
    const int seed = 1234;
 
-   double actualInMatrixConfigValues[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   std::vector<double> actualInMatrixConfigValues = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
    MatrixConfig actualInMatrixConfig(3, 3, actualInMatrixConfigValues, NoiseConfig());
    MatrixConfig actualOutMatrixConfig = extract(actualInMatrixConfig, s, remove, seed);
 

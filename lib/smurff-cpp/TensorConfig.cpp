@@ -2,31 +2,74 @@
 
 using namespace smurff;
 
-TensorConfig::TensorConfig(bool isDense, bool isBinary, int nmodes, int nnz, const NoiseConfig& noiseConfig)
+TensorConfig::TensorConfig(bool isDense, bool isBinary, size_t nmodes, size_t nnz, const NoiseConfig& noiseConfig)
    : m_noiseConfig(noiseConfig)
    , m_isDense(isDense)
    , m_isBinary(isBinary)
    , m_nmodes(nmodes)
    , m_nnz(nnz)
+   , m_dims(std::make_shared<std::vector<size_t> >())
+   , m_columns(std::make_shared<std::vector<size_t> >())
+   , m_values(std::make_shared<std::vector<double> >())
 {
+}
+
+TensorConfig::TensorConfig( const std::vector<size_t>& dims
+                          , const std::vector<size_t>& columns
+                          , const std::vector<double>& values
+                          , const NoiseConfig& noiseConfig
+                          )
+   : m_noiseConfig(noiseConfig)
+   , m_isDense(false)
+   , m_isBinary(false)
+   , m_nmodes(dims.size())
+   , m_nnz(values.size())
+{
+   if (columns.size() != values.size() * dims.size())
+      throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
+   
+   m_dims = std::make_shared<std::vector<size_t> >(dims);
+   m_columns = std::make_shared<std::vector<size_t> >(columns);
+   m_values = std::make_shared<std::vector<double> >(values);
+}
+
+TensorConfig::TensorConfig( std::shared_ptr<std::vector<size_t> > dims
+                          , std::shared_ptr<std::vector<size_t> > columns
+                          , std::shared_ptr<std::vector<double> > values
+                          , const NoiseConfig& noiseConfig
+                          )
+   : m_noiseConfig(noiseConfig)
+   , m_isDense(false)
+   , m_isBinary(false)
+   , m_nmodes(dims->size())
+   , m_nnz(values->size())
+   , m_dims(dims)
+   , m_columns(columns)
+   , m_values(values)
+{
+   if (columns->size() != values->size() * dims->size())
+      throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
 }
 
 TensorConfig::TensorConfig(int* columns, int nmodes, double* values, int nnz, int* dims, const NoiseConfig& noiseConfig)
    : m_noiseConfig(noiseConfig)
-   , m_nmodes(nmodes)
-   , m_nnz(nnz)
+   , m_nmodes(static_cast<size_t>(nmodes))
+   , m_nnz(static_cast<size_t>(nnz))
+   , m_dims(std::make_shared<std::vector<size_t> >())
+   , m_columns(std::make_shared<std::vector<size_t> >())
+   , m_values(std::make_shared<std::vector<double> >())
 {
-   m_columns.reserve(nmodes * nnz);
-   m_values.reserve(nnz);
+   m_columns->reserve(m_nmodes * m_nnz);
+   m_values->reserve(m_nnz);
 
-   for (int i = 0; i < nmodes; i++)
-      m_dims.push_back(dims[i]);
+   for (size_t i = 0; i < m_nmodes; i++)
+      m_dims->push_back(static_cast<size_t>(dims[i]));
 
-   for (int i = 0; i < nmodes * nnz; i++)
-      m_columns.push_back(columns[i]);
+   for (size_t i = 0; i < m_nmodes * m_nnz; i++)
+      m_columns->push_back(static_cast<size_t>(columns[i]));
 
-   for (int i = 0; i < nnz; i++)
-      m_values.push_back(values[i]);
+   for (size_t i = 0; i < m_nnz; i++)
+      m_values->push_back(static_cast<double>(values[i]));
 }
 
 TensorConfig::~TensorConfig()
@@ -43,27 +86,42 @@ bool TensorConfig::isBinary() const
    return m_isBinary;
 }
 
-int TensorConfig::getNNZ() const
+size_t TensorConfig::getNNZ() const
 {
    return m_nnz;
 }
 
-int TensorConfig::getNModes() const
+size_t TensorConfig::getNModes() const
 {
    return m_nmodes;
 }
 
-const std::vector<int>& TensorConfig::getDims() const
+const std::vector<size_t>& TensorConfig::getDims() const
+{
+   return *m_dims;
+}
+
+const std::vector<size_t>& TensorConfig::getColumns() const
+{
+   return *m_columns;
+}
+
+const std::vector<double>& TensorConfig::getValues() const
+{
+   return *m_values;
+}
+
+std::shared_ptr<std::vector<size_t> > TensorConfig::getDimsPtr() const
 {
    return m_dims;
 }
 
-const std::vector<int>& TensorConfig::getColumns() const
+std::shared_ptr<std::vector<size_t> > TensorConfig::getColumnsPtr() const
 {
    return m_columns;
 }
 
-const std::vector<double>& TensorConfig::getValues() const
+std::shared_ptr<std::vector<double> > TensorConfig::getValuesPtr() const
 {
    return m_values;
 }
@@ -80,15 +138,15 @@ void TensorConfig::setNoiseConfig(const NoiseConfig& value)
 
 std::ostream& TensorConfig::info(std::ostream& os) const
 {
-   if (!m_dims.size())
+   if (!m_dims->size())
    {
       os << "0";
    }
    else
    {
-      os << m_dims[0];
-      for (size_t i = 1; i < m_dims.size(); i++)
-         os << " x " << m_dims[i];
+      os << m_dims->operator[](0);
+      for (size_t i = 1; i < m_dims->size(); i++)
+         os << " x " << m_dims->operator[](i);
    }
    return os;
 }

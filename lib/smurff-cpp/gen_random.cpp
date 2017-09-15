@@ -144,38 +144,38 @@ SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s, std::default_random_
 
 MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_random_engine::result_type seed)
 {
-   unsigned Yout_nnz = Yin.getNNZ() * s;
-   unsigned Ynew_nnz = Yin.getNNZ() - Yout_nnz;
+   size_t Yout_nnz = static_cast<size_t>(Yin.getNNZ() * s);
+   size_t Ynew_nnz = Yin.getNNZ() - Yout_nnz;
 
    std::default_random_engine gen(seed);
    std::uniform_real_distribution<double> udist(0.0, 1.0);
 
-   std::vector<int> Yin_rows = Yin.getRows();
-   std::vector<int> Yin_cols = Yin.getCols();
-   std::vector<double> Yin_values = Yin.getValues();
+   std::shared_ptr<std::vector<size_t> > Yin_rowsPtr = Yin.getRowsPtr();
+   std::shared_ptr<std::vector<size_t> > Yin_colsPtr = Yin.getColsPtr();
+   std::shared_ptr<std::vector<double> > Yin_valuesPtr = Yin.getValuesPtr();
 
-   std::vector<int> Yout_rows;
-   std::vector<int> Yout_cols;
+   std::vector<size_t> Yout_rows;
+   std::vector<size_t> Yout_cols;
    std::vector<double> Yout_values;
 
-   std::vector<int> Ynew_rows;
-   std::vector<int> Ynew_cols;
+   std::vector<size_t> Ynew_rows;
+   std::vector<size_t> Ynew_cols;
    std::vector<double> Ynew_values;
 
-   for (int i = 0; i < Yin.getNNZ(); i++)
+   for (size_t i = 0; i < Yin.getNNZ(); i++)
    {
       if (udist(gen) < s && Yout_rows.size() < Yout_nnz)
       {
-         Yout_rows.push_back(Yin_rows[i]);
-         Yout_cols.push_back(Yin_cols[i]);
-         Yout_values.push_back(Yin_values[i]);
+         Yout_rows.push_back(Yin_rowsPtr->operator[](i));
+         Yout_cols.push_back(Yin_colsPtr->operator[](i));
+         Yout_values.push_back(Yin_valuesPtr->operator[](i));
       }
       else if (remove) // Applies only to sparse matrix
       {
          assert(Ynew_values.size() < Ynew_nnz);
-         Ynew_rows.push_back(Yin_rows[i]);
-         Ynew_cols.push_back(Yin_cols[i]);
-         Ynew_values.push_back(Yin_values[i]);
+         Ynew_rows.push_back(Yin_rowsPtr->operator[](i));
+         Ynew_cols.push_back(Yin_colsPtr->operator[](i));
+         Ynew_values.push_back(Yin_valuesPtr->operator[](i));
       }
    }
 
@@ -184,25 +184,11 @@ MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_rand
    if (remove)
    {
       assert(Ynew_values.size() == Ynew_nnz);
-      MatrixConfig Ynew( Yin.getNRow()
-                       , Yin.getNCol()
-                       , Ynew_values.size()
-                       , Ynew_rows.data()
-                       , Ynew_cols.data()
-                       , Ynew_values.data()
-                       , Yin.getNoiseConfig()
-                       );
+      MatrixConfig Ynew(Yin.getNRow(), Yin.getNCol(), Ynew_rows, Ynew_cols, Ynew_values, Yin.getNoiseConfig());
       std::swap(Yin, Ynew);
    }
 
-   MatrixConfig Yout( Yin.getNRow()
-                    , Yin.getNCol()
-                    , Yout_values.size()
-                    , Yout_rows.data()
-                    , Yout_cols.data()
-                    , Yout_values.data()
-                    , Yin.getNoiseConfig()
-                    );
+   MatrixConfig Yout(Yin.getNRow(), Yin.getNCol(), Yout_rows, Yout_cols, Yout_values, Yin.getNoiseConfig());
    return Yout;
 }
 

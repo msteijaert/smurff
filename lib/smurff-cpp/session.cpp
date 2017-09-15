@@ -177,20 +177,23 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
 
          if (s.isBinary())
          {
-            int nrow = s.getNRow();
-            int ncol = s.getNCol();
-            int nnz = s.getNNZ();
-            std::vector<int> rows = s.getRows();
-            std::vector<int> cols = s.getCols();
+            size_t nrow = s.getNRow();
+            size_t ncol = s.getNCol();
+            size_t nnz = s.getNNZ();
+            std::shared_ptr<std::vector<size_t> > rows = s.getRowsPtr();
+            std::shared_ptr<std::vector<size_t> > cols = s.getColsPtr();
 
             // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
             // we will remove these extra memory allocation and manipulation
-            int* rowsPtr = new int[nrow];
-            int* colsPtr = new int[ncol];
-            std::copy(rows.begin(), rows.end(), rowsPtr);
-            std::copy(cols.begin(), cols.end(), colsPtr);
+            int* rowsRawPtr = new int[nrow];
+            int* colsRawPtr = new int[ncol];
+            for (size_t i = 0; i < nnz; i++)
+            {
+               rowsRawPtr[i] = rows->operator[](i);
+               colsRawPtr[i] = cols->operator[](i);
+            }
 
-            auto sideinfo = new SparseFeat(nrow, ncol, nnz, rowsPtr, colsPtr);
+            auto sideinfo = new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr);
             addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
          }
          else if (s.isDense())
@@ -200,23 +203,26 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
          }
          else
          {
-            int nrow = s.getNRow();
-            int ncol = s.getNCol();
-            int nnz = s.getNNZ();
-            std::vector<int> rows = s.getRows();
-            std::vector<int> cols = s.getCols();
-            std::vector<double> values = s.getValues();
+            size_t nrow = s.getNRow();
+            size_t ncol = s.getNCol();
+            size_t nnz = s.getNNZ();
+            std::shared_ptr<std::vector<size_t> > rows = s.getRowsPtr();
+            std::shared_ptr<std::vector<size_t> > cols = s.getColsPtr();
+            std::shared_ptr<std::vector<double> > values = s.getValuesPtr();
 
             // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
             // we will remove these extra memory allocation and manipulation
-            int* rowsPtr = new int[nrow];
-            int* colsPtr = new int[ncol];
-            double* valuesPtr = new double[nnz];
-            std::copy(rows.begin(), rows.end(), rowsPtr);
-            std::copy(cols.begin(), cols.end(), colsPtr);
-            std::copy(values.begin(), values.end(), valuesPtr);
+            int* rowsRawPtr = new int[nrow];
+            int* colsRawPtr = new int[ncol];
+            double* valuesRawPtr = new double[nnz];
+            for (size_t i = 0; i < nnz; i++)
+            {
+               rowsRawPtr[i] = rows->operator[](i);
+               colsRawPtr[i] = cols->operator[](i);
+               valuesRawPtr[i] = values->operator[](i);
+            }
 
-            auto sideinfo = new SparseDoubleFeat(nrow, ncol, nnz, rowsPtr, colsPtr, valuesPtr);
+            auto sideinfo = new SparseDoubleFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr);
             addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
          }
       }
