@@ -141,7 +141,7 @@ class SparseDoubleFeat {
 };
 
 template <typename Matrix>
-inline bool is_binary(const Matrix &M) 
+inline bool is_binary(const Matrix &M)
 {
     auto *values = M.valuePtr();
     for(int i=0; i<M.nonZeros(); ++i) {
@@ -153,7 +153,7 @@ inline bool is_binary(const Matrix &M)
     return true;
 }
 
-// to Eigen::Sparse from 
+// to Eigen::Sparse from
 
 void writeToCSVfile(const std::string& filename, const Eigen::MatrixXd& matrix);
 void writeToCSVstream(std::ostream& out, const Eigen::MatrixXd& matrix);

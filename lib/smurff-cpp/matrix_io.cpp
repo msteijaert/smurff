@@ -84,11 +84,11 @@ void readFromCSVfile(const std::string& filename, Eigen::MatrixXd &matrix)
 void readFromCSVstream(std::istream& in, Eigen::MatrixXd& matrix)
 {
    std::string line;
-   
+
    // rows and cols
-   getline(in, line); 
+   getline(in, line);
    int nrow = atol(line.c_str());
-   getline(in, line); 
+   getline(in, line);
    int ncol = atol(line.c_str());
    matrix.resize(nrow, ncol);
 
@@ -262,7 +262,7 @@ void read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::Matrix
          die("Unknown matrix type");
    }
 }
-    
+
 smurff::MatrixConfig read_dense(const std::string& fname)
 {
    die_unless_file_exists(fname);
@@ -474,6 +474,7 @@ void read_sparse(const std::string& fname, Eigen::SparseMatrix<double>& M)
          {
             auto sdm_ptr = read_sdm(fname.c_str());
             M = sparse_to_eigen(*sdm_ptr);
+            free_sdm(sdm_ptr);
             delete sdm_ptr;
             break;
          }
@@ -481,6 +482,7 @@ void read_sparse(const std::string& fname, Eigen::SparseMatrix<double>& M)
          {
             auto sbm_ptr = read_sbm(fname.c_str());
             M = sparse_to_eigen(*sbm_ptr);
+            free_sbm(sbm_ptr);
             delete sbm_ptr;
             break;
          }
