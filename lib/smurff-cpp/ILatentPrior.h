@@ -54,8 +54,5 @@ public:
 
    virtual void sample_latents();
    virtual void sample_latent(int n) = 0;
-
-   //TODO: missing implementation
-   void add(BaseSession &b);
 };
 }
