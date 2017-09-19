@@ -28,54 +28,13 @@
 
 #include "Noiseless.h"
 
-using namespace std; 
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
 
 
 ////----- Data below
-Data::Data() : center_mode(Data::CENTER_INVALID) 
-{
-    noise_ptr.reset(new Noiseless(this));
-}
-
-
-std::ostream &Data::info(std::ostream &os, std::string indent)
-{
-    os << indent << "Type: " << name << "\n";
-    os << indent << "Component-wise mean: " << cwise_mean << "\n";
-    os << indent << "Component-wise variance: " << var_total() << "\n";
-    std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
-    os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
-    os << indent << "Noise: ";
-    noise().info(os, "");
-    return os;
-}
-
-std::ostream &Data::status(std::ostream &os, std::string indent) const
-{
-    os << indent << noise().getStatus() << "\n";
-    return os;
-}
-
-void Data::setCenterMode(std::string c)
-{
-    //-- centering model
-         if (c == "none")   center_mode = CENTER_NONE;
-    else if (c == "global") center_mode = CENTER_GLOBAL;
-    else if (c == "view")   center_mode = CENTER_VIEW;
-    else if (c == "rows")   center_mode = CENTER_ROWS;
-    else if (c == "cols")   center_mode = CENTER_COLS;
-    else assert(false);
-}
-
-double Data::predict(const PVec &pos, const SubModel &model) const
-{
-       return model.dot(pos) + offset_to_mean(pos);
-}
-
-
 std::ostream &MatrixData::info(std::ostream &os, std::string indent)
 {
     Data::info(os, indent);
@@ -84,8 +43,8 @@ std::ostream &MatrixData::info(std::ostream &os, std::string indent)
     return os;
 }
 
-SubModel MatricesData::Block::submodel(const SubModel &model) const { 
-    return SubModel(model, start(), dim()); 
+SubModel MatricesData::Block::submodel(const SubModel &model) const {
+    return SubModel(model, start(), dim());
 }
 
 MatrixData &MatricesData::add(const PVec &p, std::unique_ptr<MatrixData> data) {
@@ -121,7 +80,7 @@ std::ostream &MatricesData::info(std::ostream &os, std::string indent)
     os << indent << "Sub-Matrices:\n";
     for(auto &p : blocks) {
         os << indent;
-        p.pos().info(os); 
+        p.pos().info(os);
         os << ":\n";
         p.data().info(os, indent + "  ");
         os << std::endl;
@@ -134,13 +93,13 @@ std::ostream &MatricesData::status(std::ostream &os, std::string indent) const
     os << indent << "Sub-Matrices:\n";
     for(auto &p : blocks) {
         os << indent << "  ";
-        p.pos().info(os); 
+        p.pos().info(os);
         os << ": " << p.data().noise().getStatus() << "\n";
     }
     return os;
 }
 
-void MatricesData::init_pre() 
+void MatricesData::init_pre()
 {
     mode_dim.resize(nmode());
     for(int n = 0; n<nmode(); ++n) {
@@ -164,7 +123,7 @@ void MatricesData::init_pre()
         total_dim.at(n) = off;
         for(auto &blk : blocks) {
             int pos = blk.pos(n);
-            blk._start.at(n) = O[pos]; 
+            blk._start.at(n) = O[pos];
         }
 
     }
@@ -188,14 +147,14 @@ void MatricesData::init_post()
     }
 }
 
-void MatricesData::setCenterMode(std::string mode) 
+void MatricesData::setCenterMode(std::string mode)
 {
     Data::setCenterMode(mode);
     for(auto &p : blocks) p.data().setCenterMode(mode);
 }
 
 
-void MatricesData::center(double global_mean) 
+void MatricesData::center(double global_mean)
 {
     // center sub-matrices
     assert(global_mean == cwise_mean);
@@ -255,35 +214,6 @@ void MatrixDataTempl<YType>::init_pre()
     cwise_mean = sum() / (size() - nna());
 }
 
-void Data::init()
-{
-    init_pre();
-
-    //compute global mean & mode-wise means
-    compute_mode_mean();
-    center(cwise_mean);
-
-    init_post();
-}
-
-void Data::compute_mode_mean()
-{
-    assert(!mean_computed);
-    mode_mean.resize(nmode());
-    for(int m=0; m<nmode(); ++m) {
-        auto &M = mode_mean.at(m);
-        M.resize(dim(m));
-        for(int n=0; n<dim(m); n++) M(n) = compute_mode_mean(m, n);
-    }
-
-    mean_computed = true;
-}
-
-void Data::init_post() {
-    noise().init();
-}
-
-
 template<>
 double MatrixDataTempl<Eigen::MatrixXd>::var_total() const {
     auto &Y = Yc.at(0);
@@ -339,7 +269,7 @@ double var_total(MatrixData & matrixData)
   }
 
   return var_total;
-} 
+}
 */
 
 //macau
@@ -548,7 +478,7 @@ void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd 
         auto from = Y.outerIndexPtr()[n];
         auto to = Y.outerIndexPtr()[n+1];
         thread_vector<VectorXd> rrs(VectorXd::Zero(num_latent));
-        thread_vector<MatrixXd> MMs(MatrixXd::Zero(num_latent, num_latent)); 
+        thread_vector<MatrixXd> MMs(MatrixXd::Zero(num_latent, num_latent));
         for(int j=from; j<to; j+=task_size) {
 #pragma omp task shared(model,Y,Vf,rrs,MMs)
             {
@@ -563,7 +493,7 @@ void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd 
                     my_rr.noalias() += col * val;
                     my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
                 }
-                
+
                 // make MM complete
                 my_MM.triangularView<Upper>() = my_MM.transpose();
 
@@ -629,7 +559,7 @@ void FullMatrixData<YType>::get_pnm(const SubModel &model, int mode, int d, Vect
     const double alpha = this->noise().getAlpha();
     auto &Y = this->Yc.at(mode);
     rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
-    MM.noalias() += VV[mode] * alpha; 
+    MM.noalias() += VV[mode] * alpha;
 }
 
 template<class YType>
