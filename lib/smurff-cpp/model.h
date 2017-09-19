@@ -8,6 +8,7 @@
 
 #include "matrix_io.h"
 #include "utils.h"
+#include "PVec.h"
 
 namespace smurff {
 
@@ -22,13 +23,13 @@ struct Model {
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
-        return samples.at(f); 
+        return samples.at(f);
     }
     Eigen::MatrixXd::ConstColXpr col(int f, int i) const {
-        return U(f).col(i); 
+        return U(f).col(i);
     }
     Eigen::MatrixXd &U(int f) {
-        return samples.at(f); 
+        return samples.at(f);
     }
 
     double dot(const PVec &indices) const  {
@@ -68,10 +69,10 @@ struct Model {
 };
 
 struct SubModel {
-    SubModel(const Model &m, const PVec o, const PVec d) 
+    SubModel(const Model &m, const PVec o, const PVec d)
         : model(m), off(o), dims(d) {}
 
-    SubModel(const SubModel &m, const PVec o, const PVec d) 
+    SubModel(const SubModel &m, const PVec o, const PVec d)
         : model(m.model), off(o + m.off), dims(d) {}
 
     SubModel(const Model &m) : model(m), off(m.nmodes()), dims(m.dims) {}
