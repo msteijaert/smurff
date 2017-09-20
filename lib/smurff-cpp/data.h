@@ -22,28 +22,9 @@
 #include "MatrixDataTempl.hpp"
 #include "ScarceMatrixData.h"
 #include "ScarceBinaryMatrixData.h"
+#include "FullMatrixData.hpp"
 
 namespace smurff {
-
-template<class YType>
-struct FullMatrixData : public MatrixDataTempl<YType> {
-    //-- c'tor
-    FullMatrixData(YType Y) : MatrixDataTempl<YType>(Y)
-    {
-        this->name = "MatrixData [fully known]";
-    }
-
-
-    void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const SubModel &,int) override;
-
-    int    nna()   const override { return 0; }
-
-  private:
-    Eigen::MatrixXd VV[2];
-
-    double compute_mode_mean(int,int) override;
-};
 
 struct DenseMatrixData : public FullMatrixData<Eigen::MatrixXd> {
     //-- c'tor

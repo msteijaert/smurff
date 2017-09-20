@@ -43,43 +43,6 @@ namespace smurff {
 //-- FullMatrixData specific stuff
 //
 
-template<class YType>
-void FullMatrixData<YType>::get_pnm(const SubModel &model, int mode, int d, VectorXd &rr, MatrixXd &MM) {
-    const double alpha = this->noise().getAlpha();
-    auto &Y = this->Yc.at(mode);
-    rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
-    MM.noalias() += VV[mode] * alpha;
-}
-
-template<class YType>
-void FullMatrixData<YType>::update_pnm(const SubModel &model, int mode) {
-    auto &Vf = model.V(mode);
-    const int nl = model.nlatent();
-    thread_vector<MatrixXd> VVs(MatrixXd::Zero(nl, nl));
-
-#pragma omp parallel for schedule(dynamic, 8) shared(VVs)
-    for(int n = 0; n < Vf.cols(); n++) {
-        auto v = Vf.col(n);
-        VVs.local() += v * v.transpose();
-    }
-
-    VV[mode] = VVs.combine();
-}
-
-
-template<class YType>
-double FullMatrixData<YType>::compute_mode_mean(int m, int c)
-{
-    const auto &col = this->Yc.at(m).col(c);
-    if (col.nonZeros() == 0) return this->cwise_mean;
-    return col.sum() / this->Yc.at(m).rows();
-}
-
-
-template struct FullMatrixData<Eigen::MatrixXd>;
-template struct FullMatrixData<Eigen::SparseMatrix<double>>;
-
-
 void SparseMatrixData::center(double global_mean)
 {
     this->global_mean = global_mean;
