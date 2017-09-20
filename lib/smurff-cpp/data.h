@@ -20,34 +20,9 @@
 #include "MatrixData.h"
 #include "MatricesData.h"
 #include "MatrixDataTempl.hpp"
+#include "ScarceMatrixData.h"
 
 namespace smurff {
-
-struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
-    //-- c'tor
-    ScarceMatrixData(SparseMatrixD Y)
-        : MatrixDataTempl<SparseMatrixD>(Y)
-    {
-        name = "ScarceMatrixData [with NAs]";
-    }
-
-    void init_pre() override;
-    void center(double) override;
-    double compute_mode_mean(int,int) override;
-
-    double train_rmse(const SubModel &) const override;
-
-    std::ostream &info(std::ostream &os, std::string indent) override;
-
-    void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const SubModel &,int) override {}
-
-    int    nna()             const override { return size() - nnz(); }
-
-  private:
-    int num_empty[2] = {0,0};
-
-};
 
 struct ScarceBinaryMatrixData : public ScarceMatrixData {
     //-- c'tor
