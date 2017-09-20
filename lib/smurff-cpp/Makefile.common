@@ -18,7 +18,7 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o session.o gen_random.o model.o data.o result.o matrix_io.o PVec.o
 LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.o UnusedNoise.o
-LIBOBJS += GlobalPrior.o ILatentPrior.o NormalPrior.o SpikeAndSlabPrior.o
+LIBOBJS += GlobalPrior.o ILatentPrior.o NormalPrior.o SpikeAndSlabPrior.o MacauPrior.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
 LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o
