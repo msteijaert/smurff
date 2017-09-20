@@ -4,6 +4,7 @@
 #include <omp.h>
 #endif
 
+#include "MatrixDataTempl.hpp"
 #include "utils.h"
 
 namespace smurff
