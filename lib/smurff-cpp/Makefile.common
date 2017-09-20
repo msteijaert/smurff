@@ -22,7 +22,7 @@ LIBOBJS += GlobalPrior.o ILatentPrior.o NormalPrior.o SpikeAndSlabPrior.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
 LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o
-LIBOBJS += Data.o
+LIBOBJS += Data.o MatrixData.o
 LIBSMURFF = libsmurff-cpp.a
 
 .PHONY: all clean smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal

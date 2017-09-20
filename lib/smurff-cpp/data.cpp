@@ -35,14 +35,6 @@ namespace smurff {
 
 
 ////----- Data below
-std::ostream &MatrixData::info(std::ostream &os, std::string indent)
-{
-    Data::info(os, indent);
-    double train_fill_rate = 100. * nnz() / size();
-    os << indent << "Size: " << nnz() << " [" << nrow() << " x " << ncol() << "] (" << train_fill_rate << "%)\n";
-    return os;
-}
-
 SubModel MatricesData::Block::submodel(const SubModel &model) const {
     return SubModel(model, start(), dim());
 }

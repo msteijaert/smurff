@@ -17,13 +17,9 @@
 #include "UnusedNoise.h"
 
 #include "Data.h"
+#include "MatrixData.h"
 
 namespace smurff {
-
-struct MatrixData: public Data {
-    int nmode() const override { return 2; }
-    std::ostream &info(std::ostream &os, std::string indent) override;
-};
 
 struct MatricesData: public MatrixData {
     MatricesData() : total_dim(2) {
