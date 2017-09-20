@@ -12,7 +12,7 @@
 #include "mvnormal.h"
 #include "session.h"
 #include "utils.h"
-#include "data.h"
+#include "Data.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"

@@ -23,12 +23,12 @@
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
-#include "data.h"
+#include "Data.h"
 
 #include "ILatentPrior.h"
 #include "MacauOnePrior.hpp"
 
-using namespace std; 
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
@@ -51,8 +51,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         if (name == "adaptive")
         {
             char *token, *str = strdup(optarg.c_str());
-            if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL); 
-            if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL); 
+            if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL);
+            if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL);
         }
         else if (name == "fixed")
         {

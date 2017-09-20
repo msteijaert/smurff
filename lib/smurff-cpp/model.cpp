@@ -21,11 +21,11 @@
 #include <signal.h>
 
 #include "utils.h"
-#include "data.h"
+#include "Data.h"
 #include "model.h"
 #include "mvnormal.h"
 
-using namespace std; 
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {

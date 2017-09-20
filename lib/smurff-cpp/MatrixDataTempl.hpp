@@ -1,12 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <cassert>
-#include <Eigen/Core>
-
 #include "MatrixData.h"
-#include "PVec.h"
-#include "model.h"
 
 namespace smurff
 {

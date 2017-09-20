@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ScarceMatrixData.h"
-#include "utils.h"
 
 namespace smurff
 {

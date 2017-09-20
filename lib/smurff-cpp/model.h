@@ -13,7 +13,7 @@
 namespace smurff {
 
 // AGE: I dont like this cross reference between Data and Model. Need to think how we can eliminate it.
-struct Data;
+class Data;
 
 struct SubModel;
 

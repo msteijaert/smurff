@@ -1,8 +1,6 @@
 #include "MatricesData.h"
 #include "UnusedNoise.h"
 
-#include <cassert>
-
 using namespace smurff;
 
 MatricesData::MatricesData() : total_dim(2)

@@ -8,6 +8,8 @@
 #include "linop.h"
 #include "model.h"
 #include "session.h"
+#include "INoiseModel.h"
+#include "Data.h"
 
 namespace smurff {
 
@@ -19,7 +21,7 @@ namespace smurff {
 
 //everything else in the class were wrappers that are not needed anymore
 
-class ILatentPrior 
+class ILatentPrior
 {
 public:
    BaseSession &session;

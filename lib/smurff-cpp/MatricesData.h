@@ -1,12 +1,6 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <string>
-#include <iostream>
-
 #include "MatrixData.h"
-#include "PVec.h"
 
 namespace smurff
 {

@@ -1,7 +1,14 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+#include <string>
+#include <iostream>
+#include <Eigen/Core>
+
 #include "model.h"
 #include "INoiseModel.h"
+#include "PVec.h"
 
 namespace smurff
 {

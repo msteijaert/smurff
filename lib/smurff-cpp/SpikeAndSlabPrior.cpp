@@ -1,18 +1,18 @@
 #include "SpikeAndSlabPrior.h"
 
 #include "session.h"
-#include "data.h"
+#include "Data.h"
 
 using namespace smurff;
 using namespace Eigen;
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(BaseSession &m, int p)
-   : ILatentPrior(m, p, "SpikeAndSlabPrior") 
+   : ILatentPrior(m, p, "SpikeAndSlabPrior")
 {
 
 }
 
-void SpikeAndSlabPrior::init() 
+void SpikeAndSlabPrior::init()
 {
    const int K = num_latent();
    const int D = num_cols();
@@ -28,7 +28,7 @@ void SpikeAndSlabPrior::init()
    r = MatrixNNd::Constant(K,V,.5);
 }
 
-void SpikeAndSlabPrior::sample_latents() 
+void SpikeAndSlabPrior::sample_latents()
 {
    ILatentPrior::sample_latents();
 
@@ -59,7 +59,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
    auto &W = U(); // alias
    VectorNd Wcol = W.col(d); // local copy
-   
+
    std::default_random_engine generator;
    std::uniform_real_distribution<double> udist(0,1);
    ArrayNd log_alpha = alpha.col(v).log();
@@ -89,7 +89,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
    W2col.local() += Wcol.array().square().matrix();
 }
 
-std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) const 
+std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) const
 {
    int Zcount = (Zkeep.array() > 0).count();
    os << indent << name << ": Z = " << Zcount << "/" << num_latent() << "\n";

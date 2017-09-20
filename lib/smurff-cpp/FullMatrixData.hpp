@@ -5,7 +5,6 @@
 #endif
 
 #include "MatrixDataTempl.hpp"
-#include "utils.h"
 
 namespace smurff
 {

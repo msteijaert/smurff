@@ -19,7 +19,6 @@
 #include "omp_util.h"
 #include "linop.h"
 #include "session.h"
-#include "data.h"
 
 #include "MacauOnePrior.hpp"
 
