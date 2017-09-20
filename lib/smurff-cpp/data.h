@@ -19,29 +19,9 @@
 #include "Data.h"
 #include "MatrixData.h"
 #include "MatricesData.h"
+#include "MatrixDataTempl.hpp"
 
 namespace smurff {
-
-template<typename YType>
-struct MatrixDataTempl : public MatrixData {
-    MatrixDataTempl(YType Y) : Y(Y) {}
-
-    //init and center
-    void init_pre() override;
-
-    PVec   dim() const override { return PVec(Y.cols(), Y.rows()); }
-    int    nnz() const override { return Y.nonZeros(); }
-    double sum() const override { return Y.sum(); }
-
-    double offset_to_mean(const PVec &pos) const override;
-
-    double var_total() const override;
-    double sumsq(const SubModel &) const override;
-
-    YType Y;
-    std::vector<YType> Yc; // centered versions
-
-};
 
 struct ScarceMatrixData : public MatrixDataTempl<SparseMatrixD> {
     //-- c'tor
