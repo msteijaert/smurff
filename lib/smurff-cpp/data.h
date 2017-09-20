@@ -23,18 +23,9 @@
 #include "ScarceMatrixData.h"
 #include "ScarceBinaryMatrixData.h"
 #include "FullMatrixData.hpp"
+#include "DenseMatrixData.h"
 
 namespace smurff {
-
-struct DenseMatrixData : public FullMatrixData<Eigen::MatrixXd> {
-    //-- c'tor
-    DenseMatrixData(Eigen::MatrixXd Y) : FullMatrixData<Eigen::MatrixXd>(Y)
-    {
-        this->name = "DenseMatrixData [fully known]";
-    }
-    void center(double) override;
-    double train_rmse(const SubModel &) const override;
-};
 
 struct SparseMatrixData : public FullMatrixData<Eigen::SparseMatrix<double>> {
     //-- c'tor
