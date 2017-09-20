@@ -21,22 +21,9 @@
 #include "MatricesData.h"
 #include "MatrixDataTempl.hpp"
 #include "ScarceMatrixData.h"
+#include "ScarceBinaryMatrixData.h"
 
 namespace smurff {
-
-struct ScarceBinaryMatrixData : public ScarceMatrixData {
-    //-- c'tor
-    ScarceBinaryMatrixData(SparseMatrixD &Y) : ScarceMatrixData(Y)
-    {
-        name = "ScarceBinaryMatrixData [containing 0,1,NA]";
-    }
-
-    void get_pnm(const SubModel &,int,int,VectorNd &, MatrixNNd &) override;
-    void update_pnm(const SubModel &,int) override {};
-
-    int    nna()   const override { return size() - nnz(); }
-
-};
 
 template<class YType>
 struct FullMatrixData : public MatrixDataTempl<YType> {

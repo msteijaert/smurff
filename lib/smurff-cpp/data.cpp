@@ -24,7 +24,6 @@
 #include "utils.h"
 #include "data.h"
 #include "mvnormal.h"
-#include "truncnorm.h"
 
 #include "Noiseless.h"
 
@@ -38,19 +37,6 @@ namespace smurff {
 
 //
 //-- ScarceMatrixData specific stuff
-
-void ScarceBinaryMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd &rr, MatrixXd &MM)
-{
-    // todo : check noise == probit noise
-    auto u = model.U(mode).col(n);
-    for (SparseMatrix<double>::InnerIterator it(Yc.at(mode), n); it; ++it) {
-        const auto &col = model.V(mode).col(it.row());
-        MM.noalias() += col * col.transpose();
-		double y = 2 * it.value() - 1;
-		auto z = y * rand_truncnorm(y * col.dot(u), 1.0, 0.0);
-        rr.noalias() += col * z;
-    }
-}
 
 
 //
