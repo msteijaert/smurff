@@ -1,7 +1,5 @@
 #include "MatrixDataTempl.hpp"
 
-#include <Eigen/Core>
-
 namespace smurff
 {
    template<>
@@ -89,7 +87,8 @@ namespace smurff
 
    // for the adaptive gaussian noise
    template<>
-   double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel &model) const {
+   double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel &model) const
+   {
       double sumsq = 0.0;
 
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
@@ -104,7 +103,8 @@ namespace smurff
    }
 
    template<>
-   double MatrixDataTempl<Eigen::SparseMatrix<double> >::sumsq(const SubModel &model) const {
+   double MatrixDataTempl<Eigen::SparseMatrix<double> >::sumsq(const SubModel &model) const
+   {
       double sumsq = 0.0;
 
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)

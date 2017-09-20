@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cassert>
+#include <Eigen/Core>
 
 #include "MatrixData.h"
 #include "PVec.h"
@@ -49,4 +50,16 @@ namespace smurff
       YType Y;
       std::vector<YType> Yc; // centered versions
    };
+
+   template<>
+   double MatrixDataTempl<Eigen::MatrixXd>::var_total() const;
+
+   template<>
+   double MatrixDataTempl<Eigen::SparseMatrix<double> >::var_total() const;
+
+   template<>
+   double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel &model) const;
+
+   template<>
+   double MatrixDataTempl<Eigen::SparseMatrix<double> >::sumsq(const SubModel &model) const;
 }
