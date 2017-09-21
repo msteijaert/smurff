@@ -8,9 +8,11 @@ source:
 
 requirements:
   build:
+    - gcc
     - eigen >=3.3
     - openblas
   run:
+    - gcc
     - openblas
 
 about:
