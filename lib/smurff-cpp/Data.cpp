@@ -88,6 +88,12 @@ int Data::view(int mode, int pos) const
    return 0;
 }
 
+int Data::view_size(int m,int) const
+{
+    return dim(m);
+}
+
+
 double Data::mean(int m, int c) const
 {
    assert(mean_computed);

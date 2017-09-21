@@ -89,7 +89,8 @@ namespace smurff
 
       int nview(int mode) const override;
       int view(int mode, int pos) const override;
-
+      int view_size(int mode, int v) const override;
+     
       std::vector<std::vector<int>> mode_dim;
       PVec total_dim;
    };

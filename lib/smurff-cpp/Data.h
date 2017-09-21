@@ -66,6 +66,7 @@ namespace smurff
 
       virtual int nview(int mode) const;
       virtual int view(int mode, int pos) const;
+      virtual int view_size(int m,int) const;
 
       // mean & centering
       double cwise_mean = NAN, global_mean = NAN;
