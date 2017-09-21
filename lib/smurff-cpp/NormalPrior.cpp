@@ -9,26 +9,25 @@
 #include "session.h"
 #include "chol.h"
 #include "linop.h"
-
-#include "data.h"
+#include "Data.h"
 
 using namespace Eigen;
 
 using namespace smurff;
 
 
-//  base class NormalPrior  
+//  base class NormalPrior
 
 NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
-   : ILatentPrior(m, p, name) 
+   : ILatentPrior(m, p, name)
 {
-   
+
 }
 
 //method is nearly identical
 
 
-void NormalPrior::init() 
+void NormalPrior::init()
 {
    //does not look that there was such init previously
    ILatentPrior::init();
@@ -55,9 +54,9 @@ void NormalPrior::init()
 
 //new method
 
-const Eigen::VectorXd NormalPrior::getMu(int) const 
+const Eigen::VectorXd NormalPrior::getMu(int) const
 {
-    return mu; 
+    return mu;
 }
 
 //this method is ok except that
@@ -83,7 +82,7 @@ void NormalPrior::sample_latents()
 /*
 template<class FType>
 void MacauPrior<FType>::sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
-                    const Eigen::MatrixXd &samples, double alpha, const int num_latent) 
+                    const Eigen::MatrixXd &samples, double alpha, const int num_latent)
 {
 #pragma omp parallel for schedule(dynamic, 2)
   for(int n = 0; n < U.cols(); n++) {
@@ -111,7 +110,7 @@ void NormalPrior::sample_latent(int n)
    MM.noalias() += Lambda;
 
    Eigen::LLT<MatrixXd> chol = MM.llt();
-   if(chol.info() != Eigen::Success) 
+   if(chol.info() != Eigen::Success)
    {
       throw std::runtime_error("Cholesky Decomposition failed!");
    }
@@ -187,22 +186,22 @@ void sample_latent(MatrixXd &s, int mm, const SparseMatrix<double> &mat, double 
 
 //method is identical
 
-void NormalPrior::save(std::string prefix, std::string suffix) 
+void NormalPrior::save(std::string prefix, std::string suffix)
 {
    write_dense(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
 }
- 
+
 //new method
 
-void NormalPrior::restore(std::string prefix, std::string suffix) 
+void NormalPrior::restore(std::string prefix, std::string suffix)
 {
    read_dense(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
    initUU();
 }
- 
+
 //new method
 
-std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const 
+std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
 {
    os << indent << name << ": mu = " <<  mu.norm() << std::endl;
    return os;
@@ -210,7 +209,7 @@ std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
 
 //new method
 
-void NormalPrior::initUU() 
+void NormalPrior::initUU()
 {
     const int K = num_latent();
     Ucol.init(VectorNd::Zero(K));
@@ -222,7 +221,7 @@ void NormalPrior::initUU()
 //macau Probit sample latents
 /*
 void BPMFPrior::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-   double mean_value, const Eigen::MatrixXd &samples, const int num_latent) 
+   double mean_value, const Eigen::MatrixXd &samples, const int num_latent)
 {
    const int N = U.cols();
 

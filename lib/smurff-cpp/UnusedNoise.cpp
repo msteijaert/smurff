@@ -18,16 +18,17 @@ void UnusedNoise::update(const SubModel& sm)
 
 double UnusedNoise::getAlpha()
 {
-   assert(false); 
+   assert(false);
+   return NAN;
 }
 
 std::ostream& UnusedNoise::info(std::ostream& os, std::string indent)
-{ 
+{
    os << "Noisemodel is not used here.\n";
    return os;
 }
 
 std::string UnusedNoise::getStatus()
 {
-   return std::string("Unused"); 
+   return std::string("Unused");
 }

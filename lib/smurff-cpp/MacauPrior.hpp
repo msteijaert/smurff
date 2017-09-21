@@ -23,7 +23,7 @@ namespace smurff {
 
 /// Prior with side information
 template<class FType>
-class MacauPrior : public NormalPrior 
+class MacauPrior : public NormalPrior
 {
 public:
    Eigen::MatrixXd Uhat;
@@ -38,18 +38,18 @@ public:
    double tol = 1e-6;
 
 public:
-   //new method 
+   //new method
    MacauPrior(BaseSession& m, int p)
-      : NormalPrior(m, p, "MacauPrior")  
+      : NormalPrior(m, p, "MacauPrior")
    {
-      
+
    }
 
    virtual ~MacauPrior() {}
-   
+
    //method is identical
    //this was previously part of init method
-   
+
    void init() override
    {
       //this was previously part of init method but now has moved to NormalPrior init
@@ -57,7 +57,7 @@ public:
 
       assert((F->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
 
-      if (use_FtF) 
+      if (use_FtF)
       {
          FtF.resize(F->cols(), F->cols());
          At_mul_A(FtF, *F);
@@ -93,7 +93,7 @@ public:
       compute_uhat(Uhat, *F, beta);
       lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
    }
-   
+
    //method is identical
    //this was previously part of init method
 
@@ -114,17 +114,17 @@ public:
 
    double getLinkLambda()
    {
-      return lambda_beta; 
+      return lambda_beta;
    }
 
    //new method
 
    const Eigen::VectorXd getMu(int n) const override
    {
-      return this->mu + Uhat.col(n); 
+      return this->mu + Uhat.col(n);
    }
 
-   //this method was previously part of sample_beta 
+   //this method was previously part of sample_beta
    //this method is identical except that is was not parallel
    //MatrixXd Ft_y = A_mul_B(tmp, *F) + sqrt(lambda_beta) * MvNormal_prec_omp(Lambda, num_feat);
 
@@ -139,9 +139,9 @@ public:
       Eigen::MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 
       #pragma omp parallel for schedule(static)
-      for (int f = 0; f < num_feat; f++) 
+      for (int f = 0; f < num_feat; f++)
       {
-         for (int d = 0; d < num_latent(); d++) 
+         for (int d = 0; d < num_latent(); d++)
          {
             Ft_y(d, f) += sqrt(lambda_beta) * tmp2(d, f);
          }
@@ -153,7 +153,7 @@ public:
    // Update beta and Uhat
    virtual void sample_beta()
    {
-      if (use_FtF) 
+      if (use_FtF)
          sample_beta_direct();
       else
          sample_beta_cg();
@@ -163,7 +163,7 @@ public:
 
    void setLambdaBeta(double lb)
    {
-      lambda_beta = lb; 
+      lambda_beta = lb;
    }
 
    //new method
@@ -192,11 +192,11 @@ public:
       read_dense(prefix + "-link" + suffix, this->beta);
    }
 
-private:   
-   
+private:
+
    //new method
 
-   std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F) 
+   std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F)
    {
       os << "SparseDouble [" << F.rows() << ", " << F.cols() << "]\n";
       return os;
@@ -204,7 +204,7 @@ private:
 
    //new method
 
-   std::ostream &printSideInfo(std::ostream &os, const Eigen::MatrixXd &F) 
+   std::ostream &printSideInfo(std::ostream &os, const Eigen::MatrixXd &F)
    {
       os << "DenseDouble [" << F.rows() << ", " << F.cols() << "]\n";
       return os;
@@ -212,7 +212,7 @@ private:
 
    //new method
 
-   std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F) 
+   std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F)
    {
       os << "SparseBinary [" << F.rows() << ", " << F.cols() << "]\n";
       return os;
@@ -225,8 +225,8 @@ public:
    std::ostream &info(std::ostream &os, std::string indent) override
    {
       NormalPrior::info(os, indent);
-      os << indent << " SideInfo: "; printSideInfo(os, *F); 
-      os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << "\n"; 
+      os << indent << " SideInfo: "; printSideInfo(os, *F);
+      os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << "\n";
       os << indent << " Tol: " << tol << "\n";
       os << indent << " LambdaBeta: " << lambda_beta << "\n";
       return os;
@@ -247,7 +247,7 @@ private:
 
    //diagonal was calculated as:
    /*
-   for (int i = 0; i < K.cols(); i++) 
+   for (int i = 0; i < K.cols(); i++)
    {
       K(i,i) += lambda_beta;
    }
@@ -283,7 +283,7 @@ public:
 
    //method is identical
 
-   static std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu) 
+   static std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
    {
       const int D = beta.rows();
       Eigen::MatrixXd BB(D, D);
@@ -296,8 +296,8 @@ public:
    }
 
    //method is identical
-   
-   static double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu) 
+
+   static double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
    {
       auto gamma_post = posterior_lambda_beta(beta, Lambda_u, nu, mu);
       return rgamma(gamma_post.first, gamma_post.second);
@@ -306,10 +306,7 @@ public:
 
 // specialization for dense matrices --> always direct method */
 template<>
-void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg() 
-{
-   not_implemented("Dense Matrix requires direct method");
-}
+void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg();
 
 }
 

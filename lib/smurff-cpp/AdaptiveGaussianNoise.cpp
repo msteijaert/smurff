@@ -1,20 +1,19 @@
 #include "AdaptiveGaussianNoise.h"
 
 #include "mvnormal.h"
-
-#include "data.h"
+#include "Data.h"
 
 using namespace Eigen;
 using namespace smurff;
 
 AdaptiveGaussianNoise::AdaptiveGaussianNoise(Data* p, double sinit, double smax)
-: INoiseModel(p), sn_max(smax), sn_init(sinit) 
+: INoiseModel(p), sn_max(smax), sn_init(sinit)
 {
 
 }
 
 //  AdaptiveGaussianNoise  ////
-void AdaptiveGaussianNoise::init() 
+void AdaptiveGaussianNoise::init()
 {
    var_total = data->var_total();
 
@@ -34,36 +33,36 @@ void AdaptiveGaussianNoise::update(const SubModel &m)
    double bN = b0 + sumsq / 2.0;
    alpha = rgamma(aN, 1.0 / bN);
 
-   if (alpha > alpha_max) 
+   if (alpha > alpha_max)
    {
       alpha = alpha_max;
    }
 }
 
-double AdaptiveGaussianNoise::getAlpha() 
+double AdaptiveGaussianNoise::getAlpha()
 {
    return alpha;
 }
 
 std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)
-{ 
+{
    os << "Adaptive gaussian noise with max precision of " << alpha_max << "\n";
    return os;
 }
 
 std::string AdaptiveGaussianNoise::getStatus()
-{ 
-   return std::string("Prec: ") + to_string_with_precision(alpha, 2); 
+{
+   return std::string("Prec: ") + to_string_with_precision(alpha, 2);
 }
 
 void AdaptiveGaussianNoise::setSNInit(double a)
 {
-   sn_init = a; 
+   sn_init = a;
 }
 
 void AdaptiveGaussianNoise::setSNMax(double a)
 {
-   sn_max  = a; 
+   sn_max  = a;
 }
 
 

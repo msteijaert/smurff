@@ -11,12 +11,12 @@
 #include <memory>
 #include <cmath>
 
-#include "data.h"
+#include "Data.h"
 #include "model.h"
 #include "utils.h"
 #include "result.h"
 
-using namespace std; 
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
@@ -238,7 +238,7 @@ void Result::update_auc()
     auc = .0;
     for(auto &t : predictions) {
         int is_positive = t.val > threshold;
-        int is_negative = !is_positive; 
+        int is_negative = !is_positive;
         num_positive += is_positive;
         num_negative += is_negative;
         auc += is_positive * num_negative;

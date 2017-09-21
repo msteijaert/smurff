@@ -12,7 +12,7 @@
 #include "mvnormal.h"
 #include "session.h"
 #include "utils.h"
-#include "data.h"
+#include "Data.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
@@ -951,9 +951,11 @@ TEST_CASE( "truncnorm/rand_truncnorm", "generaring random truncnorm variable" ) 
 
 TEST_CASE("matrix_io/read_sparse. chembl-IC50-346targets.mm")
 {
-   // There should be a matrix file beside test executable
    const std::string matrixFilePath = "./chembl-IC50-346targets.mm";
-   REQUIRE(std::ifstream(matrixFilePath));
+
+   // Just skip this test if there is no matrix file next to tests executable
+   if (!std::ifstream(matrixFilePath))
+      return;
 
    // Reading sparse matrix using an updated matrix config that is based on a new tensor config
    MatrixConfig matrix1Config = read_sparse(matrixFilePath);
@@ -1872,4 +1874,51 @@ TEST_CASE("matrix_io/read_matrix(const std::string& fname). .mtx")
 
    std::remove(matrixFilename.c_str());
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
+{
+   const int N = 32 * 1024;
+   const int K = 96;
+   const int R = 20;
+
+   {
+       init_bmrng(1234);
+       Eigen::MatrixXd U(K,N);
+       bmrandn(U);
+
+       Eigen::MatrixXd M(K,K) ;
+       double start = tick();
+       for(int i=0; i<R; ++i) {
+           M.setZero();
+           for(int j=0; j<N;++j) {
+               const auto &col = U.col(j);
+               M.noalias() += col * col.transpose();
+           }
+       }
+       double stop = tick();
+       std::cout << "norm U: " << U.norm() << std::endl;
+       std::cout << "norm M: " << M.norm() << std::endl;
+       std::cout << "MatrixXd: " << stop - start << std::endl;
+   }
+
+   {
+       init_bmrng(1234);
+       Eigen::Matrix<double, K, Eigen::Dynamic> U(K,N);
+       U = nrandn(K,N);
+
+       Eigen::Matrix<double,K,K> M;
+       double start = tick();
+       for(int i=0; i<R; ++i) {
+           M.setZero();
+           for(int j=0; j<N;++j) {
+               const auto &col = U.col(j);
+               M.noalias() += col * col.transpose();
+           }
+       }
+       double stop = tick();
+       std::cout << "norm U: " << U.norm() << std::endl;
+       std::cout << "norm M: " << M.norm() << std::endl;
+       std::cout << "MatrixNNd: " << stop - start << std::endl;
+   }
 }

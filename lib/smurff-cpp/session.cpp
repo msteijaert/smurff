@@ -25,7 +25,7 @@
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
-#include "data.h"
+#include "Data.h"
 
 #include "AdaptiveGaussianNoise.h"
 #include "FixedGaussianNoise.h"
@@ -37,7 +37,12 @@
 #include "NormalPrior.h"
 #include "SpikeAndSlabPrior.h"
 
-using namespace std; 
+#include "SparseMatrixData.h"
+#include "ScarceBinaryMatrixData.h"
+#include "DenseMatrixData.h"
+#include "MatricesData.h"
+
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
@@ -64,7 +69,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     return os;
 }
 
-//--- 
+//---
 
 void Session::init() {
     threads_init();
@@ -143,7 +148,7 @@ void PythonSession::intHandler(int) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
-// 
+//
 //-- cmdline handling stuff
 //
 template<class SideInfo>
@@ -255,7 +260,7 @@ std::string Config::version() {
     ;
 }
 
-bool NoiseConfig::validate(bool throw_error) const 
+bool NoiseConfig::validate(bool throw_error) const
 {
     std::set<std::string> noise_models = { "noiseless", "fixed", "adaptive", "probit" };
     if (noise_models.find(name) == noise_models.end()) die("Unknown noise model " + name);
@@ -264,10 +269,9 @@ bool NoiseConfig::validate(bool throw_error) const
 }
 
 
-bool Config::validate(bool throw_error) const 
+bool Config::validate(bool throw_error) const
 {
     if (!train.getRows().size())             die("Missing train matrix");
-    if (test.getRows().size() && test_split) die("Provided both input test pointer and split ratio");
 
     std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
@@ -293,7 +297,7 @@ bool Config::validate(bool throw_error) const
     return true;
 }
 
-void Config::save(std::string fname) const 
+void Config::save(std::string fname) const
 {
     if (!save_freq) return;
 
@@ -301,7 +305,6 @@ void Config::save(std::string fname) const
 
     os << "# train = "; train.info(os); os << std::endl;
     os << "# test = "; test.info(os); os << std::endl;
-    os << "test_split = " << test_split << std::endl;
 
     os << "# features" << std::endl;
     auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
@@ -353,17 +356,15 @@ void Config::save(std::string fname) const
 
 void Config::restore(std::string fname) {
     INIReader reader(fname);
-    
+
     if (reader.ParseError() < 0) {
         std::cout << "Can't load '" << fname << "'\n";
     }
 
-    test_split = reader.GetReal("", "test_split",  .0);
-
     // -- priors
     row_prior = reader.Get("", "row_prior",  "default");
     col_prior = reader.Get("", "col_prior",  "default");
-    
+
     //-- restore
     restore_prefix = reader.Get("", "restore_prefix",  "");
     restore_suffix = reader.Get("", "restore_suffix",  ".csv");
@@ -383,7 +384,7 @@ void Config::restore(std::string fname) {
     //-- for macau priors
     lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
     tol = reader.GetReal("", "tol",  1e-6);
-    direct = reader.GetBoolean("", "direct",  false); 
+    direct = reader.GetBoolean("", "direct",  false);
 
     //-- noise model
     NoiseConfig noise;
@@ -397,7 +398,7 @@ void Config::restore(std::string fname) {
     classify = reader.GetBoolean("", "classify",  false);
     threshold = reader.GetReal("", "threshold",  .0);
 };
- 
+
 void setNoiseModel(const NoiseConfig &config, Data* data)
 {
 
@@ -418,7 +419,7 @@ void setNoiseModel(const NoiseConfig &config, Data* data)
     }
 }
 
-std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce) 
+std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
 {
     std::unique_ptr<MatrixData> local_data_ptr;
 
@@ -441,8 +442,8 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
     return local_data_ptr;
 }
 
-std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, 
-     const std::vector<MatrixConfig> &col_features) 
+std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features,
+     const std::vector<MatrixConfig> &col_features)
 {
     if (row_features.empty() && col_features.empty()) {
         return toData(train, true);
@@ -452,10 +453,10 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
     auto local_data_ptr = new MatricesData();
     local_data_ptr->add(PVec(0,0),toData(train, true /*scarce*/));
     for(size_t i=0; i<row_features.size(); ++i) {
-        local_data_ptr->add(PVec(i+1, 0), toData(row_features[i], false)); 
+        local_data_ptr->add(PVec(i+1, 0), toData(row_features[i], false));
     }
     for(size_t i=0; i<col_features.size(); ++i) {
-        local_data_ptr->add(PVec(0, i+1), toData(col_features[i], false)); 
+        local_data_ptr->add(PVec(0, i+1), toData(col_features[i], false));
     }
 
     return std::unique_ptr<MatrixData>(local_data_ptr);
@@ -470,14 +471,7 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    // extract from train if needed
-    // split if needed
-    if (config.test_split > .0) {
-        auto predictions = extract(config.train, config.test_split);
-        pred.set(sparse_to_eigen(predictions));
-    } else {
-        pred.set(sparse_to_eigen(config.test));
-    }
+    pred.set(sparse_to_eigen(config.test));
 
     std::vector<MatrixConfig> row_matrices, col_matrices;
     std::vector<MatrixConfig> row_sideinfo, col_sideinfo;
@@ -485,13 +479,13 @@ void Session::setFromConfig(const Config &c)
         row_sideinfo = config.row_features;
     } else {
         row_matrices = config.row_features;
-    } 
+    }
 
     if (config.col_prior == "macau" || config.col_prior == "macauone") {
         col_sideinfo = config.col_features;
     } else {
         col_matrices = config.col_features;
-    } 
+    }
     data_ptr = toData(config.train, row_matrices, col_matrices);
 
     // check if data is ScarceBinary
@@ -503,9 +497,9 @@ void Session::setFromConfig(const Config &c)
                 config.train.noise.name = "probit";
             }
     */
- 
+
     if (config.classify) pred.setThreshold(config.threshold);
-    
+
     // center mode
     data().setCenterMode(config.center_mode);
 
@@ -538,7 +532,7 @@ void Session::printStatus(double elapsedi) {
         from = config.burnin;
     } else {
         phase = "Sample";
-        i = iter - config.burnin + 1; 
+        i = iter - config.burnin + 1;
         from = config.nsamples;
     }
 
@@ -558,7 +552,7 @@ void Session::printStatus(double elapsedi) {
         printf("  Noise:\n");
         data().status(std::cout, "    ");
     }
-    
+
     if (config.verbose > 2) {
         printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
     }
@@ -570,7 +564,7 @@ void Session::printStatus(double elapsedi) {
 
         auto f = fopen(config.csv_status.c_str(), "a");
         fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
-                phase.c_str(), i, from, 
+                phase.c_str(), i, from,
                 globalmean_rmse, colmean_rmse,
                 pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1, elapsedi);
         fclose(f);

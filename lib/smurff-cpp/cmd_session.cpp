@@ -23,12 +23,12 @@
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
-#include "data.h"
+#include "Data.h"
 
 #include "ILatentPrior.h"
 #include "MacauOnePrior.hpp"
 
-using namespace std; 
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
@@ -51,8 +51,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         if (name == "adaptive")
         {
             char *token, *str = strdup(optarg.c_str());
-            if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL); 
-            if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL); 
+            if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL);
+            if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL);
         }
         else if (name == "fixed")
         {
@@ -88,12 +88,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
         case TOL:             c.tol                = atof(optarg); break;
         case DIRECT:          c.direct             = true; break;
-        case FNAME_TEST:
-                              //-- check if fname_test is actually a number
-                              if ((c.test_split = atof(optarg)) <= .0) {
-                                  c.test           = read_sparse(optarg);
-                              }
-                              break;
+        case FNAME_TEST:      c.test               = read_sparse(optarg); break;
         case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
 
@@ -132,7 +127,6 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"center",           CENTER	        , "MODE",  0, "center <global|rows|cols|none>"},
         {0,0,0,0,"Test and train matrices:",2},
         {"test",	     FNAME_TEST    , "FILE",  0, "test data (for computing RMSE)"},
-        {"test",	     FNAME_TEST    , "NUM",   0, "fraction of train matrix to extract for computing RMSE (e.g. 0.2)"},
         {"train",	     FNAME_TRAIN   , "FILE",  0, "train data file"},
         {0,0,0,0,"General parameters:",3},
         {"burnin",	     BURNIN	, "NUM",   0, "200  number of samples to discard"},

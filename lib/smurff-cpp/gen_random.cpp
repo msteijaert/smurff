@@ -142,6 +142,41 @@ SparseMatrixD extract(const Eigen::MatrixXd &Yin, double s, std::default_random_
    return Yout;
 }
 
+//
+// ----------------------------------------------------------------------------
+// !!! WARNING !!!
+// ----------------------------------------------------------------------------
+// Function below is indeterministic by its own nature.
+// It cannot guarantee expected extraction ratio 's'.
+//
+// !!! IT IS RECOMMENDED NOT TO USE THIS FUNCTION AT ALL !!!
+//
+// GitHub issue #30:
+//    https://github.com/ExaScience/smurff/issues/30
+//
+// ----------------------------------------------------------------------------
+// Problem explained
+// ----------------------------------------------------------------------------
+// s = 0.3, remove = true, seed = 1234
+// Yin = 1 2 3
+//       4 5 6
+//       7 8 9
+//
+// In this case it is expected that this function should produce 2 matrices.
+// 'Ynew' with 7 nnz values and 'Yout' with 2 nnz values.
+//
+// But it does not work this way.
+// It produces 'Ynew' with 8 nnz values and 'Yout' with 1 nnz value.
+// Because of that assertion fails:
+//    assert(Ynew_values.size() < Ynew_nnz)
+//
+// So additional check was added to prevent overflow:
+//    Ynew_values.size() >= Ynew_nnz
+//
+// There are also tests in tests.cpp named 'gen_random/extract'.
+// They all have [!hide] tag so that they don't run with the rest of the tests.
+// These tests fail with assertion.
+//
 MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_random_engine::result_type seed)
 {
    size_t Yout_nnz = static_cast<size_t>(Yin.getNNZ() * s);
@@ -164,7 +199,7 @@ MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_rand
 
    for (size_t i = 0; i < Yin.getNNZ(); i++)
    {
-      if (udist(gen) < s && Yout_rows.size() < Yout_nnz)
+      if ((udist(gen) < s && Yout_rows.size() < Yout_nnz) || Ynew_values.size() >= Ynew_nnz)
       {
          Yout_rows.push_back(Yin_rowsPtr->operator[](i));
          Yout_cols.push_back(Yin_colsPtr->operator[](i));

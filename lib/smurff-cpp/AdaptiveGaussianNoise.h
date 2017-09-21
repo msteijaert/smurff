@@ -7,14 +7,12 @@
 #include "utils.h"
 
 #include "INoiseModel.h"
+#include "Data.h"
 
 namespace smurff {
 
-   //AGE: We should have a proper interface instead of using forward declarations
-   struct Data;
-
 // Gaussian noise that adapts to the data
-class AdaptiveGaussianNoise : public INoiseModel 
+class AdaptiveGaussianNoise : public INoiseModel
 {
 public:
    double var_total = NAN;
@@ -29,7 +27,7 @@ public:
    void init() override;
    void update(const SubModel &) override;
    double getAlpha() override;
-   
+
    std::ostream &info(std::ostream &os, std::string indent) override;
    std::string getStatus() override;
 
