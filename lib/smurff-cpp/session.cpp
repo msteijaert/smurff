@@ -272,7 +272,6 @@ bool NoiseConfig::validate(bool throw_error) const
 bool Config::validate(bool throw_error) const
 {
     if (!train.getRows().size())             die("Missing train matrix");
-    if (test.getRows().size() && test_split) die("Provided both input test pointer and split ratio");
 
     std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
@@ -306,7 +305,6 @@ void Config::save(std::string fname) const
 
     os << "# train = "; train.info(os); os << std::endl;
     os << "# test = "; test.info(os); os << std::endl;
-    os << "test_split = " << test_split << std::endl;
 
     os << "# features" << std::endl;
     auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
@@ -362,8 +360,6 @@ void Config::restore(std::string fname) {
     if (reader.ParseError() < 0) {
         std::cout << "Can't load '" << fname << "'\n";
     }
-
-    test_split = reader.GetReal("", "test_split",  .0);
 
     // -- priors
     row_prior = reader.Get("", "row_prior",  "default");
@@ -475,14 +471,7 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    // extract from train if needed
-    // split if needed
-    if (config.test_split > .0) {
-        auto predictions = extract(config.train, config.test_split);
-        pred.set(sparse_to_eigen(predictions));
-    } else {
-        pred.set(sparse_to_eigen(config.test));
-    }
+    pred.set(sparse_to_eigen(config.test));
 
     std::vector<MatrixConfig> row_matrices, col_matrices;
     std::vector<MatrixConfig> row_sideinfo, col_sideinfo;

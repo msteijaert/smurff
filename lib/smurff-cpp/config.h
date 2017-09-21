@@ -9,10 +9,9 @@
 namespace smurff {
 
 struct Config {
-    
+
     //-- train and test
     MatrixConfig train, test;
-    double test_split         = .0;
     std::string center_mode   = "global";
 
     //-- features
@@ -22,7 +21,7 @@ struct Config {
     // -- priors
     std::string row_prior = "default";
     std::string col_prior = "default";
-    
+
     //-- restore
     std::string restore_prefix = "";
     std::string restore_suffix = ".csv";
@@ -45,7 +44,7 @@ struct Config {
     //-- for macau priors
     double lambda_beta        = 10.0;
     double tol                = 1e-6;
-    bool direct               = false; 
+    bool direct               = false;
 
     //-- binary classification
     bool classify             = false;
