@@ -4,71 +4,78 @@
 
 using namespace smurff;
 
-PVec::PVec() : n(0)
+PVec::PVec()
 {
 }
 
 PVec::PVec(size_t n)
-   : n(n)
-   , v({{0}})
 {
-   assert(n <= max);
+   m_v.resize(n);
 }
 
 PVec::PVec(int a, int b)
-   : n(2)
-   , v({{a,b}})
+   : m_v({ a, b })
+{
+}
+
+PVec::PVec(const std::initializer_list<int>& l)
+   : m_v(l)
 {
 }
 
 size_t PVec::size() const
 {
-   return n;
+   return m_v.size();
 }
 
 const int& PVec::operator[](size_t p) const
 {
-   return v[p];
+   return m_v[p];
 }
 
 const int& PVec::at(size_t p) const
 {
-   assert(p>=0 && p < n); return v[p];
+   assert(p >= 0 && p < m_v.size());
+   return m_v[p];
 }
 
 int& PVec::operator[](size_t p)
 {
-   return v[p];
+   return m_v[p];
 }
 
 int& PVec::at(size_t p)
 {
-   assert(p>=0 && p < n);
-   return v[p];
+   assert(p >= 0 && p < m_v.size());
+   return m_v[p];
 }
 
 PVec PVec::operator+(const PVec& other) const
 {
-   assert(n == other.n);
+   assert(m_v.size() == other.m_v.size());
    PVec ret = *this;
-   for(size_t i=0; i<n; ++i) { ret[i] += other[i]; }
+   for (size_t i = 0; i < m_v.size(); ++i)
+      ret[i] += other[i];
    return ret;
 }
 
 PVec PVec::operator-(const PVec& other) const
 {
-   assert(n == other.n);
+   assert(m_v.size() == other.m_v.size());
    PVec ret = *this;
-   for(size_t i=0; i<n; ++i) { ret[i] -= other[i]; }
+   for (size_t i = 0; i < m_v.size(); ++i)
+      ret[i] -= other[i];
    return ret;
 }
 
 bool PVec::in(const PVec& start, const PVec& end) const
 {
-   for(size_t i=0; i<n; ++i)
+   for (size_t i = 0; i < m_v.size(); ++i)
    {
-         if (at(i) < start.at(i))return false;
-         if (at(i) >= end.at(i)) return false;
+      if (at(i) < start.at(i))
+         return false;
+      if (at(i) >= end.at(i))
+         return false;
    }
    return true;
 }
@@ -76,14 +83,16 @@ bool PVec::in(const PVec& start, const PVec& end) const
 int PVec::dot() const
 {
    int ret = 1;
-   for(size_t i=0; i<n; ++i) ret *= at(i);
+   for (size_t i = 0; i < m_v.size(); ++i)
+      ret *= at(i);
    return ret;
 }
 
 std::ostream& PVec::info(std::ostream& os) const
 {
    os << "[ ";
-   for(size_t i=0; i<n; ++i) os << at(i) << ((i != n-1) ? " x " : "");
+   for(size_t i = 0; i < m_v.size(); ++i)
+      os << at(i) << ((i != m_v.size()-1) ? " x " : "");
    os << " ]";
    return os;
 }

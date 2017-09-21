@@ -1,23 +1,22 @@
 #pragma once
 
 #include <stddef.h>
-#include <array>
+#include <vector>
 #include <iostream>
+#include <initializer_list>
 
 namespace smurff
 {
    class PVec
    {
    private:
-      static const unsigned int max = 2; // only matrices for the moment
-      size_t n;
-      std::array<int, max> v;
+      std::vector<int> m_v;
 
    public:
-      // c'tor
       PVec();
       PVec(size_t n);
       PVec(int a, int b);
+      PVec(const std::initializer_list<int>& l);
 
    public:
       // meta info
