@@ -145,7 +145,7 @@ void MatricesData::update(const SubModel &model)
    }
 }
 
-void MatricesData::get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void MatricesData::get_pnm(const SubModel& model, int mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    int count = 0;
    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
