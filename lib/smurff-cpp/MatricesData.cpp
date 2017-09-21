@@ -28,12 +28,13 @@ void MatricesData::init_pre()
        }
        int off = 0;
        auto &O = mode_dim.at(n);
-       O.resize(max_pos+1);
+       O.resize(max_pos+2);
        for(int pos=0; pos<=max_pos; ++pos)
        {
            O.at(pos) = off;
            off += S[pos];
        }
+       O.at(max_pos+1) = off;
        total_dim.at(n) = off;
        for(auto &blk : blocks)
        {
@@ -299,4 +300,9 @@ int MatricesData::view(int mode, int pos) const
    }
    assert(false);
    return -1;
+}
+
+int MatricesData::view_size(int mode, int v) const {
+    const auto &M = mode_dim.at(mode);
+    return M.at(v+1) - M.at(v);
 }
