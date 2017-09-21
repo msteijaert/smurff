@@ -451,12 +451,12 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
 
     // multiple matrices
     auto local_data_ptr = new MatricesData();
-    local_data_ptr->add(PVec(0,0),toData(train, true /*scarce*/));
+    local_data_ptr->add(PVec({0,0}),toData(train, true /*scarce*/));
     for(size_t i=0; i<row_features.size(); ++i) {
-        local_data_ptr->add(PVec(i+1, 0), toData(row_features[i], false));
+        local_data_ptr->add(PVec({static_cast<int>(i+1), 0}), toData(row_features[i], false));
     }
     for(size_t i=0; i<col_features.size(); ++i) {
-        local_data_ptr->add(PVec(0, i+1), toData(col_features[i], false));
+        local_data_ptr->add(PVec({0, static_cast<int>(i+1)}), toData(col_features[i], false));
     }
 
     return std::unique_ptr<MatrixData>(local_data_ptr);

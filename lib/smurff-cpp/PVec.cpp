@@ -4,17 +4,8 @@
 
 using namespace smurff;
 
-PVec::PVec()
-{
-}
-
 PVec::PVec(size_t n)
-{
-   m_v.resize(n);
-}
-
-PVec::PVec(int a, int b)
-   : m_v({ a, b })
+   : m_v(n, 0)
 {
 }
 
@@ -30,6 +21,7 @@ size_t PVec::size() const
 
 const int& PVec::operator[](size_t p) const
 {
+   assert(p >= 0 && p < m_v.size());
    return m_v[p];
 }
 
@@ -41,6 +33,7 @@ const int& PVec::at(size_t p) const
 
 int& PVec::operator[](size_t p)
 {
+   assert(p >= 0 && p < m_v.size());
    return m_v[p];
 }
 
@@ -70,6 +63,9 @@ PVec PVec::operator-(const PVec& other) const
 
 bool PVec::in(const PVec& start, const PVec& end) const
 {
+   assert(m_v.size() == start.size());
+   assert(m_v.size() == end.size());
+
    for (size_t i = 0; i < m_v.size(); ++i)
    {
       if (at(i) < start.at(i))

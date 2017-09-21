@@ -23,7 +23,7 @@ namespace smurff
          cwise_mean = sum() / (size() - nna());
       }
 
-      PVec   dim() const override { return PVec(Y.cols(), Y.rows()); }
+      PVec   dim() const override { return PVec({ static_cast<int>(Y.cols()), static_cast<int>(Y.rows()) }); }
       int    nnz() const override { return Y.nonZeros(); }
       double sum() const override { return Y.sum(); }
 

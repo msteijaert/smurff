@@ -3,7 +3,8 @@
 
 using namespace smurff;
 
-MatricesData::MatricesData() : total_dim(2)
+MatricesData::MatricesData()
+   : total_dim(2)
 {
    name = "MatricesData";
    noise_ptr = std::unique_ptr<INoiseModel>(new UnusedNoise(this));
@@ -18,8 +19,8 @@ void MatricesData::init_pre()
        int max_pos = -1;
        for(auto &blk : blocks)
        {
-           int pos  = blk.pos(n);
-           int size = blk.dim(n);
+           int pos  = blk.pos(n); // get coordinate of underlying matrix
+           int size = blk.dim(n); // get dimension size of underlying matrix
            assert(size > 0);
            assert(S.at(pos) == 0 || S.at(pos) == size);
            S.at(pos) = size;
