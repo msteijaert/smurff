@@ -2,20 +2,22 @@
 
 cd lib/macau-cpp/openmp
 
-export CPATH=$CPATH:$PREFIX/include/eigen3
-export CPATH=$CPATH:/usr/local/include
-export LIBRARY_PATH=$LIBRARY_PATH:$PREFIX/lib
-export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib
-
 sed -i -e 's/^LIBLOCS/#LIBLOCS/g' Makefile
 sed -i -e 's/^CXX/#CXX/g' Makefile
-#sed -i -e '/argp/d' Makefile
+
+echo "CXXFLAGS+=-I/usr/loca/include" >> Makefile
+echo "CXXFLAGS+=-I${PREFIX}/include/eigen3" >> Makefile
+echo "LDFLAGS+=-L${PREFIX}/lib -lopenblas" >> Makefile
+echo 'smurff: cmd_nompi.o $(LIBMACAU) cmd_session.o ' >> Makefile
+echo '	$(CXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $? -o smurff  $(LDFLAGS)' >> Makefile
+
 
 if [ -n "$OSX_ARCH" ]
 then
-    make -j CXX=g++-6
+    make -j smurff CXX=g++-6 
 else 
-    make -j
+    sed -i -e '/argp/d' Makefile
+    make -j smurff
 fi
 
-install cmd_nompi $PREFIX/bin/smurff
+install smurff $PREFIX/bin/

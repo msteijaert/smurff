@@ -8,7 +8,7 @@ source:
 
 requirements:
   build:
-    - eigen >=3.2
+    - eigen >=3.3
     - openblas
   run:
     - openblas
