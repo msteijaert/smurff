@@ -21,6 +21,8 @@ namespace smurff
       PVec(const T<int, V...>& v)
          : m_v(v.begin(), v.end())
       {
+         if (m_v.size() == 0)
+            throw std::length_error("Cannot initialize PVec with zero length");
       }
 
    public:

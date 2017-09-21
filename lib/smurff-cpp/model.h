@@ -20,7 +20,6 @@ struct SubModel;
 struct Model {
     Model()
       : num_latent(-1)
-      , m_dims(new PVec({}))
     {
     }
 
@@ -70,7 +69,7 @@ struct Model {
   public:
      const PVec& getDims() const
      {
-        return *(m_dims.get());
+        return *m_dims;
      }
 
   private:
