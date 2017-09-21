@@ -1,8 +1,8 @@
+#include "ScarceMatrixData.h"
+
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-
-#include "ScarceMatrixData.h"
 
 using namespace smurff;
 
@@ -66,7 +66,7 @@ double ScarceMatrixData::compute_mode_mean(int m, int c)
     return col.sum() / col.nonZeros();
 }
 
-double ScarceMatrixData::train_rmse(const SubModel &model) const {
+double ScarceMatrixData::train_rmse(const SubModel& model) const {
    double se = 0.;
 #pragma omp parallel for schedule(guided) reduction(+:se)
    for(int c=0; c<Y.cols();++c) {
@@ -85,7 +85,7 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
     return os;
 }
 
-void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, Eigen::VectorXd &rr, Eigen::MatrixXd &MM) {
+void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) {
    auto &Y = Yc.at(mode);
    const int num_latent = model.nlatent();
    const auto &Vf = model.V(mode);

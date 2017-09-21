@@ -23,7 +23,7 @@ void ScarceBinaryMatrixData::get_pnm(const SubModel& model, int mode, int n, Eig
     }
 }
 
-void ScarceBinaryMatrixData::update_pnm(const SubModel &,int)
+void ScarceBinaryMatrixData::update_pnm(const SubModel& model,int mode)
 {
 }
 

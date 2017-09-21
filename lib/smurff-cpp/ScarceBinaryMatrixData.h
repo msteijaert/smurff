@@ -11,7 +11,7 @@ namespace smurff
 
    public:
       void get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
-      void update_pnm(const SubModel&, int) override;
+      void update_pnm(const SubModel& model, int mode) override;
 
       int nna() const override;
   };

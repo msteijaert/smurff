@@ -29,7 +29,7 @@ namespace smurff
 
       // update noise and precision/mean
       void update(const SubModel& model) override;
-      void get_pnm(const SubModel&, int, int, VectorNd&, MatrixNNd&) override;
+      void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
       void update_pnm(const SubModel& model, int mode) override;
 
       //-- print info

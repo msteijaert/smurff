@@ -94,7 +94,7 @@ double MatricesData::compute_mode_mean(int mode, int pos)
    return sum / N;
 }
 
-double MatricesData::offset_to_mean(const PVec &pos) const
+double MatricesData::offset_to_mean(const PVec& pos) const
 {
    const Block &b = find(pos);
    return b.data().offset_to_mean(pos - b.start());
@@ -145,7 +145,7 @@ void MatricesData::update(const SubModel &model)
    }
 }
 
-void MatricesData::get_pnm(const SubModel& model, int mode, int pos, VectorNd& rr, MatrixNNd& MM)
+void MatricesData::get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    int count = 0;
    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
@@ -155,7 +155,7 @@ void MatricesData::get_pnm(const SubModel& model, int mode, int pos, VectorNd& r
    assert(count>0);
 }
 
-void MatricesData::update_pnm(const SubModel &model, int m)
+void MatricesData::update_pnm(const SubModel& model, int m)
 {
    for(auto &b : blocks) {
       b.data().update_pnm(b.submodel(model), m);
@@ -271,12 +271,12 @@ bool MatricesData::Block::in(int mode, int p) const
    return p >= start(mode) && p < end(mode);
 }
 
-SubModel MatricesData::Block::submodel(const SubModel &model) const
+SubModel MatricesData::Block::submodel(const SubModel& model) const
 {
    return SubModel(model, start(), dim());
 }
 
-const MatricesData::Block& MatricesData::find(const PVec &p) const
+const MatricesData::Block& MatricesData::find(const PVec& p) const
 {
    return *std::find_if(blocks.begin(), blocks.end(), [p](const Block &b) -> bool { return b.in(p); });
 }

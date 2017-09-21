@@ -1,5 +1,9 @@
 #include "DenseMatrixData.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace smurff;
 
 DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)

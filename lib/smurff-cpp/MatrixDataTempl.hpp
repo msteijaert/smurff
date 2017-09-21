@@ -27,7 +27,7 @@ namespace smurff
       int    nnz() const override { return Y.nonZeros(); }
       double sum() const override { return Y.sum(); }
 
-      double offset_to_mean(const PVec &pos) const override
+      double offset_to_mean(const PVec& pos) const override
       {
               if (center_mode == CENTER_GLOBAL) return global_mean;
          else if (center_mode == CENTER_VIEW)   return cwise_mean;
@@ -39,7 +39,7 @@ namespace smurff
       }
 
       double var_total() const override;
-      double sumsq(const SubModel &) const override;
+      double sumsq(const SubModel& model) const override;
 
       YType Y;
       std::vector<YType> Yc; // centered versions

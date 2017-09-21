@@ -14,7 +14,6 @@ namespace smurff
 {
    class Data
    {
-
    protected:
       std::vector<Eigen::VectorXd> mode_mean;
       bool mean_computed = false;
@@ -24,9 +23,9 @@ namespace smurff
       // noise model for this dataset
       std::unique_ptr<INoiseModel> noise_ptr;
 
-   public:
       // name
       std::string name;
+
    public:
       Data();
       virtual ~Data();
@@ -45,9 +44,9 @@ namespace smurff
 
       // update noise and precision/mean
       virtual double train_rmse(const SubModel& model) const = 0;
-      virtual void update(const SubModel &model);
-      virtual void get_pnm(const SubModel&, int, int, VectorNd &, MatrixNNd&) = 0;
-      virtual void update_pnm(const SubModel&, int) = 0;
+      virtual void update(const SubModel& model);
+      virtual void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
+      virtual void update_pnm(const SubModel& model, int mode) = 0;
 
       //-- print info
       virtual std::ostream& info(std::ostream& os, std::string indent);
@@ -72,7 +71,7 @@ namespace smurff
       double cwise_mean = NAN, global_mean = NAN;
       double var = NAN;
       double mean(int m, int c) const;
-      virtual double compute_mode_mean(int, int) = 0;
+      virtual double compute_mode_mean(int m, int c) = 0;
                 void compute_mode_mean();
       virtual double offset_to_mean(const PVec& pos) const = 0;
 
@@ -81,6 +80,6 @@ namespace smurff
       center_mode;
 
       // helper for predictions
-      double predict(const PVec &pos, const SubModel &model) const;
-  };
+      double predict(const PVec& pos, const SubModel& model) const;
+   };
 }
