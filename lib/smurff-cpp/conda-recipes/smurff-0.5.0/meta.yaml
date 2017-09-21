@@ -1,0 +1,18 @@
+package:
+  name: smurff
+  version: 0.5.0
+
+source:
+  git_url: https://github.com/ExaScience/smurff
+  git_tag: v0.5.0-excape
+
+requirements:
+  build:
+    - eigen >=3.2
+    - openblas
+  run:
+    - openblas
+
+about:
+  home: https://github.com/ExaScience/smurff
+  license:  MIT
