@@ -29,35 +29,35 @@ all: smurff tests
 
 clean:
 	rm -f *.o *.d *.a *.csv *.ini *.sbm *.sdm *.mtx
-	rm -f *.dSYM
+	rm -rf *.dSYM
 	rm -f smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
 smurff: $(LIBSMURFF) cmd_session.o
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff.cpp $(LIBSMURFF) $(LDFLAGS) cmd_session.o -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff.cpp $(LIBSMURFF) $(LDFLAGS) cmd_session.o $(OUTPUT_OPTION)
 
 mpi_smurff: mpi_smurff.cpp cmd_session.o $(LIBSMURFF)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o mpi_smurff
 
 tests: $(LIBSMURFF)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/tests.cpp $(LIBSMURFF) $(LDFLAGS) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/tests.cpp $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
 
 bench_nrandn:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_NRANDN -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_NRANDN $(OUTPUT_OPTION)
 
 bench_wishart:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_COND_NORMALWISHART -DBENCH_NORMAL_WISHART -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_COND_NORMALWISHART -DBENCH_NORMAL_WISHART $(OUTPUT_OPTION)
 
 bench_mvnormal:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_MVNORMAL -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_MVNORMAL $(OUTPUT_OPTION)
 
 $(LIBSMURFF): $(LIBOBJS)
 	ar -rcs $(LIBSMURFF) $(LIBOBJS)
 
 %.o : $(ROOT)/%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 %.o : $(ROOT)/%.c
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 # DFILES
 DFILES=$(wildcard *.d)
