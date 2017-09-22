@@ -14,8 +14,6 @@ LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 LINK.o=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 OUTPUT_OPTION=-MMD -MP -o $@
 
-.PHONY: all clean
-
 LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o session.o gen_random.o model.o result.o matrix_io.o PVec.o
 LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.o UnusedNoise.o
 LIBOBJS += GlobalPrior.o ILatentPrior.o NormalPrior.o SpikeAndSlabPrior.o MacauPrior.o
