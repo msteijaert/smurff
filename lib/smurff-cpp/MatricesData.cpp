@@ -7,11 +7,14 @@ MatricesData::MatricesData()
    : total_dim(2)
 {
    name = "MatricesData";
-   noise_ptr = std::unique_ptr<INoiseModel>(new UnusedNoise(this));
 }
 
 void MatricesData::init_pre()
 {
+   //AGE: this assignment was previously in constructor. 
+   //but now it is private method which can not be placed there
+   setNoiseModel(new UnusedNoise(this)); 
+
    mode_dim.resize(nmode());
    for(int n = 0; n<nmode(); ++n)
    {
