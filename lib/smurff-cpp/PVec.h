@@ -40,6 +40,8 @@ namespace smurff
       // operators
       PVec operator+(const PVec& other) const;
       PVec operator-(const PVec& other) const;
+      bool operator==(const PVec& other) const;
+      bool operator!=(const PVec& other) const;
 
       bool in(const PVec& start, const PVec& end) const;
       int dot() const;

@@ -90,6 +90,24 @@ PVec PVec::operator-(const PVec& other) const
    return ret;
 }
 
+bool PVec::operator==(const PVec& other) const
+{
+   if (m_v.size() != other.m_v.size())
+      return false;
+
+   for (size_t i = 0; i < m_v.size(); i++)
+   {
+      if (m_v[i] != other.m_v[i])
+         return false;
+   }
+   return true;
+}
+
+bool PVec::operator!=(const PVec& other) const
+{
+   return !(*this == other);
+}
+
 bool PVec::in(const PVec& start, const PVec& end) const
 {
    if (m_v.size() != start.size())
