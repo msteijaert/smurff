@@ -348,8 +348,8 @@ smurff::MatrixConfig read_ddm(const std::string& filename)
 
 smurff::MatrixConfig read_ddm(std::istream& in)
 {
-   int nrow;
-   int ncol;
+   long nrow;
+   long ncol;
    in.read((char*) (&nrow),sizeof(long));
    in.read((char*) (&ncol),sizeof(long));
    int nnz = nrow * ncol;
