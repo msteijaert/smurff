@@ -47,5 +47,5 @@ namespace smurff
       int dot() const;
 
       std::ostream& info(std::ostream& os) const;
-  };
+   };
 }

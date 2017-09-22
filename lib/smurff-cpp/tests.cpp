@@ -949,13 +949,16 @@ TEST_CASE( "truncnorm/rand_truncnorm", "generaring random truncnorm variable" ) 
   }
 }
 
-TEST_CASE("matrix_io/read_sparse. chembl-IC50-346targets.mm")
+TEST_CASE("matrix_io/read_sparse. chembl-IC50-346targets.mm", "[!mayfail]")
 {
    const std::string matrixFilePath = "./chembl-IC50-346targets.mm";
 
+   // There should be a matrix file next to tests executable
+   REQUIRE(std::ifstream(matrixFilePath));
+
    // Just skip this test if there is no matrix file next to tests executable
-   if (!std::ifstream(matrixFilePath))
-      return;
+   // if (!std::ifstream(matrixFilePath))
+   //    return;
 
    // Reading sparse matrix using an updated matrix config that is based on a new tensor config
    MatrixConfig matrix1Config = read_sparse(matrixFilePath);
