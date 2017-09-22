@@ -16,29 +16,29 @@ void SpikeAndSlabPrior::init()
 {
    const int K = num_latent();
    const int D = num_cols();
-   const int V = data().nview(mode);
+   const int nview = data().nview(mode);
    assert(D > 0);
 
-   Zcol.init(MatrixXd::Zero(K,V));
-   W2col.init(MatrixXd::Zero(K,V));
+   Zcol.init(MatrixXd::Zero(K,nview));
+   W2col.init(MatrixXd::Zero(K,nview));
 
    //-- prior params
-   alpha = ArrayNNd::Ones(K,V);
-   Zkeep = MatrixNNd::Constant(K, V, D);
-   r = MatrixNNd::Constant(K,V,.5);
+   alpha = ArrayNNd::Ones(K,nview);
+   Zkeep = MatrixNNd::Constant(K, nview, D);
+   r = MatrixNNd::Constant(K,nview,.5);
 }
 
 void SpikeAndSlabPrior::sample_latents()
 {
    ILatentPrior::sample_latents();
 
-   const int V = data().nview(mode);
+   const int nview = data().nview(mode);
 
    auto Zc = Zcol.combine();
    auto W2c = W2col.combine();
 
    // update hyper params (per view)
-   for(int v=0; v<V; ++v) {
+   for(int v=0; v<nview; ++v) {
        const int D = data().view_size(mode, v);
 
        r.col(v) = ( Zc.col(v).array() + prior_beta ) / ( D + prior_beta * D ) ;
