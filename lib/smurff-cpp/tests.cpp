@@ -592,8 +592,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
   ScarceMatrixData data(sparse_to_eigen(S));
   p.set(sparse_to_eigen(S));
-  data.init();
   data.setCenterMode("global");
+  data.init();
   model.init(2, PVec({1, 1}), "zero");
 
   auto &t = p.predictions.at(0);

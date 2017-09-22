@@ -14,19 +14,31 @@ DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)
 
 void DenseMatrixData::center(double global_mean)
 {
-    this->global_mean = global_mean;
-    if (center_mode == CENTER_GLOBAL) {
+    IMeanCentering::center(global_mean);
+
+    if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL)
+    {
         Yc.at(0).array() -= global_mean;
         Yc.at(1).array() -= global_mean;
-    } else if (center_mode == CENTER_VIEW) {
-        Yc.at(0).array() -= cwise_mean;
-        Yc.at(1).array() -= cwise_mean;
-    } else if (center_mode == CENTER_COLS) {
-        Yc.at(0).rowwise() -= mode_mean.at(0).transpose();
+    }
+    else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)
+    {
+        Yc.at(0).array() -= getCwiseMean();
+        Yc.at(1).array() -= getCwiseMean();
+    }
+    else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
+    {
+        Yc.at(0).rowwise() -= getModeMean(0).transpose();
         Yc.at(1) = Yc.at(0).transpose();
-    } else if (center_mode == CENTER_ROWS) {
-        Yc.at(1).rowwise() -= mode_mean.at(1).transpose();
+    }
+    else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
+    {
+        Yc.at(1).rowwise() -= getModeMean(1).transpose();
         Yc.at(0) = Yc.at(1).transpose();
+    }
+    else
+    {
+       throw std::logic_error("Invalid center mode");
     }
 }
 

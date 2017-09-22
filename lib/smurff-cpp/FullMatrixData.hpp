@@ -54,7 +54,8 @@ namespace smurff
       double compute_mode_mean(int m, int c) override
       {
           const auto &col = this->Yc.at(m).col(c);
-          if (col.nonZeros() == 0) return this->cwise_mean;
+          if (col.nonZeros() == 0)
+            return this->getCwiseMean();
           return col.sum() / this->Yc.at(m).rows();
       }
    };

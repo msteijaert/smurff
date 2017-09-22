@@ -14,3 +14,13 @@ std::ostream& MatrixData::info(std::ostream& os, std::string indent)
    os << indent << "Size: " << nnz() << " [" << nrow() << " x " << ncol() << "] (" << train_fill_rate << "%)\n";
    return os;
 }
+
+int MatrixData::nrow() const
+{
+   return dim(1);
+}
+
+int MatrixData::ncol() const
+{
+   return dim(0);
+}

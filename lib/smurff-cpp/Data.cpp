@@ -3,7 +3,51 @@
 
 using namespace smurff;
 
-Data::Data() : center_mode(Data::CENTER_INVALID)
+
+int IDataDimensions::size() const
+{
+   return dim().dot();
+}
+
+int IDataDimensions::dim(int m) const
+{
+   return dim().at(m);
+}
+
+void IMeanCentering::setCenterMode(std::string c)
+{
+    //-- centering model
+         if (c == "none")   m_center_mode = CenterModeTypes::CENTER_NONE;
+    else if (c == "global") m_center_mode = CenterModeTypes::CENTER_GLOBAL;
+    else if (c == "view")   m_center_mode = CenterModeTypes::CENTER_VIEW;
+    else if (c == "rows")   m_center_mode = CenterModeTypes::CENTER_ROWS;
+    else if (c == "cols")   m_center_mode = CenterModeTypes::CENTER_COLS;
+    else assert(false);
+}
+
+double IMeanCentering::mean(int m, int c) const
+{
+   assert(m_mean_computed);
+   return m_mode_mean.at(m)(c);
+}
+
+void IMeanCentering::compute_mode_mean()
+{
+   assert(!m_mean_computed);
+   m_mode_mean.resize(m_dataBase->nmode());
+   for (int m = 0; m < m_dataBase->nmode(); ++m)
+   {
+       auto &M = m_mode_mean.at(m);
+       M.resize(m_dataBase->dim(m));
+       for (int n = 0; n < m_dataBase->dim(m); n++)
+         M(n) = compute_mode_mean(m, n);
+   }
+   m_mean_computed = true;
+}
+
+Data::Data()
+   : IDataBase()
+   , IMeanCentering(this)
 {
     noise_ptr.reset(new Noiseless(this));
 }
@@ -23,7 +67,7 @@ void Data::init()
 
     //compute global mean & mode-wise means
     compute_mode_mean();
-    center(cwise_mean);
+    center(getCwiseMean());
 
     init_post();
 }
@@ -42,10 +86,9 @@ void Data::update(const SubModel& model)
 std::ostream& Data::info(std::ostream& os, std::string indent)
 {
    os << indent << "Type: " << name << "\n";
-   os << indent << "Component-wise mean: " << cwise_mean << "\n";
+   os << indent << "Component-wise mean: " << getCwiseMean() << "\n";
    os << indent << "Component-wise variance: " << var_total() << "\n";
-   std::vector<std::string> center_names { "none", "global", "view", "cols", "rows" };
-   os << indent << "Center: " << center_names.at(center_mode + 3) << "\n";
+   os << indent << "Center: " << getCenterModeName() << "\n";
    os << indent << "Noise: ";
    noise().info(os, "");
    return os;
@@ -55,27 +98,6 @@ std::ostream& Data::status(std::ostream& os, std::string indent) const
 {
    os << indent << noise().getStatus() << "\n";
    return os;
-}
-
-int Data::size() const
-{
-   return dim().dot();
-}
-
-int Data::dim(int m) const
-{
-   return dim().at(m);
-}
-
-// for matrices (nmode() == 2)
-int Data::nrow() const
-{
-   return dim(1);
-}
-
-int Data::ncol() const
-{
-   return dim(0);
 }
 
 int Data::nview(int mode) const
@@ -91,37 +113,6 @@ int Data::view(int mode, int pos) const
 int Data::view_size(int m,int) const
 {
     return dim(m);
-}
-
-
-double Data::mean(int m, int c) const
-{
-   assert(mean_computed);
-   return mode_mean.at(m)(c);
-}
-
-void Data::compute_mode_mean()
-{
-   assert(!mean_computed);
-   mode_mean.resize(nmode());
-   for(int m=0; m<nmode(); ++m)
-   {
-       auto &M = mode_mean.at(m);
-       M.resize(dim(m));
-       for(int n=0; n<dim(m); n++) M(n) = compute_mode_mean(m, n);
-   }
-   mean_computed = true;
-}
-
-void Data::setCenterMode(std::string c)
-{
-    //-- centering model
-         if (c == "none")   center_mode = CENTER_NONE;
-    else if (c == "global") center_mode = CENTER_GLOBAL;
-    else if (c == "view")   center_mode = CENTER_VIEW;
-    else if (c == "rows")   center_mode = CENTER_ROWS;
-    else if (c == "cols")   center_mode = CENTER_COLS;
-    else assert(false);
 }
 
 double Data::predict(const PVec& pos, const SubModel& model) const

@@ -20,7 +20,7 @@ namespace smurff
          Yc.push_back(Y);
          Yc.push_back(Y.transpose());
 
-         cwise_mean = sum() / (size() - nna());
+         init_pre_mean_centering();
       }
 
       PVec   dim() const override { return PVec({ static_cast<int>(Y.cols()), static_cast<int>(Y.rows()) }); }
@@ -29,11 +29,11 @@ namespace smurff
 
       double offset_to_mean(const PVec& pos) const override
       {
-              if (center_mode == CENTER_GLOBAL) return global_mean;
-         else if (center_mode == CENTER_VIEW)   return cwise_mean;
-         else if (center_mode == CENTER_ROWS)   return mean(1,pos.at(1));
-         else if (center_mode == CENTER_COLS)   return mean(0,pos.at(0));
-         else if (center_mode == CENTER_NONE)   return .0;
+              if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL) return getGlobalMean();
+         else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)   return getCwiseMean();
+         else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)   return mean(1,pos.at(1));
+         else if (getCenterMode() == CenterModeTypes::CENTER_COLS)   return mean(0,pos.at(0));
+         else if (getCenterMode() == CenterModeTypes::CENTER_NONE)   return .0;
          assert(false);
          return .0;
       }

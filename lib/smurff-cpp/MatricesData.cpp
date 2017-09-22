@@ -44,7 +44,7 @@ void MatricesData::init_pre()
 
    }
 
-   cwise_mean = sum() / (double)(size() - nna());
+   init_pre_mean_centering();
 
    // init sub-matrices
    for(auto &p : blocks)
@@ -72,10 +72,13 @@ void MatricesData::setCenterMode(std::string mode)
 
 void MatricesData::center(double global_mean)
 {
+    IMeanCentering::center(global_mean);
+
     // center sub-matrices
-    assert(global_mean == cwise_mean);
-    this->global_mean = global_mean;
-    for(auto &p : blocks) p.data().center(cwise_mean);
+    assert(global_mean == getCwiseMean());
+
+    for(auto &p : blocks)
+      p.data().center(getCwiseMean());
 }
 
 double MatricesData::compute_mode_mean(int mode, int pos)
