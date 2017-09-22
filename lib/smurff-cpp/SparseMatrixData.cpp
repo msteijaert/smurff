@@ -53,10 +53,10 @@ double SparseMatrixData::train_rmse(const SubModel& model) const
       int r = 0;
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y, c); it; ++it)
       {
-         while (r<it.row()) se += square(predict({c,r++}, model));
-         se += square(it.value() - predict({c,r}, model));
+         while (r<it.row()) se += square(predict({r++,c}, model));
+         se += square(it.value() - predict({r,c}, model));
       }
-      for(;r<Y.rows();r++) se += square(predict({c,r}, model));
+      for(;r<Y.rows();r++) se += square(predict({r,c}, model));
    }
    return sqrt( se / Y.rows() / Y.cols() );
 }

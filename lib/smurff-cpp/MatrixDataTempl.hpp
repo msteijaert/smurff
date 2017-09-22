@@ -17,13 +17,13 @@ namespace smurff
       {
          assert(nrow() > 0 && ncol() > 0);
 
-         Yc.push_back(Y);
          Yc.push_back(Y.transpose());
+         Yc.push_back(Y);
 
          init_pre_mean_centering();
       }
 
-      PVec   dim() const override { return PVec({ static_cast<int>(Y.cols()), static_cast<int>(Y.rows()) }); }
+      PVec   dim() const override { return PVec({ static_cast<int>(Y.rows()), static_cast<int>(Y.cols()) }); }
       int    nnz() const override { return Y.nonZeros(); }
       double sum() const override { return Y.sum(); }
 

@@ -288,19 +288,14 @@ const MatricesData::Block& MatricesData::find(const PVec& p) const
 
 int MatricesData::nview(int mode) const
 {
-   return mode_dim.at(mode).size();
+   return mode_dim.at(mode).size() - 1;
 }
 
 int MatricesData::view(int mode, int pos) const
 {
    assert(pos < MatrixData::dim(mode));
    const auto &v = mode_dim.at(mode);
-   int off = 0;
-   for(int i=0; i<nview(mode); ++i)
-   {
-      off += v.at(i);
-      if (pos < off) return i;
-   }
+   for(int i=0; i<nview(mode); ++i) if (pos < v.at(i + 1)) return i;
    assert(false);
    return -1;
 }

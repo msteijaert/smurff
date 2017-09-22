@@ -53,7 +53,7 @@ double Result::rmse_using_modemean(const Data &data, int mode) {
      const unsigned N = predictions.size();
      double se = 0.;
      for(auto t : predictions) {
-        int n = mode == 0 ? t.col : t.row;
+        int n = mode == 0 ? t.row : t.col;
         double pred = data.mean(mode, n);
         se += square(t.val - pred);
      }
@@ -94,17 +94,17 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
         #pragma omp parallel for schedule(guided) reduction(+:se)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            t.pred = model.predict({t.col, t.row}, data);
+            t.pred = model.predict({t.row, t.col}, data);
             se += square(t.val - t.pred);
         }
         burnin_iter++;
         rmse = sqrt( se / N );
     } else {
         double se = 0.0, se_avg = 0.0;
-        #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
+#pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            const double pred = model.predict({t.col, t.row}, data);
+            const double pred = model.predict({t.row, t.col}, data);
             se += square(t.val - pred);
             double delta = pred - t.pred_avg;
             double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
@@ -289,8 +289,8 @@ std::ostream &Result::info(std::ostream &os, std::string indent, const Data &dat
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
         os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data.getGlobalMean()) << endl;
-        os << indent << "RMSE using colmean: " << rmse_using_modemean(data,0) << endl;
-        os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,1) << endl;
+        os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
+        os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;
     } else {
         os << indent << "Test data: -\n";
     }

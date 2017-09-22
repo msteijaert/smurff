@@ -17,10 +17,10 @@ std::ostream& MatrixData::info(std::ostream& os, std::string indent)
 
 int MatrixData::nrow() const
 {
-   return dim(1);
+   return dim(0);
 }
 
 int MatrixData::ncol() const
 {
-   return dim(0);
+   return dim(1);
 }

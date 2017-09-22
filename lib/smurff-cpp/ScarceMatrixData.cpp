@@ -83,7 +83,7 @@ double ScarceMatrixData::train_rmse(const SubModel& model) const {
 #pragma omp parallel for schedule(guided) reduction(+:se)
    for(int c=0; c<Y.cols();++c) {
        for (Eigen::SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
-           se += square(it.value() - predict({(int)it.col(), (int)it.row()}, model));
+           se += square(it.value() - predict({(int)it.row(), (int)it.col()}, model));
        }
    }
    return sqrt( se / Y.nonZeros() );

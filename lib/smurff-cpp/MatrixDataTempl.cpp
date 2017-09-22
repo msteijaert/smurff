@@ -102,7 +102,7 @@ namespace smurff
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
       for (int j = 0; j < this->ncol(); j++) {
          for (int i = 0; i < this->nrow(); i++) {
-               double Yhat = model.dot({j,i}) + offset_to_mean({j,i});
+               double Yhat = model.dot({i,j}) + offset_to_mean({i,j});
                sumsq += square(Yhat - this->Y(i,j));
          }
       }
@@ -119,7 +119,7 @@ namespace smurff
       for (int j = 0; j < Y.outerSize(); j++) {
          for (Eigen::SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) {
                int i = it.row();
-               double Yhat = model.dot({j,i}) + offset_to_mean({j,i});
+               double Yhat = model.dot({i,j}) + offset_to_mean({i,j});
                sumsq += square(Yhat - it.value());
          }
       }
