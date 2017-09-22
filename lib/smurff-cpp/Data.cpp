@@ -70,12 +70,12 @@ int Data::dim(int m) const
 // for matrices (nmode() == 2)
 int Data::nrow() const
 {
-   return dim(1);
+   return dim(0);
 }
 
 int Data::ncol() const
 {
-   return dim(0);
+   return dim(1);
 }
 
 int Data::nview(int mode) const
