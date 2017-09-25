@@ -39,12 +39,14 @@ namespace smurff
    public:
       virtual ~IDataDimensions() {}
 
+      //AGE: algorithms for counting depend on matrix data implementation
    public:
       virtual int nmode() const = 0; // number of dimensions
       virtual int nnz() const = 0; // number of non zero elements
       virtual int nna() const = 0; // number of NA elements
       virtual PVec dim() const = 0; // dimension vector
 
+   public:
       int size() const; // number of all elements (dimension dot product)
       int dim(int m) const; // size of dimension
    };
@@ -83,117 +85,46 @@ namespace smurff
       bool m_centered = false;
 
    protected:
-      IMeanCentering()
-         : m_center_mode(CenterModeTypes::CENTER_INVALID)
-      {
-      }
+      IMeanCentering();
 
    public:
       virtual ~IMeanCentering() {}
 
+      //AGE: methods are pure virtual because they depend on multiple interfaces from Data class
+      //introducing Data class dependency into this class is not a good idea
    protected:
       virtual void compute_mode_mean() = 0;
       virtual double compute_mode_mean_mn(int mode, int pos) = 0;
       virtual void init_pre_mean_centering() = 0;
 
+      //AGE: implementation depends on matrix data type
    public:
-      virtual void center(double upper_mean)
-      {
-         assert(!m_centered);
-         m_global_mean = upper_mean;
-         m_centered = true;
-      }
-
-      virtual double offset_to_mean(const PVec& pos) const = 0;
-
-   public:
+      virtual void center(double upper_mean);
       virtual void setCenterMode(std::string c);
 
+      //AGE: implementation depends on matrix data type
+   public:
+      virtual double offset_to_mean(const PVec& pos) const = 0;
+
+      //AGE: getters
    public:
       double mean(int m, int c) const;
+      double getCwiseMean() const;
+      double getGlobalMean() const;
+      double getVar() const;
+      CenterModeTypes getCenterMode() const;
+      bool getMeanComputed() const;
+      const Eigen::VectorXd& getModeMean(size_t i) const;
+      std::string getCenterModeName() const;
+
+      //AGE: setters
+   public:
+      void setGlobalMean(double value);
 
    public:
-      double getCwiseMean() const
-      {
-         return m_cwise_mean;
-      }
+      static std::string centerModeToString(CenterModeTypes cm);
 
-      double getGlobalMean() const
-      {
-         return m_global_mean;
-      }
-
-      void setGlobalMean(double value)
-      {
-         m_global_mean = value;
-      }
-
-      double getVar() const
-      {
-         return m_var;
-      }
-
-      CenterModeTypes getCenterMode() const
-      {
-         return m_center_mode;
-      }
-
-      bool getMeanComputed() const
-      {
-         return m_mean_computed;
-      }
-
-      const Eigen::VectorXd& getModeMean(size_t i)
-      {
-         return m_mode_mean.at(i);
-      }
-
-   public:
-      static std::string centerModeToString(CenterModeTypes cm)
-      {
-         switch (cm)
-         {
-            case CenterModeTypes::CENTER_INVALID:
-               return std::string();
-            case CenterModeTypes::CENTER_NONE:
-               return CENTER_MODE_STR_NONE;
-            case CenterModeTypes::CENTER_GLOBAL:
-               return CENTER_MODE_STR_GLOBAL;
-            case CenterModeTypes::CENTER_VIEW:
-               return CENTER_MODE_STR_VIEW;
-            case CenterModeTypes::CENTER_ROWS:
-               return CENTER_MODE_STR_ROWS;
-            case CenterModeTypes::CENTER_COLS:
-               return CENTER_MODE_STR_COLS;
-            default:
-               return std::string();
-         }
-      }
-
-      static CenterModeTypes stringToCenterMode(std::string c)
-      {
-         if (c == CENTER_MODE_STR_NONE)
-            return CenterModeTypes::CENTER_NONE;
-         else if (c == CENTER_MODE_STR_GLOBAL)
-            return CenterModeTypes::CENTER_GLOBAL;
-         else if (c == CENTER_MODE_STR_VIEW)
-            return CenterModeTypes::CENTER_VIEW;
-         else if (c == CENTER_MODE_STR_ROWS)
-            return CenterModeTypes::CENTER_ROWS;
-         else if (c == CENTER_MODE_STR_COLS)
-            return CenterModeTypes::CENTER_COLS;
-         else
-            return CenterModeTypes::CENTER_INVALID;
-      }
-
-   public:
-      std::string getCenterModeName() const
-      {
-         std::string name = centerModeToString(m_center_mode);
-         if(name.empty())
-            throw std::runtime_error("Invalid center mode");
-         return name;
-      }
+      static CenterModeTypes stringToCenterMode(std::string c);   
    };
 
    class IView
@@ -202,10 +133,9 @@ namespace smurff
       const IDataDimensions* m_data_dim;
 
    protected:
-      IView(const IDataDimensions* data_dim)
-         :  m_data_dim(data_dim)
-      {}
+      IView(const IDataDimensions* data_dim);
 
+   public:
       virtual ~IView(){}
 
    public:
@@ -227,6 +157,7 @@ namespace smurff
    public:
       virtual ~ INoisePrecisionMean(){}
 
+      //AGE: implementation depends on matrix data type
    public:
       virtual double train_rmse(const SubModel& model) const = 0;
       virtual void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
@@ -243,10 +174,7 @@ namespace smurff
    public:
       INoiseModel& noise() const;
 
-      void setNoiseModel(INoiseModel* nm)
-      {
-         noise_ptr.reset(nm);
-      }
+      void setNoiseModel(INoiseModel* nm);
    };
 
    class Data : public IDataDimensions
@@ -259,15 +187,8 @@ namespace smurff
       // name
       std::string name;
 
-   public:
-      Data()
-      : IDataDimensions()
-      , IDataArithmetic()
-      , INoisePrecisionMean()
-      , IMeanCentering()
-      , IView(this)
-   {
-   }
+   protected:
+      Data();
 
    public:
       virtual ~Data(){}
@@ -282,29 +203,11 @@ namespace smurff
       virtual std::ostream& info(std::ostream& os, std::string indent);
       virtual std::ostream& status(std::ostream& os, std::string indent) const;
 
-      void update(const SubModel& model) override
-      {
-         noise().update(model, this);
-      }
+      void update(const SubModel& model) override;
 
-      void compute_mode_mean() override
-      {
-         assert(!m_mean_computed);
-         m_mode_mean.resize(nmode());
-         for (int m = 0; m < nmode(); ++m)
-         {
-             auto &M = m_mode_mean.at(m);
-             M.resize(dim(m));
-             for (int n = 0; n < dim(m); n++)
-               M(n) = compute_mode_mean_mn(m, n);
-         }
-         m_mean_computed = true;
-      }
+      void compute_mode_mean() override;
 
-      void init_pre_mean_centering()
-      {
-         m_cwise_mean = sum() / (size() - nna());
-      }
+      void init_pre_mean_centering();
 
       // helper for predictions
       double predict(const PVec& pos, const SubModel& model) const;
