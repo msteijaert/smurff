@@ -67,21 +67,15 @@ namespace smurff
          CENTER_ROWS = 1
       };
 
-   protected:
-      double m_cwise_mean = NAN;
-
    private:
+      double m_cwise_mean = NAN;   
       double m_global_mean = NAN;
       double m_var = NAN;
       CenterModeTypes m_center_mode;
 
-   protected:
-      std::vector<Eigen::VectorXd> m_mode_mean;
-
-   protected:
-      bool m_mean_computed = false;
-
    private:
+      std::vector<Eigen::VectorXd> m_mode_mean;
+      bool m_mean_computed = false;
       bool m_centered = false;
 
    protected:
@@ -93,8 +87,12 @@ namespace smurff
       //AGE: methods are pure virtual because they depend on multiple interfaces from Data class
       //introducing Data class dependency into this class is not a good idea
    protected:
+      void compute_mode_mean_internal(const Data* data);
+
       virtual void compute_mode_mean() = 0;
       virtual double compute_mode_mean_mn(int mode, int pos) = 0;
+
+      void init_pre_mean_centering_internal(const Data* data);
       virtual void init_pre_mean_centering() = 0;
 
       //AGE: implementation depends on matrix data type
@@ -168,8 +166,14 @@ namespace smurff
       virtual double sumsq(const SubModel& model) const = 0;
       virtual double var_total() const = 0;
 
+   protected:
+      void update_internal(const Data* data, const SubModel& model);
+
    public:
       virtual void update(const SubModel& model) = 0;
+
+   protected:
+      void init_noise_internal(const Data* data);
 
    public:
       INoiseModel& noise() const;
@@ -177,14 +181,33 @@ namespace smurff
       void setNoiseModel(INoiseModel* nm);
    };
 
+   class IDataPredict
+   {
+   protected:
+      IDataPredict(){}
+
+   public:
+      virtual ~IDataPredict(){};
+
+   protected:
+      double predict_internal(const Data* data, const PVec& pos, const SubModel& model) const;
+
+   public:
+      // helper for predictions
+      virtual double predict(const PVec& pos, const SubModel& model) const = 0;
+   };
+
    class Data : public IDataDimensions
               , public IDataArithmetic
               , public INoisePrecisionMean
               , public IMeanCentering
+              , public IDataPredict
               , public IView
    {
+      //AGE: Only MatricesData should call init methods
+      friend class MatricesData;
+
    public:
-      // name
       std::string name;
 
    protected:
@@ -193,23 +216,24 @@ namespace smurff
    public:
       virtual ~Data(){}
 
-   public:
-      // init
+   protected:
       virtual void init_pre() = 0;
       virtual void init_post();
-      virtual void init();
 
-      //-- print info
-      virtual std::ostream& info(std::ostream& os, std::string indent);
-      virtual std::ostream& status(std::ostream& os, std::string indent) const;
+   public:
+      virtual void init();
 
       void update(const SubModel& model) override;
 
       void compute_mode_mean() override;
 
-      void init_pre_mean_centering();
+      void init_pre_mean_centering() override;
 
-      // helper for predictions
-      double predict(const PVec& pos, const SubModel& model) const;
+      double predict(const PVec& pos, const SubModel& model) const override;
+
+   public:
+      // print info
+      virtual std::ostream& info(std::ostream& os, std::string indent);
+      virtual std::ostream& status(std::ostream& os, std::string indent) const;
    };
 }

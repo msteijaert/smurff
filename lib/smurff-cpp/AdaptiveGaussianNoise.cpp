@@ -22,7 +22,7 @@ void AdaptiveGaussianNoise::init(const Data* data)
    alpha_max = (sn_max + 1.0) / var_total;
 }
 
-void AdaptiveGaussianNoise::update(const SubModel& model, const Data* data)
+void AdaptiveGaussianNoise::update(const Data* data, const SubModel& model)
 {
    double sumsq = data->sumsq(model);
 

@@ -8,16 +8,14 @@
 
 namespace smurff {
 
-   // AGE: I dont like this cross reference between Data and INoiseModel. Need to think how we can eliminate it.
-   // AGE: Same applies to SubModel
    class Data;
    struct SubModel;
 
    // interface
    class INoiseModel
    {
-      // Only Data can call init and update methods
-      friend class Data;
+      // Only INoisePrecisionMean can call init and update methods
+      friend class INoisePrecisionMean;
 
    public:
       INoiseModel() {}
@@ -27,7 +25,7 @@ namespace smurff {
 
    protected:
       virtual void init(const Data* data) {}
-      virtual void update(const SubModel &, const Data* data) {}
+      virtual void update(const Data* data, const SubModel & model) {}
 
    public:
       virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;

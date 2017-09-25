@@ -3,7 +3,6 @@
 
 using namespace smurff;
 
-
 int IDataDimensions::size() const
 {
    return dim().dot();
@@ -19,6 +18,25 @@ int IDataDimensions::dim(int m) const
 IMeanCentering::IMeanCentering()
 : m_center_mode(CenterModeTypes::CENTER_INVALID)
 {
+}
+
+void IMeanCentering::compute_mode_mean_internal(const Data* data)
+{
+   assert(!m_mean_computed);
+   m_mode_mean.resize(data->nmode());
+   for (int m = 0; m < data->nmode(); ++m)
+   {
+       auto &M = m_mode_mean.at(m);
+       M.resize(data->dim(m));
+       for (int n = 0; n < data->dim(m); n++)
+         M(n) = compute_mode_mean_mn(m, n);
+   }
+   m_mean_computed = true;
+}
+
+void IMeanCentering::init_pre_mean_centering_internal(const Data* data)
+{
+   m_cwise_mean = data->sum() / (data->size() - data->nna());
 }
 
 void IMeanCentering::center(double upper_mean)
@@ -127,7 +145,6 @@ IMeanCentering::CenterModeTypes IMeanCentering::stringToCenterMode(std::string c
 IView::IView(const IDataDimensions* data_dim)
 :  m_data_dim(data_dim)
 {
-
 }
 
 int IView::nview(int mode) const
@@ -151,6 +168,16 @@ INoisePrecisionMean::INoisePrecisionMean()
 {
 }
 
+void INoisePrecisionMean::update_internal(const Data* data, const SubModel& model)
+{
+   noise().update(data, model);
+}
+
+void INoisePrecisionMean::init_noise_internal(const Data* data)
+{
+   noise().init(data);
+}
+
 INoiseModel& INoisePrecisionMean::noise() const
 {
    assert(noise_ptr);
@@ -164,18 +191,21 @@ void INoisePrecisionMean::setNoiseModel(INoiseModel* nm)
 
 //===
 
+double IDataPredict::predict_internal(const Data* data, const PVec& pos, const SubModel& model) const
+{
+   return model.dot(pos) + data->offset_to_mean(pos);
+}
+
+//===
+
 Data::Data()
 : IDataDimensions()
 , IDataArithmetic()
 , INoisePrecisionMean()
 , IMeanCentering()
+, IDataPredict()
 , IView(this)
 {
-}
-
-void Data::init_post()
-{
-   noise().init(this);
 }
 
 void Data::init()
@@ -187,6 +217,31 @@ void Data::init()
     center(getCwiseMean());
 
     init_post();
+}
+
+void Data::init_post()
+{
+   init_noise_internal(this);
+}
+
+void Data::update(const SubModel& model)
+{
+   update_internal(this, model);
+}
+
+void Data::compute_mode_mean()
+{
+   compute_mode_mean_internal(this);
+}
+
+void Data::init_pre_mean_centering()
+{
+   init_pre_mean_centering_internal(this);
+}
+
+double Data::predict(const PVec& pos, const SubModel& model) const
+{
+   predict_internal(this, pos, model);
 }
 
 std::ostream& Data::info(std::ostream& os, std::string indent)
@@ -204,33 +259,4 @@ std::ostream& Data::status(std::ostream& os, std::string indent) const
 {
    os << indent << noise().getStatus() << "\n";
    return os;
-}
-
-void Data::update(const SubModel& model)
-{
-   noise().update(model, this);
-}
-
-void Data::compute_mode_mean()
-{
-   assert(!m_mean_computed);
-   m_mode_mean.resize(nmode());
-   for (int m = 0; m < nmode(); ++m)
-   {
-       auto &M = m_mode_mean.at(m);
-       M.resize(dim(m));
-       for (int n = 0; n < dim(m); n++)
-         M(n) = compute_mode_mean_mn(m, n);
-   }
-   m_mean_computed = true;
-}
-
-void Data::init_pre_mean_centering()
-{
-   m_cwise_mean = sum() / (size() - nna());
-}
-
-double Data::predict(const PVec& pos, const SubModel& model) const
-{
-   return model.dot(pos) + offset_to_mean(pos);
 }

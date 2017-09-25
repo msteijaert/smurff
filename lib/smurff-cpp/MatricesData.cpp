@@ -66,7 +66,8 @@ void MatricesData::init_post()
 void MatricesData::setCenterMode(std::string mode)
 {
    Data::setCenterMode(mode);
-   for(auto &p : blocks) p.data().setCenterMode(mode);
+   for(auto &p : blocks) 
+      p.data().setCenterMode(mode);
 }
 
 void MatricesData::center(double global_mean)

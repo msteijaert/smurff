@@ -25,7 +25,7 @@ public:
    AdaptiveGaussianNoise(double sinit = 1., double smax = 10.);
 
    void init(const Data* data) override;
-   void update(const SubModel& model, const Data* data) override;
+   void update(const Data* data, const SubModel& model) override;
    double getAlpha() override;
 
    std::ostream &info(std::ostream &os, std::string indent) override;
