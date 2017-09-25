@@ -70,11 +70,6 @@ double IMeanCentering::getGlobalMean() const
    return m_global_mean;
 }
 
-void IMeanCentering::setGlobalMean(double value)
-{
-   m_global_mean = value;
-}
-
 double IMeanCentering::getVar() const
 {
    return m_var;
@@ -241,7 +236,7 @@ void Data::init_pre_mean_centering()
 
 double Data::predict(const PVec& pos, const SubModel& model) const
 {
-   predict_internal(this, pos, model);
+   return predict_internal(this, pos, model);
 }
 
 std::ostream& Data::info(std::ostream& os, std::string indent)

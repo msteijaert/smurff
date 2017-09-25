@@ -88,7 +88,6 @@ namespace smurff
       //introducing Data class dependency into this class is not a good idea
    protected:
       void compute_mode_mean_internal(const Data* data);
-
       virtual void compute_mode_mean() = 0;
       virtual double compute_mode_mean_mn(int mode, int pos) = 0;
 
@@ -114,10 +113,6 @@ namespace smurff
       bool getMeanComputed() const;
       const Eigen::VectorXd& getModeMean(size_t i) const;
       std::string getCenterModeName() const;
-
-      //AGE: setters
-   public:
-      void setGlobalMean(double value);
 
    public:
       static std::string centerModeToString(CenterModeTypes cm);
