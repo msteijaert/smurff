@@ -6,7 +6,7 @@ INCLUDES=-I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
 CXXFLAGS+=-DSMURFF_VERSION=\"$(shell git describe)\"
 LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 
-#CXXFLAGS+=-O0 -g
+CXXFLAGS+=-O0 -g
 #CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto
 #CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -flto
 #CXXFLAGS+=-O1 -g

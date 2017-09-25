@@ -11,10 +11,6 @@ MatricesData::MatricesData()
 
 void MatricesData::init_pre()
 {
-   //AGE: this assignment was previously in constructor. 
-   //but now it is private method which can not be placed there
-   setNoiseModel(new UnusedNoise(this)); 
-
    mode_dim.resize(nmode());
    for(int n = 0; n<nmode(); ++n)
    {
@@ -84,7 +80,7 @@ void MatricesData::center(double global_mean)
       p.data().center(getCwiseMean());
 }
 
-double MatricesData::compute_mode_mean(int mode, int pos)
+double MatricesData::compute_mode_mean_mn(int mode, int pos)
 {
    double sum = .0;
    int N = 0;
@@ -149,7 +145,7 @@ void MatricesData::update(const SubModel &model)
 {
    for(auto &b : blocks)
    {
-      b.data().noise().update(b.submodel(model));
+      b.data().update(b.submodel(model));
    }
 }
 

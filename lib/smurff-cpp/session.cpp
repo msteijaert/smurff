@@ -31,6 +31,7 @@
 #include "FixedGaussianNoise.h"
 #include "ProbitNoise.h"
 #include "Noiseless.h"
+#include "UnusedNoise.h"
 
 #include "MacauOnePrior.hpp"
 #include "MacauPrior.hpp"
@@ -401,23 +402,23 @@ void Config::restore(std::string fname) {
 
 void setNoiseModel(const NoiseConfig &config, Data* data)
 {
-    if (config.name == "fixed") 
+    if (config.name == "fixed")
     {
-        data->setNoiseModel(new FixedGaussianNoise(data, config.precision));
-    } 
-    else if (config.name == "adaptive") 
+        data->setNoiseModel(new FixedGaussianNoise(config.precision));
+    }
+    else if (config.name == "adaptive")
     {
-        data->setNoiseModel(new AdaptiveGaussianNoise(data, config.sn_init, config.sn_max));
-    } 
-    else if (config.name == "probit") 
+        data->setNoiseModel(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
+    }
+    else if (config.name == "probit")
     {
-        data->setNoiseModel(new ProbitNoise(data));
-    } 
-    else if (config.name == "noiseless") 
+        data->setNoiseModel(new ProbitNoise());
+    }
+    else if (config.name == "noiseless")
     {
-        data->setNoiseModel(new Noiseless(data));
-    } 
-    else 
+        data->setNoiseModel(new Noiseless());
+    }
+    else
     {
         die("Unknown noise model; " + config.name);
     }
@@ -454,7 +455,8 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
     }
 
     // multiple matrices
-    auto local_data_ptr = new MatricesData();
+    MatricesData* local_data_ptr = new MatricesData();
+    local_data_ptr->setNoiseModel(new UnusedNoise());
     local_data_ptr->add(PVec({0,0}),toData(train, true /*scarce*/));
     for(size_t i=0; i<row_features.size(); ++i) {
         local_data_ptr->add(PVec({0, static_cast<int>(i+1)}), toData(row_features[i], false));

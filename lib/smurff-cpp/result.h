@@ -11,7 +11,7 @@
 namespace smurff {
 
 struct Model;
-struct Data;
+class Data;
 
 struct Result {
     //-- test set
@@ -28,7 +28,7 @@ struct Result {
     void update(const Model &, const Data &, bool burnin);
     double rmse_avg = NAN;
     double rmse = NAN;
-    double auc = NAN; 
+    double auc = NAN;
     int sample_iter = 0;
     int burnin_iter = 0;
 
@@ -45,7 +45,7 @@ struct Result {
     bool classify = false;
     double threshold;
     void update_auc();
-    void setThreshold(double t) { threshold = t; classify = true; } 
+    void setThreshold(double t) { threshold = t; classify = true; }
 };
 
 }; // end namespace smurff

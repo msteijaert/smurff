@@ -3,16 +3,8 @@
 using namespace Eigen;
 using namespace smurff;
 
-UnusedNoise::UnusedNoise(Data* p)
-: INoiseModel(p)
-{
-}
-
-void UnusedNoise::init()
-{
-}
-
-void UnusedNoise::update(const SubModel& sm)
+UnusedNoise::UnusedNoise()
+: INoiseModel()
 {
 }
 

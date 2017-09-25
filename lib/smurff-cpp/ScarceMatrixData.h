@@ -15,7 +15,7 @@ namespace smurff
    public:
       void init_pre() override;
       void center(double global_mean) override;
-      double compute_mode_mean(int mode, int pos) override;
+      double compute_mode_mean_mn(int mode, int pos) override;
 
       double train_rmse(const SubModel& model) const override;
 

@@ -70,9 +70,9 @@ void ScarceMatrixData::center(double global_mean)
    }
 }
 
-double ScarceMatrixData::compute_mode_mean(int m, int c)
+double ScarceMatrixData::compute_mode_mean_mn(int mode, int pos)
 {
-    const auto &col = Yc.at(m).col(c);
+    const auto &col = Yc.at(mode).col(pos);
     if (col.nonZeros() == 0)
       return getCwiseMean();
     return col.sum() / col.nonZeros();

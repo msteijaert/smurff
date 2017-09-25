@@ -10,26 +10,26 @@ namespace smurff {
 
    // AGE: I dont like this cross reference between Data and INoiseModel. Need to think how we can eliminate it.
    // AGE: Same applies to SubModel
-   struct Data;
+   class Data;
    struct SubModel;
 
    // interface
-   class INoiseModel 
+   class INoiseModel
    {
-   protected:
-      Data* data;
+      // Only Data can call init and update methods
+      friend class Data;
 
    public:
-      INoiseModel(Data* p)
-         : data(p) {}
+      INoiseModel() {}
 
    public:
       virtual ~INoiseModel() {}
 
-   public:
-      virtual void init()  = 0;
-      virtual void update(const SubModel &)  = 0;
+   protected:
+      virtual void init(const Data* data) {}
+      virtual void update(const SubModel &, const Data* data) {}
 
+   public:
       virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
       virtual std::string getStatus()  = 0;
 

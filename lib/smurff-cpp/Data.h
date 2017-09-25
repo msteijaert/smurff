@@ -49,18 +49,7 @@ namespace smurff
       int dim(int m) const; // size of dimension
    };
 
-   class IDataBase : public IDataArithmetic, public IDataDimensions
-   {
-   protected:
-      IDataBase()
-         : IDataArithmetic()
-         , IDataDimensions()
-      {
-      }
-
-   public:
-      virtual ~IDataBase() {}
-   };
+   class Data;
 
    // mean and centering
    class IMeanCentering
@@ -76,29 +65,26 @@ namespace smurff
          CENTER_ROWS = 1
       };
 
-   private:
-      const IDataBase* m_dataBase;
-
+   protected:
       double m_cwise_mean = NAN;
+
+   private:
       double m_global_mean = NAN;
       double m_var = NAN;
       CenterModeTypes m_center_mode;
 
-   private:
+   protected:
       std::vector<Eigen::VectorXd> m_mode_mean;
-      bool m_mean_computed = false;
-      bool m_centered = false;
-
-   public:
-      void init_pre_mean_centering()
-      {
-         m_cwise_mean = m_dataBase->sum() / (m_dataBase->size() - m_dataBase->nna());
-      }
 
    protected:
-      IMeanCentering(const IDataBase* dataBase)
-         : m_dataBase(dataBase)
-         , m_center_mode(CenterModeTypes::CENTER_INVALID)
+      bool m_mean_computed = false;
+
+   private:
+      bool m_centered = false;
+
+   protected:
+      IMeanCentering()
+         : m_center_mode(CenterModeTypes::CENTER_INVALID)
       {
       }
 
@@ -106,7 +92,9 @@ namespace smurff
       virtual ~IMeanCentering() {}
 
    protected:
-      virtual double compute_mode_mean(int m, int c) = 0;
+      virtual void compute_mode_mean() = 0;
+      virtual double compute_mode_mean_mn(int mode, int pos) = 0;
+      virtual void init_pre_mean_centering() = 0;
 
    public:
       virtual void center(double upper_mean)
@@ -123,7 +111,6 @@ namespace smurff
 
    public:
       double mean(int m, int c) const;
-      void compute_mode_mean();
 
    public:
       double getCwiseMean() const
@@ -195,7 +182,7 @@ namespace smurff
             return CenterModeTypes::CENTER_ROWS;
          else if (c == CENTER_MODE_STR_COLS)
             return CenterModeTypes::CENTER_COLS;
-         else 
+         else
             return CenterModeTypes::CENTER_INVALID;
       }
 
@@ -227,10 +214,6 @@ namespace smurff
       virtual int view_size(int m, int v) const;
    };
 
-   //AGE: this is very bad that Data is passed to noise constructor. 
-   //technically it depends only on INoisePrecisionMean and IDataDimensions
-   class Data;
-
    // update noise and precision/mean
    class INoisePrecisionMean
    {
@@ -239,12 +222,12 @@ namespace smurff
       std::unique_ptr<INoiseModel> noise_ptr;
 
    protected:
-      INoisePrecisionMean(Data* d);
+      INoisePrecisionMean();
 
    public:
       virtual ~ INoisePrecisionMean(){}
 
-   public:      
+   public:
       virtual double train_rmse(const SubModel& model) const = 0;
       virtual void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
       virtual void update_pnm(const SubModel& model, int mode) = 0;
@@ -255,7 +238,7 @@ namespace smurff
       virtual double var_total() const = 0;
 
    public:
-      virtual void update(const SubModel& model);
+      virtual void update(const SubModel& model) = 0;
 
    public:
       INoiseModel& noise() const;
@@ -266,7 +249,11 @@ namespace smurff
       }
    };
 
-   class Data : public IDataBase, public IView, public IMeanCentering, public INoisePrecisionMean
+   class Data : public IDataDimensions
+              , public IDataArithmetic
+              , public INoisePrecisionMean
+              , public IMeanCentering
+              , public IView
    {
    public:
       // name
@@ -274,10 +261,11 @@ namespace smurff
 
    public:
       Data()
-      : IDataBase()
+      : IDataDimensions()
+      , IDataArithmetic()
+      , INoisePrecisionMean()
+      , IMeanCentering()
       , IView(this)
-      , IMeanCentering(this)
-      , INoisePrecisionMean(this)
    {
    }
 
@@ -293,6 +281,30 @@ namespace smurff
       //-- print info
       virtual std::ostream& info(std::ostream& os, std::string indent);
       virtual std::ostream& status(std::ostream& os, std::string indent) const;
+
+      void update(const SubModel& model) override
+      {
+         noise().update(model, this);
+      }
+
+      void compute_mode_mean() override
+      {
+         assert(!m_mean_computed);
+         m_mode_mean.resize(nmode());
+         for (int m = 0; m < nmode(); ++m)
+         {
+             auto &M = m_mode_mean.at(m);
+             M.resize(dim(m));
+             for (int n = 0; n < dim(m); n++)
+               M(n) = compute_mode_mean_mn(m, n);
+         }
+         m_mean_computed = true;
+      }
+
+      void init_pre_mean_centering()
+      {
+         m_cwise_mean = sum() / (size() - nna());
+      }
 
       // helper for predictions
       double predict(const PVec& pos, const SubModel& model) const;

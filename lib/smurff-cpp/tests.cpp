@@ -24,6 +24,7 @@
 #include "ILatentPrior.h"
 #include "MacauPrior.hpp"
 #include "MacauOnePrior.hpp"
+#include "Noiseless.h"
 
 /* master
 #include <Eigen/Dense>
@@ -593,6 +594,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   ScarceMatrixData data(sparse_to_eigen(S));
   p.set(sparse_to_eigen(S));
   data.setCenterMode("global");
+  data.setNoiseModel(new Noiseless());
   data.init();
   model.init(2, PVec({1, 1}), "zero");
 

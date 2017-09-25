@@ -51,12 +51,12 @@ namespace smurff
       }
 
    private:
-      double compute_mode_mean(int m, int c) override
+      double compute_mode_mean_mn(int mode, int pos) override
       {
-          const auto &col = this->Yc.at(m).col(c);
+          const auto &col = this->Yc.at(mode).col(pos);
           if (col.nonZeros() == 0)
             return this->getCwiseMean();
-          return col.sum() / this->Yc.at(m).rows();
+          return col.sum() / this->Yc.at(mode).rows();
       }
    };
 }

@@ -28,20 +28,6 @@ double IMeanCentering::mean(int m, int c) const
    return m_mode_mean.at(m)(c);
 }
 
-void IMeanCentering::compute_mode_mean()
-{
-   assert(!m_mean_computed);
-   m_mode_mean.resize(m_dataBase->nmode());
-   for (int m = 0; m < m_dataBase->nmode(); ++m)
-   {
-       auto &M = m_mode_mean.at(m);
-       M.resize(m_dataBase->dim(m));
-       for (int n = 0; n < m_dataBase->dim(m); n++)
-         M(n) = compute_mode_mean(m, n);
-   }
-   m_mean_computed = true;
-}
-
 int IView::nview(int mode) const
 {
    return 1;
@@ -57,14 +43,8 @@ int IView::view_size(int m, int v) const
     return m_data_dim->dim(m);
 }
 
-INoisePrecisionMean::INoisePrecisionMean(Data* d)
+INoisePrecisionMean::INoisePrecisionMean()
 {
-   noise_ptr.reset(new Noiseless(d));
-}
-
-void INoisePrecisionMean::update(const SubModel& model)
-{
-   noise().update(model);
 }
 
 INoiseModel& INoisePrecisionMean::noise() const
@@ -77,7 +57,7 @@ INoiseModel& INoisePrecisionMean::noise() const
 
 void Data::init_post()
 {
-   noise().init();
+   noise().init(this);
 }
 
 void Data::init()
