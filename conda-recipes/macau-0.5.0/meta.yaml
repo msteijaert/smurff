@@ -1,0 +1,29 @@
+package:
+  name: macau
+  version: 0.5.0
+
+source:
+  git_url: https://github.com/jaak-s/macau
+  git_tag: v0.5.0
+
+requirements:
+  build:
+    - python
+    - gcc
+    - eigen >=3.3
+    - openblas
+    - numpy
+    - scipy
+    - pandas
+    - cython
+  run:
+    - python
+    - gcc
+    - openblas
+    - numpy
+    - scipy
+    - pandas
+
+about:
+  home: https://github.com/jaak-s/macau
+  license:  MIT
