@@ -22,7 +22,7 @@ namespace smurff
       std::uint64_t m_nnz;
 
       std::shared_ptr<std::vector<std::uint64_t> > m_dims;
-      std::shared_ptr<std::vector<std::uint64_t> > m_columns;
+      std::shared_ptr<std::vector<std::uint32_t> > m_columns;
       std::shared_ptr<std::vector<double> > m_values;
 
    protected:
@@ -35,19 +35,19 @@ namespace smurff
 
    public:
       TensorConfig( const std::vector<std::uint64_t>& dims
-                  , const std::vector<std::uint64_t>& columns
+                  , const std::vector<std::uint32_t>& columns
                   , const std::vector<double>& values
                   , const NoiseConfig& noiseConfig
                   );
 
       TensorConfig( std::vector<std::uint64_t>&& dims
-                  , std::vector<std::uint64_t>&& columns
+                  , std::vector<std::uint32_t>&& columns
                   , std::vector<double>&& values
                   , const NoiseConfig& noiseConfig
                   );
 
       TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
-                  , std::shared_ptr<std::vector<std::uint64_t> > columns
+                  , std::shared_ptr<std::vector<std::uint32_t> > columns
                   , std::shared_ptr<std::vector<double> > values
                   , const NoiseConfig& noiseConfig
                   );
@@ -66,11 +66,11 @@ namespace smurff
       std::uint64_t getNNZ() const;
 
       const std::vector<std::uint64_t>& getDims() const;
-      const std::vector<std::uint64_t>& getColumns() const;
+      const std::vector<std::uint32_t>& getColumns() const;
       const std::vector<double>& getValues() const;
 
       std::shared_ptr<std::vector<std::uint64_t> > getDimsPtr() const;
-      std::shared_ptr<std::vector<std::uint64_t> > getColumnsPtr() const;
+      std::shared_ptr<std::vector<std::uint32_t> > getColumnsPtr() const;
       std::shared_ptr<std::vector<double> > getValuesPtr() const;
 
    public:

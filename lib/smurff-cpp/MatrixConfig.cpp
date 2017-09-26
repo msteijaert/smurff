@@ -52,8 +52,8 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , const std::vector<std::uint64_t>& rows
-                          , const std::vector<std::uint64_t>& cols
+                          , const std::vector<std::uint32_t>& rows
+                          , const std::vector<std::uint32_t>& cols
                           , const std::vector<double>& values
                           , const NoiseConfig& noiseConfig
                           )
@@ -83,15 +83,15 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , std::vector<std::uint64_t>&& rows
-                          , std::vector<std::uint64_t>&& cols
+                          , std::vector<std::uint32_t>&& rows
+                          , std::vector<std::uint32_t>&& cols
                           , std::vector<double>&& values
                           , const NoiseConfig& noiseConfig
                           )
    : MatrixConfig( nrow
                  , ncol
-                 , std::make_shared<std::vector<std::uint64_t> >(std::move(rows))
-                 , std::make_shared<std::vector<std::uint64_t> >(std::move(cols))
+                 , std::make_shared<std::vector<std::uint32_t> >(std::move(rows))
+                 , std::make_shared<std::vector<std::uint32_t> >(std::move(cols))
                  , std::make_shared<std::vector<double> >(std::move(values))
                  , noiseConfig
                  )
@@ -100,8 +100,8 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , std::shared_ptr<std::vector<std::uint64_t> > rows
-                          , std::shared_ptr<std::vector<std::uint64_t> > cols
+                          , std::shared_ptr<std::vector<std::uint32_t> > rows
+                          , std::shared_ptr<std::vector<std::uint32_t> > cols
                           , std::shared_ptr<std::vector<double> > values
                           , const NoiseConfig& noiseConfig
                           )
@@ -133,8 +133,8 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , const std::vector<std::uint64_t>& rows
-                          , const std::vector<std::uint64_t>& cols
+                          , const std::vector<std::uint32_t>& rows
+                          , const std::vector<std::uint32_t>& cols
                           , const NoiseConfig& noiseConfig
                           )
    : TensorConfig(false, true, 2, rows.size(), noiseConfig)
@@ -162,14 +162,14 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , std::vector<std::uint64_t>&& rows
-                          , std::vector<std::uint64_t>&& cols
+                          , std::vector<std::uint32_t>&& rows
+                          , std::vector<std::uint32_t>&& cols
                           , const NoiseConfig& noiseConfig
                           )
    : MatrixConfig( nrow
                  , ncol
-                 , std::make_shared<std::vector<std::uint64_t> >(std::move(rows))
-                 , std::make_shared<std::vector<std::uint64_t> >(std::move(cols))
+                 , std::make_shared<std::vector<std::uint32_t> >(std::move(rows))
+                 , std::make_shared<std::vector<std::uint32_t> >(std::move(cols))
                  , noiseConfig
                  )
 {
@@ -177,8 +177,8 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , std::shared_ptr<std::vector<std::uint64_t> > rows
-                          , std::shared_ptr<std::vector<std::uint64_t> > cols
+                          , std::shared_ptr<std::vector<std::uint32_t> > rows
+                          , std::shared_ptr<std::vector<std::uint32_t> > cols
                           , const NoiseConfig& noiseConfig
                           )
    : TensorConfig(false, true, 2, rows->size(), noiseConfig)
@@ -210,7 +210,7 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , const std::vector<std::uint64_t>& columns
+                          , const std::vector<std::uint32_t>& columns
                           , const std::vector<double>& values
                           , const NoiseConfig& noiseConfig
                           )
@@ -220,7 +220,7 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , std::vector<std::uint64_t>&& columns
+                          , std::vector<std::uint32_t>&& columns
                           , std::vector<double>&& values
                           , const NoiseConfig& noiseConfig
                           )
@@ -230,7 +230,7 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
-                          , std::shared_ptr<std::vector<std::uint64_t> > columns
+                          , std::shared_ptr<std::vector<std::uint32_t> > columns
                           , std::shared_ptr<std::vector<double> > values
                           , const NoiseConfig& noiseConfig
                           )
@@ -257,21 +257,21 @@ std::uint64_t MatrixConfig::getNCol() const
    return m_dims->operator[](1);
 }
 
-const std::vector<std::uint64_t>& MatrixConfig::getRows() const
+const std::vector<std::uint32_t>& MatrixConfig::getRows() const
 {
    return *getRowsPtr();
 }
 
-const std::vector<std::uint64_t>& MatrixConfig::getCols() const
+const std::vector<std::uint32_t>& MatrixConfig::getCols() const
 {
    return *getColsPtr();
 }
 
-std::shared_ptr<std::vector<std::uint64_t> > MatrixConfig::getRowsPtr() const
+std::shared_ptr<std::vector<std::uint32_t> > MatrixConfig::getRowsPtr() const
 {
    if (!m_rows)
    {
-      m_rows = std::make_shared<std::vector<std::uint64_t> >();
+      m_rows = std::make_shared<std::vector<std::uint32_t> >();
       if (m_nnz != 0)
       {
          m_rows->reserve(m_nnz);
@@ -282,11 +282,11 @@ std::shared_ptr<std::vector<std::uint64_t> > MatrixConfig::getRowsPtr() const
    return m_rows;
 }
 
-std::shared_ptr<std::vector<std::uint64_t> > MatrixConfig::getColsPtr() const
+std::shared_ptr<std::vector<std::uint32_t> > MatrixConfig::getColsPtr() const
 {
    if (!m_cols)
    {
-      m_cols = std::make_shared<std::vector<std::uint64_t> >();
+      m_cols = std::make_shared<std::vector<std::uint32_t> >();
       if (m_nnz != 0)
       {
          m_cols->reserve(m_nnz);

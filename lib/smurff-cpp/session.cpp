@@ -182,17 +182,17 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
 
          if (s.isBinary())
          {
-            size_t nrow = s.getNRow();
-            size_t ncol = s.getNCol();
-            size_t nnz = s.getNNZ();
-            std::shared_ptr<std::vector<size_t> > rows = s.getRowsPtr();
-            std::shared_ptr<std::vector<size_t> > cols = s.getColsPtr();
+            std::uint64_t nrow = s.getNRow();
+            std::uint64_t ncol = s.getNCol();
+            std::uint64_t nnz = s.getNNZ();
+            std::shared_ptr<std::vector<std::uint32_t> > rows = s.getRowsPtr();
+            std::shared_ptr<std::vector<std::uint32_t> > cols = s.getColsPtr();
 
             // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
             // we will remove these extra memory allocation and manipulation
             int* rowsRawPtr = new int[nrow];
             int* colsRawPtr = new int[ncol];
-            for (size_t i = 0; i < nnz; i++)
+            for (std::uint64_t i = 0; i < nnz; i++)
             {
                rowsRawPtr[i] = rows->operator[](i);
                colsRawPtr[i] = cols->operator[](i);
@@ -208,11 +208,11 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
          }
          else
          {
-            size_t nrow = s.getNRow();
-            size_t ncol = s.getNCol();
-            size_t nnz = s.getNNZ();
-            std::shared_ptr<std::vector<size_t> > rows = s.getRowsPtr();
-            std::shared_ptr<std::vector<size_t> > cols = s.getColsPtr();
+            std::uint64_t nrow = s.getNRow();
+            std::uint64_t ncol = s.getNCol();
+            std::uint64_t nnz = s.getNNZ();
+            std::shared_ptr<std::vector<std::uint32_t> > rows = s.getRowsPtr();
+            std::shared_ptr<std::vector<std::uint32_t> > cols = s.getColsPtr();
             std::shared_ptr<std::vector<double> > values = s.getValuesPtr();
 
             // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,

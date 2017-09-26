@@ -14,13 +14,13 @@ TensorConfig::TensorConfig ( bool isDense
    , m_nmodes(nmodes)
    , m_nnz(nnz)
    , m_dims(std::make_shared<std::vector<std::uint64_t> >())
-   , m_columns(std::make_shared<std::vector<std::uint64_t> >())
+   , m_columns(std::make_shared<std::vector<std::uint32_t> >())
    , m_values(std::make_shared<std::vector<double> >())
 {
 }
 
 TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
-                          , const std::vector<std::uint64_t>& columns
+                          , const std::vector<std::uint32_t>& columns
                           , const std::vector<double>& values
                           , const NoiseConfig& noiseConfig
                           )
@@ -34,17 +34,17 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
       throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
-   m_columns = std::make_shared<std::vector<std::uint64_t> >(columns);
+   m_columns = std::make_shared<std::vector<std::uint32_t> >(columns);
    m_values = std::make_shared<std::vector<double> >(values);
 }
 
 TensorConfig::TensorConfig( std::vector<std::uint64_t>&& dims
-                          , std::vector<std::uint64_t>&& columns
+                          , std::vector<std::uint32_t>&& columns
                           , std::vector<double>&& values
                           , const NoiseConfig& noiseConfig
                           )
    : TensorConfig( std::make_shared<std::vector<std::uint64_t> >(std::move(dims))
-                 , std::make_shared<std::vector<std::uint64_t> >(std::move(columns))
+                 , std::make_shared<std::vector<std::uint32_t> >(std::move(columns))
                  , std::make_shared<std::vector<double> >(std::move(values))
                  , noiseConfig
                  )
@@ -52,7 +52,7 @@ TensorConfig::TensorConfig( std::vector<std::uint64_t>&& dims
 }
 
 TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
-                          , std::shared_ptr<std::vector<std::uint64_t> > columns
+                          , std::shared_ptr<std::vector<std::uint32_t> > columns
                           , std::shared_ptr<std::vector<double> > values
                           , const NoiseConfig& noiseConfig
                           )
@@ -98,7 +98,7 @@ const std::vector<std::uint64_t>& TensorConfig::getDims() const
    return *m_dims;
 }
 
-const std::vector<std::uint64_t>& TensorConfig::getColumns() const
+const std::vector<std::uint32_t>& TensorConfig::getColumns() const
 {
    return *m_columns;
 }
@@ -113,7 +113,7 @@ std::shared_ptr<std::vector<std::uint64_t> > TensorConfig::getDimsPtr() const
    return m_dims;
 }
 
-std::shared_ptr<std::vector<size_t> > TensorConfig::getColumnsPtr() const
+std::shared_ptr<std::vector<std::uint32_t> > TensorConfig::getColumnsPtr() const
 {
    return m_columns;
 }

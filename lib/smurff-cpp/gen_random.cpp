@@ -185,19 +185,19 @@ MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_rand
    std::default_random_engine gen(seed);
    std::uniform_real_distribution<double> udist(0.0, 1.0);
 
-   std::shared_ptr<std::vector<size_t> > Yin_rowsPtr = Yin.getRowsPtr();
-   std::shared_ptr<std::vector<size_t> > Yin_colsPtr = Yin.getColsPtr();
+   std::shared_ptr<std::vector<std::uint32_t> > Yin_rowsPtr = Yin.getRowsPtr();
+   std::shared_ptr<std::vector<std::uint32_t> > Yin_colsPtr = Yin.getColsPtr();
    std::shared_ptr<std::vector<double> > Yin_valuesPtr = Yin.getValuesPtr();
 
-   std::vector<size_t> Yout_rows;
-   std::vector<size_t> Yout_cols;
+   std::vector<std::uint32_t> Yout_rows;
+   std::vector<std::uint32_t> Yout_cols;
    std::vector<double> Yout_values;
 
-   std::vector<size_t> Ynew_rows;
-   std::vector<size_t> Ynew_cols;
+   std::vector<std::uint32_t> Ynew_rows;
+   std::vector<std::uint32_t> Ynew_cols;
    std::vector<double> Ynew_values;
 
-   for (size_t i = 0; i < Yin.getNNZ(); i++)
+   for (std::uint64_t i = 0; i < Yin.getNNZ(); i++)
    {
       if ((udist(gen) < s && Yout_rows.size() < Yout_nnz) || Ynew_values.size() >= Ynew_nnz)
       {
@@ -219,11 +219,23 @@ MatrixConfig extract(MatrixConfig &Yin, double s, bool remove, std::default_rand
    if (remove)
    {
       assert(Ynew_values.size() == Ynew_nnz);
-      MatrixConfig Ynew(Yin.getNRow(), Yin.getNCol(), Ynew_rows, Ynew_cols, Ynew_values, Yin.getNoiseConfig());
+      MatrixConfig Ynew( Yin.getNRow()
+                       , Yin.getNCol()
+                       , std::move(Ynew_rows)
+                       , std::move(Ynew_cols)
+                       , std::move(Ynew_values)
+                       , Yin.getNoiseConfig()
+                       );
       std::swap(Yin, Ynew);
    }
 
-   MatrixConfig Yout(Yin.getNRow(), Yin.getNCol(), Yout_rows, Yout_cols, Yout_values, Yin.getNoiseConfig());
+   MatrixConfig Yout( Yin.getNRow()
+                    , Yin.getNCol()
+                    , std::move(Yout_rows)
+                    , std::move(Yout_cols)
+                    , std::move(Yout_values)
+                    , Yin.getNoiseConfig()
+                    );
    return Yout;
 }
 
