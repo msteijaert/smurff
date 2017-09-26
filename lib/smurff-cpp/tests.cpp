@@ -973,7 +973,7 @@ TEST_CASE("matrix_io/read_sparse. chembl-IC50-346targets.mm", "[!mayfail]")
    REQUIRE(matrix1.isApprox(matrix2));
 }
 
-TEST_CASE("MatrixConfig::MatrixConfig(size_t nrow, size_t ncol, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+TEST_CASE("MatrixConfig::MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
 {
    std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigValues, NoiseConfig());
@@ -987,11 +987,41 @@ TEST_CASE("MatrixConfig::MatrixConfig(size_t nrow, size_t ncol, const std::vecto
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& rows, const std::vector<size_t>& cols, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
 {
-   std::vector<size_t> actualMatrixConfigRows   = { 0, 0, 0, 2, 2, 2 };
-   std::vector<size_t> actualMatrixConfigCols   = { 0, 1, 2, 0, 1, 2 };
-   std::vector<double> actualMatrixConfigValues = { 1, 2, 3, 7, 8, 9 };
+   std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig actualMatrixConfig(3, 3, std::move(actualMatrixConfigValues), NoiseConfig());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrixConfigValues.data() == NULL);
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
+{
+   std::shared_ptr<std::vector<double> > actualMatrixConfigValues =
+      std::make_shared<std::vector<double> >(std::initializer_list<double>({ 1, 4, 7, 2, 5, 8, 3, 6, 9 }));
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigValues, NoiseConfig());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vector<std::uint64_t>& rows, const std::vector<std::uint64_t>& cols, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> actualMatrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint64_t> actualMatrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> actualMatrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
    MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig());
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
@@ -1008,7 +1038,55 @@ TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& row
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& rows, const std::vector<size_t>& cols, const NoiseConfig& noiseConfig)")
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std::uint64_t>&& rows, std::vector<std::uint64_t>&& cols, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> actualMatrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint64_t> actualMatrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> actualMatrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig actualMatrixConfig(3, 3, std::move(actualMatrixConfigRows), std::move(actualMatrixConfigCols), std::move(actualMatrixConfigValues), NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrixConfigRows.data() == NULL);
+   REQUIRE(actualMatrixConfigCols.data() == NULL);
+   REQUIRE(actualMatrixConfigValues.data() == NULL);
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<std::uint64_t> > rows, std::shared_ptr<std::vector<std::uint64_t> > cols, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
+{
+   std::shared_ptr<std::vector<std::uint64_t> > actualMatrixConfigRows =
+      std::make_shared<std::vector<std::uint64_t> >(std::initializer_list<std::uint64_t>({ 0, 0, 0, 2, 2, 2 }));
+   std::shared_ptr<std::vector<std::uint64_t> > actualMatrixConfigCols =
+      std::make_shared<std::vector<std::uint64_t> >(std::initializer_list<std::uint64_t>({ 0, 1, 2, 0, 1, 2 }));
+   std::shared_ptr<std::vector<double> > actualMatrixConfigValues =
+      std::make_shared<std::vector<double> >(std::initializer_list<double>({ 1, 2, 3, 7, 8, 9 }));
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vector<std::uint64_t>& rows, const std::vector<std::uint64_t>& cols, const NoiseConfig& noiseConfig)")
 {
    Eigen::SparseMatrix<double> expectedMatrix(3, 3);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
@@ -1020,19 +1098,63 @@ TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& row
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   std::vector<size_t> actualMatrixConfigRows = { 0, 0, 0, 2, 2, 2 };
-   std::vector<size_t> actualMatrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<std::uint64_t> actualMatrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint64_t> actualMatrixConfigCols = { 0, 1, 2, 0, 1, 2 };
    MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& columns, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+TEST_CASE("MatrixConfig( std::uint64_t nrow, std::uint64_t ncol, std::vector<std::uint64_t>&& rows, std::vector<std::uint64_t>&& cols, const NoiseConfig& noiseConfig)")
 {
-   std::vector<size_t> actualMatrixConfigColumns = { 0, 0, 0, 1, 1, 1, 2, 2, 2,
-                                                     0, 1, 2, 0, 1, 2, 0, 1, 2
-                                                   };
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::vector<std::uint64_t> actualMatrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint64_t> actualMatrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig actualMatrixConfig(3, 3, std::move(actualMatrixConfigRows), std::move(actualMatrixConfigCols), NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   REQUIRE(actualMatrixConfigRows.data() == NULL);
+   REQUIRE(actualMatrixConfigCols.data() == NULL);
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig( std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<std::uint64_t> > rows, std::shared_ptr<std::vector<std::uint64_t> > cols, const NoiseConfig& noiseConfig)")
+{
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::shared_ptr<std::vector<std::uint64_t> > actualMatrixConfigRows =
+      std::make_shared<std::vector<std::uint64_t> >(std::initializer_list<uint64_t>({ 0, 0, 0, 2, 2, 2 }));
+   std::shared_ptr<std::vector<std::uint64_t> > actualMatrixConfigCols =
+      std::make_shared<std::vector<std::uint64_t> >(std::initializer_list<uint64_t>({ 0, 1, 2, 0, 1, 2 }));
+   MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vector<std::uint64_t>& columns, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> actualMatrixConfigColumns = { 0, 0, 0, 1, 1, 1, 2, 2, 2,
+                                                            0, 1, 2, 0, 1, 2, 0, 1, 2
+                                                          };
    std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
 
    MatrixConfig actualMatrixConfig(3, 3, actualMatrixConfigColumns, actualMatrixConfigValues, NoiseConfig());
@@ -1046,13 +1168,33 @@ TEST_CASE("MatrixConfig(size_t nrow, size_t ncol, const std::vector<size_t>& col
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-TEST_CASE("MatrixConfig( size_t nrow, size_t ncol, std::shared_ptr<std::vector<size_t> > columns, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std::uint64_t>&& columns, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
 {
-   std::shared_ptr<std::vector<size_t> > actualMatrixConfigColumns =
-      std::make_shared<std::vector<size_t> >(
-         std::initializer_list<size_t>{ 0, 0, 0, 1, 1, 1, 2, 2, 2,
-                                        0, 1, 2, 0, 1, 2, 0, 1, 2
-                                      }
+   std::vector<std::uint64_t> actualMatrixConfigColumns = { 0, 0, 0, 1, 1, 1, 2, 2, 2,
+                                                            0, 1, 2, 0, 1, 2, 0, 1, 2
+                                                          };
+   std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+
+   MatrixConfig actualMatrixConfig(3, 3, std::move(actualMatrixConfigColumns), std::move(actualMatrixConfigValues), NoiseConfig());
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3;
+   expectedMatrix(1, 0) = 4; expectedMatrix(1, 1) = 5; expectedMatrix(1, 2) = 6;
+   expectedMatrix(2, 0) = 7; expectedMatrix(2, 1) = 8; expectedMatrix(2, 2) = 9;
+
+   REQUIRE(actualMatrixConfigColumns.data() == NULL);
+   REQUIRE(actualMatrixConfigValues.data() == NULL);
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<std::uint64_t> > columns, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
+{
+   std::shared_ptr<std::vector<std::uint64_t> > actualMatrixConfigColumns =
+      std::make_shared<std::vector<std::uint64_t> >(
+         std::initializer_list<std::uint64_t>{ 0, 0, 0, 1, 1, 1, 2, 2, 2,
+                                               0, 1, 2, 0, 1, 2, 0, 1, 2
+                                             }
          );
    std::shared_ptr<std::vector<double> > actualMatrixConfigValues =
       std::make_shared<std::vector<double> >(
