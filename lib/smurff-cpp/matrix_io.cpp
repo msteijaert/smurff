@@ -530,3 +530,147 @@ Eigen::SparseMatrix<double> sparse_to_eigen<smurff::MatrixConfig>(smurff::Matrix
 {
    return sparse_to_eigen<const smurff::MatrixConfig>(matrixConfig);
 }
+
+smurff::MatrixConfig read_dense_float64(const std::string& filename)
+{
+   std::ifstream fileStream(filename, std::ios_base::binary);
+   return read_dense_float64(fileStream);
+}
+
+smurff::MatrixConfig read_dense_float64(std::istream& in)
+{
+   std::uint64_t nrow;
+   std::uint64_t ncol;
+
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+
+   std::vector<double> values(nrow * ncol);
+   in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
+
+   return smurff::MatrixConfig(nrow, ncol, std::move(values), smurff::NoiseConfig());
+}
+
+smurff::MatrixConfig read_sparse_float64(const std::string& filename)
+{
+   std::ifstream fileStream(filename, std::ios_base::binary);
+   return read_sparse_float64(fileStream);
+}
+
+smurff::MatrixConfig read_sparse_float64(std::istream& in)
+{
+   std::uint64_t nrow;
+   std::uint64_t ncol;
+   std::uint64_t nnz;
+
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&nnz), sizeof(std::uint64_t));
+
+   std::vector<std::uint32_t> rows(nnz);
+   in.read(reinterpret_cast<char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row--; });
+
+   std::vector<std::uint32_t> cols(nnz);
+   in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
+
+   std::vector<double> values(nnz);
+   in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
+
+   return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
+}
+
+smurff::MatrixConfig read_sparse_binary_matrix(const std::string& filename)
+{
+   std::ifstream fileStream(filename, std::ios_base::binary);
+   return read_sparse_binary_matrix(fileStream);
+}
+
+smurff::MatrixConfig read_sparse_binary_matrix(std::istream& in)
+{
+   std::uint64_t nrow;
+   std::uint64_t ncol;
+   std::uint64_t nnz;
+
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&nnz), sizeof(std::uint64_t));
+
+   std::vector<std::uint32_t> rows(nnz);
+   in.read(reinterpret_cast<char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row--; });
+
+   std::vector<std::uint32_t> cols(nnz);
+   in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
+
+   return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), smurff::NoiseConfig());
+}
+
+void write_dense_float64(const std::string& filename, const smurff::MatrixConfig& Y)
+{
+   std::ofstream fileStream(filename, std::ios_base::binary);
+   write_dense_float64(fileStream, Y);
+}
+
+void write_dense_float64(std::ostream& out, const smurff::MatrixConfig& Y)
+{
+   std::uint64_t nrow = Y.getNRow();
+   std::uint64_t ncol = Y.getNCol();
+   const std::vector<double>& values = Y.getValues();
+
+   out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
+}
+
+void write_sparse_float64(const std::string& filename, const smurff::MatrixConfig& Y)
+{
+   std::ofstream fileStream(filename, std::ios_base::binary);
+   write_sparse_float64(fileStream, Y);
+}
+
+void write_sparse_float64(std::ostream& out, const smurff::MatrixConfig& Y)
+{
+   std::uint64_t nrow = Y.getNRow();
+   std::uint64_t ncol = Y.getNCol();
+   std::uint64_t nnz = Y.getNNZ();
+   std::vector<std::uint32_t> rows = Y.getRows();
+   std::vector<std::uint32_t> cols = Y.getCols();
+   const std::vector<double> values = Y.getValues();
+
+   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
+   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col++; });
+
+   out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+   out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
+}
+
+void write_sparse_binary_matrix(const std::string& filename, const smurff::MatrixConfig& Y)
+{
+   std::ofstream fileStream(filename, std::ios_base::binary);
+   write_sparse_float64(fileStream, Y);
+}
+
+void write_sparse_binary_matrix(std::ostream& out, const smurff::MatrixConfig& Y)
+{
+   std::uint64_t nrow = Y.getNRow();
+   std::uint64_t ncol = Y.getNCol();
+   std::uint64_t nnz = Y.getNNZ();
+   std::vector<std::uint32_t> rows = Y.getRows();
+   std::vector<std::uint32_t> cols = Y.getCols();
+
+   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
+   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col++; });
+
+   out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+}
