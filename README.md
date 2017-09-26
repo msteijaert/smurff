@@ -31,6 +31,11 @@ wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
 ./smurff --train chembl-IC50-346targets.mm
 ```
 
+## Installation using Conda
+```bash
+conda install -c vanderaa smurff 
+```
+
 # Contributors
 - Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version, Tensor factorization)
 - Tom Vander Aa (OpenMP optimized BPMF, Matrix Cofactorization and GFA, Code Reorg)

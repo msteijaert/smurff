@@ -76,7 +76,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
    for(int k=0;k<K;++k) {
       double lambda = XX(k,k) + alpha(k,v);
-      double mu = lambda * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
+      double mu = (1/lambda) * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
       double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
       double z = 1 / (1 + exp(z1));
       double p = udist(generator);
