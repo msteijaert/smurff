@@ -151,12 +151,13 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);
    m_columns->resize(m_nnz * m_nmodes);
-   m_values->clear();
+   m_values->resize(m_nnz);
 
    for (std::uint64_t i = 0; i < m_nnz; i++)
    {
       m_columns->operator[](i) = rows[i];
       m_columns->operator[](i + m_nnz) = cols[i];
+      m_values->operator[](i) = 1;
    }
 }
 
@@ -195,7 +196,7 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);
    m_columns->resize(m_nnz * m_nmodes);
-   m_values->clear();
+   m_values->resize(m_nnz);
 
    m_rows = rows;
    m_cols = cols;
@@ -204,6 +205,7 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    {
       m_columns->operator[](i) = rows->operator[](i);
       m_columns->operator[](i + m_nnz) = cols->operator[](i);
+      m_values->operator[](i) = 1;
    }
 }
 
