@@ -230,58 +230,8 @@ std::pair<double,double> eval_rmse_tensor(
 void Result::update_auc()
 {
     if (!classify) return;
-    std::sort(predictions.begin(), predictions.end(),
-            [this](const Item &a, const Item &b) { return a.pred < b.pred;});
-
-    int num_positive = 0;
-    int num_negative = 0;
-    auc = .0;
-    for(auto &t : predictions) {
-        int is_positive = t.val > threshold;
-        int is_negative = !is_positive;
-        num_positive += is_positive;
-        num_negative += is_negative;
-        auc += is_positive * num_negative;
-    }
-
-    auc /= num_positive;
-    auc /= num_negative;
+    auc = calc_auc(predictions, threshold);
 }
-
-/*
-inline double auc(Eigen::VectorXd & pred, Eigen::VectorXd & test)
-{
-	Eigen::VectorXd stack_x(pred.size());
-	Eigen::VectorXd stack_y(pred.size());
-	double auc = 0.0;
-
-	if (pred.size() == 0) {
-		return NAN;
-	}
-
-	std::vector<unsigned int> permutation( pred.size() );
-	for(unsigned int i = 0; i < pred.size(); i++) {
-		permutation[i] = i;
-	}
-	std::sort(permutation.begin(), permutation.end(), [&pred](unsigned int a, unsigned int b) { return pred[a] < pred[b];});
-
-	double NP = test.sum();
-	double NN = test.size() - NP;
-	//Build stack_x and stack_y
-	stack_x[0] = test[permutation[0]];
-	stack_y[0] = 1-stack_x[0];
-	for(int i=1; i < pred.size(); i++) {
-		stack_x[i] = stack_x[i-1] + test[permutation[i]];
-		stack_y[i] = stack_y[i-1] + 1 - test[permutation[i]];
-	}
-
-	for(int i=0; i < pred.size() - 1; i++) {
-		auc += (stack_x(i+1) - stack_x(i)) * stack_y(i+1); //TODO:Make it Eigen
-	}
-
-	return auc / (NP*NN);
-}
-*/
 
 std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
 {

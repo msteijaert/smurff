@@ -639,17 +639,37 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
 
-/*
+
 TEST_CASE("utils/auc","AUC ROC") {
-  Eigen::VectorXd pred(20);
-  Eigen::VectorXd test(20);
-  test << 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0,
-          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-  pred << 20.0, 19.0, 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, 12.0, 11.0,
-          10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0;
-  REQUIRE ( auc(pred, test) == Approx(0.84) );
+  struct TestItem {
+      double pred, val;
+  };
+  std::vector<TestItem> items = {
+   { 20.0, 1.0 },
+   { 19.0, 0.0 },
+   { 18.0, 1.0 },
+   { 17.0, 0.0 },
+   { 16.0, 1.0 },
+   { 15.0, 0.0 },
+   { 14.0, 0.0 },
+   { 13.0, 1.0 },
+   { 12.0, 0.0 },
+   { 11.0, 1.0 },
+   { 10.0, 0.0 },
+   { 9.0,  0.0 },
+   { 8.0,  0.0 },
+   { 7.0,  0.0 },
+   { 6.0,  0.0 },
+   { 5.0,  0.0 },
+   { 4.0,  0.0 },
+   { 3.0,  0.0 },
+   { 2.0,  0.0 },
+   { 1.0,  0.0 }
+  };
+
+  REQUIRE ( calc_auc(items, 0.5) == Approx(0.84) );
 }
-*/
+
 
 /* master
 TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {
