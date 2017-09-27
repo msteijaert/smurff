@@ -36,7 +36,7 @@ void ScarceMatrixData::center(double global_mean)
    {
       for (int k = 0; k < Y.outerSize(); ++k)
       {
-         double v = mean(m, k);
+         double v = getModeMeanItem(m, k);
          for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it)
          {
                it.valueRef() -= v;

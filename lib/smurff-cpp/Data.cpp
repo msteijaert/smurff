@@ -60,12 +60,6 @@ void IMeanCentering::setCenterMode(IMeanCentering::CenterModeTypes type)
    m_center_mode = type;
 }
 
-double IMeanCentering::mean(int m, int c) const
-{
-   assert(m_mean_computed);
-   return m_mode_mean.at(m)(c);
-}
-
 double IMeanCentering::getCwiseMean() const
 {
    assert(m_cwise_mean_initialized);
@@ -97,6 +91,12 @@ const Eigen::VectorXd& IMeanCentering::getModeMean(size_t i) const
 {
    assert(m_mean_computed);
    return m_mode_mean.at(i);
+}
+
+double IMeanCentering::getModeMeanItem(int m, int c) const
+{
+   assert(m_mean_computed);
+   return m_mode_mean.at(m)(c);
 }
 
 std::string IMeanCentering::getCenterModeName() const

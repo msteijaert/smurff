@@ -109,12 +109,12 @@ namespace smurff
 
       //AGE: getters
    public:
-      double mean(int m, int c) const;
       double getCwiseMean() const;
       double getGlobalMean() const;
       double getVar() const;
       CenterModeTypes getCenterMode() const;
       bool getMeanComputed() const;
+      double getModeMeanItem(int m, int c) const;
       const Eigen::VectorXd& getModeMean(size_t i) const;
       std::string getCenterModeName() const;
 

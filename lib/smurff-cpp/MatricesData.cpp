@@ -97,7 +97,7 @@ double MatricesData::compute_mode_mean_mn(int mode, int pos)
    int count = 0;
 
    apply(mode, pos, [&](const Block &b) {
-       double local_mean = b.data().mean(mode, pos - b.start(mode));
+       double local_mean = b.data().getModeMeanItem(mode, pos - b.start(mode));
        sum += local_mean * b.dim(mode);
        N += b.dim(mode);
        count++;

@@ -54,7 +54,7 @@ double Result::rmse_using_modemean(const Data &data, int mode) {
      double se = 0.;
      for(auto t : predictions) {
         int n = mode == 0 ? t.row : t.col;
-        double pred = data.mean(mode, n);
+        double pred = data.getModeMeanItem(mode, n);
         se += square(t.val - pred);
      }
      return sqrt( se / N );
