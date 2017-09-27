@@ -15,28 +15,7 @@ SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
 void SparseMatrixData::center(double global_mean)
 {
     this->global_mean = global_mean;
-    if (center_mode == CENTER_GLOBAL)
-    {
-        Yc.at(0).coeffs() -= global_mean;
-        Yc.at(1).coeffs() -= global_mean;
-    }
-    else if (center_mode == CENTER_VIEW)
-    {
-        Yc.at(0).coeffs() -= cwise_mean;
-        Yc.at(1).coeffs() -= cwise_mean;
-    }
-    else if (center_mode == CENTER_COLS)
-    {
-        // you cannot col/row center fully know sparse matrices
-        // without converting to dense
-        assert(false);
-    }
-    else if (center_mode == CENTER_ROWS)
-    {
-        // you cannot col/row center fully know sparse matrices
-        // without converting to dense
-        assert(false);
-    }
+    assert(center_mode == CENTER_NONE && "you cannot center fully know sparse matrix without converting to dense");
 }
 
 double SparseMatrixData::train_rmse(const SubModel& model) const
