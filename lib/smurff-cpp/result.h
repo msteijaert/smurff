@@ -11,7 +11,7 @@
 namespace smurff {
 
 struct Model;
-struct Data;
+class Data;
 
 template<typename Item>
 double calc_auc(const std::vector<Item> &predictions, double threshold)
