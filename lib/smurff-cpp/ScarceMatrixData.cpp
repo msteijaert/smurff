@@ -30,7 +30,6 @@ void ScarceMatrixData::init_pre()
 
 void ScarceMatrixData::center(double global_mean)
 {
-   assert(!centered);
    this->global_mean = global_mean;
 
    auto center_cols = [this](Eigen::SparseMatrix<double> &Y, int m) {
@@ -55,8 +54,6 @@ void ScarceMatrixData::center(double global_mean)
       center_cols(Yc.at(1), 1);
       Yc.at(0) = Yc.at(1).transpose();
    }
-
-   centered = true;
 }
 
 double ScarceMatrixData::compute_mode_mean(int m, int c)
