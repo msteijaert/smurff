@@ -43,7 +43,7 @@ void MatricesData::init_pre()
 
    }
 
-   init_pre_mean_centering();
+   init_cwise_mean();
 
    // init sub-matrices
    for(auto &p : blocks)
@@ -70,6 +70,13 @@ void MatricesData::setCenterMode(std::string mode)
       p.data().setCenterMode(mode);
 }
 
+void MatricesData::setCenterMode(IMeanCentering::CenterModeTypes type)
+{
+   Data::setCenterMode(type);
+   for(auto &p : blocks) 
+      p.data().setCenterMode(type);
+}
+
 void MatricesData::center(double global_mean)
 {
     IMeanCentering::center(global_mean);
@@ -79,6 +86,8 @@ void MatricesData::center(double global_mean)
 
     for(auto &p : blocks)
       p.data().center(getCwiseMean());
+
+   setCentered(true);
 }
 
 double MatricesData::compute_mode_mean_mn(int mode, int pos)

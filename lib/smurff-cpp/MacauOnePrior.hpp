@@ -40,14 +40,14 @@ public:
 
    int l0;
 
-   Eigen::SparseMatrix<double> &Yc;
+   const Eigen::SparseMatrix<double> &Yc;
 
 public:
 
    //method is identical - previously part of init
 
    MacauOnePrior(BaseSession& m, int p)
-      : ILatentPrior(m, p), Yc(dynamic_cast<ScarceMatrixData &>(m.data()).Yc.at(p))
+      : ILatentPrior(m, p), Yc(dynamic_cast<ScarceMatrixData &>(m.data()).getYc().at(p))
    {
       // parameters of Normal-Gamma distributions
       mu     = Eigen::VectorXd::Constant(num_latent(), 0.0);

@@ -14,17 +14,19 @@ SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
 
 void SparseMatrixData::center(double global_mean)
 {
+    assert(Ycentered);
+
     IMeanCentering::center(global_mean);
 
     if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL)
     {
-        Yc.at(0).coeffs() -= global_mean;
-        Yc.at(1).coeffs() -= global_mean;
+      Ycentered->at(0).coeffs() -= global_mean;
+      Ycentered->at(1).coeffs() -= global_mean;
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)
     {
-        Yc.at(0).coeffs() -= getCwiseMean();
-        Yc.at(1).coeffs() -= getCwiseMean();
+      Ycentered->at(0).coeffs() -= getCwiseMean();
+      Ycentered->at(1).coeffs() -= getCwiseMean();
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
     {
@@ -38,10 +40,16 @@ void SparseMatrixData::center(double global_mean)
         // without converting to dense
         assert(false);
     }
+    else if (getCenterMode() == CenterModeTypes::CENTER_NONE)
+    {
+       //do nothing
+    }
     else
     {
        throw std::logic_error("Invalid center mode");
     }
+
+    setCentered(true);
 }
 
 double SparseMatrixData::train_rmse(const SubModel& model) const

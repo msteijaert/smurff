@@ -34,16 +34,17 @@ void IMeanCentering::compute_mode_mean_internal(const Data* data)
    m_mean_computed = true;
 }
 
-void IMeanCentering::init_pre_mean_centering_internal(const Data* data)
+void IMeanCentering::init_cwise_mean_internal(const Data* data)
 {
+   assert(!m_cwise_mean_initialized);
    m_cwise_mean = data->sum() / (data->size() - data->nna());
+   m_cwise_mean_initialized = true;
 }
 
 void IMeanCentering::center(double upper_mean)
 {
    assert(!m_centered);
    m_global_mean = upper_mean;
-   m_centered = true;
 }
 
 void IMeanCentering::setCenterMode(std::string c)
@@ -54,6 +55,11 @@ void IMeanCentering::setCenterMode(std::string c)
       throw std::runtime_error("Invalid center mode");
 }
 
+void IMeanCentering::setCenterMode(IMeanCentering::CenterModeTypes type)
+{
+   m_center_mode = type;
+}
+
 double IMeanCentering::mean(int m, int c) const
 {
    assert(m_mean_computed);
@@ -62,11 +68,13 @@ double IMeanCentering::mean(int m, int c) const
 
 double IMeanCentering::getCwiseMean() const
 {
+   assert(m_cwise_mean_initialized);
    return m_cwise_mean;
 }
 
 double IMeanCentering::getGlobalMean() const
 {
+   assert(m_centered);
    return m_global_mean;
 }
 
@@ -87,6 +95,7 @@ bool IMeanCentering::getMeanComputed() const
 
 const Eigen::VectorXd& IMeanCentering::getModeMean(size_t i) const
 {
+   assert(m_mean_computed);
    return m_mode_mean.at(i);
 }
 
@@ -229,9 +238,9 @@ void Data::compute_mode_mean()
    compute_mode_mean_internal(this);
 }
 
-void Data::init_pre_mean_centering()
+void Data::init_cwise_mean()
 {
-   init_pre_mean_centering_internal(this);
+   init_cwise_mean_internal(this);
 }
 
 double Data::predict(const PVec& pos, const SubModel& model) const

@@ -68,7 +68,8 @@ namespace smurff
       };
 
    private:
-      double m_cwise_mean = NAN;   
+      double m_cwise_mean = NAN; // mean of non NA elements in matrix
+      bool m_cwise_mean_initialized = false;
       double m_global_mean = NAN;
       double m_var = NAN;
       CenterModeTypes m_center_mode;
@@ -87,17 +88,20 @@ namespace smurff
       //AGE: methods are pure virtual because they depend on multiple interfaces from Data class
       //introducing Data class dependency into this class is not a good idea
    protected:
-      void compute_mode_mean_internal(const Data* data);
+      void compute_mode_mean_internal(const Data* data); //depends on cwise mean. Also depends on initial data from Ycentered (which is Y)
       virtual void compute_mode_mean() = 0;
       virtual double compute_mode_mean_mn(int mode, int pos) = 0;
 
-      void init_pre_mean_centering_internal(const Data* data);
-      virtual void init_pre_mean_centering() = 0;
+      void init_cwise_mean_internal(const Data* data); //does not depend on any init
+      virtual void init_cwise_mean() = 0;  //does not depend on any init
 
       //AGE: implementation depends on matrix data type
+   protected:
+      virtual void center(double upper_mean); //depends on cwise mean. Also depends on mod mean being calculated.
+
    public:
-      virtual void center(double upper_mean);
       virtual void setCenterMode(std::string c);
+      virtual void setCenterMode(CenterModeTypes type);
 
       //AGE: implementation depends on matrix data type
    public:
@@ -113,6 +117,12 @@ namespace smurff
       bool getMeanComputed() const;
       const Eigen::VectorXd& getModeMean(size_t i) const;
       std::string getCenterModeName() const;
+
+   public:
+      void setCentered(bool value)
+      {
+         m_centered = value;
+      }
 
    public:
       static std::string centerModeToString(CenterModeTypes cm);
@@ -199,7 +209,7 @@ namespace smurff
               , public IDataPredict
               , public IView
    {
-      //AGE: Only MatricesData should call init methods
+      //AGE: Only MatricesData should call init methods, center methods etc
       friend class MatricesData;
 
    public:
@@ -222,7 +232,7 @@ namespace smurff
 
       void compute_mode_mean() override;
 
-      void init_pre_mean_centering() override;
+      void init_cwise_mean() override;
 
       double predict(const PVec& pos, const SubModel& model) const override;
 

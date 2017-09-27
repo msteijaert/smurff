@@ -13,6 +13,7 @@ namespace smurff
       void init_pre() override;
       void init_post() override;
       void setCenterMode(std::string mode) override;
+      void setCenterMode(CenterModeTypes type) override;
 
       void center(double global_mean) override;
       double compute_mode_mean_mn(int mode, int pos) override;
