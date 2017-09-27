@@ -104,7 +104,7 @@ public:
        for (Eigen::SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++)
        {
          Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
-         Yhat(idx)     = Us.col(i).dot( Vs.col(it.row()) );
+         Yhat(idx)     = model().predict({(int)it.row(), (int)it.col()}, data());
        }
 
        Eigen::VectorXd rnorms(num_latent());
