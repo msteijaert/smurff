@@ -13,6 +13,7 @@
 #include "session.h"
 #include "utils.h"
 #include "Data.h"
+#include "DenseMatrixData.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
@@ -670,6 +671,24 @@ TEST_CASE("utils/auc","AUC ROC") {
   REQUIRE ( calc_auc(items, 0.5) == Approx(0.84) );
 }
 
+
+TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is correctly calculated") {
+  int    rows[2] = {0, 1};
+  int    cols[2] = {0, 1};
+  double vals[2] = {1., 2.};
+  SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
+  ScarceMatrixData data(sparse_to_eigen(S));
+  data.init();
+  REQUIRE(data.var_total() == Approx(0.25));
+}
+
+TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is correctly calculated") {
+  Eigen::MatrixXd Y(2, 2);
+  Y << 1., 2., 3., 4.;
+  DenseMatrixData data(Y);
+  data.init();
+  REQUIRE(data.var_total() == Approx(1.25));
+}
 
 /* master
 TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {
