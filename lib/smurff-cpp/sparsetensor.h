@@ -33,8 +33,8 @@ class MatrixData : public IData {
     
     MatrixData() {}
 
-    Eigen::VectorXi getDims() { return dims; }
-    int getTestNonzeros() { return Ytest.nonZeros(); }
+    Eigen::VectorXi getDims() override { return dims; }
+    int getTestNonzeros() override { return Ytest.nonZeros(); }
     double getMeanValue() override { return mean_value; }
 
 
