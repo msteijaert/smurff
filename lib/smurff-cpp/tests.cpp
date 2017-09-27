@@ -3020,4 +3020,238 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
 
 //===
 
+TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_NONE")
+{
+   std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
+      { 0, 0, 1 },
+      { 0, 1, 2 },
+      { 0, 2, 3 },
+      { 2, 0, 7 },
+      { 2, 1, 8 },
+      { 2, 2, 9 },
+      { 3, 0, 10 },
+      { 3, 2, 12 },
+   };
+
+   Eigen::SparseMatrix<double> initialMatrix(4, 3);
+   initialMatrix.setFromTriplets(initialMatrixTriplets.begin(), initialMatrixTriplets.end());
+
+   ScarceBinaryMatrixData sbm(initialMatrix);
+
+   IMeanCentering* mnce = &sbm;
+   
+   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
+
+   sbm.setNoiseModel(new Noiseless());
+   sbm.init();
+
+   REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
+   REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
+   
+   REQUIRE(initialMatrix.isApprox(sbm.getYc().at(0).transpose()));
+   REQUIRE(initialMatrix.isApprox(sbm.getYc().at(1)));
+}
+
+TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_GLOBAL")
+{
+   std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
+      { 0, 0, 1 },
+      { 0, 1, 2 },
+      { 0, 2, 3 },
+      { 2, 0, 7 },
+      { 2, 1, 8 },
+      { 2, 2, 9 },
+      { 3, 0, 10 },
+      { 3, 2, 12 },
+   };
+
+   Eigen::SparseMatrix<double> initialMatrix(4, 3);
+   initialMatrix.setFromTriplets(initialMatrixTriplets.begin(), initialMatrixTriplets.end());
+
+   ScarceBinaryMatrixData sbm(initialMatrix);
+
+   IMeanCentering* mnce = &sbm;
+   
+   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
+
+   sbm.setNoiseModel(new Noiseless());
+   sbm.init();
+
+   REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
+   REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
+
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
+      { 0, 0, -5.5 },
+      { 0, 1, -4.5 },
+      { 0, 2, -3.5 },
+      { 2, 0, 0.5 },
+      { 2, 1, 1.5 },
+      { 2, 2, 2.5 },
+      { 3, 0, 3.5 },
+      { 3, 2, 5.5 },
+   };
+
+   Eigen::SparseMatrix<double> expectedMatrix(4, 3);
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+   
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+}
+
+TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_VIEW")
+{
+   std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
+      { 0, 0, 1 },
+      { 0, 1, 2 },
+      { 0, 2, 3 },
+      { 2, 0, 7 },
+      { 2, 1, 8 },
+      { 2, 2, 9 },
+      { 3, 0, 10 },
+      { 3, 2, 12 },
+   };
+
+   Eigen::SparseMatrix<double> initialMatrix(4, 3);
+   initialMatrix.setFromTriplets(initialMatrixTriplets.begin(), initialMatrixTriplets.end());
+
+   ScarceBinaryMatrixData sbm(initialMatrix);
+
+   IMeanCentering* mnce = &sbm;
+   
+   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
+
+   sbm.setNoiseModel(new Noiseless());
+   sbm.init();
+
+   REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
+   REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
+
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
+      { 0, 0, -5.5 },
+      { 0, 1, -4.5 },
+      { 0, 2, -3.5 },
+      { 2, 0, 0.5 },
+      { 2, 1, 1.5 },
+      { 2, 2, 2.5 },
+      { 3, 0, 3.5 },
+      { 3, 2, 5.5 },
+   };
+
+   Eigen::SparseMatrix<double> expectedMatrix(4, 3);
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+   
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+}
+
+TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_COLS")
+{
+   std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
+      { 0, 0, 1 },
+      { 0, 1, 2 },
+      { 0, 2, 3 },
+      { 2, 0, 7 },
+      { 2, 1, 8 },
+      { 2, 2, 9 },
+      { 3, 0, 10 },
+      { 3, 2, 12 },
+   };
+
+   Eigen::SparseMatrix<double> initialMatrix(4, 3);
+   initialMatrix.setFromTriplets(initialMatrixTriplets.begin(), initialMatrixTriplets.end());
+
+   ScarceBinaryMatrixData sbm(initialMatrix);
+
+   IMeanCentering* mnce = &sbm;
+   
+   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_COLS);
+
+   sbm.setNoiseModel(new Noiseless());
+   sbm.init();
+
+   REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
+   REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
+
+   Eigen::VectorXd rowMeanExpected(4);
+   rowMeanExpected << 2.0, 6.5, 8.0, 11.0; //6.5 is expected for zero rows
+
+   Eigen::VectorXd colMeanExpected(3);
+   colMeanExpected << 6.0, 5.0, 8.0;
+   
+   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
+   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
+      { 0, 0, -1.0 },
+      { 0, 1, -0.0 },
+      { 0, 2, 1.0 },
+      { 2, 0, -1.0 },
+      { 2, 1, 0.0 },
+      { 2, 2, 1.0 },
+      { 3, 0, -1.0 },
+      { 3, 2, 1.0 },
+   };
+
+   Eigen::SparseMatrix<double> expectedMatrix(4, 3);
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+}
+
+TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
+{
+   std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
+      { 0, 0, 1 },
+      { 0, 1, 2 },
+      { 0, 2, 3 },
+      { 2, 0, 7 },
+      { 2, 1, 8 },
+      { 2, 2, 9 },
+      { 3, 0, 10 },
+      { 3, 2, 12 },
+   };
+
+   Eigen::SparseMatrix<double> initialMatrix(4, 3);
+   initialMatrix.setFromTriplets(initialMatrixTriplets.begin(), initialMatrixTriplets.end());
+
+   ScarceBinaryMatrixData sbm(initialMatrix);
+
+   IMeanCentering* mnce = &sbm;
+   
+   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_ROWS);
+
+   sbm.setNoiseModel(new Noiseless());
+   sbm.init();
+
+   REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
+   REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
+
+   Eigen::VectorXd rowMeanExpected(4);
+   rowMeanExpected << 2.0, 6.5, 8.0, 11.0; //6.5 is expected for zero rows
+
+   Eigen::VectorXd colMeanExpected(3);
+   colMeanExpected << 6.0, 5.0, 8.0;
+   
+   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
+   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
+      { 0, 0, -5.0 },
+      { 0, 1, -3.0 },
+      { 0, 2, -5.0 },
+      { 2, 0, 1.0 },
+      { 2, 1, 3.0 },
+      { 2, 2, 1.0 },
+      { 3, 0, 4.0 },
+      { 3, 2, 4.0 },
+   };
+
+   Eigen::SparseMatrix<double> expectedMatrix(4, 3);
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+   
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+}
+
 
