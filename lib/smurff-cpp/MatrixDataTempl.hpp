@@ -46,14 +46,20 @@ namespace smurff
 
       YType Y; // eigen matrix with the data
       
-   protected:
+   private:
       std::shared_ptr<std::vector<YType> > Ycentered; // centered versions of original matrix (transposed, original)
 
    public:
-      const std::vector<YType>& getYc()
+      const std::vector<YType>& getYc() const
       {
          assert(Ycentered);
          return *Ycentered.get();
+      }
+
+      std::shared_ptr<std::vector<YType> > getYcPtr() const
+      {
+         assert(Ycentered);
+         return Ycentered;
       }
    };
 

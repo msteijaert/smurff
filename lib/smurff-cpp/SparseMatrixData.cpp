@@ -14,19 +14,17 @@ SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
 
 void SparseMatrixData::center(double global_mean)
 {
-    assert(Ycentered);
-
     IMeanCentering::center(global_mean);
 
     if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL)
     {
-      Ycentered->at(0).coeffs() -= global_mean;
-      Ycentered->at(1).coeffs() -= global_mean;
+      getYcPtr()->at(0).coeffs() -= global_mean;
+      getYcPtr()->at(1).coeffs() -= global_mean;
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)
     {
-      Ycentered->at(0).coeffs() -= getCwiseMean();
-      Ycentered->at(1).coeffs() -= getCwiseMean();
+      getYcPtr()->at(0).coeffs() -= getCwiseMean();
+      getYcPtr()->at(1).coeffs() -= getCwiseMean();
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
     {

@@ -24,10 +24,8 @@ namespace smurff
    public:
       void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
       {
-         assert(this->Ycentered);
-
          const double alpha = this->noise().getAlpha();
-         auto &Y = this->Ycentered->at(mode);
+         auto &Y = this->getYcPtr()->at(mode);
          rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
          MM.noalias() += VV[mode] * alpha;
       }
@@ -55,12 +53,10 @@ namespace smurff
    private:
       double compute_mode_mean_mn(int mode, int pos) override
       {
-          assert(this->Ycentered);
-
-          const auto &col = this->Ycentered->at(mode).col(pos);
+          const auto &col = this->getYcPtr()->at(mode).col(pos);
           if (col.nonZeros() == 0)
             return this->getCwiseMean();
-          return col.sum() / this->Ycentered->at(mode).rows();
+          return col.sum() / this->getYcPtr()->at(mode).rows();
       }
    };
 }

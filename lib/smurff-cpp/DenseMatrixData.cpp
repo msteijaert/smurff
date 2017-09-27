@@ -14,29 +14,27 @@ DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)
 
 void DenseMatrixData::center(double global_mean)
 {
-   assert(Ycentered);
-
     IMeanCentering::center(global_mean);
 
     if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL)
     {
-        Ycentered->at(0).array() -= global_mean;
-        Ycentered->at(1).array() -= global_mean;
+      getYcPtr()->at(0).array() -= global_mean;
+      getYcPtr()->at(1).array() -= global_mean;
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)
     {
-      Ycentered->at(0).array() -= getCwiseMean();
-      Ycentered->at(1).array() -= getCwiseMean();
+      getYcPtr()->at(0).array() -= getCwiseMean();
+      getYcPtr()->at(1).array() -= getCwiseMean();
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
     {
-      Ycentered->at(0).rowwise() -= getModeMean(0).transpose();
-      Ycentered->at(1) = Ycentered->at(0).transpose();
+      getYcPtr()->at(0).rowwise() -= getModeMean(0).transpose();
+      getYcPtr()->at(1) = getYcPtr()->at(0).transpose();
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
     {
-      Ycentered->at(1).rowwise() -= getModeMean(1).transpose();
-      Ycentered->at(0) = Ycentered->at(1).transpose();
+      getYcPtr()->at(1).rowwise() -= getModeMean(1).transpose();
+      getYcPtr()->at(0) = getYcPtr()->at(1).transpose();
     }
     else if (getCenterMode() == CenterModeTypes::CENTER_NONE)
     {

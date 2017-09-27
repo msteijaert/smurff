@@ -11,11 +11,9 @@ ScarceBinaryMatrixData::ScarceBinaryMatrixData(Eigen::SparseMatrix<double>& Y)
 
 void ScarceBinaryMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
-   assert(Ycentered);
-
     // todo : check noise == probit noise
     auto u = model.U(mode).col(n);
-    for (Eigen::SparseMatrix<double>::InnerIterator it(Ycentered->at(mode), n); it; ++it)
+    for (Eigen::SparseMatrix<double>::InnerIterator it(getYcPtr()->at(mode), n); it; ++it)
     {
         const auto &col = model.V(mode).col(it.row());
         MM.noalias() += col * col.transpose();
