@@ -205,3 +205,28 @@ smurff::MatrixConfig read_matrix(const std::string& fname);
 
 void write_dense(const std::string& fname, const Eigen::MatrixXd&);
 void write_dense(std::ostream& out, DenseMatrixType denseMatrixType, const Eigen::MatrixXd&);
+
+//
+// GitHub issue #34:
+//    https://github.com/ExaScience/smurff/issues/34
+//
+// Python golden stardard:
+//    https://github.com/ExaScience/smurff/blob/master-smurff-merge/python/io/matrix_io.py
+//
+smurff::MatrixConfig read_dense_float64(const std::string& filename);
+smurff::MatrixConfig read_dense_float64(std::istream& in);
+
+smurff::MatrixConfig read_sparse_float64(const std::string& filename);
+smurff::MatrixConfig read_sparse_float64(std::istream& in);
+
+smurff::MatrixConfig read_sparse_binary_matrix(const std::string& filename);
+smurff::MatrixConfig read_sparse_binary_matrix(std::istream& in);
+
+void write_dense_float64(const std::string& filename, const smurff::MatrixConfig& Y);
+void write_dense_float64(std::ostream& out, const smurff::MatrixConfig& Y);
+
+void write_sparse_float64(const std::string& filename, const smurff::MatrixConfig& Y);
+void write_sparse_float64(std::ostream& out, const smurff::MatrixConfig& Y);
+
+void write_sparse_binary_matrix(const std::string& filename, const smurff::MatrixConfig& Y);
+void write_sparse_binary_matrix(std::ostream& out, const smurff::MatrixConfig& Y);

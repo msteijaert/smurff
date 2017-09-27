@@ -28,7 +28,7 @@ LIBSMURFF = libsmurff-cpp.a
 all: smurff tests
 
 clean:
-	rm -f *.o *.d *.a *.csv *.ini *.sbm *.sdm *.mtx
+	rm -f *.o *.d *.a *.csv *.ini *.sbm *.sdm *.ddm *.mtx
 	rm -rf *.dSYM
 	rm -f smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
