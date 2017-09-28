@@ -184,6 +184,8 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
    if (columns.size() == 0)
       throw std::length_error("Cannot create TensorConfig instance: 'columns' size cannot be zero");
 
+   m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
+   m_columns = std::make_shared<std::vector<std::uint32_t> >(columns);
    m_values = std::make_shared<std::vector<double> >(m_nnz);
    std::fill(m_values->begin(), m_values->end(), 1);
 }
