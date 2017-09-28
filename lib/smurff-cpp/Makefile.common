@@ -14,7 +14,7 @@ LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 LINK.o=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 OUTPUT_OPTION=-MMD -MP -o $@
 
-LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o session.o gen_random.o model.o result.o matrix_io.o PVec.o
+LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o session.o gen_random.o model.o result.o matrix_io.o tensor_io.o PVec.o
 LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.o UnusedNoise.o
 LIBOBJS += GlobalPrior.o ILatentPrior.o NormalPrior.o SpikeAndSlabPrior.o MacauPrior.o
 LIBOBJS += ini.o INIReader.o
@@ -28,7 +28,7 @@ LIBSMURFF = libsmurff-cpp.a
 all: smurff tests
 
 clean:
-	rm -f *.o *.d *.a *.csv *.ini *.sbm *.sdm *.ddm *.mtx
+	rm -f *.o *.d *.a *.csv *.ini *.sbm *.sdm *.ddm *.ddt *.mtx
 	rm -rf *.dSYM
 	rm -f smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
