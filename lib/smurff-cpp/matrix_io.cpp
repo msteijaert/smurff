@@ -70,6 +70,9 @@ std::string MatrixTypeToExtension(MatrixType matrixType)
 MatrixConfig matrix_io::read_matrix(const std::string& filename)
 {
    MatrixType matrixType = ExtensionToMatrixType(fname);
+
+   die_unless_file_exists(filename);
+
    switch (matrixType)
    {
    case sdm:
@@ -252,6 +255,8 @@ void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& ma
    std::string extension = MatrixTypeToExtension(matrixType);
    std::string filepath = filename + extesion;
 
+   die_unless_file_exists(filepath);
+
    switch (matrixType)
    {
    case MatrixType::sdm:
@@ -348,4 +353,284 @@ void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& m
    out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
    out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+}
+
+// ======================================================================================================
+
+void read_matrix(const std::string& filename, Eigen::VectorXd& V)
+{
+   Eigen::MatrixXd X;
+   matrix_io::eigen::read_matrix(filename, X);
+   V = X; // this will fail if X has more than one column
+}
+
+void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd& X)
+{
+   MatrixType matrixType = ExtensionToMatrixType(fname);
+
+   die_unless_file_exists(filename);
+
+   switch (matrixType)
+   {
+   case sdm:
+      die("Invalid matrix type");
+   case sbm:
+      die("Invalid matrix type");
+   case mtx:
+      die("Invalid matrix type");
+   case csv:
+      {
+         std::ifstream fileStream(filename);
+         matrix_io::eigen::read_dense_float64_csv(fileStream, X);
+      }
+      break;
+   case ddm:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         matrix_io::eigen::read_dense_float64_bin(fileStream, X);
+      }
+      break;
+   case none:
+      die("Unknown matrix type");
+   default:
+      die("Unknown matrix type");
+   }
+}
+
+void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMatrix<double>& X)
+{
+   MatrixType matrixType = ExtensionToMatrixType(fname);
+
+   die_unless_file_exists(filename);
+
+   switch (matrixType)
+   {
+   case sdm:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         matrix_io::eigen::read_sparse_float64_bin(fileStream, X);
+      }
+      break;
+   case sbm:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         matrix_io::eigen::read_sparse_binary_bin(fileStream, X);
+      }
+      break;
+   case mtx:
+      {
+         std::ifstream fileStream(filename);
+         matrix_io::eigen::read_sparse_float64_mtx(fileStream, X);
+      }
+      break;
+   case csv:
+      die("Invalid matrix type");
+   case ddm:
+      die("Invalid matrix type");
+   case none:
+      die("Unknown matrix type");
+   default:
+      die("Unknown matrix type");
+   }
+}
+
+void matrix_io::eigen::read_dense_float64_bin(std::istream& in, Eigen::MatrixXd& X)
+{
+   /*
+   std::uint64_t rows=0, cols=0;
+   in.read((char*) (&rows),sizeof(std::uint64_t));
+   in.read((char*) (&cols),sizeof(std::uint64_t));
+   matrix.resize(rows, cols);
+   in.read( (char *) matrix.data() , rows*cols*sizeof(double) );
+   */
+
+  throw "Not implemented";
+}
+
+void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd& X)
+{
+   /*
+   std::string line;
+   
+   // rows and cols
+   getline(in, line);
+   std::uint64_t nrow = atol(line.c_str());
+   getline(in, line);
+   std::uint64_t ncol = atol(line.c_str());
+   matrix.resize(nrow, ncol);
+
+   std::uint32_t row = 0;
+   std::uint32_t col = 0;
+   while (getline(in, line))
+   {
+      col = 0;
+      std::stringstream lineStream(line);
+      std::string cell;
+      while (std::getline(lineStream, cell, ','))
+      {
+         matrix(row, col++) = strtod(cell.c_str(), NULL);
+      }
+      row++;
+   }
+   assert(row == nrow);
+   assert(col == ncol);
+   */
+
+  throw "Not implemented";
+}
+
+void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
+{
+   //we need to use our functions instead of libfastsparse
+   /*
+   auto sdm_ptr = read_sdm(fname.c_str());
+   M = sparse_to_eigen(*sdm_ptr);
+   free_sdm(sdm_ptr);
+   delete sdm_ptr;
+   */
+
+   throw "Not implemented";
+}
+
+void matrix_io::eigen::read_sparse_float64_mtx(std::istream& in, Eigen::SparseMatrix<double>& X)
+{
+   //we need to use our functions instead of libfastsparse
+   /*
+   loadMarket(M, fname.c_str());
+   */
+
+   throw "Not implemented";
+}
+
+void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
+{
+   //we need to use our functions instead of libfastsparse
+   /*
+   auto sbm_ptr = read_sbm(fname.c_str());
+   M = sparse_to_eigen(*sbm_ptr);
+   free_sbm(sbm_ptr);
+   delete sbm_ptr;
+   */
+
+   throw "Not implemented";
+}
+
+// ======================================================================================================
+
+void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X, MatrixType matrixType)
+{
+   std::string extension = MatrixTypeToExtension(matrixType);
+   std::string filepath = filename + extesion;
+
+   die_unless_file_exists(filepath);
+
+   switch (matrixType)
+   {
+   case MatrixType::sdm:
+      die("Invalid matrix type");
+      break;
+   case MatrixType::sbm:
+      die("Invalid matrix type");
+      break;
+   case MatrixType::mtx:
+      die("Invalid matrix type");
+      break;
+   case MatrixType::csv:
+      {
+         std::ofstream fileStream(filepath);
+         matrix_io::eigen::write_dense_float64_csv(fileStream, X);
+      }
+      break;
+   case MatrixType::ddm:
+      {
+         std::ofstream fileStream(filepath, std::ios_base::binary | std::ios::trunc);
+         matrix_io::eigen::write_dense_float64_bin(fileStream, X);
+      }
+      break;
+   case MatrixType::none:
+      die("Unknown matrix type");
+   default:
+      die("Unknown matrix type");
+   }
+}
+
+void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X, MatrixType matrixType)
+{
+   std::string extension = MatrixTypeToExtension(matrixType);
+   std::string filepath = filename + extesion;
+
+   die_unless_file_exists(filepath);
+
+   switch (matrixType)
+   {
+   case MatrixType::sdm:
+      {
+         std::ofstream fileStream(filepath, std::ios_base::binary);
+         matrix_io::eigen::write_sparse_float64_bin(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::sbm:
+      {
+         std::ofstream fileStream(filepath, std::ios_base::binary);
+         matrix_io::eigen::write_sparse_binary_bin(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::mtx:
+      {
+         std::ofstream fileStream(filepath);
+         matrix_io::eigen::write_sparse_float64_mtx(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::csv:
+      die("Invalid matrix type");
+      break;
+   case MatrixType::ddm:
+      die("Invalid matrix type");
+      break;
+   case MatrixType::none:
+      die("Unknown matrix type");
+   default:
+      die("Unknown matrix type");
+   }
+}
+
+void matrix_io::eigen::write_dense_float64_bin(std::ostream& out, const Eigen::MatrixXd& X)
+{
+   /*
+    std::uint64_t rows = matrix.rows();
+   std::uint64_t cols = matrix.cols();
+   out.write((char*) (&rows), sizeof(std::uint64_t));
+   out.write((char*) (&cols), sizeof(std::uint64_t));
+   out.write((char*) matrix.data(), rows*cols*sizeof(typename Eigen::MatrixXd::Scalar) );
+   */
+
+   throw "Not implemented";
+}
+
+const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
+
+void matrix_io::eigen::write_dense_float64_csv(std::ostream& out, const Eigen::MatrixXd& X)
+{
+   /*
+   out << matrix.rows() << std::endl;
+   out << matrix.cols() << std::endl;
+   out << matrix.format(csvFormat) << std::endl;
+   */
+
+   throw "Not implemented";
+}
+
+void matrix_io::eigen::write_sparse_float64_bin(std::ostream& out, const Eigen::SparseMatrix<double>& X)
+{
+   throw "Not implemented";
+}
+
+void matrix_io::eigen::write_sparse_float64_mtx(std::ostream& out, const Eigen::SparseMatrix<double>& X)
+{
+   throw "Not implemented";
+}
+
+void matrix_io::eigen::write_sparse_binary_bin(std::ostream& out, const Eigen::SparseMatrix<double>& X)
+{
+   throw "Not implemented";
 }
