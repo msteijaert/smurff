@@ -16,35 +16,13 @@ void SparseMatrixData::center(double global_mean)
 {
     IMeanCentering::center(global_mean);
 
-    if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL)
-    {
-      getYcPtr()->at(0).coeffs() -= global_mean;
-      getYcPtr()->at(1).coeffs() -= global_mean;
-    }
-    else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)
-    {
-      getYcPtr()->at(0).coeffs() -= getCwiseMean();
-      getYcPtr()->at(1).coeffs() -= getCwiseMean();
-    }
-    else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
-    {
-        // you cannot col/row center fully know sparse matrices
-        // without converting to dense
-        assert(false);
-    }
-    else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
-    {
-        // you cannot col/row center fully know sparse matrices
-        // without converting to dense
-        assert(false);
-    }
-    else if (getCenterMode() == CenterModeTypes::CENTER_NONE)
+    if (getCenterMode() == CenterModeTypes::CENTER_NONE)
     {
        //do nothing
     }
     else
     {
-       throw std::logic_error("Invalid center mode");
+       throw std::logic_error("you cannot center fully know sparse matrix without converting to dense");
     }
 
     setCentered(true);

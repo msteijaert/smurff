@@ -40,6 +40,7 @@ public:
    // utility
    Model &model() const;
    Data  &data() const;
+   double predict(const PVec &) const;
    INoiseModel &noise();
    Eigen::MatrixXd &U();
    Eigen::MatrixXd &V();

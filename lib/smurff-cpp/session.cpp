@@ -191,8 +191,8 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
 
             // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
             // we will remove these extra memory allocation and manipulation
-            int* rowsRawPtr = new int[nrow];
-            int* colsRawPtr = new int[ncol];
+            int* rowsRawPtr = new int[nnz];
+            int* colsRawPtr = new int[nnz];
             for (std::uint64_t i = 0; i < nnz; i++)
             {
                rowsRawPtr[i] = rows->operator[](i);
@@ -218,8 +218,8 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
 
             // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
             // we will remove these extra memory allocation and manipulation
-            int* rowsRawPtr = new int[nrow];
-            int* colsRawPtr = new int[ncol];
+            int* rowsRawPtr = new int[nnz];
+            int* colsRawPtr = new int[nnz];
             double* valuesRawPtr = new double[nnz];
             for (size_t i = 0; i < nnz; i++)
             {

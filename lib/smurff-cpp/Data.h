@@ -127,7 +127,7 @@ namespace smurff
    public:
       static std::string centerModeToString(CenterModeTypes cm);
 
-      static CenterModeTypes stringToCenterMode(std::string c);   
+      static CenterModeTypes stringToCenterMode(std::string c);
    };
 
    class IView

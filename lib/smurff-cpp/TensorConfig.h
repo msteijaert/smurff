@@ -33,6 +33,28 @@ namespace smurff
                   , const NoiseConfig& noiseConfig
                   );
 
+   //
+   // Dense double tensor constructors
+   //
+   public:
+      TensorConfig( const std::vector<std::uint64_t>& dims
+                  , const std::vector<double> values
+                  , const NoiseConfig& noiseConfig
+                  );
+
+      TensorConfig( std::vector<std::uint64_t>&& dims
+                  , std::vector<double>&& values
+                  , const NoiseConfig& noiseConfig
+                  );
+
+      TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
+                  , std::shared_ptr<std::vector<double> > values
+                  , const NoiseConfig& noiseConfig
+                  );
+
+   //
+   // Sparse double tensor constructors
+   //
    public:
       TensorConfig( const std::vector<std::uint64_t>& dims
                   , const std::vector<std::uint32_t>& columns
@@ -49,6 +71,25 @@ namespace smurff
       TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
                   , std::shared_ptr<std::vector<std::uint32_t> > columns
                   , std::shared_ptr<std::vector<double> > values
+                  , const NoiseConfig& noiseConfig
+                  );
+
+   //
+   // Sparse binary tensor constructors
+   //
+   public:
+      TensorConfig( const std::vector<std::uint64_t>& dims
+                  , const std::vector<std::uint32_t>& columns
+                  , const NoiseConfig& noiseConfig
+                  );
+
+      TensorConfig( std::vector<std::uint64_t>&& dims
+                  , std::vector<std::uint32_t>&& columns
+                  , const NoiseConfig& noiseConfig
+                  );
+
+      TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
+                  , std::shared_ptr<std::vector<std::uint32_t> > columns
                   , const NoiseConfig& noiseConfig
                   );
 

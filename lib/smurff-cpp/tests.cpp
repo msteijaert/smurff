@@ -13,12 +13,14 @@
 #include "session.h"
 #include "utils.h"
 #include "Data.h"
+#include "DenseMatrixData.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
 #include "truncnorm.h"
 #include "MatrixConfig.h"
 #include "matrix_io.h"
+#include "tensor_io.h"
 #include "gen_random.h"
 
 #include "ILatentPrior.h"
@@ -645,17 +647,55 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
 
-/*
+
 TEST_CASE("utils/auc","AUC ROC") {
-  Eigen::VectorXd pred(20);
-  Eigen::VectorXd test(20);
-  test << 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0,
-          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-  pred << 20.0, 19.0, 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, 12.0, 11.0,
-          10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0;
-  REQUIRE ( auc(pred, test) == Approx(0.84) );
+  struct TestItem {
+      double pred, val;
+  };
+  std::vector<TestItem> items = {
+   { 20.0, 1.0 },
+   { 19.0, 0.0 },
+   { 18.0, 1.0 },
+   { 17.0, 0.0 },
+   { 16.0, 1.0 },
+   { 15.0, 0.0 },
+   { 14.0, 0.0 },
+   { 13.0, 1.0 },
+   { 12.0, 0.0 },
+   { 11.0, 1.0 },
+   { 10.0, 0.0 },
+   { 9.0,  0.0 },
+   { 8.0,  0.0 },
+   { 7.0,  0.0 },
+   { 6.0,  0.0 },
+   { 5.0,  0.0 },
+   { 4.0,  0.0 },
+   { 3.0,  0.0 },
+   { 2.0,  0.0 },
+   { 1.0,  0.0 }
+  };
+
+  REQUIRE ( calc_auc(items, 0.5) == Approx(0.84) );
 }
-*/
+
+
+TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is correctly calculated") {
+  int    rows[2] = {0, 1};
+  int    cols[2] = {0, 1};
+  double vals[2] = {1., 2.};
+  SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
+  ScarceMatrixData data(sparse_to_eigen(S));
+  data.init();
+  REQUIRE(data.var_total() == Approx(0.25));
+}
+
+TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is correctly calculated") {
+  Eigen::MatrixXd Y(2, 2);
+  Y << 1., 2., 3., 4.;
+  DenseMatrixData data(Y);
+  data.init();
+  REQUIRE(data.var_total() == Approx(1.25));
+}
 
 /* master
 TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {
@@ -1217,6 +1257,274 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
+TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<double> values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> tensorConfigDims = { 3, 3 };
+   std::vector<double> tensorConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigValues, NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> tensorConfigDims = { 3, 3 };
+   std::vector<double> tensorConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   TensorConfig tensorConfig(std::move(tensorConfigDims), std::move(tensorConfigValues), NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   REQUIRE(tensorConfigDims.data() == NULL);
+   REQUIRE(tensorConfigValues.data() == NULL);
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
+{
+   std::shared_ptr<std::vector<std::uint64_t> > tensorConfigDims =
+      std::make_shared<std::vector<std::uint64_t> >(
+         std::initializer_list<std::uint64_t>({ 3, 3 })
+      );
+   std::shared_ptr<std::vector<double> > tensorConfigValues =
+      std::make_shared<std::vector<double> >(
+         std::initializer_list<double>({ 1, 4, 7, 2, 5, 8, 3, 6, 9 })
+      );
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigValues, NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> tensorConfigDims = { 3, 3 };
+   std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 2, 2, 2,
+                                                      0, 1, 2, 0, 1, 2
+                                                    };
+   std::vector<double> tensorConfigValues = { 1, 2, 3, 7, 8, 9 };
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> tensorConfigDims = { 3, 3 };
+   std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 2, 2, 2,
+                                                      0, 1, 2, 0, 1, 2
+                                                    };
+   std::vector<double> tensorConfigValues = { 1, 2, 3, 7, 8, 9 };
+   TensorConfig tensorConfig( std::move(tensorConfigDims)
+                            , std::move(tensorConfigColumns)
+                            , std::move(tensorConfigValues)
+                            , NoiseConfig()
+                            );
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(tensorConfigDims.data() == NULL);
+   REQUIRE(tensorConfigColumns.data() == NULL);
+   REQUIRE(tensorConfigValues.data() == NULL);
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
+{
+   std::shared_ptr<std::vector<std::uint64_t> > tensorConfigDims =
+      std::make_shared<std::vector<std::uint64_t> >(
+         std::initializer_list<std::uint64_t>({ 3, 3 })
+      );
+   std::shared_ptr<std::vector<std::uint32_t> > tensorConfigColumns =
+      std::make_shared<std::vector<std::uint32_t> >(
+         std::initializer_list<std::uint32_t>({
+            0, 0, 0, 2, 2, 2,
+            0, 1, 2, 0, 1, 2
+         })
+      );
+   std::shared_ptr<std::vector<double> > tensorConfigValues =
+      std::make_shared<std::vector<double> >(
+         std::initializer_list<double>({ 1, 2, 3, 7, 8, 9 })
+      );
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> tensorConfigDims = { 3, 3 };
+   std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 2, 2, 2,
+                                                      0, 1, 2, 0, 1, 2
+                                                    };
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, const NoiseConfig& noiseConfig)")
+{
+   std::vector<std::uint64_t> tensorConfigDims = { 3, 3 };
+   std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 2, 2, 2,
+                                                      0, 1, 2, 0, 1, 2
+                                                    };
+   TensorConfig tensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(tensorConfigDims.data() == NULL);
+   REQUIRE(tensorConfigColumns.data() == NULL);
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, const NoiseConfig& noiseConfig)")
+{
+   std::shared_ptr<std::vector<std::uint64_t> > tensorConfigDims =
+      std::make_shared<std::vector<std::uint64_t> >(
+         std::initializer_list<std::uint64_t>({ 3, 3 })
+      );
+   std::shared_ptr<std::vector<std::uint32_t> > tensorConfigColumns =
+      std::make_shared<std::vector<std::uint32_t> >(
+         std::initializer_list<std::uint32_t>({
+            0, 0, 0, 2, 2, 2,
+            0, 1, 2, 0, 1, 2
+         })
+      );
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig());
+
+   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
+                                  , tensorConfig.getDims()[1]
+                                  , tensorConfig.getColumns()
+                                  , tensorConfig.getValues()
+                                  , tensorConfig.getNoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
 TEST_CASE("gen_random/extract(SparseMatrixD)", "[!hide]")
 {
    const double s = 0.3;
@@ -1481,17 +1789,17 @@ TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixTyp
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname, Eigen::SparseMatrix<double> &). .sdm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::vector<double> matrixVals = { 1, 2, 3, 7, 8, 9 };
    std::string matrixFilename = "read_sparse1.sdm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1515,16 +1823,16 @@ TEST_CASE("matrix_io/read_sparse(const std::string& fname, Eigen::SparseMatrix<d
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname, Eigen::SparseMatrix<double> &). .sbm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
    std::vector<int> matrixRows = { 1, 1, 1, 3, 3, 3 };
    std::vector<int> matrixCols = { 1, 2, 3, 1, 2, 3 };
    std::string matrixFilename = "read_sparse1.sbm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.close();
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
@@ -1676,12 +1984,12 @@ TEST_CASE("matrix_io/read_csv(std::istream& in)")
 
 TEST_CASE("matrix_io/read_ddm(const std::string& filename)")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::string matrixFilename = "read_ddm.csv";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1697,11 +2005,11 @@ TEST_CASE("matrix_io/read_ddm(const std::string& filename)")
 
 TEST_CASE("matrix_io/read_ddm(std::istream& in)")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::stringstream matrixStream;
-   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixStream.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
 
    Eigen::MatrixXd expectedMatrix(3, 3);
@@ -1715,12 +2023,12 @@ TEST_CASE("matrix_io/read_ddm(std::istream& in)")
 
 TEST_CASE("matrix_io/read_dense(const std::string& fname). .ddm")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::string matrixFilename = "read_dense.ddm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1757,11 +2065,11 @@ TEST_CASE("matrix_io/read_dense(const std::string& fname). .csv")
 
 TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType). DenseMatrixType::ddm")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::stringstream matrixStream;
-   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixStream.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
 
    Eigen::MatrixXd expectedMatrix(3, 3);
@@ -1793,17 +2101,17 @@ TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixTyp
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname). .sdm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::vector<double> matrixVals = { 1, 2, 3, 7, 8, 9 };
    std::string matrixFilename = "read_sparse2.sdm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1827,16 +2135,16 @@ TEST_CASE("matrix_io/read_sparse(const std::string& fname). .sdm")
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname). .sbm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::string matrixFilename = "read_sparse2.sbm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.close();
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
@@ -1890,12 +2198,12 @@ TEST_CASE("matrix_io/read_sparse(const std::string& fname). .mtx")
 
 TEST_CASE("matrix_io/read_matrix(const std::string& fname). .ddm")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::string matrixFilename = "read_matrix.ddm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1932,17 +2240,17 @@ TEST_CASE("matrix_io/read_matrix(const std::string& fname). .csv")
 
 TEST_CASE("matrix_io/read_matrix(const std::string& fname). .sdm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::vector<double> matrixVals = { 1, 2, 3, 7, 8, 9 };
    std::string matrixFilename = "read_matrix.sdm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1966,16 +2274,16 @@ TEST_CASE("matrix_io/read_matrix(const std::string& fname). .sdm")
 
 TEST_CASE("matrix_io/read_matrix(const std::string& fname). .sbm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::string matrixFilename = "read_matrix.sbm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.close();
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
@@ -2024,6 +2332,399 @@ TEST_CASE("matrix_io/read_matrix(const std::string& fname). .mtx")
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
    std::remove(matrixFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_dense_float64(const std::string& filename) | write_dense_float64(const std::string& filename, const smurff::MatrixConfig& Y)")
+{
+   std::string matrixFilename = "dense_float64.ddm";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig matrixConfig(matrixConfigNRow, matrixConfigNCol, std::move(matrixConfigValues), NoiseConfig());
+
+   write_dense_float64(matrixFilename, matrixConfig);
+   MatrixConfig actualMatrixConfig = read_dense_float64(matrixFilename);
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   std::remove(matrixFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_dense_float64(std::istream& in) | write_dense_float64(std::ostream& out, const smurff::MatrixConfig& Y)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig matrixConfig(matrixConfigNRow, matrixConfigNCol, std::move(matrixConfigValues), NoiseConfig());
+
+   std::stringstream matrixConfigStream;
+   write_dense_float64(matrixConfigStream, matrixConfig);
+
+   MatrixConfig actualMatrixConfig = read_dense_float64(matrixConfigStream);
+   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_sparse_float64(const std::string& filename) | write_sparse_float64(const std::string& filename, const smurff::MatrixConfig& Y)")
+{
+   std::string matrixFilename = "sparse_float64.sdm";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   write_sparse_float64(matrixFilename, matrixConfig);
+
+   MatrixConfig actualMatrixConfig = read_sparse_float64(matrixFilename);
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::remove(matrixFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_sparse_float64(std::istream& in) | write_sparse_float64(std::ostream& out, const smurff::MatrixConfig& Y)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream matrixConfigStream;
+   write_sparse_float64(matrixConfigStream, matrixConfig);
+
+   MatrixConfig actualMatrixConfig = read_sparse_float64(matrixConfigStream);
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_sparse_binary_matrix(const std::string& filename) | write_sparse_binary_matrix(const std::string& filename, const smurff::MatrixConfig& Y)")
+{
+   std::string matrixFilename = "sparse_binary_matrix.sbm";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , NoiseConfig()
+                            );
+
+   write_sparse_binary_matrix(matrixFilename, matrixConfig);
+
+   MatrixConfig actualMatrixConfig = read_sparse_binary_matrix(matrixFilename);
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::remove(matrixFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_sparse_binary_matrix(std::istream& in) | write_sparse_binary_matrix(std::ostream& out, const smurff::MatrixConfig& Y)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream matrixConfigStream;
+   write_sparse_binary_matrix(matrixConfigStream, matrixConfig);
+
+   MatrixConfig actualMatrixConfig = read_sparse_binary_matrix(matrixConfigStream);
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_dense_float64(const std::string& filename)| tensor_io/write_dense_float64(const std::string& filename, const TensorConfig& tensorConfig)")
+{
+   std::string tensorFilename = "dense_float64.ddt";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   tensor_io::write_dense_float64(tensorFilename, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_dense_float64(tensorFilename);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::MatrixXd actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   std::remove(tensorFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_dense_float64(std::istream& in) | tensor_io/write_dense_float64(std::ostream& out, const TensorConfig& tensorConfig)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream matrixConfigStream;
+   tensor_io::write_dense_float64(matrixConfigStream, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_dense_float64(matrixConfigStream);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::MatrixXd actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_float64(const std::string& filename) | tensor_io/write_sparse_float64(const std::string& filename, const TensorConfig& tensorConfig)")
+{
+   std::string tensorFilename = "sparse_float64.sdt";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   tensor_io::write_sparse_float64(tensorFilename, matrixConfig);
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_float64(tensorFilename);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::remove(tensorFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_float64(std::istream& in) | tensor_io/write_sparse_float64(std::ostream& out, const TensorConfig& tensorConfig)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream tensorStream;
+   tensor_io::write_sparse_float64(tensorStream, matrixConfig);
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_float64(tensorStream);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_binary(const std::string& filename) | tensor_io/write_sparse_binary(const std::string& filename, const TensorConfig& tensorConfig)")
+{
+   std::string tensorFilename = "sparse_binary.sbt";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , NoiseConfig()
+                            );
+
+   tensor_io::write_sparse_binary(tensorFilename, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_binary(tensorFilename);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::remove(tensorFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_binary(std::istream& in) | tensor_io/write_sparse_binary(std::ostream& out, const TensorConfig& tensorConfig)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream tensorConfigStream;
+   tensor_io::write_sparse_binary(tensorConfigStream, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_binary(tensorConfigStream);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
@@ -2523,7 +3224,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_NONE")
    DenseMatrixData dmd(initialMatrix);
 
    IMeanCentering* mnce = &dmd;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
 
    dmd.setNoiseModel(new Noiseless());
@@ -2531,7 +3232,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_NONE")
 
    REQUIRE(mnce->getGlobalMean() == Approx(4.33).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(4.33).epsilon(0.01));
-   
+
    REQUIRE(initialMatrix.isApprox(dmd.getYc().at(0).transpose()));
    REQUIRE(initialMatrix.isApprox(dmd.getYc().at(1)));
 }
@@ -2544,7 +3245,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_GLOBAL")
    DenseMatrixData dmd(initialMatrix);
 
    IMeanCentering* mnce = &dmd;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
 
    dmd.setNoiseModel(new Noiseless());
@@ -2568,7 +3269,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_VIEW")
    DenseMatrixData dmd(initialMatrix);
 
    IMeanCentering* mnce = &dmd;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
 
    dmd.setNoiseModel(new Noiseless());
@@ -2595,7 +3296,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_COLS")
 
    //substract each row mean from each row
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_COLS);
-   
+
    dmd.setNoiseModel(new Noiseless());
    dmd.init();
 
@@ -2607,7 +3308,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_COLS")
 
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 4.5, 2.5, 6.0;
-   
+
    REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
    REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
 
@@ -2629,7 +3330,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_ROWS")
 
    //substract each column mean from each columns
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_ROWS);
-   
+
    dmd.setNoiseModel(new Noiseless());
    dmd.init();
 
@@ -2641,7 +3342,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_ROWS")
 
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 4.5, 2.5, 6.0;
-   
+
    REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
    REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
 
@@ -2649,7 +3350,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_ROWS")
    expectedMatrix << -3.5, -0.5, -3.0, -4.5, -2.5, -6, 2.5, 5.5, 3, 5.5, -2.5, 6;
 
    REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(1), 0.01));       
+   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(1), 0.01));
 }
 
 //===
@@ -2673,7 +3374,7 @@ TEST_CASE("SparseMatrixData IMeanCentering CENTER_NONE")
    SparseMatrixData smd(initialMatrix);
 
    IMeanCentering* mnce = &smd;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
 
    smd.setNoiseModel(new Noiseless());
@@ -2681,105 +3382,9 @@ TEST_CASE("SparseMatrixData IMeanCentering CENTER_NONE")
 
    REQUIRE(mnce->getGlobalMean() == Approx(4.33).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(4.33).epsilon(0.01));
-   
+
    REQUIRE(initialMatrix.isApprox(smd.getYc().at(0).transpose()));
    REQUIRE(initialMatrix.isApprox(smd.getYc().at(1)));
-}
-
-TEST_CASE("SparseMatrixData IMeanCentering CENTER_GLOBAL")
-{
-   std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
-      { 0, 0, 1 },
-      { 0, 1, 2 },
-      { 0, 2, 3 },
-      { 2, 0, 7 },
-      { 2, 1, 8 },
-      { 2, 2, 9 },
-      { 3, 0, 10 },
-      { 3, 2, 12 },
-   };
-
-   Eigen::SparseMatrix<double> initialMatrix(4, 3);
-   initialMatrix.setFromTriplets(initialMatrixTriplets.begin(), initialMatrixTriplets.end());
-
-   SparseMatrixData smd(initialMatrix);
-
-   IMeanCentering* mnce = &smd;
-   
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
-
-   smd.setNoiseModel(new Noiseless());
-   smd.init();
-
-   REQUIRE(mnce->getGlobalMean() == Approx(4.33).epsilon(0.01));
-   REQUIRE(mnce->getCwiseMean() == Approx(4.33).epsilon(0.01));
-
-   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
-      { 0, 0, -3.33 },
-      { 0, 1, -2.33 },
-      { 0, 2, -1.33 },
-      
-      { 2, 0, 2.67 },
-      { 2, 1, 3.67 },
-      { 2, 2, 4.67 },
-
-      { 3, 0, 5.67 },
-      { 3, 2, 7.67 },
-   };
-
-   Eigen::SparseMatrix<double> expectedMatrix(4, 3);
-   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-
-   REQUIRE(expectedMatrix.isApprox(smd.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(smd.getYc().at(1), 0.01));
-}
-
-TEST_CASE("SparseMatrixData IMeanCentering CENTER_VIEW")
-{
-   std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
-      { 0, 0, 1 },
-      { 0, 1, 2 },
-      { 0, 2, 3 },
-      { 2, 0, 7 },
-      { 2, 1, 8 },
-      { 2, 2, 9 },
-      { 3, 0, 10 },
-      { 3, 2, 12 },
-   };
-
-   Eigen::SparseMatrix<double> initialMatrix(4, 3);
-   initialMatrix.setFromTriplets(initialMatrixTriplets.begin(), initialMatrixTriplets.end());
-
-   SparseMatrixData smd(initialMatrix);
-
-   IMeanCentering* mnce = &smd;
-   
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
-
-   smd.setNoiseModel(new Noiseless());
-   smd.init();
-
-   REQUIRE(mnce->getGlobalMean() == Approx(4.33).epsilon(0.01));
-   REQUIRE(mnce->getCwiseMean() == Approx(4.33).epsilon(0.01));
-
-   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
-      { 0, 0, -3.33 },
-      { 0, 1, -2.33 },
-      { 0, 2, -1.33 },
-      
-      { 2, 0, 2.67 },
-      { 2, 1, 3.67 },
-      { 2, 2, 4.67 },
-
-      { 3, 0, 5.67 },
-      { 3, 2, 7.67 },
-   };
-
-   Eigen::SparseMatrix<double> expectedMatrix(4, 3);
-   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-
-   REQUIRE(expectedMatrix.isApprox(smd.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(smd.getYc().at(1), 0.01));
 }
 
 //===
@@ -2803,7 +3408,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_NONE")
    ScarceMatrixData scm(initialMatrix);
 
    IMeanCentering* mnce = &scm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
 
    scm.setNoiseModel(new Noiseless());
@@ -2811,7 +3416,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_NONE")
 
    REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
-   
+
    REQUIRE(initialMatrix.isApprox(scm.getYc().at(0).transpose()));
    REQUIRE(initialMatrix.isApprox(scm.getYc().at(1)));
 }
@@ -2835,7 +3440,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_GLOBAL")
    ScarceMatrixData scm(initialMatrix);
 
    IMeanCentering* mnce = &scm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
 
    scm.setNoiseModel(new Noiseless());
@@ -2857,7 +3462,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_GLOBAL")
 
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-   
+
    REQUIRE(expectedMatrix.isApprox(scm.getYc().at(0).transpose(), 0.01));
    REQUIRE(expectedMatrix.isApprox(scm.getYc().at(1), 0.01));
 }
@@ -2881,7 +3486,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_VIEW")
    ScarceMatrixData scm(initialMatrix);
 
    IMeanCentering* mnce = &scm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
 
    scm.setNoiseModel(new Noiseless());
@@ -2903,7 +3508,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_VIEW")
 
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-   
+
    REQUIRE(expectedMatrix.isApprox(scm.getYc().at(0).transpose(), 0.01));
    REQUIRE(expectedMatrix.isApprox(scm.getYc().at(1), 0.01));
 }
@@ -2927,7 +3532,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_COLS")
    ScarceMatrixData scm(initialMatrix);
 
    IMeanCentering* mnce = &scm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_COLS);
 
    scm.setNoiseModel(new Noiseless());
@@ -2941,7 +3546,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_COLS")
 
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
-   
+
    REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
    REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
 
@@ -2982,7 +3587,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
    ScarceMatrixData scm(initialMatrix);
 
    IMeanCentering* mnce = &scm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_ROWS);
 
    scm.setNoiseModel(new Noiseless());
@@ -2996,7 +3601,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
 
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
-   
+
    REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
    REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
 
@@ -3013,7 +3618,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
 
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-   
+
    REQUIRE(expectedMatrix.isApprox(scm.getYc().at(0).transpose(), 0.01));
    REQUIRE(expectedMatrix.isApprox(scm.getYc().at(1), 0.01));
 }
@@ -3039,7 +3644,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_NONE")
    ScarceBinaryMatrixData sbm(initialMatrix);
 
    IMeanCentering* mnce = &sbm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
 
    sbm.setNoiseModel(new Noiseless());
@@ -3047,7 +3652,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_NONE")
 
    REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
-   
+
    REQUIRE(initialMatrix.isApprox(sbm.getYc().at(0).transpose()));
    REQUIRE(initialMatrix.isApprox(sbm.getYc().at(1)));
 }
@@ -3071,7 +3676,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_GLOBAL")
    ScarceBinaryMatrixData sbm(initialMatrix);
 
    IMeanCentering* mnce = &sbm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
 
    sbm.setNoiseModel(new Noiseless());
@@ -3093,7 +3698,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_GLOBAL")
 
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-   
+
    REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
    REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
 }
@@ -3117,7 +3722,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_VIEW")
    ScarceBinaryMatrixData sbm(initialMatrix);
 
    IMeanCentering* mnce = &sbm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
 
    sbm.setNoiseModel(new Noiseless());
@@ -3139,7 +3744,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_VIEW")
 
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-   
+
    REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
    REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
 }
@@ -3163,7 +3768,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_COLS")
    ScarceBinaryMatrixData sbm(initialMatrix);
 
    IMeanCentering* mnce = &sbm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_COLS);
 
    sbm.setNoiseModel(new Noiseless());
@@ -3177,7 +3782,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_COLS")
 
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
-   
+
    REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
    REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
 
@@ -3218,7 +3823,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
    ScarceBinaryMatrixData sbm(initialMatrix);
 
    IMeanCentering* mnce = &sbm;
-   
+
    mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_ROWS);
 
    sbm.setNoiseModel(new Noiseless());
@@ -3232,7 +3837,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
 
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
-   
+
    REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
    REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
 
@@ -3249,9 +3854,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
 
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
-   
+
    REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
    REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
 }
-
-

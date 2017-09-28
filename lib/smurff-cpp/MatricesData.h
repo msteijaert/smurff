@@ -52,7 +52,7 @@ namespace smurff
 
    private:
       struct Block {
-          friend struct MatricesData;
+          friend class MatricesData;
           // c'tor
           Block(PVec p, std::unique_ptr<MatrixData> c);
 
