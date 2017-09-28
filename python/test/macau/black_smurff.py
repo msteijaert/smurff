@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from macau import macau
 import scipy.io
@@ -35,7 +35,7 @@ options = [
         { "name": "save-suffix",      "metavar": "EXT",  "help":  "suffix for result files (.csv or .ddm}"},
         { "name": "save-freq",        "metavar": "NUM", "type": float,  "help":  "save every n iterations (0 == never}"},
         { "name": "threshold",        "metavar": "NUM", "type": float,  "help":  "threshold for binary classification"},
-        { "name": "verbose",          "metavar": "NUM", "type": float,  "help":  "verbose output (default = 1}"},
+        { "name": "verbose",          "metavar": "NUM", "nargs": "?", "type": float,  "help":  "verbose output (default = 1}"},
         { "name": "quiet",                               "help":  "no output"},
         { "name": "status",           "metavar": "FILE", "help":  "output progress to csv file"},
         { "group": "Noise model"},
@@ -58,33 +58,20 @@ for o in options:
 
 args = parser.parse_args()
 
+train_matrix = scipy.io.mmread(args.train)
+test_matrix = None
+if (args.test):
+    test_matrix  = scipy.io.mmread(args.test)
+side_rows_matrix = None
+side_cols_matrix = None
 
-ic50_train = scipy.io.mmread(datadir + "fold1_train.mtx")
-ic50_test = scipy.io.mmread(datadir + "fold1_test.mtx")
-ecfp = scipy.io.mmread(datadir + "ecfp.mtx")
 
-result = bpmf(Y          = ic50_train,
-              Ytest      = ic50_test,
-              num_latent = 20,
-              precision   = "adaptive",
-              burnin     = 20,
-              nsamples   = 100,
-              verbose = False)
-
-result = bpmf(Y          = ic50_train,
-              Ytest      = ic50_test,
-              num_latent = 20,
-              verbose    = False,
-              precision  = 1.0,
-              burnin     = 20,
-              nsamples   = 100)
-
-result = macau(Y          = ic50_train,
-              Ytest      = ic50_test,
-              num_latent = 20,
-              side = [ ecfp, None ],
-              verbose    = True,
-              precision  = 1.0,
-              burnin     = 20,
-              nsamples   = 100)
+result = macau(Y          = train_matrix,
+               Ytest      = test_matrix,
+               num_latent = args.num_latent,
+               side = [ side_rows_matrix, side_cols_matrix ],
+               verbose    = args.verbose,
+               precision  = args.precision,
+               burnin     = args.burnin,
+               nsamples   = args.nsamples)
 
