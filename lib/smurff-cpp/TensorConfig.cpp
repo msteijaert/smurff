@@ -45,19 +45,19 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
    m_columns->reserve(m_dims->size() * m_nnz);
    m_values = std::make_shared<std::vector<double> >(values);
 
-	for (std::size_t i = 0; i < m_dims->size(); i++)
+	for (std::vector<uint64_t>::reverse_iterator it = m_dims->rbegin(); it != m_dims->rend(); it++)
 	{
-		std::uint64_t j_max =
-			std::accumulate(m_dims->begin(), m_dims->begin() + i, 1, std::multiplies<std::uint64_t>());
-		for (std::uint64_t j = 0; j < j_max; j++)
+		std::uint64_t i_max =
+			std::accumulate(it + 1, m_dims->rend(), 1, std::multiplies<std::uint64_t>());
+		for (std::uint64_t i = 0; i < i_max; i++)
 		{
-			for (std::uint64_t k = 0; k < m_dims->operator[](i); k++)
+			for (std::uint64_t j = 0; j < *it; j++)
 			{
-				std::uint64_t l_max =
-					std::accumulate(m_dims->begin() + i + 1, m_dims->end(), 1, std::multiplies<std::uint64_t>());
-				for (std::uint64_t l = 0; l < l_max; l++)
+				std::uint64_t k_max =
+					std::accumulate(m_dims->rbegin(), it, 1, std::multiplies<std::uint64_t>());
+				for (std::uint64_t k = 0; k < k_max; k++)
 				{
-					m_columns->push_back(static_cast<std::uint32_t>(k));
+					m_columns->push_back(static_cast<std::uint32_t>(j));
 				}
 			}
 		}
@@ -99,19 +99,19 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    m_columns = std::make_shared<std::vector<std::uint32_t> >();
    m_columns->reserve(m_dims->size() * m_nnz);
 
-	for (std::size_t i = 0; i < m_dims->size(); i++)
+	for (std::vector<uint64_t>::reverse_iterator it = m_dims->rbegin(); it != m_dims->rend(); it++)
 	{
-		std::uint64_t j_max =
-			std::accumulate(m_dims->begin(), m_dims->begin() + i, 1, std::multiplies<std::uint64_t>());
-		for (std::uint64_t j = 0; j < j_max; j++)
+		std::uint64_t i_max =
+			std::accumulate(it + 1, m_dims->rend(), 1, std::multiplies<std::uint64_t>());
+		for (std::uint64_t i = 0; i < i_max; i++)
 		{
-			for (std::uint64_t k = 0; k < m_dims->operator[](i); k++)
+			for (std::uint64_t j = 0; j < *it; j++)
 			{
-				std::uint64_t l_max =
-					std::accumulate(m_dims->begin() + i + 1, m_dims->end(), 1, std::multiplies<std::uint64_t>());
-				for (std::uint64_t l = 0; l < l_max; l++)
+				std::uint64_t k_max =
+					std::accumulate(m_dims->rbegin(), it, 1, std::multiplies<std::uint64_t>());
+				for (std::uint64_t k = 0; k < k_max; k++)
 				{
-					m_columns->push_back(static_cast<std::uint32_t>(k));
+					m_columns->push_back(static_cast<std::uint32_t>(j));
 				}
 			}
 		}
