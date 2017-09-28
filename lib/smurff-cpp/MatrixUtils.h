@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MatrixConfig.h"
+
 class SparseFeat {
 public:
   BinaryCSR M;

@@ -15,95 +15,95 @@ using namespace smurff;
 #define EXTENSION_CSV ".csv"
 #define EXTENSION_DDM ".ddm"
 
-MatrixType ExtensionToMatrixType(const std::string& fname)
+matrix_io::MatrixType ExtensionToMatrixType(const std::string& fname)
 {
    std::string extension = fname.substr(fname.find_last_of("."));
    if (extension == EXTENSION_SDM)
    {
-      return MatrixType::sdm;
+      return matrix_io::MatrixType::sdm;
    }
    else if (extension == EXTENSION_SBM)
    {
-      return MatrixType::sbm;
+      return matrix_io::MatrixType::sbm;
    }
    else if (extension == EXTENSION_MTX || extension == EXTENSION_MM)
    {
-       return MatrixType::mtx;
+       return matrix_io::MatrixType::mtx;
    }
    else if (extension == EXTENSION_CSV)
    {
-      return MatrixType::csv;
+      return matrix_io::MatrixType::csv;
    }
    else if (extension == EXTENSION_DDM)
    {
-      return MatrixType::ddm;
+      return matrix_io::MatrixType::ddm;
    }
    else
    {
-      die("Unknown file type: " + extension);
+      throw "Unknown file type: " + extension;
    }
-   return MatrixType::none;
+   return matrix_io::MatrixType::none;
 }
 
-std::string MatrixTypeToExtension(MatrixType matrixType)
+std::string MatrixTypeToExtension(matrix_io::MatrixType matrixType)
 {
    switch (matrixType)
    {
-   case MatrixType::sdm:
+   case matrix_io::MatrixType::sdm:
       return EXTENSION_SDM;
-   case MatrixType::sbm:
+   case matrix_io::MatrixType::sbm:
       return EXTENSION_SBM;
-   case MatrixType::mtx:
+   case matrix_io::MatrixType::mtx:
       return EXTENSION_MTX;
-   case MatrixType::csv:
+   case matrix_io::MatrixType::csv:
       return EXTENSION_CSV;
-   case MatrixType::ddm:
+   case matrix_io::MatrixType::ddm:
       return EXTENSION_DDM;
-   case MatrixType::none:
-      die("Unknown matrix type");
+   case matrix_io::MatrixType::none:
+      throw "Unknown matrix type";
    default:
-      die("Unknown matrix type");
+      throw "Unknown matrix type";
    }
    return std::string();
 }
 
 MatrixConfig matrix_io::read_matrix(const std::string& filename)
 {
-   MatrixType matrixType = ExtensionToMatrixType(fname);
+   MatrixType matrixType = ExtensionToMatrixType(filename);
 
    die_unless_file_exists(filename);
 
    switch (matrixType)
    {
-   case sdm:
+   case matrix_io::MatrixType::sdm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
          return matrix_io::read_sparse_float64_bin(fileStream);
       }
-   case sbm:
+   case matrix_io::MatrixType::sbm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
          return matrix_io::read_sparse_binary_bin(fileStream);
       }
-   case mtx:
+   case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
          return matrix_io::read_sparse_float64_mtx(fileStream);
       }
-   case csv:
+   case matrix_io::MatrixType::csv:
       {
          std::ifstream fileStream(filename);
          return matrix_io::read_dense_float64_csv(fileStream);
       }
-   case ddm:
+   case matrix_io::MatrixType::ddm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
          return matrix_io::read_dense_float64_bin(fileStream);
       }
-   case none:
-      die("Unknown matrix type");
+   case matrix_io::MatrixType::none:
+      throw "Unknown matrix type";
    default:
-      die("Unknown matrix type");
+      throw "Unknown matrix type";
    }
 }
 
@@ -253,46 +253,46 @@ MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
 void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& matrixConfig, MatrixType matrixType)
 {
    std::string extension = MatrixTypeToExtension(matrixType);
-   std::string filepath = filename + extesion;
+   std::string filepath = filename + extension;
 
    die_unless_file_exists(filepath);
 
    switch (matrixType)
    {
-   case MatrixType::sdm:
+   case matrix_io::MatrixType::sdm:
       {
          std::ofstream fileStream(filepath, std::ios_base::binary);
          matrix_io::write_sparse_float64_bin(fileStream, matrixConfig);
       }
       break;
-   case MatrixType::sbm:
+   case matrix_io::MatrixType::sbm:
       {
          std::ofstream fileStream(filepath, std::ios_base::binary);
          matrix_io::write_sparse_binary_bin(fileStream, matrixConfig);
       }
       break;
-   case MatrixType::mtx:
+   case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filepath);
          matrix_io::write_sparse_float64_mtx(fileStream, matrixConfig);
       }
       break;
-   case MatrixType::csv:
+   case matrix_io::MatrixType::csv:
       {
          std::ofstream fileStream(filepath);
          matrix_io::write_dense_float64_csv(fileStream, matrixConfig);
       }
       break;
-   case MatrixType::ddm:
+   case matrix_io::MatrixType::ddm:
       {
          std::ofstream fileStream(filepath, std::ios_base::binary);
          matrix_io::write_dense_float64_bin(fileStream, matrixConfig);
       }
       break;
-   case MatrixType::none:
-      die("Unknown matrix type");
+   case matrix_io::MatrixType::none:
+      throw "Unknown matrix type";
    default:
-      die("Unknown matrix type");
+      throw "Unknown matrix type";
    }
 }
 
@@ -366,71 +366,71 @@ void read_matrix(const std::string& filename, Eigen::VectorXd& V)
 
 void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd& X)
 {
-   MatrixType matrixType = ExtensionToMatrixType(fname);
+   matrix_io::MatrixType matrixType = ExtensionToMatrixType(filename);
 
    die_unless_file_exists(filename);
 
    switch (matrixType)
    {
-   case sdm:
-      die("Invalid matrix type");
-   case sbm:
-      die("Invalid matrix type");
-   case mtx:
-      die("Invalid matrix type");
-   case csv:
+   case matrix_io::MatrixType::sdm:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::sbm:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::mtx:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::csv:
       {
          std::ifstream fileStream(filename);
          matrix_io::eigen::read_dense_float64_csv(fileStream, X);
       }
       break;
-   case ddm:
+   case matrix_io::MatrixType::ddm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
          matrix_io::eigen::read_dense_float64_bin(fileStream, X);
       }
       break;
-   case none:
-      die("Unknown matrix type");
+   case matrix_io::MatrixType::none:
+      throw "Unknown matrix type";
    default:
-      die("Unknown matrix type");
+      throw "Unknown matrix type";
    }
 }
 
 void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMatrix<double>& X)
 {
-   MatrixType matrixType = ExtensionToMatrixType(fname);
+   matrix_io::MatrixType matrixType = ExtensionToMatrixType(filename);
 
    die_unless_file_exists(filename);
 
    switch (matrixType)
    {
-   case sdm:
+   case matrix_io::MatrixType::sdm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
          matrix_io::eigen::read_sparse_float64_bin(fileStream, X);
       }
       break;
-   case sbm:
+   case matrix_io::MatrixType::sbm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
          matrix_io::eigen::read_sparse_binary_bin(fileStream, X);
       }
       break;
-   case mtx:
+   case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
          matrix_io::eigen::read_sparse_float64_mtx(fileStream, X);
       }
       break;
-   case csv:
-      die("Invalid matrix type");
-   case ddm:
-      die("Invalid matrix type");
-   case none:
-      die("Unknown matrix type");
+   case matrix_io::MatrixType::csv:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::ddm:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::none:
+      throw "Unknown matrix type";
    default:
-      die("Unknown matrix type");
+      throw "Unknown matrix type";
    }
 }
 
@@ -520,77 +520,72 @@ void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMat
 void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X, MatrixType matrixType)
 {
    std::string extension = MatrixTypeToExtension(matrixType);
-   std::string filepath = filename + extesion;
+   std::string filepath = filename + extension;
 
    die_unless_file_exists(filepath);
 
    switch (matrixType)
    {
-   case MatrixType::sdm:
-      die("Invalid matrix type");
-      break;
-   case MatrixType::sbm:
-      die("Invalid matrix type");
-      break;
-   case MatrixType::mtx:
-      die("Invalid matrix type");
-      break;
-   case MatrixType::csv:
+   case matrix_io::MatrixType::sdm:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::sbm:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::mtx:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::csv:
       {
          std::ofstream fileStream(filepath);
          matrix_io::eigen::write_dense_float64_csv(fileStream, X);
       }
       break;
-   case MatrixType::ddm:
+   case matrix_io::MatrixType::ddm:
       {
          std::ofstream fileStream(filepath, std::ios_base::binary | std::ios::trunc);
          matrix_io::eigen::write_dense_float64_bin(fileStream, X);
       }
       break;
-   case MatrixType::none:
-      die("Unknown matrix type");
+   case matrix_io::MatrixType::none:
+      throw "Unknown matrix type";
    default:
-      die("Unknown matrix type");
+      throw "Unknown matrix type";
    }
 }
 
 void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X, MatrixType matrixType)
 {
    std::string extension = MatrixTypeToExtension(matrixType);
-   std::string filepath = filename + extesion;
+   std::string filepath = filename + extension;
 
    die_unless_file_exists(filepath);
 
    switch (matrixType)
    {
-   case MatrixType::sdm:
+   case matrix_io::MatrixType::sdm:
       {
          std::ofstream fileStream(filepath, std::ios_base::binary);
-         matrix_io::eigen::write_sparse_float64_bin(fileStream, matrixConfig);
+         matrix_io::eigen::write_sparse_float64_bin(fileStream, X);
       }
       break;
-   case MatrixType::sbm:
+   case matrix_io::MatrixType::sbm:
       {
          std::ofstream fileStream(filepath, std::ios_base::binary);
-         matrix_io::eigen::write_sparse_binary_bin(fileStream, matrixConfig);
+         matrix_io::eigen::write_sparse_binary_bin(fileStream, X);
       }
       break;
-   case MatrixType::mtx:
+   case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filepath);
-         matrix_io::eigen::write_sparse_float64_mtx(fileStream, matrixConfig);
+         matrix_io::eigen::write_sparse_float64_mtx(fileStream, X);
       }
       break;
-   case MatrixType::csv:
-      die("Invalid matrix type");
-      break;
-   case MatrixType::ddm:
-      die("Invalid matrix type");
-      break;
-   case MatrixType::none:
-      die("Unknown matrix type");
+   case matrix_io::MatrixType::csv:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::ddm:
+      throw "Invalid matrix type";
+   case matrix_io::MatrixType::none:
+      throw "Unknown matrix type";
    default:
-      die("Unknown matrix type");
+      throw "Unknown matrix type";
    }
 }
 
