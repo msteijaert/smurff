@@ -106,11 +106,6 @@ elseif (CMAKE_COMPILER_IS_GNUCXX OR APPLE)
 
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -fPIC")
 
-   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
-   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto")
-   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -flto")
-   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g")
-
 else()
    message (FATAL_ERROR "Using untested/unconfigured compiler, only Microsoft and g++ toolchain has been tested/established.")
    return()
@@ -175,8 +170,12 @@ if(NOT MSVC)
   if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Debug build.")
     add_definitions(-D_DEBUG)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g")
   elseif(CMAKE_BUILD_TYPE MATCHES Release)
     message(STATUS "Release build.")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -flto")
   else()
     message(STATUS "Unknown build type...")
   endif()
@@ -283,6 +282,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../model.h"
                         "../result.h"
                         "../matrix_io.h"
+                        "../tensor_io.h"
                         "../AdaptiveGaussianNoise.h"
                         "../FixedGaussianNoise.h"
                         "../ProbitNoise.h"
@@ -323,6 +323,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../model.cpp"
                         "../result.cpp"
                         "../matrix_io.cpp"
+                        "../tensor_io.cpp"
                         "../AdaptiveGaussianNoise.cpp"
                         "../FixedGaussianNoise.cpp"
                         "../ProbitNoise.cpp"
@@ -359,7 +360,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup smurff ############## 
+############## setup smurff ##############
 
 #SETUP PROJECT
 set (PROJECT smurff)
@@ -382,7 +383,7 @@ SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} smurff-cpp 
+target_link_libraries (${PROJECT} smurff-cpp
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
@@ -391,7 +392,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup tests ############## 
+############## setup tests ##############
 
 #SETUP PROJECT
 set (PROJECT tests)
@@ -413,7 +414,7 @@ SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} smurff-cpp 
+target_link_libraries (${PROJECT} smurff-cpp
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
@@ -422,7 +423,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup mpi_smurff ############## 
+############## setup mpi_smurff ##############
 
 if(${MPI_CXX_FOUND})
 
@@ -447,7 +448,7 @@ SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} smurff-cpp 
+target_link_libraries (${PROJECT} smurff-cpp
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
@@ -458,7 +459,7 @@ include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 endif()
 
-############## setup bench_nrandn ############## 
+############## setup bench_nrandn ##############
 
 #SETUP PROJECT
 set (PROJECT bench_nrandn)
@@ -494,7 +495,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup bench_wishart ############## 
+############## setup bench_wishart ##############
 
 #SETUP PROJECT
 set (PROJECT bench_wishart)
@@ -531,7 +532,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup bench_mvnormal ############## 
+############## setup bench_mvnormal ##############
 
 #SETUP PROJECT
 set (PROJECT bench_mvnormal)
