@@ -2483,6 +2483,7 @@ TEST_CASE("tensor_io/read_dense_float64(const std::string& filename)| tensor_io/
    TensorConfig actualTensorConfig = tensor_io::read_dense_float64(tensorFilename);
    MatrixConfig actualMatrixConfig( matrixConfigNRow
                                   , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
                                   , actualTensorConfig.getValues()
                                   , NoiseConfig()
                                   );
@@ -2495,7 +2496,7 @@ TEST_CASE("tensor_io/read_dense_float64(const std::string& filename)| tensor_io/
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-TEST_CASE("tensor_io/read_dense_float64(std::istream& in) | tensor_io/write_sparse_binary(std::ostream& out, const TensorConfig& tensorConfig)")
+TEST_CASE("tensor_io/read_dense_float64(std::istream& in) | tensor_io/write_dense_float64(std::ostream& out, const TensorConfig& tensorConfig)")
 {
    std::uint64_t matrixConfigNRow = 3;
    std::uint64_t matrixConfigNCol = 3;
@@ -2512,6 +2513,7 @@ TEST_CASE("tensor_io/read_dense_float64(std::istream& in) | tensor_io/write_spar
    TensorConfig actualTensorConfig = tensor_io::read_dense_float64(matrixConfigStream);
    MatrixConfig actualMatrixConfig( matrixConfigNRow
                                   , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
                                   , actualTensorConfig.getValues()
                                   , NoiseConfig()
                                   );
