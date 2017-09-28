@@ -685,6 +685,8 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
   double vals[2] = {1., 2.};
   SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
   ScarceMatrixData data(sparse_to_eigen(S));
+  data.setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
+  data.setNoiseModel(new Noiseless());
   data.init();
   REQUIRE(data.var_total() == Approx(0.25));
 }
@@ -693,6 +695,8 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
   Eigen::MatrixXd Y(2, 2);
   Y << 1., 2., 3., 4.;
   DenseMatrixData data(Y);
+  data.setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
+  data.setNoiseModel(new Noiseless());
   data.init();
   REQUIRE(data.var_total() == Approx(1.25));
 }
