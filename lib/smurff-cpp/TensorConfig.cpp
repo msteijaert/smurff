@@ -186,8 +186,7 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
    m_columns = std::make_shared<std::vector<std::uint32_t> >(columns);
-   m_values = std::make_shared<std::vector<double> >(m_nnz);
-   std::fill(m_values->begin(), m_values->end(), 1);
+   m_values = std::make_shared<std::vector<double> >(m_nnz, 1);
 }
 
 TensorConfig::TensorConfig( std::vector<std::uint64_t>&& dims
@@ -212,7 +211,6 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    , m_nnz(columns->size() / dims->size())
    , m_dims(dims)
    , m_columns(columns)
-   , m_values(std::make_shared<std::vector<double> >())
 {
    if (dims->size() == 0)
       throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
@@ -220,8 +218,7 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    if (columns->size() == 0)
       throw std::length_error("Cannot create TensorConfig instance: 'columns' size cannot be zero");
 
-   m_values->resize(m_nnz);
-   std::fill(m_values->begin(), m_values->end(), 1);
+   m_values = std::make_shared<std::vector<double> >(m_nnz, 1);
 }
 
 TensorConfig::~TensorConfig()
