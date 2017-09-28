@@ -1783,17 +1783,17 @@ TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixTyp
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname, Eigen::SparseMatrix<double> &). .sdm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::vector<double> matrixVals = { 1, 2, 3, 7, 8, 9 };
    std::string matrixFilename = "read_sparse1.sdm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1817,16 +1817,16 @@ TEST_CASE("matrix_io/read_sparse(const std::string& fname, Eigen::SparseMatrix<d
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname, Eigen::SparseMatrix<double> &). .sbm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
    std::vector<int> matrixRows = { 1, 1, 1, 3, 3, 3 };
    std::vector<int> matrixCols = { 1, 2, 3, 1, 2, 3 };
    std::string matrixFilename = "read_sparse1.sbm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.close();
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
@@ -1978,12 +1978,12 @@ TEST_CASE("matrix_io/read_csv(std::istream& in)")
 
 TEST_CASE("matrix_io/read_ddm(const std::string& filename)")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::string matrixFilename = "read_ddm.csv";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -1999,11 +1999,11 @@ TEST_CASE("matrix_io/read_ddm(const std::string& filename)")
 
 TEST_CASE("matrix_io/read_ddm(std::istream& in)")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::stringstream matrixStream;
-   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixStream.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
 
    Eigen::MatrixXd expectedMatrix(3, 3);
@@ -2017,12 +2017,12 @@ TEST_CASE("matrix_io/read_ddm(std::istream& in)")
 
 TEST_CASE("matrix_io/read_dense(const std::string& fname). .ddm")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::string matrixFilename = "read_dense.ddm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -2059,11 +2059,11 @@ TEST_CASE("matrix_io/read_dense(const std::string& fname). .csv")
 
 TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixType). DenseMatrixType::ddm")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::stringstream matrixStream;
-   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixStream.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixStream.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
 
    Eigen::MatrixXd expectedMatrix(3, 3);
@@ -2095,17 +2095,17 @@ TEST_CASE("matrix_io/read_dense(std::istream& in, DenseMatrixType denseMatrixTyp
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname). .sdm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::vector<double> matrixVals = { 1, 2, 3, 7, 8, 9 };
    std::string matrixFilename = "read_sparse2.sdm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -2129,16 +2129,16 @@ TEST_CASE("matrix_io/read_sparse(const std::string& fname). .sdm")
 
 TEST_CASE("matrix_io/read_sparse(const std::string& fname). .sbm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::string matrixFilename = "read_sparse2.sbm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.close();
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
@@ -2192,12 +2192,12 @@ TEST_CASE("matrix_io/read_sparse(const std::string& fname). .mtx")
 
 TEST_CASE("matrix_io/read_matrix(const std::string& fname). .ddm")
 {
-   long matrixNRow = 3; long matrixNCol = 3;
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3;
    std::vector<double> matrixVals = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
    std::string matrixFilename = "read_matrix.ddm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -2234,17 +2234,17 @@ TEST_CASE("matrix_io/read_matrix(const std::string& fname). .csv")
 
 TEST_CASE("matrix_io/read_matrix(const std::string& fname). .sdm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::vector<double> matrixVals = { 1, 2, 3, 7, 8, 9 };
    std::string matrixFilename = "read_matrix.sdm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.write(reinterpret_cast<char*>(matrixVals.data()), matrixVals.size() * sizeof(double));
    matrixFile.close();
 
@@ -2268,16 +2268,16 @@ TEST_CASE("matrix_io/read_matrix(const std::string& fname). .sdm")
 
 TEST_CASE("matrix_io/read_matrix(const std::string& fname). .sbm")
 {
-   long matrixNRow = 3; long matrixNCol = 3; long matrixNNZ = 6;
-   std::vector<int> matrixRows    = { 1, 1, 1, 3, 3, 3 };
-   std::vector<int> matrixCols    = { 1, 2, 3, 1, 2, 3 };
+   std::uint64_t matrixNRow = 3; std::uint64_t matrixNCol = 3; std::uint64_t matrixNNZ = 6;
+   std::vector<std::uint32_t> matrixRows    = { 1, 1, 1, 3, 3, 3 };
+   std::vector<std::uint32_t> matrixCols    = { 1, 2, 3, 1, 2, 3 };
    std::string matrixFilename = "read_matrix.sbm";
    std::ofstream matrixFile(matrixFilename);
-   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(long));
-   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(int));
-   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(int));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNRow), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNCol), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(&matrixNNZ), sizeof(std::uint64_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixRows.data()), matrixRows.size() * sizeof(std::uint32_t));
+   matrixFile.write(reinterpret_cast<char*>(matrixCols.data()), matrixCols.size() * sizeof(std::uint32_t));
    matrixFile.close();
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
