@@ -13,6 +13,7 @@
 #include "session.h"
 #include "utils.h"
 #include "Data.h"
+#include "DenseMatrixData.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
@@ -640,17 +641,55 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
 
-/*
+
 TEST_CASE("utils/auc","AUC ROC") {
-  Eigen::VectorXd pred(20);
-  Eigen::VectorXd test(20);
-  test << 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0,
-          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-  pred << 20.0, 19.0, 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, 12.0, 11.0,
-          10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0;
-  REQUIRE ( auc(pred, test) == Approx(0.84) );
+  struct TestItem {
+      double pred, val;
+  };
+  std::vector<TestItem> items = {
+   { 20.0, 1.0 },
+   { 19.0, 0.0 },
+   { 18.0, 1.0 },
+   { 17.0, 0.0 },
+   { 16.0, 1.0 },
+   { 15.0, 0.0 },
+   { 14.0, 0.0 },
+   { 13.0, 1.0 },
+   { 12.0, 0.0 },
+   { 11.0, 1.0 },
+   { 10.0, 0.0 },
+   { 9.0,  0.0 },
+   { 8.0,  0.0 },
+   { 7.0,  0.0 },
+   { 6.0,  0.0 },
+   { 5.0,  0.0 },
+   { 4.0,  0.0 },
+   { 3.0,  0.0 },
+   { 2.0,  0.0 },
+   { 1.0,  0.0 }
+  };
+
+  REQUIRE ( calc_auc(items, 0.5) == Approx(0.84) );
 }
-*/
+
+
+TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is correctly calculated") {
+  int    rows[2] = {0, 1};
+  int    cols[2] = {0, 1};
+  double vals[2] = {1., 2.};
+  SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
+  ScarceMatrixData data(sparse_to_eigen(S));
+  data.init();
+  REQUIRE(data.var_total() == Approx(0.25));
+}
+
+TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is correctly calculated") {
+  Eigen::MatrixXd Y(2, 2);
+  Y << 1., 2., 3., 4.;
+  DenseMatrixData data(Y);
+  data.init();
+  REQUIRE(data.var_total() == Approx(1.25));
+}
 
 /* master
 TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {

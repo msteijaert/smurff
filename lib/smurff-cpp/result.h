@@ -11,7 +11,31 @@
 namespace smurff {
 
 struct Model;
-struct Data;
+class Data;
+
+template<typename Item>
+double calc_auc(const std::vector<Item> &predictions, double threshold)
+{
+    auto sorted_predictions = predictions;
+
+    std::sort(sorted_predictions.begin(), sorted_predictions.end(),
+            [](const Item &a, const Item &b) { return a.pred < b.pred;});
+
+    int num_positive = 0;
+    int num_negative = 0;
+    double auc = .0;
+    for(auto &t : sorted_predictions) {
+        int is_positive = t.val > threshold;
+        int is_negative = !is_positive;
+        num_positive += is_positive;
+        num_negative += is_negative;
+        auc += is_positive * num_negative;
+    }
+
+    auc /= num_positive;
+    auc /= num_negative;
+    return auc;
+}
 
 struct Result {
     //-- test set

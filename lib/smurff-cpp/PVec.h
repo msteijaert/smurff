@@ -17,7 +17,7 @@ namespace smurff
       PVec(const std::initializer_list<int>& l);
 
       // Accept any int container
-      template<template<typename, typename ...> typename T, typename ... V>
+      template<template<typename, typename ...> class T, typename ... V>
       PVec(const T<int, V...>& v)
          : m_v(v.begin(), v.end())
       {

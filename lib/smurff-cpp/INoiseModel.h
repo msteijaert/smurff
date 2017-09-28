@@ -10,7 +10,7 @@ namespace smurff {
 
    // AGE: I dont like this cross reference between Data and INoiseModel. Need to think how we can eliminate it.
    // AGE: Same applies to SubModel
-   struct Data;
+   class Data;
    struct SubModel;
 
    // interface

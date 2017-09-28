@@ -29,6 +29,7 @@ public:
    Eigen::VectorXd F_colsq;   // sum-of-squares for every feature (column)
 
    Eigen::MatrixXd beta;      /* link matrix */
+   double lb0 = 5.0;
    Eigen::VectorXd lambda_beta;
    double lambda_beta_a0; /* Hyper-prior for lambda_beta */
    double lambda_beta_b0; /* Hyper-prior for lambda_beta */
@@ -40,15 +41,22 @@ public:
 
    int l0;
 
-   Eigen::SparseMatrix<double> &Yc;
+   Eigen::SparseMatrix<double> &SparseYC() const {
+       return dynamic_cast<ScarceMatrixData &>(data()).Yc.at(mode);
+   }
+
 
 public:
 
    //method is identical - previously part of init
 
    MacauOnePrior(BaseSession& m, int p)
-      : ILatentPrior(m, p), Yc(dynamic_cast<ScarceMatrixData &>(m.data()).Yc.at(p))
+      : ILatentPrior(m, p) {}
+
+   void init() override 
    {
+      ILatentPrior::init();
+
       // parameters of Normal-Gamma distributions
       mu     = Eigen::VectorXd::Constant(num_latent(), 0.0);
       lambda = Eigen::VectorXd::Constant(num_latent(), 10.0);
@@ -56,24 +64,24 @@ public:
       l0 = 2.0;
       lambda_a0 = 1.0;
       lambda_b0 = 1.0;
-   }
 
-   //method is identical - previously part of init
-
-   void addSideInfo(std::unique_ptr<FType> &Fmat, bool)
-   {
-      // side information
-      F       = std::move(Fmat);
-      F_colsq = col_square_sum(*F);
-
+      // init SideInfo related
       Uhat = Eigen::MatrixXd::Constant(num_latent(), F->rows(), 0.0);
       beta = Eigen::MatrixXd::Constant(num_latent(), F->cols(), 0.0);
 
       // initial value (should be determined automatically)
       // Hyper-prior for lambda_beta (mean 1.0):
-      lambda_beta     = Eigen::VectorXd::Constant(num_latent(), 5.0);
+      lambda_beta     = Eigen::VectorXd::Constant(num_latent(), lb0);
       lambda_beta_a0 = 0.1;
       lambda_beta_b0 = 0.1;
+   }
+   
+   //method is identical - previously part of init
+   void addSideInfo(std::unique_ptr<FType> &Fmat, bool)
+   {
+      // side information
+      F       = std::move(Fmat);
+      F_colsq = col_square_sum(*F);
    }
 
    //method is identical except for:
@@ -95,16 +103,16 @@ public:
        auto &Us = U();
        auto &Vs = V();
 
-       const int nnz = Yc.outerIndexPtr()[i + 1] - Yc.outerIndexPtr()[i];
+       const int nnz = SparseYC().col(i).nonZeros();
        Eigen::VectorXd Yhat(nnz);
 
        // precalculating Yhat and Qi
        int idx = 0;
        Eigen::VectorXd Qi = lambda;
-       for (Eigen::SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++)
+       for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
        {
          Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
-         Yhat(idx)     = Us.col(i).dot( Vs.col(it.row()) );
+         Yhat(idx)     = model().predict({(int)it.col(), (int)it.row()}, data());
        }
 
        Eigen::VectorXd rnorms(num_latent());
@@ -117,7 +125,7 @@ public:
            double Lid = lambda(d) * (mu(d) + Uhat(d, i));
 
            idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++)
+           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
            {
                const double vjd = Vs(d, it.row());
                // L_id += alpha * (Y_ij - k_ijd) * v_jd
@@ -135,7 +143,7 @@ public:
            // updating Yhat
            double uid_delta = Us(d, i) - uid_old;
            idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(Yc, i); it; ++it, idx++)
+           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
            {
                Yhat(idx) += uid_delta * Vs(d, it.row());
            }
@@ -332,7 +340,7 @@ public:
 
    void setLambdaBeta(double lb)
    {
-      lambda_beta = Eigen::VectorXd::Constant(this->num_latent(), lb);
+       lb0 = lb;
    }
 
    //method is identical

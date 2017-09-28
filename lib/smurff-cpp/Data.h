@@ -17,7 +17,6 @@ namespace smurff
    protected:
       std::vector<Eigen::VectorXd> mode_mean;
       bool mean_computed = false;
-      bool centered = false;
 
    public:
       // noise model for this dataset
