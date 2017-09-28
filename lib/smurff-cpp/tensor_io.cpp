@@ -6,13 +6,12 @@
 
 using namespace smurff;
 
-TensorConfig tensor_io::read_dense_float64(const std::string& filename)
+TensorConfig tensor_io::read_tensor(const std::string& filename)
 {
-   std::ifstream fileStream(filename, std::ios_base::binary);
-   return tensor_io::read_dense_float64(fileStream);
+   throw "Not implemented yet";
 }
 
-TensorConfig tensor_io::read_dense_float64(std::istream& in)
+TensorConfig tensor_io::read_dense_float64_bin(std::istream& in)
 {
    std::uint64_t nmodes;
    in.read(reinterpret_cast<char*>(&nmodes), sizeof(std::uint64_t));
@@ -27,13 +26,12 @@ TensorConfig tensor_io::read_dense_float64(std::istream& in)
    return TensorConfig(std::move(dims), std::move(values), NoiseConfig());
 }
 
-TensorConfig tensor_io::read_sparse_float64(const std::string& filename)
+TensorConfig tensor_io::read_dense_float64_txt(std::istream& in)
 {
-   std::ifstream fileStream(filename, std::ios_base::binary);
-   return tensor_io::read_sparse_float64(fileStream);
+   throw "Not implemented yet";
 }
 
-TensorConfig tensor_io::read_sparse_float64(std::istream& in)
+TensorConfig tensor_io::read_sparse_float64_bin(std::istream& in)
 {
    std::uint64_t nmodes;
    in.read(reinterpret_cast<char*>(&nmodes), sizeof(std::uint64_t));
@@ -60,13 +58,12 @@ TensorConfig tensor_io::read_sparse_float64(std::istream& in)
    return TensorConfig(std::move(dims), std::move(columns), std::move(values), NoiseConfig());
 }
 
-TensorConfig tensor_io::read_sparse_binary(const std::string& filename)
+TensorConfig tensor_io::read_sparse_float64_txt(std::istream& in)
 {
-   std::ifstream fileStream(filename, std::ios_base::binary);
-   return tensor_io::read_sparse_binary(fileStream);
+   throw "Not implemented yet";
 }
 
-TensorConfig tensor_io::read_sparse_binary(std::istream& in)
+TensorConfig tensor_io::read_sparse_binary_bin(std::istream& in)
 {
    std::uint64_t nmodes;
    in.read(reinterpret_cast<char*>(&nmodes), sizeof(std::uint64_t));
@@ -90,13 +87,17 @@ TensorConfig tensor_io::read_sparse_binary(std::istream& in)
    return TensorConfig(std::move(dims), std::move(columns), NoiseConfig());
 }
 
-void tensor_io::write_dense_float64(const std::string& filename, const TensorConfig& tensorConfig)
+TensorConfig tensor_io::read_sparse_binary_txt(std::istream& in)
 {
-   std::ofstream fileStream(filename, std::ios_base::binary);
-   tensor_io::write_dense_float64(fileStream, tensorConfig);
+   throw "Not implemented yet";
 }
 
-void tensor_io::write_dense_float64(std::ostream& out, const TensorConfig& tensorConfig)
+void tensor_io::write_tensor(const std::string& filename, const TensorConfig& tensorConfig)
+{
+   throw "Not implemented yet";
+}
+
+void tensor_io::write_dense_float64_bin(std::ostream& out, const TensorConfig& tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig.getNModes();
    const std::vector<std::uint64_t>& dims = tensorConfig.getDims();
@@ -107,13 +108,12 @@ void tensor_io::write_dense_float64(std::ostream& out, const TensorConfig& tenso
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void tensor_io::write_sparse_float64(const std::string& filename, const TensorConfig& tensorConfig)
+void tensor_io::write_dense_float64_txt(std::ostream& out, const TensorConfig& tensorConfig)
 {
-   std::ofstream fileStream(filename, std::ios_base::binary);
-   tensor_io::write_sparse_float64(fileStream, tensorConfig);
+   throw "Not implemented yet";
 }
 
-void tensor_io::write_sparse_float64(std::ostream& out, const TensorConfig& tensorConfig)
+void tensor_io::write_sparse_float64_bin(std::ostream& out, const TensorConfig& tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig.getNModes();
    std::uint64_t nnz = tensorConfig.getNNZ();
@@ -130,13 +130,12 @@ void tensor_io::write_sparse_float64(std::ostream& out, const TensorConfig& tens
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void tensor_io::write_sparse_binary(const std::string& filename, const TensorConfig& tensorConfig)
+void tensor_io::write_sparse_float64_txt(std::ostream& out, const TensorConfig& tensorConfig)
 {
-   std::ofstream fileStream(filename, std::ios_base::binary);
-   tensor_io::write_sparse_binary(fileStream, tensorConfig);
+   throw "Not implemented yet";
 }
 
-void tensor_io::write_sparse_binary(std::ostream& out, const TensorConfig& tensorConfig)
+void tensor_io::write_sparse_binary_bin(std::ostream& out, const TensorConfig& tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig.getNModes();
    std::uint64_t nnz = tensorConfig.getNNZ();
@@ -149,4 +148,10 @@ void tensor_io::write_sparse_binary(std::ostream& out, const TensorConfig& tenso
    out.write(reinterpret_cast<const char*>(dims.data()), dims.size() * sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(columns.data()), columns.size() * sizeof(std::uint32_t));
+}
+
+
+void tensor_io::write_sparse_binary_txt(std::ostream& out, const TensorConfig& tensorConfig)
+{
+   throw "Not implemented yet";
 }
