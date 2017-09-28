@@ -999,30 +999,6 @@ TEST_CASE( "truncnorm/rand_truncnorm", "generaring random truncnorm variable" ) 
   }
 }
 
-TEST_CASE("matrix_io/read_sparse. chembl-IC50-346targets.mm", "[!mayfail]")
-{
-   const std::string matrixFilePath = "./chembl-IC50-346targets.mm";
-
-   // There should be a matrix file next to tests executable
-   REQUIRE(std::ifstream(matrixFilePath));
-
-   // Just skip this test if there is no matrix file next to tests executable
-   // if (!std::ifstream(matrixFilePath))
-   //    return;
-
-   // Reading sparse matrix using an updated matrix config that is based on a new tensor config
-   MatrixConfig matrix1Config = read_sparse(matrixFilePath);
-   Eigen::SparseMatrix<double> matrix1 = sparse_to_eigen(matrix1Config);
-
-   // Reading sparse matrix directly from file bypassing updated matrix config
-   Eigen::SparseMatrix<double> matrix2;
-   read_sparse(matrixFilePath, matrix2);
-
-   // "isApprox" is Eigen matrix method that can be used to compare two matrices
-   // https://codeyarns.com/2016/02/16/how-to-compare-eigen-matrices-for-equality/
-   REQUIRE(matrix1.isApprox(matrix2));
-}
-
 TEST_CASE("MatrixConfig::MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
 {
    std::vector<double> actualMatrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };

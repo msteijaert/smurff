@@ -283,6 +283,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../model.h"
                         "../result.h"
                         "../matrix_io.h"
+                        "../tensor_io.h"
                         "../AdaptiveGaussianNoise.h"
                         "../FixedGaussianNoise.h"
                         "../ProbitNoise.h"
@@ -323,6 +324,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../model.cpp"
                         "../result.cpp"
                         "../matrix_io.cpp"
+                        "../tensor_io.cpp"
                         "../AdaptiveGaussianNoise.cpp"
                         "../FixedGaussianNoise.cpp"
                         "../ProbitNoise.cpp"
@@ -359,7 +361,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup smurff ############## 
+############## setup smurff ##############
 
 #SETUP PROJECT
 set (PROJECT smurff)
@@ -382,7 +384,7 @@ SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} smurff-cpp 
+target_link_libraries (${PROJECT} smurff-cpp
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
@@ -391,7 +393,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup tests ############## 
+############## setup tests ##############
 
 #SETUP PROJECT
 set (PROJECT tests)
@@ -413,7 +415,7 @@ SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} smurff-cpp 
+target_link_libraries (${PROJECT} smurff-cpp
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
@@ -422,7 +424,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup mpi_smurff ############## 
+############## setup mpi_smurff ##############
 
 if(${MPI_CXX_FOUND})
 
@@ -447,7 +449,7 @@ SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} smurff-cpp 
+target_link_libraries (${PROJECT} smurff-cpp
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
@@ -458,7 +460,7 @@ include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 endif()
 
-############## setup bench_nrandn ############## 
+############## setup bench_nrandn ##############
 
 #SETUP PROJECT
 set (PROJECT bench_nrandn)
@@ -494,7 +496,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup bench_wishart ############## 
+############## setup bench_wishart ##############
 
 #SETUP PROJECT
 set (PROJECT bench_wishart)
@@ -531,7 +533,7 @@ include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
-############## setup bench_mvnormal ############## 
+############## setup bench_mvnormal ##############
 
 #SETUP PROJECT
 set (PROJECT bench_mvnormal)
