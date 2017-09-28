@@ -114,7 +114,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 
 void CmdSession::setFromArgs(int argc, char** argv) {
     /* Program documentation. */
-    char doc[] = "ExCAPE Matrix Factorization Framework";
+    char doc[] = "SMURFF: Scalable Matrix Factorization Framework -- http://github.com/ExaScience/smurff";
 
     struct argp_option options[] = {
         {0,0,0,0,"Priors and side Info:",1},
