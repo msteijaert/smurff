@@ -85,7 +85,31 @@ else:
     if (not args.precision):
         args.precision = 5.0
 
-print(vars(args))
+# check row- and col-prior
+def check_prior(prior_name, side_info):
+    if (prior_name == "normal"):
+        assert(not side_info)
+    elif (prior_name == "macau"):
+        assert(side_info)
+    elif (prior_name == "macauone"):
+        assert(side_info)
+    else:
+        raise Exception("Unknown prior: " + prior_name)
+
+check_prior(args.row_prior, args.row_features)
+check_prior(args.col_prior, args.col_features)
+
+args.univariate = False
+if (args.row_prior == "macauone" or args.col_prior == "macauone"):
+    args.univariate = True
+
+if ("verbose" in vars(args) and not args.verbose):
+    args.verbose = 1
+
+if (args.verbose):
+    from pprint import pprint
+    print("Running black SMURFF with these options: ")
+    pprint(vars(args), indent=2)
 
 result = macau(Y           = train_matrix,
                Ytest       = test_matrix,
@@ -95,6 +119,7 @@ result = macau(Y           = train_matrix,
                precision   = args.precision,
                burnin      = args.burnin,
                nsamples    = args.nsamples,
+               univariate  = args.univariate,
                tol         = args.tol,
                sn_max      = args.sn_max,
                verbose     = args.verbose,
@@ -102,3 +127,9 @@ result = macau(Y           = train_matrix,
 
 if (args.verbose):
     print(result)
+
+if (args.save_prefix):
+    pred_fname = args.save_prefix + "-predictions.csv"
+    if(args.verbose):
+        print("Saving predictions in " + pred_fname)
+    result.prediction.to_csv(pred_fname)
