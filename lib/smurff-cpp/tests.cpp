@@ -19,6 +19,7 @@
 #include "truncnorm.h"
 #include "MatrixConfig.h"
 #include "matrix_io.h"
+#include "tensor_io.h"
 #include "gen_random.h"
 
 #include "ILatentPrior.h"
@@ -2181,6 +2182,222 @@ TEST_CASE("matrix_io/read_sparse_binary_matrix(std::istream& in) | write_sparse_
    write_sparse_binary_matrix(matrixConfigStream, matrixConfig);
 
    MatrixConfig actualMatrixConfig = read_sparse_binary_matrix(matrixConfigStream);
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_dense_float64(const std::string& filename)| tensor_io/write_dense_float64(const std::string& filename, const TensorConfig& tensorConfig)")
+{
+   std::string tensorFilename = "dense_float64.ddt";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   tensor_io::write_dense_float64(tensorFilename, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_dense_float64(tensorFilename);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::MatrixXd actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   std::remove(tensorFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_dense_float64(std::istream& in) | tensor_io/write_sparse_binary(std::ostream& out, const TensorConfig& tensorConfig)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream matrixConfigStream;
+   tensor_io::write_dense_float64(matrixConfigStream, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_dense_float64(matrixConfigStream);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::MatrixXd actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 3);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_float64(const std::string& filename) | tensor_io/write_sparse_float64(const std::string& filename, const TensorConfig& tensorConfig)")
+{
+   std::string tensorFilename = "sparse_float64.sdt";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   tensor_io::write_sparse_float64(tensorFilename, matrixConfig);
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_float64(tensorFilename);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::remove(tensorFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_float64(std::istream& in) | tensor_io/write_sparse_float64(std::ostream& out, const TensorConfig& tensorConfig)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream tensorStream;
+   tensor_io::write_sparse_float64(tensorStream, matrixConfig);
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_float64(tensorStream);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_binary(const std::string& filename) | tensor_io/write_sparse_binary(const std::string& filename, const TensorConfig& tensorConfig)")
+{
+   std::string tensorFilename = "sparse_binary.sbt";
+
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , NoiseConfig()
+                            );
+
+   tensor_io::write_sparse_binary(tensorFilename, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_binary(tensorFilename);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
+   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   std::remove(tensorFilename.c_str());
+   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+}
+
+TEST_CASE("tensor_io/read_sparse_binary(std::istream& in) | tensor_io/write_sparse_binary(std::ostream& out, const TensorConfig& tensorConfig)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 3;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream tensorConfigStream;
+   tensor_io::write_sparse_binary(tensorConfigStream, matrixConfig);
+
+   TensorConfig actualTensorConfig = tensor_io::read_sparse_binary(tensorConfigStream);
+   MatrixConfig actualMatrixConfig( matrixConfigNRow
+                                  , matrixConfigNCol
+                                  , actualTensorConfig.getColumns()
+                                  , actualTensorConfig.getValues()
+                                  , NoiseConfig()
+                                  );
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 3);
