@@ -254,6 +254,7 @@ std::uint64_t MatrixConfig::getNRow() const
 {
    return m_dims->operator[](0);
 }
+
 std::uint64_t MatrixConfig::getNCol() const
 {
    return m_dims->operator[](1);

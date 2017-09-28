@@ -6,116 +6,119 @@
 #include "utils.h"
 #include "matrix_io.h"
 
-const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
+using namespace smurff;
 
-DenseMatrixType ExtensionToDenseMatrixType(const std::string& fname)
-{
-   std::string extension = fname.substr(fname.size() - 4);
-   if (extension == ".ddm")
-   {
-      return DenseMatrixType::ddm;
-   }
-   else if (extension == ".csv")
-   {
-      return DenseMatrixType::csv;
-   }
-   else
-   {
-      die("Unknown file type: " + extension);
-   }
-   return DenseMatrixType::none;
-}
+#define EXTENSION_SDM ".sdm"
+#define EXTENSION_SBM ".sbm"
+#define EXTENSION_MTX ".mtx"
+#define EXTENSION_MM  ".mm"
+#define EXTENSION_CSV ".csv"
+#define EXTENSION_DDM ".ddm"
 
-std::ios_base::openmode DenseMatrixTypeToOpenMode(DenseMatrixType denseMatrixType)
-{
-   switch (denseMatrixType)
-   {
-      case DenseMatrixType::ddm:
-         return std::ios::binary;
-      case DenseMatrixType::csv:
-         return std::ios_base::openmode();
-      default:
-         die("Unknown dense matrix type");
-   }
-   return std::ios_base::openmode();
-}
-
-SparseMatrixType ExtensionToSparseMatrixType(const std::string& fname)
+MatrixType ExtensionToMatrixType(const std::string& fname)
 {
    std::string extension = fname.substr(fname.find_last_of("."));
-   if (extension == ".sdm")
+   if (extension == EXTENSION_SDM)
    {
-      return SparseMatrixType::sdm;
+      return MatrixType::sdm;
    }
-   else if (extension == ".sbm")
+   else if (extension == EXTENSION_SBM)
    {
-      return SparseMatrixType::sbm;
+      return MatrixType::sbm;
    }
-   else if (extension == ".mtx" || extension == ".mm")
+   else if (extension == EXTENSION_MTX || extension == EXTENSION_MM)
    {
-       return SparseMatrixType::mtx;
+       return MatrixType::mtx;
+   }
+   else if (extension == EXTENSION_CSV)
+   {
+      return MatrixType::csv;
+   }
+   else if (extension == EXTENSION_DDM)
+   {
+      return MatrixType::ddm;
    }
    else
    {
       die("Unknown file type: " + extension);
    }
-   return SparseMatrixType::none;
+   return MatrixType::none;
 }
 
-void writeToCSVfile(const std::string& filename, const Eigen::MatrixXd& matrix)
+std::string MatrixTypeToExtension(MatrixType matrixType)
 {
-  std::ofstream file(filename.c_str());
-  writeToCSVstream(file, matrix);
-}
-
-void writeToCSVstream(std::ostream& out, const Eigen::MatrixXd& matrix)
-{
-   out << matrix.rows() << std::endl;
-   out << matrix.cols() << std::endl;
-   out << matrix.format(csvFormat) << std::endl;
-}
-
-void readFromCSVfile(const std::string& filename, Eigen::MatrixXd &matrix)
-{
-    std::ifstream file(filename.c_str());
-    readFromCSVstream(file, matrix);
-}
-
-void readFromCSVstream(std::istream& in, Eigen::MatrixXd& matrix)
-{
-   std::string line;
-
-   // rows and cols
-   getline(in, line);
-   std::uint64_t nrow = atol(line.c_str());
-   getline(in, line);
-   std::uint64_t ncol = atol(line.c_str());
-   matrix.resize(nrow, ncol);
-
-   std::uint32_t row = 0;
-   std::uint32_t col = 0;
-   while (getline(in, line))
+   switch (matrixType)
    {
-       col = 0;
-       std::stringstream lineStream(line);
-       std::string cell;
-       while (std::getline(lineStream, cell, ','))
-       {
-           matrix(row, col++) = strtod(cell.c_str(), NULL);
-       }
-       row++;
+   case MatrixType::sdm:
+      return EXTENSION_SDM;
+   case MatrixType::sbm:
+      return EXTENSION_SBM;
+   case MatrixType::mtx:
+      return EXTENSION_MTX;
+   case MatrixType::csv:
+      return EXTENSION_CSV;
+   case MatrixType::ddm:
+      return EXTENSION_DDM;
+   case MatrixType::none:
+      die("Unknown matrix type");
+   default:
+      die("Unknown matrix type");
    }
-   assert(row == nrow);
-   assert(col == ncol);
+   return std::string();
 }
 
-smurff::MatrixConfig read_csv(const std::string& filename)
+MatrixConfig matrix_io::read_matrix(const std::string& filename)
 {
-   std::ifstream file(filename.c_str());
-   return read_csv(file);
+   MatrixType matrixType = ExtensionToMatrixType(fname);
+   switch (matrixType)
+   {
+   case sdm:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         return matrix_io::read_sparse_float64_bin(fileStream);
+      }
+   case sbm:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         return matrix_io::read_sparse_binary_bin(fileStream);
+      }
+   case mtx:
+      {
+         std::ifstream fileStream(filename);
+         return matrix_io::read_sparse_float64_mtx(fileStream);
+      }
+   case csv:
+      {
+         std::ifstream fileStream(filename);
+         return matrix_io::read_dense_float64_csv(fileStream);
+      }
+   case ddm:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         return matrix_io::read_dense_float64_bin(fileStream);
+      }
+   case none:
+      die("Unknown matrix type");
+   default:
+      die("Unknown matrix type");
+   }
 }
 
-smurff::MatrixConfig read_csv(std::istream& in)
+MatrixConfig matrix_io::read_dense_float64_bin(std::istream& in)
+{
+   std::uint64_t nrow;
+   std::uint64_t ncol;
+
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+
+   std::vector<double> values(nrow * ncol);
+   in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
+
+   return smurff::MatrixConfig(nrow, ncol, std::move(values), smurff::NoiseConfig());
+}
+
+MatrixConfig matrix_io::read_dense_float64_csv(std::istream& in)
 {
    std::string line;
 
@@ -148,226 +151,31 @@ smurff::MatrixConfig read_csv(std::istream& in)
    return ret;
 }
 
-std::unique_ptr<SparseFeat> load_bcsr(const char* filename)
-{
-   SparseBinaryMatrix* A = read_sbm(filename);
-   SparseFeat* sf = new SparseFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols);
-   free_sbm(A);
-   std::unique_ptr<SparseFeat> sf_ptr(sf);
-   return sf_ptr;
-}
-
-std::unique_ptr<SparseDoubleFeat> load_csr(const char* filename)
-{
-    struct SparseDoubleMatrix* A = read_sdm(filename);
-    SparseDoubleFeat* sf = new SparseDoubleFeat(A->nrow, A->ncol, A->nnz, A->rows, A->cols, A->vals);
-    delete A;
-    std::unique_ptr<SparseDoubleFeat> sf_ptr(sf);
-    return sf_ptr;
-}
-
-Eigen::MatrixXd sparse_to_dense(const SparseBinaryMatrix& in)
-{
-    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
-    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = 1.;
-    return out;
-}
-
-Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in)
-{
-    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
-    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
-    return out;
-}
-
-static std::set<std::string> compact_matrix_fname_extensions = { ".sbm", ".sdm", ".ddm" };
-static std::set<std::string> txt_matrix_fname_extensions = { ".mtx", ".mm", ".csv" };
-static std::set<std::string> matrix_fname_extensions = { ".sbm", ".sdm", ".ddm", ".mtx", ".mm", ".csv" };
-static std::set<std::string> sparse_fname_extensions = { ".sbm", ".sdm", ".mtx", ".mm" };
-
-bool extension_in(const std::string& fname, const std::set<std::string>& extensions, bool die_if_not_found = false)
-{
-    std::string extension = fname.substr(fname.find_last_of("."));
-
-    if (extensions.find(extension) != extensions.end())
-      return true;
-
-    if (die_if_not_found)
-    {
-          die("Unknown extension: " + extension + " of filename: " + fname);
-    }
-
-    return false;
-}
-
-bool is_matrix_fname(const std::string& fname)
-{
-    return extension_in(fname, matrix_fname_extensions);
-}
-
-bool is_sparse_fname(const std::string& fname)
-{
-    return extension_in(fname, sparse_fname_extensions);
-}
-
-bool is_sparse_binary_fname(const std::string& fname)
-{
-    return extension_in(fname, { ".sbm" });
-}
-
-bool is_dense_fname(const std::string& fname)
-{
-    return !is_sparse_fname(fname);
-}
-
-bool is_compact_fname(const std::string& fname)
-{
-    return file_exists(fname) && extension_in(fname, compact_matrix_fname_extensions);
-}
-
-void read_dense(const std::string& fname, Eigen::VectorXd& V)
-{
-   die_unless_file_exists(fname);
-   DenseMatrixType denseMatrixType = ExtensionToDenseMatrixType(fname);
-   std::ifstream in(fname, DenseMatrixTypeToOpenMode(denseMatrixType));
-   read_dense(in, denseMatrixType, V);
-}
-
-void read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::VectorXd& V)
-{
-   Eigen::MatrixXd X;
-   read_dense(in, denseMatrixType, X);
-   V = X; // this will fail if X has more than one column
-}
-
-void read_dense(const std::string& fname, Eigen::MatrixXd& X)
-{
-   die_unless_file_exists(fname);
-   DenseMatrixType denseMatrixType = ExtensionToDenseMatrixType(fname);
-   std::ifstream in(fname, DenseMatrixTypeToOpenMode(denseMatrixType));
-   read_dense(in, denseMatrixType, X);
-}
-
-void read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::MatrixXd& X)
-{
-   switch (denseMatrixType)
-   {
-      case DenseMatrixType::ddm:
-         read_ddm(in, X);
-         break;
-      case DenseMatrixType::csv:
-         readFromCSVstream(in, X);
-         break;
-      default:
-         die("Unknown matrix type");
-   }
-}
-
-smurff::MatrixConfig read_dense(const std::string& fname)
-{
-   die_unless_file_exists(fname);
-   DenseMatrixType denseMatrixType = ExtensionToDenseMatrixType(fname);
-   std::ifstream in(fname, DenseMatrixTypeToOpenMode(denseMatrixType));
-   return read_dense(in, denseMatrixType);
-}
-
-smurff::MatrixConfig read_dense(std::istream& in, DenseMatrixType denseMatrixType)
-{
-   switch (denseMatrixType)
-   {
-      case DenseMatrixType::ddm:
-         return read_ddm(in);
-      case DenseMatrixType::csv:
-         return read_csv(in);
-      default:
-         die("Unknown matrix type");
-   }
-   return smurff::MatrixConfig();
-}
-
-void write_dense(const std::string& fname, const Eigen::MatrixXd &X)
-{
-   assert(is_dense_fname(fname));
-   DenseMatrixType denseMatrixType = ExtensionToDenseMatrixType(fname);
-   std::ofstream out(fname, DenseMatrixTypeToOpenMode(denseMatrixType));
-   write_dense(out, denseMatrixType, X);
-}
-
-void write_dense(std::ostream& out, DenseMatrixType denseMatrixType, const Eigen::MatrixXd &X)
-{
-   switch (denseMatrixType)
-   {
-      case DenseMatrixType::ddm:
-         write_ddm(out, X);
-         break;
-      case DenseMatrixType::csv:
-         writeToCSVstream(out, X);
-         break;
-      default:
-         die("Unknown matrix type");
-   }
-}
-
-void write_ddm(const std::string& filename, const Eigen::MatrixXd& matrix)
-{
-   std::ofstream out(filename,std::ios::out | std::ios::binary | std::ios::trunc);
-   write_ddm(out, matrix);
-   out.close();
-}
-
-void write_ddm(std::ostream& out, const Eigen::MatrixXd& matrix)
-{
-   std::uint64_t rows = matrix.rows();
-   std::uint64_t cols = matrix.cols();
-   out.write((char*) (&rows), sizeof(std::uint64_t));
-   out.write((char*) (&cols), sizeof(std::uint64_t));
-   out.write((char*) matrix.data(), rows*cols*sizeof(typename Eigen::MatrixXd::Scalar) );
-}
-
-void read_ddm(const std::string& filename, Eigen::MatrixXd& matrix)
-{
-    std::ifstream in(filename,std::ios::in | std::ios::binary);
-    read_ddm(in, matrix);
-    in.close();
-}
-
-void read_ddm(std::istream& in, Eigen::MatrixXd& matrix)
-{
-   std::uint64_t rows=0, cols=0;
-   in.read((char*) (&rows),sizeof(std::uint64_t));
-   in.read((char*) (&cols),sizeof(std::uint64_t));
-   matrix.resize(rows, cols);
-   in.read( (char *) matrix.data() , rows*cols*sizeof(double) );
-}
-
-smurff::MatrixConfig read_ddm(const std::string& filename)
-{
-   std::ifstream in(filename,std::ios::in | std::ios::binary);
-   return read_ddm(in);
-}
-
-smurff::MatrixConfig read_ddm(std::istream& in)
+MatrixConfig matrix_io::read_sparse_float64_bin(std::istream& in)
 {
    std::uint64_t nrow;
    std::uint64_t ncol;
-   in.read((char*) (&nrow),sizeof(std::uint64_t));
-   in.read((char*) (&ncol),sizeof(std::uint64_t));
-   int nnz = nrow * ncol;
-   std::vector<double> values;
-   values.resize(nnz);
-   in.read( (char *) values.data(), nnz*sizeof(double) );
+   std::uint64_t nnz;
 
-   smurff::MatrixConfig ret(nrow, ncol, values, smurff::NoiseConfig());
-   return ret;
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&nnz), sizeof(std::uint64_t));
+
+   std::vector<std::uint32_t> rows(nnz);
+   in.read(reinterpret_cast<char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row--; });
+
+   std::vector<std::uint32_t> cols(nnz);
+   in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
+
+   std::vector<double> values(nnz);
+   in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
+
+   return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
 }
 
-smurff::MatrixConfig read_mtx(const std::string& fname)
-{
-   std::ifstream fin(fname);
-   return read_mtx(fin);
-}
-
-smurff::MatrixConfig read_mtx(std::istream& in)
+MatrixConfig matrix_io::read_sparse_float64_mtx(std::istream& in)
 {
    // Ignore headers and comments:
    while (in.peek() == '%') in.ignore(2048, '\n');
@@ -416,178 +224,7 @@ smurff::MatrixConfig read_mtx(std::istream& in)
    return ret;
 }
 
-void free_sdm(SparseDoubleMatrix* sdm)
-{
-   free(sdm->rows);
-   free(sdm->cols);
-   free(sdm->vals);
-}
-
-smurff::MatrixConfig read_sparse(const std::string& fname)
-{
-   assert(is_sparse_fname(fname));
-   SparseMatrixType sparseMatrixType = ExtensionToSparseMatrixType(fname);
-   switch (sparseMatrixType)
-   {
-      case SparseMatrixType::sdm:
-         {
-            SparseDoubleMatrix* p = read_sdm(fname.c_str());
-            smurff::MatrixConfig matrixConfig( p->nrow
-                                             , p->ncol
-                                             , std::vector<std::uint32_t>(p->rows, p->rows + p->nnz)
-                                             , std::vector<std::uint32_t>(p->cols, p->cols + p->nnz)
-                                             , std::vector<double>(p->vals, p->vals + p->nnz)
-                                             , smurff::NoiseConfig()
-                                             );
-            free_sdm(p);
-            free(p);
-            return matrixConfig;
-         }
-      case SparseMatrixType::sbm:
-         {
-            SparseBinaryMatrix* p = read_sbm(fname.c_str());
-            smurff::MatrixConfig matrixConfig( p->nrow
-                                             , p->ncol
-                                             , std::vector<std::uint32_t>(p->rows, p->rows + p->nnz)
-                                             , std::vector<std::uint32_t>(p->cols, p->cols + p->nnz)
-                                             , smurff::NoiseConfig()
-                                             );
-            free_sbm(p);
-            free(p);
-            return matrixConfig;
-         }
-      case SparseMatrixType::mtx:
-         return read_mtx(fname);
-      default:
-         die("Unknown filename in read_sparse: " + fname);
-   }
-   return smurff::MatrixConfig();
-}
-
-void read_sparse(const std::string& fname, Eigen::SparseMatrix<double>& M)
-{
-   assert(is_sparse_fname(fname));
-   SparseMatrixType sparseMatrixType = ExtensionToSparseMatrixType(fname);
-   switch (sparseMatrixType)
-   {
-      case SparseMatrixType::sdm:
-         {
-            auto sdm_ptr = read_sdm(fname.c_str());
-            M = sparse_to_eigen(*sdm_ptr);
-            free_sdm(sdm_ptr);
-            delete sdm_ptr;
-            break;
-         }
-      case SparseMatrixType::sbm:
-         {
-            auto sbm_ptr = read_sbm(fname.c_str());
-            M = sparse_to_eigen(*sbm_ptr);
-            free_sbm(sbm_ptr);
-            delete sbm_ptr;
-            break;
-         }
-      case SparseMatrixType::mtx:
-         {
-            loadMarket(M, fname.c_str());
-            break;
-         }
-      default:
-         die("Unknown filename in read_sparse: " + fname);
-   }
-}
-
-smurff::MatrixConfig read_matrix(const std::string& fname)
-{
-   if (is_sparse_fname(fname))
-      return read_sparse(fname);
-   else
-      return read_dense(fname);
-}
-
-template<>
-Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
-{
-   Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
-   std::shared_ptr<std::vector<std::uint32_t> > rowsPtr = matrixConfig.getRowsPtr();
-   std::shared_ptr<std::vector<std::uint32_t> > colsPtr = matrixConfig.getColsPtr();
-   std::shared_ptr<std::vector<double> > valuesPtr = matrixConfig.getValuesPtr();
-
-   std::vector<Eigen::Triplet<double> > eigenTriplets;
-   for (std::uint64_t i = 0; i < matrixConfig.getNNZ(); i++)
-   {
-      std::uint32_t row = rowsPtr->operator[](i);
-      std::uint32_t col = colsPtr->operator[](i);
-      double val = matrixConfig.isBinary() ? 1.0 : valuesPtr->operator[](i);
-      eigenTriplets.push_back(Eigen::Triplet<double>(row, col, val));
-   }
-
-   out.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
-   return out;
-}
-
-template<>
-Eigen::SparseMatrix<double> sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig)
-{
-   return sparse_to_eigen<const smurff::MatrixConfig>(matrixConfig);
-}
-
-smurff::MatrixConfig read_dense_float64(const std::string& filename)
-{
-   std::ifstream fileStream(filename, std::ios_base::binary);
-   return read_dense_float64(fileStream);
-}
-
-smurff::MatrixConfig read_dense_float64(std::istream& in)
-{
-   std::uint64_t nrow;
-   std::uint64_t ncol;
-
-   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
-   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
-
-   std::vector<double> values(nrow * ncol);
-   in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
-
-   return smurff::MatrixConfig(nrow, ncol, std::move(values), smurff::NoiseConfig());
-}
-
-smurff::MatrixConfig read_sparse_float64(const std::string& filename)
-{
-   std::ifstream fileStream(filename, std::ios_base::binary);
-   return read_sparse_float64(fileStream);
-}
-
-smurff::MatrixConfig read_sparse_float64(std::istream& in)
-{
-   std::uint64_t nrow;
-   std::uint64_t ncol;
-   std::uint64_t nnz;
-
-   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
-   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
-   in.read(reinterpret_cast<char*>(&nnz), sizeof(std::uint64_t));
-
-   std::vector<std::uint32_t> rows(nnz);
-   in.read(reinterpret_cast<char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
-   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row--; });
-
-   std::vector<std::uint32_t> cols(nnz);
-   in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
-   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
-
-   std::vector<double> values(nnz);
-   in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
-
-   return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
-}
-
-smurff::MatrixConfig read_sparse_binary_matrix(const std::string& filename)
-{
-   std::ifstream fileStream(filename, std::ios_base::binary);
-   return read_sparse_binary_matrix(fileStream);
-}
-
-smurff::MatrixConfig read_sparse_binary_matrix(std::istream& in)
+MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
 {
    std::uint64_t nrow;
    std::uint64_t ncol;
@@ -608,37 +245,76 @@ smurff::MatrixConfig read_sparse_binary_matrix(std::istream& in)
    return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), smurff::NoiseConfig());
 }
 
-void write_dense_float64(const std::string& filename, const smurff::MatrixConfig& Y)
+// ======================================================================================================
+
+void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& matrixConfig, MatrixType matrixType)
 {
-   std::ofstream fileStream(filename, std::ios_base::binary);
-   write_dense_float64(fileStream, Y);
+   std::string extension = MatrixTypeToExtension(matrixType);
+   std::string filepath = filename + extesion;
+
+   switch (matrixType)
+   {
+   case MatrixType::sdm:
+      {
+         std::ofstream fileStream(filepath, std::ios_base::binary);
+         matrix_io::write_sparse_float64_bin(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::sbm:
+      {
+         std::ofstream fileStream(filepath, std::ios_base::binary);
+         matrix_io::write_sparse_binary_bin(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::mtx:
+      {
+         std::ofstream fileStream(filepath);
+         matrix_io::write_sparse_float64_mtx(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::csv:
+      {
+         std::ofstream fileStream(filepath);
+         matrix_io::write_dense_float64_csv(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::ddm:
+      {
+         std::ofstream fileStream(filepath, std::ios_base::binary);
+         matrix_io::write_dense_float64_bin(fileStream, matrixConfig);
+      }
+      break;
+   case MatrixType::none:
+      die("Unknown matrix type");
+   default:
+      die("Unknown matrix type");
+   }
 }
 
-void write_dense_float64(std::ostream& out, const smurff::MatrixConfig& Y)
+void matrix_io::write_dense_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig)
 {
-   std::uint64_t nrow = Y.getNRow();
-   std::uint64_t ncol = Y.getNCol();
-   const std::vector<double>& values = Y.getValues();
+   std::uint64_t nrow = matrixConfig.getNRow();
+   std::uint64_t ncol = matrixConfig.getNCol();
+   const std::vector<double>& values = matrixConfig.getValues();
 
    out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void write_sparse_float64(const std::string& filename, const smurff::MatrixConfig& Y)
+void matrix_io::write_dense_float64_csv(std::ostream& out, const MatrixConfig& matrixConfig)
 {
-   std::ofstream fileStream(filename, std::ios_base::binary);
-   write_sparse_float64(fileStream, Y);
+   throw "Not implemented yet";
 }
 
-void write_sparse_float64(std::ostream& out, const smurff::MatrixConfig& Y)
+void matrix_io::write_sparse_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig)
 {
-   std::uint64_t nrow = Y.getNRow();
-   std::uint64_t ncol = Y.getNCol();
-   std::uint64_t nnz = Y.getNNZ();
-   std::vector<std::uint32_t> rows = Y.getRows();
-   std::vector<std::uint32_t> cols = Y.getCols();
-   const std::vector<double> values = Y.getValues();
+   std::uint64_t nrow = matrixConfig.getNRow();
+   std::uint64_t ncol = matrixConfig.getNCol();
+   std::uint64_t nnz = matrixConfig.getNNZ();
+   std::vector<std::uint32_t> rows = matrixConfig.getRows();
+   std::vector<std::uint32_t> cols = matrixConfig.getCols();
+   const std::vector<double> values = matrixConfig.getValues();
 
    std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
    std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col++; });
@@ -651,19 +327,18 @@ void write_sparse_float64(std::ostream& out, const smurff::MatrixConfig& Y)
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void write_sparse_binary_matrix(const std::string& filename, const smurff::MatrixConfig& Y)
+void matrix_io::write_sparse_float64_mtx(std::ostream& out, const MatrixConfig& matrixConfig)
 {
-   std::ofstream fileStream(filename, std::ios_base::binary);
-   write_sparse_float64(fileStream, Y);
+   throw "Not implemented yet";
 }
 
-void write_sparse_binary_matrix(std::ostream& out, const smurff::MatrixConfig& Y)
+void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& matrixConfig)
 {
-   std::uint64_t nrow = Y.getNRow();
-   std::uint64_t ncol = Y.getNCol();
-   std::uint64_t nnz = Y.getNNZ();
-   std::vector<std::uint32_t> rows = Y.getRows();
-   std::vector<std::uint32_t> cols = Y.getCols();
+   std::uint64_t nrow = matrixConfig.getNRow();
+   std::uint64_t ncol = matrixConfig.getNCol();
+   std::uint64_t nnz = matrixConfig.getNNZ();
+   std::vector<std::uint32_t> rows = matrixConfig.getRows();
+   std::vector<std::uint32_t> cols = matrixConfig.getCols();
 
    std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
    std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col++; });
