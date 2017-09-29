@@ -1,5 +1,4 @@
-#ifndef LINOP_H
-#define LINOP_H
+#pragma once
 
 #include <Eigen/Dense>
 #include "chol.h"
@@ -27,10 +26,13 @@ void AtA_mul_B(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Ei
 // compile-time optimized versions (N - number of RHSs)
 template<typename T>
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
 template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
 template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B);
 template<int N>
@@ -66,6 +68,9 @@ void A_mul_Bt( Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B);
 void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
 
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 void makeSymmetric(Eigen::MatrixXd & A);
 
@@ -422,6 +427,15 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
   }
 }
 
+inline void AtA_mul_B_switch(
+		   Eigen::MatrixXd & out,
+		   Eigen::MatrixXd & A,
+			 double reg,
+			 Eigen::MatrixXd & B,
+			 Eigen::MatrixXd & tmp) {
+	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
+}
+
 template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & inner) {
   assert(N == out.rows());
@@ -531,4 +545,3 @@ inline void A_mul_B_omp(
   out.block(0, col, N, out.cols() - col) = alpha * out.block(0, col, N, out.cols() - col) + beta * A * B.block(0, col, N, out.cols() - col);
 }
 */
-#endif /* LINOP_H */

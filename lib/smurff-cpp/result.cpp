@@ -11,12 +11,12 @@
 #include <memory>
 #include <cmath>
 
-#include "data.h"
+#include "Data.h"
 #include "model.h"
 #include "utils.h"
 #include "result.h"
 
-using namespace std; 
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
@@ -53,8 +53,8 @@ double Result::rmse_using_modemean(const Data &data, int mode) {
      const unsigned N = predictions.size();
      double se = 0.;
      for(auto t : predictions) {
-        int n = mode == 0 ? t.col : t.row;
-        double pred = data.mean(mode, n);
+        int n = mode == 0 ? t.row : t.col;
+        double pred = data.getModeMeanItem(mode, n);
         se += square(t.val - pred);
      }
      return sqrt( se / N );
@@ -91,10 +91,10 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
 
     if (burnin) {
         double se = 0.0;
-#pragma omp parallel for schedule(guided) reduction(+:se)
+        #pragma omp parallel for schedule(guided) reduction(+:se)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            t.pred = model.predict({t.col, t.row}, data);
+            t.pred = model.predict({t.row, t.col}, data);
             se += square(t.val - t.pred);
         }
         burnin_iter++;
@@ -104,7 +104,7 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            const double pred = model.predict({t.col, t.row}, data);
+            const double pred = model.predict({t.row, t.col}, data);
             se += square(t.val - pred);
             double delta = pred - t.pred_avg;
             double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
@@ -123,26 +123,114 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
     update_auc();
 }
 
+//macau ProbitNoise eval
+/*
+eval_rmse(MatrixData & data, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var,
+        std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
+{
+ const unsigned N = data.Ytest.nonZeros();
+  Eigen::VectorXd pred(N);
+  Eigen::VectorXd test(N);
+  Eigen::MatrixXd & rows = *samples[0];
+  Eigen::MatrixXd & cols = *samples[1];
+
+// #pragma omp parallel for schedule(dynamic,8) reduction(+:se, se_avg) <- dark magic :)
+  for (int k = 0; k < data.Ytest.outerSize(); ++k) {
+    int idx = data.Ytest.outerIndexPtr()[k];
+    for (Eigen::SparseMatrix<double>::InnerIterator it(data.Ytest,k); it; ++it) {
+     pred[idx] = nCDF(cols.col(it.col()).dot(rows.col(it.row())));
+     test[idx] = it.value();
+
+      // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+      double pred_avg;
+      if (n == 0) {
+        pred_avg = pred[idx];
+      } else {
+        double delta = pred[idx] - predictions[idx];
+        pred_avg = (predictions[idx] + delta / (n + 1));
+        predictions_var[idx] += delta * (pred[idx] - pred_avg);
+      }
+      predictions[idx++] = pred_avg;
+
+   }
+  }
+  auc_test_onesample = auc(pred,test);
+  auc_test = auc(predictions, test);
+}
+*/
+
+//macau tensor eval
+/*
+std::pair<double,double> eval_rmse_tensor(
+		SparseMode & sparseMode,
+		const int Nepoch,
+		Eigen::VectorXd & predictions,
+		Eigen::VectorXd & predictions_var,
+		std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
+		double mean_value)
+{
+  auto& U = samples[0];
+
+  const int nmodes = samples.size();
+  const int num_latents = U->rows();
+
+  const unsigned N = sparseMode.values.size();
+  double se = 0.0, se_avg = 0.0;
+
+  if (N == 0) {
+    // No test data, returning NaN's
+    return std::make_pair(std::numeric_limits<double>::quiet_NaN(),
+                          std::numeric_limits<double>::quiet_NaN());
+  }
+
+  if (N != predictions.size()) {
+    throw std::runtime_error("Ytest.size() and predictions.size() must be equal.");
+  }
+	if (sparseMode.row_ptr.size() - 1 != U->cols()) {
+    throw std::runtime_error("U.cols() and sparseMode size must be equal.");
+	}
+
+#pragma omp parallel for schedule(dynamic, 2) reduction(+:se, se_avg)
+  for (int n = 0; n < U->cols(); n++) {
+    Eigen::VectorXd u = U->col(n);
+    for (int j = sparseMode.row_ptr(n);
+             j < sparseMode.row_ptr(n + 1);
+             j++)
+    {
+      VectorXi idx = sparseMode.indices.row(j);
+      double pred = mean_value;
+      for (int d = 0; d < num_latents; d++) {
+        double tmp = u(d);
+
+        for (int m = 1; m < nmodes; m++) {
+          tmp *= (*samples[m])(d, idx(m - 1));
+        }
+        pred += tmp;
+      }
+
+      double pred_avg;
+      if (Nepoch == 0) {
+        pred_avg = pred;
+      } else {
+        double delta = pred - predictions(j);
+        pred_avg = (predictions(j) + delta / (Nepoch + 1));
+        predictions_var(j) += delta * (pred - pred_avg);
+      }
+      se     += square(sparseMode.values(j) - pred);
+      se_avg += square(sparseMode.values(j) - pred_avg);
+      predictions(j) = pred_avg;
+    }
+  }
+  const double rmse = sqrt(se / N);
+  const double rmse_avg = sqrt(se_avg / N);
+  return std::make_pair(rmse, rmse_avg);
+}
+*/
 
 void Result::update_auc()
 {
     if (!classify) return;
-    std::sort(predictions.begin(), predictions.end(),
-            [this](const Item &a, const Item &b) { return a.pred < b.pred;});
-
-    int num_positive = 0;
-    int num_negative = 0;
-    auc = .0;
-    for(auto &t : predictions) {
-        int is_positive = t.val > threshold;
-        int is_negative = !is_positive; 
-        num_positive += is_positive;
-        num_negative += is_negative;
-        auc += is_positive * num_negative;
-    }
-
-    auc /= num_positive;
-    auc /= num_negative;
+    auc = calc_auc(predictions, threshold);
 }
 
 std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
@@ -150,9 +238,9 @@ std::ostream &Result::info(std::ostream &os, std::string indent, const Data &dat
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
-        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data.global_mean) << endl;
-        os << indent << "RMSE using colmean: " << rmse_using_modemean(data,0) << endl;
-        os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,1) << endl;
+        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data.getGlobalMean()) << endl;
+        os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
+        os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;
     } else {
         os << indent << "Test data: -\n";
     }

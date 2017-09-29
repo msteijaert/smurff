@@ -19,8 +19,8 @@
 #include "omp_util.h"
 #include "linop.h"
 #include "session.h"
-#include "macauoneprior.h"
-#include "data.h"
+
+#include "MacauOnePrior.hpp"
 
 using namespace Eigen;
 using namespace std;

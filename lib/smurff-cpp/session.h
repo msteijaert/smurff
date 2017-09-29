@@ -6,11 +6,9 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <memory>
 
-#include "data.h"
 #include "result.h"
 #include "model.h"
-#include "latentprior.h"
-
+#include "Data.h"
 
 namespace smurff {
 
@@ -18,12 +16,15 @@ class ILatentPrior;
 
 class BaseSession  {
    public:
+      virtual ~BaseSession() {}
+
+   public:
       //-- data members
       Model                                       model;
       Result                                      pred;
       Data &                                      data() { assert(data_ptr); return *data_ptr; }
       std::vector< std::unique_ptr<ILatentPrior>> priors;
- 
+
       //-- add priors
       template<class Prior>
       inline Prior& addPrior();
@@ -72,7 +73,7 @@ class CmdSession :  public Session {
 class MPISession : public CmdSession {
   public:
     MPISession() { name = "MPISession"; }
-      
+
     void run();
     std::ostream &info(std::ostream &os, std::string indent) override;
 
@@ -85,15 +86,15 @@ class MPISession : public CmdSession {
 class PythonSession : public Session {
   public:
     PythonSession() {
-        name = "PythonSession"; 
+        name = "PythonSession";
         keepRunning = true;
     }
 
     void step() override;
 
   private:
-    static void intHandler(int); 
-    static bool keepRunning; 
+    static void intHandler(int);
+    static bool keepRunning;
 
 };
 

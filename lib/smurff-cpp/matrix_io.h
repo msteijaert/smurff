@@ -17,6 +17,21 @@
 #include "config.h"
 #include "omp_util.h"
 
+enum class DenseMatrixType
+{
+   none,
+   csv,
+   ddm
+};
+
+enum class SparseMatrixType
+{
+   none,
+   sdm,
+   sbm,
+   mtx
+};
+
 struct sparse_vec_iterator {
     sparse_vec_iterator(int *rows, int *cols, int pos)
         : rows(rows), cols(cols), vals(0), fixed_val(1.0), pos(pos) {}
@@ -28,8 +43,14 @@ struct sparse_vec_iterator {
         : rows(Y.rows), cols(Y.cols), vals(Y.vals), fixed_val(NAN), pos(pos) {}
     sparse_vec_iterator(const SparseBinaryMatrix &Y, int pos)
         : rows(Y.rows), cols(Y.cols), vals(0), fixed_val(1.0), pos(pos) {}
-    sparse_vec_iterator(const smurff::MatrixConfig &Y, int pos)
-        : rows(Y.rows), cols(Y.cols), vals(Y.values), fixed_val(Y.binary), pos(pos) {}
+
+   //
+   // Commented out this constructor. Cause currently we have a specialized sparse_to_eigen function
+   // Might remove it later. But for now it does the job
+   //
+   // sparse_vec_iterator(const smurff::MatrixConfig &Y, int pos)
+   //      : rows(Y.rows), cols(Y.cols), vals(Y.values), fixed_val(Y.binary), pos(pos) {}
+   //
 
     int *rows, *cols;
     double *vals; // can be null pointer -> use fixed value
@@ -57,17 +78,24 @@ struct sparse_vec_iterator {
 template<typename Matrix>
 Eigen::SparseMatrix<double> sparse_to_eigen(Matrix &Y)
 {
-    Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
-    sparse_vec_iterator begin(Y, 0);
-    sparse_vec_iterator end(Y, Y.nnz);
-    out.setFromTriplets(begin, end);
-    return out;
+     Eigen::SparseMatrix<double> out(Y.nrow, Y.ncol);
+     sparse_vec_iterator begin(Y, 0);
+     sparse_vec_iterator end(Y, Y.nnz);
+     out.setFromTriplets(begin, end);
+     return out;
 }
+
+template<>
+Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig);
+
+template<>
+Eigen::SparseMatrix<double> sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig);
 
 template<typename Matrix>
 Eigen::MatrixXd dense_to_eigen(Matrix &Y)
 {
-    return Eigen::Map<Eigen::MatrixXd>(Y.values, Y.nrow, Y.ncol);
+   std::vector<double> Yvalues = Y.getValues();
+   return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), Y.getNRow(), Y.getNCol());
 }
 
 class SparseFeat {
@@ -113,7 +141,7 @@ class SparseDoubleFeat {
 };
 
 template <typename Matrix>
-inline bool is_binary(const Matrix &M) 
+inline bool is_binary(const Matrix &M)
 {
     auto *values = M.valuePtr();
     for(int i=0; i<M.nonZeros(); ++i) {
@@ -125,35 +153,80 @@ inline bool is_binary(const Matrix &M)
     return true;
 }
 
-// to Eigen::Sparse from 
+// to Eigen::Sparse from
 
-void writeToCSVfile(std::string filename, Eigen::MatrixXd matrix);
-void readFromCSVfile(std::string filename, Eigen::MatrixXd &matrix);
+void writeToCSVfile(const std::string& filename, const Eigen::MatrixXd& matrix);
+void writeToCSVstream(std::ostream& out, const Eigen::MatrixXd& matrix);
+
+void readFromCSVfile(const std::string& filename, Eigen::MatrixXd& matrix);
+void readFromCSVstream(std::istream& in, Eigen::MatrixXd& matrix);
 
 std::unique_ptr<SparseFeat> load_bcsr(const char* filename);
 std::unique_ptr<SparseDoubleFeat> load_csr(const char* filename);
 
-void write_ddm(std::string filename, const Eigen::MatrixXd& matrix);
-void read_ddm(std::string filename, Eigen::MatrixXd &matrix);
+void write_ddm(const std::string& filename, const Eigen::MatrixXd& matrix);
+void write_ddm(std::ostream& out, const Eigen::MatrixXd& matrix);
 
-Eigen::MatrixXd sparse_to_dense(SparseBinaryMatrix &in);
-Eigen::MatrixXd sparse_to_dense(SparseDoubleMatrix &in);
+void read_ddm(const std::string& filename, Eigen::MatrixXd& matrix);
+void read_ddm(std::istream& in, Eigen::MatrixXd& matrix);
 
-bool is_matrix_fname(std::string fname);
-bool is_sparse_fname(std::string fname);
-bool is_sparse_binary_fname(std::string fname);
-bool is_dense_fname(std::string fname);
-bool is_compact_fname(std::string fname);
+Eigen::MatrixXd sparse_to_dense(const SparseBinaryMatrix& in);
+Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
 
-void read_dense(std::string fname, Eigen::MatrixXd &);
-void read_dense(std::string fname, Eigen::VectorXd &);
-void read_sparse(std::string fname, Eigen::SparseMatrix<double> &);
+bool is_matrix_fname(const std::string& fname);
+bool is_sparse_fname(const std::string& fname);
+bool is_sparse_binary_fname(const std::string& fname);
+bool is_dense_fname(const std::string& fname);
+bool is_compact_fname(const std::string& fname);
 
-smurff::MatrixConfig read_ddm(std::string filename);
-smurff::MatrixConfig read_csv(std::string filename);
-smurff::MatrixConfig read_dense(std::string fname);
-smurff::MatrixConfig read_sparse(std::string fname);
-smurff::MatrixConfig read_matrix(std::string fname);
+void read_dense(const std::string& fname, Eigen::MatrixXd& X);
+void read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::MatrixXd& X);
 
-void write_dense(std::string fname, const Eigen::MatrixXd&);
+void read_dense(const std::string& fname, Eigen::VectorXd &);
+void read_dense(std::istream& in, DenseMatrixType denseMatrixType, Eigen::VectorXd& V);
 
+void read_sparse(const std::string& fname, Eigen::SparseMatrix<double> &);
+
+smurff::MatrixConfig read_mtx(const std::string& filename);
+smurff::MatrixConfig read_mtx(std::istream& in);
+
+smurff::MatrixConfig read_csv(const std::string& filename);
+smurff::MatrixConfig read_csv(std::istream& in);
+
+smurff::MatrixConfig read_ddm(const std::string& filename);
+smurff::MatrixConfig read_ddm(std::istream& in);
+
+smurff::MatrixConfig read_dense(const std::string& fname);
+smurff::MatrixConfig read_dense(std::istream& in, DenseMatrixType denseMatrixType);
+
+smurff::MatrixConfig read_sparse(const std::string& fname);
+
+smurff::MatrixConfig read_matrix(const std::string& fname);
+
+void write_dense(const std::string& fname, const Eigen::MatrixXd&);
+void write_dense(std::ostream& out, DenseMatrixType denseMatrixType, const Eigen::MatrixXd&);
+
+//
+// GitHub issue #34:
+//    https://github.com/ExaScience/smurff/issues/34
+//
+// Python golden stardard:
+//    https://github.com/ExaScience/smurff/blob/master-smurff-merge/python/io/matrix_io.py
+//
+smurff::MatrixConfig read_dense_float64(const std::string& filename);
+smurff::MatrixConfig read_dense_float64(std::istream& in);
+
+smurff::MatrixConfig read_sparse_float64(const std::string& filename);
+smurff::MatrixConfig read_sparse_float64(std::istream& in);
+
+smurff::MatrixConfig read_sparse_binary_matrix(const std::string& filename);
+smurff::MatrixConfig read_sparse_binary_matrix(std::istream& in);
+
+void write_dense_float64(const std::string& filename, const smurff::MatrixConfig& Y);
+void write_dense_float64(std::ostream& out, const smurff::MatrixConfig& Y);
+
+void write_sparse_float64(const std::string& filename, const smurff::MatrixConfig& Y);
+void write_sparse_float64(std::ostream& out, const smurff::MatrixConfig& Y);
+
+void write_sparse_binary_matrix(const std::string& filename, const smurff::MatrixConfig& Y);
+void write_sparse_binary_matrix(std::ostream& out, const smurff::MatrixConfig& Y);

@@ -1,5 +1,10 @@
-# Smurff-cpp - Bayesian Factorization with Side Information
-Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and Macau. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. Macau method provides also the ability to incorporate high-dimensional side information to the factorization.
+# SMURFF - Scalable Matrix Factorization Framework
+## Bayesian Factorization with Side Information
+
+Highly optimized and parallelized methods for Bayesian Factorization, including BPMF, Macau and GFA.
+The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices.
+
+Macau method is able to perform **matrix** and **tensor** factorization while incorporating high-dimensional side information to the factorization.
 
 # Examples
 For examples see [documentation](http://macau.readthedocs.io/en/latest/source/examples.html).
@@ -26,8 +31,18 @@ wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
 ./smurff --train chembl-IC50-346targets.mm
 ```
 
+## Installation using Conda
+```bash
+conda install -c vanderaa smurff 
+```
+
 # Contributors
-- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version)
+- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version, Tensor factorization)
+- Tom Vander Aa (OpenMP optimized BPMF, Matrix Cofactorization and GFA, Code Reorg)
 - Adam Arany (Probit noise model)
-- Tom Vander Aa (OpenMP optimized BPMF)
 - Tom Haber (Original BPMF code)
+
+# Acknowledgements
+This work was partly funded by the European projects ExCAPE (http://excape-h2020.eu) and
+EXA2CT, and the Flemish Exaptation project.
+

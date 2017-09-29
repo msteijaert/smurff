@@ -20,14 +20,15 @@
 #include "session.h"
 #include "mvnormal.h"
 #include "utils.h"
-#include "latentprior.h"
-#include "macauoneprior.h"
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
-#include "data.h"
+#include "Data.h"
 
-using namespace std; 
+#include "ILatentPrior.h"
+#include "MacauOnePrior.hpp"
+
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
@@ -43,26 +44,37 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
     Config &c = *(Config *)(state->input);
 
-    auto set_noise_model = [&c](std::string name, std::string optarg) {
+    auto set_noise_model = [&c](std::string name, std::string optarg)
+    {
         NoiseConfig nc;
         nc.name = name;
-        if (name == "adaptive") {
+        if (name == "adaptive")
+        {
             char *token, *str = strdup(optarg.c_str());
-            if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL); 
-            if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL); 
-        } else if (name == "fixed") {
+            if(str && (token = strsep(&str, ","))) nc.sn_init = strtod(token, NULL);
+            if(str && (token = strsep(&str, ","))) nc.sn_max = strtod(token, NULL);
+        }
+        else if (name == "fixed")
+        {
             nc.precision = strtod(optarg.c_str(), NULL);
         }
 
         // set global noise model
-        if (c.train.noise.name == "noiseless") c.train.noise = nc; 
-        //set for row/col feautres
-        for(auto &m: c.row_features) if (m.noise.name == "noiseless") m.noise = nc; 
-        for(auto &m: c.col_features) if (m.noise.name == "noiseless") m.noise = nc; 
+        if (c.train.getNoiseConfig().name == "noiseless")
+            c.train.setNoiseConfig(nc);
 
+        //set for row/col feautres
+        for(auto &m: c.row_features)
+            if (m.getNoiseConfig().name == "noiseless")
+               m.setNoiseConfig(nc);
+
+        for(auto &m: c.col_features)
+            if (m.getNoiseConfig().name == "noiseless")
+               m.setNoiseConfig(nc);
     };
 
-    switch (key) {
+    switch (key)
+    {
         case ROW_PRIOR:       c.row_prior          = optarg; break;
         case COL_PRIOR:       c.col_prior          = optarg; break;
 
@@ -76,12 +88,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
         case TOL:             c.tol                = atof(optarg); break;
         case DIRECT:          c.direct             = true; break;
-        case FNAME_TEST:
-                              //-- check if fname_test is actually a number
-                              if ((c.test_split = atof(optarg)) <= .0) {
-                                  c.test           = read_sparse(optarg);
-                              }
-                              break;
+        case FNAME_TEST:      c.test               = read_sparse(optarg); break;
         case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
 
@@ -107,7 +114,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 
 void CmdSession::setFromArgs(int argc, char** argv) {
     /* Program documentation. */
-    char doc[] = "ExCAPE Matrix Factorization Framework";
+    char doc[] = "SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff";
 
     struct argp_option options[] = {
         {0,0,0,0,"Priors and side Info:",1},
@@ -120,7 +127,6 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"center",           CENTER	        , "MODE",  0, "center <global|rows|cols|none>"},
         {0,0,0,0,"Test and train matrices:",2},
         {"test",	     FNAME_TEST    , "FILE",  0, "test data (for computing RMSE)"},
-        {"test",	     FNAME_TEST    , "NUM",   0, "fraction of train matrix to extract for computing RMSE (e.g. 0.2)"},
         {"train",	     FNAME_TRAIN   , "FILE",  0, "train data file"},
         {0,0,0,0,"General parameters:",3},
         {"burnin",	     BURNIN	, "NUM",   0, "200  number of samples to discard"},

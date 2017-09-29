@@ -99,6 +99,18 @@ void bmrandn(MatrixXd & X) {
   bmrandn(X.data(), n);
 }
 
+double rand_unif() {
+  std::uniform_real_distribution<double> unif(0.0, 1.0);
+  std::mt19937& bmrng = bmrngs.at(thread_num());
+  return unif(bmrng);
+}
+
+double rand_unif(double low, double high) {
+  std::uniform_real_distribution<double> unif(low, high);
+  std::mt19937& bmrng = bmrngs.at(thread_num());
+  return unif(bmrng);
+}
+
 // to be called within OpenMP parallel loop (also from serial code is fine)
 void bmrandn_single(double* x, long n) {
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
@@ -231,16 +243,17 @@ MatrixXd Wishart(const MatrixXd &sigma, const int df)
 {
 //  Get R, the upper triangular Cholesky factor of SIGMA.
   auto chol = sigma.llt();
+  MatrixXd r = chol.matrixL();
 
 //  Get AU, a sample from the unit Wishart distribution.
   MatrixXd au = WishartUnit(sigma.cols(), df);
 
 //  Construct the matrix A = R' * AU * R.
-  MatrixXd a = chol.matrixL() * au * chol.matrixU();
+  MatrixXd a = r * au * chol.matrixU();
 
 #ifdef TEST_MVNORMAL
     cout << "WISHART {\n" << endl;
-    cout << "  sigma::\n" << sigma << endl;
+    cout << "  sigma:\n" << sigma << endl;
     cout << "  r:\n" << r << endl;
     cout << "  au:\n" << au << endl;
     cout << "  df:\n" << df << endl;
@@ -273,15 +286,13 @@ std::pair<VectorXd, MatrixXd> NormalWishart(const VectorXd & mu, double kappa, c
   return std::make_pair(mu_o , Lam);
 }
 
-std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S, const VectorNd &Um, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
+std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &NS, const VectorNd &NU, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
 {
-    VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
-    double kappa_c = kappa + N;
-    auto mu_m = (mu - Um);
-    double kappa_m = (kappa * N)/(kappa + N);
-    auto X = ( T + N * S + kappa_m * (mu_m * mu_m.transpose()));
-    MatrixXd T_c = X.inverse();
-    int nu_c = nu + N;
+	int nu_c = nu + N;
+	double kappa_c = kappa + N;
+	auto mu_c = (kappa * mu + NU) / (kappa + N);
+	auto X    = (T + NS + kappa * mu * mu.adjoint() - kappa_c * mu_c * mu_c.adjoint());
+	Eigen::MatrixXd T_c = X.inverse();
 
 #ifdef TEST_MVNORMAL
     cout << "mu_c:\n" << mu_c << endl;
@@ -295,14 +306,10 @@ std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S
 
 std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
 {
-    int N = U.cols();
-    auto Um = U.rowwise().mean();
-
-    // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
-    MatrixXd C = U.colwise() - Um;
-    MatrixXd S = (C * C.adjoint()) / double(N - 1);
-
-    return CondNormalWishart(N, S, Um, mu, kappa, T, nu);
+    auto N = U.cols();
+	auto NS = U * U.adjoint();
+	auto NU = U.rowwise().sum();
+    return CondNormalWishart(N, NS, NU, mu, kappa, T, nu);
 }
 
 #if defined(TEST) || defined (BENCH)
@@ -352,7 +359,7 @@ int main()
     return 0;
 
 #else
-
+    init_bmrng(1234);
     {
         MatrixXd U(32,32 * 1024);
         U.setOnes();
@@ -370,27 +377,6 @@ int main()
 
         VectorXd mu_out;
         MatrixXd T_out;
-
-#ifdef BENCH_OLD_VS_NEW
-        for(int i=0; i<300; ++i) {
-            tie(mu_out, T_out) = CondNormalWishart(U, mu, kappa, T, nu);
-            cout << i << "\r" << flush;
-        }
-        cout << endl << flush;
-
-        for(int i=0; i<7; ++i) {
-            cout << i << ": " << (int)(100.0 * acc[i] / acc[7])  << endl;
-        }
-        cout << "total: " << acc[7] << endl;
-
-        for(int i=0; i<300; ++i) {
-            tie(mu_out, T_out) = OldCondNormalWishart(U, mu, kappa, T, nu);
-            cout << i << "\r" << flush;
-        }
-        cout << endl << flush;
-
-        cout << "total: " << acc[8] << endl;
-#endif
 
 #if defined(BENCH_COND_NORMALWISHART)
         cout << "COND NORMAL WISHART\n" << endl;
@@ -422,6 +408,5 @@ int main()
 
 #endif
 }
-
 
 #endif

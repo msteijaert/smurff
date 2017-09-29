@@ -16,68 +16,6 @@
 #include <dsparse.h>
 #include "omp_util.h"
 
-struct PVec {
-    // c'tor
-    PVec() : n(0) {}
-    PVec(int n) : n(n), v({{0}}) { assert(n <= max); }
-    PVec(int a, int b) : n(2), v({{a,b}}) {}
-
-    // meta info
-    int size() const { return n; }
-
-    // const accessor
-    const int &operator[](int p) const { return v[p]; }
-    const int &at(int p) const { assert(p>=0 && p < n); return v[p]; }
-
-    // non-const accessor
-    int &operator[](int p) { return v[p]; }
-    int &at(int p) { assert(p>=0 && p < n); return v[p]; }
-
-    // operator+
-    PVec operator+(const PVec &other) const {
-        assert(n == other.n);
-        PVec ret = *this;
-        for(int i=0; i<n; ++i) { ret[i] += other[i]; }
-        return ret;
-    }
-    //
-    // operator-
-    PVec operator-(const PVec &other) const {
-        assert(n == other.n);
-        PVec ret = *this;
-        for(int i=0; i<n; ++i) { ret[i] -= other[i]; }
-        return ret;
-    }
-
-    bool in(const PVec &start, const PVec &end) const {
-        for(int i=0; i<n; ++i) {
-            if (at(i) < start.at(i)) return false;
-            if (at(i) >= end.at(i)) return false;
-        }
-        return true;
-    }
-
-    int dot() const {
-        int ret = 1;
-        for(int i=0; i<n; ++i) ret *= at(i);
-        return ret;
-    }
-
-
-    std::ostream &info(std::ostream &os) const {
-        os << "[ ";
-        for(int i=0; i<n; ++i) os << at(i) << ((i != n-1) ? " x " : "");
-        os << " ]";
-        return os;
-    }
-
-  private:
-    static const unsigned int max = 2; // only matrices for the moment
-    int n;
-    std::array<int, max> v;
-};
-
-
 template<typename T>
 class thread_vector
 {
@@ -92,7 +30,7 @@ class thread_vector
         }
 
         T &local() {
-            return _m.at(thread_num()); 
+            return _m.at(thread_num());
         }
         void reset() {
             for(auto &t: _m) t = _i;
@@ -126,14 +64,14 @@ class thread_vector
 #endif
 
 inline double tick() {
-    return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count(); 
+    return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
 inline double clamp(double x, double min, double max) {
   return x < min ? min : (x > max ? max : x);
 }
 
-inline std::pair<double, double> getMinMax(const Eigen::SparseMatrix<double> &mat) { 
+inline std::pair<double, double> getMinMax(const Eigen::SparseMatrix<double> &mat) {
     double min = INFINITY;
     double max = -INFINITY;
     for (int k = 0; k < mat.outerSize(); ++k) {
@@ -247,11 +185,22 @@ inline void die_unless_file_exists(std::string fname) {
     }
 }
 
+template<typename T>
+std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
+    out << "[";
+    size_t last = v.size() - 1;
+    for(size_t i = 0; i < v.size(); ++i) {
+        out << v[i];
+        if (i != last)
+            out << ", ";
+    }
+    out << "]";
+    return out;
+}
+
 typedef Eigen::VectorXd VectorNd;
 typedef Eigen::MatrixXd MatrixNNd;
 typedef Eigen::ArrayXd ArrayNd;
 typedef Eigen::ArrayXXd ArrayNNd;
 
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
-
-

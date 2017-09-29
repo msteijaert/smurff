@@ -5,27 +5,35 @@
 #include <Eigen/Sparse>
 #include <memory>
 
-#include "noisemodels.h"
+
 #include "matrix_io.h"
 #include "utils.h"
+#include "PVec.h"
 
 namespace smurff {
+
+// AGE: I dont like this cross reference between Data and Model. Need to think how we can eliminate it.
+class Data;
 
 struct SubModel;
 
 struct Model {
-    Model() : num_latent(-1) {}
+    Model()
+      : num_latent(-1)
+    {
+    }
+
     void init(int nl, const PVec &indices, std::string init_model);
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
-        return samples.at(f); 
+        return samples.at(f);
     }
     Eigen::MatrixXd::ConstColXpr col(int f, int i) const {
-        return U(f).col(i); 
+        return U(f).col(i);
     }
     Eigen::MatrixXd &U(int f) {
-        return samples.at(f); 
+        return samples.at(f);
     }
 
     double dot(const PVec &indices) const  {
@@ -50,7 +58,6 @@ struct Model {
     int nlatent() const { return num_latent; }
     int nsamples() const { return std::accumulate(samples.begin(), samples.end(), 0,
             [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); }); }
-    PVec dims;
     SubModel full();
 
     //-- output to file
@@ -59,19 +66,26 @@ struct Model {
     std::ostream &info(std::ostream &os, std::string indent) const;
     std::ostream &status(std::ostream &os, std::string indent) const;
 
+  public:
+     const PVec& getDims() const
+     {
+        return *m_dims;
+     }
+
   private:
     std::vector<Eigen::MatrixXd> samples;
     int num_latent;
+    std::unique_ptr<PVec> m_dims;
 };
 
 struct SubModel {
-    SubModel(const Model &m, const PVec o, const PVec d) 
+    SubModel(const Model &m, const PVec o, const PVec d)
         : model(m), off(o), dims(d) {}
 
-    SubModel(const SubModel &m, const PVec o, const PVec d) 
+    SubModel(const SubModel &m, const PVec o, const PVec d)
         : model(m.model), off(o + m.off), dims(d) {}
 
-    SubModel(const Model &m) : model(m), off(m.nmodes()), dims(m.dims) {}
+    SubModel(const Model &m) : model(m), off(m.nmodes()), dims(m.getDims()) {}
 
     Eigen::MatrixXd::ConstBlockXpr U(int f) const {
         return model.U(f).block(0, off.at(f), model.nlatent(), dims.at(f));

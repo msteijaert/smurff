@@ -11,7 +11,31 @@
 namespace smurff {
 
 struct Model;
-struct Data;
+class Data;
+
+template<typename Item>
+double calc_auc(const std::vector<Item> &predictions, double threshold)
+{
+    auto sorted_predictions = predictions;
+
+    std::sort(sorted_predictions.begin(), sorted_predictions.end(),
+            [](const Item &a, const Item &b) { return a.pred < b.pred;});
+
+    int num_positive = 0;
+    int num_negative = 0;
+    double auc = .0;
+    for(auto &t : sorted_predictions) {
+        int is_positive = t.val > threshold;
+        int is_negative = !is_positive;
+        num_positive += is_positive;
+        num_negative += is_negative;
+        auc += is_positive * num_negative;
+    }
+
+    auc /= num_positive;
+    auc /= num_negative;
+    return auc;
+}
 
 struct Result {
     //-- test set
@@ -28,7 +52,7 @@ struct Result {
     void update(const Model &, const Data &, bool burnin);
     double rmse_avg = NAN;
     double rmse = NAN;
-    double auc = NAN; 
+    double auc = NAN;
     int sample_iter = 0;
     int burnin_iter = 0;
 
@@ -45,7 +69,7 @@ struct Result {
     bool classify = false;
     double threshold;
     void update_auc();
-    void setThreshold(double t) { threshold = t; classify = true; } 
+    void setThreshold(double t) { threshold = t; classify = true; }
 };
 
 }; // end namespace smurff

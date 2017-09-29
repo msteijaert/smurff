@@ -1,3 +1,5 @@
+//#define EIGEN_USE_BLAS
+
 #include <Eigen/Dense>
 #include <math.h>
 extern "C" {
@@ -19,6 +21,7 @@ extern "C" void dsyrk_(char *uplo, char *trans, int *m, int *n, double *alpha, d
 extern "C" void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha,
             double a[], int *lda, double b[], int *ldb, double *beta, double c[],
             int *ldc);
+
 /*
 extern "C" void dsymm_(char *side, char *uplo, int *m, int *n, double *alpha, double a[],
             int *lda, double b[], int *ldb, double *beta, double c[], int *ldc);
@@ -52,6 +55,34 @@ void A_mul_Bt(Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B) {
   if (csr.ncol != B.cols())   {throw std::runtime_error("csr.ncol must equal b.cols()");}
   if (out.rows() != B.rows()) {throw std::runtime_error("out.rows() must equal B.rows()");}
   csr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
+}
+
+//method is identical
+
+//X = A * B
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B) 
+{
+   Eigen::MatrixXd out(A.rows(), B.cols());
+   A_mul_B_blas(out, A, B);
+   return out;
+}
+
+//method is identical
+ 
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B) 
+{
+   Eigen::MatrixXd out(A.rows(), B.cols());
+   A_mul_Bt(out, B.Mt, A);
+   return out;
+}
+
+//method is identical
+ 
+Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) 
+{
+   Eigen::MatrixXd out(A.rows(), B.cols());
+   A_mul_Bt(out, B.Mt, A);
+   return out;
 }
 
 void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {

@@ -6,3 +6,9 @@ smurff
 mpi_smurff
 tests
 *.a
+Version.cpp
+cmake/CMakeCache.txt
+cmake/CMakeFiles
+cmake/Makefile
+cmake/cmake_install.cmake
+cmake/_output

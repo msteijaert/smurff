@@ -1,9 +1,11 @@
 build/
+dist/
+tmp/
+lib/eigen3*/
 .*.swp
 MANIFEST
 *.pyc
 dist
 .DS_Store
-*.cpp
 *.egg-info
 *.so

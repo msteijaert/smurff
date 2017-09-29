@@ -1,8 +1,8 @@
 .. role:: python(code)
    :language: python
 
-Examples
-===========
+Macau Tutorial
+==============
 In these examples we use ChEMBL dataset for compound-proteins activities (IC50). The IC50 values and ECFP fingerprints can be downloaded from these two urls:
 
 .. code-block:: bash
@@ -10,10 +10,23 @@ In these examples we use ChEMBL dataset for compound-proteins activities (IC50).
    wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
    wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-compound-feat.mm
 
+Matrix Factorization Model
+---------------------------
+
+The matrix factorization models cell :python:`Y[i,j]` by the inner product of the latents
+
+.. math::
+
+   Y_{ij} \sim \mathcal{N}(\mathbf{u}_i ^ \top \mathbf{v}_j + mean, \alpha^{-1})
+
+where :math:`\mathbf{u}_i` and :math:`\mathbf{v}_j` are the latent vector for i-th row and j-th column, and :math:`\alpha` is the precision of the observation noise.
+The model also uses a fixed global mean for the whole matrix.
+
+
 Matrix Factorization with Side Information
 -------------------------------------------
 
-In this example we use MCMC (Gibbs) sampling to perform factorization of the `compound x protein` IC50 matrix by using side information on the compounds.
+In this example we use MCMC (Gibbs) sampling to perform factorization of the `compound x protein` IC50 matrix by using ECFP features as side information on the compounds.
 
 .. code-block:: python
 
@@ -120,6 +133,40 @@ In the case of adaptive noise the model updates (samples) the precision paramete
 Additionally, there is a parameter :python:`sn_max` that sets the maximum allowed signal-to-noise ratio.
 This means that if the updated precision would imply a higher signal-to-noise ratio than :python:`sn_max`, then the precision value is set to :python:`(sn_max + 1.0) / Yvar` where Yvar is the variance of the training dataset :python:`Y`.
 
+Binary matrices
+~~~~~~~~~~~~~~~~
+Macau can also factorize binary matrices (with or without side information). As an input the sparse matrix should only contain values of 0 or 1.
+To factorize them we employ probit noise model that can be enabled by :python:`precision = "probit"`.
+
+Care has to be taken to make input to the model, as operating with sparse matrices can drop real 0 measurements. In the below example, we first copy the matrix (line 9) and then threshold the data to binary (line 10).
+
+Currently, the probit model only works with the multivariate sampler (:python:`univariate = False`).
+
+.. code-block:: python
+   :emphasize-lines: 9,10,17
+
+   import macau
+   import scipy.io
+
+   ## loading data
+   ic50 = scipy.io.mmread("chembl-IC50-346targets.mm")
+   ecfp = scipy.io.mmread("chembl-IC50-compound-feat.mm")
+
+   ## using activity threshold pIC50 > 6.5
+   act = ic50
+   act.data = act.data > 6.5
+
+   ## running factorization (Macau)
+   result = macau.macau(Y = act,
+                        Ytest      = 0.2,
+                        side       = [ecfp, None],
+                        num_latent = 32,
+                        precision  = "probit",
+                        univariate = False,
+                        burnin     = 400,
+                        nsamples   = 1600)
+
+
 Matrix Factorization without Side Information
 ----------------------------------------------
 To run matrix factorization without side information you can just drop the :python:`side` parameter.
@@ -136,3 +183,85 @@ To run matrix factorization without side information you can just drop the :pyth
 Without side information Macau is equivalent to standard Bayesian Matrix Factorization (BPMF).
 However, if available using side information can significantly improve the model accuracy.
 In the case of IC50 data the accuracy improves from RMSE of 0.90 to close to 0.60.
+
+
+Tensor Factorization
+---------------------
+Macau also supports tensor factorization with and without side information on any of the modes.
+Tensor can be thought as generalization of matrix to relations with more than two items.
+For example 3-tensor of :python:`drug x cell x gene` could express the effect of a drug on the given cell and gene.
+In this case the prediction for the element :python:`Yhat[i,j,k]` is given by
+
+.. math::
+
+   \hat{Y}_{ijk} = \sum_{d=1}^D u^{(1)}_{d,i} u^{(2)}_{d,j} u^{(3)}_{d,k} + mean
+
+Visually the model can be represented as follows:
+
+.. figure:: tensor-model.png
+   :scale: 65 %
+   :alt: Tensor model
+   :align: center
+   
+   Tensor model predicts :python:`Yhat[i,j,k]` by multiplying all latent vectors together element-wise and then taking the sum along the latent dimension (figure omits the global mean).
+
+
+For tensors Macau packages uses Pandas :python:`DataFrame` where each **row** stores the coordinate and the value of a known
+cell in the tensor.
+Specifically, the integer columns in the DataFrame give the coordinate of the cell and :python:`float` (or double) column
+stores the value in the cell (the order of the columns does not matter).
+The coordinates are 0-based.
+
+Here is a simple toy example with factorizing a 3-tensor with side information on the first mode.
+
+.. code-block:: python
+
+    import numpy as np
+    import pandas as pd
+    import scipy.sparse
+    import macau
+    import itertools
+
+    ## generating toy data
+    A = np.random.randn(15, 2)
+    B = np.random.randn(3, 2)
+    C = np.random.randn(2, 2)
+
+    idx = list( itertools.product(np.arange(A.shape[0]),
+                                  np.arange(B.shape[0]),
+                                  np.arange(C.shape[0])) )
+    df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
+    df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
+
+    ## side information is again a sparse matrix
+    Acoo = scipy.sparse.coo_matrix(A)
+
+    ## assigning 20% of the cells to test set
+    Ytrain, Ytest = macau.make_train_test_df(df, 0.2)
+
+    ## for artificial dataset using small values for burnin, nsamples and num_latents is fine
+    results = macau.macau(Y = Ytrain, Ytest = Ytest, side=[Acoo, None, None], num_latent = 4,
+                          verbose = True, burnin = 20, nsamples = 20,
+                          univariate = False, precision = 50)
+
+The side informatoin added here is very informative, thus, using it will significantly increase
+the accuracy. The factorization can be executed also without the side information by removing
+:python:`side=[Acoo, None, None]`:
+
+.. code-block:: python
+
+    ## tensor factorization without side information
+    results = macau.macau(Y = Ytrain, Ytest = Ytest, num_latent = 4,
+                          verbose = True, burnin = 20, nsamples = 20,
+                          univariate = False, precision = 50)
+
+
+Tensor factorization also supports the univariate sampler. To execute that set :python:`univariate = True`, for example
+
+.. code-block:: python
+
+    results = macau.macau(Y = Ytrain, Ytest = Ytest, side=[Acoo, None, None], num_latent = 4,
+                          verbose = True, burnin = 20, nsamples = 20,
+                          univariate = True, precision = 50)
+
+

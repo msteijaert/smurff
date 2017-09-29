@@ -22,14 +22,28 @@
 #include "session.h"
 #include "mvnormal.h"
 #include "utils.h"
-#include "latentprior.h"
-#include "macauoneprior.h"
 #include "omp_util.h"
 #include "linop.h"
 #include "gen_random.h"
-#include "data.h"
+#include "Data.h"
 
-using namespace std; 
+#include "AdaptiveGaussianNoise.h"
+#include "FixedGaussianNoise.h"
+#include "ProbitNoise.h"
+#include "Noiseless.h"
+#include "UnusedNoise.h"
+
+#include "MacauOnePrior.hpp"
+#include "MacauPrior.hpp"
+#include "NormalPrior.h"
+#include "SpikeAndSlabPrior.h"
+
+#include "SparseMatrixData.h"
+#include "ScarceBinaryMatrixData.h"
+#include "DenseMatrixData.h"
+#include "MatricesData.h"
+
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
@@ -56,7 +70,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
     return os;
 }
 
-//--- 
+//---
 
 void Session::init() {
     threads_init();
@@ -135,7 +149,7 @@ void PythonSession::intHandler(int) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
-// 
+//
 //-- cmdline handling stuff
 //
 template<class SideInfo>
@@ -159,32 +173,82 @@ inline void addMacauPrior(Session &m, std::string prior_name, SideInfo *f, doubl
 
 void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
 {
-    //-- row prior with side information
-    if (features.size()) {
-        if (prior_name == "macau" || prior_name == "macauone") {
-            assert(features.size() == 1);
-            auto &s = features.at(0);
+   //-- row prior with side information
+   if (features.size())
+   {
+      if (prior_name == "macau" || prior_name == "macauone")
+      {
+         assert(features.size() == 1);
+         auto &s = features.at(0);
 
-            if (s.binary) {
-                auto sideinfo = new SparseFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols);
-                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
-            } else if (s.dense) {
-                auto sideinfo = new MatrixXd(dense_to_eigen(s));
-                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
-            } else {
-                auto sideinfo = new SparseDoubleFeat(s.nrow, s.ncol, s.nnz, s.rows, s.cols, s.values);
-                addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
-            } 
-        } else {
-            assert(false && "SideInfo only with macau(one) prior");
-        }
-    } else if(prior_name == "normal" || prior_name == "default") {
-        sess.addPrior<NormalPrior>();
-    } else if(prior_name == "spikeandslab") {
-        sess.addPrior<SpikeAndSlabPrior>();
-    } else {
-        throw std::runtime_error("Unknown prior without side info: " + prior_name);
-    }
+         if (s.isBinary())
+         {
+            std::uint64_t nrow = s.getNRow();
+            std::uint64_t ncol = s.getNCol();
+            std::uint64_t nnz = s.getNNZ();
+            std::shared_ptr<std::vector<std::uint32_t> > rows = s.getRowsPtr();
+            std::shared_ptr<std::vector<std::uint32_t> > cols = s.getColsPtr();
+
+            // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
+            // we will remove these extra memory allocation and manipulation
+            int* rowsRawPtr = new int[nnz];
+            int* colsRawPtr = new int[nnz];
+            for (std::uint64_t i = 0; i < nnz; i++)
+            {
+               rowsRawPtr[i] = rows->operator[](i);
+               colsRawPtr[i] = cols->operator[](i);
+            }
+
+            auto sideinfo = new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr);
+            addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
+         }
+         else if (s.isDense())
+         {
+            auto sideinfo = new MatrixXd(dense_to_eigen(s));
+            addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
+         }
+         else
+         {
+            std::uint64_t nrow = s.getNRow();
+            std::uint64_t ncol = s.getNCol();
+            std::uint64_t nnz = s.getNNZ();
+            std::shared_ptr<std::vector<std::uint32_t> > rows = s.getRowsPtr();
+            std::shared_ptr<std::vector<std::uint32_t> > cols = s.getColsPtr();
+            std::shared_ptr<std::vector<double> > values = s.getValuesPtr();
+
+            // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
+            // we will remove these extra memory allocation and manipulation
+            int* rowsRawPtr = new int[nnz];
+            int* colsRawPtr = new int[nnz];
+            double* valuesRawPtr = new double[nnz];
+            for (size_t i = 0; i < nnz; i++)
+            {
+               rowsRawPtr[i] = rows->operator[](i);
+               colsRawPtr[i] = cols->operator[](i);
+               valuesRawPtr[i] = values->operator[](i);
+            }
+
+            auto sideinfo = new SparseDoubleFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr);
+            addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
+         }
+      }
+      else
+      {
+         assert(false && "SideInfo only with macau(one) prior");
+      }
+   }
+   else if(prior_name == "normal" || prior_name == "default")
+   {
+      sess.addPrior<NormalPrior>();
+   }
+   else if(prior_name == "spikeandslab")
+   {
+      sess.addPrior<SpikeAndSlabPrior>();
+   }
+   else
+   {
+      throw std::runtime_error("Unknown prior without side info: " + prior_name);
+   }
 }
 
 std::string Config::version() {
@@ -197,7 +261,7 @@ std::string Config::version() {
     ;
 }
 
-bool NoiseConfig::validate(bool throw_error) const 
+bool NoiseConfig::validate(bool throw_error) const
 {
     std::set<std::string> noise_models = { "noiseless", "fixed", "adaptive", "probit" };
     if (noise_models.find(name) == noise_models.end()) die("Unknown noise model " + name);
@@ -206,22 +270,21 @@ bool NoiseConfig::validate(bool throw_error) const
 }
 
 
-bool Config::validate(bool throw_error) const 
+bool Config::validate(bool throw_error) const
 {
-    if (!train.rows)              die("Missing train matrix");
-    if (test.rows  && test_split) die("Provided both input test pointer and split ratio");
+    if (!train.getRows().size())             die("Missing train matrix");
 
     std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
     if (prior_names.find(row_prior) == prior_names.end()) die("Unknown row_prior " + row_prior);
 
-    std::set<std::string> center_modes = { "none", "global", "rows", "cols" };
-    if (center_modes.find(center_mode) == center_modes.end()) die("Unknown center mode " + center_mode);
+    if(IMeanCentering::stringToCenterMode(center_mode) == IMeanCentering::CenterModeTypes::CENTER_INVALID)
+      die("Unknown center mode " + center_mode);
 
-    if (test.nrow > 0 && train.nrow > 0 && test.nrow != train.nrow)
+    if (test.getNRow() > 0 && train.getNRow() > 0 && test.getNRow() != train.getNRow())
         die("Train and test matrix should have the same number of rows");
 
-    if (test.ncol > 0 && train.ncol > 0 && test.ncol != train.ncol)
+    if (test.getNCol() > 0 && train.getNCol() > 0 && test.getNCol() != train.getNCol())
         die("Train and test matrix should have the same number of cols");
 
     std::set<std::string> save_suffixes = { ".csv", ".ddm" };
@@ -230,18 +293,12 @@ bool Config::validate(bool throw_error) const
     std::set<std::string> init_models = { "random", "zero" };
     if (init_models.find(init_model) == init_models.end()) die("Unknown init model " + init_model);
 
-    train.noise.validate();
+    train.getNoiseConfig().validate();
 
     return true;
 }
 
-std::ostream &MatrixConfig::info(std::ostream &os) const
-{
-    os << nrow << " x " << ncol;
-    return os;
-}
-
-void Config::save(std::string fname) const 
+void Config::save(std::string fname) const
 {
     if (!save_freq) return;
 
@@ -249,7 +306,6 @@ void Config::save(std::string fname) const
 
     os << "# train = "; train.info(os); os << std::endl;
     os << "# test = "; test.info(os); os << std::endl;
-    os << "test_split = " << test_split << std::endl;
 
     os << "# features" << std::endl;
     auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
@@ -289,10 +345,10 @@ void Config::save(std::string fname) const
     os << "direct = " << direct << std::endl;
 
     os << "# noise model" << std::endl;
-    os << "noise_model = " << train.noise.name << std::endl;
-    os << "precision = " << train.noise.precision << std::endl;
-    os << "sn_init = " << train.noise.sn_init << std::endl;
-    os << "sn_max = " << train.noise.sn_max << std::endl;
+    os << "noise_model = " << train.getNoiseConfig().name << std::endl;
+    os << "precision = " << train.getNoiseConfig().precision << std::endl;
+    os << "sn_init = " << train.getNoiseConfig().sn_init << std::endl;
+    os << "sn_max = " << train.getNoiseConfig().sn_max << std::endl;
 
     os << "# binary classification" << std::endl;
     os << "classify = " << classify << std::endl;
@@ -301,17 +357,15 @@ void Config::save(std::string fname) const
 
 void Config::restore(std::string fname) {
     INIReader reader(fname);
-    
+
     if (reader.ParseError() < 0) {
         std::cout << "Can't load '" << fname << "'\n";
     }
 
-    test_split = reader.GetReal("", "test_split",  .0);
-
     // -- priors
     row_prior = reader.Get("", "row_prior",  "default");
     col_prior = reader.Get("", "col_prior",  "default");
-    
+
     //-- restore
     restore_prefix = reader.Get("", "restore_prefix",  "");
     restore_suffix = reader.Get("", "restore_suffix",  ".csv");
@@ -331,44 +385,50 @@ void Config::restore(std::string fname) {
     //-- for macau priors
     lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
     tol = reader.GetReal("", "tol",  1e-6);
-    direct = reader.GetBoolean("", "direct",  false); 
+    direct = reader.GetBoolean("", "direct",  false);
 
     //-- noise model
-    train.noise.name = reader.Get("", "noise_model",  "fixed");
-    train.noise.precision = reader.GetReal("", "precision",  5.0);
-    train.noise.sn_init = reader.GetReal("", "sn_init",  1.0);
-    train.noise.sn_max = reader.GetReal("", "sn_max",  10.0);
+    NoiseConfig noise;
+    noise.name = reader.Get("", "noise_model",  "fixed");
+    noise.precision = reader.GetReal("", "precision",  5.0);
+    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
+    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
+    train.setNoiseConfig(noise);
 
     //-- binary classification
     classify = reader.GetBoolean("", "classify",  false);
     threshold = reader.GetReal("", "threshold",  .0);
 };
- 
-void setNoiseModel(const NoiseConfig &config, Data &data)
-{
 
-    if (config.name == "fixed") {
-        auto *n = new FixedGaussianNoise(data, config.precision);
-        data.noise_ptr.reset(n);
-    } else if (config.name == "adaptive") {
-        auto *n = new AdaptiveGaussianNoise(data, config.sn_init, config.sn_max);
-        data.noise_ptr.reset(n);
-    } else if (config.name == "probit") {
-        auto *n = new ProbitNoise(data);
-        data.noise_ptr.reset(n);
-    } else if (config.name == "noiseless") {
-        auto *n = new Noiseless(data);
-        data.noise_ptr.reset(n);
-    } else {
+void setNoiseModel(const NoiseConfig &config, Data* data)
+{
+    if (config.name == "fixed")
+    {
+        data->setNoiseModel(new FixedGaussianNoise(config.precision));
+    }
+    else if (config.name == "adaptive")
+    {
+        data->setNoiseModel(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
+    }
+    else if (config.name == "probit")
+    {
+        data->setNoiseModel(new ProbitNoise());
+    }
+    else if (config.name == "noiseless")
+    {
+        data->setNoiseModel(new Noiseless());
+    }
+    else
+    {
         die("Unknown noise model; " + config.name);
     }
 }
 
-std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce) 
+std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
 {
     std::unique_ptr<MatrixData> local_data_ptr;
 
-    if (!config.dense) {
+    if (!config.isDense()) {
         SparseMatrixD Ytrain = sparse_to_eigen(config);
         if (!scarce) {
             local_data_ptr = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
@@ -382,26 +442,27 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
         local_data_ptr = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
     }
 
-    setNoiseModel(config.noise, *local_data_ptr);
+    setNoiseModel(config.getNoiseConfig(), local_data_ptr.get());
 
     return local_data_ptr;
 }
 
-std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, 
-     const std::vector<MatrixConfig> &col_features) 
+std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features,
+     const std::vector<MatrixConfig> &col_features)
 {
     if (row_features.empty() && col_features.empty()) {
         return toData(train, true);
     }
 
     // multiple matrices
-    auto local_data_ptr = new MatricesData();
-    local_data_ptr->add(PVec(0,0),toData(train, true /*scarce*/));
-    for(int i=0; i<row_features.size(); ++i) {
-        local_data_ptr->add(PVec(i+1, 0), toData(row_features[i], false)); 
+    MatricesData* local_data_ptr = new MatricesData();
+    local_data_ptr->setNoiseModel(new UnusedNoise());
+    local_data_ptr->add(PVec({0,0}),toData(train, true /*scarce*/));
+    for(size_t i=0; i<row_features.size(); ++i) {
+        local_data_ptr->add(PVec({0, static_cast<int>(i+1)}), toData(row_features[i], false));
     }
-    for(int i=0; i<col_features.size(); ++i) {
-        local_data_ptr->add(PVec(0, i+1), toData(col_features[i], false)); 
+    for(size_t i=0; i<col_features.size(); ++i) {
+        local_data_ptr->add(PVec({static_cast<int>(i+1), 0}), toData(col_features[i], false));
     }
 
     return std::unique_ptr<MatrixData>(local_data_ptr);
@@ -416,14 +477,7 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
-    // extract from train if needed
-    // split if needed
-    if (config.test_split > .0) {
-        auto predictions = extract(config.train, config.test_split);
-        pred.set(sparse_to_eigen(predictions));
-    } else {
-        pred.set(sparse_to_eigen(config.test));
-    }
+    pred.set(sparse_to_eigen(config.test));
 
     std::vector<MatrixConfig> row_matrices, col_matrices;
     std::vector<MatrixConfig> row_sideinfo, col_sideinfo;
@@ -431,26 +485,27 @@ void Session::setFromConfig(const Config &c)
         row_sideinfo = config.row_features;
     } else {
         row_matrices = config.row_features;
-    } 
+    }
 
     if (config.col_prior == "macau" || config.col_prior == "macauone") {
         col_sideinfo = config.col_features;
     } else {
         col_matrices = config.col_features;
-    } 
+    }
     data_ptr = toData(config.train, row_matrices, col_matrices);
 
     // check if data is ScarceBinary
+    /*
     if (0)
             if (!config.classify) {
                 config.classify = true;
                 config.threshold = 0.5;
                 config.train.noise.name = "probit";
             }
- 
- 
+    */
+
     if (config.classify) pred.setThreshold(config.threshold);
-    
+
     // center mode
     data().setCenterMode(config.center_mode);
 
@@ -483,7 +538,7 @@ void Session::printStatus(double elapsedi) {
         from = config.burnin;
     } else {
         phase = "Sample";
-        i = iter - config.burnin + 1; 
+        i = iter - config.burnin + 1;
         from = config.nsamples;
     }
 
@@ -503,7 +558,7 @@ void Session::printStatus(double elapsedi) {
         printf("  Noise:\n");
         data().status(std::cout, "    ");
     }
-    
+
     if (config.verbose > 2) {
         printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
     }
@@ -515,7 +570,7 @@ void Session::printStatus(double elapsedi) {
 
         auto f = fopen(config.csv_status.c_str(), "a");
         fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
-                phase.c_str(), i, from, 
+                phase.c_str(), i, from,
                 globalmean_rmse, colmean_rmse,
                 pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1, elapsedi);
         fclose(f);

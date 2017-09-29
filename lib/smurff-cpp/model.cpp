@@ -21,18 +21,18 @@
 #include <signal.h>
 
 #include "utils.h"
-#include "data.h"
+#include "Data.h"
 #include "model.h"
 #include "mvnormal.h"
 
-using namespace std; 
+using namespace std;
 using namespace Eigen;
 
 namespace smurff {
 
 void Model::init(int nl, const PVec &d, std::string init_model) {
     num_latent = nl;
-    dims = d;
+    m_dims = std::unique_ptr<PVec>(new PVec(d));
     for(unsigned i = 0; i < d.size(); ++i) {
         samples.push_back(Eigen::MatrixXd(num_latent, d[i]));
         auto &M = samples.back();
