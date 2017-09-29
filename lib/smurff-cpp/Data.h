@@ -18,39 +18,6 @@
 
 namespace smurff
 {
-   class IDataArithmetic
-   {
-   protected:
-      IDataArithmetic() {}
-
-   public:
-      virtual ~IDataArithmetic() {}
-
-   public:
-      virtual double sum() const = 0;
-   };
-
-   // data and dimentions related
-   class IDataDimensions
-   {
-   protected:
-      IDataDimensions() {}
-
-   public:
-      virtual ~IDataDimensions() {}
-
-      //AGE: algorithms for counting depend on matrix data implementation
-   public:
-      virtual int nmode() const = 0; // number of dimensions
-      virtual int nnz() const = 0; // number of non zero elements
-      virtual int nna() const = 0; // number of NA elements
-      virtual PVec dim() const = 0; // dimension vector
-
-   public:
-      int size() const; // number of all elements (dimension dot product)
-      int dim(int m) const; // size of dimension
-   };
-
    class Data;
 
    // mean and centering
@@ -130,23 +97,6 @@ namespace smurff
       static CenterModeTypes stringToCenterMode(std::string c);
    };
 
-   class IView
-   {
-   private:
-      const IDataDimensions* m_data_dim;
-
-   protected:
-      IView(const IDataDimensions* data_dim);
-
-   public:
-      virtual ~IView(){}
-
-   public:
-      virtual int nview(int mode) const;
-      virtual int view(int mode, int pos) const;
-      virtual int view_size(int m, int v) const;
-   };
-
    // update noise and precision/mean
    class INoisePrecisionMean
    {
@@ -185,29 +135,9 @@ namespace smurff
 
       void setNoiseModel(INoiseModel* nm);
    };
-
-   class IDataPredict
-   {
-   protected:
-      IDataPredict(){}
-
-   public:
-      virtual ~IDataPredict(){};
-
-   protected:
-      double predict_internal(const Data* data, const PVec& pos, const SubModel& model) const;
-
-   public:
-      // helper for predictions
-      virtual double predict(const PVec& pos, const SubModel& model) const = 0;
-   };
-
-   class Data : public IDataDimensions
-              , public IDataArithmetic
-              , public INoisePrecisionMean
+   
+   class Data : public INoisePrecisionMean
               , public IMeanCentering
-              , public IDataPredict
-              , public IView
    {
       //AGE: Only MatricesData should call init methods, center methods etc
       friend class MatricesData;
@@ -234,10 +164,33 @@ namespace smurff
 
       void init_cwise_mean() override;
 
-      double predict(const PVec& pos, const SubModel& model) const override;
+   //#### arithmetic functions ####
+public:
+   virtual double sum() const = 0;
+
+   //#### prediction functions ####
+   public:
+      virtual double predict(const PVec& pos, const SubModel& model) const;
+
+   //#### dimention functions ####
+   public:
+      virtual int nmode() const = 0; // number of dimensions
+      virtual int nnz() const = 0; // number of non zero elements
+      virtual int nna() const = 0; // number of NA elements
+      virtual PVec dim() const = 0; // dimension vector
 
    public:
-      // print info
+      int size() const; // number of all elements (dimension dot product)
+      int dim(int m) const; // size of dimension
+
+   //#### view functions ####
+
+   virtual int nview(int mode) const;
+   virtual int view(int mode, int pos) const;
+   virtual int view_size(int m, int v) const;
+
+   //#### info functions ####
+   public:
       virtual std::ostream& info(std::ostream& os, std::string indent);
       virtual std::ostream& status(std::ostream& os, std::string indent) const;
    };

@@ -3017,7 +3017,7 @@ TEST_CASE("PVec::dot()")
 
 //===
 
-void test_dimentions_scarse(IDataDimensions* dims)
+void test_dimentions_scarse(Data* dims)
 {
    REQUIRE(dims->nmode() == 2); // number of dimensions
    REQUIRE(dims->nnz() == 8); // number of non zero elements
@@ -3027,7 +3027,7 @@ void test_dimentions_scarse(IDataDimensions* dims)
    REQUIRE(dims->size() == 12); // number of all elements (dimension dot product)
 }
 
-TEST_CASE("ScarceBinaryMatrixData IDataDimensions")
+TEST_CASE("ScarceBinaryMatrixData data dimentions")
 {
    std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
       { 0, 0, 1 },
@@ -3048,7 +3048,7 @@ TEST_CASE("ScarceBinaryMatrixData IDataDimensions")
    test_dimentions_scarse(&sbm);
 }
 
-TEST_CASE("ScarceMatrixData IDataDimensions")
+TEST_CASE("ScarceMatrixData data dimentions")
 {
    std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
       { 0, 0, 1 },
@@ -3069,7 +3069,7 @@ TEST_CASE("ScarceMatrixData IDataDimensions")
    test_dimentions_scarse(&scm);
 }
 
-TEST_CASE("SparseMatrixData IDataDimensions")
+TEST_CASE("SparseMatrixData data dimentions")
 {
    std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
       { 0, 0, 1 },
@@ -3087,7 +3087,7 @@ TEST_CASE("SparseMatrixData IDataDimensions")
 
    SparseMatrixData smd(initialMatrix);
 
-   IDataDimensions* dims = &smd;
+   Data* dims = &smd;
 
   REQUIRE(dims->nmode() == 2); // number of dimensions
   REQUIRE(dims->nnz() == 8); // number of non zero elements
@@ -3097,14 +3097,14 @@ TEST_CASE("SparseMatrixData IDataDimensions")
   REQUIRE(dims->size() == 12); // number of all elements (dimension dot product)
 }
 
-TEST_CASE("DenseMatrixData IDataDimensions")
+TEST_CASE("DenseMatrixData data dimentions")
 {
    Eigen::MatrixXd initialMatrix(4, 3);
    initialMatrix << 1, 2, 3, 0, 0, 0, 7, 8, 9, 10, 0, 12;
 
    DenseMatrixData dmd(initialMatrix);
 
-   IDataDimensions* dims = &dmd;
+   Data* dims = &dmd;
 
   REQUIRE(dims->nmode() == 2); // number of dimensions
   REQUIRE(dims->nnz() == 12); // number of non zero elements
@@ -3114,12 +3114,12 @@ TEST_CASE("DenseMatrixData IDataDimensions")
   REQUIRE(dims->size() == 12); // number of all elements (dimension dot product)
 }
 
-void test_arithmetic_scarse(IDataArithmetic* arith)
+void test_arithmetic_scarse(Data* arith)
 {
    REQUIRE(arith->sum() == 52.0);
 }
 
-TEST_CASE("ScarceBinaryMatrixData IDataArithmetic")
+TEST_CASE("ScarceBinaryMatrixData arithmetic")
 {
    std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
       { 0, 0, 1 },
@@ -3140,7 +3140,7 @@ TEST_CASE("ScarceBinaryMatrixData IDataArithmetic")
    test_arithmetic_scarse(&sbm);
 }
 
-TEST_CASE("ScarceMatrixData IDataArithmetic")
+TEST_CASE("ScarceMatrixData arithmetic")
 {
    std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
       { 0, 0, 1 },
@@ -3161,7 +3161,7 @@ TEST_CASE("ScarceMatrixData IDataArithmetic")
    test_arithmetic_scarse(&scm);
 }
 
-TEST_CASE("SparseMatrixData IDataArithmetic")
+TEST_CASE("SparseMatrixData arithmetic")
 {
    std::vector<Eigen::Triplet<double> > initialMatrixTriplets = {
       { 0, 0, 1 },
@@ -3179,18 +3179,18 @@ TEST_CASE("SparseMatrixData IDataArithmetic")
 
    SparseMatrixData smd(initialMatrix);
 
-   IDataArithmetic* arith = &smd;
+   Data* arith = &smd;
    REQUIRE(arith->sum() == 52.0);
 }
 
-TEST_CASE("DenseMatrixData IDataArithmetic")
+TEST_CASE("DenseMatrixData arithmetic")
 {
    Eigen::MatrixXd initialMatrix(4, 3);
    initialMatrix << 1, 2, 3, 0, 0, 0, 7, 8, 9, 10, 0, 12;
 
    DenseMatrixData dmd(initialMatrix);
 
-   IDataArithmetic* arith = &dmd;
+   Data* arith = &dmd;
    REQUIRE(arith->sum() == 52.0);
 }
 

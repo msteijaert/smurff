@@ -3,18 +3,6 @@
 
 using namespace smurff;
 
-int IDataDimensions::size() const
-{
-   return dim().dot();
-}
-
-int IDataDimensions::dim(int m) const
-{
-   return dim().at(m);
-}
-
-//===
-
 IMeanCentering::IMeanCentering()
 : m_center_mode(CenterModeTypes::CENTER_INVALID)
 {
@@ -146,28 +134,6 @@ IMeanCentering::CenterModeTypes IMeanCentering::stringToCenterMode(std::string c
 
 //===
 
-IView::IView(const IDataDimensions* data_dim)
-:  m_data_dim(data_dim)
-{
-}
-
-int IView::nview(int mode) const
-{
-   return 1;
-}
-
-int IView::view(int mode, int pos) const
-{
-   return 0;
-}
-
-int IView::view_size(int m, int v) const
-{
-    return m_data_dim->dim(m);
-}
-
-//===
-
 INoisePrecisionMean::INoisePrecisionMean()
 {
 }
@@ -195,20 +161,9 @@ void INoisePrecisionMean::setNoiseModel(INoiseModel* nm)
 
 //===
 
-double IDataPredict::predict_internal(const Data* data, const PVec& pos, const SubModel& model) const
-{
-   return model.dot(pos) + data->offset_to_mean(pos);
-}
-
-//===
-
 Data::Data()
-: IDataDimensions()
-, IDataArithmetic()
-, INoisePrecisionMean()
+: INoisePrecisionMean()
 , IMeanCentering()
-, IDataPredict()
-, IView(this)
 {
 }
 
@@ -243,10 +198,43 @@ void Data::init_cwise_mean()
    init_cwise_mean_internal(this);
 }
 
+//#### prediction functions ####
+
 double Data::predict(const PVec& pos, const SubModel& model) const
 {
-   return predict_internal(this, pos, model);
+   return model.dot(pos) + this->offset_to_mean(pos);
 }
+
+//#### dimention functions ####
+
+int Data::size() const
+{
+   return dim().dot();
+}
+
+int Data::dim(int m) const
+{
+   return dim().at(m);
+}
+
+//#### view functions ####
+
+int Data::nview(int mode) const
+{
+   return 1;
+}
+
+int Data::view(int mode, int pos) const
+{
+   return 0;
+}
+
+int Data::view_size(int m, int v) const
+{
+    return this->dim(m);
+}
+
+//#### info functions ####
 
 std::ostream& Data::info(std::ostream& os, std::string indent)
 {
