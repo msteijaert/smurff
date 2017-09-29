@@ -174,7 +174,8 @@ if(NOT MSVC)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g")
   elseif(CMAKE_BUILD_TYPE MATCHES Release)
     message(STATUS "Release build.")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -flto")
   else()
     message(STATUS "Unknown build type...")
@@ -406,6 +407,8 @@ FILE (GLOB HEADER_FILES ""
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../tests.cpp"
+                        "../TestsMatrixIO.cpp"
+                        "../TestsTensorIO.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
