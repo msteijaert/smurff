@@ -1,0 +1,7 @@
+LIBLOCS+=-L/usr/local/Cellar/openblas/0.2.20/lib
+CXXFLAGS+=-I/usr/local/Cellar/openblas/0.2.20/include
+
+include $(ROOT)/Makefile.common
+
+LDFLAGS+=-largp
+

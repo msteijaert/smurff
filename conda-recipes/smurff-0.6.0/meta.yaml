@@ -1,0 +1,20 @@
+package:
+  name: smurff
+  version: 0.6.0
+
+source:
+  git_url: https://github.com/ExaScience/smurff
+  git_tag: v0.6.0
+
+requirements:
+  build:
+    - gcc
+    - eigen >=3.3
+    - openblas
+  run:
+    - gcc
+    - openblas
+
+about:
+  home: https://github.com/ExaScience/smurff
+  license:  MIT
