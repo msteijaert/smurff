@@ -1,5 +1,10 @@
 #pragma once
 
+#include <csr.h>
+#include<dsparse.h>
+#include <Eigen/Core>
+#include <Eigen/SparseCore>
+
 #include "MatrixConfig.h"
 
 class SparseFeat {

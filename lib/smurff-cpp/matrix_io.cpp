@@ -357,7 +357,7 @@ void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& m
 
 // ======================================================================================================
 
-void read_matrix(const std::string& filename, Eigen::VectorXd& V)
+void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::VectorXd& V)
 {
    Eigen::MatrixXd X;
    matrix_io::eigen::read_matrix(filename, X);
@@ -451,7 +451,7 @@ void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd&
 {
    /*
    std::string line;
-   
+
    // rows and cols
    getline(in, line);
    std::uint64_t nrow = atol(line.c_str());
