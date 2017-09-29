@@ -3,29 +3,19 @@
 using namespace Eigen;
 using namespace smurff;
 
-Noiseless::Noiseless(Data* p) 
-   : INoiseModel(p) 
-{
-
-}
-
-void Noiseless::init() 
-{
-
-}
-
-void Noiseless::update(const SubModel& sm)
+Noiseless::Noiseless()
+   : INoiseModel()
 {
 
 }
 
 double Noiseless::getAlpha()
 {
-   return 1.; 
+   return 1.;
 }
 
 std::ostream& Noiseless::info(std::ostream& os, std::string indent)
-{ 
+{
    os << "No noise\n";
    return os;
 }

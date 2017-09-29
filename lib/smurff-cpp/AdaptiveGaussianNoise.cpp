@@ -6,14 +6,14 @@
 using namespace Eigen;
 using namespace smurff;
 
-AdaptiveGaussianNoise::AdaptiveGaussianNoise(Data* p, double sinit, double smax)
-: INoiseModel(p), sn_max(smax), sn_init(sinit)
+AdaptiveGaussianNoise::AdaptiveGaussianNoise(double sinit, double smax)
+: INoiseModel(), sn_max(smax), sn_init(sinit)
 {
 
 }
 
 //  AdaptiveGaussianNoise  ////
-void AdaptiveGaussianNoise::init()
+void AdaptiveGaussianNoise::init(const Data* data)
 {
    var_total = data->var_total();
 
@@ -22,9 +22,9 @@ void AdaptiveGaussianNoise::init()
    alpha_max = (sn_max + 1.0) / var_total;
 }
 
-void AdaptiveGaussianNoise::update(const SubModel &m)
+void AdaptiveGaussianNoise::update(const Data* data, const SubModel& model)
 {
-   double sumsq = data->sumsq(m);
+   double sumsq = data->sumsq(model);
 
    // (a0, b0) correspond to a prior of 1 sample of noise with full variance
    double a0 = 0.5;

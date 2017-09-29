@@ -31,6 +31,7 @@
 #include "FixedGaussianNoise.h"
 #include "ProbitNoise.h"
 #include "Noiseless.h"
+#include "UnusedNoise.h"
 
 #include "MacauOnePrior.hpp"
 #include "MacauPrior.hpp"
@@ -277,8 +278,8 @@ bool Config::validate(bool throw_error) const
     if (prior_names.find(col_prior) == prior_names.end()) die("Unknown col_prior " + col_prior);
     if (prior_names.find(row_prior) == prior_names.end()) die("Unknown row_prior " + row_prior);
 
-    std::set<std::string> center_modes = { "none", "global", "rows", "cols" };
-    if (center_modes.find(center_mode) == center_modes.end()) die("Unknown center mode " + center_mode);
+    if(IMeanCentering::stringToCenterMode(center_mode) == IMeanCentering::CenterModeTypes::CENTER_INVALID)
+      die("Unknown center mode " + center_mode);
 
     if (test.getNRow() > 0 && train.getNRow() > 0 && test.getNRow() != train.getNRow())
         die("Train and test matrix should have the same number of rows");
@@ -401,20 +402,24 @@ void Config::restore(std::string fname) {
 
 void setNoiseModel(const NoiseConfig &config, Data* data)
 {
-
-    if (config.name == "fixed") {
-        auto *n = new FixedGaussianNoise(data, config.precision);
-        data->noise_ptr.reset(n);
-    } else if (config.name == "adaptive") {
-        auto *n = new AdaptiveGaussianNoise(data, config.sn_init, config.sn_max);
-        data->noise_ptr.reset(n);
-    } else if (config.name == "probit") {
-        auto *n = new ProbitNoise(data);
-        data->noise_ptr.reset(n);
-    } else if (config.name == "noiseless") {
-        auto *n = new Noiseless(data);
-        data->noise_ptr.reset(n);
-    } else {
+    if (config.name == "fixed")
+    {
+        data->setNoiseModel(new FixedGaussianNoise(config.precision));
+    }
+    else if (config.name == "adaptive")
+    {
+        data->setNoiseModel(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
+    }
+    else if (config.name == "probit")
+    {
+        data->setNoiseModel(new ProbitNoise());
+    }
+    else if (config.name == "noiseless")
+    {
+        data->setNoiseModel(new Noiseless());
+    }
+    else
+    {
         die("Unknown noise model; " + config.name);
     }
 }
@@ -450,7 +455,8 @@ std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<
     }
 
     // multiple matrices
-    auto local_data_ptr = new MatricesData();
+    MatricesData* local_data_ptr = new MatricesData();
+    local_data_ptr->setNoiseModel(new UnusedNoise());
     local_data_ptr->add(PVec({0,0}),toData(train, true /*scarce*/));
     for(size_t i=0; i<row_features.size(); ++i) {
         local_data_ptr->add(PVec({0, static_cast<int>(i+1)}), toData(row_features[i], false));

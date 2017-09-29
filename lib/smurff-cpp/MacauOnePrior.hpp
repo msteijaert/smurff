@@ -41,8 +41,9 @@ public:
 
    int l0;
 
-   Eigen::SparseMatrix<double> &SparseYC() const {
-       return dynamic_cast<ScarceMatrixData &>(data()).Yc.at(mode);
+   const Eigen::SparseMatrix<double>& SparseYC() const
+   {
+       return dynamic_cast<ScarceMatrixData &>(data()).getYc().at(mode);
    }
 
 
@@ -53,7 +54,7 @@ public:
    MacauOnePrior(BaseSession& m, int p)
       : ILatentPrior(m, p) {}
 
-   void init() override 
+   void init() override
    {
       ILatentPrior::init();
 
@@ -75,7 +76,7 @@ public:
       lambda_beta_a0 = 0.1;
       lambda_beta_b0 = 0.1;
    }
-   
+
    //method is identical - previously part of init
    void addSideInfo(std::unique_ptr<FType> &Fmat, bool)
    {

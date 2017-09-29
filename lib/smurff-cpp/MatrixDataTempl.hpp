@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "MatrixData.h"
 
 namespace smurff
@@ -17,10 +19,11 @@ namespace smurff
       {
          assert(nrow() > 0 && ncol() > 0);
 
-         Yc.push_back(Y.transpose());
-         Yc.push_back(Y);
+         Ycentered = std::shared_ptr<std::vector<YType> >(new std::vector<YType>());
+         Ycentered->push_back(Y.transpose());
+         Ycentered->push_back(Y);
 
-         cwise_mean = sum() / (size() - nna());
+         init_cwise_mean();
       }
 
       PVec   dim() const override { return PVec({ static_cast<int>(Y.rows()), static_cast<int>(Y.cols()) }); }
@@ -29,11 +32,11 @@ namespace smurff
 
       double offset_to_mean(const PVec& pos) const override
       {
-              if (center_mode == CENTER_GLOBAL) return global_mean;
-         else if (center_mode == CENTER_VIEW)   return cwise_mean;
-         else if (center_mode == CENTER_ROWS)   return mean(1,pos.at(1));
-         else if (center_mode == CENTER_COLS)   return mean(0,pos.at(0));
-         else if (center_mode == CENTER_NONE)   return .0;
+              if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL) return getGlobalMean();
+         else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)   return getCwiseMean();
+         else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)   return getModeMeanItem(1,pos.at(1));
+         else if (getCenterMode() == CenterModeTypes::CENTER_COLS)   return getModeMeanItem(0,pos.at(0));
+         else if (getCenterMode() == CenterModeTypes::CENTER_NONE)   return .0;
          assert(false);
          return .0;
       }
@@ -41,8 +44,23 @@ namespace smurff
       double var_total() const override;
       double sumsq(const SubModel& model) const override;
 
-      YType Y;
-      std::vector<YType> Yc; // centered versions
+      YType Y; // eigen matrix with the data
+      
+   private:
+      std::shared_ptr<std::vector<YType> > Ycentered; // centered versions of original matrix (transposed, original)
+
+   public:
+      const std::vector<YType>& getYc() const
+      {
+         assert(Ycentered);
+         return *Ycentered.get();
+      }
+
+      std::shared_ptr<std::vector<YType> > getYcPtr() const
+      {
+         assert(Ycentered);
+         return Ycentered;
+      }
    };
 
    template<>
