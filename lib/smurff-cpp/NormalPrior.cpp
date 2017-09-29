@@ -188,7 +188,7 @@ void sample_latent(MatrixXd &s, int mm, const SparseMatrix<double> &mat, double 
 
 void NormalPrior::save(std::string prefix, std::string suffix)
 {
-   smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu, smurff::matrix_io::MatrixType::ddm);
+   smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
 }
 
 //new method

@@ -53,7 +53,7 @@ public:
    MacauOnePrior(BaseSession& m, int p)
       : ILatentPrior(m, p) {}
 
-   void init() override 
+   void init() override
    {
       ILatentPrior::init();
 
@@ -75,7 +75,7 @@ public:
       lambda_beta_a0 = 0.1;
       lambda_beta_b0 = 0.1;
    }
-   
+
    //method is identical - previously part of init
    void addSideInfo(std::unique_ptr<FType> &Fmat, bool)
    {
@@ -347,9 +347,9 @@ public:
 
    void save(std::string prefix, std::string suffix) override
    {
-      smurff::matrix_io::eigen::write_matrix(prefix + "-latentmean" + suffix, mu, smurff::matrix_io::MatrixType::ddm);
+      smurff::matrix_io::eigen::write_matrix(prefix + "-latentmean" + suffix, mu);
       prefix += "-F" + std::to_string(mode);
-      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, beta, smurff::matrix_io::MatrixType::ddm);
+      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, beta);
    }
 
    //new method

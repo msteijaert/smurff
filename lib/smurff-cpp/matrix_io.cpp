@@ -250,42 +250,39 @@ MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
 
 // ======================================================================================================
 
-void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& matrixConfig, MatrixType matrixType)
+void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& matrixConfig)
 {
-   std::string extension = MatrixTypeToExtension(matrixType);
-   std::string filepath = filename + extension;
-
-   die_unless_file_exists(filepath);
-
+   die_unless_file_exists(filename);
+   MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
    {
    case matrix_io::MatrixType::sdm:
       {
-         std::ofstream fileStream(filepath, std::ios_base::binary);
+         std::ofstream fileStream(filename, std::ios_base::binary);
          matrix_io::write_sparse_float64_bin(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::sbm:
       {
-         std::ofstream fileStream(filepath, std::ios_base::binary);
+         std::ofstream fileStream(filename, std::ios_base::binary);
          matrix_io::write_sparse_binary_bin(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::mtx:
       {
-         std::ofstream fileStream(filepath);
+         std::ofstream fileStream(filename);
          matrix_io::write_sparse_float64_mtx(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::csv:
       {
-         std::ofstream fileStream(filepath);
+         std::ofstream fileStream(filename);
          matrix_io::write_dense_float64_csv(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::ddm:
       {
-         std::ofstream fileStream(filepath, std::ios_base::binary);
+         std::ofstream fileStream(filename, std::ios_base::binary);
          matrix_io::write_dense_float64_bin(fileStream, matrixConfig);
       }
       break;
@@ -517,13 +514,10 @@ void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMat
 
 // ======================================================================================================
 
-void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X, MatrixType matrixType)
+void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X)
 {
-   std::string extension = MatrixTypeToExtension(matrixType);
-   std::string filepath = filename + extension;
-
-   die_unless_file_exists(filepath);
-
+   die_unless_file_exists(filename);
+   MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
    {
    case matrix_io::MatrixType::sdm:
@@ -534,13 +528,13 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
       throw "Invalid matrix type";
    case matrix_io::MatrixType::csv:
       {
-         std::ofstream fileStream(filepath);
+         std::ofstream fileStream(filename);
          matrix_io::eigen::write_dense_float64_csv(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::ddm:
       {
-         std::ofstream fileStream(filepath, std::ios_base::binary | std::ios::trunc);
+         std::ofstream fileStream(filename, std::ios_base::binary | std::ios::trunc);
          matrix_io::eigen::write_dense_float64_bin(fileStream, X);
       }
       break;
@@ -551,30 +545,27 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
    }
 }
 
-void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X, MatrixType matrixType)
+void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X)
 {
-   std::string extension = MatrixTypeToExtension(matrixType);
-   std::string filepath = filename + extension;
-
-   die_unless_file_exists(filepath);
-
+   die_unless_file_exists(filename);
+   MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
    {
    case matrix_io::MatrixType::sdm:
       {
-         std::ofstream fileStream(filepath, std::ios_base::binary);
+         std::ofstream fileStream(filename, std::ios_base::binary);
          matrix_io::eigen::write_sparse_float64_bin(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::sbm:
       {
-         std::ofstream fileStream(filepath, std::ios_base::binary);
+         std::ofstream fileStream(filename, std::ios_base::binary);
          matrix_io::eigen::write_sparse_binary_bin(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::mtx:
       {
-         std::ofstream fileStream(filepath);
+         std::ofstream fileStream(filename);
          matrix_io::eigen::write_sparse_float64_mtx(fileStream, X);
       }
       break;

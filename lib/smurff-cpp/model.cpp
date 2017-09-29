@@ -45,15 +45,15 @@ void Model::init(int nl, const PVec &d, std::string init_model) {
 
 void Model::save(std::string prefix, std::string suffix) {
     int i = 0;
-    for(auto &U : samples) 
+    for(auto &U : samples)
     {
-      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U, smurff::matrix_io::MatrixType::ddm);
+      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 
 void Model::restore(std::string prefix, std::string suffix) {
     int i = 0;
-    for(auto &U : samples) 
+    for(auto &U : samples)
     {
       smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }

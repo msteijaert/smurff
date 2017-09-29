@@ -180,7 +180,7 @@ public:
    {
       NormalPrior::save(prefix, suffix);
       prefix += "-F" + std::to_string(mode);
-      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, this->beta, smurff::matrix_io::MatrixType::ddm);
+      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, this->beta);
    }
 
    //new method
