@@ -14,8 +14,8 @@ namespace smurff {
    // interface
    class INoiseModel
    {
-      // Only INoisePrecisionMean can call init and update methods
-      friend class INoisePrecisionMean;
+      // Only Data can call init and update methods
+      friend class Data;
 
    public:
       INoiseModel() {}

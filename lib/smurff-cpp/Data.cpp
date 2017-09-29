@@ -134,36 +134,8 @@ IMeanCentering::CenterModeTypes IMeanCentering::stringToCenterMode(std::string c
 
 //===
 
-INoisePrecisionMean::INoisePrecisionMean()
-{
-}
-
-void INoisePrecisionMean::update_internal(const Data* data, const SubModel& model)
-{
-   noise().update(data, model);
-}
-
-void INoisePrecisionMean::init_noise_internal(const Data* data)
-{
-   noise().init(data);
-}
-
-INoiseModel& INoisePrecisionMean::noise() const
-{
-   assert(noise_ptr);
-   return *noise_ptr;
-}
-
-void INoisePrecisionMean::setNoiseModel(INoiseModel* nm)
-{
-   noise_ptr.reset(nm);
-}
-
-//===
-
 Data::Data()
-: INoisePrecisionMean()
-, IMeanCentering()
+: IMeanCentering()
 {
 }
 
@@ -180,13 +152,15 @@ void Data::init()
 
 void Data::init_post()
 {
-   init_noise_internal(this);
+   noise().init(this);
 }
 
 void Data::update(const SubModel& model)
 {
-   update_internal(this, model);
+   noise().update(this, model);
 }
+
+// #### mean centring functions  ####
 
 void Data::compute_mode_mean()
 {
@@ -232,6 +206,19 @@ int Data::view(int mode, int pos) const
 int Data::view_size(int m, int v) const
 {
     return this->dim(m);
+}
+
+//#### noise, precision, mean functions ####
+
+INoiseModel& Data::noise() const
+{
+   assert(noise_ptr);
+   return *noise_ptr;
+}
+
+void Data::setNoiseModel(INoiseModel* nm)
+{
+   noise_ptr.reset(nm);
 }
 
 //#### info functions ####

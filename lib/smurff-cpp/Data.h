@@ -96,48 +96,8 @@ namespace smurff
 
       static CenterModeTypes stringToCenterMode(std::string c);
    };
-
-   // update noise and precision/mean
-   class INoisePrecisionMean
-   {
-   private:
-      // noise model for this dataset
-      std::unique_ptr<INoiseModel> noise_ptr;
-
-   protected:
-      INoisePrecisionMean();
-
-   public:
-      virtual ~ INoisePrecisionMean(){}
-
-      //AGE: implementation depends on matrix data type
-   public:
-      virtual double train_rmse(const SubModel& model) const = 0;
-      virtual void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
-      virtual void update_pnm(const SubModel& model, int mode) = 0;
-
-   public:
-      // helper functions for noise
-      virtual double sumsq(const SubModel& model) const = 0;
-      virtual double var_total() const = 0;
-
-   protected:
-      void update_internal(const Data* data, const SubModel& model);
-
-   public:
-      virtual void update(const SubModel& model) = 0;
-
-   protected:
-      void init_noise_internal(const Data* data);
-
-   public:
-      INoiseModel& noise() const;
-
-      void setNoiseModel(INoiseModel* nm);
-   };
    
-   class Data : public INoisePrecisionMean
-              , public IMeanCentering
+   class Data : public IMeanCentering
    {
       //AGE: Only MatricesData should call init methods, center methods etc
       friend class MatricesData;
@@ -157,16 +117,17 @@ namespace smurff
 
    public:
       virtual void init();
+      virtual void update(const SubModel& model);
 
-      void update(const SubModel& model) override;
-
+   // #### mean centring functions  ####
+   public:
       void compute_mode_mean() override;
 
       void init_cwise_mean() override;
 
    //#### arithmetic functions ####
-public:
-   virtual double sum() const = 0;
+   public:
+      virtual double sum() const = 0;
 
    //#### prediction functions ####
    public:
@@ -185,9 +146,28 @@ public:
 
    //#### view functions ####
 
-   virtual int nview(int mode) const;
-   virtual int view(int mode, int pos) const;
-   virtual int view_size(int m, int v) const;
+   public:
+      virtual int nview(int mode) const;
+      virtual int view(int mode, int pos) const;
+      virtual int view_size(int m, int v) const;
+
+   //#### noise, precision, mean functions ####
+
+   private:
+      std::unique_ptr<INoiseModel> noise_ptr; // noise model for this data
+
+   public:
+      virtual double train_rmse(const SubModel& model) const = 0;
+      virtual void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
+      virtual void update_pnm(const SubModel& model, int mode) = 0;
+
+   public:
+      virtual double sumsq(const SubModel& model) const = 0;
+      virtual double var_total() const = 0;
+
+   public:
+      INoiseModel& noise() const;
+      void setNoiseModel(INoiseModel* nm);
 
    //#### info functions ####
    public:
