@@ -23,6 +23,8 @@ LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o
 LIBOBJS += Data.o MatrixData.o MatricesData.o MatrixDataTempl.o ScarceMatrixData.o ScarceBinaryMatrixData.o DenseMatrixData.o SparseMatrixData.o
 LIBSMURFF = libsmurff-cpp.a
 
+TESTOBJS = TestsMatrixIO.o TestsTensorIO.o
+
 .PHONY: all clean smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
 all: smurff tests
@@ -38,8 +40,8 @@ smurff: $(LIBSMURFF) cmd_session.o
 mpi_smurff: mpi_smurff.cpp cmd_session.o $(LIBSMURFF)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o mpi_smurff
 
-tests: $(LIBSMURFF)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/tests.cpp $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
+tests: $(LIBSMURFF) $(TESTOBJS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/tests.cpp $(TESTOBJS) $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
 
 bench_nrandn:
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_NRANDN $(OUTPUT_OPTION)
