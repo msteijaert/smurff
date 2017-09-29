@@ -7,7 +7,6 @@ MatricesData::MatricesData()
    : total_dim(2)
 {
    name = "MatricesData";
-   noise_ptr = std::unique_ptr<INoiseModel>(new UnusedNoise(this));
 }
 
 void MatricesData::init_pre()
@@ -44,7 +43,7 @@ void MatricesData::init_pre()
 
    }
 
-   cwise_mean = sum() / (double)(size() - nna());
+   init_cwise_mean();
 
    // init sub-matrices
    for(auto &p : blocks)
@@ -67,25 +66,38 @@ void MatricesData::init_post()
 void MatricesData::setCenterMode(std::string mode)
 {
    Data::setCenterMode(mode);
-   for(auto &p : blocks) p.data().setCenterMode(mode);
+   for(auto &p : blocks) 
+      p.data().setCenterMode(mode);
+}
+
+void MatricesData::setCenterMode(IMeanCentering::CenterModeTypes type)
+{
+   Data::setCenterMode(type);
+   for(auto &p : blocks) 
+      p.data().setCenterMode(type);
 }
 
 void MatricesData::center(double global_mean)
 {
+    IMeanCentering::center(global_mean);
+
     // center sub-matrices
-    assert(global_mean == cwise_mean);
-    this->global_mean = global_mean;
-    for(auto &p : blocks) p.data().center(cwise_mean);
+    assert(global_mean == getCwiseMean());
+
+    for(auto &p : blocks)
+      p.data().center(getCwiseMean());
+
+   setCentered(true);
 }
 
-double MatricesData::compute_mode_mean(int mode, int pos)
+double MatricesData::compute_mode_mean_mn(int mode, int pos)
 {
    double sum = .0;
    int N = 0;
    int count = 0;
 
    apply(mode, pos, [&](const Block &b) {
-       double local_mean = b.data().mean(mode, pos - b.start(mode));
+       double local_mean = b.data().getModeMeanItem(mode, pos - b.start(mode));
        sum += local_mean * b.dim(mode);
        N += b.dim(mode);
        count++;
@@ -143,7 +155,7 @@ void MatricesData::update(const SubModel &model)
 {
    for(auto &b : blocks)
    {
-      b.data().noise().update(b.submodel(model));
+      b.data().update(b.submodel(model));
    }
 }
 

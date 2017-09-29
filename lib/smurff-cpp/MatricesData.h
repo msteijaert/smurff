@@ -13,9 +13,10 @@ namespace smurff
       void init_pre() override;
       void init_post() override;
       void setCenterMode(std::string mode) override;
+      void setCenterMode(CenterModeTypes type) override;
 
       void center(double global_mean) override;
-      double compute_mode_mean(int mode, int pos) override;
+      double compute_mode_mean_mn(int mode, int pos) override;
       double offset_to_mean(const PVec& pos) const override;
 
       // add data
@@ -90,7 +91,7 @@ namespace smurff
       int nview(int mode) const override;
       int view(int mode, int pos) const override;
       int view_size(int mode, int v) const override;
-     
+
       std::vector<std::vector<int>> mode_dim;
       PVec total_dim;
    };

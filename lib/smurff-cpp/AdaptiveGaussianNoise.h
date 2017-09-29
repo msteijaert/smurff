@@ -22,10 +22,10 @@ public:
    double sn_init;
 
 public:
-   AdaptiveGaussianNoise(Data* p, double sinit = 1., double smax = 10.);
+   AdaptiveGaussianNoise(double sinit = 1., double smax = 10.);
 
-   void init() override;
-   void update(const SubModel &) override;
+   void init(const Data* data) override;
+   void update(const Data* data, const SubModel& model) override;
    double getAlpha() override;
 
    std::ostream &info(std::ostream &os, std::string indent) override;

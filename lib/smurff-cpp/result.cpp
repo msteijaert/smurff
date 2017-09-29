@@ -54,7 +54,7 @@ double Result::rmse_using_modemean(const Data &data, int mode) {
      double se = 0.;
      for(auto t : predictions) {
         int n = mode == 0 ? t.row : t.col;
-        double pred = data.mean(mode, n);
+        double pred = data.getModeMeanItem(mode, n);
         se += square(t.val - pred);
      }
      return sqrt( se / N );
@@ -238,7 +238,7 @@ std::ostream &Result::info(std::ostream &os, std::string indent, const Data &dat
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
-        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data.global_mean) << endl;
+        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data.getGlobalMean()) << endl;
         os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
         os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;
     } else {

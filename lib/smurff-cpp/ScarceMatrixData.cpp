@@ -17,9 +17,9 @@ void ScarceMatrixData::init_pre()
    MatrixDataTempl<SparseMatrixD>::init_pre();
 
    // check no rows, nor cols withouth data
-   for(unsigned i=0; i<Yc.size(); ++i)
+   for(unsigned i=0; i<getYcPtr()->size(); ++i)
    {
-      auto &v = Yc[i];
+      auto &v = getYcPtr()->operator[](i);
       auto &count = num_empty[i];
       for (int j = 0; j < v.cols(); j++)
       {
@@ -30,36 +30,57 @@ void ScarceMatrixData::init_pre()
 
 void ScarceMatrixData::center(double global_mean)
 {
-   this->global_mean = global_mean;
+   IMeanCentering::center(global_mean);
 
-   auto center_cols = [this](Eigen::SparseMatrix<double> &Y, int m) {
-      for (int k = 0; k < Y.outerSize(); ++k) {
-         double v = mean(m, k);
-         for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
+   auto center_cols = [this](Eigen::SparseMatrix<double> &Y, int m)
+   {
+      for (int k = 0; k < Y.outerSize(); ++k)
+      {
+         double v = getModeMeanItem(m, k);
+         for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it)
+         {
                it.valueRef() -= v;
          }
       }
    };
 
-   if (center_mode == CENTER_GLOBAL) {
-      Yc.at(0).coeffs() -= global_mean;
-      Yc.at(1).coeffs() -= global_mean;
-   } else if (center_mode == CENTER_VIEW) {
-      Yc.at(0).coeffs() -= cwise_mean;
-      Yc.at(1).coeffs() -= cwise_mean;
-   } else if (center_mode == CENTER_COLS) {
-      center_cols(Yc.at(0), 0);
-      Yc.at(1) = Yc.at(0).transpose();
-   } else if (center_mode == CENTER_ROWS) {
-      center_cols(Yc.at(1), 1);
-      Yc.at(0) = Yc.at(1).transpose();
+   if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL)
+   {
+      getYcPtr()->at(0).coeffs() -= global_mean;
+      getYcPtr()->at(1).coeffs() -= global_mean;
    }
+   else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)
+   {
+      getYcPtr()->at(0).coeffs() -= getCwiseMean();
+      getYcPtr()->at(1).coeffs() -= getCwiseMean();
+   }
+   else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
+   {
+      center_cols(getYcPtr()->at(0), 0);
+      getYcPtr()->at(1) = getYcPtr()->at(0).transpose();
+   }
+   else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
+   {
+      center_cols(getYcPtr()->at(1), 1);
+      getYcPtr()->at(0) = getYcPtr()->at(1).transpose();
+   }
+   else if (getCenterMode() == CenterModeTypes::CENTER_NONE)
+   {
+      //do nothing
+   }
+   else
+   {
+      throw std::logic_error("Invalid center mode");
+   }
+
+   setCentered(true);
 }
 
-double ScarceMatrixData::compute_mode_mean(int m, int c)
+double ScarceMatrixData::compute_mode_mean_mn(int mode, int pos)
 {
-    const auto &col = Yc.at(m).col(c);
-    if (col.nonZeros() == 0) return cwise_mean;
+    const auto &col = getYcPtr()->at(mode).col(pos);
+    if (col.nonZeros() == 0)
+      return getCwiseMean();
     return col.sum() / col.nonZeros();
 }
 
@@ -82,8 +103,9 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
     return os;
 }
 
-void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) {
-   auto &Y = Yc.at(mode);
+void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+{
+   auto &Y = getYcPtr()->at(mode);
    const int num_latent = model.nlatent();
    const auto &Vf = model.V(mode);
    const int local_nnz = Y.col(n).nonZeros();

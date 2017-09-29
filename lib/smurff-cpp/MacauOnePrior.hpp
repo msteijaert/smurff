@@ -41,8 +41,9 @@ public:
 
    int l0;
 
-   Eigen::SparseMatrix<double> &SparseYC() const {
-       return dynamic_cast<ScarceMatrixData &>(data()).Yc.at(mode);
+   const Eigen::SparseMatrix<double>& SparseYC() const
+   {
+       return dynamic_cast<ScarceMatrixData &>(data()).getYc().at(mode);
    }
 
 

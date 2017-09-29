@@ -10,13 +10,11 @@
 
 namespace smurff {
 
-class Noiseless : public INoiseModel 
+class Noiseless : public INoiseModel
 {
 public:
-   Noiseless(Data* p);
+   Noiseless();
 
-   void init() override;
-   void update(const SubModel& sm) override;
    double getAlpha() override;
 
    std::ostream& info(std::ostream& os, std::string indent) override;

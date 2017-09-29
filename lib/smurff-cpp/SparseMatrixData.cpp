@@ -14,8 +14,18 @@ SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
 
 void SparseMatrixData::center(double global_mean)
 {
-    this->global_mean = global_mean;
-    assert(center_mode == CENTER_NONE && "you cannot center fully know sparse matrix without converting to dense");
+    IMeanCentering::center(global_mean);
+
+    if (getCenterMode() == CenterModeTypes::CENTER_NONE)
+    {
+       //do nothing
+    }
+    else
+    {
+       throw std::logic_error("you cannot center fully know sparse matrix without converting to dense");
+    }
+
+    setCentered(true);
 }
 
 double SparseMatrixData::train_rmse(const SubModel& model) const
