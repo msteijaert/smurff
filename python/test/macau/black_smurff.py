@@ -4,6 +4,7 @@ from macau import macau
 import matrix_io as mio
 import scipy.io
 import argparse
+from warnings import warn
 
 parser = argparse.ArgumentParser(description='Black SMURFF - a smurff-compatible commandline for Macau')
 
@@ -13,9 +14,12 @@ options = {
         "col-prior":  	  { "metavar": "PRIOR", "default": "normal", "help": "One of <normal|spikeandslab|macau|macauone>"},
         "row-features":   { "metavar": "FILE",  "help": "side info for rows"},
         "col-features":   { "metavar": "FILE",  "help": "side info for cols"},
-        #unsupported "row-model":      { "metavar": "FILE",  "help": "initialization matrix for row model"},
-        #unsupported "col-model":      { "metavar": "FILE",  "help": "initialization matrix for col model"},
-        #unsupported "center":         { "metavar": "MODE",  "default": "none", "help": "center <global|rows|cols|none>"},
+        #unsupported
+	"row-model":      { "metavar": "FILE",  "help": "initialization matrix for row model"},
+        #unsupported
+	"col-model":      { "metavar": "FILE",  "help": "initialization matrix for col model"},
+        #unsupported
+	"center":         { "metavar": "MODE",  "help": "center <global|rows|cols|none>"},
         "group2":         { "group": "Test and train matrices"},
         "test":  	  { "metavar": "FILE", "help":  "test data (for computing RMSE}"},
         "train":  	  { "metavar": "FILE", "help":  "train data file", "required": True},
@@ -23,24 +27,46 @@ options = {
         "burnin":  	  { "metavar": "NUM", "type": int,  "default": 200,  "help":  "200  number of samples to discard"},
         "nsamples":  	  { "metavar": "NUM", "type": int,   "default": 800, "help":  "800  number of samples to collect"},
         "num-latent":  	  { "metavar": "NUM", "type": int,   "default": 96, "help":  "96  number of latent dimensions"},
-        #unsupported "restore-prefix": { "metavar": "PATH", "help":  "prefix for file to initialize stae"},
-        #unsupported "restore-suffix": { "metavar": "EXT",  "help":  "suffix for initialization files (.csv or .ddm}"},
-        #unsupported "init-model":     { "metavar": "NAME", "help":  "One of <random|zero>"},
+        #unsupported
+	 "restore-prefix": { "metavar": "PATH", "help":  "prefix for file to initialize stae"},
+        #unsupported
+	 "restore-suffix": { "metavar": "EXT",  "help":  "suffix for initialization files (.csv or .ddm}"},
+        #unsupported
+	 "init-model":     { "metavar": "NAME", "help":  "One of <random|zero>"},
         "save-prefix":    { "metavar": "PATH", "help":  "prefix for result files"},
-        #unsupported "save-suffix":    { "metavar": "EXT",  "help":  "suffix for result files (.csv or .ddm}"},
-        #unsupported "save-freq":      { "metavar": "NUM", "type": int,  "help":  "save every n iterations (0 == never}"},
-        #unsupported "threshold":      { "metavar": "NUM", "type": float,  "help":  "threshold for binary classification"},
+        #unsupported
+	 "save-suffix":    { "metavar": "EXT",  "help":  "suffix for result files (.csv or .ddm}"},
+        #unsupported
+	 "save-freq":      { "metavar": "NUM", "type": int,  "help":  "save every n iterations (0 == never}"},
+        #unsupported
+	 "threshold":      { "metavar": "NUM", "type": float,  "help":  "threshold for binary classification"},
         "verbose":        { "metavar": "NUM", "nargs": "?", "type": int,  "help":  "verbose output (default = 1}"},
         "quiet":          {                    "help":  "no output"},
-        #unsupported "status":         { "metavar": "FILE", "help":  "output progress to csv file"},
+        #unsupported
+	 "status":         { "metavar": "FILE", "help":  "output progress to csv file"},
         "group4":         { "group": "Noise model" },
         "precision":  	  { "metavar": "NUM", "type": float, "help":  "precision of observations"},
         "adaptive":  	  { "metavar": "NUM,NUM", "nargs": "?", "help":  "1.0,10.0  adaptive precision of observations"},
         "group1":         { "group": "For the macau prior"},
         "lambda-beta":    { "metavar": "NUM", "type": float,  "default": 10.0, "help":  "10.0  initial value of lambda beta"},
         "tol":            { "metavar": "NUM", "type": float,   "default": 1e-6, "help":  "1e-6  tolerance for CG"},
-        #unsupported "direct":         { "default": False, "help":  "Use Cholesky decomposition i.o. CG Solver"},
+        #unsupported
+	 "direct":         { "default": False, "help":  "Use Cholesky decomposition i.o. CG Solver"},
 }
+
+unsupported_options = [
+	[  "row-model" ],
+	[  "col-model" ],
+	[  "center", "global" ],
+	[  "restore-prefix" ],
+	[  "restore-suffix" ],
+	[  "init-model", "zero" ],
+	[  "save-suffix" ],
+	[  "save-freq", 1 ],
+	[  "threshold"],
+	[  "status" ],
+	[  "direct" ],
+]
 
 group = parser
 for name, opt in options.items():
@@ -50,6 +76,16 @@ for name, opt in options.items():
         group.add_argument("--" + name, **opt)
 
 args = parser.parse_args()
+
+for opt in unsupported_options:
+    name = opt[0]
+    fixed_val = opt[1] if len(opt) > 1 else None
+    if name in vars(args) and vars(args)[name]:
+        if (fixed_val and fixed_val == vars(args)[name]):
+            warn("Using unsupported option %s, but with correct value %s" % ( name, fixed_val))
+        else:
+            raise Exception("Unsupported option: %s" % ( name) )
+
 
 def read_matrix(fname):
     if (not fname):
