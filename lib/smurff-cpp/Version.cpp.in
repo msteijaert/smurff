@@ -1,0 +1,7 @@
+#include "Version.h"
+
+const char* smurff::GIT_COMMIT_COUNT = "@GIT_COMMIT_COUNT@";
+const char* smurff::GIT_COMMIT = "@GIT_COMMIT@";
+const char* smurff::GIT_BRANCH = "@GIT_BRANCH@";
+const char* smurff::SMURFF_VERSION = "@SMURFF_VERSION@";
+

@@ -52,6 +52,7 @@ cdef extern from "latentprior.h":
         MacauPrior(int nlatent, unique_ptr[FType] & Fmat, bool comp_FtF)
         void setLambdaBeta(double lb)
         void setTol(double t)
+    MacauPrior[MatrixXd]* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF)
 
 cdef extern from "macauoneprior.h":
     cdef cppclass MacauOnePrior[FType](ILatentPrior):
@@ -61,21 +62,23 @@ cdef extern from "macauoneprior.h":
 
 cdef extern from "macau.h":
     cdef cppclass Macau:
-        Macau()
-        Macau(int num_latent)
         void addPrior(unique_ptr[ILatentPrior] & prior)
-        void setPrecision(double p)
-        void setAdaptivePrecision(double sn_init, double sn_max)
-        void setProbit()
         void setSamples(int burnin, int nsamples)
         void setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols)
         void setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols)
+        void setRelationData(int* idx, int nmodes, double* values, int nnz, int* dims)
+        void setRelationDataTest(int* idx, int nmodes, double* values, int nnz, int* dims)
         void setVerbose(bool v)
         double getRmseTest()
         VectorXd getPredictions()
         VectorXd getStds()
         MatrixXd getTestData()
-        void run()
+        void run() except *
         void setSaveModel(bool save)
         void setSavePrefix(string pref)
-
+    cdef cppclass MacauX[DType](Macau):
+        MacauX()
+        MacauX(int num_latent)
+    Macau* make_macau_probit(int nmodes, int num_latent)
+    Macau* make_macau_fixed(int nmodes, int num_latent, double precision)
+    Macau* make_macau_adaptive(int nmodes, int num_latent, double sn_init, double sn_max)

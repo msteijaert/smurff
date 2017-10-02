@@ -24,6 +24,8 @@
 #include "mvnormal.h"
 #include "bpmfutils.h"
 #include "latentprior.h"
+#include "noisemodels.h"
+#include "sparsetensor.h"
 
 using namespace std; 
 using namespace Eigen;
@@ -35,54 +37,54 @@ void intHandler(int dummy) {
   printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
 }
 
-void Macau::addPrior(unique_ptr<ILatentPrior> & prior) {
+template<class DType, class NType> 
+void MacauX<DType, NType>::addPrior(unique_ptr<ILatentPrior> & prior) {
   priors.push_back( std::move(prior) );
 }
 
-void Macau::setPrecision(double p) {
-  noise.reset(new FixedGaussianNoise(p));
-}
-
-void Macau::setAdaptivePrecision(double sn_init, double sn_max) {
-  noise.reset(new AdaptiveGaussianNoise(sn_init, sn_max));
-}
-
-void Macau::setProbit() {
-  noise.reset(new ProbitNoise());
-}
-
-void Macau::setSamples(int b, int n) {
+template<class DType, class NType> 
+void MacauX<DType, NType>::setSamples(int b, int n) {
   burnin = b;
   nsamples = n;
 }
 
-void Macau::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  Y.resize(nrows, ncols);
-  sparseFromIJV(Y, rows, cols, values, N);
-  Yt = Y.transpose();
-  mean_rating = Y.sum() / Y.nonZeros();
+template<class DType, class NType> 
+void MacauX<DType, NType>::setRelationData(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+  data.setTrain(rows, cols, values, N, nrows, ncols);
 }
 
-void Macau::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
-  Ytest.resize(nrows, ncols);
-  sparseFromIJV(Ytest, rows, cols, values, N);
+template<class DType, class NType> 
+void MacauX<DType, NType>::setRelationDataTest(int* rows, int* cols, double* values, int N, int nrows, int ncols) {
+  data.setTest(rows, cols, values, N, nrows, ncols);
 }
 
-double Macau::getRmseTest() { return rmse_test; }
+template<class DType, class NType> 
+void MacauX<DType, NType>::setRelationData(int* idx, int nmodes, double* values, int nnz, int* dims) {
+  data.setTrain(idx, nmodes, values, nnz, dims);
+}
 
-void Macau::init() {
+template<class DType, class NType> 
+void MacauX<DType, NType>::setRelationDataTest(int* idx, int nmodes, double* values, int nnz, int* dims) {
+  data.setTest(idx, nmodes, values, nnz, dims);
+}
+
+template<class DType, class NType> 
+double MacauX<DType, NType>::getRmseTest() { return rmse_test; }
+
+template<class DType, class NType> 
+void MacauX<DType, NType>::init() {
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-  if (priors.size() != 2) {
-    throw std::runtime_error("Only 2 priors are supported.");
+  if (priors.size() < 2) {
+    throw std::runtime_error("Less 2 priors are not supported.");
   }
   init_bmrng(seed1);
-  MatrixXd* U = new MatrixXd(num_latent, Y.rows());
-  MatrixXd* V = new MatrixXd(num_latent, Y.cols());
-  U->setZero();
-  V->setZero();
-  samples.push_back( std::move(std::unique_ptr<MatrixXd>(U)) );
-  samples.push_back( std::move(std::unique_ptr<MatrixXd>(V)) );
-  noise->init(Y, mean_rating);
+  VectorXi dims = data.getDims();
+  for (int mode = 0; mode < dims.size(); mode++) {
+    MatrixXd* U = new MatrixXd(num_latent, dims(mode));
+    U->setZero();
+    samples.push_back( std::move(std::unique_ptr<MatrixXd>(U)) );
+  }
+  noise.init(data);
   keepRunning = true;
 }
 
@@ -91,10 +93,11 @@ Macau::~Macau() {
 
 inline double sqr(double x) { return x*x; }
 
-void Macau::run() {
+template<class DType, class NType> 
+void MacauX<DType, NType>::run() {
   init();
   if (verbose) {
-    std::cout << noise->getInitStatus() << endl;
+    std::cout << noise.getInitStatus() << endl;
     std::cout << "Sampling" << endl;
   }
   if (save_model) {
@@ -102,10 +105,9 @@ void Macau::run() {
   }
   signal(SIGINT, intHandler);
 
-  const int num_rows = Y.rows();
-  const int num_cols = Y.cols();
-  predictions     = VectorXd::Zero( Ytest.nonZeros() );
-  predictions_var = VectorXd::Zero( Ytest.nonZeros() );
+  const VectorXi dims = data.getDims();
+  predictions     = VectorXd::Zero( data.getTestNonzeros() );
+  predictions_var = VectorXd::Zero( data.getTestNonzeros() );
 
   auto start = tick();
   for (int i = 0; i < burnin + nsamples; i++) {
@@ -119,22 +121,23 @@ void Macau::run() {
     auto starti = tick();
 
     // sample latent vectors
-    noise->sample_latents(priors[0], *samples[0], Yt, mean_rating, *samples[1], num_latent);
-    noise->sample_latents(priors[1], *samples[1], Y,  mean_rating, *samples[0], num_latent);
+    for (int mode = 0; mode < dims.size(); mode++) {
+      priors[mode]->sample_latents(noise, data, samples, mode, num_latent);
+    }
 
     // Sample hyperparams
-    priors[0]->update_prior(*samples[0]);
-    priors[1]->update_prior(*samples[1]);
+    for (int mode = 0; mode < dims.size(); mode++) {
+      priors[mode]->update_prior(*samples[mode]);
+    }
 
-    noise->update(Y, mean_rating, samples);
+    noise.update(data, samples);
 
-    //auto eval = eval_rmse(Ytest, (i < burnin) ? 0 : (i - burnin), predictions, predictions_var, *samples[1], *samples[0], mean_rating);
-    noise->evalModel(Ytest, (i < burnin) ? 0 : (i - burnin), predictions, predictions_var, *samples[1], *samples[0], mean_rating);
+    noise.evalModel(data, (i < burnin) ? 0 : (i - burnin), predictions, predictions_var, samples);
     
 
     auto endi = tick();
     auto elapsed = endi - start;
-    double samples_per_sec = (i + 1) * (num_rows + num_cols) / elapsed;
+    double samples_per_sec = (i + 1) * (dims.sum()) / elapsed;
     double elapsedi = endi - starti;
 
     if (save_model && i >= burnin) {
@@ -143,20 +146,37 @@ void Macau::run() {
     if (verbose) {
       printStatus(i, elapsedi, samples_per_sec);
     }
-    rmse_test = noise->getEvalMetric();
+    rmse_test = noise.getEvalMetric();
   }
 }
 
-void Macau::printStatus(int i, double elapsedi, double samples_per_sec) {
-  double norm0 = priors[0]->getLinkNorm();
-  double norm1 = priors[1]->getLinkNorm();
-  printf("Iter %3d: %s  U:[%1.2e, %1.2e]  Side:[%1.2e, %1.2e] %s [took %0.1fs]\n", i, noise->getEvalString().c_str(), samples[0]->norm(), samples[1]->norm(), norm0, norm1, noise->getStatus().c_str(), elapsedi);
-  // if (!std::isnan(norm0)) printf("U.link(%1.2e) U.lambda(%.1f) ", norm0, priors[0]->getLinkLambda());
-  // if (!std::isnan(norm1)) printf("V.link(%1.2e) V.lambda(%.1f)",   norm1, priors[1]->getLinkLambda());
+template<class DType, class NType> 
+void MacauX<DType, NType>::printStatus(int i, double elapsedi, double samples_per_sec) {
+  printf("Iter %3d: %s  ", i, noise.getEvalString().c_str());
+
+  printf("U:[");
+  for (unsigned p = 0; p < priors.size(); p++) {
+    printf("%1.2e", samples[p]->norm());
+    if (p + 1 < priors.size()) {
+      printf(", ");
+    }
+  }
+  printf("]");
+
+  printf("\tSide:[");
+  for (unsigned p = 0; p < priors.size(); p++) {
+    printf("%1.2e", priors[p]->getLinkNorm());
+    if (p + 1 < priors.size()) {
+      printf(", ");
+    }
+  }
+  printf("]");
+  printf("%s [took %0.1fs]\n", noise.getStatus().c_str(), elapsedi);
 }
 
-Eigen::VectorXd Macau::getStds() {
-  VectorXd std(Ytest.nonZeros());
+template<class DType, class NType> 
+Eigen::VectorXd MacauX<DType, NType>::getStds() {
+  VectorXd std( data.getTestNonzeros() );
   if (nsamples <= 1) {
     std.setConstant(NAN);
     return std;
@@ -170,23 +190,8 @@ Eigen::VectorXd Macau::getStds() {
   return std;
 }
 
-// assumes matrix (not tensor)
-Eigen::MatrixXd Macau::getTestData() {
-  MatrixXd coords(Ytest.nonZeros(), 3);
-#pragma omp parallel for schedule(dynamic, 2)
-  for (int k = 0; k < Ytest.outerSize(); ++k) {
-    int idx = Ytest.outerIndexPtr()[k];
-    for (SparseMatrix<double>::InnerIterator it(Ytest,k); it; ++it) {
-      coords(idx, 0) = it.row();
-      coords(idx, 1) = it.col();
-      coords(idx, 2) = it.value();
-      idx++;
-    }
-  }
-  return coords;
-}
-
-void Macau::saveModel(int isample) {
+template<class DType, class NType> 
+void MacauX<DType, NType>::saveModel(int isample) {
   string fprefix = save_prefix + "-sample" + std::to_string(isample) + "-";
   // saving latent matrices
   for (unsigned int i = 0; i < samples.size(); i++) {
@@ -195,8 +200,40 @@ void Macau::saveModel(int isample) {
   }
 }
 
-void Macau::saveGlobalParams() {
+template<class DType, class NType> 
+void MacauX<DType, NType>::saveGlobalParams() {
   VectorXd means(1);
-  means << mean_rating;
+  means << data.getMeanValue();
   writeToCSVfile(save_prefix + "-meanvalue.csv", means);
 }
+
+Macau* make_macau_probit(int nmodes, int num_latent) {
+  switch (nmodes) {
+    case 2: return new MacauX<MatrixData,  ProbitNoise>(num_latent, MatrixData(), ProbitNoise());
+    default: return new MacauX<TensorData, ProbitNoise>(num_latent, TensorData(nmodes), ProbitNoise());
+  }
+}
+
+Macau* make_macau_fixed(int nmodes, int num_latent, double precision) {
+  FixedGaussianNoise fnoise(precision);
+  switch (nmodes) {
+    case 2: return new MacauX<MatrixData,  FixedGaussianNoise>(num_latent, MatrixData(), fnoise);
+    default: return new MacauX<TensorData, FixedGaussianNoise>(num_latent, TensorData(nmodes), fnoise);
+  }
+}
+
+Macau* make_macau_adaptive(int nmodes, int num_latent, double sn_init, double sn_max) {
+  AdaptiveGaussianNoise anoise(sn_init, sn_max);
+  switch (nmodes) {
+    case 2: return new MacauX<MatrixData,  AdaptiveGaussianNoise>(num_latent, MatrixData(), anoise);
+    default: return new MacauX<TensorData, AdaptiveGaussianNoise>(num_latent, TensorData(nmodes), anoise);
+  }
+}
+
+template class MacauX<MatrixData, FixedGaussianNoise>;
+template class MacauX<MatrixData, AdaptiveGaussianNoise>;
+template class MacauX<MatrixData, ProbitNoise>;
+
+template class MacauX<TensorData, FixedGaussianNoise>;
+template class MacauX<TensorData, AdaptiveGaussianNoise>;
+template class MacauX<TensorData, ProbitNoise>;

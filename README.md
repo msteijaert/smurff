@@ -1,63 +1,48 @@
-# Macau-cpp - Bayesian Factorization with Side Information
-Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and Macau. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. Macau method provides also the ability to incorporate high-dimensional side information to the factorization.
+# SMURFF - Scalable Matrix Factorization Framework
+## Bayesian Factorization with Side Information
+
+Highly optimized and parallelized methods for Bayesian Factorization, including BPMF, Macau and GFA.
+The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices.
+
+Macau method is able to perform **matrix** and **tensor** factorization while incorporating high-dimensional side information to the factorization.
 
 # Examples
 For examples see [documentation](http://macau.readthedocs.io/en/latest/source/examples.html).
 
 # Installation
-To install Macau it possible to use pre-compiled binaries or compile it from source.
+Currently there is only C++ version of smurff available. Python one is comming soon.
 
 ## Source installation on Ubuntu
 ```bash
 # install dependencies:
-sudo apt-get install python-pip python-numpy python-scipy python-pandas cython
 sudo apt-get install libopenblas-dev autoconf gfortran
 
-# checkout and install Macau
-git clone https://github.com/jaak-s/macau.git
-cd macau
-python setup.py install --user
+# checkout and install Smurff:
+git clone https://github.com/ExaScience/smurff.git
+cd smurff
+git checkout smurff
+git submodule init
+git submodule update
+cd lib/smurff-cpp/makefiles/linux
+make
+
+# test Smurff:
+wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
+./smurff --train chembl-IC50-346targets.mm
 ```
 
-## Source installation on any Linux
-Make sure that `pip` is available and OpenBLAS or some other BLAS is installed.
-Then install following packages using pip: `numpy scipy pandas cython`, e.g. by
-```
-# skip any of them if already available
-pip install numpy --user
-pip install scipy --user
-pip install pandas --user
-pip install cython --user
-
-# checkout and install Macau
-git clone https://github.com/jaak-s/macau.git
-cd macau
-python setup.py install --user
-```
-
-## Source installation on Mac
+## Installation using Conda
 ```bash
-# install dependencies
-pip install numpy
-pip install scipy
-pip install pandas
-pip install cython
-# install brew (http://brew.sh/)
-brew install homebrew/science/openblas
-brew install gcc
-
-# checkout and install Macau
-git clone https://github.com/jaak-s/macau.git
-cd macau
-CC=g++-5 CXX=g++-5 python setup.py install
+conda install -c vanderaa smurff 
 ```
-
-## Binary installion on Ubuntu
-There is a plan to support Python wheel packages. Currently, we do not have one built yet.
 
 # Contributors
-- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version)
+- Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version, Tensor factorization)
+- Tom Vander Aa (OpenMP optimized BPMF, Matrix Cofactorization and GFA, Code Reorg)
 - Adam Arany (Probit noise model)
-- Tom Vander Aa (OpenMP optimized BPMF)
 - Tom Haber (Original BPMF code)
+
+# Acknowledgements
+This work was partly funded by the European projects ExCAPE (http://excape-h2020.eu) and
+EXA2CT, and the Flemish Exaptation project.
 
