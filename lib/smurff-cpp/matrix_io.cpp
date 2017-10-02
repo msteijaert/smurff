@@ -488,83 +488,163 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMat
 
 void matrix_io::eigen::read_dense_float64_bin(std::istream& in, Eigen::MatrixXd& X)
 {
-   /*
-   std::uint64_t rows=0, cols=0;
-   in.read((char*) (&rows),sizeof(std::uint64_t));
-   in.read((char*) (&cols),sizeof(std::uint64_t));
-   matrix.resize(rows, cols);
-   in.read( (char *) matrix.data() , rows*cols*sizeof(double) );
-   */
+   std::uint64_t nrow = 0;
+   std::uint64_t ncol = 0;
 
-  throw "Not implemented";
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+
+   X.resize(nrow, ncol);
+   in.read(reinterpret_cast<char*>(X.data()), nrow * ncol * sizeof(typename Eigen::MatrixXd::Scalar));
 }
 
 void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd& X)
 {
-   /*
+   std::stringstream ss;
    std::string line;
 
    // rows and cols
-   getline(in, line);
-   std::uint64_t nrow = atol(line.c_str());
-   getline(in, line);
-   std::uint64_t ncol = atol(line.c_str());
-   matrix.resize(nrow, ncol);
+   getline(in, line); 
+   ss.clear();
+   ss << line;
+   std::uint64_t nrow;
+   ss >> nrow;
 
-   std::uint32_t row = 0;
-   std::uint32_t col = 0;
-   while (getline(in, line))
+   getline(in, line);
+   ss.clear();
+   ss << line;
+   std::uint64_t ncol;
+   ss >> ncol;
+
+   X.resize(nrow, ncol);
+
+   std::uint64_t row = 0;
+   std::uint64_t col = 0;
+
+   while(getline(in, line) && row < nrow)
    {
       col = 0;
+      
       std::stringstream lineStream(line);
       std::string cell;
-      while (std::getline(lineStream, cell, ','))
+
+      while (std::getline(lineStream, cell, ',') && col < ncol)
       {
-         matrix(row, col++) = strtod(cell.c_str(), NULL);
+         X(row, col++) = stod(cell);
       }
+
       row++;
    }
+
    assert(row == nrow);
    assert(col == ncol);
-   */
-
-  throw "Not implemented";
 }
 
 void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
 {
-   //we need to use our functions instead of libfastsparse
-   /*
-   auto sdm_ptr = read_sdm(fname.c_str());
-   M = sparse_to_eigen(*sdm_ptr);
-   free_sdm(sdm_ptr);
-   delete sdm_ptr;
-   */
+   std::uint64_t nrow;
+   std::uint64_t ncol;
+   std::uint64_t nnz;
 
-   throw "Not implemented";
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&nnz), sizeof(std::uint64_t));
+
+   std::vector<std::uint32_t> rows(nnz);
+   in.read(reinterpret_cast<char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row--; });
+
+   std::vector<std::uint32_t> cols(nnz);
+   in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
+
+   std::vector<double> values(nnz);
+   in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
+
+   std::vector<Eigen::Triplet<double> > triplets;
+   for(uint64_t i = 0; i < nnz; i++)
+      triplets.push_back(Eigen::Triplet<double>(rows[i], cols[i], values[i]));
+
+   X.resize(nrow, ncol);
+   X.setFromTriplets(triplets.begin(), triplets.end());
 }
 
 void matrix_io::eigen::read_sparse_float64_mtx(std::istream& in, Eigen::SparseMatrix<double>& X)
 {
-   //we need to use our functions instead of libfastsparse
-   /*
-   loadMarket(M, fname.c_str());
-   */
+   // Ignore headers and comments:
+   while (in.peek() == '%') in.ignore(2048, '\n');
 
-   throw "Not implemented";
+   // Read defining parameters:
+   std::uint64_t nrow;
+   std::uint64_t ncol;
+   std::uint64_t nnz;
+   in >> nrow >> ncol >> nnz;
+   in.ignore(2048, '\n'); // skip to end of line
+
+   std::vector<std::uint32_t> rows(nnz);
+   std::vector<std::uint32_t> cols(nnz);
+   std::vector<double> values(nnz);
+
+   // Read the data
+   char line[2048];
+   std::uint32_t r,c;
+   double v;
+   for (std::uint64_t l = 0; l < nnz; l++)
+   {
+      in.getline(line, 2048);
+      std::stringstream ls(line);
+      ls >> r >> c;
+      assert(!ls.fail());
+
+      ls >> v;
+      if (ls.fail()) 
+         v = 1.0;
+
+      r--;
+      c--;
+
+      assert(r < nrow);
+      assert(r >= 0);
+      assert(c < ncol);
+      assert(c >= 0);
+
+      rows[l] = r;
+      cols[l] = c;
+      values[l] = v;
+   }
+
+   std::vector<Eigen::Triplet<double> > triplets;
+   for(uint64_t i = 0; i < nnz; i++)
+      triplets.push_back(Eigen::Triplet<double>(rows[i], cols[i], values[i]));
+
+   X.resize(nrow, ncol);
+   X.setFromTriplets(triplets.begin(), triplets.end());
 }
 
 void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
 {
-   //we need to use our functions instead of libfastsparse
-   /*
-   auto sbm_ptr = read_sbm(fname.c_str());
-   M = sparse_to_eigen(*sbm_ptr);
-   free_sbm(sbm_ptr);
-   delete sbm_ptr;
-   */
+   std::uint64_t nrow;
+   std::uint64_t ncol;
+   std::uint64_t nnz;
 
-   throw "Not implemented";
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&nnz), sizeof(std::uint64_t));
+
+   std::vector<std::uint32_t> rows(nnz);
+   in.read(reinterpret_cast<char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row--; });
+
+   std::vector<std::uint32_t> cols(nnz);
+   in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+   std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
+
+   std::vector<Eigen::Triplet<double> > triplets;
+   for(uint64_t i = 0; i < nnz; i++)
+      triplets.push_back(Eigen::Triplet<double>(rows[i], cols[i], 1));
+
+   X.resize(nrow, ncol);
+   X.setFromTriplets(triplets.begin(), triplets.end());
 }
 
 // ======================================================================================================
@@ -635,41 +715,108 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Sp
 
 void matrix_io::eigen::write_dense_float64_bin(std::ostream& out, const Eigen::MatrixXd& X)
 {
-   /*
-    std::uint64_t rows = matrix.rows();
-   std::uint64_t cols = matrix.cols();
-   out.write((char*) (&rows), sizeof(std::uint64_t));
-   out.write((char*) (&cols), sizeof(std::uint64_t));
-   out.write((char*) matrix.data(), rows*cols*sizeof(typename Eigen::MatrixXd::Scalar) );
-   */
+  std::uint64_t nrow = X.rows();
+  std::uint64_t ncol = X.cols();
 
-   throw "Not implemented";
+  out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
+  out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
+  out.write(reinterpret_cast<const char*>(X.data()), nrow * ncol * sizeof(typename Eigen::MatrixXd::Scalar));
 }
 
 const static Eigen::IOFormat csvFormat(6, Eigen::DontAlignCols, ",", "\n");
 
 void matrix_io::eigen::write_dense_float64_csv(std::ostream& out, const Eigen::MatrixXd& X)
 {
-   /*
-   out << matrix.rows() << std::endl;
-   out << matrix.cols() << std::endl;
-   out << matrix.format(csvFormat) << std::endl;
-   */
-
-   throw "Not implemented";
+   out << X.rows() << std::endl;
+   out << X.cols() << std::endl;
+   out << X.format(csvFormat) << std::endl;
 }
 
 void matrix_io::eigen::write_sparse_float64_bin(std::ostream& out, const Eigen::SparseMatrix<double>& X)
 {
-   throw "Not implemented";
+   std::uint64_t nrow = X.rows();
+   std::uint64_t ncol = X.cols();
+   
+   std::vector<uint32_t> rows;
+   std::vector<uint32_t> cols;
+   std::vector<double> values;
+
+   for (int k = 0; k < X.outerSize(); ++k)
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)
+      {
+         rows.push_back(it.row() + 1);
+         cols.push_back(it.col() + 1);
+         values.push_back(it.value());
+      }
+   }
+
+   std::uint64_t nnz = values.size();
+
+   out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+   out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
 void matrix_io::eigen::write_sparse_float64_mtx(std::ostream& out, const Eigen::SparseMatrix<double>& X)
 {
-   throw "Not implemented";
+   std::uint64_t nrow = X.rows();
+   std::uint64_t ncol = X.cols();
+   
+   std::vector<uint32_t> rows;
+   std::vector<uint32_t> cols;
+   std::vector<double> values;
+
+   for (int k = 0; k < X.outerSize(); ++k)
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)
+      {
+         rows.push_back(it.row() + 1);
+         cols.push_back(it.col() + 1);
+         values.push_back(it.value());
+      }
+   }
+
+   std::uint64_t nnz = values.size();
+
+   //write row col nnz
+   out << nrow << "\t" << ncol << "\t" << nnz << std::endl;
+   
+   //write values
+   for(std::uint64_t i = 0; i < nnz; i++)
+   {
+      out << rows[i] << "\t" << cols[i] << "\t" << values[i] << std::endl;
+   }
 }
 
 void matrix_io::eigen::write_sparse_binary_bin(std::ostream& out, const Eigen::SparseMatrix<double>& X)
 {
-   throw "Not implemented";
+   std::uint64_t nrow = X.rows();
+   std::uint64_t ncol = X.cols();
+   
+   std::vector<uint32_t> rows;
+   std::vector<uint32_t> cols;
+   
+   for (int k = 0; k < X.outerSize(); ++k)
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)
+      {
+         if(it.value() > 0)
+         {
+            rows.push_back(it.row() + 1);
+            cols.push_back(it.col() + 1);
+         }
+      }
+   }
+
+   std::uint64_t nnz = rows.size();
+
+   out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
+   out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
+   out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
 }
