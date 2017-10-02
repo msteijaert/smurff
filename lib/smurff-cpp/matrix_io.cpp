@@ -1,5 +1,5 @@
-#include <set>
-#include <cstdlib>
+#include <iostream>
+#include <sstream>
 
 #include <unsupported/Eigen/SparseExtra>
 
@@ -123,35 +123,49 @@ MatrixConfig matrix_io::read_dense_float64_bin(std::istream& in)
 
 MatrixConfig matrix_io::read_dense_float64_csv(std::istream& in)
 {
+   std::stringstream ss;
    std::string line;
 
    // rows and cols
+   getline(in, line); 
+   ss.clear();
+   ss << line;
+   std::uint64_t nrow;
+   ss >> nrow;
+
    getline(in, line);
-   std::uint64_t nrow = stol(line);
-   getline(in, line);
-   std::uint64_t ncol = stol(line);
+   ss.clear();
+   ss << line;
+   std::uint64_t ncol;
+   ss >> ncol;
+
    std::uint64_t nnz = nrow * ncol;
+
    std::vector<double> values;
    values.resize(nnz);
 
-   std::uint32_t row = 0;
-   std::uint32_t col = 0;
-   while (getline(in, line))
+   std::uint64_t row = 0;
+   std::uint64_t col = 0;
+
+   while(getline(in, line) && row < nrow)
    {
       col = 0;
+      
       std::stringstream lineStream(line);
       std::string cell;
-      while (std::getline(lineStream, cell, ','))
+
+      while (std::getline(lineStream, cell, ',') && col < ncol)
       {
-         values[row + (nrow*col++)] = stod(cell);
+         values[(nrow * col++) + row] = stod(cell);
       }
+
       row++;
    }
+
    assert(row == nrow);
    assert(col == ncol);
 
-   smurff::MatrixConfig ret(nrow, ncol, values, smurff::NoiseConfig());
-   return ret;
+   return smurff::MatrixConfig(nrow, ncol, values, smurff::NoiseConfig());
 }
 
 MatrixConfig matrix_io::read_sparse_float64_bin(std::istream& in)
@@ -190,12 +204,9 @@ MatrixConfig matrix_io::read_sparse_float64_mtx(std::istream& in)
    in >> nrow >> ncol >> nnz;
    in.ignore(2048, '\n'); // skip to end of line
 
-   std::vector<std::uint32_t> rows;
-   std::vector<std::uint32_t> cols;
-   std::vector<double> values;
-   rows.resize(nnz);
-   cols.resize(nnz);
-   values.resize(nnz);
+   std::vector<std::uint32_t> rows(nnz);
+   std::vector<std::uint32_t> cols(nnz);
+   std::vector<double> values(nnz);
 
    // Read the data
    char line[2048];
@@ -207,8 +218,10 @@ MatrixConfig matrix_io::read_sparse_float64_mtx(std::istream& in)
       std::stringstream ls(line);
       ls >> r >> c;
       assert(!ls.fail());
+
       ls >> v;
-      if (ls.fail()) v = 1.0;
+      if (ls.fail()) 
+         v = 1.0;
 
       r--;
       c--;
@@ -223,8 +236,7 @@ MatrixConfig matrix_io::read_sparse_float64_mtx(std::istream& in)
       values[l] = v;
    }
 
-   smurff::MatrixConfig ret(nrow, ncol, rows, cols, values, smurff::NoiseConfig());
-   return ret;
+   return smurff::MatrixConfig(nrow, ncol, rows, cols, values, smurff::NoiseConfig());
 }
 
 MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
@@ -252,7 +264,6 @@ MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
 
 void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& matrixConfig)
 {
-   die_unless_file_exists(filename);
    MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
    {
@@ -306,7 +317,30 @@ void matrix_io::write_dense_float64_bin(std::ostream& out, const MatrixConfig& m
 
 void matrix_io::write_dense_float64_csv(std::ostream& out, const MatrixConfig& matrixConfig)
 {
-   throw "Not implemented yet";
+   //write rows and cols
+   std::uint64_t nrow = matrixConfig.getNRow();
+   std::uint64_t ncol = matrixConfig.getNCol();
+   std::uint64_t nnz = nrow * ncol;
+
+   out << nrow << std::endl;
+   out << ncol << std::endl;
+   
+   const std::vector<double>& values = matrixConfig.getValues();
+
+   assert(values.size() == nnz);
+
+   //write values
+   for(std::uint64_t i = 0; i < nrow; i++)
+   {
+      for(std::uint64_t j = 0; j < ncol; j++)
+      {
+         if(j == ncol - 1)
+            out << values[j * nrow + i];
+         else
+            out << values[j * nrow + i] << ",";
+      }
+      out << std::endl;
+   }
 }
 
 void matrix_io::write_sparse_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig)
@@ -314,10 +348,13 @@ void matrix_io::write_sparse_float64_bin(std::ostream& out, const MatrixConfig& 
    std::uint64_t nrow = matrixConfig.getNRow();
    std::uint64_t ncol = matrixConfig.getNCol();
    std::uint64_t nnz = matrixConfig.getNNZ();
+
+   //get values copy
    std::vector<std::uint32_t> rows = matrixConfig.getRows();
    std::vector<std::uint32_t> cols = matrixConfig.getCols();
-   const std::vector<double> values = matrixConfig.getValues();
+   std::vector<double> values = matrixConfig.getValues();
 
+   //increment coordinates
    std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
    std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col++; });
 
@@ -331,7 +368,22 @@ void matrix_io::write_sparse_float64_bin(std::ostream& out, const MatrixConfig& 
 
 void matrix_io::write_sparse_float64_mtx(std::ostream& out, const MatrixConfig& matrixConfig)
 {
-   throw "Not implemented yet";
+   std::uint64_t nrow = matrixConfig.getNRow();
+   std::uint64_t ncol = matrixConfig.getNCol();
+   std::uint64_t nnz = matrixConfig.getNNZ();
+
+   //write row col nnz
+   out << nrow << "\t" << ncol << "\t" << nnz << std::endl;
+
+   const std::vector<std::uint32_t>& rows = matrixConfig.getRows();
+   const std::vector<std::uint32_t>& cols = matrixConfig.getCols();
+   const std::vector<double>& values = matrixConfig.getValues();
+   
+   //write values
+   for(std::uint64_t i = 0; i < nnz; i++)
+   {
+      out << rows[i] + 1 << "\t" << cols[i] + 1 << "\t" << values[i] << std::endl;
+   }
 }
 
 void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& matrixConfig)
@@ -339,9 +391,12 @@ void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& m
    std::uint64_t nrow = matrixConfig.getNRow();
    std::uint64_t ncol = matrixConfig.getNCol();
    std::uint64_t nnz = matrixConfig.getNNZ();
+
+   //get values copy
    std::vector<std::uint32_t> rows = matrixConfig.getRows();
    std::vector<std::uint32_t> cols = matrixConfig.getCols();
 
+   //increment coordinates
    std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
    std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col++; });
 
@@ -516,7 +571,6 @@ void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMat
 
 void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X)
 {
-   die_unless_file_exists(filename);
    MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
    {
@@ -547,7 +601,6 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
 
 void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X)
 {
-   die_unless_file_exists(filename);
    MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
    {

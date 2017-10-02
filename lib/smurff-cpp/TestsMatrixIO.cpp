@@ -15,8 +15,8 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .ddm")
    std::string matrixFilename = "matrixConfig.ddm";
 
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<double> matrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
@@ -27,8 +27,8 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .ddm")
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
    Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
 
-   Eigen::MatrixXd expectedMatrix(3, 3);
-   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+   Eigen::MatrixXd expectedMatrix(3, 4);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    std::remove(matrixFilename.c_str());
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
@@ -39,8 +39,8 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .csv")
    std::string matrixFilename = "matrixConfig.csv";
 
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<double> matrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
@@ -48,11 +48,12 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .csv")
                             );
 
    matrix_io::write_matrix(matrixFilename, matrixConfig);
+
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
    Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
 
-   Eigen::MatrixXd expectedMatrix(3, 3);
-   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+   Eigen::MatrixXd expectedMatrix(3, 4);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    std::remove(matrixFilename.c_str());
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
@@ -63,10 +64,10 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sdm")
    std::string matrixFilename = "matrixConfig.sdm";
 
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
-   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
-   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
@@ -79,14 +80,16 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sdm")
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 4));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 10));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 11));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::remove(matrixFilename.c_str());
@@ -98,10 +101,10 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .mtx")
    std::string matrixFilename = "matrixConfig.mtx";
 
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
-   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
-   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
@@ -114,14 +117,16 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .mtx")
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 4));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 10));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 11));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::remove(matrixFilename.c_str());
@@ -133,9 +138,9 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
    std::string matrixFilename = "matrixConfig.sbm";
 
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
-   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
@@ -147,14 +152,16 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::remove(matrixFilename.c_str());
@@ -166,8 +173,8 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
 TEST_CASE("matrix_io/read_dense_float64_bin | matrix_io/write_dense_float64_bin")
 {
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<double> matrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12};
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
@@ -179,8 +186,8 @@ TEST_CASE("matrix_io/read_dense_float64_bin | matrix_io/write_dense_float64_bin"
    MatrixConfig actualMatrixConfig = matrix_io::read_dense_float64_bin(matrixStream);
    Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
 
-   Eigen::MatrixXd expectedMatrix(3, 3);
-   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+   Eigen::MatrixXd expectedMatrix(3, 4);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
@@ -188,8 +195,8 @@ TEST_CASE("matrix_io/read_dense_float64_bin | matrix_io/write_dense_float64_bin"
 TEST_CASE("matrix_io/read_dense_float64_csv | matrix_io/write_dense_float64_csv")
 {
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<double> matrixConfigValues = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<double> matrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12};
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
@@ -201,8 +208,8 @@ TEST_CASE("matrix_io/read_dense_float64_csv | matrix_io/write_dense_float64_csv"
    MatrixConfig actualMatrixConfig = matrix_io::read_dense_float64_csv(matrixConfigStream);
    Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
 
-   Eigen::MatrixXd expectedMatrix(3, 3);
-   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+   Eigen::MatrixXd expectedMatrix(3, 4);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
@@ -210,10 +217,10 @@ TEST_CASE("matrix_io/read_dense_float64_csv | matrix_io/write_dense_float64_csv"
 TEST_CASE("matrix_io/read_sparse_float64_bin | matrix_io/write_sparse_float64_bin")
 {
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
-   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
-   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
@@ -227,14 +234,16 @@ TEST_CASE("matrix_io/read_sparse_float64_bin | matrix_io/write_sparse_float64_bi
    MatrixConfig actualMatrixConfig = matrix_io::read_sparse_float64_bin(matrixConfigStream);
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 4));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 10));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 11));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
@@ -243,10 +252,10 @@ TEST_CASE("matrix_io/read_sparse_float64_bin | matrix_io/write_sparse_float64_bi
 TEST_CASE("matrix_io/read_sparse_float64_mtx | matrix_io/write_sparse_float64_mtx")
 {
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
-   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
-   std::vector<double> matrixConfigValues      = { 1, 2, 3, 7, 8, 9 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
@@ -260,14 +269,16 @@ TEST_CASE("matrix_io/read_sparse_float64_mtx | matrix_io/write_sparse_float64_mt
    MatrixConfig actualMatrixConfig = matrix_io::read_sparse_float64_mtx(matrixConfigStream);
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 4));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 10));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 11));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
@@ -276,9 +287,9 @@ TEST_CASE("matrix_io/read_sparse_float64_mtx | matrix_io/write_sparse_float64_mt
 TEST_CASE("matrix_io/read_sparse_binary_bin | matrix_io/write_sparse_binary_bin")
 {
    std::uint64_t matrixConfigNRow = 3;
-   std::uint64_t matrixConfigNCol = 3;
-   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 2, 2, 2 };
-   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 0, 1, 2 };
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    MatrixConfig matrixConfig( matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
@@ -291,18 +302,22 @@ TEST_CASE("matrix_io/read_sparse_binary_bin | matrix_io/write_sparse_binary_bin"
    MatrixConfig actualMatrixConfig = matrix_io::read_sparse_binary_bin(matrixConfigStream);
    Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
 
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
+
+/*
 
 // ===
 
@@ -663,3 +678,5 @@ TEST_CASE("matrix_io/eigen::read_sparse_binary_bin | matrix_io/eigen::write_spar
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
+
+*/
