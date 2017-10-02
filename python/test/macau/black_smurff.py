@@ -45,8 +45,8 @@ options = {
         #unsupported
 	 "status":         { "metavar": "FILE", "help":  "output progress to csv file"},
         "group4":         { "group": "Noise model" },
-        "precision":  	  { "metavar": "NUM", "type": float, "help":  "precision of observations"},
-        "adaptive":  	  { "metavar": "NUM,NUM", "nargs": "?", "help":  "1.0,10.0  adaptive precision of observations"},
+        "precision":  	  { "metavar": "NUM","nargs": "?", "type": float, "const": 5.0, "help":  "precision of observations"},
+        "adaptive":  	  { "metavar": "NUM,NUM", "nargs": "?", "const": "1.0,10.0",  "help":  "adaptive precision of observations"},
         "group1":         { "group": "For the macau prior"},
         "lambda-beta":    { "metavar": "NUM", "type": float,  "default": 10.0, "help":  "10.0  initial value of lambda beta"},
         "tol":            { "metavar": "NUM", "type": float,   "default": 1e-6, "help":  "1e-6  tolerance for CG"},
@@ -76,6 +76,7 @@ for name, opt in options.items():
         group.add_argument("--" + name, **opt)
 
 args = parser.parse_args()
+print(args)
 
 for opt in unsupported_options:
     name = opt[0]
@@ -108,8 +109,10 @@ test_matrix      = read_matrix(args.test)
 side_rows_matrix = read_matrix(args.row_features)
 side_cols_matrix = read_matrix(args.col_features)
 
+
+print(vars(args))
 # deduce noise model to use
-if ("adaptive" in vars(args)):
+if (args.adaptive):
     try:
         args.sn_max = float(args.adaptive.split(",")[1])
     except:
