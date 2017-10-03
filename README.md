@@ -41,6 +41,8 @@ conda install -c vanderaa smurff
 - Tom Vander Aa (OpenMP optimized BPMF, Matrix Cofactorization and GFA, Code Reorg)
 - Adam Arany (Probit noise model)
 - Tom Haber (Original BPMF code)
+- Andrei Gedich
+- Ilya Pasechnikov
 
 # Acknowledgements
 This work was partly funded by the European projects ExCAPE (http://excape-h2020.eu) and
