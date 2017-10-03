@@ -462,14 +462,12 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Spar
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
 
-/*
-
 // ===
 
 TEST_CASE("matrix_io/eigen::read_dense_float64_bin | matrix_io/eigen::write_dense_float64_bin")
 {
-   Eigen::MatrixXd expectedMatrix(3, 3);
-   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+   Eigen::MatrixXd expectedMatrix(3, 4);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    std::stringstream matrixStream;
    matrix_io::eigen::write_dense_float64_bin(matrixStream, expectedMatrix);
@@ -481,8 +479,8 @@ TEST_CASE("matrix_io/eigen::read_dense_float64_bin | matrix_io/eigen::write_dens
 
 TEST_CASE("matrix_io/eigen::read_dense_float64_csv | matrix_io/eigen::write_dense_float64_csv")
 {
-   Eigen::MatrixXd expectedMatrix(3, 3);
-   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+   Eigen::MatrixXd expectedMatrix(3, 4);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    std::stringstream matrixStream;
    matrix_io::eigen::write_dense_float64_csv(matrixStream, expectedMatrix);
@@ -494,14 +492,16 @@ TEST_CASE("matrix_io/eigen::read_dense_float64_csv | matrix_io/eigen::write_dens
 
 TEST_CASE("matrix_io/eigen::read_sparse_float64_bin | matrix_io/eigen::write_sparse_float64_bin")
 {
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 4));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 10));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 11));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::stringstream matrixStream;
@@ -514,14 +514,16 @@ TEST_CASE("matrix_io/eigen::read_sparse_float64_bin | matrix_io/eigen::write_spa
 
 TEST_CASE("matrix_io/eigen::read_sparse_float64_mtx | matrix_io/eigen::write_sparse_float64_mtx")
 {
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 4));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 10));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 11));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::stringstream matrixStream;
@@ -534,14 +536,16 @@ TEST_CASE("matrix_io/eigen::read_sparse_float64_mtx | matrix_io/eigen::write_spa
 
 TEST_CASE("matrix_io/eigen::read_sparse_binary_bin | matrix_io/eigen::write_sparse_binary_bin")
 {
-   Eigen::SparseMatrix<double> expectedMatrix(3, 3);
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 0));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 0));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 1));
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
-   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 0));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 0));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::stringstream matrixStream;
@@ -551,5 +555,3 @@ TEST_CASE("matrix_io/eigen::read_sparse_binary_bin | matrix_io/eigen::write_spar
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
 }
-
-*/
