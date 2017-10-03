@@ -65,7 +65,7 @@ struct Result {
     std::ostream &info(std::ostream &os, std::string indent, const Data &data);
 
     //-- for binary classification
-    int total_pos;
+    int total_pos = -1;
     bool classify = false;
     double threshold;
     void update_auc();

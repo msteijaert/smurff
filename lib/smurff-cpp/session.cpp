@@ -477,6 +477,7 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
+    if (config.classify) pred.setThreshold(config.threshold);
     pred.set(sparse_to_eigen(config.test));
 
     std::vector<MatrixConfig> row_matrices, col_matrices;
@@ -504,7 +505,6 @@ void Session::setFromConfig(const Config &c)
             }
     */
 
-    if (config.classify) pred.setThreshold(config.threshold);
 
     // center mode
     data().setCenterMode(config.center_mode);
