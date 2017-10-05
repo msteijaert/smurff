@@ -311,7 +311,8 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../PVec.h"
                         "../ScarceBinaryMatrixData.h"
                         "../ScarceMatrixData.h"
-                        "../SparseMatrixData.h")
+                        "../SparseMatrixData.h"
+			"../MatrixDataFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -351,7 +352,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../PVec.cpp"
                         "../ScarceBinaryMatrixData.cpp"
                         "../ScarceMatrixData.cpp"
-                        "../SparseMatrixData.cpp")
+                        "../SparseMatrixData.cpp"
+			"../MatrixDataFactory.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT
