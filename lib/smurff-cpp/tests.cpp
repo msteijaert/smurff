@@ -21,7 +21,6 @@
 #include "MatrixConfig.h"
 #include "matrix_io.h"
 #include "tensor_io.h"
-#include "gen_random.h"
 
 #include "ILatentPrior.h"
 #include "MacauPrior.hpp"
@@ -1503,99 +1502,6 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    REQUIRE(actualMatrix.isApprox(expectedMatrix));
-}
-
-TEST_CASE("gen_random/extract(SparseMatrixD)", "[!hide]")
-{
-   const double s = 0.3;
-   const int seed = 1234;
-
-   SparseMatrixD inMatrix1(3, 3);
-   std::vector<Eigen::Triplet<double> > inMatrix1Triplets;
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(0, 0, 1));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(0, 1, 2));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(1, 0, 4));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(1, 1, 5));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(1, 2, 6));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   inMatrix1Triplets.push_back(Eigen::Triplet<double>(2, 2, 9));
-   inMatrix1.setFromTriplets(inMatrix1Triplets.begin(), inMatrix1Triplets.end());
-
-   // std::cout << inMatrix1 << std::endl << std::endl;
-
-   SparseMatrixD outMatrix1 = extract(inMatrix1, s, seed);
-
-   // std::cout << inMatrix1 << std::endl << std::endl;
-   // std::cout << outMatrix1 << std::endl << std::endl;
-}
-
-TEST_CASE("gen_random/extract(MatrixConfig, remove = true). Sparse matrix input", "[!hide]")
-{
-   const double s = 0.3;
-   const bool remove = true;
-   const int seed = 1234;
-
-   std::vector<double> actualInMatrixConfigValues = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-   MatrixConfig actualInMatrix2Config(3, 3, actualInMatrixConfigValues, NoiseConfig());
-   MatrixConfig actualOutMatrix2Config = extract(actualInMatrix2Config, s, remove, seed);
-
-   SparseMatrixD actualInMatrix = sparse_to_eigen(actualInMatrix2Config);
-   SparseMatrixD actualOutMatrix = sparse_to_eigen(actualOutMatrix2Config);
-
-   SparseMatrixD expectedInMatrix(3, 3);
-   std::vector<Eigen::Triplet<double> > expectedInMatrixTriplets;
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(1, 0, 4));
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(1, 1, 5));
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(1, 2, 6));
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 7));
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 8));
-   expectedInMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 9));
-   expectedInMatrix.setFromTriplets(expectedInMatrixTriplets.begin(), expectedInMatrixTriplets.end());
-
-   SparseMatrixD expectedOutMatrix(3, 3);
-   std::vector<Eigen::Triplet<double> > expectedOutMatrixTriplets;
-   expectedOutMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedOutMatrix.setFromTriplets(expectedOutMatrixTriplets.begin(), expectedOutMatrixTriplets.end());
-
-   // std::cout << expectedInMatrix << std::endl << std::endl;
-   // std::cout << expectedOutMatrix << std::endl << std::endl;
-
-   // std::cout << actualInMatrix << std::endl << std::endl;
-   // std::cout << actualOutMatrix << std::endl << std::endl;
-
-   REQUIRE(actualInMatrix.isApprox(expectedInMatrix));
-   REQUIRE(actualOutMatrix.isApprox(expectedOutMatrix));
-}
-
-TEST_CASE("gen_random/extract(MatrixConfig, remove = false). Dense matrix input", "[!hide]")
-{
-   const double s = 0.3;
-   const bool remove = false;
-   const int seed = 1234;
-
-   std::vector<double> actualInMatrixConfigValues = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-   MatrixConfig actualInMatrixConfig(3, 3, actualInMatrixConfigValues, NoiseConfig());
-   MatrixConfig actualOutMatrixConfig = extract(actualInMatrixConfig, s, remove, seed);
-
-   SparseMatrixD actualInMatrix = sparse_to_eigen(actualInMatrixConfig);
-   SparseMatrixD actualOutMatrix = sparse_to_eigen(actualOutMatrixConfig);
-
-   Eigen::MatrixXd expectedInMatrix(3, 3);
-   expectedInMatrix(0, 0) = 1; expectedInMatrix(0, 1) = 2; expectedInMatrix(0, 2) = 3;
-   expectedInMatrix(1, 0) = 4; expectedInMatrix(1, 1) = 5; expectedInMatrix(1, 2) = 6;
-   expectedInMatrix(2, 0) = 7; expectedInMatrix(2, 1) = 8; expectedInMatrix(2, 2) = 9;
-
-   SparseMatrixD expectedOutMatrix(3, 3);
-   std::vector<Eigen::Triplet<double> > expectedOutMatrixTriplets;
-   expectedOutMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
-   expectedOutMatrix.setFromTriplets(expectedOutMatrixTriplets.begin(), expectedOutMatrixTriplets.end());
-
-   REQUIRE(actualInMatrix.isApprox(expectedInMatrix));
-   REQUIRE(actualOutMatrix.isApprox(expectedOutMatrix));
 }
 
 TEST_CASE("matrix_io/writeToCSVfile | matrix_io/readFromCSVfile")
