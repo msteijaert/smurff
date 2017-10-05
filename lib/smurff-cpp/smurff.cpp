@@ -27,8 +27,8 @@ using namespace std;
 using namespace smurff;
 
 int main(int argc, char** argv) {
-    CmdSession macau;
-    macau.setFromArgs(argc, argv);
-    macau.run();
+    CmdSession session;
+    session.setFromArgs(argc, argv);
+    session.run();
     return 0;
 }
