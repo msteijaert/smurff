@@ -72,7 +72,7 @@ void Result::save(std::string prefix) {
                 << to_string( t.row  )
          << "," << to_string( t.col  )
          << "," << to_string( t.val  )
-         << "," << to_string( t.pred )
+         << "," << to_string( t.pred_1sample )
          << "," << to_string( t.pred_avg )
          << "," << to_string( t.var )
          << "," << to_string( t.stds )
@@ -94,11 +94,11 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
         #pragma omp parallel for schedule(guided) reduction(+:se)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            t.pred = model.predict({t.row, t.col}, data);
-            se += square(t.val - t.pred);
+            t.pred_1sample = model.predict({t.row, t.col}, data);
+            se += square(t.val - t.pred_1sample);
         }
         burnin_iter++;
-        rmse = sqrt( se / N );
+        rmse_1sample = sqrt( se / N );
     } else {
         double se = 0.0, se_avg = 0.0;
 #pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
@@ -112,11 +112,11 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
             const double inorm = 1.0 / sample_iter;
             t.stds = sqrt(t.var * inorm);
             t.pred_avg = pred_avg;
-            t.pred = pred;
+            t.pred_1sample = pred;
             se_avg += square(t.val - pred_avg);
         }
         sample_iter++;
-        rmse = sqrt( se / N );
+        rmse_1sample = sqrt( se / N );
         rmse_avg = sqrt( se_avg / N );
     }
 
@@ -230,7 +230,10 @@ std::pair<double,double> eval_rmse_tensor(
 void Result::update_auc()
 {
     if (!classify) return;
-    auc = calc_auc(predictions, threshold);
+    auc_1sample = calc_auc(predictions, threshold, 
+            [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
+    auc_avg   = calc_auc(predictions, threshold,
+            [](const Item &a, const Item &b) { return a.pred_avg < b.pred_avg;});
 }
 
 std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
