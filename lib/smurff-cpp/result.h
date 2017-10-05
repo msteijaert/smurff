@@ -78,7 +78,6 @@ struct Result {
     int total_pos = -1;
     bool classify = false;
     double threshold;
-    void update_auc();
     void setThreshold(double t) { threshold = t; classify = true; }
 };
 
