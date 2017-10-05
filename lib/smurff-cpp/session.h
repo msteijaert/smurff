@@ -48,7 +48,7 @@ class Session : public BaseSession {
       int         iter = -1;
 
       // c'tor
-      Session() { name = "MacauSession"; }
+      Session() { name = "Session"; }
 
       //-- set params
       void setFromConfig(const Config &);
