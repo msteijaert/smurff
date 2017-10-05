@@ -49,7 +49,8 @@ public:
   int rows()     const {return M.nrow;}
 };
 
-struct sparse_vec_iterator {
+struct sparse_vec_iterator 
+{
    sparse_vec_iterator(int *rows, int *cols, int pos)
        : rows(rows), cols(cols), vals(0), fixed_val(1.0), pos(pos) {}
    sparse_vec_iterator(int *rows, int *cols, double *vals, uint64_t pos)
@@ -96,6 +97,8 @@ struct sparse_vec_iterator {
    }
 };
 
+// Conversion of sparse data to sparse eigen matrix - do we need it?
+
 template<typename Matrix>
 Eigen::SparseMatrix<double> sparse_to_eigen(Matrix &Y)
 {
@@ -106,11 +109,23 @@ Eigen::SparseMatrix<double> sparse_to_eigen(Matrix &Y)
     return out;
 }
 
+// Conversion of MatrixConfig to sparse eigen matrix
+
 template<>
 Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig);
 
 template<>
 Eigen::SparseMatrix<double> sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig);
+
+// Conversion of TensorConfig to sparse eigen matrix
+
+template<>
+Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig);
+
+template<>
+Eigen::SparseMatrix<double> sparse_to_eigen<smurff::TensorConfig>(smurff::TensorConfig& tensorConfig);
+
+// Conversion of dense data to dense eigen matrix - do we need it? (sparse eigen matrix can be converted to dense eigen matrix with = operator)
 
 template<typename Matrix>
 Eigen::MatrixXd dense_to_eigen(Matrix &Y)
@@ -119,9 +134,15 @@ Eigen::MatrixXd dense_to_eigen(Matrix &Y)
   return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), Y.getNRow(), Y.getNCol());
 }
 
+// Conversion of libfastsparse matrices to dense eigen matrix - do we need it?
+
 Eigen::MatrixXd sparse_to_dense(const SparseBinaryMatrix& in);
 
 Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
+
+// Conversion of tensor config to matrix config
+
+smurff::MatrixConfig tensor_to_matrix(const smurff::TensorConfig& tensorConfig);
 
 template <typename Matrix>
 inline bool is_binary(const Matrix &M)

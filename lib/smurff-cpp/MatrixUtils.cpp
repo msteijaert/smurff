@@ -29,6 +29,37 @@ Eigen::SparseMatrix<double> sparse_to_eigen<smurff::MatrixConfig>(smurff::Matrix
    return sparse_to_eigen<const smurff::MatrixConfig>(matrixConfig);
 }
 
+template<>
+Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig)
+{
+   if(tensorConfig.getNModes() != 2)
+      throw "Invalid number of dimentions. Tensor can not be converted to matrix.";
+
+   std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = tensorConfig.getColumnsPtr();
+   std::shared_ptr<std::vector<double> > valuesPtr = tensorConfig.getValuesPtr();
+
+   Eigen::SparseMatrix<double> out(tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
+
+   std::vector<Eigen::Triplet<double> > triplets;
+   for(std::uint64_t i = 0; i < tensorConfig.getNNZ(); i++)
+   {
+      double val = tensorConfig.isBinary() ? 1.0 : valuesPtr->operator[](i);
+      std::uint32_t row = columnsPtr->operator[](i);
+      std::uint32_t col = columnsPtr->operator[](i + tensorConfig.getNNZ());
+      triplets.push_back(Eigen::Triplet<double>(row, col, val));
+   }
+
+   out.setFromTriplets(triplets.begin(), triplets.end());
+
+   return out;
+}
+
+template<>
+Eigen::SparseMatrix<double> sparse_to_eigen<smurff::TensorConfig>(smurff::TensorConfig& tensorConfig)
+{
+   return sparse_to_eigen<const smurff::TensorConfig>(tensorConfig);
+}
+
 Eigen::MatrixXd sparse_to_dense(const SparseBinaryMatrix& in)
 {
     Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
@@ -41,6 +72,16 @@ Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in)
     Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
     for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
     return out;
+}
+
+smurff::MatrixConfig tensor_to_matrix(const smurff::TensorConfig& tensorConfig)
+{
+   if(tensorConfig.getNModes() != 2)
+      throw "Invalid number of dimentions. Tensor can not be converted to matrix.";
+
+   return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1], 
+                               tensorConfig.getColumns(), tensorConfig.getValues(), 
+                               smurff::NoiseConfig());
 }
 
 std::ostream& smurff::operator << (std::ostream& os, const TensorConfig& tc)  
