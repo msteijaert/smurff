@@ -51,7 +51,7 @@ options = {
         "lambda-beta":    { "metavar": "NUM", "type": float,  "default": 10.0, "help":  "10.0  initial value of lambda beta"},
         "tol":            { "metavar": "NUM", "type": float,   "default": 1e-6, "help":  "1e-6  tolerance for CG"},
         #unsupported
-	 "direct":         { "default": False, "help":  "Use Cholesky decomposition i.o. CG Solver"},
+        "direct":         { "default": False, "action": "store_true", "help":  "Use Cholesky decomposition i.o. CG Solver"},
 }
 
 unsupported_options = [
@@ -85,7 +85,7 @@ for opt in unsupported_options:
         if (fixed_val and fixed_val == vars(args)[name]):
             warn("Using unsupported option %s, but with correct value %s" % ( name, fixed_val))
         else:
-            raise Exception("Unsupported option: %s" % ( name) )
+            warn("Unsupported option: %s" % ( name) )
 
 
 def read_matrix(fname):
@@ -171,4 +171,6 @@ if (args.save_prefix):
     pred_fname = args.save_prefix + "-predictions.csv"
     if(args.verbose):
         print("Saving predictions in " + pred_fname)
+
+    result.prediction.columns = ["row", "col", "y", "pred_avg", "std" ]
     result.prediction.to_csv(pred_fname)
