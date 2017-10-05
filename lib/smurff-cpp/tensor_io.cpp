@@ -4,11 +4,106 @@
 #include <algorithm>
 #include <numeric>
 
+#include "utils.h"
+
 using namespace smurff;
+
+#define EXTENSION_SDT ".sdt" //sparse double tensor (binary file)
+#define EXTENSION_SBT ".sbt" //sparse binary tensor (binary file)
+#define EXTENSION_TNS ".tns" //sparse tensor (txt file)
+#define EXTENSION_CSV ".csv" //dense tensor (txt file)
+#define EXTENSION_DDT ".ddt" //dense double tensor (binary file)
+
+tensor_io::TensorType ExtensionToTensorType(const std::string& fname)
+{
+   std::string extension = fname.substr(fname.find_last_of("."));
+   if (extension == EXTENSION_SDT)
+   {
+      return tensor_io::TensorType::sdt;
+   }
+   else if (extension == EXTENSION_SBT)
+   {
+      return tensor_io::TensorType::sbt;
+   }
+   else if (extension == EXTENSION_TNS)
+   {
+      return tensor_io::TensorType::tns;
+   }
+   else if (extension == EXTENSION_CSV)
+   {
+      return tensor_io::TensorType::csv;
+   }
+   else if (extension == EXTENSION_DDT)
+   {
+      return tensor_io::TensorType::ddt;
+   }
+   else
+   {
+      throw "Unknown file type: " + extension;
+   }
+   return tensor_io::TensorType::none;
+}
+
+std::string TensorTypeToExtension(tensor_io::TensorType tensorType)
+{
+   switch (tensorType)
+   {
+   case tensor_io::TensorType::sdt:
+      return EXTENSION_SDT;
+   case tensor_io::TensorType::sbt:
+      return EXTENSION_SBT;
+   case tensor_io::TensorType::tns:
+      return EXTENSION_TNS;
+   case tensor_io::TensorType::csv:
+       return EXTENSION_CSV;
+   case tensor_io::TensorType::ddt:
+      return EXTENSION_DDT;
+   case tensor_io::TensorType::none:
+      throw "Unknown matrix type";
+   default:
+      throw "Unknown matrix type";
+   }
+   return std::string();
+}
 
 TensorConfig tensor_io::read_tensor(const std::string& filename)
 {
-   throw "Not implemented yet";
+   TensorType tensorType = ExtensionToTensorType(filename);
+   
+   die_unless_file_exists(filename);
+
+   switch (tensorType)
+   {
+   case tensor_io::TensorType::sdt:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         return tensor_io::read_sparse_float64_bin(fileStream);
+      }
+   case tensor_io::TensorType::sbt:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         return tensor_io::read_sparse_binary_bin(fileStream);
+      }
+   case tensor_io::TensorType::tns:
+      {
+         std::ifstream fileStream(filename);
+         return tensor_io::read_sparse_float64_tns(fileStream);
+      }
+   case tensor_io::TensorType::csv:
+      {
+         std::ifstream fileStream(filename);
+         return tensor_io::read_dense_float64_csv(fileStream);
+      }
+   case tensor_io::TensorType::ddt:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         return tensor_io::read_dense_float64_bin(fileStream);
+      }
+   case tensor_io::TensorType::none:
+      throw "Unknown matrix type";
+   default:
+      throw "Unknown matrix type";
+   }
 }
 
 TensorConfig tensor_io::read_dense_float64_bin(std::istream& in)
@@ -26,7 +121,7 @@ TensorConfig tensor_io::read_dense_float64_bin(std::istream& in)
    return TensorConfig(std::move(dims), std::move(values), NoiseConfig());
 }
 
-TensorConfig tensor_io::read_dense_float64_txt(std::istream& in)
+TensorConfig tensor_io::read_dense_float64_csv(std::istream& in)
 {
    throw "Not implemented yet";
 }
@@ -58,7 +153,7 @@ TensorConfig tensor_io::read_sparse_float64_bin(std::istream& in)
    return TensorConfig(std::move(dims), std::move(columns), std::move(values), NoiseConfig());
 }
 
-TensorConfig tensor_io::read_sparse_float64_txt(std::istream& in)
+TensorConfig tensor_io::read_sparse_float64_tns(std::istream& in)
 {
    throw "Not implemented yet";
 }
@@ -87,14 +182,48 @@ TensorConfig tensor_io::read_sparse_binary_bin(std::istream& in)
    return TensorConfig(std::move(dims), std::move(columns), NoiseConfig());
 }
 
-TensorConfig tensor_io::read_sparse_binary_txt(std::istream& in)
-{
-   throw "Not implemented yet";
-}
+// ======================================================================================================
 
 void tensor_io::write_tensor(const std::string& filename, const TensorConfig& tensorConfig)
 {
-   throw "Not implemented yet";
+   TensorType tensorType = ExtensionToTensorType(filename);
+   switch (tensorType)
+   {
+   case tensor_io::TensorType::sdt:
+      {
+         std::ofstream fileStream(filename, std::ios_base::binary);
+         tensor_io::write_sparse_float64_bin(fileStream, tensorConfig);
+      }
+      break;
+   case tensor_io::TensorType::sbt:
+      {
+         std::ofstream fileStream(filename, std::ios_base::binary);
+         tensor_io::write_sparse_binary_bin(fileStream, tensorConfig);
+      }
+      break;
+   case tensor_io::TensorType::tns:
+      {
+         std::ofstream fileStream(filename);
+         tensor_io::write_sparse_float64_tns(fileStream, tensorConfig);
+      }
+      break;
+   case tensor_io::TensorType::csv:
+      {
+         std::ofstream fileStream(filename);
+         tensor_io::write_dense_float64_csv(fileStream, tensorConfig);
+      }
+      break;
+   case tensor_io::TensorType::ddt:
+      {
+         std::ofstream fileStream(filename, std::ios_base::binary);
+         tensor_io::write_dense_float64_bin(fileStream, tensorConfig);
+      }
+      break;
+   case tensor_io::TensorType::none:
+      throw "Unknown matrix type";
+   default:
+      throw "Unknown matrix type";
+   }
 }
 
 void tensor_io::write_dense_float64_bin(std::ostream& out, const TensorConfig& tensorConfig)
@@ -108,7 +237,7 @@ void tensor_io::write_dense_float64_bin(std::ostream& out, const TensorConfig& t
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void tensor_io::write_dense_float64_txt(std::ostream& out, const TensorConfig& tensorConfig)
+void tensor_io::write_dense_float64_csv(std::ostream& out, const TensorConfig& tensorConfig)
 {
    throw "Not implemented yet";
 }
@@ -130,7 +259,7 @@ void tensor_io::write_sparse_float64_bin(std::ostream& out, const TensorConfig& 
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void tensor_io::write_sparse_float64_txt(std::ostream& out, const TensorConfig& tensorConfig)
+void tensor_io::write_sparse_float64_tns(std::ostream& out, const TensorConfig& tensorConfig)
 {
    throw "Not implemented yet";
 }
@@ -148,10 +277,4 @@ void tensor_io::write_sparse_binary_bin(std::ostream& out, const TensorConfig& t
    out.write(reinterpret_cast<const char*>(dims.data()), dims.size() * sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(columns.data()), columns.size() * sizeof(std::uint32_t));
-}
-
-
-void tensor_io::write_sparse_binary_txt(std::ostream& out, const TensorConfig& tensorConfig)
-{
-   throw "Not implemented yet";
 }

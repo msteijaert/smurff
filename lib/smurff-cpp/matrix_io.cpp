@@ -8,12 +8,12 @@
 
 using namespace smurff;
 
-#define EXTENSION_SDM ".sdm"
-#define EXTENSION_SBM ".sbm"
-#define EXTENSION_MTX ".mtx"
-#define EXTENSION_MM  ".mm"
-#define EXTENSION_CSV ".csv"
-#define EXTENSION_DDM ".ddm"
+#define EXTENSION_SDM ".sdm" //sparse double matrix (binary file)
+#define EXTENSION_SBM ".sbm" //sparse binary matrix (binary file)
+#define EXTENSION_MTX ".mtx" //sparse matrix (txt file)
+#define EXTENSION_MM  ".mm"  //sparse matrix (txt file)
+#define EXTENSION_CSV ".csv" //dense matrix (txt file)
+#define EXTENSION_DDM ".ddm" //dense double matrix (binary file)
 
 matrix_io::MatrixType ExtensionToMatrixType(const std::string& fname)
 {
