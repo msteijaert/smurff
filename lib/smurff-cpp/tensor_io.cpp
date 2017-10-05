@@ -123,7 +123,62 @@ TensorConfig tensor_io::read_dense_float64_bin(std::istream& in)
 
 TensorConfig tensor_io::read_dense_float64_csv(std::istream& in)
 {
-   throw "Not implemented yet";
+   std::stringstream ss;
+   std::string line;
+   std::string cell;
+
+   // nmodes
+
+   getline(in, line); 
+   ss.clear();
+   ss << line;
+   std::uint64_t nmodes;
+   ss >> nmodes;
+
+   //dimentions
+
+   getline(in, line);
+   std::stringstream lineStream0(line);
+   
+   std::vector<uint64_t> dims(nmodes);
+
+   std::uint64_t dim = 0;
+
+   while (std::getline(lineStream0, cell, ',') && dim < nmodes)
+   {
+      ss.clear();
+      ss << cell;
+      std::uint64_t mode;
+      ss >> mode;
+
+      dims[dim++] = mode;
+   }
+
+   assert(dim == nmodes);
+
+   //values
+
+   getline(in, line);
+   std::stringstream lineStream1(line);
+
+   std::uint64_t nnz = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<std::uint64_t>());
+   std::vector<double> values(nnz);
+
+   std::uint64_t nval = 0;
+
+   while (std::getline(lineStream1, cell, ',') && nval < nnz)
+   {
+      ss.clear();
+      ss << cell;
+      std::uint64_t value;
+      ss >> value;
+
+      values[nval++] = value;
+   }
+
+   assert(nval == nnz);
+
+   return TensorConfig(std::move(dims), std::move(values), NoiseConfig());
 }
 
 TensorConfig tensor_io::read_sparse_float64_bin(std::istream& in)
@@ -155,7 +210,92 @@ TensorConfig tensor_io::read_sparse_float64_bin(std::istream& in)
 
 TensorConfig tensor_io::read_sparse_float64_tns(std::istream& in)
 {
-   throw "Not implemented yet";
+   std::stringstream ss;
+   std::string line;
+   std::string cell;
+
+   // nmodes
+
+   getline(in, line); 
+   ss.clear();
+   ss << line;
+   std::uint64_t nmodes;
+   ss >> nmodes;
+
+   //dimentions
+
+   getline(in, line);
+   std::stringstream lineStream0(line);
+   
+   std::vector<uint64_t> dims(nmodes);
+
+   std::uint64_t dim = 0;
+
+   while (std::getline(lineStream0, cell, '\t') && dim < nmodes)
+   {
+      ss.clear();
+      ss << cell;
+      std::uint64_t mode;
+      ss >> mode;
+
+      dims[dim++] = mode;
+   }
+
+   assert(dim == nmodes);
+
+   // nmodes
+
+   getline(in, line); 
+   ss.clear();
+   ss << line;
+   std::uint64_t nnz;
+   ss >> nnz;
+
+   //columns
+
+   getline(in, line);
+   std::stringstream lineStream1(line);
+
+   std::vector<std::uint32_t> columns(nmodes * nnz);
+
+   std::uint64_t col = 0;
+
+   while (std::getline(lineStream1, cell, '\t') && col < (nmodes * nnz))
+   {
+      ss.clear();
+      ss << cell;
+      std::uint64_t column;
+      ss >> column;
+
+      columns[col++] = column;
+   }
+
+   assert(col == (nmodes * nnz));
+   
+   std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col--; });
+
+   //values
+
+   getline(in, line);
+   std::stringstream lineStream2(line);
+
+   std::vector<double> values(nnz);
+
+   std::uint64_t nval = 0;
+
+   while (std::getline(lineStream2, cell, '\t') && nval < nnz)
+   {
+      ss.clear();
+      ss << cell;
+      std::uint64_t value;
+      ss >> value;
+
+      values[nval++] = value;
+   }
+
+   assert(nval == nnz);
+
+   return TensorConfig(std::move(dims), std::move(columns), std::move(values), NoiseConfig());
 }
 
 TensorConfig tensor_io::read_sparse_binary_bin(std::istream& in)
@@ -239,7 +379,35 @@ void tensor_io::write_dense_float64_bin(std::ostream& out, const TensorConfig& t
 
 void tensor_io::write_dense_float64_csv(std::ostream& out, const TensorConfig& tensorConfig)
 {
-   throw "Not implemented yet";
+   std::uint64_t nmodes = tensorConfig.getNModes();
+
+   out << nmodes << std::endl;
+
+   const std::vector<std::uint64_t>& dims = tensorConfig.getDims();
+
+   for(std::uint64_t i = 0; i < dims.size(); i++)
+   {
+      if(i == dims.size() - 1)
+         out << dims[i];
+      else
+         out << dims[i] << ",";
+   }
+
+   out << std::endl;
+
+   const std::vector<double>& values = tensorConfig.getValues();
+
+   assert(values.size() == tensorConfig.getNNZ());
+
+   for(std::uint64_t i = 0; i < values.size(); i++)
+   {
+      if(i == values.size() - 1)
+         out << values[i];
+      else
+         out << values[i] << ",";
+   }
+
+   out << std::endl;
 }
 
 void tensor_io::write_sparse_float64_bin(std::ostream& out, const TensorConfig& tensorConfig)
@@ -261,7 +429,47 @@ void tensor_io::write_sparse_float64_bin(std::ostream& out, const TensorConfig& 
 
 void tensor_io::write_sparse_float64_tns(std::ostream& out, const TensorConfig& tensorConfig)
 {
-   throw "Not implemented yet";
+   std::uint64_t nmodes = tensorConfig.getNModes();
+   std::uint64_t nnz = tensorConfig.getNNZ();
+   const std::vector<std::uint64_t>& dims = tensorConfig.getDims();
+   std::vector<std::uint32_t> columns = tensorConfig.getColumns();
+   const std::vector<double>& values = tensorConfig.getValues();
+
+   std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col++; });
+
+   out << nmodes << std::endl;
+   
+   for(std::uint64_t i = 0; i < dims.size(); i++)
+   {
+      if(i == dims.size() - 1)
+         out << dims[i];
+      else
+         out << dims[i] << "\t";
+   }
+
+   out << std::endl;
+
+   out << nnz << std::endl;
+
+   for(std::uint64_t i = 0; i < columns.size(); i++)
+   {
+      if(i == columns.size() - 1)
+         out << columns[i];
+      else
+         out << columns[i] << "\t";
+   }
+
+   out << std::endl;
+
+   for(std::uint64_t i = 0; i < values.size(); i++)
+   {
+      if(i == values.size() - 1)
+         out << values[i];
+      else
+         out << values[i] << "\t";
+   }
+
+   out << std::endl;
 }
 
 void tensor_io::write_sparse_binary_bin(std::ostream& out, const TensorConfig& tensorConfig)
