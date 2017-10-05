@@ -51,6 +51,7 @@ bench_mvnormal:
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_MVNORMAL $(OUTPUT_OPTION)
 
 $(LIBSMURFF): $(LIBOBJS)
+	rm -f $(LIBSMURFF)
 	ar -rcs $(LIBSMURFF) $(LIBOBJS)
 
 %.o : $(ROOT)/%.cpp
