@@ -1,5 +1,7 @@
 #include "MatrixUtils.h"
 
+#include <unsupported/Eigen/SparseExtra>
+
 template<>
 Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
 {
@@ -39,4 +41,86 @@ Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in)
     Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
     for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
     return out;
+}
+
+std::ostream& smurff::operator << (std::ostream& os, const TensorConfig& tc)  
+{  
+   const std::vector<double>& values = tc.getValues();
+   const std::vector<std::uint32_t>& columns = tc.getColumns();
+
+   os << "columns: " << std::endl;
+   for(std::uint64_t i = 0; i < columns.size(); i++)
+      os << columns[i] << ", ";
+   os << std::endl;
+
+   os << "values: " << std::endl;
+   for(std::uint64_t i = 0; i < values.size(); i++)
+      os << values[i] << ", ";
+   os << std::endl;
+
+   if(tc.getNModes() == 2)
+   {
+      os << "dims: " << tc.getDims()[0] << " " << tc.getDims()[1] << std::endl; 
+
+      Eigen::SparseMatrix<double> X(tc.getDims()[0], tc.getDims()[1]);
+
+      std::vector<Eigen::Triplet<double> > triplets;
+      for(std::uint64_t i = 0; i < tc.getNNZ(); i++)
+         triplets.push_back(Eigen::Triplet<double>(columns[i], columns[i + tc.getNNZ()], values[i]));
+   
+      os << "NTriplets: " << triplets.size() << std::endl;
+   
+      X.setFromTriplets(triplets.begin(), triplets.end());
+   
+      os << X << std::endl;
+   }
+
+   return os;  
+} 
+
+std::ostream& smurff::operator << (std::ostream& os, const MatrixConfig& mc)  
+{  
+   const std::vector<std::uint32_t>& rows = mc.getRows();
+   const std::vector<std::uint32_t>& cols = mc.getCols();
+   const std::vector<double>& values = mc.getValues();
+   const std::vector<std::uint32_t>& columns = mc.getColumns();
+
+   if(rows.size() != cols.size() || rows.size() != values.size())
+      throw "Invalid sizes";
+
+   os << "rows: " << std::endl;
+   for(std::uint64_t i = 0; i < rows.size(); i++)
+      os << rows[i] << ", ";
+   os << std::endl;
+
+   os << "cols: " << std::endl;
+   for(std::uint64_t i = 0; i < cols.size(); i++)
+      os << cols[i] << ", ";
+   os << std::endl;
+
+   os << "columns: " << std::endl;
+   for(std::uint64_t i = 0; i < columns.size(); i++)
+      os << columns[i] << ", ";
+   os << std::endl;
+
+   os << "values: " << std::endl;
+   for(std::uint64_t i = 0; i < values.size(); i++)
+      os << values[i] << ", ";
+   os << std::endl;
+
+   os << "NRow: " << mc.getNRow() << " NCol: " << mc.getNCol() << std::endl;
+
+   Eigen::SparseMatrix<double> X(mc.getNRow(), mc.getNCol());
+
+   std::vector<Eigen::Triplet<double> > triplets;
+   for(std::uint64_t i = 0; i < mc.getNNZ(); i++)
+      triplets.push_back(Eigen::Triplet<double>(rows[i], cols[i], values[i]));
+
+   os << "NTriplets: " << triplets.size() << std::endl;
+
+   X.setFromTriplets(triplets.begin(), triplets.end());
+
+   os << X << std::endl;
+
+   return os;  
 }

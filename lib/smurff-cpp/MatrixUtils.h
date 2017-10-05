@@ -135,3 +135,9 @@ inline bool is_binary(const Matrix &M)
 
    return true;
 }
+
+namespace smurff
+{
+   std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
+   std::ostream& operator << (std::ostream& os, const TensorConfig& tc);
+}

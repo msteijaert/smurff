@@ -409,6 +409,7 @@ source_group ("Header Files" FILES ${HEADER_FILES})
 FILE (GLOB SOURCE_FILES "../tests.cpp"
                         "../TestsMatrixIO.cpp"
                         "../TestsTensorIO.cpp"
+                        "../TestsMatrixConfig.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
