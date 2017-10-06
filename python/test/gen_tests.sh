@@ -6,10 +6,8 @@ DATADIR=$PWD/07_matrices
 WORKDIR=$PWD/work
 ENVDIR=$PWD/conda_envs
 
-set -x
 test -d $DATADIR
 test -d $ENVDIR
-set +x
 
 mkdir -p $WORKDIR
 cd $WORKDIR
@@ -27,17 +25,16 @@ function run_cmd {
     ENV=$2
     CMD=$3
 
-    echo "env: $ENV"
-    echo "cmd: $CMD"
-    echo "dir: $DIR"
-    source activate $ENV
-
     mkdir $DIR
     cd $DIR
-    echo $CMD >cmd
-    set +e
-    $CMD >stdout 2>stderr
-    set -e
+    cat >cmd <<EOF
+#!/bin/sh
+cd $PWD
+source activate $ENV
+$CMD >stdout 2>stderr
+EOF
+
+    chmod +x cmd
     cd ..
 }
 
