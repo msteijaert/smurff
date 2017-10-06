@@ -7,6 +7,7 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
+#include "matrix_io.h"
 
 #include "ILatentPrior.h"
 
@@ -34,8 +35,16 @@ public:
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 
-   void save(std::string prefix, std::string suffix) override {}
-   void restore(std::string prefix, std::string suffix) override {}
+   void save(std::string prefix, std::string suffix) override 
+   {
+      throw "Not implemented";
+   }
+
+   void restore(std::string prefix, std::string suffix) override
+   {
+      throw "Not implemented";
+   }
+
    void sample_latents() override;
    void sample_latent(int n) override;
 

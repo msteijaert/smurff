@@ -26,72 +26,47 @@ namespace smurff
       std::shared_ptr<std::vector<double> > m_values;
 
    protected:
-      TensorConfig( bool isDense
-                  , bool isBinary
-                  , std::uint64_t nmodes
-                  , std::uint64_t nnz
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(bool isDense, bool isBinary, 
+                   std::uint64_t nmodes, std::uint64_t nnz, 
+                   const NoiseConfig& noiseConfig);
 
    //
    // Dense double tensor constructors
    //
    public:
-      TensorConfig( const std::vector<std::uint64_t>& dims
-                  , const std::vector<double> values
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<double> values, 
+                   const NoiseConfig& noiseConfig);
 
-      TensorConfig( std::vector<std::uint64_t>&& dims
-                  , std::vector<double>&& values
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&& values, 
+                   const NoiseConfig& noiseConfig);
 
-      TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
-                  , std::shared_ptr<std::vector<double> > values
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<double> > values, 
+                   const NoiseConfig& noiseConfig);
 
    //
    // Sparse double tensor constructors
    //
    public:
-      TensorConfig( const std::vector<std::uint64_t>& dims
-                  , const std::vector<std::uint32_t>& columns
-                  , const std::vector<double>& values
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const std::vector<double>& values, 
+                   const NoiseConfig& noiseConfig);
 
-      TensorConfig( std::vector<std::uint64_t>&& dims
-                  , std::vector<std::uint32_t>&& columns
-                  , std::vector<double>&& values
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, std::vector<double>&& values, 
+                   const NoiseConfig& noiseConfig);
 
-      TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
-                  , std::shared_ptr<std::vector<std::uint32_t> > columns
-                  , std::shared_ptr<std::vector<double> > values
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values, 
+                   const NoiseConfig& noiseConfig);
 
    //
    // Sparse binary tensor constructors
    //
    public:
-      TensorConfig( const std::vector<std::uint64_t>& dims
-                  , const std::vector<std::uint32_t>& columns
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const NoiseConfig& noiseConfig);
 
-      TensorConfig( std::vector<std::uint64_t>&& dims
-                  , std::vector<std::uint32_t>&& columns
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, 
+                   const NoiseConfig& noiseConfig);
 
-      TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
-                  , std::shared_ptr<std::vector<std::uint32_t> > columns
-                  , const NoiseConfig& noiseConfig
-                  );
+      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, 
+                   const NoiseConfig& noiseConfig);
 
    public:
       virtual ~TensorConfig();

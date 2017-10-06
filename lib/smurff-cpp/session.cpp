@@ -27,21 +27,12 @@
 #include "gen_random.h"
 #include "Data.h"
 
-#include "AdaptiveGaussianNoise.h"
-#include "FixedGaussianNoise.h"
-#include "ProbitNoise.h"
-#include "Noiseless.h"
-#include "UnusedNoise.h"
-
 #include "MacauOnePrior.hpp"
 #include "MacauPrior.hpp"
 #include "NormalPrior.h"
 #include "SpikeAndSlabPrior.h"
 
-#include "SparseMatrixData.h"
-#include "ScarceBinaryMatrixData.h"
-#include "DenseMatrixData.h"
-#include "MatricesData.h"
+#include "MatrixDataFactory.h"
 
 using namespace std;
 using namespace Eigen;
@@ -400,75 +391,6 @@ void Config::restore(std::string fname) {
     threshold = reader.GetReal("", "threshold",  .0);
 };
 
-void setNoiseModel(const NoiseConfig &config, Data* data)
-{
-    if (config.name == "fixed")
-    {
-        data->setNoiseModel(new FixedGaussianNoise(config.precision));
-    }
-    else if (config.name == "adaptive")
-    {
-        data->setNoiseModel(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
-    }
-    else if (config.name == "probit")
-    {
-        data->setNoiseModel(new ProbitNoise());
-    }
-    else if (config.name == "noiseless")
-    {
-        data->setNoiseModel(new Noiseless());
-    }
-    else
-    {
-        die("Unknown noise model; " + config.name);
-    }
-}
-
-std::unique_ptr<MatrixData> toData(const MatrixConfig &config, bool scarce)
-{
-    std::unique_ptr<MatrixData> local_data_ptr;
-
-    if (!config.isDense()) {
-        SparseMatrixD Ytrain = sparse_to_eigen(config);
-        if (!scarce) {
-            local_data_ptr = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
-        } else if (is_binary(Ytrain)) {
-            local_data_ptr = std::unique_ptr<MatrixData>(new ScarceBinaryMatrixData(Ytrain));
-        } else {
-            local_data_ptr = std::unique_ptr<MatrixData>(new ScarceMatrixData(Ytrain));
-        }
-    } else {
-        Eigen::MatrixXd Ytrain = dense_to_eigen(config);
-        local_data_ptr = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
-    }
-
-    setNoiseModel(config.getNoiseConfig(), local_data_ptr.get());
-
-    return local_data_ptr;
-}
-
-std::unique_ptr<MatrixData> toData(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features,
-     const std::vector<MatrixConfig> &col_features)
-{
-    if (row_features.empty() && col_features.empty()) {
-        return toData(train, true);
-    }
-
-    // multiple matrices
-    MatricesData* local_data_ptr = new MatricesData();
-    local_data_ptr->setNoiseModel(new UnusedNoise());
-    local_data_ptr->add(PVec({0,0}),toData(train, true /*scarce*/));
-    for(size_t i=0; i<row_features.size(); ++i) {
-        local_data_ptr->add(PVec({0, static_cast<int>(i+1)}), toData(row_features[i], false));
-    }
-    for(size_t i=0; i<col_features.size(); ++i) {
-        local_data_ptr->add(PVec({static_cast<int>(i+1), 0}), toData(col_features[i], false));
-    }
-
-    return std::unique_ptr<MatrixData>(local_data_ptr);
-}
-
-
 void Session::setFromConfig(const Config &c)
 {
     c.validate(true);
@@ -480,20 +402,23 @@ void Session::setFromConfig(const Config &c)
     if (config.classify) pred.setThreshold(config.threshold);
     pred.set(sparse_to_eigen(config.test));
 
-    std::vector<MatrixConfig> row_matrices, col_matrices;
-    std::vector<MatrixConfig> row_sideinfo, col_sideinfo;
-    if (config.row_prior == "macau" || config.row_prior == "macauone") {
-        row_sideinfo = config.row_features;
-    } else {
-        row_matrices = config.row_features;
-    }
+    std::vector<MatrixConfig> row_matrices;
+    std::vector<MatrixConfig> col_matrices;
 
-    if (config.col_prior == "macau" || config.col_prior == "macauone") {
-        col_sideinfo = config.col_features;
-    } else {
-        col_matrices = config.col_features;
-    }
-    data_ptr = toData(config.train, row_matrices, col_matrices);
+    std::vector<MatrixConfig> row_sideinfo;
+    std::vector<MatrixConfig> col_sideinfo;
+
+    if (config.row_prior == "macau" || config.row_prior == "macauone") 
+      row_sideinfo = config.row_features;
+    else 
+      row_matrices = config.row_features;
+
+    if (config.col_prior == "macau" || config.col_prior == "macauone") 
+      col_sideinfo = config.col_features;
+    else 
+      col_matrices = config.col_features;
+
+    data_ptr = smurff::matrix_config_to_matrix(config.train, row_matrices, col_matrices);
 
     // check if data is ScarceBinary
     /*
@@ -513,7 +438,6 @@ void Session::setFromConfig(const Config &c)
     add_prior(*this, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);
     add_prior(*this, config.col_prior, col_sideinfo, config.lambda_beta, config.tol, config.direct);
 }
-
 
 void Session::printStatus(double elapsedi) {
     pred.update(model, data(), iter < config.burnin);
@@ -588,7 +512,8 @@ void Session::save(int isample) {
 void BaseSession::save(std::string prefix, std::string suffix) {
     model.save(prefix, suffix);
     pred.save(prefix);
-    for(auto &p : priors) p->save(prefix, suffix);
+    for(auto &p : priors) 
+      p->save(prefix, suffix);
 }
 
 void BaseSession::restore(std::string prefix, std::string suffix) {

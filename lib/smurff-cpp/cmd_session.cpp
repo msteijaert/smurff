@@ -24,6 +24,7 @@
 #include "linop.h"
 #include "gen_random.h"
 #include "Data.h"
+#include "matrix_io.h"
 
 #include "ILatentPrior.h"
 #include "MacauOnePrior.hpp"
@@ -32,6 +33,8 @@ using namespace std;
 using namespace Eigen;
 
 namespace smurff {
+
+using namespace matrix_io;
 
 enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
@@ -83,12 +86,12 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
         case CENTER:          c.center_mode        = optarg; break;
 
 
-        case FNAME_TRAIN:     c.train              = read_sparse(optarg); break;
+        case FNAME_TRAIN:     c.train              = read_matrix(optarg); break;
         case LAMBDA_BETA:     c.lambda_beta        = strtod(optarg, NULL); break;
         case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
         case TOL:             c.tol                = atof(optarg); break;
         case DIRECT:          c.direct             = true; break;
-        case FNAME_TEST:      c.test               = read_sparse(optarg); break;
+        case FNAME_TEST:      c.test               = read_matrix(optarg); break;
         case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
 
