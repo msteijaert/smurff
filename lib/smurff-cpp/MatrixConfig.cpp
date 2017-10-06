@@ -2,6 +2,10 @@
 
 using namespace smurff;
 
+//
+// Dense double matrix constructos
+//
+
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
                           , const std::vector<double>& values
@@ -49,6 +53,10 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
       }
    }
 }
+
+//
+// Sparse double matrix constructors
+//
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
@@ -131,6 +139,10 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    }
 }
 
+//
+// Sparse binary matrix constructors
+//
+
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
                           , const std::vector<std::uint32_t>& rows
@@ -209,6 +221,9 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    }
 }
 
+//
+// Constructors for constructing matrix as a tensor
+//
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , std::uint64_t ncol
@@ -250,10 +265,15 @@ MatrixConfig::MatrixConfig()
    m_values->clear();
 }
 
+//
+// other methods
+//
+
 std::uint64_t MatrixConfig::getNRow() const
 {
    return m_dims->operator[](0);
 }
+
 std::uint64_t MatrixConfig::getNCol() const
 {
    return m_dims->operator[](1);
