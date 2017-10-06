@@ -60,15 +60,6 @@ macro(configure_openblas)
  
 endmacro(configure_openblas)
 
-macro(configure_libfastsparse)
-  message ("Dependency check for libfastsparse...")
-
-  #SUBMODULE INSTALLATION
-  set(LIBFASTSPARSE_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../../libfastsparse)
-  message(STATUS LIBFASTSPARSE: ${LIBFASTSPARSE_INCLUDE_DIR})
-   
-endmacro(configure_libfastsparse)
-
 macro(configure_eigen)
   message ("Dependency check for eigen...")
 

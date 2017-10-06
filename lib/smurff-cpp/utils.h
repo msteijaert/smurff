@@ -12,8 +12,6 @@
 #include <memory>
 #include <array>
 
-#include <csr.h>
-#include <dsparse.h>
 #include "omp_util.h"
 
 template<typename T>

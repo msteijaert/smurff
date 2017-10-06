@@ -2,9 +2,7 @@
 
 #include <Eigen/Dense>
 #include <math.h>
-extern "C" {
-  #include <csr.h>
-}
+
 #include <iostream>
 
 #include <stdexcept>

@@ -210,7 +210,6 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/scripts
 include(scripts/DependenciesConfig.cmake)
 configure_pthreads()
 configure_mpi()
-configure_libfastsparse()
 configure_eigen()
 
 set(ALGEBRA_LIB_FOUND OFF)
@@ -312,7 +311,9 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../ScarceBinaryMatrixData.h"
                         "../ScarceMatrixData.h"
                         "../SparseMatrixData.h"
-			"../MatrixDataFactory.h")
+			"../MatrixDataFactory.h"
+			"../SparseFeat.h"
+			"../SparseDoubleFeat.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -353,7 +354,9 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../ScarceBinaryMatrixData.cpp"
                         "../ScarceMatrixData.cpp"
                         "../SparseMatrixData.cpp"
-			"../MatrixDataFactory.cpp")
+			"../MatrixDataFactory.cpp"
+			"../SparseFeat.cpp"
+			"../SparseDoubleFeat.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT
@@ -363,7 +366,6 @@ set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 #SETUP INCLUDES
 include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 ############## setup smurff ##############
 
@@ -395,7 +397,6 @@ target_link_libraries (${PROJECT} smurff-cpp
 #SETUP INCLUDES
 include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 ############## setup tests ##############
 
@@ -429,7 +430,6 @@ target_link_libraries (${PROJECT} smurff-cpp
 #SETUP INCLUDES
 include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 ############## setup mpi_smurff ##############
 
@@ -463,7 +463,6 @@ target_link_libraries (${PROJECT} smurff-cpp
 #SETUP INCLUDES
 include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 endif()
 
@@ -501,7 +500,6 @@ target_link_libraries (${PROJECT} ${ALGEBRA_LIBS}
 #SETUP INCLUDES
 include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 ############## setup bench_wishart ##############
 
@@ -538,7 +536,6 @@ target_link_libraries (${PROJECT} ${ALGEBRA_LIBS}
 #SETUP INCLUDES
 include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 
 ############## setup bench_mvnormal ##############
 
@@ -574,5 +571,4 @@ target_link_libraries (${PROJECT} ${ALGEBRA_LIBS}
 #SETUP INCLUDES
 include_directories(../)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${LIBFASTSPARSE_INCLUDE_DIR})
 

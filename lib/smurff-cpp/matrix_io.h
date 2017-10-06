@@ -11,9 +11,6 @@
 #include <numeric>
 #include <memory>
 
-#include <dsparse.h>
-#include <csr.h>
-
 #include "config.h"
 #include "omp_util.h"
 

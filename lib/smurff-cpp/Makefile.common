@@ -16,10 +16,11 @@ OUTPUT_OPTION=-MMD -MP -o $@
 
 LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o session.o model.o result.o matrix_io.o tensor_io.o MatrixUtils.o PVec.o
 LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.o UnusedNoise.o
+LIBOBJS += SparseDoubleFeat.o SparseFeat.o
 LIBOBJS += GlobalPrior.o ILatentPrior.o NormalPrior.o SpikeAndSlabPrior.o MacauPrior.o
 LIBOBJS += ini.o INIReader.o
 LIBOBJS += counters.o
-LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o
+LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o MatrixDataFactory.o
 LIBOBJS += Data.o MatrixData.o MatricesData.o MatrixDataTempl.o ScarceMatrixData.o ScarceBinaryMatrixData.o DenseMatrixData.o SparseMatrixData.o
 LIBSMURFF = libsmurff-cpp.a
 

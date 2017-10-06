@@ -1,53 +1,11 @@
 #pragma once
 
-#include <csr.h>
-#include<dsparse.h>
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
 #include "MatrixConfig.h"
 
-class SparseFeat {
-public:
-  BinaryCSR M;
-  BinaryCSR Mt;
-
-  SparseFeat() {}
-
-  SparseFeat(int nrow, int ncol, long nnz, int* rows, int* cols) {
-    new_bcsr(&M,  nnz, nrow, ncol, rows, cols);
-    new_bcsr(&Mt, nnz, ncol, nrow, cols, rows);
-  }
-  virtual ~SparseFeat() {
-    free_bcsr( & M);
-    free_bcsr( & Mt);
-  }
-  int nfeat()    const {return M.ncol;}
-  int cols()     const {return M.ncol;}
-  int nsamples() const {return M.nrow;}
-  int rows()     const {return M.nrow;}
-};
-
-class SparseDoubleFeat {
-public:
-  CSR M;
-  CSR Mt;
-
-  SparseDoubleFeat() {}
-
-  SparseDoubleFeat(int nrow, int ncol, long nnz, int* rows, int* cols, double* vals) {
-    new_csr(&M,  nnz, nrow, ncol, rows, cols, vals);
-    new_csr(&Mt, nnz, ncol, nrow, cols, rows, vals);
-  }
-  virtual ~SparseDoubleFeat() {
-    free_csr( & M);
-    free_csr( & Mt);
-  }
-  int nfeat()    const {return M.ncol;}
-  int cols()     const {return M.ncol;}
-  int nsamples() const {return M.nrow;}
-  int rows()     const {return M.nrow;}
-};
+#include "LibFastSparseDependency.h"
 
 struct sparse_vec_iterator 
 {
