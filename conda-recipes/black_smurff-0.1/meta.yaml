@@ -1,0 +1,19 @@
+package:
+  name: black_smurff
+  version: 0.1
+
+source:
+  git_url: https://github.com/ExaScience/smurff
+
+requirements:
+    build:
+        - python
+        - setuptools
+    run:
+        - scipy
+        - macau
+        - openblas
+
+about:
+  home: https://github.com/ExaScience/smurff
+  license:  MIT
