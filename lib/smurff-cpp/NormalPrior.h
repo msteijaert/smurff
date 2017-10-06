@@ -7,6 +7,7 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
+#include "matrix_io.h"
 
 #include "ILatentPrior.h"
 

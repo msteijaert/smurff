@@ -24,6 +24,7 @@
 #include "Data.h"
 #include "model.h"
 #include "mvnormal.h"
+#include "matrix_io.h"
 
 using namespace std;
 using namespace Eigen;
@@ -44,15 +45,17 @@ void Model::init(int nl, const PVec &d, std::string init_model) {
 
 void Model::save(std::string prefix, std::string suffix) {
     int i = 0;
-    for(auto &U : samples) {
-        write_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
+    for(auto &U : samples)
+    {
+      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 
 void Model::restore(std::string prefix, std::string suffix) {
     int i = 0;
-    for(auto &U : samples) {
-        read_dense(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
+    for(auto &U : samples)
+    {
+      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
     }
 }
 
