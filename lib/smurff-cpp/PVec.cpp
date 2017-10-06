@@ -1,6 +1,7 @@
 #include "PVec.h"
 
 #include <sstream>
+#include <stdexcept>
 
 using namespace smurff;
 
