@@ -1,2 +1,2 @@
 cd python/black_smurff
-python setup.py install     # Python command to install the script.
+python setup.py install --single-version-externally-managed --record=record.txt
