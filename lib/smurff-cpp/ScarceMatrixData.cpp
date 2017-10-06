@@ -98,8 +98,8 @@ double ScarceMatrixData::train_rmse(const SubModel& model) const {
 std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
 {
     MatrixDataTempl<Eigen::SparseMatrix<double> >::info(os, indent);
-    if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty cols\n";
-    if (num_empty[1]) os << indent << "  Warning: " << num_empty[1] << " empty rows\n";
+    if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty rows\n";
+    if (num_empty[1]) os << indent << "  Warning: " << num_empty[1] << " empty cols\n";
     return os;
 }
 

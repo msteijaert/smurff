@@ -72,7 +72,7 @@ void Session::init() {
 
     if (config.csv_status.size()) {
         auto f = fopen(config.csv_status.c_str(), "w");
-        fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc;U0;U1;elapsed\n");
+        fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
         fclose(f);
     }
     if (config.verbose) info(std::cout, "");
@@ -399,6 +399,7 @@ void Session::setFromConfig(const Config &c)
     //-- copy
     config = c;
 
+    if (config.classify) pred.setThreshold(config.threshold);
     pred.set(sparse_to_eigen(config.test));
 
     std::vector<MatrixConfig> row_matrices;
@@ -429,7 +430,6 @@ void Session::setFromConfig(const Config &c)
             }
     */
 
-    if (config.classify) pred.setThreshold(config.threshold);
 
     // center mode
     data().setCenterMode(config.center_mode);
@@ -467,8 +467,8 @@ void Session::printStatus(double elapsedi) {
     }
 
 
-    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, pred.rmse_avg, pred.rmse);
-    if (config.classify) printf(" AUC:%.4f", pred.auc);
+    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, pred.rmse_avg, pred.rmse_1sample);
+    if (config.classify) printf(" AUC:%.4f (1samp: %.4f)", pred.auc_avg, pred.auc_1sample);
     printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
 
 
@@ -493,10 +493,10 @@ void Session::printStatus(double elapsedi) {
         double train_rmse = data().train_rmse(model);
 
         auto f = fopen(config.csv_status.c_str(), "a");
-        fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
+        fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
                 phase.c_str(), i, from,
                 globalmean_rmse, colmean_rmse,
-                pred.rmse_avg, pred.rmse, train_rmse, pred.auc, snorm0, snorm1, elapsedi);
+                pred.rmse_avg, pred.rmse_1sample, train_rmse, pred.auc_1sample, pred.auc_avg, snorm0, snorm1, elapsedi);
         fclose(f);
     }
 }

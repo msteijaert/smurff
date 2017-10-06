@@ -72,7 +72,7 @@ void Result::save(std::string prefix) {
                 << to_string( t.row  )
          << "," << to_string( t.col  )
          << "," << to_string( t.val  )
-         << "," << to_string( t.pred )
+         << "," << to_string( t.pred_1sample )
          << "," << to_string( t.pred_avg )
          << "," << to_string( t.var )
          << "," << to_string( t.stds )
@@ -90,37 +90,46 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
     const unsigned N = predictions.size();
 
     if (burnin) {
-        double se = 0.0;
-        #pragma omp parallel for schedule(guided) reduction(+:se)
+        double se_1sample = 0.0;
+        #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
-            t.pred = model.predict({t.row, t.col}, data);
-            se += square(t.val - t.pred);
+            t.pred_1sample = model.predict({t.row, t.col}, data);
+            se_1sample += square(t.val - t.pred_1sample);
         }
         burnin_iter++;
-        rmse = sqrt( se / N );
+        rmse_1sample = sqrt( se_1sample / N );
+        if (classify) {
+            auc_1sample = calc_auc(predictions, threshold, 
+                [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
+        }
     } else {
-        double se = 0.0, se_avg = 0.0;
-#pragma omp parallel for schedule(guided) reduction(+:se, se_avg)
+        double se_1sample = 0.0, se_avg = 0.0;
+#pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
         for(unsigned k=0; k<predictions.size(); ++k) {
             auto &t = predictions[k];
             const double pred = model.predict({t.row, t.col}, data);
-            se += square(t.val - pred);
+            se_1sample += square(t.val - pred);
             double delta = pred - t.pred_avg;
             double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
             t.var += delta * (pred - pred_avg);
             const double inorm = 1.0 / sample_iter;
             t.stds = sqrt(t.var * inorm);
             t.pred_avg = pred_avg;
-            t.pred = pred;
+            t.pred_1sample = pred;
             se_avg += square(t.val - pred_avg);
         }
         sample_iter++;
-        rmse = sqrt( se / N );
+        rmse_1sample = sqrt( se_1sample / N );
         rmse_avg = sqrt( se_avg / N );
-    }
 
-    update_auc();
+        if (classify) {
+            auc_1sample = calc_auc(predictions, threshold, 
+                [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
+            auc_avg = calc_auc(predictions, threshold,
+                [](const Item &a, const Item &b) { return a.pred_avg < b.pred_avg;});
+        }
+    }
 }
 
 //macau ProbitNoise eval
@@ -226,12 +235,6 @@ std::pair<double,double> eval_rmse_tensor(
   return std::make_pair(rmse, rmse_avg);
 }
 */
-
-void Result::update_auc()
-{
-    if (!classify) return;
-    auc = calc_auc(predictions, threshold);
-}
 
 std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
 {
