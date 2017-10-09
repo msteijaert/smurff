@@ -54,6 +54,8 @@ function run_version {
     run_cmd bpmf            $ENV "$TIME $BASE --row-prior normal"
     run_cmd macau_sparsebin $ENV "$TIME $BASE --row-prior macau --row-features $DATADIR/side_sample1_c1_ecfp6_var005.sbm"
     run_cmd macau_dense     $ENV "$TIME $BASE --row-prior macau --row-features $DATADIR/side_sample1_c1_chem2vec.ddm"
+    run_cmd macauone_sparsebin $ENV "$TIME $BASE --row-prior macauone --row-features $DATADIR/side_sample1_c1_ecfp6_var005.sbm"
+    run_cmd macauone_dense     $ENV "$TIME $BASE --row-prior macauone --row-features $DATADIR/side_sample1_c1_chem2vec.ddm"
 
     cd ..
 }
