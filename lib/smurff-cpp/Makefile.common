@@ -25,7 +25,7 @@ LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o MatrixDataFactory.o
 LIBOBJS += Data.o MatrixData.o MatricesData.o MatrixDataTempl.o ScarceMatrixData.o ScarceBinaryMatrixData.o DenseMatrixData.o SparseMatrixData.o
 LIBSMURFF = libsmurff-cpp.a
 
-TESTOBJS = TestsMatrixIO.o TestsTensorIO.o TestsMatrixConfig.o TestsCentring.o
+TESTOBJS = TestsMatrixIO.o TestsTensorIO.o TestsMatrixConfig.o TestsCentring.o TestsPVec.o
 
 .PHONY: all clean smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
