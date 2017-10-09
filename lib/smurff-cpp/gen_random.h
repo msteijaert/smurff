@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "config.h"
+#include "Config.h"
 
 typedef Eigen::SparseMatrix<double> SparseMatrixD;
 

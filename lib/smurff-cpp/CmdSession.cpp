@@ -4,7 +4,7 @@
 #include <argp.h>
 #include <memory>
 
-#include "config.h"
+#include "Config.h"
 #include "NoiseConfig.h"
 #include "matrix_io.h"
 #include "ILatentPrior.h"

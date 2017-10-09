@@ -272,7 +272,7 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
-			"../config.h"
+			"../Config.h"
                         "../inv_norm_cdf.h"
                         "../truncnorm.h"
                         "../mvnormal.h"
@@ -315,11 +315,11 @@ FILE (GLOB HEADER_FILES "../Version.h"
 			"../SparseFeat.h"
 			"../SparseDoubleFeat.h"
 			"../BaseSession.h"
-			"../Session2.h")
+			"../Session.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
-			"../config.cpp"
+			"../Config.cpp"
                         "../inv_norm_cdf.cpp"
                         "../truncnorm.cpp"
                         "../mvnormal.cpp"
@@ -360,7 +360,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 			"../SparseFeat.cpp"
 			"../SparseDoubleFeat.cpp"
 			"../BaseSession.cpp"
-			"../Session2.cpp")
+			"../Session.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT

@@ -11,7 +11,7 @@
 #include <numeric>
 #include <memory>
 
-#include "config.h"
+#include "Config.h"
 #include "omp_util.h"
 
 //
