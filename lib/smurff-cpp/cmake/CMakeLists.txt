@@ -272,12 +272,12 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
+			"../config.h"
                         "../inv_norm_cdf.h"
                         "../truncnorm.h"
                         "../mvnormal.h"
                         "../chol.h"
                         "../linop.h"
-                        "../session.h"
                         "../gen_random.h"
                         "../model.h"
                         "../result.h"
@@ -313,16 +313,18 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../SparseMatrixData.h"
 			"../MatrixDataFactory.h"
 			"../SparseFeat.h"
-			"../SparseDoubleFeat.h")
+			"../SparseDoubleFeat.h"
+			"../BaseSession.h"
+			"../Session2.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
+			"../config.cpp"
                         "../inv_norm_cdf.cpp"
                         "../truncnorm.cpp"
                         "../mvnormal.cpp"
                         "../chol.cpp"
                         "../linop.cpp"
-                        "../session.cpp"
                         "../gen_random.cpp"
                         "../model.cpp"
                         "../result.cpp"
@@ -356,7 +358,9 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../SparseMatrixData.cpp"
 			"../MatrixDataFactory.cpp"
 			"../SparseFeat.cpp"
-			"../SparseDoubleFeat.cpp")
+			"../SparseDoubleFeat.cpp"
+			"../BaseSession.cpp"
+			"../Session2.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT
@@ -374,11 +378,11 @@ set (PROJECT smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES ""
+FILE (GLOB HEADER_FILES "../CmdSession.h"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../cmd_session.cpp"
+FILE (GLOB SOURCE_FILES "../CmdSession.cpp"
                         "../smurff.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
@@ -440,11 +444,11 @@ set (PROJECT mpi_smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES ""
+FILE (GLOB HEADER_FILES "../MPISession.h"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../cmd_session.cpp"
+FILE (GLOB SOURCE_FILES "../MPISession.cpp"
                         "../mpi_smurff.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})

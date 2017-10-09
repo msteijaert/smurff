@@ -6,7 +6,6 @@
 #include <iomanip>
 
 #include "mvnormal.h"
-#include "session.h"
 #include "chol.h"
 #include "linop.h"
 #include "Data.h"

@@ -1,6 +1,5 @@
 #include "SpikeAndSlabPrior.h"
 
-#include "session.h"
 #include "Data.h"
 
 using namespace smurff;

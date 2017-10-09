@@ -8,8 +8,8 @@
 
 namespace smurff {
 
-struct Config {
-
+struct Config 
+{
     //-- train and test
     MatrixConfig train, test;
     std::string center_mode   = "global";

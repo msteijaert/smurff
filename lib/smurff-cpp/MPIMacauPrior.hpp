@@ -7,7 +7,6 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
-#include "session.h"
 #include "data.h"
 
 #include "MacauPrior.h"

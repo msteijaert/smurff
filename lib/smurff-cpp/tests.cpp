@@ -10,7 +10,6 @@
 #include "linop.h"
 #include "chol.h"
 #include "mvnormal.h"
-#include "session.h"
 #include "utils.h"
 #include "Data.h"
 #include "DenseMatrixData.h"
