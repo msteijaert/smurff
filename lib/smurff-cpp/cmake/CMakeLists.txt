@@ -417,6 +417,7 @@ FILE (GLOB SOURCE_FILES "../tests.cpp"
                         "../TestsTensorIO.cpp"
                         "../TestsMatrixConfig.cpp"
      	  	   	"../TestsPVec.cpp"
+                        "../TestsTensor.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
