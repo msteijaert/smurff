@@ -15,6 +15,7 @@ auc_map = {
         'bpmf': (0.72, 0.03),
         'macau_dense': (0.74, 0.03),
         'macau_sparsebin': (0.63, 0.03),
+        'macauone_sparsebin': (0.555, 0.03),
 }
 
 def verify_auc(res):
