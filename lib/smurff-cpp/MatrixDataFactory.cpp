@@ -88,16 +88,16 @@ std::unique_ptr<MatrixData> smurff::matrix_config_to_matrix(const MatrixConfig &
    MatricesData* local_data_ptr = new MatricesData();
 
    local_data_ptr->setNoiseModel(new UnusedNoise());
-   local_data_ptr->add(PVec({0,0}), ::matrix_config_to_matrix(train, true));
+   local_data_ptr->add(PVec<>({0,0}), ::matrix_config_to_matrix(train, true));
 
    for(size_t i = 0; i < row_features.size(); ++i) 
    {
-      local_data_ptr->add(PVec({0, static_cast<int>(i + 1)}), ::matrix_config_to_matrix(row_features[i], false));
+      local_data_ptr->add(PVec<>({0, static_cast<int>(i + 1)}), ::matrix_config_to_matrix(row_features[i], false));
    }
 
    for(size_t i = 0; i < col_features.size(); ++i) 
    {
-      local_data_ptr->add(PVec({static_cast<int>(i + 1), 0}), ::matrix_config_to_matrix(col_features[i], false));
+      local_data_ptr->add(PVec<>({static_cast<int>(i + 1), 0}), ::matrix_config_to_matrix(col_features[i], false));
    }
 
    return std::unique_ptr<MatrixData>(local_data_ptr);

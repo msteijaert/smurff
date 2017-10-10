@@ -72,7 +72,7 @@ namespace smurff
 
       //AGE: implementation depends on matrix data type
    public:
-      virtual double offset_to_mean(const PVec& pos) const = 0;
+      virtual double offset_to_mean(const PVec<>& pos) const = 0;
 
       //AGE: getters
    public:
@@ -131,14 +131,14 @@ namespace smurff
 
    //#### prediction functions ####
    public:
-      virtual double predict(const PVec& pos, const SubModel& model) const;
+      virtual double predict(const PVec<>& pos, const SubModel& model) const;
 
    //#### dimention functions ####
    public:
       virtual int nmode() const = 0; // number of dimensions
       virtual int nnz() const = 0; // number of non zero elements
       virtual int nna() const = 0; // number of NA elements
-      virtual PVec dim() const = 0; // dimension vector
+      virtual PVec<> dim() const = 0; // dimension vector
 
    public:
       int size() const; // number of all elements (dimension dot product)

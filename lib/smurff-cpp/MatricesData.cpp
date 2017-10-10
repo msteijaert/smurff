@@ -108,13 +108,13 @@ double MatricesData::compute_mode_mean_mn(int mode, int pos)
    return sum / N;
 }
 
-double MatricesData::offset_to_mean(const PVec& pos) const
+double MatricesData::offset_to_mean(const PVec<>& pos) const
 {
    const Block &b = find(pos);
    return b.data().offset_to_mean(pos - b.start());
 }
 
-MatrixData& MatricesData::add(const PVec& p, std::unique_ptr<MatrixData> data)
+MatrixData& MatricesData::add(const PVec<>& p, std::unique_ptr<MatrixData> data)
 {
    blocks.push_back(Block(p, std::move(data)));
    return blocks.back().data();
@@ -218,34 +218,34 @@ double MatricesData::sum() const
    return accumulate(.0, &MatrixData::sum);
 }
 
-PVec MatricesData::dim() const
+PVec<> MatricesData::dim() const
 {
    return total_dim;
 }
 
-MatricesData::Block::Block(PVec p, std::unique_ptr<MatrixData> c)
+MatricesData::Block::Block(PVec<> p, std::unique_ptr<MatrixData> c)
    : _pos(p)
    , _start(2)
    , m(std::move(c))
 {
 }
 
-const PVec MatricesData::Block::start() const
+const PVec<> MatricesData::Block::start() const
 {
    return _start;
 }
 
-const PVec MatricesData::Block::end() const
+const PVec<> MatricesData::Block::end() const
 {
    return start() + dim();
 }
 
-const PVec MatricesData::Block::dim() const
+const PVec<> MatricesData::Block::dim() const
 {
    return data().dim();
 }
 
-const PVec MatricesData::Block::pos() const
+const PVec<> MatricesData::Block::pos() const
 {
    return _pos;
 }
@@ -275,7 +275,7 @@ MatrixData& MatricesData::Block::data() const
    return *m;
 }
 
-bool MatricesData::Block::in(const PVec &p) const
+bool MatricesData::Block::in(const PVec<> &p) const
 {
    return p.in(start(), end());
 }
@@ -290,7 +290,7 @@ SubModel MatricesData::Block::submodel(const SubModel& model) const
    return SubModel(model, start(), dim());
 }
 
-const MatricesData::Block& MatricesData::find(const PVec& p) const
+const MatricesData::Block& MatricesData::find(const PVec<>& p) const
 {
    return *std::find_if(blocks.begin(), blocks.end(), [p](const Block &b) -> bool { return b.in(p); });
 }

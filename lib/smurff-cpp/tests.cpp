@@ -593,7 +593,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   data.setCenterMode("global");
   data.setNoiseModel(new Noiseless());
   data.init();
-  model.init(2, PVec({1, 1}), "zero");
+  model.init(2, PVec<>({1, 1}), "zero");
 
   auto &t = p.predictions.at(0);
 
