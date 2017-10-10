@@ -1,7 +1,7 @@
 #include "MatrixDataFactory.h"
 
 #include "MatrixUtils.h"
-#include "PVec.h"
+#include "PVec.hpp"
 
 #include "NoiseConfig.h"
 

@@ -8,7 +8,7 @@
 
 #include "matrix_io.h"
 #include "utils.h"
-#include "PVec.h"
+#include "PVec.hpp"
 
 namespace smurff {
 

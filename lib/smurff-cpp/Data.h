@@ -8,7 +8,7 @@
 
 #include "model.h"
 #include "INoiseModel.h"
-#include "PVec.h"
+#include "PVec.hpp"
 
 #define CENTER_MODE_STR_NONE "none"
 #define CENTER_MODE_STR_GLOBAL "global"
