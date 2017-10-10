@@ -42,8 +42,12 @@ def process_test_dir(dir):
 
     dir, test = os.path.split(dir)
     dir, env = os.path.split(dir)
-    return (env, test, auc, real_time)
+    return ( env, test, auc, real_time )
 
+
+results = []
 for dir in find_test_dirs():
-   (env, test, auc, real_time) = process_test_dir(dir)
-   print("%s;%s;%f;%f" % ( env, test, auc, real_time ))
+   results.append(process_test_dir(dir))
+
+pd.DataFrame(results, columns = ( "env", "test", "auc", "real_time" ) ).to_csv("results.csv")
+
