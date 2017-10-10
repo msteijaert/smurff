@@ -7,60 +7,61 @@
 namespace smurff
 {
    template<size_t MaxSize = 3>
-   class SVec
+   class PVec
    {
    private:
       size_t m_size;
       std::array<int, MaxSize> m_v;
 
    public:
-      SVec::SVec(size_t size)
+      PVec(size_t size)
          : m_size(size)
       {
          if (m_size == 0)
-            throw std::length_error("Cannot initialize SVec with zero length");
+            throw std::length_error("Cannot initialize PVec with zero length");
 
          if (m_size > MaxSize)
-            throw std::length_error("Cannot initialize SVec with size greater than MaxSize");
+            throw std::length_error("Cannot initialize PVec with size greater than MaxSize");
 
          std::fill(m_v.begin(), m_v.end(), 0);
       }
 
-      SVec::SVec(const std::initializer_list<int>& l)
-         : m_size(std::count(l.begin(), l.end()))
+      PVec(const std::initializer_list<int>& l)
       {
+         m_size = std::distance(l.begin(), l.end());
+
          if (m_size == 0)
-            throw std::length_error("Cannot initialize SVec with zero length");
+            throw std::length_error("Cannot initialize PVec with zero length");
 
          if (m_size > MaxSize)
-            throw std::length_error("Cannot initialize SVec with size greater than MaxSize");
+            throw std::length_error("Cannot initialize PVec with size greater than MaxSize");
 
-         std::copy(l.begin(), l.end(), m_v.begin());
+         std::copy(l.begin(), l.end(), m_v.begin()); // m_v already has correct size
       }
 
       // Accept any int container
-      template<template<typename, typename ...> typename T, typename ... V>
-      SVec(const T<int, V...>& v)
+      template<template<typename, typename ...> class T, typename ... V>
+      PVec(const T<int, V...>& v)
       {
-         size_t vCount = std::count(v.begin(), v.end());
+         m_size = std::distance(v.begin(), v.end());
 
-         if (vCount == 0)
-            throw std::length_error("Cannot initialize SVec with zero length");
+         if (m_size == 0)
+            throw std::length_error("Cannot initialize PVec with zero length");
 
-         if (vCount > MaxSize)
+         if (m_size > MaxSize)
             throw std::length_error("Initializer size is greater than MaxSize");
 
-         std::copy(v.begin(), v.end(), m_v.begin());
+         std::copy(v.begin(), v.end(), m_v.begin()); // m_v already has correct size
       }
 
    public:
       // meta info
-      size_t SVec::size() const
+      size_t size() const
       {
          return m_size;
       }
 
-      const int& SVec::operator[](size_t p) const
+      const int& operator[](size_t p) const
       {
          if (p >= m_size)
          {
@@ -71,7 +72,7 @@ namespace smurff
          return m_v[p];
       }
 
-      const int& SVec::at(size_t p) const
+      const int& at(size_t p) const
       {
          if (p >= m_size)
          {
@@ -82,7 +83,7 @@ namespace smurff
          return m_v[p];
       }
 
-      int& SVec::operator[](size_t p)
+      int& operator[](size_t p)
       {
          if (p >= m_size)
          {
@@ -93,7 +94,7 @@ namespace smurff
          return m_v[p];
       }
 
-      int& SVec::at(size_t p)
+      int& at(size_t p)
       {
          if (p >= m_size)
          {
@@ -104,42 +105,41 @@ namespace smurff
          return m_v[p];
       }
 
-      SVec SVec::operator+(const SVec& other) const
+      PVec operator+(const PVec& other) const
       {
          if (m_size != other.m_size)
-            throw std::length_error("Both SVec intances must have the same size");
+            throw std::length_error("Both PVec intances must have the same size");
 
-         SVec ret(*this);
-         std::transform(m_v.begin(), m_v.end(), other.m_v.begin(), ret.m_v.begin(), std::plus<int>());
+         PVec ret(*this);
+         std::transform(m_v.begin(), m_v.begin() + m_size, other.m_v.begin(), ret.m_v.begin(), std::plus<int>());
          return ret;
       }
 
-      SVec SVec::operator-(const SVec& other) const
+      PVec operator-(const PVec& other) const
       {
          if (m_size != other.m_size)
-            throw std::length_error("Both SVec intances must have the same size");
+            throw std::length_error("Both PVec intances must have the same size");
 
-         SVec ret(*this);
-         std::transform(m_v.begin(), m_v.end(), other.m_v.begin(), ret.m_v.begin(), std::minus<int>());
+         PVec ret(*this);
+         std::transform(m_v.begin(), m_v.begin() + m_size, other.m_v.begin(), ret.m_v.begin(), std::minus<int>());
          return ret;
       }
 
-      bool SVec::operator==(const SVec& other) const
+      bool operator==(const PVec& other) const
       {
          if (m_size != other.m_size)
             return false;
 
-         auto p1 = std::mismatch(m_v.begin(), m_v.end(), other.m_v.begin());
-         return p1.first == m_v.end() || p1.second == other.m_v.end();
+         auto p1 = std::mismatch(m_v.begin(), m_v.begin() + m_size, other.m_v.begin());
+         return p1.first == m_v.begin() + m_size || p1.second == other.m_v.begin() + other.m_size;
       }
 
-      bool SVec::operator!=(const SVec& other) const
+      bool operator!=(const PVec& other) const
       {
          return !(*this == other);
       }
 
-
-      bool SVec::in(const SVec& start, const SVec& end) const
+      bool in(const PVec& start, const PVec& end) const
       {
          if (m_size != start.m_size)
             throw std::length_error("All PVec intances must have the same size");
@@ -157,12 +157,12 @@ namespace smurff
          return true;
       }
 
-      int SVec::dot() const
+      int dot() const
       {
-         return std::accumulate(m_v.begin(), m_v.end(), 1, std::multiplies<int>());
+         return std::accumulate(m_v.begin(), m_v.begin() + m_size, 1, std::multiplies<int>());
       }
 
-      std::ostream& SVec::info(std::ostream& os) const
+      std::ostream& info(std::ostream& os) const
       {
          os << "[ ";
          for(size_t i = 0; i < m_size; ++i)

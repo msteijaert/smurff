@@ -31,9 +31,9 @@ using namespace Eigen;
 
 namespace smurff {
 
-void Model::init(int nl, const PVec &d, std::string init_model) {
+void Model::init(int nl, const PVec<> &d, std::string init_model) {
     num_latent = nl;
-    m_dims = std::unique_ptr<PVec>(new PVec(d));
+    m_dims = std::unique_ptr<PVec<> >(new PVec<>(d));
     for(unsigned i = 0; i < d.size(); ++i) {
         samples.push_back(Eigen::MatrixXd(num_latent, d[i]));
         auto &M = samples.back();
@@ -78,7 +78,7 @@ SubModel Model::full()
     return SubModel(*this);
 }
 
-double Model::predict(const PVec &pos, const Data &data) const
+double Model::predict(const PVec<> &pos, const Data &data) const
 {
     return dot(pos) + data.offset_to_mean(pos);
 }

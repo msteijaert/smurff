@@ -174,7 +174,7 @@ void Data::init_cwise_mean()
 
 //#### prediction functions ####
 
-double Data::predict(const PVec& pos, const SubModel& model) const
+double Data::predict(const PVec<>& pos, const SubModel& model) const
 {
    return model.dot(pos) + this->offset_to_mean(pos);
 }

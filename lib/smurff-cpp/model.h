@@ -8,7 +8,7 @@
 
 #include "matrix_io.h"
 #include "utils.h"
-#include "PVec.h"
+#include "PVec.hpp"
 
 namespace smurff {
 
@@ -23,7 +23,7 @@ struct Model {
     {
     }
 
-    void init(int nl, const PVec &indices, std::string init_model);
+    void init(int nl, const PVec<> &indices, std::string init_model);
 
     //-- access for all
     const Eigen::MatrixXd &U(int f) const {
@@ -36,12 +36,12 @@ struct Model {
         return samples.at(f);
     }
 
-    double dot(const PVec &indices) const  {
+    double dot(const PVec<> &indices) const  {
         Eigen::ArrayXd P = Eigen::ArrayXd::Ones(num_latent);
         for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
         return P.sum();
     }
-    double predict(const PVec &pos, const Data &data) const;
+    double predict(const PVec<> &pos, const Data &data) const;
 
     //-- for when nmodes == 2
     Eigen::MatrixXd &V(int f) {
@@ -67,7 +67,7 @@ struct Model {
     std::ostream &status(std::ostream &os, std::string indent) const;
 
   public:
-     const PVec& getDims() const
+     const PVec<>& getDims() const
      {
         return *m_dims;
      }
@@ -75,14 +75,14 @@ struct Model {
   private:
     std::vector<Eigen::MatrixXd> samples;
     int num_latent;
-    std::unique_ptr<PVec> m_dims;
+    std::unique_ptr<PVec<> > m_dims;
 };
 
 struct SubModel {
-    SubModel(const Model &m, const PVec o, const PVec d)
+    SubModel(const Model &m, const PVec<> o, const PVec<> d)
         : model(m), off(o), dims(d) {}
 
-    SubModel(const SubModel &m, const PVec o, const PVec d)
+    SubModel(const SubModel &m, const PVec<> o, const PVec<> d)
         : model(m.model), off(o + m.off), dims(d) {}
 
     SubModel(const Model &m) : model(m), off(m.nmodes()), dims(m.getDims()) {}
@@ -96,7 +96,7 @@ struct SubModel {
         return U((f+1)%2);
     }
 
-    double dot(const PVec &pos) const  {
+    double dot(const PVec<> &pos) const  {
         return model.dot(off + pos);
     }
 
@@ -105,8 +105,8 @@ struct SubModel {
 
 private:
     const Model &model;
-    PVec off;
-    PVec dims;
+    PVec<> off;
+    PVec<> dims;
 };
 
 

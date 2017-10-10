@@ -17,10 +17,10 @@ namespace smurff
 
       void center(double global_mean) override;
       double compute_mode_mean_mn(int mode, int pos) override;
-      double offset_to_mean(const PVec& pos) const override;
+      double offset_to_mean(const PVec<>& pos) const override;
 
       // add data
-      MatrixData &add(const PVec& p, std::unique_ptr<MatrixData> data);
+      MatrixData &add(const PVec<>& p, std::unique_ptr<MatrixData> data);
 
       // helper functions for noise
       // but
@@ -48,19 +48,19 @@ namespace smurff
       int    nnz() const override;
       int    nna() const override;
       double sum() const override;
-      PVec   dim() const override;
+      PVec<>   dim() const override;
 
    private:
       struct Block {
           friend class MatricesData;
           // c'tor
-          Block(PVec p, std::unique_ptr<MatrixData> c);
+          Block(PVec<> p, std::unique_ptr<MatrixData> c);
 
           // handy position functions
-          const PVec start() const;
-          const PVec end() const;
-          const PVec dim() const;
-          const PVec pos()  const;
+          const PVec<> start() const;
+          const PVec<> end() const;
+          const PVec<> dim() const;
+          const PVec<> pos()  const;
 
           int start(int mode) const;
           int end(int mode) const;
@@ -69,13 +69,13 @@ namespace smurff
 
           MatrixData& data() const;
 
-          bool in(const PVec &p) const;
+          bool in(const PVec<> &p) const;
           bool in(int mode, int p) const;
 
           SubModel submodel(const SubModel &model) const;
 
         private:
-          PVec _pos, _start;
+          PVec<> _pos, _start;
           std::unique_ptr<MatrixData> m;
       };
       std::vector<Block> blocks;
@@ -86,13 +86,13 @@ namespace smurff
          for(auto &b : blocks) if (b.in(mode, p)) f(b);
       }
 
-      const Block& find(const PVec &p) const;
+      const Block& find(const PVec<> &p) const;
 
       int nview(int mode) const override;
       int view(int mode, int pos) const override;
       int view_size(int mode, int v) const override;
 
       std::vector<std::vector<int>> mode_dim;
-      PVec total_dim;
+      PVec<> total_dim;
    };
 }

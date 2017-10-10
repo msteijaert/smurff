@@ -28,7 +28,7 @@ Data &ILatentPrior::data() const
    return session.data(); 
 }
 
-double ILatentPrior::predict(const PVec &pos) const {
+double ILatentPrior::predict(const PVec<> &pos) const {
     return model().predict(pos, data());
 }
 

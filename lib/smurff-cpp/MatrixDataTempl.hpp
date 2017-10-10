@@ -26,11 +26,11 @@ namespace smurff
          init_cwise_mean();
       }
 
-      PVec   dim() const override { return PVec({ static_cast<int>(Y.rows()), static_cast<int>(Y.cols()) }); }
+      PVec<>   dim() const override { return PVec<>({ static_cast<int>(Y.rows()), static_cast<int>(Y.cols()) }); }
       int    nnz() const override { return Y.nonZeros(); }
       double sum() const override { return Y.sum(); }
 
-      double offset_to_mean(const PVec& pos) const override
+      double offset_to_mean(const PVec<>& pos) const override
       {
               if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL) return getGlobalMean();
          else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)   return getCwiseMean();
