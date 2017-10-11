@@ -43,7 +43,7 @@ mpi_smurff: mpi_smurff.cpp MPISession.o $(LIBSMURFF)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o mpi_smurff
 
 tests: $(LIBSMURFF) $(TESTOBJS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/tests.cpp $(TESTOBJS) $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/Tests/tests.cpp $(TESTOBJS) $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
 
 bench_nrandn:
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/mvnormal.cpp $(LDFLAGS) -DBENCH -DBENCH_NRANDN $(OUTPUT_OPTION)
@@ -77,6 +77,9 @@ $(LIBSMURFF): $(LIBOBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 %.o : $(ROOT)/Configs/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/Tests/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 # DFILES

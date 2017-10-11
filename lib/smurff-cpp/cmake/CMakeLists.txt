@@ -417,17 +417,17 @@ set (PROJECT tests)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES ""
+FILE (GLOB HEADER_FILES "../Tests/catch.hpp"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../tests.cpp"
-			"../TestsCentring.cpp"
-                        "../TestsMatrixIO.cpp"
-                        "../TestsTensorIO.cpp"
-                        "../TestsMatrixConfig.cpp"
-     	  	   	"../TestsPVec.cpp"
-                        "../TestsTensor.cpp"
+FILE (GLOB SOURCE_FILES "../Tests/tests.cpp"
+			"../Tests/TestsCentring.cpp"
+                        "../Tests/TestsMatrixIO.cpp"
+                        "../Tests/TestsTensorIO.cpp"
+                        "../Tests/TestsMatrixConfig.cpp"
+     	  	   	"../Tests/TestsPVec.cpp"
+                        "../Tests/TestsTensor.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
