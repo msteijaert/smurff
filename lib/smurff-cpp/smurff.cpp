@@ -21,7 +21,7 @@
 
 #include <Priors/ILatentPrior.h>
 
-#include "CmdSession.h"
+#include <Sessions/CmdSession.h>
 
 using namespace Eigen;
 using namespace std;

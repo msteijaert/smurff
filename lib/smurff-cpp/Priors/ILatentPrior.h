@@ -7,7 +7,7 @@
 #include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
-#include "BaseSession.h"
+#include <Sessions/BaseSession.h>
 #include <Noises/INoiseModel.h>
 #include "Data.h"
 

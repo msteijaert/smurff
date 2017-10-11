@@ -317,8 +317,9 @@ FILE (GLOB HEADER_FILES "../Version.h"
 			"../MatrixDataFactory.h"
 			"../SparseFeat.h"
 			"../SparseDoubleFeat.h"
-			"../BaseSession.h"
-			"../Session.h")
+
+			"../Sessions/BaseSession.h"
+			"../Sessions/Session.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -363,8 +364,9 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 			"../MatrixDataFactory.cpp"
 			"../SparseFeat.cpp"
 			"../SparseDoubleFeat.cpp"
-			"../BaseSession.cpp"
-			"../Session.cpp")
+
+			"../Sessions/BaseSession.cpp"
+			"../Sessions/Session.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT
@@ -382,11 +384,11 @@ set (PROJECT smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES "../CmdSession.h"
+FILE (GLOB HEADER_FILES "../Sessions/CmdSession.h"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../CmdSession.cpp"
+FILE (GLOB SOURCE_FILES "../Sessions/CmdSession.cpp"
                         "../smurff.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
@@ -451,12 +453,12 @@ set (PROJECT mpi_smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES "../MPISession.h"
+FILE (GLOB HEADER_FILES "../Sessions/MPISession.h"
                         "../Priors/MPIMacauPrior.hpp"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../MPISession.cpp"
+FILE (GLOB SOURCE_FILES "../Sessions/MPISession.cpp"
                         "../mpi_smurff.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
