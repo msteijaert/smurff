@@ -272,7 +272,6 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
-			"../Config.h"
                         "../inv_norm_cdf.h"
                         "../truncnorm.h"
                         "../mvnormal.h"
@@ -286,10 +285,14 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../ini.h"
                         "../INIReader.h"
                         "../counters.h"
-                        "../MatrixConfig.h"
-                        "../TensorConfig.h"
-                        "../NoiseConfig.h"
                         "../PVec.hpp"
+			"../SparseFeat.h"
+			"../SparseDoubleFeat.h"
+
+			"../Configs/Config.h"
+                        "../Configs/MatrixConfig.h"
+                        "../Configs/TensorConfig.h"
+                        "../Configs/NoiseConfig.h"
 
                         "../Noises/AdaptiveGaussianNoise.h"
                         "../Noises/FixedGaussianNoise.h"
@@ -316,15 +319,11 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/SparseMatrixData.h"
 			"../DataMatrices/MatrixDataFactory.h"
 
-			"../SparseFeat.h"
-			"../SparseDoubleFeat.h"
-
 			"../Sessions/BaseSession.h"
 			"../Sessions/Session.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
-			"../Config.cpp"
                         "../inv_norm_cdf.cpp"
                         "../truncnorm.cpp"
                         "../mvnormal.cpp"
@@ -338,11 +337,13 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../ini.c"
                         "../INIReader.cpp"
                         "../counters.cpp"
-                        "../MatrixConfig.cpp"
-                        "../TensorConfig.cpp"
-                        "../NoiseConfig.cpp"
 			"../SparseFeat.cpp"
 			"../SparseDoubleFeat.cpp"
+
+			"../Configs/Config.cpp"
+                        "../Configs/MatrixConfig.cpp"
+                        "../Configs/TensorConfig.cpp"
+                        "../Configs/NoiseConfig.cpp"
 
                         "../Noises/AdaptiveGaussianNoise.cpp"
                         "../Noises/FixedGaussianNoise.cpp"

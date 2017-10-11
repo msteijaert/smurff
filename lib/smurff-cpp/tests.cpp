@@ -15,7 +15,9 @@
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
 #include "truncnorm.h"
-#include "MatrixConfig.h"
+
+#include <Configs/MatrixConfig.h>
+
 #include "matrix_io.h"
 #include "tensor_io.h"
 

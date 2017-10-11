@@ -3,13 +3,13 @@
 #include "MatrixUtils.h"
 #include "PVec.hpp"
 
-#include "NoiseConfig.h"
-
 //matrix classes
 #include "SparseMatrixData.h"
 #include "ScarceBinaryMatrixData.h"
 #include "DenseMatrixData.h"
 #include "MatricesData.h"
+
+#include <Configs/NoiseConfig.h>
 
 //noise classes
 #include <Noises/AdaptiveGaussianNoise.h>

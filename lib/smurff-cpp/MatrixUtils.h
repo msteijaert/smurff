@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-#include "MatrixConfig.h"
+#include <Configs/MatrixConfig.h>
 
 #include "LibFastSparseDependency.h"
 

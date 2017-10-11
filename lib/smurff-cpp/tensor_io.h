@@ -1,7 +1,7 @@
 #include <string>
 #include <iostream>
 
-#include "TensorConfig.h"
+#include <Configs/TensorConfig.h>
 
 namespace smurff { namespace tensor_io
 {

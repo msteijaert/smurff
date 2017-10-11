@@ -76,6 +76,9 @@ $(LIBSMURFF): $(LIBOBJS)
 %.o : $(ROOT)/DataMatrices/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
+%.o : $(ROOT)/Configs/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
 # DFILES
 DFILES=$(wildcard *.d)
 

@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "MatrixConfig.h"
+#include <Configs/MatrixConfig.h>
 #include "MatrixData.h"
 
 namespace smurff {

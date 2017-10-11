@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "BaseSession.h"
-#include "Config.h"
+#include <Configs/Config.h>
 
 namespace smurff {
 

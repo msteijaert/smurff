@@ -11,7 +11,7 @@
 #include <numeric>
 #include <memory>
 
-#include "Config.h"
+#include <Configs/MatrixConfig.h>
 #include "omp_util.h"
 
 //
