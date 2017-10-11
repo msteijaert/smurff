@@ -6,9 +6,9 @@
 
 #include <Noises/Noiseless.h>
 
-#include "ScarceBinaryMatrixData.h"
-#include "DenseMatrixData.h"
-#include "SparseMatrixData.h"
+#include <DataMatrices/ScarceBinaryMatrixData.h>
+#include <DataMatrices/DenseMatrixData.h>
+#include <DataMatrices/SparseMatrixData.h>
 
 using namespace smurff;
 

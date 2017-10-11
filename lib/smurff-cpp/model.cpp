@@ -21,7 +21,7 @@
 #include <signal.h>
 
 #include "utils.h"
-#include "Data.h"
+#include <DataMatrices/Data.h>
 #include "model.h"
 #include "mvnormal.h"
 #include "matrix_io.h"

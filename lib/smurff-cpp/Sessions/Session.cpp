@@ -9,7 +9,7 @@
 #include <Priors/NormalPrior.h>
 #include <Priors/SpikeAndSlabPrior.h>
 
-#include "MatrixDataFactory.h"
+#include <DataMatrices/MatrixDataFactory.h>
 
 using namespace smurff;
 using namespace Eigen;

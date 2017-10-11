@@ -1,7 +1,7 @@
 #include "AdaptiveGaussianNoise.h"
 
 #include "mvnormal.h"
-#include "Data.h"
+#include <DataMatrices/Data.h>
 
 using namespace Eigen;
 using namespace smurff;

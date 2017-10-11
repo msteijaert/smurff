@@ -11,7 +11,7 @@
 #include <memory>
 #include <cmath>
 
-#include "Data.h"
+#include <DataMatrices/Data.h>
 #include "model.h"
 #include "utils.h"
 #include "result.h"

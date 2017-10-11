@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "ILatentPrior.h"
-#include "ScarceMatrixData.h"
+#include <DataMatrices/ScarceMatrixData.h>
 
 namespace smurff {
 

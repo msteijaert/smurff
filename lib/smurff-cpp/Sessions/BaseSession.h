@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-#include "Data.h"
+#include <DataMatrices/Data.h>
 #include "model.h"
 #include "result.h"
 

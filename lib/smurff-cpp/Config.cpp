@@ -5,7 +5,7 @@
 
 #include "utils.h"
 #include "INIReader.h"
-#include "Data.h"
+#include <DataMatrices/Data.h>
 
 using namespace smurff;
 

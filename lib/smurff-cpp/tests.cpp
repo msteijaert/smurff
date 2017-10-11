@@ -11,8 +11,6 @@
 #include "chol.h"
 #include "mvnormal.h"
 #include "utils.h"
-#include "Data.h"
-#include "DenseMatrixData.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
@@ -27,10 +25,11 @@
 
 #include <Noises/Noiseless.h>
 
-#include "ScarceBinaryMatrixData.h"
-#include "FullMatrixData.hpp"
-#include "SparseMatrixData.h"
-#include "DenseMatrixData.h"
+#include <DataMatrices/Data.h>
+#include <DataMatrices/ScarceBinaryMatrixData.h>
+#include <DataMatrices/FullMatrixData.hpp>
+#include <DataMatrices/SparseMatrixData.h>
+#include <DataMatrices/DenseMatrixData.h>
 
 using namespace smurff;
 

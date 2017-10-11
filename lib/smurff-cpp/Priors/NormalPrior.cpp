@@ -8,7 +8,6 @@
 #include "mvnormal.h"
 #include "chol.h"
 #include "linop.h"
-#include "Data.h"
 
 using namespace Eigen;
 

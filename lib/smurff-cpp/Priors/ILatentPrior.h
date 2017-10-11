@@ -9,7 +9,7 @@
 #include "model.h"
 #include <Sessions/BaseSession.h>
 #include <Noises/INoiseModel.h>
-#include "Data.h"
+#include <DataMatrices/Data.h>
 
 namespace smurff {
 

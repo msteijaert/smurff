@@ -1,7 +1,5 @@
 #include "SpikeAndSlabPrior.h"
 
-#include "Data.h"
-
 using namespace smurff;
 using namespace Eigen;
 

@@ -7,7 +7,7 @@
 #include "utils.h"
 
 #include "INoiseModel.h"
-#include "Data.h"
+#include <DataMatrices/Data.h>
 
 namespace smurff {
 
