@@ -91,16 +91,54 @@ def all_tests(args):
     })
 
     chembl_tests = {
-        'bpmf'              : {},
-        'macau_sparsebin'   : { "row_prior": "macau",    "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
-        'macau_dense'       : { "row_prior": "macau",    "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
-        'macauone_sparsebin': { "row_prior": "macauone", "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'bpmf'                   : {},
+        'macau_sparsebin'        : { "row_prior": "macau",        "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'macau_indirect'         : { "row_prior": "macau", "direct": False, "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'macau_dense'            : { "row_prior": "macau",        "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
+        'macauone_sparsebin'     : { "row_prior": "macauone",     "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'cofac_sparsebin'        : { "row_prior": "normal", "center": "none", "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'cofac_dense'            : { "row_prior": "normal",       "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
+        'spikeandslab_sparsebin' : { "col_prior": "spikeandslab", "center": "none", "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'spikeandslab_dense'     : { "col_prior": "spikeandslab", "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
     }
 
     for name, val in chembl_tests.items():
-        tmp = chembl_defaults.copy()
-        tmp.update(val)
-        all_tests[name] = tmp
+        opts = chembl_defaults.copy()
+        opts.update(val)
+        chembl_tests[name] = opts
+
+    
+
+
+    def add_options(test_name, tests, arg_name, arg_options):
+        ret = {}
+        for c in arg_options:
+            local_opts = tests[test_name].copy()
+            local_opts[arg_name] = c;
+            ret[test_name + "_" + arg_name + "_" + c] = local_opts
+
+        return ret;
+
+    def add_centering_options(name, tests):
+        return add_options(name, tests, "center", ("none", "global", "rows", "cols"))
+
+    def add_adaptive_noise_option(name, tests):
+        local_opts = tests[name].copy()
+        local_opts["precision"] = None
+        local_opts["adaptive"] = "1.0,10.0";
+        return { name + "_adaptive" : local_opts }
+
+
+    for test in ( 'bpmf', 'macau_dense', 'cofac_dense', 'spikeandslab_dense'):
+        chembl_tests.update(add_centering_options(test, chembl_tests))
+
+    adaptive_noise_tests = {}
+    for test in chembl_tests.keys():
+        adaptive_noise_tests.update(add_adaptive_noise_option(test, chembl_tests))
+
+    chembl_tests.update(adaptive_noise_tests)
+
+    all_tests.update(chembl_tests)
 
     return all_tests
 
