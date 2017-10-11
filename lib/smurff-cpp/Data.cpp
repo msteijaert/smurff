@@ -1,5 +1,4 @@
 #include "Data.h"
-#include "Noiseless.h"
 
 using namespace smurff;
 

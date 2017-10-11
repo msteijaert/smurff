@@ -2,7 +2,7 @@ MPICXX=mpicxx
 CXX=g++
 CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -fPIC
 
-INCLUDES=-I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
+INCLUDES=-I$(ROOT)/ -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
 CXXFLAGS+=-DSMURFF_VERSION=\"$(shell git describe)\"
 LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 
@@ -62,6 +62,9 @@ $(LIBSMURFF): $(LIBOBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 %.o : $(ROOT)/%.c
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/Noises/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 # DFILES

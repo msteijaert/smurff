@@ -12,11 +12,11 @@
 #include "MatricesData.h"
 
 //noise classes
-#include "AdaptiveGaussianNoise.h"
-#include "FixedGaussianNoise.h"
-#include "ProbitNoise.h"
-#include "Noiseless.h"
-#include "UnusedNoise.h"
+#include <Noises/AdaptiveGaussianNoise.h>
+#include <Noises/FixedGaussianNoise.h>
+#include <Noises/ProbitNoise.h>
+#include <Noises/Noiseless.h>
+#include <Noises/UnusedNoise.h>
 
 using namespace smurff;
 

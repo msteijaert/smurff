@@ -1,5 +1,4 @@
 #include "MatricesData.h"
-#include "UnusedNoise.h"
 
 using namespace smurff;
 

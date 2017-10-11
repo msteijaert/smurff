@@ -24,7 +24,9 @@
 #include "ILatentPrior.h"
 #include "MacauPrior.hpp"
 #include "MacauOnePrior.hpp"
-#include "Noiseless.h"
+
+#include <Noises/Noiseless.h>
+
 #include "ScarceBinaryMatrixData.h"
 #include "FullMatrixData.hpp"
 #include "SparseMatrixData.h"

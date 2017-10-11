@@ -4,7 +4,8 @@
 
 #include <Eigen/Core>
 
-#include "Noiseless.h"
+#include <Noises/Noiseless.h>
+
 #include "ScarceBinaryMatrixData.h"
 #include "DenseMatrixData.h"
 #include "SparseMatrixData.h"

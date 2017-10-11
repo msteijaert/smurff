@@ -8,7 +8,7 @@
 #include "linop.h"
 #include "model.h"
 #include "BaseSession.h"
-#include "INoiseModel.h"
+#include <Noises/INoiseModel.h>
 #include "Data.h"
 
 namespace smurff {

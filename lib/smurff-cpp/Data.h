@@ -7,7 +7,7 @@
 #include <Eigen/Core>
 
 #include "model.h"
-#include "INoiseModel.h"
+#include <Noises/INoiseModel.h>
 #include "PVec.hpp"
 
 #define CENTER_MODE_STR_NONE "none"
