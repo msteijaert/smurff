@@ -19,7 +19,8 @@
 #include "omp_util.h"
 #include "linop.h"
 
-#include "MacauOnePrior.hpp"
+#include <Priors/ILatentPrior.h>
+
 #include "CmdSession.h"
 
 using namespace Eigen;

@@ -4,10 +4,10 @@
 
 #include <Eigen/Core>
 
-#include "MacauOnePrior.hpp"
-#include "MacauPrior.hpp"
-#include "NormalPrior.h"
-#include "SpikeAndSlabPrior.h"
+#include <Priors/MacauOnePrior.hpp>
+#include <Priors/MacauPrior.hpp>
+#include <Priors/NormalPrior.h>
+#include <Priors/SpikeAndSlabPrior.h>
 
 #include "MatrixDataFactory.h"
 

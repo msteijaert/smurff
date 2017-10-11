@@ -291,12 +291,13 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Noises/UnusedNoise.h"
 			"../Noises/INoiseModel.h"
 
-                        "../GlobalPrior.h"
-                        "../ILatentPrior.h"
-                        "../NormalPrior.h"
-                        "../SpikeAndSlabPrior.h"
-                        "../MacauPrior.hpp"
-                        "../MacauOnePrior.hpp"
+                        "../Priors/GlobalPrior.h"
+                        "../Priors/ILatentPrior.h"
+                        "../Priors/NormalPrior.h"
+                        "../Priors/SpikeAndSlabPrior.h"
+                        "../Priors/MacauPrior.hpp"
+                        "../Priors/MacauOnePrior.hpp"
+
                         "../ini.h"
                         "../INIReader.h"
                         "../counters.h"
@@ -339,11 +340,12 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Noises/Noiseless.cpp"
                         "../Noises/UnusedNoise.cpp"
 
-                        "../GlobalPrior.cpp"
-                        "../ILatentPrior.cpp"
-                        "../NormalPrior.cpp"
-                        "../SpikeAndSlabPrior.cpp"
-                        "../MacauPrior.cpp"
+                        "../Priors/GlobalPrior.cpp"
+                        "../Priors/ILatentPrior.cpp"
+                        "../Priors/NormalPrior.cpp"
+                        "../Priors/SpikeAndSlabPrior.cpp"
+                        "../Priors/MacauPrior.cpp"
+
                         "../ini.c"
                         "../INIReader.cpp"
                         "../counters.cpp"
@@ -450,6 +452,7 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../MPISession.h"
+                        "../Priors/MPIMacauPrior.hpp"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 

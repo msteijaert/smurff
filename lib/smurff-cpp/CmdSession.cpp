@@ -7,7 +7,8 @@
 #include "Config.h"
 #include "NoiseConfig.h"
 #include "matrix_io.h"
-#include "ILatentPrior.h"
+
+#include <Priors/ILatentPrior.h>
 
 using namespace Eigen;
 

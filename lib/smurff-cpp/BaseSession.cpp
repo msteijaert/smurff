@@ -1,6 +1,6 @@
 #include "BaseSession.h"
 
-#include "ILatentPrior.h"
+#include <Priors/ILatentPrior.h>
 
 using namespace smurff;
 
