@@ -17,8 +17,9 @@ parser.add_argument('--outdir',  metavar='DIR', dest='outdir', nargs=1, help='Ou
 
 args = parser.parse_args()
 args.outdir = os.path.abspath(args.outdir)
-
 args.envdir = os.path.abspath(args.envdir)
+args.datadir = os.path.abspath(args.datadir)
+
 args.envs = list(map(os.path.basename,glob.glob("%s/*" % args.envdir)))
 
 print("Generating tests in %s" % args.outdir)
@@ -43,21 +44,28 @@ def gen_cmd(outdir, env, args):
 
     cat("args", args)
 
-    fmt = """{bin} --train={train} --burnin={burnin} \
-    --test={test}  --nsamples={nsamples} --verbose={verbose} --num-latent={num_latent} \
-    --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv"""
+    fmt = """{bin} --train={datadir}/{train} --burnin={burnin} \
+    --test={datadir}/{test}  --nsamples={nsamples} --verbose={verbose} --num-latent={num_latent} \
+    --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
+    --save-prefix={save-prefix} --save-freq={save-freq} \
+    """
 
-    if (args["row_features"]): fmt = fmt + " --row-features={dir}/{row_features}"
-    if (args["col_features"]): fmt = fmt + " --col-features={dir}/{col_features}"
+    if (args["row_features"]): fmt = fmt + " --row-features={datadir}/{row_features}"
+    if (args["col_features"]): fmt = fmt + " --col-features={datadir}/{col_features}"
     if (args["direct"]): fmt = fmt + " --direct"
+    if (args["precision"]): fmt = fmt + " --precision={precision}"
 
-    header = "#!/bin/bash"
-    cd_cmd = "cd %s" % outdir
-    env_cmd = "source activate %s" % env
-    smurff_cmd = fmt.format(**args)
-    cat("cmd", "\n".join((header, cd_cmd, env_cmd, smurff_cmd)))
+    cat("cmd", """
+#!/bin/bash
+cd %s
+source activate %s
+/usr/bin/time --output=time --portability \
+%s >stdout 2>stderr
+""" % (outdir, env, fmt.format(**args)))
 
 def all_tests(args):
+    all_tests = {}
+
     defaults = {
             'bin'         : 'smurff',
             'datadir'     : args.datadir, 
@@ -84,15 +92,17 @@ def all_tests(args):
 
     chembl_tests = {
         'bpmf'              : {},
-        'macau_sparsebin'   : { "row-prior": "macau",    "row-features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
-        'macau_dense'       : { "row-prior": "macau",    "row-features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
-        'macauone_sparsebin': { "row-prior": "macauone", "row-features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'macau_sparsebin'   : { "row_prior": "macau",    "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+        'macau_dense'       : { "row_prior": "macau",    "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
+        'macauone_sparsebin': { "row_prior": "macauone", "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
     }
 
-    for t in chembl_tests.values():
-        t.update(chembl_defaults)
+    for name, val in chembl_tests.items():
+        tmp = chembl_defaults.copy()
+        tmp.update(val)
+        all_tests[name] = tmp
 
-    return chembl_tests
+    return all_tests
 
 
 tests = all_tests(args)
