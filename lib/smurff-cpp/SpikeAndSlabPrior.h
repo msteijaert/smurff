@@ -35,15 +35,8 @@ public:
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 
-   void save(std::string prefix, std::string suffix) override 
-   {
-      throw "Not implemented";
-   }
-
-   void restore(std::string prefix, std::string suffix) override
-   {
-      throw "Not implemented";
-   }
+   void save(std::string prefix, std::string suffix) override {}
+   void restore(std::string prefix, std::string suffix) override {}
 
    void sample_latents() override;
    void sample_latent(int n) override;
