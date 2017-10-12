@@ -10,6 +10,8 @@
 
 #include "NormalPrior.h"
 
+#include "MatrixIO.h"
+
 namespace smurff {
 
 //previously MacauPrior was not inheriting from NormalPrior

@@ -1,7 +1,6 @@
 #include "catch.hpp"
 
-#include "tensor_io.h"
-#include "matrix_io.h"
+#include "TensorIO.h"
 #include "MatrixUtils.h"
 
 #include <Eigen/Core>

@@ -7,6 +7,8 @@
 #include "ILatentPrior.h"
 #include <DataMatrices/ScarceMatrixData.h>
 
+#include "MatrixIO.h"
+
 namespace smurff {
 
 //definition is the same except that now:

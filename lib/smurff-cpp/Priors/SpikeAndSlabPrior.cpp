@@ -1,5 +1,7 @@
 #include "SpikeAndSlabPrior.h"
 
+#include "MatrixIO.h"
+
 using namespace smurff;
 using namespace Eigen;
 

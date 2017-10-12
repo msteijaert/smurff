@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include "matrix_io.h"
+#include "MatrixIO.h"
 #include "MatrixUtils.h"
 
 #include <sstream>

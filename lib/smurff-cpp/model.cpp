@@ -24,7 +24,8 @@
 #include <DataMatrices/Data.h>
 #include "model.h"
 #include "mvnormal.h"
-#include "matrix_io.h"
+
+#include "MatrixIO.h"
 
 using namespace std;
 using namespace Eigen;

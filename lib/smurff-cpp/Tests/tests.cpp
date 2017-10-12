@@ -18,9 +18,6 @@
 
 #include <Configs/MatrixConfig.h>
 
-#include "matrix_io.h"
-#include "tensor_io.h"
-
 #include <Priors/ILatentPrior.h>
 #include <Priors/MacauPrior.hpp>
 #include <Priors/MacauOnePrior.hpp>

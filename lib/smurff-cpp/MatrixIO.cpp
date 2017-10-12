@@ -4,7 +4,7 @@
 #include <unsupported/Eigen/SparseExtra>
 
 #include "utils.h"
-#include "matrix_io.h"
+#include "MatrixIO.h"
 
 using namespace smurff;
 

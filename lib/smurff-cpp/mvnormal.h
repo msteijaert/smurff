@@ -8,7 +8,6 @@
 #include <Eigen/Sparse>
 #include <random>
 #include "utils.h"
-#include "matrix_io.h"
 
 double randn0();
 double randn(double = .0);

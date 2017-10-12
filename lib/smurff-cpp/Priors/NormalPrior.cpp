@@ -9,6 +9,8 @@
 #include "chol.h"
 #include "linop.h"
 
+#include "MatrixIO.h"
+
 using namespace Eigen;
 
 using namespace smurff;

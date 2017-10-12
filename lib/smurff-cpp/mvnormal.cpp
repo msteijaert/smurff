@@ -11,7 +11,6 @@
 #include <chrono>
 
 #include "utils.h"
-#include "matrix_io.h"
 #include "omp_util.h"
 #include "mvnormal.h"
 
