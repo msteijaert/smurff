@@ -9,5 +9,5 @@ setup(name='matrix_io',
         license='MIT',
         packages=['matrix_io'],
         install_requires=[ 'scipy' ],
-        scripts=['bin/csv2ddm', 'bin/mtx2ddm', 'bin/mtx2sbm', 'bin/mtx2sdm' ]
+        scripts=['bin/csv2ddm', 'bin/mtx2ddm', 'bin/mtx2sbm', 'bin/mtx2sdm' ],
         zip_safe=False)
