@@ -1,20 +1,18 @@
 #include "NormalPrior.h"
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-
 #include <iomanip>
 
 #include "mvnormal.h"
-#include "chol.h"
-#include "linop.h"
 
+#include <Utils/chol.h>
+#include <Utils/linop.h>
 #include <IO/MatrixIO.h>
 
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
 using namespace Eigen;
-
 using namespace smurff;
-
 
 //  base class NormalPrior
 

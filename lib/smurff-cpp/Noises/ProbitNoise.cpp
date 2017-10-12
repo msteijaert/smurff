@@ -1,6 +1,8 @@
 #include "ProbitNoise.h"
 
-using namespace Eigen;
+#include <assert.h>
+#include <cmath>
+
 using namespace smurff;
 
 ProbitNoise::ProbitNoise()
@@ -11,7 +13,8 @@ ProbitNoise::ProbitNoise()
 
 double ProbitNoise::getAlpha()
 {
-   assert(false); return NAN;
+   assert(false); 
+   return NAN;
 }
 
 std::ostream& ProbitNoise::info(std::ostream& os, std::string indent)

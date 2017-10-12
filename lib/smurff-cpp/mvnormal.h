@@ -7,7 +7,8 @@
 #include <Eigen/Dense>                                                                                                 
 #include <Eigen/Sparse>
 #include <random>
-#include "utils.h"
+
+#include <Utils/utils.h>
 
 double randn0();
 double randn(double = .0);

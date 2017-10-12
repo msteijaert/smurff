@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <numeric>
 
-#include "utils.h"
+#include <Utils/utils.h>
 
 using namespace smurff;
 

@@ -5,8 +5,8 @@
 #include <memory>
 
 #include "mvnormal.h"
-#include "linop.h"
 #include "model.h"
+
 #include <Sessions/BaseSession.h>
 #include <Noises/INoiseModel.h>
 #include <DataMatrices/Data.h>

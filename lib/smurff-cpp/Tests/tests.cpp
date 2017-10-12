@@ -7,14 +7,15 @@
 #include <sstream>
 #include <vector>
 
-#include "linop.h"
-#include "chol.h"
 #include "mvnormal.h"
-#include "utils.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
 #include "truncnorm.h"
+
+#include <Utils/linop.h>
+#include <Utils/chol.h>
+#include <Utils/utils.h>
 
 #include <Configs/MatrixConfig.h>
 

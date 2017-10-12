@@ -12,7 +12,6 @@
 #include <memory>
 
 #include <Configs/MatrixConfig.h>
-#include "omp_util.h"
 
 //
 // GitHub issue #34:

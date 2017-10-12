@@ -4,15 +4,15 @@
  * http://stackoverflow.com/questions/6142576/sample-from-multivariate-normal-gaussian-distribution-in-c
  */
 
-#include <iostream>
-#include <random>                                                                                
-#include <Eigen/Dense>
+#include "mvnormal.h"
 
+#include <iostream>
+#include <random>
 #include <chrono>
 
-#include "utils.h"
-#include "omp_util.h"
-#include "mvnormal.h"
+#include <Eigen/Dense>
+#include <Utils/utils.h>
+#include <Utils/omp_util.h>
 
 using namespace std;
 using namespace Eigen;
@@ -319,7 +319,7 @@ std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorX
 
 #if defined(TEST) || defined (BENCH)
 
-#include "utils.h"
+#include <Utils/utils.h>
 
 int main()
 {

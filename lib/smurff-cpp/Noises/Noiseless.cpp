@@ -1,6 +1,5 @@
 #include "Noiseless.h"
 
-using namespace Eigen;
 using namespace smurff;
 
 Noiseless::Noiseless()

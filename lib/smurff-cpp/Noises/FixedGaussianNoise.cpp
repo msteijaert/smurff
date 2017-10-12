@@ -1,6 +1,5 @@
 #include "FixedGaussianNoise.h"
 
-using namespace Eigen;
 using namespace smurff;
 
 FixedGaussianNoise::FixedGaussianNoise(double a)

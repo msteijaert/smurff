@@ -12,8 +12,9 @@
 #include <cmath>
 
 #include <DataMatrices/Data.h>
+#include <Utils/utils.h>
+
 #include "model.h"
-#include "utils.h"
 #include "result.h"
 
 using namespace std;

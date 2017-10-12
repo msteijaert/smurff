@@ -1,16 +1,19 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <memory>
 
 #include "mvnormal.h"
-#include "linop.h"
 #include "model.h"
 
 #include "NormalPrior.h"
+#include "SparseDoubleFeat.h"
+#include "SparseFeat.h"
 
 #include <IO/MatrixIO.h>
+#include <Utils/linop.h>
+
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 namespace smurff {
 

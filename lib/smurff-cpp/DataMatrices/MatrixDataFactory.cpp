@@ -1,15 +1,15 @@
 #include "MatrixDataFactory.h"
 
-#include "MatrixUtils.h"
-#include "PVec.hpp"
+#include <Configs/NoiseConfig.h>
+
+#include <Utils/MatrixUtils.h>
+#include <Utils/PVec.hpp>
 
 //matrix classes
 #include "SparseMatrixData.h"
 #include "ScarceBinaryMatrixData.h"
 #include "DenseMatrixData.h"
 #include "MatricesData.h"
-
-#include <Configs/NoiseConfig.h>
 
 //noise classes
 #include <Noises/AdaptiveGaussianNoise.h>

@@ -20,11 +20,10 @@
 
 #include <signal.h>
 
-#include "utils.h"
-#include <DataMatrices/Data.h>
 #include "model.h"
 #include "mvnormal.h"
 
+#include <DataMatrices/Data.h>
 #include <IO/MatrixIO.h>
 
 using namespace std;

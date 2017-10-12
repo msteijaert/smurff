@@ -1,11 +1,12 @@
 #ifndef RESULT_H
 #define RESULT_H
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <memory>
 
-#include "utils.h"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
+#include <Utils/utils.h>
 
 namespace smurff {
 

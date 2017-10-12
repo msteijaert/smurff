@@ -1,14 +1,14 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <memory>
 
 #include "mvnormal.h"
-#include "linop.h"
 #include "model.h"
 
 #include "ILatentPrior.h"
+
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 namespace smurff {
 

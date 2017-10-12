@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #include <IO/TensorIO.h>
-#include "MatrixUtils.h"
+#include <Utils/MatrixUtils.h>
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>

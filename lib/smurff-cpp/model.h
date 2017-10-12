@@ -5,8 +5,8 @@
 #include <Eigen/Sparse>
 #include <memory>
 
-#include "utils.h"
-#include "PVec.hpp"
+#include <Utils/utils.h>
+#include <Utils/PVec.hpp>
 
 namespace smurff {
 
