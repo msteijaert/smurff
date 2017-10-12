@@ -23,8 +23,8 @@ def normal_dense(N, D, K):
 
 # product of two low-rank 'ones' matrices
 def ones_dense(N, D, K):
-    X = np.ones(size=(N,K))
-    W = np.ones(size=(D,K))
+    X = np.ones((N,K))
+    W = np.ones((D,K))
     return np.dot(X,W.transpose())
 
 # dense -> sparse
@@ -36,6 +36,20 @@ def sparsify(A, density):
     (I, J, V) = sparse.find(sparse.coo_matrix(A))
     return sparse.coo_matrix((V[idx], (I[idx], J[idx])), shape = A.shape)
 
+
+def gen_matrix(N, D, K, func = "normal", density = 1.0 ):
+    if func == "normal":
+        m = normal_dense(N,D,K)
+    elif func == "ones":
+        m = ones_dense(N,D,K)
+    else:
+        assert False
+
+    if density < 1.0:
+        m = sparisify(m, density)
+
+    return m
+
 def write_matrix(filename, A):
     if sparse.issparse(A):
         mio.write_sparse_float64(filename + ".sdm", A)
@@ -44,11 +58,10 @@ def write_matrix(filename, A):
 
     sio.mmwrite(filename, A)
 
-
-def write_features(basename, features)
+def write_feat(basename, features):
     no = 0
     for F in features:
-        write_matrix("%s_%s" % (basename, no), F)
+        write_matrix("%s_%d" % (basename, no), F)
         no += 1 
 
 def write_data(dirname, train, row_features = [], col_features = []):
@@ -61,8 +74,18 @@ def write_data(dirname, train, row_features = [], col_features = []):
     write_feat("row", row_features)
     os.chdir("..")
 
+def gen_and_write(N, D, K,func,density):
+    m = gen_matrix(N,D,K,func,density);
+    write_data("%s_%d_%d_%d_%d" % (func, N, D, K, int(density * 100)), m)
+
 if __name__ == "__main__":
-    write_data("normal_dense_200_100_4", normal_dense(200,100,4))
-    write_data("normal_sparse_2000_100_4", sparsify(normal_dense(2000,100,4), 0.2))
+    for density in (1, .2):
+        for func in ("normal", "ones"):
+            gen_and_write(200,100,4,func,density)
+
+    # 1 set of row-featueres
+
+
+    # 2 sets of row-features
 
 
