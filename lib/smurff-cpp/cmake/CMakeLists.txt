@@ -287,8 +287,8 @@ FILE (GLOB HEADER_FILES "../Version.h"
 			"../SparseFeat.h"
 			"../SparseDoubleFeat.h"
 
-                        "../MatrixIO.h"
-                        "../TensorIO.h"
+                        "../IO/MatrixIO.h"
+                        "../IO/TensorIO.h"
 
 			"../Configs/Config.h"
                         "../Configs/MatrixConfig.h"
@@ -339,8 +339,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 			"../SparseFeat.cpp"
 			"../SparseDoubleFeat.cpp"
 
-                        "../MatrixIO.cpp"
-                        "../TensorIO.cpp"
+                        "../IO/MatrixIO.cpp"
+                        "../IO/TensorIO.cpp"
 
 			"../Configs/Config.cpp"
                         "../Configs/MatrixConfig.cpp"

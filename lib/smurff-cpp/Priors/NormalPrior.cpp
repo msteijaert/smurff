@@ -9,7 +9,7 @@
 #include "chol.h"
 #include "linop.h"
 
-#include "MatrixIO.h"
+#include <IO/MatrixIO.h>
 
 using namespace Eigen;
 

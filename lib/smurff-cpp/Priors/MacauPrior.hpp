@@ -10,7 +10,7 @@
 
 #include "NormalPrior.h"
 
-#include "MatrixIO.h"
+#include <IO/MatrixIO.h>
 
 namespace smurff {
 

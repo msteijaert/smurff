@@ -1,12 +1,13 @@
 #include "catch.hpp"
 
-#include "MatrixIO.h"
-#include "MatrixUtils.h"
-
 #include <sstream>
 #include <cstdio>
+
+#include "MatrixUtils.h"
+
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
+#include <IO/MatrixIO.h>
 
 using namespace smurff;
 

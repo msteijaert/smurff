@@ -25,7 +25,7 @@
 #include "model.h"
 #include "mvnormal.h"
 
-#include "MatrixIO.h"
+#include <IO/MatrixIO.h>
 
 using namespace std;
 using namespace Eigen;

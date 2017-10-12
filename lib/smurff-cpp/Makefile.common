@@ -82,6 +82,9 @@ $(LIBSMURFF): $(LIBOBJS)
 %.o : $(ROOT)/Tests/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
+%.o : $(ROOT)/IO/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
 # DFILES
 DFILES=$(wildcard *.d)
 
