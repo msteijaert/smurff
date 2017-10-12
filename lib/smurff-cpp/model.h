@@ -1,5 +1,4 @@
-#ifndef MODEL_H
-#define MODEL_H
+#pragma once
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -107,10 +106,4 @@ private:
     PVec<> dims;
 };
 
-
-
-
-
 }; // end namespace smurff
-
-#endif

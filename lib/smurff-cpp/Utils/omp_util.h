@@ -1,5 +1,4 @@
-#ifndef OMP_UTIL_H
-#define OMP_UTIL_H
+#pragma once
 
 #if defined(_OPENMP)
 #include <iostream>
@@ -32,6 +31,4 @@ inline int thread_num() { return 0; }
 inline int nthreads(void) { return 1; }
 inline int thread_limit(void) { return 1; }
 inline void threads_init() { }
-#endif
-
 #endif

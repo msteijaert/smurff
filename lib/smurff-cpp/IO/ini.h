@@ -7,8 +7,7 @@ https://github.com/benhoyt/inih
 
 */
 
-#ifndef __INI_H__
-#define __INI_H__
+#pragma once
 
 /* Make this header file easier to include in C++ code */
 #ifdef __cplusplus
@@ -100,5 +99,3 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __INI_H__ */

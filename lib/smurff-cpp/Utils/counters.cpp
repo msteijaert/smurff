@@ -3,9 +3,7 @@
  * All rights reserved.
  */
 
-#ifndef COUNTERS_H
-#define COUNTERS_H
-
+#pragma once
 
 #ifdef PROFILING
 
@@ -69,5 +67,3 @@ void TotalsCounter::print() {
 }
 
 #endif // PROFILING
-
-#endif // COUNTERS_H

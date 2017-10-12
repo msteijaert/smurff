@@ -1,5 +1,4 @@
-#ifndef RESULT_H
-#define RESULT_H
+#pragma once
 
 #include <memory>
 
@@ -82,5 +81,3 @@ struct Result {
 };
 
 }; // end namespace smurff
-
-#endif

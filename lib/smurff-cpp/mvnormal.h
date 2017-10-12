@@ -1,5 +1,4 @@
-#ifndef MVNORMAL_H
-#define MVNORMAL_H
+#pragma once
 
 #define EIGEN_RUNTIME_NO_MALLOC
 //#define EIGEN_DONT_PARALLELIZE 1
@@ -36,5 +35,3 @@ Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, int nn);
 Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn);
 Eigen::MatrixXd MvNormal_prec_omp(const Eigen::MatrixXd & Lambda, int nn);
 Eigen::MatrixXd MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn);
-
-#endif /* MVNORMAL_H */

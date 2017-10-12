@@ -1,6 +1,5 @@
 
-#ifndef GFA_H
-#define GFA_H
+#pragma once
 
 #define EIGEN_RUNTIME_NO_MALLOC 1
 
@@ -78,5 +77,3 @@ class Model
 	VectorXd cost; //Vector collecting the variational lower bounds for each iteration
 
 };
-
-#endif
