@@ -2,14 +2,14 @@
 
 #include <iomanip>
 
-#include "mvnormal.h"
-
 #include <Utils/chol.h>
 #include <Utils/linop.h>
 #include <IO/MatrixIO.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+
+#include "mvnormal.h"
 
 using namespace Eigen;
 using namespace smurff;

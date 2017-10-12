@@ -1,8 +1,10 @@
 //#include <lapacke.h>
+
 #include <stdio.h>
-#include <Eigen/Dense>
 #include <stdexcept>
 #include <iostream>
+
+#include <Eigen/Dense>
 
 extern "C" { 
     static char lower = 'L';

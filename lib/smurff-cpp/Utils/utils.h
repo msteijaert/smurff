@@ -1,8 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <Eigen/Sparse>
-#include <Eigen/Dense>
 #include <cmath>
 #include <algorithm>
 #include <fstream>
@@ -11,6 +9,9 @@
 #include <numeric>
 #include <memory>
 #include <array>
+
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 
 #include "omp_util.h"
 

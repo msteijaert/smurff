@@ -2,14 +2,14 @@
 
 #include <memory>
 
-#include "ILatentPrior.h"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include <DataMatrices/ScarceMatrixData.h>
 #include <IO/MatrixIO.h>
 #include <Utils/linop.h>
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
+#include "ILatentPrior.h"
 
 namespace smurff {
 

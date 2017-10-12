@@ -1,15 +1,16 @@
 #pragma once
 
+#include <memory>
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <memory>
+
+#include "MacauPrior.h"
 
 #include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
 #include "data.h"
-
-#include "MacauPrior.h"
 
 namespace smurff 
 {

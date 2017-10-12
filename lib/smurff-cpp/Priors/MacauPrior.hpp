@@ -2,18 +2,18 @@
 
 #include <memory>
 
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
+#include <IO/MatrixIO.h>
+#include <Utils/linop.h>
+
 #include "mvnormal.h"
 #include "model.h"
 
 #include "NormalPrior.h"
 #include "SparseDoubleFeat.h"
 #include "SparseFeat.h"
-
-#include <IO/MatrixIO.h>
-#include <Utils/linop.h>
-
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 
 namespace smurff {
 

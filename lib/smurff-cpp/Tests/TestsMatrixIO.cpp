@@ -3,12 +3,11 @@
 #include <sstream>
 #include <cstdio>
 
-#include <Utils/MatrixUtils.h>
-
-#include <IO/MatrixIO.h>
-
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
+
+#include <Utils/MatrixUtils.h>
+#include <IO/MatrixIO.h>
 
 using namespace smurff;
 

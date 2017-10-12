@@ -2,13 +2,13 @@
 
 #include <memory>
 
-#include "mvnormal.h"
-#include "model.h"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include "ILatentPrior.h"
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
+#include "mvnormal.h"
+#include "model.h"
 
 namespace smurff {
 

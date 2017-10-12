@@ -1,8 +1,9 @@
 #pragma once
 
+#include <memory>
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <memory>
 
 #include <Utils/utils.h>
 #include <Utils/PVec.hpp>

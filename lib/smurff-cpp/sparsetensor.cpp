@@ -1,9 +1,10 @@
-#include <Eigen/Dense>
 #include <memory>
 #include <iostream>
+
+#include <Eigen/Dense>
+
 #include "sparsetensor.h"
 #include "latentprior.h"
-
 
 using namespace Eigen;
 

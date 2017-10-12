@@ -1,6 +1,3 @@
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-
 #include <iostream>
 #include <cassert>
 #include <fstream>
@@ -13,6 +10,9 @@
 
 #include <DataMatrices/Data.h>
 #include <Utils/utils.h>
+
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include "model.h"
 #include "result.h"

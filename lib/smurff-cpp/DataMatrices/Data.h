@@ -4,11 +4,13 @@
 #include <vector>
 #include <string>
 #include <iostream>
+
+#include <Noises/INoiseModel.h>
+#include <Utils/PVec.hpp>
+
 #include <Eigen/Core>
 
 #include "model.h"
-#include <Noises/INoiseModel.h>
-#include <Utils/PVec.hpp>
 
 #define CENTER_MODE_STR_NONE "none"
 #define CENTER_MODE_STR_GLOBAL "global"

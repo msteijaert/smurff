@@ -1,9 +1,13 @@
-#include <Eigen/Dense>
 #include <stdio.h>
 #include <math.h>
 #include <omp.h>
+
+#include <Eigen/Dense>
+
 #include "mvnormal.h"
-extern "C" {
+
+extern "C" 
+{
 #include <sparse.h>
 }
 
