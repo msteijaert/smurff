@@ -428,6 +428,7 @@ FILE (GLOB SOURCE_FILES "../Tests/tests.cpp"
                         "../Tests/TestsMatrixIO.cpp"
                         "../Tests/TestsTensorIO.cpp"
                         "../Tests/TestsMatrixConfig.cpp"
+                        "../Tests/TestsTensorConfig.cpp"
      	  	   	"../Tests/TestsPVec.cpp"
                         "../Tests/TestsTensor.cpp"
                         )
