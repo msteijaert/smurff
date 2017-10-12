@@ -29,8 +29,8 @@ public:
    int mode;
    std::string name = "xxxx";
 
-   thread_vector<VectorNd> rrs;
-   thread_vector<MatrixNNd> MMs;
+   thread_vector<Eigen::VectorXd> rrs;
+   thread_vector<Eigen::MatrixXd> MMs;
 
 public:
    // c-tor

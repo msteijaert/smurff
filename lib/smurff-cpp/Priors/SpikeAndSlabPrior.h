@@ -17,12 +17,12 @@ class SpikeAndSlabPrior : public ILatentPrior
 {
 public:
    // updated by every thread
-   thread_vector<MatrixNNd> Zcol, W2col;
+   thread_vector<Eigen::MatrixXd> Zcol, W2col;
 
    // read-only during sampling
-   MatrixNNd Zkeep;
-   ArrayNNd alpha;
-   MatrixNNd r;
+   Eigen::MatrixXd Zkeep;
+   Eigen::ArrayXXd alpha;
+   Eigen::MatrixXd r;
 
    //-- hyper params
    const double prior_beta = 1; //for r

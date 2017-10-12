@@ -22,9 +22,9 @@ void SpikeAndSlabPrior::init()
    W2col.init(MatrixXd::Zero(K,nview));
 
    //-- prior params
-   alpha = ArrayNNd::Ones(K,nview);
-   Zkeep = MatrixNNd::Constant(K, nview, D);
-   r = MatrixNNd::Constant(K,nview,.5);
+   alpha = ArrayXXd::Ones(K,nview);
+   Zkeep = MatrixXd::Constant(K, nview, D);
+   r = MatrixXd::Constant(K,nview,.5);
 }
 
 void SpikeAndSlabPrior::sample_latents()
@@ -62,15 +62,15 @@ void SpikeAndSlabPrior::sample_latent(int d)
    const int v = data().view(mode, d);
 
    auto &W = U(); // alias
-   VectorNd Wcol = W.col(d); // local copy
+   VectorXd Wcol = W.col(d); // local copy
 
    std::default_random_engine generator;
    std::uniform_real_distribution<double> udist(0,1);
-   ArrayNd log_alpha = alpha.col(v).log();
-   ArrayNd log_r = - r.col(v).array().log() + (VectorNd::Ones(K) - r.col(v)).array().log();
+   ArrayXd log_alpha = alpha.col(v).log();
+   ArrayXd log_r = - r.col(v).array().log() + (VectorXd::Ones(K) - r.col(v)).array().log();
 
-   MatrixNNd XX = MatrixNNd::Zero(K, K);
-   VectorNd yX = VectorNd::Zero(K);
+   MatrixXd XX = MatrixXd::Zero(K, K);
+   VectorXd yX = VectorXd::Zero(K);
    data().get_pnm(model(),mode,d,yX,XX);
 
    for(int k=0;k<K;++k) {

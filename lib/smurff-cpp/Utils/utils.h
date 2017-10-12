@@ -196,10 +196,3 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
     out << "]";
     return out;
 }
-
-typedef Eigen::VectorXd VectorNd;
-typedef Eigen::MatrixXd MatrixNNd;
-typedef Eigen::ArrayXd ArrayNd;
-typedef Eigen::ArrayXXd ArrayNNd;
-
-typedef Eigen::SparseMatrix<double> SparseMatrixD;

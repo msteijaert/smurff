@@ -94,8 +94,8 @@ void NormalPrior::sample_latent(int n)
 {
    const auto &mu_u = getMu(n);
 
-   VectorNd &rr = rrs.local();
-   MatrixNNd &MM = MMs.local();
+   VectorXd &rr = rrs.local();
+   MatrixXd &MM = MMs.local();
 
    rr.setZero();
    MM.setZero();
@@ -210,8 +210,8 @@ std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
 void NormalPrior::initUU()
 {
     const int K = num_latent();
-    Ucol.init(VectorNd::Zero(K));
-    UUcol.init(MatrixNNd::Zero(K, K));
+    Ucol.init(VectorXd::Zero(K));
+    UUcol.init(MatrixXd::Zero(K, K));
     UUcol.local() = U() * U().transpose();
     Ucol.local() = U().rowwise().sum();
 }

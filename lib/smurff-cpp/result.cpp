@@ -22,7 +22,7 @@ using namespace Eigen;
 
 namespace smurff {
 
-void Result::set(SparseMatrixD Y) {
+void Result::set(Eigen::SparseMatrix<double> Y) {
     for (int k = 0; k < Y.outerSize(); ++k) {
         for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
             predictions.push_back({(int)it.row(), (int)it.col(), it.value()});

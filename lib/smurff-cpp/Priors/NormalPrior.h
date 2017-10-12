@@ -13,8 +13,8 @@
 namespace smurff {
 
 //definition is identical except for:
-//thread_vector<VectorNd> Ucol;
-//thread_vector<MatrixNNd> UUcol;
+//thread_vector<Eigen::VectorXd> Ucol;
+//thread_vector<Eigen::MatrixXd> UUcol;
 
 //why remove update_prior method ?   
 
@@ -46,8 +46,8 @@ public:
 
 private:
    // for effiency, we keep + update Ucol and UUcol by every thread
-   thread_vector<VectorNd> Ucol;
-   thread_vector<MatrixNNd> UUcol;
+   thread_vector<Eigen::VectorXd> Ucol;
+   thread_vector<Eigen::MatrixXd> UUcol;
 
 private:
   void initUU();

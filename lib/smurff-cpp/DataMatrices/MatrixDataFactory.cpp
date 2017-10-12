@@ -55,7 +55,7 @@ std::unique_ptr<MatrixData> matrix_config_to_matrix(const MatrixConfig &config, 
    } 
    else 
    {
-      SparseMatrixD Ytrain = sparse_to_eigen(config);
+      Eigen::SparseMatrix<double> Ytrain = sparse_to_eigen(config);
       if (!scarce) 
       {
          local_data_ptr = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
