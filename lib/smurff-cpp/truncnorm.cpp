@@ -1,5 +1,5 @@
 #include <cmath>
-#include "inv_norm_cdf.h"
+#include "InvNormCdf.h"
 
 #include <Utils/Distribution.h>
 

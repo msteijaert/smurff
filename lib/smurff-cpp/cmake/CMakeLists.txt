@@ -272,7 +272,7 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
-                        "../inv_norm_cdf.h"
+                        "../InvNormCdf.h"
                         "../truncnorm.h"
                         "../model.h"
                         "../result.h"
@@ -328,7 +328,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
-                        "../inv_norm_cdf.cpp"
+                        "../InvNormCdf.cpp"
                         "../truncnorm.cpp"
                         "../model.cpp"
                         "../result.cpp"
