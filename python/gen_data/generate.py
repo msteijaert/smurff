@@ -5,6 +5,7 @@ from scipy import sparse
 import scipy.io as sio
 import argparse 
 import os
+import itertools
 import matrix_io as mio
 
 #parser = argparse.ArgumentParser(description='SMURFF tests')
@@ -16,15 +17,15 @@ import matrix_io as mio
 #args = parser.parse_args()
 
 # product of two gaussian low-rank matrices + noise
-def normal_dense(N, D, K):
-    X = np.random.normal(size=(N,K))
-    W = np.random.normal(size=(D,K))
-    return np.dot(X, W.transpose()) + np.random.normal(size=(N,D))
+def normal_dense(shape, K):
+    X = np.random.normal(size=(shape[0],K))
+    W = np.random.normal(size=(shape[1],K))
+    return np.dot(X, W.transpose()) + np.random.normal(size=shape)
 
 # product of two low-rank 'ones' matrices
-def ones_dense(N, D, K):
-    X = np.ones((N,K))
-    W = np.ones((D,K))
+def ones_dense(shape, K):
+    X = np.ones((shape[0],K))
+    W = np.ones((shape[1],K))
     return np.dot(X,W.transpose())
 
 # dense -> sparse
@@ -36,12 +37,11 @@ def sparsify(A, density):
     (I, J, V) = sparse.find(sparse.coo_matrix(A))
     return sparse.coo_matrix((V[idx], (I[idx], J[idx])), shape = A.shape)
 
-
-def gen_matrix(N, D, K, func = "normal", density = 1.0 ):
+def gen_matrix(shape, K, func = "normal", density = 1.0 ):
     if func == "normal":
-        m = normal_dense(N,D,K)
+        m = normal_dense(shape,K)
     elif func == "ones":
-        m = ones_dense(N,D,K)
+        m = ones_dense(shape,K)
     else:
         assert False
 
@@ -58,30 +58,37 @@ def write_matrix(filename, A):
 
     sio.mmwrite(filename, A)
 
-def write_feat(basename, features):
-    no = 0
-    for F in features:
-        write_matrix("%s_%d" % (basename, no), F)
-        no += 1 
+def write_feat(base, features):
+    for (indx,F) in enumerate(features):
+        write_matrix("feat_%d_%d" % (base, indx), F)
 
-def write_data(dirname, train, row_features = [], col_features = []):
+def write_data(dirname, train, features = ([],[])):
     os.makedirs(dirname)
     os.chdir(dirname)
     write_matrix("train", train)
     test = sparsify(train, 0.2)
     write_matrix("test", test)
-    write_feat("col", col_features)
-    write_feat("row", row_features)
+    for (indx,feat) in enumerate(features):
+        write_feat(indx, feat)
     os.chdir("..")
 
-def gen_and_write(N, D, K,func,density):
-    m = gen_matrix(N,D,K,func,density);
-    write_data("%s_%d_%d_%d_%d" % (func, N, D, K, int(density * 100)), m)
+def gen_and_write(shape, K,func,density, split = (1,1)):
+    m = gen_matrix(shape,K,func,density);
+
+    feat = ([], [])
+    for axis, num in enumerate(split):
+        if num > 1: 
+            feat[axis] = np.split(m, num)
+
+    write_data("%s_%s_%d_%d" % (func, shape, K, int(density * 100)), m, feat)
 
 if __name__ == "__main__":
+    shape = (200,100)
+    num_latent = 4
     for density in (1, .2):
         for func in ("normal", "ones"):
-            gen_and_write(200,100,4,func,density)
+                for num_split in itertools.product((1,2,3), (1,2,3)):
+                    gen_and_write(shape,num_latent,func,density, (num_split))
 
     # 1 set of row-featueres
 
