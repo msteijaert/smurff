@@ -94,5 +94,6 @@ if __name__ == "__main__":
     num_latent = 4
     for density in (1, .2):
         for func in ("normal", "ones"):
-                for num_split in itertools.product((1,2,3), (1,2,3)):
-                    gen_and_write(shape,num_latent,func,density, (num_split))
+                for num_split in (1,2,3):
+                    gen_and_write(shape,num_latent,func,density, (1,num_split))
+                    gen_and_write(shape,num_latent,func,density, (num_split,1))
