@@ -88,9 +88,8 @@ def gen_cmd(outdir, env, test):
 #!/bin/bash
 cd %s
 source activate %s
-/usr/bin/time --output=time --portability \
 %s >stdout 2>stderr
-""" % (fulldir, env, fmt.format(**args)))
+""" % (fulldir, env, cmd))
 
 
 class Test:
@@ -188,17 +187,21 @@ def synthetic_tests(defaults):
 
     # each datadir == 1 test
     for d in datadirs:
+        print(d)
         test = suite.add_test(defaults)
+        print(test.opts)
         train_file = list(glob('%s/train.*' % d))[0]
         test_file  = os.path.join(d, "test.sdm")
         test.update({ 'train' : train_file, 'test' : test_file, })
-        for f in glob('%s/feat_0_*' % d): test.append_one("row_features", f)
-        for f in glob('%s/feat_1_*' % d): test.append_one("col_features", f)
+        test.update_one("row_features", [])
+        test.update_one("col_features", [])
+        for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", f)
+        for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", f)
 
-    suite.add_options("row_prior", priors)
-    suite.add_options("col_prior", priors)
-    suite.add_centering_options()
-    suite.add_noise_options()
+    # suite.add_options("row_prior", priors)
+    # suite.add_options("col_prior", priors)
+    # suite.add_centering_options()
+    # suite.add_noise_options()
 
     print(suite)
 
