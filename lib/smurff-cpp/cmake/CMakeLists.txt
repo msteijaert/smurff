@@ -272,13 +272,13 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
-                        "../InvNormCdf.h"
                         "../truncnorm.h"
                         "../model.h"
                         "../result.h"
 			"../SparseFeat.h"
 			"../SparseDoubleFeat.h"
 
+                        "../Utils/InvNormCdf.h"
                         "../Utils/Distribution.h"
                         "../Utils/MatrixUtils.h"
                         "../Utils/PVec.hpp"
@@ -328,13 +328,13 @@ FILE (GLOB HEADER_FILES "../Version.h"
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
-                        "../InvNormCdf.cpp"
                         "../truncnorm.cpp"
                         "../model.cpp"
                         "../result.cpp"
 			"../SparseFeat.cpp"
 			"../SparseDoubleFeat.cpp"
 
+                        "../Utils/InvNormCdf.cpp"
                         "../Utils/Distribution.cpp"
                         "../Utils/MatrixUtils.cpp"
                         "../Utils/chol.cpp"

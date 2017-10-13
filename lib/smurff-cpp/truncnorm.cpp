@@ -1,6 +1,6 @@
 #include <cmath>
-#include "InvNormCdf.h"
 
+#include <Utils/InvNormCdf.h>
 #include <Utils/Distribution.h>
 
 double norm_cdf(double x) {

@@ -9,9 +9,9 @@
 
 #include "model.h"
 #include "sparsetensor.h"
-#include "InvNormCdf.h"
 #include "truncnorm.h"
 
+#include <Utils/InvNormCdf.h>
 #include <Utils/Distribution.h>
 #include <Utils/linop.h>
 #include <Utils/chol.h>
