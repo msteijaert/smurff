@@ -81,24 +81,12 @@ public:
       lambda_beta_b0 = 0.1;
    }
 
-   //method is identical - previously part of init
    void addSideInfo(std::unique_ptr<FType> &Fmat, bool)
    {
       // side information
       F       = std::move(Fmat);
       F_colsq = col_square_sum(*F);
    }
-
-   //method is identical except for:
-
-   //previously Yhat was taking mean into account
-   //Yhat(idx)     = mean_value + U.col(i).dot( V.col(it.row()) );
-
-   //for (int d = 0; d < D; d++) { - D instead of K
-
-   //one more cycle that is now probably in sample latents
-   //#pragma omp parallel for schedule(dynamic, 4)
-   //for (int i = 0; i < N; i++) {
 
    void sample_latent(int i) override
    {
@@ -154,66 +142,6 @@ public:
            }
        }
    }
-
-   //macau implementation
-   /*
-   template<class FType>
-   void MacauOnePrior<FType>::sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &Ymat, double mean_value,
-                                             const Eigen::MatrixXd &V, double alpha, const int num_latent)
-   {
-      const int N = U.cols();
-      const int D = U.rows();
-
-      #pragma omp parallel for schedule(dynamic, 4)
-      for (int i = 0; i < N; i++)
-      {
-         const int nnz = Ymat.outerIndexPtr()[i + 1] - Ymat.outerIndexPtr()[i];
-         VectorXd Yhat(nnz);
-
-         // precalculating Yhat and Qi
-         int idx = 0;
-         VectorXd Qi = lambda;
-         for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++)
-         {
-            Qi.noalias() += alpha * V.col(it.row()).cwiseAbs2();
-            Yhat(idx)     = mean_value + U.col(i).dot( V.col(it.row()) );
-         }
-
-         VectorXd rnorms(num_latent);
-         bmrandn_single(rnorms);
-
-         for (int d = 0; d < D; d++) {
-            // computing Lid
-            const double uid = U(d, i);
-            double Lid = lambda(d) * (mu(d) + Uhat(d, i));
-
-            idx = 0;
-            for ( SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++)
-            {
-            const double vjd = V(d, it.row());
-            // L_id += alpha * (Y_ij - k_ijd) * v_jd
-            Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
-            }
-
-            // Now use Lid and Qid to update uid
-            double uid_old = U(d, i);
-            double uid_var = 1.0 / Qi(d);
-
-            // sampling new u_id ~ Norm(Lid / Qid, 1/Qid)
-            U(d, i) = Lid * uid_var + sqrt(uid_var) * rnorms(d);
-
-
-            // updating Yhat
-            double uid_delta = U(d, i) - uid_old;
-            idx = 0;
-            for (SparseMatrix<double>::InnerIterator it(Ymat, i); it; ++it, idx++)
-            {
-            Yhat(idx) += uid_delta * V(d, it.row());
-            }
-         }
-      }
-   }
-   */
 
    void sample_latents() override
    {

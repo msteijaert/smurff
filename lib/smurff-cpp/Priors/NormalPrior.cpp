@@ -22,9 +22,6 @@ NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
 
 }
 
-//method is nearly identical
-
-
 void NormalPrior::init()
 {
    //does not look that there was such init previously
@@ -50,15 +47,10 @@ void NormalPrior::init()
    df = K;
 }
 
-//new method
-
 const Eigen::VectorXd NormalPrior::getMu(int) const
 {
     return mu;
 }
-
-//this method is ok except that
-//CondNormalWishart now uses more arguments (cov and sum)
 
 void NormalPrior::sample_latents()
 {
@@ -72,23 +64,8 @@ void NormalPrior::sample_latents()
    const auto sum = Ucol.combine_and_reset();
 
    //this corresponds to update_prior - tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
-   std::tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
+   std::tie(mu, Lambda) = CondNormalWishart(N, cov, sum, mu0, b0, WI, df);
 }
-
-//this method should correspond to sample_latent_blas from GlobalPrior
-//previously it was called as:
-/*
-template<class FType>
-void MacauPrior<FType>::sample_latents(Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat, double mean_value,
-                    const Eigen::MatrixXd &samples, double alpha, const int num_latent)
-{
-#pragma omp parallel for schedule(dynamic, 2)
-  for(int n = 0; n < U.cols(); n++) {
-    // TODO: try moving mu + Uhat.col(n) inside sample_latent for speed
-    sample_latent_blas(U, n, mat, mean_value, samples, alpha, mu + Uhat.col(n), Lambda, num_latent);
-  }
-}
-*/
 
 void NormalPrior::sample_latent(int n)
 {
@@ -122,74 +99,10 @@ void NormalPrior::sample_latent(int n)
    UUcol.local().noalias() += rr * rr.transpose();
 }
 
-//macau
-/*
-void sample_latent_blas(MatrixXd &s, int mm, const SparseMatrix<double> &mat, double mean_rating,
-    const MatrixXd &samples, double alpha, const VectorXd &mu_u, const MatrixXd &Lambda_u,
-    const int num_latent)
-{
-  MatrixXd MM = Lambda_u;
-  VectorXd rr = VectorXd::Zero(num_latent);
-  for (SparseMatrix<double>::InnerIterator it(mat, mm); it; ++it) {
-    auto col = samples.col(it.row());
-    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose();
-    rr.noalias() += col * ((it.value() - mean_rating) * alpha);
-  }
-
-  Eigen::LLT<MatrixXd> chol = MM.llt();
-  if(chol.info() != Eigen::Success) {
-    throw std::runtime_error("Cholesky Decomposition failed!");
-  }
-
-  rr.noalias() += Lambda_u * mu_u;
-  chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent; i++) {
-    rr[i] += randn0();
-  }
-  chol.matrixU().solveInPlace(rr);
-  s.col(mm).noalias() = rr;
-}
-*/
-
-//macau - not used anywhere. not sure if it is needed
-//maybe current implementation of sample latents in priors is build upon this function?
-/*
-void sample_latent(MatrixXd &s, int mm, const SparseMatrix<double> &mat, double mean_rating,
-    const MatrixXd &samples, double alpha, const VectorXd &mu_u, const MatrixXd &Lambda_u,
-    const int num_latent)
-{
-  // TODO: add cholesky update version
-  MatrixXd MM = MatrixXd::Zero(num_latent, num_latent);
-  VectorXd rr = VectorXd::Zero(num_latent);
-  for (SparseMatrix<double>::InnerIterator it(mat, mm); it; ++it) {
-    auto col = samples.col(it.row());
-    MM.noalias() += col * col.transpose();
-    rr.noalias() += col * ((it.value() - mean_rating) * alpha);
-  }
-
-  Eigen::LLT<MatrixXd> chol = (Lambda_u + alpha * MM).llt();
-  if(chol.info() != Eigen::Success) {
-    throw std::runtime_error("Cholesky Decomposition failed!");
-  }
-
-  rr.noalias() += Lambda_u * mu_u;
-  chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent; i++) {
-    rr[i] += randn0();
-  }
-  chol.matrixU().solveInPlace(rr);
-  s.col(mm).noalias() = rr;
-}
-*/
-
-//method is identical
-
 void NormalPrior::save(std::string prefix, std::string suffix)
 {
    smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
 }
-
-//new method
 
 void NormalPrior::restore(std::string prefix, std::string suffix)
 {
@@ -197,15 +110,11 @@ void NormalPrior::restore(std::string prefix, std::string suffix)
    initUU();
 }
 
-//new method
-
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
 {
    os << indent << name << ": mu = " <<  mu.norm() << std::endl;
    return os;
 }
-
-//new method
 
 void NormalPrior::initUU()
 {

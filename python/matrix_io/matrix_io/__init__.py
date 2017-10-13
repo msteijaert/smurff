@@ -31,7 +31,7 @@ def write_dense_float64(filename, Y):
     with open(filename, 'w') as f:
         np.array(Y.shape[0]).astype(np.int64).tofile(f)
         np.array(Y.shape[1]).astype(np.int64).tofile(f)
-        Y.tofile(f)
+        Y.astype(np.float64).tofile(f)
 
 def write_sparse_float64(filename, Y):
     with open(filename, 'w') as f:
