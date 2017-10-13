@@ -2,7 +2,7 @@
 
 import argparse
 import os
-import glob
+from glob import glob
 import sys
 import subprocess
 import itertools
@@ -21,7 +21,26 @@ args.outdir = os.path.abspath(args.outdir)
 args.envdir = os.path.abspath(args.envdir)
 args.datadir = os.path.abspath(args.datadir)
 
-args.envs = list(map(os.path.basename,glob.glob("%s/*" % args.envdir)))
+args.envs = list(map(os.path.basename,glob("%s/*" % args.envdir)))
+
+defaults = {
+        'bin'         : 'smurff',
+        'datadir'     : args.datadir, 
+        'num_latent'  : 16,
+        'row_prior'   : "normal",
+        'col_prior'   : "normal",
+        'burnin'      : 20,
+        'nsamples'    : 200,
+        'verbose'     : 1,
+        'center'      : "global",
+        'row_features': [],
+        'col_features': [],
+        'direct'      : True,
+        'save-prefix' : 'results',
+        'save-freq'   : 10,
+        'precision'   : 5.0,
+        'adaptive'    : None,
+}
 
 print("Generating tests in %s" % args.outdir)
 
@@ -48,8 +67,11 @@ def gen_cmd(outdir, env, test):
     --save-prefix={save-prefix} --save-freq={save-freq} \
     """
 
-    if (args["row_features"]): fmt = fmt + " --row-features={datadir}/{row_features}"
-    if (args["col_features"]): fmt = fmt + " --col-features={datadir}/{col_features}"
+    for feat in args["row_features"]: 
+        fmt = fmt + " --row-features={datadir}/{row_features}"
+    for feat in args["col_features"]:
+        fmt = fmt + " --col-features={datadir}/{col_features}"
+
     if (args["direct"]): fmt = fmt + " --direct"
     if (args["precision"]): fmt = fmt + " --precision={precision}"
     if (args["adaptive"]): fmt = fmt + " --adaptive={adaptive}"
@@ -82,15 +104,23 @@ class Test:
     def update_one(self, name, value):
         self.update({name : value})
 
+    def append_one(self, name, value):
+        self.opts[name].append(value)
+
 
 class TestSuite:
-    def __init__(self, base, tests = []):
+    def __init__(self, name, base = {} , tests = []):
+        self.name = name
         self.tests = []
         for t in tests: self.add_test(base, t)
+
+    def __str__(self):
+        return "%s: %d tests" % (self.name, len(self.tests))
 
     def add_test(self, base, upd = {}):
         if isinstance(base, Test): base = base.opts
         self.tests.append(Test(base, upd))
+        return self.tests[-1]
 
     def add_testsuite(self, suite):
         self.tests += suite.tests
@@ -109,7 +139,7 @@ class TestSuite:
     def add_centering_options(self):
         return self.add_options("center", ("none", "global", "rows", "cols"))
 
-    def add_adaptive_noise_options(self):
+    def add_noise_options(self):
         tests = self.tests
         self.tests = []
         for t in tests:
@@ -123,72 +153,63 @@ def chembl_tests(defaults):
             'test'       : 'chembl_demo/test_sample1_c1.sdm',
     })
 
-    chembl_tests_centering = TestSuite(chembl_defaults,
+    chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
             { 'name': 'bpmf',                   },
-            { 'name': 'macau_dense',            "row_prior": "macau",        "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
-            { 'name': 'cofac_dense',            "row_prior": "normal",       "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
-            { 'name': 'spikeandslab_dense',     "col_prior": "spikeandslab", "row_features": "chembl_demo/side_sample1_c1_chem2vec.ddm"     },
+            { 'name': 'macau_dense',            "row_prior": "macau",        "row_features": [ "chembl_demo/side_sample1_c1_chem2vec.ddm" ] },
+            { 'name': 'cofac_dense',            "row_prior": "normal",       "row_features": [ "chembl_demo/side_sample1_c1_chem2vec.ddm" ] },
+            { 'name': 'spikeandslab_dense',     "col_prior": "spikeandslab", "row_features": [ "chembl_demo/side_sample1_c1_chem2vec.ddm" ] },
     ])
 
     chembl_tests_centering.add_centering_options()
 
-    chembl_tests = TestSuite(chembl_defaults,
+    chembl_tests = TestSuite("chembl", chembl_defaults,
         [
-            { 'name': 'macau_sparsebin',        "row_prior": "macau",        "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
-            { 'name': 'macau_indirect',         "row_prior": "macau", "direct": False, "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
-            { 'name': 'macauone_sparsebin',     "row_prior": "macauone",     "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
-            { 'name': 'cofac_sparsebin',        "row_prior": "normal", "center": "none", "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
-            { 'name': 'spikeandslab_sparsebin', "col_prior": "spikeandslab", "center": "none", "row_features": "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" },
+            { 'name': 'macau_sparsebin',        "row_prior": "macau",        "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
+            { 'name': 'macau_indirect',         "row_prior": "macau", "direct": False,  "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ]},
+            { 'name': 'macauone_sparsebin',     "row_prior": "macauone",     "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
+            { 'name': 'cofac_sparsebin',        "row_prior": "normal", "center": "none", "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
+            { 'name': 'spikeandslab_sparsebin', "col_prior": "spikeandslab", "center": "none", "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
         ])
 
     chembl_tests.add_testsuite(chembl_tests_centering)
-    chembl_tests.add_adaptive_noise_options()
+    chembl_tests.add_noise_options()
+
+    print(chembl_tests)
 
     return chembl_tests
 
 
 def synthetic_tests(defaults):
-    synth_defaults = defaults.copy()
+    suite = TestSuite("synthesic")
 
     priors = [ "normal", "macau", "spikeandslab" ]
-    datadirs = glob.glob("%s/synthetic/*" % defaults.datadir)
+    datadirs = glob("%s/synthetic/*" % defaults["datadir"])
 
-    for name, val in synth_tests.items():
-        opts = synth_defaults.copy()
-        opts.update(val)
-        synth_tests[name] = opts
+    # each datadir == 1 test
+    for d in datadirs:
+        test = suite.add_test(defaults)
+        train_file = list(glob('%s/train.*' % d))[0]
+        test_file  = os.path.join(d, "test.sdm")
+        test.update({ 'train' : train_file, 'test' : test_file, })
+        for f in glob('%s/feat_0_*' % d): test.append_one("row_features", f)
+        for f in glob('%s/feat_1_*' % d): test.append_one("col_features", f)
 
-    for test in synth_tests.keys():
-        synth_tests.update(add_centering_options(test, synth_tests))
+    suite.add_options("row_prior", priors)
+    suite.add_options("col_prior", priors)
+    suite.add_centering_options()
+    suite.add_noise_options()
 
-    adaptive_noise_tests = {}
-    for test in synth_tests.keys():
-        adaptive_noise_tests.update(add_adaptive_noise_option(test, synth_tests))
+    print(suite)
 
-    synth_tests.update(adaptive_noise_tests)
+    return suite
+        
+    
 
 def all_tests(args):
-    defaults = {
-            'bin'         : 'smurff',
-            'datadir'     : args.datadir, 
-            'num_latent'  : 16,
-            'row_prior'   : "normal",
-            'col_prior'   : "normal",
-            'burnin'      : 20,
-            'nsamples'    : 200,
-            'verbose'     : 1,
-            'center'      : "global",
-            'row_features': "",
-            'col_features': "",
-            'direct'      : True,
-            'save-prefix' : 'results',
-            'save-freq'   : 10,
-            'precision'   : 5.0,
-            'adaptive'    : None,
-    }
 
     all_tests = chembl_tests(defaults)
+    all_tests.add_testsuite(synthetic_tests(defaults))
 
     return all_tests
 
@@ -201,5 +222,4 @@ for opts  in tests:
         fullenv = os.path.join(args.envdir, env)
         gen_cmd(fulldir, fullenv, opts)
 
-print("Generated %d x %d tests " % (len(tests), len(args.envs)))
 
