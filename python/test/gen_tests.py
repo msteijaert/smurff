@@ -61,22 +61,22 @@ def cat(fname, s):
 def gen_cmd(outdir, env, test):
     args = test.opts
 
-    fmt = """{bin} --train={datadir}/{train} --burnin={burnin} \
-    --test={datadir}/{test}  --nsamples={nsamples} --verbose={verbose} --num-latent={num_latent} \
+    fmt = """{bin} --train={train} --burnin={burnin} \
+    --test={test}  --nsamples={nsamples} --verbose={verbose} --num-latent={num_latent} \
     --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
     --save-prefix={save-prefix} --save-freq={save-freq} \
     """
 
-    for feat in args["row_features"]: 
-        fmt = fmt + " --row-features={datadir}/{row_features}"
-    for feat in args["col_features"]:
-        fmt = fmt + " --col-features={datadir}/{col_features}"
-
     if (args["direct"]): fmt = fmt + " --direct"
     if (args["precision"]): fmt = fmt + " --precision={precision}"
     if (args["adaptive"]): fmt = fmt + " --adaptive={adaptive}"
-
     cmd = fmt.format(**args)
+
+    for feat in args["row_features"]: 
+        cmd += " --row-features=%s" % feat
+    for feat in args["col_features"]: 
+        cmd += " --col-features=%s" % feat
+
     name = hashlib.md5(cmd.encode('ascii')).hexdigest()
     fulldir = os.path.join(outdir, name)
 
@@ -148,8 +148,8 @@ class TestSuite:
 def chembl_tests(defaults):
     chembl_defaults = defaults
     chembl_defaults.update({
-            'train'      : 'chembl_demo/train_sample1_c1.sdm',
-            'test'       : 'chembl_demo/test_sample1_c1.sdm',
+            'train'      : os.path.join(defaults["datadir"], 'chembl_demo/train_sample1_c1.sdm'),
+            'test'       : os.path.join(defaults["datadir"], 'chembl_demo/test_sample1_c1.sdm'),
     })
 
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,

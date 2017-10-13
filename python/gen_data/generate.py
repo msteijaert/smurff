@@ -46,7 +46,7 @@ def gen_matrix(shape, K, func = "normal", density = 1.0 ):
         assert False
 
     if density < 1.0:
-        m = sparisify(m, density)
+        m = sparsify(m, density)
 
     return m
 
@@ -72,27 +72,27 @@ def write_data(dirname, train, features = ([],[])):
         write_feat(indx, feat)
     os.chdir("..")
 
-def gen_and_write(shape, K,func,density, split = (1,1)):
-    m = gen_matrix(shape,K,func,density);
+def gen_and_write(shape, K,func,density, split = [1,1]):
+    m = gen_matrix(shape,K,func);
 
-    feat = ([], [])
+    feat = [[], []]
     for axis, num in enumerate(split):
         if num > 1: 
-            feat[axis] = np.split(m, num)
+            feat[axis] = np.array_split(m, num, axis=axis)
+            m = feat[axis].pop(0)
 
-    write_data("%s_%s_%d_%d" % (func, shape, K, int(density * 100)), m, feat)
+    if density < 1.0:
+        m = sparsify(m, density)
+
+    shape_str = "_".join(map(str,shape))
+    split_str = "_".join(map(str,split))
+    dirname = "%s_%s_%d_%d_%s" % (func, shape_str, K, int(density * 100), split_str)
+    write_data(dirname, m, feat)
 
 if __name__ == "__main__":
-    shape = (200,100)
+    shape = [2000,100]
     num_latent = 4
     for density in (1, .2):
         for func in ("normal", "ones"):
                 for num_split in itertools.product((1,2,3), (1,2,3)):
                     gen_and_write(shape,num_latent,func,density, (num_split))
-
-    # 1 set of row-featueres
-
-
-    # 2 sets of row-features
-
-
