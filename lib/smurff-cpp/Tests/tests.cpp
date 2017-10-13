@@ -9,8 +9,8 @@
 
 #include "model.h"
 #include "sparsetensor.h"
-#include "TruncNorm.h"
 
+#include <Utils/TruncNorm.h>
 #include <Utils/InvNormCdf.h>
 #include <Utils/Distribution.h>
 #include <Utils/linop.h>
