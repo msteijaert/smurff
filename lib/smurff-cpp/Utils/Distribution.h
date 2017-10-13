@@ -39,7 +39,7 @@ namespace smurff
    
    std::pair<Eigen::VectorXd, Eigen::MatrixXd> NormalWishart(const Eigen::VectorXd & mu, double kappa, const Eigen::MatrixXd & T, double nu);
    std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const Eigen::MatrixXd &U, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
-   std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const int N, const Eigen::MatrixXd &S, const Eigen::VectorXd &Um, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
+   std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const int N, const Eigen::MatrixXd &NS, const Eigen::VectorXd &NU, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
    
    // Multivariate normal gaussian
 

@@ -255,38 +255,25 @@ std::pair<VectorXd, MatrixXd> smurff::NormalWishart(const VectorXd & mu, double 
    return std::make_pair(mu_o , Lam);
 }
 
-std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const int N, const MatrixXd &S, const VectorXd &Um, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
+std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const int N, const MatrixXd &NS, const VectorXd &NU, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
 {
-   VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
-   double kappa_c = kappa + N;
-   auto mu_m = (mu - Um);
-   double kappa_m = (kappa * N)/(kappa + N);
-   auto X = ( T + N * S + kappa_m * (mu_m * mu_m.transpose()));
-   MatrixXd T_c = X.inverse();
    int nu_c = nu + N;
 
-   #ifdef TEST_MVNORMAL
-   cout << "mu_c:\n" << mu_c << endl;
-   cout << "kappa_c:\n" << kappa_c << endl;
-   cout << "T_c:\n" << T_c << endl;
-   cout << "nu_c:\n" << nu_c << endl;
-   #endif
-
+   double kappa_c = kappa + N;
+   auto mu_c = (kappa * mu + NU) / (kappa + N);
+   auto X    = (T + NS + kappa * mu * mu.adjoint() - kappa_c * mu_c * mu_c.adjoint());
+   Eigen::MatrixXd T_c = X.inverse();
+    
    return NormalWishart(mu_c, kappa_c, T_c, nu_c);
 }
 
 std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
 {
-   int N = U.cols();
-   auto Um = U.rowwise().mean();
-
-   // http://stackoverflow.com/questions/15138634/eigen-is-there-an-inbuilt-way-to-calculate-sample-covariance
-   MatrixXd C = U.colwise() - Um;
-   MatrixXd S = (C * C.adjoint()) / double(N - 1);
-
-   return smurff::CondNormalWishart(N, S, Um, mu, kappa, T, nu);
+   auto N = U.cols();
+   auto NS = U * U.adjoint();
+   auto NU = U.rowwise().sum();
+   return CondNormalWishart(N, NS, NU, mu, kappa, T, nu);
 }
-
 
 // Normal(0, Lambda^-1) for nn columns
 MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int nn)
