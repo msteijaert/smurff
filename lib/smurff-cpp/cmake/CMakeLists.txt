@@ -500,7 +500,7 @@ FILE (GLOB HEADER_FILES ""
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../mvnormal.cpp"
+FILE (GLOB SOURCE_FILES "../bench_nrandn.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
@@ -509,9 +509,6 @@ add_executable (${PROJECT} ${HEADER_FILES} ${SOURCE_FILES})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Executables")
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
-
-SET(DEFINITIONS BENCH
-                BENCH_NRANDN)
 
 set_target_properties(${PROJECT} PROPERTIES
 		COMPILE_DEFINITIONS "${DEFINITIONS}")
@@ -536,7 +533,7 @@ FILE (GLOB HEADER_FILES ""
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../mvnormal.cpp"
+FILE (GLOB SOURCE_FILES "../bench_wishart.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
@@ -545,10 +542,6 @@ add_executable (${PROJECT} ${HEADER_FILES} ${SOURCE_FILES})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Executables")
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
-
-SET(DEFINITIONS BENCH
-                BENCH_COND_NORMALWISHART
-                BENCH_NORMAL_WISHART)
 
 set_target_properties(${PROJECT} PROPERTIES
 		COMPILE_DEFINITIONS "${DEFINITIONS}")
@@ -573,7 +566,7 @@ FILE (GLOB HEADER_FILES ""
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../mvnormal.cpp"
+FILE (GLOB SOURCE_FILES "../bench_mvnormal.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
@@ -582,9 +575,6 @@ add_executable (${PROJECT} ${HEADER_FILES} ${SOURCE_FILES})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Executables")
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
-
-SET(DEFINITIONS BENCH
-                BENCH_MVNORMAL)
 
 set_target_properties(${PROJECT} PROPERTIES
 		COMPILE_DEFINITIONS "${DEFINITIONS}")
