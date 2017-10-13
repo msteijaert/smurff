@@ -9,6 +9,7 @@
 #include <numeric>
 #include <memory>
 #include <array>
+#include <map>
 
 #include <Eigen/Sparse>
 #include <Eigen/Dense>

@@ -7,8 +7,8 @@
 
 #include <IO/MatrixIO.h>
 #include <Utils/linop.h>
+#include <Utils/Distribution.h>
 
-#include "mvnormal.h"
 #include "model.h"
 
 #include "NormalPrior.h"

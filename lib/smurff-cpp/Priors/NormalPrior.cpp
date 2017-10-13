@@ -9,7 +9,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "mvnormal.h"
+#include <Utils/Distribution.h>
 
 using namespace Eigen;
 using namespace smurff;

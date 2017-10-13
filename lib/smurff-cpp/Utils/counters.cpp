@@ -3,8 +3,6 @@
  * All rights reserved.
  */
 
-#pragma once
-
 #ifdef PROFILING
 
 #include <mutex>

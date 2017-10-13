@@ -5,9 +5,10 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
+#include <Utils/Distribution.h>
+
 #include "ILatentPrior.h"
 
-#include "mvnormal.h"
 #include "model.h"
 
 namespace smurff {

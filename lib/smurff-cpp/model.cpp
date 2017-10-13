@@ -18,9 +18,9 @@
 
 #include <DataMatrices/Data.h>
 #include <IO/MatrixIO.h>
+#include <Utils/Distribution.h>
 
 #include "model.h"
-#include "mvnormal.h"
 
 using namespace std;
 using namespace Eigen;

@@ -3,6 +3,7 @@
  * All rights reserved.
  */
 
+#pragma once
 
 #ifdef PROFILING
 

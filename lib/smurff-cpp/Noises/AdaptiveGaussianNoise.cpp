@@ -1,6 +1,6 @@
 #include "AdaptiveGaussianNoise.h"
 
-#include "mvnormal.h"
+#include <Utils/Distribution.h>
 #include <DataMatrices/Data.h>
 
 using namespace smurff;

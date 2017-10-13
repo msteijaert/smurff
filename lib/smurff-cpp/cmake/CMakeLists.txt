@@ -279,8 +279,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
 			"../SparseFeat.h"
 			"../SparseDoubleFeat.h"
 
-                        "../mvnormal.h"
-
+                        "../Utils/Distribution.h"
                         "../Utils/MatrixUtils.h"
                         "../Utils/PVec.hpp"
                         "../Utils/chol.h"
@@ -336,8 +335,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 			"../SparseFeat.cpp"
 			"../SparseDoubleFeat.cpp"
 
-                        "../mvnormal.cpp"
-
+                        "../Utils/Distribution.cpp"
                         "../Utils/MatrixUtils.cpp"
                         "../Utils/chol.cpp"
                         "../Utils/counters.cpp"
@@ -519,7 +517,8 @@ set_target_properties(${PROJECT} PROPERTIES
 		COMPILE_DEFINITIONS "${DEFINITIONS}")
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} ${ALGEBRA_LIBS}
+target_link_libraries (${PROJECT} smurff-cpp
+				  ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
 #SETUP INCLUDES
@@ -555,7 +554,8 @@ set_target_properties(${PROJECT} PROPERTIES
 		COMPILE_DEFINITIONS "${DEFINITIONS}")
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} ${ALGEBRA_LIBS}
+target_link_libraries (${PROJECT} smurff-cpp
+				  ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
 #SETUP INCLUDES
@@ -590,7 +590,8 @@ set_target_properties(${PROJECT} PROPERTIES
 		COMPILE_DEFINITIONS "${DEFINITIONS}")
 
 #LINK LIBRARIES
-target_link_libraries (${PROJECT} ${ALGEBRA_LIBS}
+target_link_libraries (${PROJECT} smurff-cpp
+				  ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
 #SETUP INCLUDES

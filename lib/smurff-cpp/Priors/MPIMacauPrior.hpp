@@ -5,9 +5,10 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
+#include <Utils/Distribution.h>
+
 #include "MacauPrior.h"
 
-#include "mvnormal.h"
 #include "linop.h"
 #include "model.h"
 #include "data.h"

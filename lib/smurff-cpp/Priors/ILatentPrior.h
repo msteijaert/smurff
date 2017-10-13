@@ -8,8 +8,8 @@
 #include <Sessions/BaseSession.h>
 #include <Noises/INoiseModel.h>
 #include <DataMatrices/Data.h>
+#include <Utils/Distribution.h>
 
-#include "mvnormal.h"
 #include "model.h"
 
 namespace smurff {
