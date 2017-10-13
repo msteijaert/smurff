@@ -5,12 +5,11 @@ set (PROJECT mpi_smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES "../Sessions/MPISession.h"
-                        "../Priors/MPIMacauPrior.hpp"
+FILE (GLOB HEADER_FILES "../MPISession.h"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../Sessions/MPISession.cpp"
+FILE (GLOB SOURCE_FILES "../MPISession.cpp"
                         "../mpi_smurff.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})

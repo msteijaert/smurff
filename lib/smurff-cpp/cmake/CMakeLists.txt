@@ -153,7 +153,7 @@ execute_process(
 
 message(STATUS "GIT describe ${SMURFF_VERSION}")
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../Version.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/../Version.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../SmurffCpp/Version.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/../SmurffCpp/Version.cpp)
 
 # CONFIGURE BUILD TYPE
 
@@ -264,29 +264,19 @@ message(STATUS "Creating folder structure...")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-############## setup smurff-cpp ##############
+# libraries
 
+add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 
-############## setup smurff ##############
+# utils
 
+add_subdirectory (../Smurff/cmake utils/Smurff)
+add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
 
+# tests
 
-############## setup tests ##############
-
-
-
-############## setup mpi_smurff ##############
-
-
-
-############## setup bench_nrandn ##############
-
-
-
-############## setup bench_wishart ##############
-
-
-############## setup bench_mvnormal ##############
-
-
+add_subdirectory (../Tests/cmake tests/Tests)
+add_subdirectory (../BenchMvnormal/cmake tests/BenchMvnormal)
+add_subdirectory (../BenchNrandn/cmake tests/BenchNrandn)
+add_subdirectory (../BenchWishart/cmake tests/BenchWishart)
 

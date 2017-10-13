@@ -109,8 +109,13 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 			"../Sessions/Session.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
+if(${MPI_CXX_FOUND})
+FILE (GLOB HEADER_FILES_MPI "../Priors/MPIMacauPrior.hpp")
+source_group ("Header Files" FILES ${HEADER_FILES_MPI})
+endif()
+
 #SETUP OUTPUT
-add_library (${PROJECT} STATIC ${HEADER_FILES} ${SOURCE_FILES})
+add_library (${PROJECT} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${HEADER_FILES_MPI})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
 #SETUP INCLUDES

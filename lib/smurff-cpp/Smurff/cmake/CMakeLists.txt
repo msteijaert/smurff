@@ -3,11 +3,11 @@ set (PROJECT smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES "../Sessions/CmdSession.h"
+FILE (GLOB HEADER_FILES "../CmdSession.h"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../Sessions/CmdSession.cpp"
+FILE (GLOB SOURCE_FILES "../CmdSession.cpp"
                         "../smurff.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})

@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <mpi.h>
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
