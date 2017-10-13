@@ -1,7 +1,5 @@
 #include <mpi.h>
 #include <stdio.h>
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 
 #include <iostream>
 #include <fstream>
@@ -15,14 +13,11 @@
 #include <cmath>
 #include <stdlib.h>
 
-#include <unsupported/Eigen/SparseExtra>
-
 #include "omp_util.h"
 #include "linop.h"
 #include "MacauOnePrior.hpp"
 #include "MPISession.h"
 
-using namespace Eigen;
 using namespace std;
 
 int main(int argc, char** argv) 

@@ -14,7 +14,7 @@ ScarceMatrixData::ScarceMatrixData(Eigen::SparseMatrix<double> Y)
 
 void ScarceMatrixData::init_pre()
 {
-   MatrixDataTempl<SparseMatrixD>::init_pre();
+   MatrixDataTempl<Eigen::SparseMatrix<double> >::init_pre();
 
    // check no rows, nor cols withouth data
    for(unsigned i=0; i<getYcPtr()->size(); ++i)

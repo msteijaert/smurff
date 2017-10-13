@@ -3,8 +3,7 @@
 #include <set>
 #include <iostream>
 
-#include "utils.h"
-#include "INIReader.h"
+#include <IO/INIReader.h>
 #include <DataMatrices/Data.h>
 
 using namespace smurff;

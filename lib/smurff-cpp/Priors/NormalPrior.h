@@ -1,21 +1,20 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <memory>
 
-#include "mvnormal.h"
-#include "linop.h"
-#include "model.h"
-#include "matrix_io.h"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include "ILatentPrior.h"
+
+#include "mvnormal.h"
+#include "model.h"
 
 namespace smurff {
 
 //definition is identical except for:
-//thread_vector<VectorNd> Ucol;
-//thread_vector<MatrixNNd> UUcol;
+//thread_vector<Eigen::VectorXd> Ucol;
+//thread_vector<Eigen::MatrixXd> UUcol;
 
 //why remove update_prior method ?   
 
@@ -47,8 +46,8 @@ public:
 
 private:
    // for effiency, we keep + update Ucol and UUcol by every thread
-   thread_vector<VectorNd> Ucol;
-   thread_vector<MatrixNNd> UUcol;
+   thread_vector<Eigen::VectorXd> Ucol;
+   thread_vector<Eigen::MatrixXd> UUcol;
 
 private:
   void initUU();

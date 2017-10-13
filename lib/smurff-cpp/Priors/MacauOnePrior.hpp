@@ -1,11 +1,15 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <memory>
 
-#include "ILatentPrior.h"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
 #include <DataMatrices/ScarceMatrixData.h>
+#include <IO/MatrixIO.h>
+#include <Utils/linop.h>
+
+#include "ILatentPrior.h"
 
 namespace smurff {
 

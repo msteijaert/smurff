@@ -14,8 +14,8 @@ ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
 
 void ILatentPrior::init() 
 {
-   rrs.init(VectorNd::Zero(num_latent()));
-   MMs.init(MatrixNNd::Zero(num_latent(), num_latent()));
+   rrs.init(VectorXd::Zero(num_latent()));
+   MMs.init(MatrixXd::Zero(num_latent(), num_latent()));
 }
 
 Model &ILatentPrior::model() const 

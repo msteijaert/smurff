@@ -1,15 +1,16 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <memory>
 
-#include "mvnormal.h"
-#include "linop.h"
-#include "model.h"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
 #include <Sessions/BaseSession.h>
 #include <Noises/INoiseModel.h>
 #include <DataMatrices/Data.h>
+
+#include "mvnormal.h"
+#include "model.h"
 
 namespace smurff {
 
@@ -28,8 +29,8 @@ public:
    int mode;
    std::string name = "xxxx";
 
-   thread_vector<VectorNd> rrs;
-   thread_vector<MatrixNNd> MMs;
+   thread_vector<Eigen::VectorXd> rrs;
+   thread_vector<Eigen::MatrixXd> MMs;
 
 public:
    // c-tor

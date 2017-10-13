@@ -1,6 +1,3 @@
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-
 #include <iostream>
 #include <cassert>
 #include <fstream>
@@ -12,8 +9,12 @@
 #include <cmath>
 
 #include <DataMatrices/Data.h>
+#include <Utils/utils.h>
+
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
 #include "model.h"
-#include "utils.h"
 #include "result.h"
 
 using namespace std;
@@ -21,7 +22,7 @@ using namespace Eigen;
 
 namespace smurff {
 
-void Result::set(SparseMatrixD Y) {
+void Result::set(Eigen::SparseMatrix<double> Y) {
     for (int k = 0; k < Y.outerSize(); ++k) {
         for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) {
             predictions.push_back({(int)it.row(), (int)it.col(), it.value()});

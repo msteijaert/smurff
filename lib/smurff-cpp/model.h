@@ -1,14 +1,12 @@
-#ifndef MODEL_H
-#define MODEL_H
+#pragma once
+
+#include <memory>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <memory>
 
-
-#include "matrix_io.h"
-#include "utils.h"
-#include "PVec.hpp"
+#include <Utils/utils.h>
+#include <Utils/PVec.hpp>
 
 namespace smurff {
 
@@ -109,10 +107,4 @@ private:
     PVec<> dims;
 };
 
-
-
-
-
 }; // end namespace smurff
-
-#endif

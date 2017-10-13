@@ -3,7 +3,7 @@
 #include <string>
 #include <set>
 
-#include "utils.h"
+#include <Utils/utils.h>
 
 using namespace smurff;
 

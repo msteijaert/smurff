@@ -4,16 +4,16 @@
  * http://stackoverflow.com/questions/6142576/sample-from-multivariate-normal-gaussian-distribution-in-c
  */
 
-#include <iostream>
-#include <random>                                                                                
-#include <Eigen/Dense>
+#include "mvnormal.h"
 
+#include <iostream>
+#include <random>
 #include <chrono>
 
-#include "utils.h"
-#include "matrix_io.h"
-#include "omp_util.h"
-#include "mvnormal.h"
+#include <Eigen/Dense>
+
+#include <Utils/utils.h>
+#include <Utils/omp_util.h>
 
 using namespace std;
 using namespace Eigen;
@@ -286,7 +286,7 @@ std::pair<VectorXd, MatrixXd> NormalWishart(const VectorXd & mu, double kappa, c
   return std::make_pair(mu_o , Lam);
 }
 
-std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S, const VectorNd &Um, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu)
+std::pair<VectorXd, MatrixXd> CondNormalWishart(const int N, const MatrixXd &S, const VectorXd &Um, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
 {
     VectorXd mu_c = (kappa*mu + N*Um) / (kappa + N);
     double kappa_c = kappa + N;
@@ -320,7 +320,7 @@ std::pair<VectorXd, MatrixXd> CondNormalWishart(const MatrixXd &U, const VectorX
 
 #if defined(TEST) || defined (BENCH)
 
-#include "utils.h"
+#include <Utils/utils.h>
 
 int main()
 {

@@ -3,7 +3,6 @@
 #include "mvnormal.h"
 #include <DataMatrices/Data.h>
 
-using namespace Eigen;
 using namespace smurff;
 
 AdaptiveGaussianNoise::AdaptiveGaussianNoise(double sinit, double smax)

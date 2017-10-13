@@ -1,12 +1,10 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <memory>
-#include <iomanip>
-#include "utils.h"
+#include <string>
+#include <iostream>
 
 #include "INoiseModel.h"
+
 #include <DataMatrices/Data.h>
 
 namespace smurff {

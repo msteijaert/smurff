@@ -1,11 +1,10 @@
 
-#ifndef GFA_H
-#define GFA_H
+#pragma once
 
 #define EIGEN_RUNTIME_NO_MALLOC 1
 
 #include <Eigen/Dense>
-using namespace Eigen;
+
 #include <random>
 
 double randn(double);
@@ -71,12 +70,10 @@ class Model
 {
 	//GFA returns the trained model, which is a dict that contains the following elements:
 
-	MatrixXd Z; //The mean of the latent variables; N times K matrix
-	MatrixXd W; // The mean projections; D_i times K matrices
-	VectorXd tau; //The mean precisions (inverse variance, so 1/tau gives the variances denoted by sigma in the paper); M-element vector
+	Eigen::MatrixXd Z; //The mean of the latent variables; N times K matrix
+	Eigen::MatrixXd W; // The mean projections; D_i times K matrices
+	Eigen::VectorXd tau; //The mean precisions (inverse variance, so 1/tau gives the variances denoted by sigma in the paper); M-element vector
 
-	VectorXd cost; //Vector collecting the variational lower bounds for each iteration
+	Eigen::VectorXd cost; //Vector collecting the variational lower bounds for each iteration
 
 };
-
-#endif

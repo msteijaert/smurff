@@ -7,19 +7,17 @@
 #include <sstream>
 #include <vector>
 
-#include "linop.h"
-#include "chol.h"
 #include "mvnormal.h"
-#include "utils.h"
 #include "model.h"
 #include "sparsetensor.h"
 #include "inv_norm_cdf.h"
 #include "truncnorm.h"
 
-#include <Configs/MatrixConfig.h>
+#include <Utils/linop.h>
+#include <Utils/chol.h>
+#include <Utils/utils.h>
 
-#include "matrix_io.h"
-#include "tensor_io.h"
+#include <Configs/MatrixConfig.h>
 
 #include <Priors/ILatentPrior.h>
 #include <Priors/MacauPrior.hpp>
@@ -793,6 +791,6 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
        double stop = tick();
        std::cout << "norm U: " << U.norm() << std::endl;
        std::cout << "norm M: " << M.norm() << std::endl;
-       std::cout << "MatrixNNd: " << stop - start << std::endl;
+       std::cout << "MatrixXd: " << stop - start << std::endl;
    }
 }

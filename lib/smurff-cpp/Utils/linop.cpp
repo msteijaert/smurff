@@ -1,11 +1,9 @@
-//#define EIGEN_USE_BLAS
-
-#include <Eigen/Dense>
 #include <math.h>
-
 #include <iostream>
-
 #include <stdexcept>
+
+//#define EIGEN_USE_BLAS
+#include <Eigen/Dense>
 
 #include "chol.h"
 #include "linop.h"

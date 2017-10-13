@@ -1,8 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <Eigen/Sparse>
-#include <Eigen/Dense>
 #include <cmath>
 #include <algorithm>
 #include <fstream>
@@ -12,7 +10,9 @@
 #include <memory>
 
 #include <Configs/MatrixConfig.h>
-#include "omp_util.h"
+
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 
 //
 // GitHub issue #34:

@@ -7,7 +7,7 @@
 #include <Configs/Config.h>
 #include <Configs/NoiseConfig.h>
 
-#include "matrix_io.h"
+#include <IO/MatrixIO.h>
 
 #include <Priors/ILatentPrior.h>
 

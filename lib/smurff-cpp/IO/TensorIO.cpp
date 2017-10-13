@@ -1,10 +1,10 @@
-#include "tensor_io.h"
+#include "TensorIO.h"
 
 #include <fstream>
 #include <algorithm>
 #include <numeric>
 
-#include "utils.h"
+#include <Utils/utils.h>
 
 using namespace smurff;
 

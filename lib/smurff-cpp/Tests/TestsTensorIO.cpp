@@ -1,11 +1,10 @@
 #include "catch.hpp"
 
-#include "tensor_io.h"
-#include "matrix_io.h"
-#include "MatrixUtils.h"
-
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
+
+#include <IO/TensorIO.h>
+#include <Utils/MatrixUtils.h>
 
 using namespace smurff;
 

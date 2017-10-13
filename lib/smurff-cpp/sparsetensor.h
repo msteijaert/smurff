@@ -1,9 +1,10 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <vector>
 #include <memory>
+
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 // forward declarations
 class ILatentPrior;

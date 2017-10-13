@@ -1,8 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <Eigen/Sparse>
-#include <Eigen/Dense>
 #include <cmath>
 #include <algorithm>
 #include <fstream>
@@ -11,6 +9,9 @@
 #include <numeric>
 #include <memory>
 #include <array>
+
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 
 #include "omp_util.h"
 
@@ -195,10 +196,3 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
     out << "]";
     return out;
 }
-
-typedef Eigen::VectorXd VectorNd;
-typedef Eigen::MatrixXd MatrixNNd;
-typedef Eigen::ArrayXd ArrayNd;
-typedef Eigen::ArrayXXd ArrayNNd;
-
-typedef Eigen::SparseMatrix<double> SparseMatrixD;

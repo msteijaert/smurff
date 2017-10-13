@@ -1,6 +1,8 @@
 #include "UnusedNoise.h"
 
-using namespace Eigen;
+#include <assert.h>
+#include <cmath>
+
 using namespace smurff;
 
 UnusedNoise::UnusedNoise()

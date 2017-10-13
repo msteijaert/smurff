@@ -1,14 +1,14 @@
-#ifndef MVNORMAL_H
-#define MVNORMAL_H
+#pragma once
 
 #define EIGEN_RUNTIME_NO_MALLOC
 //#define EIGEN_DONT_PARALLELIZE 1
 
+#include <random>
+
 #include <Eigen/Dense>                                                                                                 
 #include <Eigen/Sparse>
-#include <random>
-#include "utils.h"
-#include "matrix_io.h"
+
+#include <Utils/utils.h>
 
 double randn0();
 double randn(double = .0);
@@ -30,11 +30,9 @@ auto nrandn(int n) -> decltype( Eigen::VectorXd::NullaryExpr(n, std::cref(randn)
 auto nrandn(int n, int m) -> decltype( Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)) );
 
 std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const Eigen::MatrixXd &U, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
-std::pair<VectorNd, MatrixNNd> CondNormalWishart(const int N, const MatrixNNd &S, const VectorNd &Um, const VectorNd &mu, const double kappa, const MatrixNNd &T, const int nu);
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const int N, const Eigen::MatrixXd &S, const Eigen::VectorXd &Um, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
 
 Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, int nn);
 Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn);
 Eigen::MatrixXd MvNormal_prec_omp(const Eigen::MatrixXd & Lambda, int nn);
 Eigen::MatrixXd MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn);
-
-#endif /* MVNORMAL_H */

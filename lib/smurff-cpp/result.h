@@ -1,12 +1,11 @@
-#ifndef RESULT_H
-#define RESULT_H
+#pragma once
+
+#include <memory>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <memory>
 
-#include "matrix_io.h"
-#include "utils.h"
+#include <Utils/utils.h>
 
 namespace smurff {
 
@@ -82,5 +81,3 @@ struct Result {
 };
 
 }; // end namespace smurff
-
-#endif

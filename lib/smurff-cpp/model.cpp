@@ -1,6 +1,3 @@
-
-#include <Eigen/Sparse>
-
 #include <iostream>
 #include <cassert>
 #include <fstream>
@@ -10,21 +7,20 @@
 #include <chrono>
 #include <memory>
 #include <cmath>
-
-#include <unsupported/Eigen/SparseExtra>
-#include <Eigen/Sparse>
+#include <signal.h>
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-#include <signal.h>
+#include <unsupported/Eigen/SparseExtra>
+#include <Eigen/Sparse>
 
-#include "utils.h"
 #include <DataMatrices/Data.h>
+#include <IO/MatrixIO.h>
+
 #include "model.h"
 #include "mvnormal.h"
-#include "matrix_io.h"
 
 using namespace std;
 using namespace Eigen;

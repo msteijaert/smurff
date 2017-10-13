@@ -1,10 +1,11 @@
+#include "MatrixIO.h"
+
 #include <iostream>
 #include <sstream>
 
 #include <unsupported/Eigen/SparseExtra>
 
-#include "utils.h"
-#include "matrix_io.h"
+#include <Utils/utils.h>
 
 using namespace smurff;
 

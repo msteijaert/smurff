@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include "PVec.hpp"
+#include <Utils/PVec.hpp>
 
 using namespace smurff;
 

@@ -14,7 +14,7 @@ LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 LINK.o=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 OUTPUT_OPTION=-MMD -MP -o $@
 
-LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o model.o result.o matrix_io.o tensor_io.o MatrixUtils.o
+LIBOBJS = inv_norm_cdf.o truncnorm.o mvnormal.o chol.o linop.o model.o result.o MatrixIO.o TensorIO.o MatrixUtils.o
 LIBOBJS += BaseSession.o Session.o Config.o
 LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.o UnusedNoise.o
 LIBOBJS += SparseDoubleFeat.o SparseFeat.o
@@ -25,7 +25,7 @@ LIBOBJS += MatrixConfig.o TensorConfig.o NoiseConfig.o MatrixDataFactory.o
 LIBOBJS += Data.o MatrixData.o MatricesData.o MatrixDataTempl.o ScarceMatrixData.o ScarceBinaryMatrixData.o DenseMatrixData.o SparseMatrixData.o
 LIBSMURFF = libsmurff-cpp.a
 
-TESTOBJS = TestsMatrixIO.o TestsTensorIO.o TestsMatrixConfig.o TestsCentring.o TestsPVec.o TestsTensor.o
+TESTOBJS = TestsMatrixIO.o TestsTensorIO.o TestsMatrixConfig.o TestsTensorConfig.o TestsCentring.o TestsPVec.o TestsTensor.o
 
 .PHONY: all clean smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
@@ -80,6 +80,15 @@ $(LIBSMURFF): $(LIBOBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 %.o : $(ROOT)/Tests/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/IO/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/IO/%.c
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/Utils/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 # DFILES
