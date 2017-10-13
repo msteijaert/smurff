@@ -6,8 +6,8 @@ project (${PROJECT})
 FILE (GLOB HEADER_FILES "../Version.h"
                         "../model.h"
                         "../result.h"
-			"../SparseFeat.h"
-			"../SparseDoubleFeat.h"
+                        "../SparseFeat.h"
+                        "../SparseDoubleFeat.h"
 
                         "../Utils/TruncNorm.h"
                         "../Utils/InvNormCdf.h"
@@ -17,15 +17,15 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Utils/chol.h"
                         "../Utils/counters.h"
                         "../Utils/linop.h"
-			"../Utils/omp_util.h"
-			"../Utils/utils.h"
+                        "../Utils/omp_util.h"
+                        "../Utils/utils.h"
 
                         "../IO/ini.h"
                         "../IO/INIReader.h"
                         "../IO/MatrixIO.h"
                         "../IO/TensorIO.h"
 
-			"../Configs/Config.h"
+                        "../Configs/Config.h"
                         "../Configs/MatrixConfig.h"
                         "../Configs/TensorConfig.h"
                         "../Configs/NoiseConfig.h"
@@ -35,7 +35,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Noises/ProbitNoise.h"
                         "../Noises/Noiseless.h"
                         "../Noises/UnusedNoise.h"
-			"../Noises/INoiseModel.h"
+			               "../Noises/INoiseModel.h"
 
                         "../Priors/GlobalPrior.h"
                         "../Priors/ILatentPrior.h"
@@ -44,7 +44,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Priors/MacauPrior.hpp"
                         "../Priors/MacauOnePrior.hpp"
                         
-			"../DataMatrices/Data.h"
+                        "../DataMatrices/Data.h"
                         "../DataMatrices/DenseMatrixData.h"
                         "../DataMatrices/FullMatrixData.hpp"
                         "../DataMatrices/MatricesData.h"
@@ -53,17 +53,17 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/ScarceBinaryMatrixData.h"
                         "../DataMatrices/ScarceMatrixData.h"
                         "../DataMatrices/SparseMatrixData.h"
-			"../DataMatrices/MatrixDataFactory.h"
+                        "../DataMatrices/MatrixDataFactory.h"
 
-			"../Sessions/BaseSession.h"
-			"../Sessions/Session.h")
+                        "../Sessions/BaseSession.h"
+                        "../Sessions/Session.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../model.cpp"
                         "../result.cpp"
-			"../SparseFeat.cpp"
-			"../SparseDoubleFeat.cpp"
+                     "../SparseFeat.cpp"
+                     "../SparseDoubleFeat.cpp"
 
                         "../Utils/TruncNorm.cpp"
                         "../Utils/InvNormCdf.cpp"
@@ -78,7 +78,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../IO/MatrixIO.cpp"
                         "../IO/TensorIO.cpp"
 
-			"../Configs/Config.cpp"
+			               "../Configs/Config.cpp"
                         "../Configs/MatrixConfig.cpp"
                         "../Configs/TensorConfig.cpp"
                         "../Configs/NoiseConfig.cpp"
@@ -103,10 +103,10 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../DataMatrices/ScarceBinaryMatrixData.cpp"
                         "../DataMatrices/ScarceMatrixData.cpp"
                         "../DataMatrices/SparseMatrixData.cpp"
-			"../DataMatrices/MatrixDataFactory.cpp"
+                        "../DataMatrices/MatrixDataFactory.cpp"
 
-			"../Sessions/BaseSession.cpp"
-			"../Sessions/Session.cpp")
+                        "../Sessions/BaseSession.cpp"
+                        "../Sessions/Session.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 if(${MPI_CXX_FOUND})

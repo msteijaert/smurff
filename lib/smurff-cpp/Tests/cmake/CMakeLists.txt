@@ -3,18 +3,18 @@ set (PROJECT tests)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES "../Tests/catch.hpp"
+FILE (GLOB HEADER_FILES "../catch.hpp"
                         )
 source_group ("Header Files" FILES ${HEADER_FILES})
 
-FILE (GLOB SOURCE_FILES "../Tests/tests.cpp"
-			"../Tests/TestsCentring.cpp"
-                        "../Tests/TestsMatrixIO.cpp"
-                        "../Tests/TestsTensorIO.cpp"
-                        "../Tests/TestsMatrixConfig.cpp"
-                        "../Tests/TestsTensorConfig.cpp"
-     	  	   	"../Tests/TestsPVec.cpp"
-                        "../Tests/TestsTensor.cpp"
+FILE (GLOB SOURCE_FILES "../tests.cpp"
+			"../TestsCentring.cpp"
+                        "../TestsMatrixIO.cpp"
+                        "../TestsTensorIO.cpp"
+                        "../TestsMatrixConfig.cpp"
+                        "../TestsTensorConfig.cpp"
+     	  	   	"../TestsPVec.cpp"
+                        "../TestsTensor.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
@@ -31,4 +31,5 @@ target_link_libraries (${PROJECT} smurff-cpp
 
 #SETUP INCLUDES
 include_directories(../)
+include_directories(../../SmurffCpp) # this is a temporarely solution. headers in SmurffCpp should be fixed first to start with SmurffCpp
 include_directories(${EIGEN3_INCLUDE_DIR})

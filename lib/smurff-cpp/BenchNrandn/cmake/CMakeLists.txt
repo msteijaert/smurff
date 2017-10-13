@@ -27,4 +27,5 @@ target_link_libraries (${PROJECT} smurff-cpp
 
 #SETUP INCLUDES
 include_directories(../)
+include_directories(../../SmurffCpp) # this is a temporarely solution. headers in SmurffCpp should be fixed first to start with SmurffCpp
 include_directories(${EIGEN3_INCLUDE_DIR})

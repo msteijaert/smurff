@@ -1,5 +1,5 @@
 #include <Priors/ILatentPrior.h>
-#include <Sessions/CmdSession.h>
+#include "CmdSession.h"
 
 using namespace smurff;
 
