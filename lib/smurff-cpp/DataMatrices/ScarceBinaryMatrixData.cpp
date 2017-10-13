@@ -1,5 +1,5 @@
 #include "ScarceBinaryMatrixData.h"
-#include "truncnorm.h"
+#include "TruncNorm.h"
 
 using namespace smurff;
 

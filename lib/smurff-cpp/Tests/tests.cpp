@@ -9,7 +9,7 @@
 
 #include "model.h"
 #include "sparsetensor.h"
-#include "truncnorm.h"
+#include "TruncNorm.h"
 
 #include <Utils/InvNormCdf.h>
 #include <Utils/Distribution.h>
