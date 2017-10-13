@@ -14,7 +14,7 @@ LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 LINK.o=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 OUTPUT_OPTION=-MMD -MP -o $@
 
-LIBOBJS = inv_norm_cdf.o truncnorm.o Distribution.o chol.o linop.o model.o result.o MatrixIO.o TensorIO.o MatrixUtils.o
+LIBOBJS = InvNormCdf.o TruncNorm.o Distribution.o chol.o linop.o model.o result.o MatrixIO.o TensorIO.o MatrixUtils.o
 LIBOBJS += BaseSession.o Session.o Config.o
 LIBOBJS += AdaptiveGaussianNoise.o FixedGaussianNoise.o ProbitNoise.o Noiseless.o UnusedNoise.o
 LIBOBJS += SparseDoubleFeat.o SparseFeat.o
