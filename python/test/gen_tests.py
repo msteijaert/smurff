@@ -180,16 +180,14 @@ def chembl_tests(defaults):
 
 
 def synthetic_tests(defaults):
-    suite = TestSuite("synthesic")
+    suite = TestSuite("synthetic")
 
     priors = [ "normal", "macau", "spikeandslab" ]
     datadirs = glob("%s/synthetic/*" % defaults["datadir"])
 
     # each datadir == 1 test
     for d in datadirs:
-        print(d)
         test = suite.add_test(defaults)
-        print(test.opts)
         train_file = list(glob('%s/train.*' % d))[0]
         test_file  = os.path.join(d, "test.sdm")
         test.update({ 'train' : train_file, 'test' : test_file, })
@@ -198,10 +196,10 @@ def synthetic_tests(defaults):
         for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", f)
         for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", f)
 
-    # suite.add_options("row_prior", priors)
-    # suite.add_options("col_prior", priors)
-    # suite.add_centering_options()
-    # suite.add_noise_options()
+    suite.add_options("row_prior", priors)
+    suite.add_options("col_prior", priors)
+    suite.add_centering_options()
+    suite.add_noise_options()
 
     print(suite)
 
