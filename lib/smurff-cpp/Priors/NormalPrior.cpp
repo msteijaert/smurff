@@ -72,7 +72,7 @@ void NormalPrior::sample_latents()
    const auto sum = Ucol.combine_and_reset();
 
    //this corresponds to update_prior - tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
-   std::tie(mu, Lambda) = CondNormalWishart(N, cov / N, sum / N, mu0, b0, WI, df);
+   std::tie(mu, Lambda) = CondNormalWishart(N, cov, sum, mu0, b0, WI, df);
 }
 
 //this method should correspond to sample_latent_blas from GlobalPrior
