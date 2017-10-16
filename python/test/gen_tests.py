@@ -58,6 +58,20 @@ class Test:
         self.opts = base.copy()
         self.update(upd)
 
+    def valid(self):
+        opts = self.opts
+        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) == 0: 
+            return False
+        
+        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) == 0: 
+            return False
+
+        if (not opts["col_prior"].startswith("macau")) and opts["direct"]: 
+            return False
+
+        return True
+        
+
     def update(self, upd):
         self.opts.update(upd.copy())
 
@@ -69,9 +83,12 @@ class Test:
 
     def gen_cmd(self, outdir, env, datadir):
         args = self.opts
+        cat("args", args)
 
-        fmt_cmd = """smurff --train={train} --burnin={burnin} \
-        --test={test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
+        args["fulldatadir"] = os.path.join(datadir, args["datasubdir"])
+
+        fmt_cmd = """smurff --train={fulldatadir}/{train} --burnin={burnin} \
+        --test={fulldatadir}/{test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
         --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
         --save-prefix=results --save-freq=10 \
         """
@@ -82,9 +99,9 @@ class Test:
         cmd = fmt_cmd.format(**args)
 
         for feat in args["row_features"]: 
-            cmd += " --row-features=%s" % feat
+            cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
         for feat in args["col_features"]: 
-            cmd += " --col-features=%s" % feat
+            cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
 
         fmt_name = "{datasubdir}/{train}/{burnin}/{nsamples}/{num_latent}/{row_prior}/{col_prior}/{center}/"
         fmt_name += "direct/" if (args["direct"]) else "cgsolve/"
@@ -95,7 +112,6 @@ class Test:
         name = fmt_name.format(**args)
 
         fulldir = os.path.join(outdir, name)
-        print (fulldir)
 
         try:
             os.makedirs(fulldir)
@@ -109,8 +125,8 @@ class Test:
         cat("cmd", """
 #!/bin/bash
 cd %s
-/usr/bin/time --output=time --portability \
 source activate %s
+/usr/bin/time --output=time --portability \
 %s >stdout 2>stderr
 echo $? >exit_code
 """ % (fulldir, env, cmd))
@@ -122,6 +138,9 @@ class TestSuite:
         self.name = name
         self.tests = []
         for t in tests: self.add_test(base, t)
+
+    def filter_tests(self):
+        self.tests = [x for x in self.tests if x.valid()]
 
     def __str__(self):
         return "%s: %d tests" % (self.name, len(self.tests))
@@ -199,18 +218,21 @@ def synthetic_tests(defaults):
     # each datadir == 1 test
     for d in datadirs:
         test = suite.add_test(defaults)
-        train_file = list(glob('%s/train.*dm' % d))[0]
-        test_file  = os.path.join(d, "test.sdm")
+        test.update_one("datasubdir", os.path.join("synthetic", os.path.basename(d)))
+        train_file = os.path.basename(list(glob('%s/train.*dm' % d))[0])
+        test_file  = "test.sdm"
         test.update({ 'train' : train_file, 'test' : test_file, })
         test.update_one("row_features", [])
         test.update_one("col_features", [])
-        for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", f)
-        for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", f)
+        for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
+        for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
 
     suite.add_options("row_prior", priors)
     suite.add_options("col_prior", priors)
     suite.add_centering_options()
     suite.add_noise_options()
+
+    suite.filter_tests()
 
     print(suite)
 
