@@ -4,7 +4,7 @@
 
 #include <Eigen/Dense>
 
-#include "mvnormal.h"
+#include <Utils/Distribution.h>
 
 extern "C" 
 {

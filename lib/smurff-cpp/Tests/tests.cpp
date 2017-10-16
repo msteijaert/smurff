@@ -7,12 +7,12 @@
 #include <sstream>
 #include <vector>
 
-#include "mvnormal.h"
 #include "model.h"
 #include "sparsetensor.h"
-#include "inv_norm_cdf.h"
-#include "truncnorm.h"
 
+#include <Utils/TruncNorm.h>
+#include <Utils/InvNormCdf.h>
+#include <Utils/Distribution.h>
 #include <Utils/linop.h>
 #include <Utils/chol.h>
 #include <Utils/utils.h>
