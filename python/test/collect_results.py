@@ -12,6 +12,11 @@ def parse_time_file(f):
         real_time = line.split()[1]
         return float(real_time)
 
+def parse_exit_code(fname):
+    with open(fname, 'rb') as f:
+        line = f.readline().rstrip()
+        return int(line)
+
 def parse_predictions_file(f, threshold, val="y", pred="pred_avg"):
     df = pd.read_csv(f)
     df["label"] = df[val] > threshold
@@ -23,7 +28,7 @@ def parse_predictions_file(f, threshold, val="y", pred="pred_avg"):
 
 def find_test_dirs(root="."):
     test_dirs = []
-    for filename in glob.iglob('%s/**/time' % root, recursive=True):
+    for filename in glob.iglob('%s/**/exit_code' % root, recursive=True):
         test_dirs.append(os.path.dirname(filename))
 
     return test_dirs
@@ -40,9 +45,10 @@ def process_test_dir(dir):
     except:
         real_time = float('nan')
 
-    dir, test = os.path.split(dir)
-    dir, env = os.path.split(dir)
-    return ( env, test, auc, real_time )
+    exit_code = parse_exit_code('%s/exit_code' % dir)
+
+
+    return ( dir, exit_code, auc, real_time )
 
 
 results = []
