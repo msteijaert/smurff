@@ -2,7 +2,7 @@ MPICXX=mpicxx
 CXX=g++
 CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -fPIC
 
-INCLUDES=-I$(ROOT)/ -I$(ROOT)/../eigen3 -I$(ROOT)/../libfastsparse
+INCLUDES=-I$(ROOT)/ -I$(ROOT)/../eigen3 -I$(ROOT)/SmurffCpp
 CXXFLAGS+=-DSMURFF_VERSION=\"$(shell git describe)\"
 LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 
@@ -37,58 +37,64 @@ clean:
 	rm -f smurff mpi_smurff tests bench_nrandn bench_wishart bench_mvnormal
 
 smurff: $(LIBSMURFF) CmdSession.o
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/smurff.cpp $(LIBSMURFF) $(LDFLAGS) CmdSession.o $(OUTPUT_OPTION)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/Smurff/smurff.cpp $(LIBSMURFF) $(LDFLAGS) CmdSession.o $(OUTPUT_OPTION)
 
-mpi_smurff: mpi_smurff.cpp MPISession.o $(LIBSMURFF)
+mpi_smurff: $(ROOT)/SmurffMPI/mpi_smurff.cpp MPISession.o $(LIBSMURFF)
 	$(MPICXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $(LDFLAGS) $? -o mpi_smurff
 
 tests: $(LIBSMURFF) $(TESTOBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/Tests/tests.cpp $(TESTOBJS) $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
 
 bench_nrandn:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/bench_nrandn.cpp $(LDFLAGS) $(OUTPUT_OPTION)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/BenchNrandn/bench_nrandn.cpp $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
 
 bench_wishart:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/bench_wishart.cpp $(LDFLAGS) $(OUTPUT_OPTION)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/BenchWishart/bench_wishart.cpp $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
 
 bench_mvnormal:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/bench_mvnormal.cpp $(LDFLAGS) $(OUTPUT_OPTION)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ROOT)/BenchMvnormal/bench_mvnormal.cpp $(LIBSMURFF) $(LDFLAGS) $(OUTPUT_OPTION)
 
 $(LIBSMURFF): $(LIBOBJS)
 	rm -f $(LIBSMURFF)
 	ar -rcs $(LIBSMURFF) $(LIBOBJS)
 
-%.o : $(ROOT)/%.cpp
+%.o : $(ROOT)/SmurffCpp/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
-%.o : $(ROOT)/%.c
+%.o : $(ROOT)/SmurffCpp/Noises/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
-%.o : $(ROOT)/Noises/%.cpp
+%.o : $(ROOT)/SmurffCpp/Priors/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
-%.o : $(ROOT)/Priors/%.cpp
+%.o : $(ROOT)/SmurffCpp/Sessions/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
-%.o : $(ROOT)/Sessions/%.cpp
+%.o : $(ROOT)/SmurffCpp/DataMatrices/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
-%.o : $(ROOT)/DataMatrices/%.cpp
+%.o : $(ROOT)/SmurffCpp/Configs/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
-%.o : $(ROOT)/Configs/%.cpp
+%.o : $(ROOT)/SmurffCpp/Tests/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/SmurffCpp/IO/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/SmurffCpp/IO/%.c
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/SmurffCpp/Utils/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/Smurff/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
+
+%.o : $(ROOT)/SmurffMPI/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 %.o : $(ROOT)/Tests/%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
-
-%.o : $(ROOT)/IO/%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
-
-%.o : $(ROOT)/IO/%.c
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
-
-%.o : $(ROOT)/Utils/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< $(OUTPUT_OPTION)
 
 # DFILES
