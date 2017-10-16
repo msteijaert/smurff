@@ -208,9 +208,12 @@ message("Checking build dependencies...")
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/")
 
 include(scripts/DependenciesConfig.cmake)
+
 configure_pthreads()
 configure_mpi()
 configure_eigen()
+
+configure_argp()
 
 set(ALGEBRA_LIB_FOUND OFF)
 
@@ -256,10 +259,6 @@ if(${ALGEBRA_LIB_FOUND})
 else()
   message(FATAL_ERROR "Algebra library not specified")
 endif()
-
-# argp
-find_package(Argp)
-include_directories(${ARGP_INCLUDE_PATH})
 
 # CONFIGURE TARGETS
 

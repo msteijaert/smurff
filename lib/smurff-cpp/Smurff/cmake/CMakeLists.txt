@@ -28,3 +28,4 @@ target_link_libraries (${PROJECT} smurff-cpp
 include_directories(../)
 include_directories(../..)
 include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(${ARGP_INCLUDE_PATH})
