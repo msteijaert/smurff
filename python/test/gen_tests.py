@@ -24,20 +24,15 @@ args.datadir = os.path.abspath(args.datadir)
 args.envs = list(map(os.path.basename,glob("%s/*" % args.envdir)))
 
 defaults = {
-        'bin'         : 'smurff',
-        'datadir'     : args.datadir, 
         'num_latent'  : 16,
         'row_prior'   : "normal",
         'col_prior'   : "normal",
         'burnin'      : 20,
         'nsamples'    : 200,
-        'verbose'     : 1,
         'center'      : "global",
         'row_features': [],
         'col_features': [],
         'direct'      : True,
-        'save-prefix' : 'results',
-        'save-freq'   : 10,
         'precision'   : 5.0,
         'adaptive'    : None,
 }
@@ -58,39 +53,6 @@ def cat(fname, s):
     with open(fname, "w") as f:
         f.write(str(s))
 
-def gen_cmd(outdir, env, test):
-    args = test.opts
-
-    fmt = """{bin} --train={train} --burnin={burnin} \
-    --test={test}  --nsamples={nsamples} --verbose={verbose} --num-latent={num_latent} \
-    --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
-    --save-prefix={save-prefix} --save-freq={save-freq} \
-    """
-
-    if (args["direct"]): fmt = fmt + " --direct"
-    if (args["precision"]): fmt = fmt + " --precision={precision}"
-    if (args["adaptive"]): fmt = fmt + " --adaptive={adaptive}"
-    cmd = fmt.format(**args)
-
-    for feat in args["row_features"]: 
-        cmd += " --row-features=%s" % feat
-    for feat in args["col_features"]: 
-        cmd += " --col-features=%s" % feat
-
-    name = hashlib.md5(cmd.encode('ascii')).hexdigest()
-    fulldir = os.path.join(outdir, name)
-
-    os.makedirs(fulldir)
-    os.chdir(fulldir)
-
-
-    cat("cmd", """
-#!/bin/bash
-cd %s
-source activate %s
-%s >stdout 2>stderr
-""" % (fulldir, env, cmd))
-
 
 class Test:
     def __init__(self, base, upd = {}):
@@ -105,6 +67,53 @@ class Test:
 
     def append_one(self, name, value):
         self.opts[name].append(value)
+
+    def gen_cmd(self, outdir, env, datadir):
+        args = self.opts
+
+        fmt_cmd = """smurff --train={train} --burnin={burnin} \
+        --test={test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
+        --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
+        --save-prefix=results --save-freq=10 \
+        """
+
+        if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
+        if (args["precision"]): fmt_cmd = fmt_cmd + " --precision={precision}"
+        if (args["adaptive"]): fmt_cmd = fmt_cmd + " --adaptive={adaptive}"
+        cmd = fmt_cmd.format(**args)
+
+        for feat in args["row_features"]: 
+            cmd += " --row-features=%s" % feat
+        for feat in args["col_features"]: 
+            cmd += " --col-features=%s" % feat
+
+        fmt_name = "{datasubdir}/{train}/{burnin}/{nsamples}/{num_latent}/{row_prior}/{col_prior}/{center}/"
+        fmt_name += "direct/" if (args["direct"]) else "cgsolve/"
+        if (args["precision"]): fmt_name +=  "fprec{precision}/"
+        if (args["adaptive"]): fmt_name +=  "aprec{adaptive}/"
+        fmt_name += "rowf%d/" % len(args["row_features"])
+        fmt_name += "colf%d/" % len(args["col_features"])
+        name = fmt_name.format(**args)
+
+        fulldir = os.path.join(outdir, name)
+        print (fulldir)
+
+        try:
+            os.makedirs(fulldir)
+        except:
+            fulldir += hashlib.md5(cmd.encode('ascii')).hexdigest()[:5] + "/"
+            os.makedirs(fulldir)
+
+        os.chdir(fulldir)
+
+
+        cat("cmd", """
+#!/bin/bash
+cd %s
+source activate %s
+%s >stdout 2>stderr
+""" % (fulldir, env, cmd))
+
 
 
 class TestSuite:
@@ -148,27 +157,28 @@ class TestSuite:
 def chembl_tests(defaults):
     chembl_defaults = defaults
     chembl_defaults.update({
-            'train'      : os.path.join(defaults["datadir"], 'chembl_demo/train_sample1_c1.sdm'),
-            'test'       : os.path.join(defaults["datadir"], 'chembl_demo/test_sample1_c1.sdm'),
+            'datasubdir' : 'chembl_demo',
+            'test'       : 'test_sample1_c1.sdm',
+            'train'      : 'train_sample1_c1.sdm',
     })
 
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
-            { 'name': 'bpmf',                   },
-            { 'name': 'macau_dense',            "row_prior": "macau",        "row_features": [ "chembl_demo/side_sample1_c1_chem2vec.ddm" ] },
-            { 'name': 'cofac_dense',            "row_prior": "normal",       "row_features": [ "chembl_demo/side_sample1_c1_chem2vec.ddm" ] },
-            { 'name': 'spikeandslab_dense',     "col_prior": "spikeandslab", "row_features": [ "chembl_demo/side_sample1_c1_chem2vec.ddm" ] },
+            { },
+            { "row_prior": "macau",        "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
+            { "row_prior": "normal",       "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
+            { "col_prior": "spikeandslab", "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
     ])
 
     chembl_tests_centering.add_centering_options()
 
     chembl_tests = TestSuite("chembl", chembl_defaults,
         [
-            { 'name': 'macau_sparsebin',        "row_prior": "macau",        "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
-            { 'name': 'macau_indirect',         "row_prior": "macau", "direct": False,  "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ]},
-            { 'name': 'macauone_sparsebin',     "row_prior": "macauone",     "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
-            { 'name': 'cofac_sparsebin',        "row_prior": "normal", "center": "none", "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
-            { 'name': 'spikeandslab_sparsebin', "col_prior": "spikeandslab", "center": "none", "row_features": [ "chembl_demo/side_sample1_c1_ecfp6_var005.sbm" ] },
+            { "row_prior": "macau",        "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
+            { "row_prior": "macau", "direct": False,  "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ]},
+            { "row_prior": "macauone",     "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
+            { "row_prior": "normal", "center": "none", "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
+            { "col_prior": "spikeandslab", "center": "none", "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
         ])
 
     chembl_tests.add_testsuite(chembl_tests_centering)
@@ -183,7 +193,7 @@ def synthetic_tests(defaults):
     suite = TestSuite("synthetic")
 
     priors = [ "normal", "macau", "spikeandslab" ]
-    datadirs = glob("%s/synthetic/*" % defaults["datadir"])
+    datadirs = glob("%s/synthetic/*" % args.datadir)
 
     # each datadir == 1 test
     for d in datadirs:
@@ -221,6 +231,6 @@ for opts  in tests:
     for env in args.envs:
         fulldir = os.path.join(args.outdir, env)
         fullenv = os.path.join(args.envdir, env)
-        gen_cmd(fulldir, fullenv, opts)
+        opts.gen_cmd(fulldir, fullenv, args.datadir)
 
 
