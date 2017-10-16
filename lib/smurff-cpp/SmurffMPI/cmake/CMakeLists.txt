@@ -16,7 +16,7 @@ source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT
 add_executable (${PROJECT} ${HEADER_FILES} ${SOURCE_FILES})
-set_property(TARGET ${PROJECT} PROPERTY FOLDER "Executables")
+set_property(TARGET ${PROJECT} PROPERTY FOLDER "Utils")
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/_output")
 install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
