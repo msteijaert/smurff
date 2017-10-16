@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include <Utils/InvNormCdf.h>
-#include <Utils/Distribution.h>
+#include <SmurffCpp/Utils/InvNormCdf.h>
+#include <SmurffCpp/Utils/Distribution.h>
 
 double norm_cdf(double x) {
 	return 0.5 * erfc(-x * M_SQRT1_2);

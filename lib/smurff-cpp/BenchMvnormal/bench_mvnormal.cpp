@@ -1,5 +1,5 @@
-#include <Utils/Distribution.h>
-#include <Utils/utils.h>
+#include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/utils.h>
 
 using namespace std;
 using namespace Eigen;

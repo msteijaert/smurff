@@ -4,12 +4,12 @@
 #include <argp.h>
 #include <memory>
 
-#include <Configs/Config.h>
-#include <Configs/NoiseConfig.h>
+#include <SmurffCpp/Configs/Config.h>
+#include <SmurffCpp/Configs/NoiseConfig.h>
 
-#include <IO/MatrixIO.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 
-#include <Priors/ILatentPrior.h>
+#include <SmurffCpp/Priors/ILatentPrior.h>
 
 using namespace Eigen;
 

@@ -5,11 +5,11 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <Utils/Distribution.h>
+#include <SmurffCpp/Utils/Distribution.h>
 
-#include "ILatentPrior.h"
+#include <SmurffCpp/Priors/ILatentPrior.h>
 
-#include "model.h"
+#include <SmurffCpp/model.h>
 
 namespace smurff {
 

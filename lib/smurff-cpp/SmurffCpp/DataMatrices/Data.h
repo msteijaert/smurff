@@ -5,12 +5,12 @@
 #include <string>
 #include <iostream>
 
-#include <Noises/INoiseModel.h>
-#include <Utils/PVec.hpp>
+#include <SmurffCpp/Noises/INoiseModel.h>
+#include <SmurffCpp/Utils/PVec.hpp>
 
 #include <Eigen/Core>
 
-#include "model.h"
+#include <SmurffCpp/model.h>
 
 #define CENTER_MODE_STR_NONE "none"
 #define CENTER_MODE_STR_GLOBAL "global"

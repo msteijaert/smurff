@@ -3,8 +3,8 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-#include <IO/TensorIO.h>
-#include <Utils/MatrixUtils.h>
+#include <SmurffCpp/IO/TensorIO.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
 
 using namespace smurff;
 

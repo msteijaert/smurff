@@ -1,6 +1,6 @@
 #include "ScarceBinaryMatrixData.h"
 
-#include <Utils/TruncNorm.h>
+#include <SmurffCpp/Utils/TruncNorm.h>
 
 using namespace smurff;
 

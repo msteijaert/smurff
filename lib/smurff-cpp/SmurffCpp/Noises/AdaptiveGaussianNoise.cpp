@@ -1,7 +1,7 @@
 #include "AdaptiveGaussianNoise.h"
 
-#include <Utils/Distribution.h>
-#include <DataMatrices/Data.h>
+#include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/DataMatrices/Data.h>
 
 using namespace smurff;
 

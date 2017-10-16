@@ -4,12 +4,12 @@
 
 #include <Eigen/Core>
 
-#include <Priors/MacauOnePrior.hpp>
-#include <Priors/MacauPrior.hpp>
-#include <Priors/NormalPrior.h>
-#include <Priors/SpikeAndSlabPrior.h>
+#include <SmurffCpp/Priors/MacauOnePrior.hpp>
+#include <SmurffCpp/Priors/MacauPrior.hpp>
+#include <SmurffCpp/Priors/NormalPrior.h>
+#include <SmurffCpp/Priors/SpikeAndSlabPrior.h>
 
-#include <DataMatrices/MatrixDataFactory.h>
+#include <SmurffCpp/DataMatrices/MatrixDataFactory.h>
 
 using namespace smurff;
 using namespace Eigen;

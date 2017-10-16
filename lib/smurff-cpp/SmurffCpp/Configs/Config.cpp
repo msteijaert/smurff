@@ -3,8 +3,8 @@
 #include <set>
 #include <iostream>
 
-#include <IO/INIReader.h>
-#include <DataMatrices/Data.h>
+#include <SmurffCpp/IO/INIReader.h>
+#include <SmurffCpp/DataMatrices/Data.h>
 
 using namespace smurff;
 

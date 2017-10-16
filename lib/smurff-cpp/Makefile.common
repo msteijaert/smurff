@@ -2,7 +2,7 @@ MPICXX=mpicxx
 CXX=g++
 CXXFLAGS+=-std=c++11 -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -fPIC
 
-INCLUDES=-I$(ROOT)/ -I$(ROOT)/../eigen3 -I$(ROOT)/SmurffCpp
+INCLUDES=-I$(ROOT)/ -I$(ROOT)/../eigen3
 CXXFLAGS+=-DSMURFF_VERSION=\"$(shell git describe)\"
 LDFLAGS:=$(LIBLOCS) -lm -lopenblas -lpthread
 

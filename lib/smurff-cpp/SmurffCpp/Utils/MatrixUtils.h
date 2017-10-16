@@ -3,9 +3,9 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-#include <Configs/MatrixConfig.h>
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
-#include "LibFastSparseDependency.h"
+#include <SmurffCpp/LibFastSparseDependency.h>
 
 struct sparse_vec_iterator 
 {

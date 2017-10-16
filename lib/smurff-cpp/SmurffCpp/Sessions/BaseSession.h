@@ -4,9 +4,9 @@
 #include <vector>
 #include <memory>
 
-#include <DataMatrices/Data.h>
-#include "model.h"
-#include "result.h"
+#include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/model.h>
+#include <SmurffCpp/result.h>
 
 namespace smurff {
 

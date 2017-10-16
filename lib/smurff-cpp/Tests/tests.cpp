@@ -7,29 +7,29 @@
 #include <sstream>
 #include <vector>
 
-#include "model.h"
-#include "sparsetensor.h"
+#include <SmurffCpp/model.h>
+#include <SmurffCpp/sparsetensor.h>
 
-#include <Utils/TruncNorm.h>
-#include <Utils/InvNormCdf.h>
-#include <Utils/Distribution.h>
-#include <Utils/linop.h>
-#include <Utils/chol.h>
-#include <Utils/utils.h>
+#include <SmurffCpp/Utils/TruncNorm.h>
+#include <SmurffCpp/Utils/InvNormCdf.h>
+#include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/linop.h>
+#include <SmurffCpp/Utils/chol.h>
+#include <SmurffCpp/Utils/utils.h>
 
-#include <Configs/MatrixConfig.h>
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
-#include <Priors/ILatentPrior.h>
-#include <Priors/MacauPrior.hpp>
-#include <Priors/MacauOnePrior.hpp>
+#include <SmurffCpp/Priors/ILatentPrior.h>
+#include <SmurffCpp/Priors/MacauPrior.hpp>
+#include <SmurffCpp/Priors/MacauOnePrior.hpp>
 
-#include <Noises/Noiseless.h>
+#include <SmurffCpp/Noises/Noiseless.h>
 
-#include <DataMatrices/Data.h>
-#include <DataMatrices/ScarceBinaryMatrixData.h>
-#include <DataMatrices/FullMatrixData.hpp>
-#include <DataMatrices/SparseMatrixData.h>
-#include <DataMatrices/DenseMatrixData.h>
+#include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
+#include <SmurffCpp/DataMatrices/FullMatrixData.hpp>
+#include <SmurffCpp/DataMatrices/SparseMatrixData.h>
+#include <SmurffCpp/DataMatrices/DenseMatrixData.h>
 
 using namespace smurff;
 

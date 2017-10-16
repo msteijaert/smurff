@@ -120,5 +120,6 @@ set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
 #SETUP INCLUDES
 include_directories(../)
+include_directories(../..)
 include_directories(${EIGEN3_INCLUDE_DIR})
 

@@ -9,7 +9,7 @@
 #include <numeric>
 #include <memory>
 
-#include <Configs/MatrixConfig.h>
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
 #include <Eigen/Sparse>
 #include <Eigen/Dense>

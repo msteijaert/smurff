@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include <Configs/MatrixConfig.h>
-#include "MatrixData.h"
+#include <SmurffCpp/Configs/MatrixConfig.h>
+#include <SmurffCpp/DataMatrices/MatrixData.h>
 
 namespace smurff {
 

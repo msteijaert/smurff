@@ -16,11 +16,11 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 
-#include <DataMatrices/Data.h>
-#include <IO/MatrixIO.h>
-#include <Utils/Distribution.h>
+#include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/Distribution.h>
 
-#include "model.h"
+#include <SmurffCpp/model.h>
 
 using namespace std;
 using namespace Eigen;

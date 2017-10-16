@@ -1,22 +1,22 @@
 #include "MatrixDataFactory.h"
 
-#include <Configs/NoiseConfig.h>
+#include <SmurffCpp/Configs/NoiseConfig.h>
 
-#include <Utils/MatrixUtils.h>
-#include <Utils/PVec.hpp>
+#include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/PVec.hpp>
 
 //matrix classes
-#include "SparseMatrixData.h"
-#include "ScarceBinaryMatrixData.h"
-#include "DenseMatrixData.h"
-#include "MatricesData.h"
+#include <SmurffCpp/DataMatrices/SparseMatrixData.h>
+#include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
+#include <SmurffCpp/DataMatrices/DenseMatrixData.h>
+#include <SmurffCpp/DataMatrices/MatricesData.h>
 
 //noise classes
-#include <Noises/AdaptiveGaussianNoise.h>
-#include <Noises/FixedGaussianNoise.h>
-#include <Noises/ProbitNoise.h>
-#include <Noises/Noiseless.h>
-#include <Noises/UnusedNoise.h>
+#include <SmurffCpp/Noises/AdaptiveGaussianNoise.h>
+#include <SmurffCpp/Noises/FixedGaussianNoise.h>
+#include <SmurffCpp/Noises/ProbitNoise.h>
+#include <SmurffCpp/Noises/Noiseless.h>
+#include <SmurffCpp/Noises/UnusedNoise.h>
 
 using namespace smurff;
 

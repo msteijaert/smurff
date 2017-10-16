@@ -2,12 +2,12 @@
 
 #include <Eigen/Dense>
 
-#include "chol.h"
-#include "utils.h"
-#include "MatrixUtils.h"
+#include <SmurffCpp/Utils/chol.h>
+#include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
 
-#include "SparseFeat.h"
-#include "SparseDoubleFeat.h"
+#include <SmurffCpp/SparseFeat.h>
+#include <SmurffCpp/SparseDoubleFeat.h>
 
 template<typename T>
 void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess);

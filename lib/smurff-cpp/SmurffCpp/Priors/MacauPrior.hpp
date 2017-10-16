@@ -5,15 +5,15 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <IO/MatrixIO.h>
-#include <Utils/linop.h>
-#include <Utils/Distribution.h>
+#include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/linop.h>
+#include <SmurffCpp/Utils/Distribution.h>
 
-#include "model.h"
+#include <SmurffCpp/model.h>
 
-#include "NormalPrior.h"
-#include "SparseDoubleFeat.h"
-#include "SparseFeat.h"
+#include <SmurffCpp/Priors/NormalPrior.h>
+#include <SmurffCpp/SparseDoubleFeat.h>
+#include <SmurffCpp/SparseFeat.h>
 
 namespace smurff {
 

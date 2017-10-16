@@ -5,7 +5,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <Utils/utils.h>
+#include <SmurffCpp/Utils/utils.h>
 
 namespace smurff {
 

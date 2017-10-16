@@ -2,14 +2,14 @@
 
 #include <iomanip>
 
-#include <Utils/chol.h>
-#include <Utils/linop.h>
-#include <IO/MatrixIO.h>
+#include <SmurffCpp/Utils/chol.h>
+#include <SmurffCpp/Utils/linop.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <Utils/Distribution.h>
+#include <SmurffCpp/Utils/Distribution.h>
 
 using namespace Eigen;
 using namespace smurff;

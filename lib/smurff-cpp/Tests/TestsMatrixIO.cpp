@@ -6,8 +6,8 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-#include <Utils/MatrixUtils.h>
-#include <IO/MatrixIO.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 
 using namespace smurff;
 

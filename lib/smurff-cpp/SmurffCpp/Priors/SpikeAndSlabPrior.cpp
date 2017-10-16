@@ -1,6 +1,6 @@
 #include "SpikeAndSlabPrior.h"
 
-#include <IO/MatrixIO.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 
 using namespace smurff;
 using namespace Eigen;

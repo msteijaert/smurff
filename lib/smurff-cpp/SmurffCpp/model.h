@@ -5,8 +5,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <Utils/utils.h>
-#include <Utils/PVec.hpp>
+#include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Utils/PVec.hpp>
 
 namespace smurff {
 

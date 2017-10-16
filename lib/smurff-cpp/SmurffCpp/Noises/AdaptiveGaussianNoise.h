@@ -3,9 +3,9 @@
 #include <string>
 #include <iostream>
 
-#include "INoiseModel.h"
+#include <SmurffCpp/Noises/INoiseModel.h>
 
-#include <DataMatrices/Data.h>
+#include <SmurffCpp/DataMatrices/Data.h>
 
 namespace smurff {
 

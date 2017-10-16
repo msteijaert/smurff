@@ -9,8 +9,8 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-#include <Utils/MatrixUtils.h>
-#include <Configs/MatrixConfig.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
 using namespace smurff;
 

@@ -5,11 +5,11 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <DataMatrices/ScarceMatrixData.h>
-#include <IO/MatrixIO.h>
-#include <Utils/linop.h>
+#include <SmurffCpp/DataMatrices/ScarceMatrixData.h>
+#include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/linop.h>
 
-#include "ILatentPrior.h"
+#include <SmurffCpp/Priors/ILatentPrior.h>
 
 namespace smurff {
 

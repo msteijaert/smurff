@@ -5,12 +5,12 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <Sessions/BaseSession.h>
-#include <Noises/INoiseModel.h>
-#include <DataMatrices/Data.h>
-#include <Utils/Distribution.h>
+#include <SmurffCpp/Sessions/BaseSession.h>
+#include <SmurffCpp/Noises/INoiseModel.h>
+#include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/Utils/Distribution.h>
 
-#include "model.h"
+#include <SmurffCpp/model.h>
 
 namespace smurff {
 

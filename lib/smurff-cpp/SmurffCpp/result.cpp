@@ -8,14 +8,14 @@
 #include <memory>
 #include <cmath>
 
-#include <DataMatrices/Data.h>
-#include <Utils/utils.h>
+#include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/Utils/utils.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "model.h"
-#include "result.h"
+#include <SmurffCpp/model.h>
+#include <SmurffCpp/result.h>
 
 using namespace std;
 using namespace Eigen;

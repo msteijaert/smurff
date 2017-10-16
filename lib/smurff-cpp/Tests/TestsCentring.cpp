@@ -4,11 +4,11 @@
 
 #include <Eigen/Core>
 
-#include <Noises/Noiseless.h>
+#include <SmurffCpp/Noises/Noiseless.h>
 
-#include <DataMatrices/ScarceBinaryMatrixData.h>
-#include <DataMatrices/DenseMatrixData.h>
-#include <DataMatrices/SparseMatrixData.h>
+#include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
+#include <SmurffCpp/DataMatrices/DenseMatrixData.h>
+#include <SmurffCpp/DataMatrices/SparseMatrixData.h>
 
 using namespace smurff;
 

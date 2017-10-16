@@ -1,4 +1,4 @@
-#include <Priors/ILatentPrior.h>
+#include <SmurffCpp/Priors/ILatentPrior.h>
 #include "CmdSession.h"
 
 using namespace smurff;

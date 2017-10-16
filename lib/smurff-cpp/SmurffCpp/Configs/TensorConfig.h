@@ -5,7 +5,7 @@
 #include <memory>
 #include <cstdint>
 
-#include "NoiseConfig.h"
+#include <SmurffCpp/Configs/NoiseConfig.h>
 
 namespace smurff
 {
