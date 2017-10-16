@@ -88,7 +88,9 @@ def gen_cmd(outdir, env, test):
 #!/bin/bash
 cd %s
 source activate %s
+/usr/bin/time --output=time --portability \
 %s >stdout 2>stderr
+echo $? >exit_code
 """ % (fulldir, env, cmd))
 
 
@@ -188,7 +190,7 @@ def synthetic_tests(defaults):
     # each datadir == 1 test
     for d in datadirs:
         test = suite.add_test(defaults)
-        train_file = list(glob('%s/train.*' % d))[0]
+        train_file = list(glob('%s/train.*dm' % d))[0]
         test_file  = os.path.join(d, "test.sdm")
         test.update({ 'train' : train_file, 'test' : test_file, })
         test.update_one("row_features", [])
