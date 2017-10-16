@@ -257,6 +257,9 @@ else()
   message(FATAL_ERROR "Algebra library not specified")
 endif()
 
+# argp
+find_package(Argp)
+include_directories(${ARGP_INCLUDE_PATH})
 
 # CONFIGURE TARGETS
 

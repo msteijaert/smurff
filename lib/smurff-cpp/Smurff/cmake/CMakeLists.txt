@@ -20,6 +20,7 @@ install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 
 #LINK LIBRARIES
 target_link_libraries (${PROJECT} smurff-cpp
+                                  ${ARGP_LIBRARIES}
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT})
 
