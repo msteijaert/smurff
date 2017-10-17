@@ -19,18 +19,15 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<double> tensorConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigValues, NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::MatrixXd actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
@@ -38,20 +35,18 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&&
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<double> tensorConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
    TensorConfig tensorConfig(std::move(tensorConfigDims), std::move(tensorConfigValues), NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::MatrixXd actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    REQUIRE(tensorConfigDims.data() == NULL);
    REQUIRE(tensorConfigValues.data() == NULL);
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
@@ -65,18 +60,15 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
          std::initializer_list<double>({ 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 })
       );
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigValues, NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::MatrixXd actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
@@ -87,15 +79,10 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
                                                     };
    std::vector<double> tensorConfigValues = { 1, 2, 3, 4, 9, 10, 11, 12 };
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
-
+   Eigen::SparseMatrix<double> actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::SparseMatrix<double> actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
@@ -108,7 +95,8 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
@@ -123,15 +111,10 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint
                             , std::move(tensorConfigValues)
                             , NoiseConfig()
                             );
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
-
+   Eigen::SparseMatrix<double> actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::SparseMatrix<double> actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
@@ -147,7 +130,9 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint
    REQUIRE(tensorConfigDims.data() == NULL);
    REQUIRE(tensorConfigColumns.data() == NULL);
    REQUIRE(tensorConfigValues.data() == NULL);
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
@@ -168,15 +153,10 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
          std::initializer_list<double>({ 1, 2, 3, 4, 9, 10, 11, 12 })
       );
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
-
+   Eigen::SparseMatrix<double> actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::SparseMatrix<double> actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
@@ -189,7 +169,8 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const NoiseConfig& noiseConfig)")
@@ -199,15 +180,10 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
                                                       0, 1, 2, 3, 0, 1, 2, 3
                                                     };
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
-
+   Eigen::SparseMatrix<double> actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::SparseMatrix<double> actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
@@ -220,25 +196,21 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, const NoiseConfig& noiseConfig)")
 {
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2,
-                                                      0, 1, 2, 3, 0, 1, 2, 3 
+                                                      0, 1, 2, 3, 0, 1, 2, 3
                                                     };
    TensorConfig tensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
-
+   Eigen::SparseMatrix<double> actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::SparseMatrix<double> actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
@@ -253,7 +225,9 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint
 
    REQUIRE(tensorConfigDims.data() == NULL);
    REQUIRE(tensorConfigColumns.data() == NULL);
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, const NoiseConfig& noiseConfig)")
@@ -270,15 +244,10 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
          })
       );
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig());
+   MatrixConfig matrixConfig = tensor_to_matrix(tensorConfig);
 
-   MatrixConfig actualMatrixConfig( tensorConfig.getDims()[0]
-                                  , tensorConfig.getDims()[1]
-                                  , tensorConfig.getColumns()
-                                  , tensorConfig.getValues()
-                                  , tensorConfig.getNoiseConfig()
-                                  );
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
-
+   Eigen::SparseMatrix<double> actualMatrix0 = sparse_to_eigen(tensorConfig);
+   Eigen::SparseMatrix<double> actualMatrix1 = sparse_to_eigen(matrixConfig);
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
@@ -291,5 +260,6 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));   
+   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
+   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
 }
