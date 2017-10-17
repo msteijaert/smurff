@@ -72,28 +72,29 @@ def write_data(dirname, train, features = ([],[])):
         write_feat(indx, feat)
     os.chdir("..")
 
-def gen_and_write(shape, K,func,density, split = [1,1]):
+def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1):
     m = gen_matrix(shape,K,func);
 
-    feat = [[], []]
-    for axis, num in enumerate(split):
-        if num > 1: 
-            feat[axis] = np.array_split(m, num, axis=axis)
-            m = feat[axis].pop(0)
+    rows_blocked = np.array_split(m, row_split, axis=0)
+    blocks = [ np.array_split(b, col_split, axis=1) for b in rows_blocked]
+    m = blocks[0][0]
+    row_feat = [b[0] for b in blocks[1:]]
+    col_feat = blocks[0][1:]
+    assert len(col_feat) == col_split - 1
+    assert len(row_feat) == row_split - 1
 
     if density < 1.0:
         m = sparsify(m, density)
 
     shape_str = "_".join(map(str,shape))
-    split_str = "_".join(map(str,split))
-    dirname = "%s_%s_%d_%d_%s" % (func, shape_str, K, int(density * 100), split_str)
-    write_data(dirname, m, feat)
+    dirname = "%s_%s_%d_%d_%d_%d" % (func, shape_str, K, int(density * 100), row_split, col_split)
+    write_data(dirname, m, (row_feat, col_feat))
 
 if __name__ == "__main__":
     shape = [2000,100]
     num_latent = 4
     for density in (1, .2):
         for func in ("normal", "ones"):
-                for num_split in (1,2,3):
-                    gen_and_write(shape,num_latent,func,density, (1,num_split))
-                    gen_and_write(shape,num_latent,func,density, (num_split,1))
+            for row_split in (1,2,3):
+                for col_split in (1,2,3,):
+                    gen_and_write(shape,num_latent,func,density, row_split, col_split)
