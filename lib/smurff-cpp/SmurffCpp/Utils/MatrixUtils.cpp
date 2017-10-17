@@ -165,3 +165,20 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
 
    return os;
 }
+
+bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2)
+{
+   if (m1.rows() != m2.rows() || m1.cols() != m2.cols())
+      return false;
+
+   for (Eigen::Index i = 0; i < m1.rows(); i++)
+   {
+      for (Eigen::Index j = 0; j < m1.cols(); j++)
+      {
+         if (m1(i, j) != m2(i, j))
+            return false;
+      }
+   }
+
+   return true;
+}
