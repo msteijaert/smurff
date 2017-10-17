@@ -38,7 +38,7 @@ inline void addMacauPrior(Session &m, std::string prior_name, SideInfo *f, doubl
    }
 }
 
-void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
+void add_prior(Session &sess, int mode, std::string prior_name, const std::vector<MatrixConfig> &features, double lambda_beta, double tol, bool direct)
 {
    //-- row prior with side information
    if (features.size())
@@ -66,13 +66,27 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
                colsRawPtr[i] = cols->operator[](i);
             }
 
+            // Temporary solution #2
+            // macau expects the rows of the matrix to be equal to the mode
+            // size, if the mode == 1 (col_features) we need to swap the rows and columns 
+            if (mode == 1) {
+                std::swap(nrow, ncol);
+                std::swap(rowsRawPtr, colsRawPtr);
+            }
+
             auto sideinfo = new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr);
             addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
          }
          else if (s.isDense())
          {
-            auto sideinfo = new MatrixXd(dense_to_eigen(s));
-            addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
+            auto sideinfo = dense_to_eigen(s);
+
+            // Temporary solution #2
+            // macau expects the rows of the matrix to be equal to the mode
+            // size, if the mode == 1 (col_features) we need to swap the rows and columns 
+            if (mode == 1) sideinfo.transposeInPlace();
+
+            addMacauPrior(sess, prior_name, new MatrixXd(sideinfo), lambda_beta, tol, direct);
          }
          else
          {
@@ -94,6 +108,15 @@ void add_prior(Session &sess, std::string prior_name, const std::vector<MatrixCo
                colsRawPtr[i] = cols->operator[](i);
                valuesRawPtr[i] = values->operator[](i);
             }
+
+            // Temporary solution #2
+            // macau expects the rows of the matrix to be equal to the mode
+            // size, if the mode == 1 (col_features) we need to swap the rows and columns 
+            if (mode == 1) {
+                std::swap(nrow, ncol);
+                std::swap(rowsRawPtr, colsRawPtr);
+            }
+
 
             auto sideinfo = new SparseDoubleFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr);
             addMacauPrior(sess, prior_name, sideinfo, lambda_beta, tol, direct);
@@ -164,8 +187,8 @@ void Session::setFromConfig(const Config &c)
    data().setCenterMode(config.center_mode);
 
 
-   add_prior(*this, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);
-   add_prior(*this, config.col_prior, col_sideinfo, config.lambda_beta, config.tol, config.direct);
+   add_prior(*this, 0, config.row_prior, row_sideinfo, config.lambda_beta, config.tol, config.direct);
+   add_prior(*this, 1, config.col_prior, col_sideinfo, config.lambda_beta, config.tol, config.direct);
 }
 
 void Session::init() 
