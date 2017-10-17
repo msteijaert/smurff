@@ -13,10 +13,6 @@
 
 namespace smurff {
 
-//definition is identical except for:
-//thread_vector<Eigen::VectorXd> Ucol;
-//thread_vector<Eigen::MatrixXd> UUcol;
-
 //why remove update_prior method ?   
 
 // Prior without side information (pure BPMF) 

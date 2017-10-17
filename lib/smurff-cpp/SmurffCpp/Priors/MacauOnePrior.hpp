@@ -13,11 +13,7 @@
 
 namespace smurff {
 
-//definition is the same except that now:
-// int num_latent; is not stored in this class
-// Eigen::SparseMatrix<double> &Yc; is stored in this class
-
-//also why remove init method and put everything in constructor if we have
+//Why remove init method and put everything in constructor if we have
 //init method in other priors and the other method addSideInfo which we use in pair
 
 //why remove update_prior method ?
@@ -25,18 +21,17 @@ namespace smurff {
 template<class FType>
 class MacauOnePrior : public ILatentPrior
 {
-// smurff variables
 public:
    Eigen::MatrixXd Uhat;
 
-   std::unique_ptr<FType> F;  /* side information */
+   std::unique_ptr<FType> F;  // side information
    Eigen::VectorXd F_colsq;   // sum-of-squares for every feature (column)
 
-   Eigen::MatrixXd beta;      /* link matrix */
+   Eigen::MatrixXd beta;      // link matrix
    double lb0 = 5.0;
    Eigen::VectorXd lambda_beta;
-   double lambda_beta_a0; /* Hyper-prior for lambda_beta */
-   double lambda_beta_b0; /* Hyper-prior for lambda_beta */
+   double lambda_beta_a0; // Hyper-prior for lambda_beta
+   double lambda_beta_b0; // Hyper-prior for lambda_beta
 
    Eigen::VectorXd mu;
    Eigen::VectorXd lambda;
@@ -52,8 +47,6 @@ public:
 
 
 public:
-
-   //method is identical - previously part of init
 
    MacauOnePrior(BaseSession& m, int p)
       : ILatentPrior(m, p) {}
@@ -145,7 +138,8 @@ public:
 
    void sample_latents() override
    {
-      ILatentPrior::sample_latents(); //execute sample latent n times
+      //execute sample latent n times
+      ILatentPrior::sample_latents();
 
       //this was previously in update_prior
 
@@ -155,15 +149,12 @@ public:
       sample_lambda_beta();
    }
 
-   //new method
-
    double getLinkLambda()
    {
       return lambda_beta.mean();
    }
 
    //used in sample_latents
-   //method is identical
 
    void sample_beta(const Eigen::MatrixXd &U)
    {
@@ -215,7 +206,6 @@ public:
    }
 
    //used in sample_latents
-   //method is identical
 
    void sample_mu_lambda(const Eigen::MatrixXd &U)
    {
@@ -238,7 +228,6 @@ public:
    }
 
    //used in sample_latents
-   //method is identical
 
    void sample_lambda_beta()
    {
@@ -269,14 +258,10 @@ public:
       }
    }
 
-   //new method
-
    void setLambdaBeta(double lb)
    {
        lb0 = lb;
    }
-
-   //method is identical
 
    void save(std::string prefix, std::string suffix) override
    {
@@ -285,8 +270,6 @@ public:
       smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, beta);
    }
 
-   //new method
-
    void restore(std::string prefix, std::string suffix) override
    {
       smurff::matrix_io::eigen::read_matrix(prefix + "-latentmean" + suffix, mu);
@@ -294,14 +277,11 @@ public:
       smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, beta);
    }
 
-   //new method
-
    std::ostream &status(std::ostream &os, std::string indent) const override
    {
       os << indent << "  " << name << ": Beta = " << beta.norm() << "\n";
       return os;
    }
-
 };
 
 }

@@ -17,9 +17,6 @@
 
 namespace smurff {
 
-//previously MacauPrior was not inheriting from NormalPrior
-//that is why some of fields (related to NormalPrior) are now removed from this class
-
 //sample_beta method is now virtual. because we override it in MPIMacauPrior
 //we also have this method in MacauOnePrior but it is not virtual
 //maybe make it virtual?
@@ -32,18 +29,17 @@ class MacauPrior : public NormalPrior
 {
 public:
    Eigen::MatrixXd Uhat;
-   std::unique_ptr<FType> F;  /* side information */
-   Eigen::MatrixXd FtF;       /* F'F */
-   Eigen::MatrixXd beta;      /* link matrix */
+   std::unique_ptr<FType> F;  // side information
+   Eigen::MatrixXd FtF;       // F'F
+   Eigen::MatrixXd beta;      // link matrix
    bool use_FtF;
    double lambda_beta;
-   double lambda_beta_mu0; /* Hyper-prior for lambda_beta */
-   double lambda_beta_nu0; /* Hyper-prior for lambda_beta */
+   double lambda_beta_mu0; // Hyper-prior for lambda_beta
+   double lambda_beta_nu0; // Hyper-prior for lambda_beta
 
    double tol = 1e-6;
 
 public:
-   //new method
    MacauPrior(BaseSession& m, int p)
       : NormalPrior(m, p, "MacauPrior")
    {
@@ -52,12 +48,8 @@ public:
 
    virtual ~MacauPrior() {}
 
-   //method is identical
-   //this was previously part of init method
-
    void init() override
    {
-      //this was previously part of init method but now has moved to NormalPrior init
       NormalPrior::init();
 
       assert((F->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
@@ -80,6 +72,8 @@ public:
    //it is already called in NormalPrior
    //why call again ?
 
+   //maybe move it to update_prior?
+
    void sample_latents() override
    {
       //sample_latents implementation has moved to NormalPrior
@@ -99,9 +93,6 @@ public:
       lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
    }
 
-   //method is identical
-   //this was previously part of init method
-
    void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false)
    {
       // side information
@@ -115,23 +106,15 @@ public:
       lambda_beta_nu0 = 1e-3;
    }
 
-   //new method
-
    double getLinkLambda()
    {
       return lambda_beta;
    }
 
-   //new method
-
    const Eigen::VectorXd getMu(int n) const override
    {
       return this->mu + Uhat.col(n);
    }
-
-   //this method was previously part of sample_beta
-   //this method is identical except that is was not parallel
-   //MatrixXd Ft_y = A_mul_B(tmp, *F) + sqrt(lambda_beta) * MvNormal_prec_omp(Lambda, num_feat);
 
    void compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
    {
@@ -153,8 +136,6 @@ public:
       }
    }
 
-   //this method is identical
-
    // Update beta and Uhat
    virtual void sample_beta()
    {
@@ -164,22 +145,15 @@ public:
          sample_beta_cg();
    }
 
-   //new method
-
    void setLambdaBeta(double lb)
    {
       lambda_beta = lb;
    }
 
-   //new method
-
    void setTol(double t)
    {
       tol = t;
    }
-
-   //method is identical
-   //part has now moved to NormalPrior
 
    void save(std::string prefix, std::string suffix) override
    {
@@ -187,8 +161,6 @@ public:
       prefix += "-F" + std::to_string(mode);
       smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, this->beta);
    }
-
-   //new method
 
    void restore(std::string prefix, std::string suffix) override
    {
@@ -199,23 +171,17 @@ public:
 
 private:
 
-   //new method
-
    std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F)
    {
       os << "SparseDouble [" << F.rows() << ", " << F.cols() << "]\n";
       return os;
    }
 
-   //new method
-
    std::ostream &printSideInfo(std::ostream &os, const Eigen::MatrixXd &F)
    {
       os << "DenseDouble [" << F.rows() << ", " << F.cols() << "]\n";
       return os;
    }
-
-   //new method
 
    std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F)
    {
@@ -224,8 +190,6 @@ private:
    }
 
 public:
-
-   //new method
 
    std::ostream &info(std::ostream &os, std::string indent) override
    {
@@ -237,8 +201,6 @@ public:
       return os;
    }
 
-   //beta norm was previouly part of getLinkNorm
-
    std::ostream &status(std::ostream &os, std::string indent) const override
    {
       os << indent << "  " << name << ": Beta = " << beta.norm() << "\n";
@@ -246,17 +208,6 @@ public:
    }
 
 private:
-
-   //this method is identical except that:
-   //compute_Ft_y_omp was previously part of this method
-
-   //diagonal was calculated as:
-   /*
-   for (int i = 0; i < K.cols(); i++)
-   {
-      K(i,i) += lambda_beta;
-   }
-   */
 
    // direct method
    void sample_beta_direct()
@@ -272,9 +223,6 @@ private:
       beta = Ft_y;
    }
 
-   //this method is identical except that:
-   //compute_Ft_y_omp was previously part of this method
-
    // BlockCG solver
    void sample_beta_cg()
    {
@@ -285,8 +233,6 @@ private:
    }
 
 public:
-
-   //method is identical
 
    static std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
    {
@@ -300,8 +246,6 @@ public:
       return std::make_pair(b, c);
    }
 
-   //method is identical
-
    static double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
    {
       auto gamma_post = posterior_lambda_beta(beta, Lambda_u, nu, mu);
@@ -309,7 +253,7 @@ public:
    }
 };
 
-// specialization for dense matrices --> always direct method */
+// specialization for dense matrices --> always direct method
 template<>
 void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg();
 
