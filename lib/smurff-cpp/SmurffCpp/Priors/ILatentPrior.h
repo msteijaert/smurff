@@ -14,10 +14,6 @@
 
 namespace smurff {
 
-//also why remove update_prior method ?
-
-//everything else in the class were wrappers that are not needed anymore
-
 class ILatentPrior
 {
 public:
@@ -53,5 +49,7 @@ public:
 
    virtual void sample_latents();
    virtual void sample_latent(int n) = 0;
+
+   virtual void update_prior() = 0;
 };
 }

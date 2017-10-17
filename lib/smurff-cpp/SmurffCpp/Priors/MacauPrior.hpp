@@ -21,8 +21,6 @@ namespace smurff {
 //we also have this method in MacauOnePrior but it is not virtual
 //maybe make it virtual?
 
-//why remove update_prior method ?
-
 /// Prior with side information
 template<class FType>
 class MacauPrior : public NormalPrior
@@ -67,21 +65,8 @@ public:
       beta.setZero();
    }
 
-   //this method looks ok
-   //however not sure about CondNormalWishart
-   //it is already called in NormalPrior
-   //why call again ?
-
-   //maybe move it to update_prior?
-
-   void sample_latents() override
+   void update_prior() override
    {
-      //sample_latents implementation has moved to NormalPrior
-
-      NormalPrior::sample_latents();
-
-      //this was previously part of update_prior
-
       // residual (Uhat is later overwritten):
       Uhat.noalias() = U() - Uhat;
       Eigen::MatrixXd BBt = A_mul_At_combo(beta);

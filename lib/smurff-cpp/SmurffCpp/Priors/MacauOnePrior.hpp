@@ -16,8 +16,6 @@ namespace smurff {
 //Why remove init method and put everything in constructor if we have
 //init method in other priors and the other method addSideInfo which we use in pair
 
-//why remove update_prior method ?
-
 template<class FType>
 class MacauOnePrior : public ILatentPrior
 {
@@ -136,13 +134,8 @@ public:
        }
    }
 
-   void sample_latents() override
+   void update_prior() override
    {
-      //execute sample latent n times
-      ILatentPrior::sample_latents();
-
-      //this was previously in update_prior
-
       sample_mu_lambda(U());
       sample_beta(U());
       compute_uhat(Uhat, *F, beta);
@@ -154,7 +147,7 @@ public:
       return lambda_beta.mean();
    }
 
-   //used in sample_latents
+   //used in update_prior
 
    void sample_beta(const Eigen::MatrixXd &U)
    {
@@ -205,7 +198,7 @@ public:
       }
    }
 
-   //used in sample_latents
+   //used in update_prior
 
    void sample_mu_lambda(const Eigen::MatrixXd &U)
    {
@@ -227,7 +220,7 @@ public:
       lambda = Lambda.diagonal();
    }
 
-   //used in sample_latents
+   //used in update_prior
 
    void sample_lambda_beta()
    {
