@@ -28,22 +28,36 @@ def ones_dense(shape, K):
     W = np.ones((shape[1],K))
     return np.dot(X,W.transpose())
 
+def col_rep(shape, K):
+    W = np.arange(shape[1]).reshape(1, shape[1])
+    return np.repeat(W, shape[0], 0)
+
 # dense -> sparse
 #  or
 # sparse -> even sparser
 def sparsify(A, density):
-    num = int(A.size * density)
-    idx = np.random.choice(A.size, num, replace=False)
-    (I, J, V) = sparse.find(sparse.coo_matrix(A))
+    if sparse.issparse(A):
+        (I, J, V) = sparse.find(A)
+    else:
+        V = A.reshape(A.size)
+        (I, J) = np.indices(A.shape)
+        I = I.reshape(A.size)
+        J = J.reshape(A.size)
+
+    size = V.size
+    num = int(size * density)
+    idx = np.random.choice(size, num, replace=False)
+
     return sparse.coo_matrix((V[idx], (I[idx], J[idx])), shape = A.shape)
 
 def gen_matrix(shape, K, func = "normal", density = 1.0 ):
-    if func == "normal":
-        m = normal_dense(shape,K)
-    elif func == "ones":
-        m = ones_dense(shape,K)
-    else:
-        assert False
+    func_dict = {
+            "normal": normal_dense,
+            "ones":   ones_dense,
+            "col":    col_rep,
+    }
+
+    m = func_dict[func] (shape,K)
 
     if density < 1.0:
         m = sparsify(m, density)
@@ -78,10 +92,14 @@ def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1):
     rows_blocked = np.array_split(m, row_split, axis=0)
     blocks = [ np.array_split(b, col_split, axis=1) for b in rows_blocked]
     m = blocks[0][0]
-    row_feat = [b[0] for b in blocks[1:]]
-    col_feat = blocks[0][1:]
-    assert len(col_feat) == col_split - 1
-    assert len(row_feat) == row_split - 1
+    col_feat = [b[0] for b in blocks[1:]]
+    row_feat = blocks[0][1:]
+
+    assert len(col_feat) == row_split - 1
+    assert len(row_feat) == col_split - 1
+
+    for r in row_feat: assert r.shape[0] == m.shape[0]
+    for r in col_feat: assert r.shape[1] == m.shape[1]
 
     if density < 1.0:
         m = sparsify(m, density)
