@@ -42,6 +42,22 @@ bool Config::validate(bool throw_error) const
        }
    }
 
+   if (col_prior == "macau" && col_features.size() != 1) {
+       die("Exactly one set of col-features needed when using macau prior.");
+   }
+
+   if (row_prior == "macau" && row_features.size() != 1) {
+       die("Exactly one set of row-features needed when using macau prior.");
+   }
+
+   if (col_prior == "macauone" && (col_features.size() != 1 || col_features.at(0).isDense())) {
+       die("Exactly one set of sparse col-features needed when using macauone prior.");
+   }
+
+   if (row_prior == "macauone" && (row_features.size() != 1 || row_features.at(0).isDense())) {
+       die("Exactly one set of sparse row-features needed when using macauone prior.");
+   }
+
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
    if (save_suffixes.find(save_suffix) == save_suffixes.end()) 
