@@ -60,10 +60,10 @@ class Test:
 
     def valid(self):
         opts = self.opts
-        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) == 0: 
+        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1: 
             return False
         
-        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) == 0: 
+        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) != 1: 
             return False
 
         if (not opts["col_prior"].startswith("macau")) and opts["direct"]: 
