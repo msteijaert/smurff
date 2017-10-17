@@ -26,8 +26,8 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
@@ -45,8 +45,8 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&&
    REQUIRE(tensorConfigDims.data() == NULL);
    REQUIRE(tensorConfigValues.data() == NULL);
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
@@ -67,8 +67,8 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
@@ -95,8 +95,8 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
@@ -131,8 +131,8 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint
    REQUIRE(tensorConfigColumns.data() == NULL);
    REQUIRE(tensorConfigValues.data() == NULL);
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
@@ -169,8 +169,8 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const NoiseConfig& noiseConfig)")
@@ -196,8 +196,8 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, const NoiseConfig& noiseConfig)")
@@ -226,8 +226,8 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint
    REQUIRE(tensorConfigDims.data() == NULL);
    REQUIRE(tensorConfigColumns.data() == NULL);
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }
 
 TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, const NoiseConfig& noiseConfig)")
@@ -260,6 +260,6 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix0.isApprox(expectedMatrix));
-   REQUIRE(actualMatrix1.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix0, expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix1, expectedMatrix));
 }

@@ -25,7 +25,7 @@ TEST_CASE("MatrixConfig::MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, co
    expectedMatrix(1, 0) = 5; expectedMatrix(1, 1) = 6; expectedMatrix(1, 2) = 7; expectedMatrix(1, 3) = 8;
    expectedMatrix(2, 0) = 9; expectedMatrix(2, 1) = 10; expectedMatrix(2, 2) = 11; expectedMatrix(2, 3) = 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
@@ -40,7 +40,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<doub
    expectedMatrix(2, 0) = 9; expectedMatrix(2, 1) = 10; expectedMatrix(2, 2) = 11; expectedMatrix(2, 3) = 12;
 
    REQUIRE(actualMatrixConfigValues.data() == NULL);
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
@@ -55,7 +55,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
    expectedMatrix(1, 0) = 5; expectedMatrix(1, 1) = 6; expectedMatrix(1, 2) = 7; expectedMatrix(1, 3) = 8;
    expectedMatrix(2, 0) = 9; expectedMatrix(2, 1) = 10; expectedMatrix(2, 2) = 11; expectedMatrix(2, 3) = 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vector<std::uint32_t>& rows, const std::vector<std::uint32_t>& cols, const std::vector<double>& values, const NoiseConfig& noiseConfig)")
@@ -78,7 +78,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vecto
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std::uint32_t>&& rows, std::vector<std::uint32_t>&& cols, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
@@ -104,7 +104,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std:
    REQUIRE(actualMatrixConfigRows.data() == NULL);
    REQUIRE(actualMatrixConfigCols.data() == NULL);
    REQUIRE(actualMatrixConfigValues.data() == NULL);
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<std::uint32_t> > rows, std::shared_ptr<std::vector<std::uint32_t> > cols, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
@@ -130,7 +130,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vector<std::uint32_t>& rows, const std::vector<std::uint32_t>& cols, const NoiseConfig& noiseConfig)")
@@ -152,7 +152,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vecto
    MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std::uint32_t>&& rows, std::vector<std::uint32_t>&& cols, const NoiseConfig& noiseConfig)")
@@ -176,7 +176,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std:
 
    REQUIRE(actualMatrixConfigRows.data() == NULL);
    REQUIRE(actualMatrixConfigCols.data() == NULL);
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<std::uint32_t> > rows, std::shared_ptr<std::vector<std::uint32_t> > cols, const NoiseConfig& noiseConfig)")
@@ -200,7 +200,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
    MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 //---
@@ -221,7 +221,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vecto
    expectedMatrix(1, 0) = 5; expectedMatrix(1, 1) = 6; expectedMatrix(1, 2) = 7; expectedMatrix(1, 3) = 8;
    expectedMatrix(2, 0) = 9; expectedMatrix(2, 1) = 10; expectedMatrix(2, 2) = 11; expectedMatrix(2, 3) = 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std::uint32_t>&& columns, std::vector<double>&& values, const NoiseConfig& noiseConfig)")
@@ -242,7 +242,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std:
 
    REQUIRE(actualMatrixConfigColumns.data() == NULL);
    REQUIRE(actualMatrixConfigValues.data() == NULL);
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values, const NoiseConfig& noiseConfig)")
@@ -266,5 +266,5 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
    expectedMatrix(1, 0) = 5; expectedMatrix(1, 1) = 6; expectedMatrix(1, 2) = 7; expectedMatrix(1, 3) = 8;
    expectedMatrix(2, 0) = 9; expectedMatrix(2, 1) = 10; expectedMatrix(2, 2) = 11; expectedMatrix(2, 3) = 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
