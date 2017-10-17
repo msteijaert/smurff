@@ -30,6 +30,18 @@ bool Config::validate(bool throw_error) const
    if (test.getNCol() > 0 && train.getNCol() > 0 && test.getNCol() != train.getNCol())
       die("Train and test matrix should have the same number of cols");
 
+   for (const auto &c: col_features) {
+       if (train.getNCol() != c.getNCol()) {
+           die("Column features and train should have the same number of cols");
+       }
+   }
+
+   for (const auto &c: row_features) {
+       if (train.getNRow() != c.getNRow()) {
+           die("Row features and train should have the same number of rows");
+       }
+   }
+
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
    if (save_suffixes.find(save_suffix) == save_suffixes.end()) 
