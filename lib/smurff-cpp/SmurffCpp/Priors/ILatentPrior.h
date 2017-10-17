@@ -14,10 +14,6 @@
 
 namespace smurff {
 
-//this class now has:
-//session, mode, name, rrs, MMs
-//there were previously no fields
-
 //also why remove update_prior method ?
 
 //everything else in the class were wrappers that are not needed anymore
@@ -33,7 +29,6 @@ public:
    thread_vector<Eigen::MatrixXd> MMs;
 
 public:
-   // c-tor
    ILatentPrior(BaseSession &s, int m, std::string name = "xxxx");
    virtual ~ILatentPrior() {}
    virtual void init();

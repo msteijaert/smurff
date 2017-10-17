@@ -38,7 +38,6 @@ public:
    //TODO: missing implementation
    MPIMacauPrior(BaseSession &m, int p);
 
-   //TODO: missing declaration
    MPIMacauPrior(ScarceMatrixData &m, int p, INoiseModel &n) 
     : MacauPrior<FType>(m, p, n)
    {

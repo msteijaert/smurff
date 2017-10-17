@@ -3,9 +3,6 @@
 using namespace smurff;
 using namespace Eigen;
 
-//most of the methods are new
-//there are also some new fields as well
-
 ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
    : session(m), mode(p), name(name) 
 {
@@ -68,8 +65,7 @@ bool ILatentPrior::run_slave()
    return false; 
 }
 
-//this method is ok except for:
-//dont see any update_pnm equvalent in old code
+//update_pnm is smth new and there is no equvalent in old code
 
 void ILatentPrior::sample_latents() 
 {

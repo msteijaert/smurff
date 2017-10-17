@@ -59,11 +59,9 @@ void NormalPrior::sample_latents()
 
    const int N = num_cols();
 
-   //this are new variables required for CondNormalWishart ?
    const auto cov = UUcol.combine_and_reset();
    const auto sum = Ucol.combine_and_reset();
 
-   //this corresponds to update_prior - tie(mu, Lambda) = CondNormalWishart(U, mu0, b0, WI, df);
    std::tie(mu, Lambda) = CondNormalWishart(N, cov, sum, mu0, b0, WI, df);
 }
 
