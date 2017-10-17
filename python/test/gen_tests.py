@@ -39,9 +39,9 @@ defaults = {
 
 print("Generating tests in %s" % args.outdir)
 
-if (os.path.islink("latest")):
-    os.unlink("latest")
-os.symlink(args.outdir, "latest")
+if (os.path.islink("work/latest")):
+    os.unlink("work/latest")
+os.symlink(args.outdir, "work/latest")
 
 
 try:
@@ -81,7 +81,7 @@ class Test:
     def append_one(self, name, value):
         self.opts[name].append(value)
 
-    def gen_cmd(self, outdir, env, datadir):
+    def gen_cmd(self, outdir, env, datadir, makefile = None):
         args = self.opts
         cat("args", args)
 
@@ -126,11 +126,15 @@ class Test:
 #!/bin/bash
 cd %s
 source activate %s
-/usr/bin/time --output=time --portability \
+gtime --output=time --portability \
 %s >stdout 2>stderr
 echo $? >exit_code
 """ % (fulldir, env, cmd))
 
+        if (makefile):
+            makefile.write("run: %s/exit_code\n" % fulldir)
+            makefile.write("%s/exit_code:\n" % fulldir)
+            makefile.write("\tbash -e %s/cmd\n\n" % fulldir)
 
 
 class TestSuite:
@@ -250,10 +254,16 @@ def all_tests(args):
 
 tests = all_tests(args).tests
 
-for opts  in tests:
-    for env in args.envs:
-        fulldir = os.path.join(args.outdir, env)
-        fullenv = os.path.join(args.envdir, env)
-        opts.gen_cmd(fulldir, fullenv, args.datadir)
+for env in args.envs:
+    fullenv = os.path.join(args.envdir, env)
+    fulldir = os.path.join(args.outdir, env)
+    os.makedirs(fulldir)
+    makefile = open(os.path.join(fulldir, "Makefile"), "w")
+
+    for opts in tests:
+        opts.gen_cmd(fulldir, fullenv, args.datadir, makefile)
+
+    makefile.close()
+
 
 
