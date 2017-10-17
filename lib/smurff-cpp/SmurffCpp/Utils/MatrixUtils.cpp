@@ -3,7 +3,7 @@
 #include <unsupported/Eigen/SparseExtra>
 
 template<>
-Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
+Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
 {
    Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
    std::shared_ptr<std::vector<std::uint32_t> > rowsPtr = matrixConfig.getRowsPtr();
@@ -24,13 +24,13 @@ Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::MatrixConfig>(const sm
 }
 
 template<>
-Eigen::SparseMatrix<double> sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig)
+Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig)
 {
-   return sparse_to_eigen<const smurff::MatrixConfig>(matrixConfig);
+   return smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(matrixConfig);
 }
 
 template<>
-Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig)
+Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig)
 {
    if(tensorConfig.getNModes() != 2)
       throw "Invalid number of dimentions. Tensor can not be converted to matrix.";
@@ -55,37 +55,37 @@ Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::TensorConfig>(const sm
 }
 
 template<>
-Eigen::SparseMatrix<double> sparse_to_eigen<smurff::TensorConfig>(smurff::TensorConfig& tensorConfig)
+Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<smurff::TensorConfig>(smurff::TensorConfig& tensorConfig)
 {
    return sparse_to_eigen<const smurff::TensorConfig>(tensorConfig);
 }
 
-Eigen::MatrixXd sparse_to_dense(const SparseBinaryMatrix& in)
+Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseBinaryMatrix& in)
 {
     Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
     for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = 1.;
     return out;
 }
 
-Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in)
+Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseDoubleMatrix& in)
 {
     Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
     for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
     return out;
 }
 
-smurff::MatrixConfig tensor_to_matrix(const smurff::TensorConfig& tensorConfig)
+smurff::MatrixConfig smurff::matrix_utils::tensor_to_matrix(const smurff::TensorConfig& tensorConfig)
 {
    if(tensorConfig.getNModes() != 2)
       throw "Invalid number of dimentions. Tensor can not be converted to matrix.";
 
-   return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1], 
-                               tensorConfig.getColumns(), tensorConfig.getValues(), 
+   return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1],
+                               tensorConfig.getColumns(), tensorConfig.getValues(),
                                smurff::NoiseConfig());
 }
 
-std::ostream& smurff::operator << (std::ostream& os, const TensorConfig& tc)  
-{  
+std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const TensorConfig& tc)
+{
    const std::vector<double>& values = tc.getValues();
    const std::vector<std::uint32_t>& columns = tc.getColumns();
 
@@ -101,26 +101,26 @@ std::ostream& smurff::operator << (std::ostream& os, const TensorConfig& tc)
 
    if(tc.getNModes() == 2)
    {
-      os << "dims: " << tc.getDims()[0] << " " << tc.getDims()[1] << std::endl; 
+      os << "dims: " << tc.getDims()[0] << " " << tc.getDims()[1] << std::endl;
 
       Eigen::SparseMatrix<double> X(tc.getDims()[0], tc.getDims()[1]);
 
       std::vector<Eigen::Triplet<double> > triplets;
       for(std::uint64_t i = 0; i < tc.getNNZ(); i++)
          triplets.push_back(Eigen::Triplet<double>(columns[i], columns[i + tc.getNNZ()], values[i]));
-   
+
       os << "NTriplets: " << triplets.size() << std::endl;
-   
+
       X.setFromTriplets(triplets.begin(), triplets.end());
-   
+
       os << X << std::endl;
    }
 
-   return os;  
-} 
+   return os;
+}
 
-std::ostream& smurff::operator << (std::ostream& os, const MatrixConfig& mc)  
-{  
+std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixConfig& mc)
+{
    const std::vector<std::uint32_t>& rows = mc.getRows();
    const std::vector<std::uint32_t>& cols = mc.getCols();
    const std::vector<double>& values = mc.getValues();
@@ -163,5 +163,5 @@ std::ostream& smurff::operator << (std::ostream& os, const MatrixConfig& mc)
 
    os << X << std::endl;
 
-   return os;  
+   return os;
 }

@@ -25,14 +25,14 @@ inline void addMacauPrior(Session &m, std::string prior_name, SideInfo *f, doubl
       prior.addSideInfo(features, use_FtF);
       prior.setLambdaBeta(lambda_beta);
       prior.setTol(tol);
-   } 
-   else if(prior_name == "macauone") 
+   }
+   else if(prior_name == "macauone")
    {
       auto &prior = m.addPrior<MacauOnePrior<SideInfo>>();
       prior.addSideInfo(features, use_FtF);
       prior.setLambdaBeta(lambda_beta);
-   } 
-   else 
+   }
+   else
    {
       throw std::runtime_error("Unknown prior with side info: " + prior_name);
    }
@@ -68,7 +68,7 @@ void add_prior(Session &sess, int mode, std::string prior_name, const std::vecto
 
             // Temporary solution #2
             // macau expects the rows of the matrix to be equal to the mode
-            // size, if the mode == 1 (col_features) we need to swap the rows and columns 
+            // size, if the mode == 1 (col_features) we need to swap the rows and columns
             if (mode == 1) {
                 std::swap(nrow, ncol);
                 std::swap(rowsRawPtr, colsRawPtr);
@@ -79,11 +79,11 @@ void add_prior(Session &sess, int mode, std::string prior_name, const std::vecto
          }
          else if (s.isDense())
          {
-            auto sideinfo = dense_to_eigen(s);
+            auto sideinfo = matrix_utils::dense_to_eigen(s);
 
             // Temporary solution #2
             // macau expects the rows of the matrix to be equal to the mode
-            // size, if the mode == 1 (col_features) we need to swap the rows and columns 
+            // size, if the mode == 1 (col_features) we need to swap the rows and columns
             if (mode == 1) sideinfo.transposeInPlace();
 
             addMacauPrior(sess, prior_name, new MatrixXd(sideinfo), lambda_beta, tol, direct);
@@ -111,7 +111,7 @@ void add_prior(Session &sess, int mode, std::string prior_name, const std::vecto
 
             // Temporary solution #2
             // macau expects the rows of the matrix to be equal to the mode
-            // size, if the mode == 1 (col_features) we need to swap the rows and columns 
+            // size, if the mode == 1 (col_features) we need to swap the rows and columns
             if (mode == 1) {
                 std::swap(nrow, ncol);
                 std::swap(rowsRawPtr, colsRawPtr);
@@ -149,10 +149,10 @@ void Session::setFromConfig(const Config &c)
    //-- copy
    config = c;
 
-   if (config.classify) 
+   if (config.classify)
       pred.setThreshold(config.threshold);
 
-   pred.set(sparse_to_eigen(config.test));
+   pred.set(matrix_utils::sparse_to_eigen(config.test));
 
    std::vector<MatrixConfig> row_matrices;
    std::vector<MatrixConfig> col_matrices;
@@ -160,14 +160,14 @@ void Session::setFromConfig(const Config &c)
    std::vector<MatrixConfig> row_sideinfo;
    std::vector<MatrixConfig> col_sideinfo;
 
-   if (config.row_prior == "macau" || config.row_prior == "macauone") 
+   if (config.row_prior == "macau" || config.row_prior == "macauone")
       row_sideinfo = config.row_features;
-   else 
+   else
       row_matrices = config.row_features;
 
-   if (config.col_prior == "macau" || config.col_prior == "macauone") 
+   if (config.col_prior == "macau" || config.col_prior == "macauone")
       col_sideinfo = config.col_features;
-   else 
+   else
       col_matrices = config.col_features;
 
    data_ptr = smurff::matrix_config_to_matrix(config.train, row_matrices, col_matrices);
@@ -191,33 +191,33 @@ void Session::setFromConfig(const Config &c)
    add_prior(*this, 1, config.col_prior, col_sideinfo, config.lambda_beta, config.tol, config.direct);
 }
 
-void Session::init() 
+void Session::init()
 {
    threads_init();
    init_bmrng();
    data().init();
    model.init(config.num_latent, data().dim(), config.init_model);
-   for( auto &p : priors) 
+   for( auto &p : priors)
       p->init();
 
-   if (config.csv_status.size()) 
+   if (config.csv_status.size())
    {
       auto f = fopen(config.csv_status.c_str(), "w");
       fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
       fclose(f);
    }
 
-   if (config.verbose) 
+   if (config.verbose)
       info(std::cout, "");
 
-   if (config.restore_prefix.size()) 
+   if (config.restore_prefix.size())
    {
-      if (config.verbose) 
+      if (config.verbose)
          printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
       restore(config.restore_prefix, config.restore_suffix);
    }
 
-   if (config.verbose) 
+   if (config.verbose)
    {
       printStatus(0);
       printf(" ====== Sampling (burning phase) ====== \n");
@@ -227,17 +227,17 @@ void Session::init()
    is_init = true;
 }
 
-void Session::run() 
+void Session::run()
 {
    init();
    while (iter < config.burnin + config.nsamples) step();
 }
 
-void Session::step() 
+void Session::step()
 {
    assert(is_init);
 
-   if (config.verbose && iter == config.burnin) 
+   if (config.verbose && iter == config.burnin)
    {
       printf(" ====== Burn-in complete, averaging samples ====== \n");
    }
@@ -251,24 +251,24 @@ void Session::step()
    iter++;
 }
 
-std::ostream& Session::info(std::ostream &os, std::string indent) 
+std::ostream& Session::info(std::ostream &os, std::string indent)
 {
    BaseSession::info(os, indent);
    os << indent << "  Version: " << Config::version() << "\n" ;
    os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
-   
-   if (config.save_freq > 0) 
+
+   if (config.save_freq > 0)
    {
       os << indent << "  Save model: every " << config.save_freq << " iteration\n";
       os << indent << "  Save prefix: " << config.save_prefix << "\n";
       os << indent << "  Save suffix: " << config.save_suffix << "\n";
-   } 
-   else 
+   }
+   else
    {
       os << indent << "  Save model: never\n";
    }
 
-   if (config.restore_prefix.size()) 
+   if (config.restore_prefix.size())
    {
       os << indent << "  Restore prefix: " << config.restore_prefix << "\n";
       os << indent << "  Restore suffix: " << config.restore_suffix << "\n";
@@ -278,26 +278,26 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
    return os;
 }
 
-void Session::save(int isample) 
+void Session::save(int isample)
 {
-   if (!config.save_freq || isample < 0) 
+   if (!config.save_freq || isample < 0)
       return;
-   if (((isample+1) % config.save_freq) != 0) 
+   if (((isample+1) % config.save_freq) != 0)
       return;
 
    std::string fprefix = config.save_prefix + "-sample-" + std::to_string(isample);
 
-   if (config.verbose) 
+   if (config.verbose)
       printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.save_suffix.c_str());
 
    BaseSession::save(fprefix, config.save_suffix);
 }
 
-void Session::printStatus(double elapsedi) 
+void Session::printStatus(double elapsedi)
 {
    pred.update(model, data(), iter < config.burnin);
 
-   if(!config.verbose) 
+   if(!config.verbose)
       return;
 
    double snorm0 = model.U(0).norm();
@@ -308,18 +308,18 @@ void Session::printStatus(double elapsedi)
 
    std::string phase;
    int i, from;
-   if (iter < 0) 
+   if (iter < 0)
    {
       phase = "Initial";
       i = 0;
       from = 0;
-   } 
-   else if (iter < config.burnin) 
+   }
+   else if (iter < config.burnin)
    {
       phase = "Burnin";
       i = iter + 1;
       from = config.burnin;
-   } 
+   }
    else
    {
       phase = "Sample";
@@ -329,18 +329,18 @@ void Session::printStatus(double elapsedi)
 
    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, pred.rmse_avg, pred.rmse_1sample);
 
-   if (config.classify) 
+   if (config.classify)
       printf(" AUC:%.4f (1samp: %.4f)", pred.auc_avg, pred.auc_1sample);
 
    printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
 
-   if (config.verbose > 1) 
+   if (config.verbose > 1)
    {
       double train_rmse = data().train_rmse(model);
       printf("  RMSE train: %.4f\n", train_rmse);
       printf("  Priors:\n");
 
-      for(const auto &p : priors) 
+      for(const auto &p : priors)
          p->status(std::cout, "     ");
 
       printf("  Model:\n");
@@ -349,12 +349,12 @@ void Session::printStatus(double elapsedi)
       data().status(std::cout, "    ");
    }
 
-   if (config.verbose > 2) 
+   if (config.verbose > 2)
    {
       printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
    }
 
-   if (config.csv_status.size()) 
+   if (config.csv_status.size())
    {
       double colmean_rmse = pred.rmse_using_modemean(data(), 0);
       double globalmean_rmse = pred.rmse_using_modemean(data(), 1);
@@ -366,7 +366,7 @@ void Session::printStatus(double elapsedi)
             phase.c_str(), i, from,
             globalmean_rmse, colmean_rmse,
             pred.rmse_avg, pred.rmse_1sample, train_rmse, pred.auc_1sample, pred.auc_avg, snorm0, snorm1, elapsedi);
-            
+
       fclose(f);
    }
 }
