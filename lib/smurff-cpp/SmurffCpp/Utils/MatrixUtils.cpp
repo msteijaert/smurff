@@ -166,7 +166,7 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
    return os;
 }
 
-bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2)
+bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision)
 {
    if (m1.rows() != m2.rows() || m1.cols() != m2.cols())
       return false;
@@ -175,7 +175,10 @@ bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::Matrix
    {
       for (Eigen::Index j = 0; j < m1.cols(); j++)
       {
-         if (m1(i, j) != m2(i, j))
+         Eigen::MatrixXd::Scalar m1_v = m1(i, j);
+         Eigen::MatrixXd::Scalar m2_v = m2(i, j);
+
+         if (std::abs(m1_v - m2_v) > precision)
             return false;
       }
    }
