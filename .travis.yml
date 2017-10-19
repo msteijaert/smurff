@@ -21,6 +21,7 @@ install:
 #    - cmake3
 #    - cmake3-data
 script:
+- cd "${TRAVIS_BUILD_DIR}"
 - cd lib/smurff-cpp/cmake
 - rm build -r
 - mkdir build
