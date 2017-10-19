@@ -2,10 +2,9 @@ ifndef CONDA_PREFIX
         $(error CONDA_PREFIX is undefined)
 endif
 ROOT=../..
-CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -DNDEBUG 
+CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing 
 CXXFLAGS+=-fopenmp 
-CXXFLAGS=-I/usr/local/include 
-LIBLOCS=-Wl,-rpath -Wl,$(CONDA_PREFIX)/lib -L$(CONDA_PREFIX)/lib /usr/local/lib/libargp.a
+LIBLOCS=-Wl,-rpath -Wl,$(CONDA_PREFIX)/lib -L$(CONDA_PREFIX)/lib
 
 include $(ROOT)/Makefile.common
 
