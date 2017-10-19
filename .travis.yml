@@ -29,9 +29,14 @@ addons:
 script:
 - cd "${TRAVIS_BUILD_DIR}"
 - cd lib/smurff-cpp/cmake
-- rm build -r
 - mkdir build
 - cd build
 - cmake --version
 - cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE=Debug
 - make
+- ../_output/tests
+after_success:
+  - echo "success"
+ 
+after_failure:
+  - echo "failure"
