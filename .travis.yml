@@ -15,9 +15,10 @@ install:
       fi
       export PATH="${DEPS_DIR}/cmake/bin:${PATH}"
     fi
-#addons:
-#  apt:
-#    packages:
+addons:
+  apt:
+    packages:
+     - libopenblas-dev
 #    - cmake3
 #    - cmake3-data
 script:
