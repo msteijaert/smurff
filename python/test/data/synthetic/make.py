@@ -87,6 +87,15 @@ def write_data(dirname, train, features = ([],[])):
     os.chdir("..")
 
 def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1):
+    shape_str = "_".join(map(str,shape))
+    dirname = "%s_%s_%d_%d_%d_%d" % (func, shape_str, K, int(density * 100), row_split, col_split)
+
+    if os.path.exists(dirname):
+        print("Already exists: %s. Skipping" % dirname)
+        return
+
+    print("%s..." % dirname)
+
     m = gen_matrix(shape,K,func);
 
     rows_blocked = np.array_split(m, row_split, axis=0)
@@ -104,8 +113,6 @@ def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1):
     if density < 1.0:
         m = sparsify(m, density)
 
-    shape_str = "_".join(map(str,shape))
-    dirname = "%s_%s_%d_%d_%d_%d" % (func, shape_str, K, int(density * 100), row_split, col_split)
     write_data(dirname, m, (row_feat, col_feat))
 
 if __name__ == "__main__":
