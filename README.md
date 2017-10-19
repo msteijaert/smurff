@@ -1,4 +1,6 @@
 # SMURFF - Scalable Matrix Factorization Framework
+[![Build Status](https://travis-ci.org/ExaScience/smurff.svg?branch=master)](https://travis-ci.org/ExaScience/smurff)
+
 ## Bayesian Factorization with Side Information
 
 Highly optimized and parallelized methods for Bayesian Factorization, including BPMF, Macau and GFA.
