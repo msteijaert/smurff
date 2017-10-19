@@ -4,14 +4,26 @@ matrix:
   - os: linux
     dist: trusty
     sudo: false
-addons:
-  apt:
-    packages:
-    - cmake3
-    - cmake3-data
+install:
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      if [[ -z "$(ls -A ${DEPS_DIR}/cmake/bin)" ]]; then
+        CMAKE_URL="https://cmake.org/files/v3.9/cmake-3.9.4-Linux-x86_64.tar.gz"
+        mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - "${CMAKE_URL}" | tar --strip-components=1 -xz -C cmake
+      fi
+      export PATH="${DEPS_DIR}/cmake/bin:${PATH}"
+    fi
+#addons:
+#  apt:
+#    packages:
+#    - cmake3
+#    - cmake3-data
 script:
 - cd lib/smurff-cpp/cmake
 - rm build -r
 - mkdir build
 - cd build
+- cmake --version
 - cmake .. -DENABLE_OPENBLAS=ON -DCMAKE_BUILD_TYPE=Debug
