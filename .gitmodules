@@ -1,7 +1,3 @@
-[submodule "lib/libfastsparse"]
-	path = lib/libfastsparse
-	url = https://github.com/tvandera/libfastsparse.git
-	shallow = true
 [submodule "lib/eigen3"]
 	path = lib/eigen3
 	url = https://github.com/RLovelett/eigen.git
