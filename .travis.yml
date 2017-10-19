@@ -4,6 +4,12 @@ matrix:
   - os: linux
     dist: trusty
     sudo: false
+    BUILD_TYPE="Debug"
+  include:
+  - os: linux
+    dist: trusty
+    sudo: false
+    BUILD_TYPE="Release"
 env:
   global:
     - MAKEFLAGS="-j 2"
@@ -32,7 +38,7 @@ script:
 - mkdir build
 - cd build
 - cmake --version
-- cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE=Debug
+- cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 - make
 - ../_output/tests
 after_success:
