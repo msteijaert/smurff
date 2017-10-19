@@ -4,12 +4,12 @@ matrix:
   - os: linux
     dist: trusty
     sudo: false
-    BUILD_TYPE="Debug"
+    env: BUILD_TYPE="Debug"
   include:
   - os: linux
     dist: trusty
     sudo: false
-    BUILD_TYPE="Release"
+    env: BUILD_TYPE="Release"
 env:
   global:
     - MAKEFLAGS="-j 2"
