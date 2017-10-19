@@ -21,10 +21,11 @@ install:
 addons:
   apt:
     packages:
-     - libopenblas-dev
-     - liblapack3
-#    - cmake3
-#    - cmake3-data
+#      - libopenblas-dev
+      - libblas-dev
+      - liblapack-dev
+#      - cmake3
+#      - cmake3-data
 script:
 - cd "${TRAVIS_BUILD_DIR}"
 - cd lib/smurff-cpp/cmake
@@ -32,5 +33,5 @@ script:
 - mkdir build
 - cd build
 - cmake --version
-- cmake .. -DENABLE_OPENBLAS=ON -DCMAKE_BUILD_TYPE=Debug
+- cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE=Debug
 - make
