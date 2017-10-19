@@ -7,7 +7,6 @@ import sys
 import subprocess
 import itertools
 import datetime
-import hashlib
 
 parser = argparse.ArgumentParser(description='SMURFF tests')
 
@@ -27,8 +26,8 @@ defaults = {
         'num_latent'  : 16,
         'row_prior'   : "normal",
         'col_prior'   : "normal",
-        'burnin'      : 20,
-        'nsamples'    : 200,
+        'burnin'      : 200,
+        'nsamples'    : 500,
         'center'      : "global",
         'row_features': [],
         'col_features': [],
@@ -113,8 +112,12 @@ class Test:
         fmt_name += "direct/" if (args["direct"]) else "cgsolve/"
         if (args["precision"]): fmt_name +=  "fprec{precision}/"
         if (args["adaptive"]): fmt_name +=  "aprec{adaptive}/"
-        fmt_name += "rowf%d/" % len(args["row_features"])
-        fmt_name += "colf%d/" % len(args["col_features"])
+        fmt_name += "row"
+        for feat in args["row_features"]: fmt_name += "_%s" % (feat)
+        fmt_name += "/"
+        fmt_name += "col"
+        for feat in args["col_features"]: fmt_name += "_%s" % (feat)
+        fmt_name += "/"
         name = fmt_name.format(**args)
         name = name.replace(',', '')
 
@@ -123,8 +126,9 @@ class Test:
         try:
             os.makedirs(fulldir)
         except:
-            fulldir += hashlib.md5(cmd.encode('ascii')).hexdigest()[:5] + "/"
-            os.makedirs(fulldir)
+            print("Skipping already existing directory: %s" % fulldir)
+            print(args)
+            return
 
         os.chdir(fulldir)
 
@@ -263,6 +267,9 @@ def all_tests(args):
 
 tests = all_tests(args).tests
 
+print("%d envs" % len(args.envs))
+
+total_num = 0
 for env in args.envs:
     fullenv = os.path.join(args.envdir, env)
     fulldir = os.path.join(args.outdir, env)
@@ -270,9 +277,10 @@ for env in args.envs:
     makefile = open(os.path.join(fulldir, "Makefile"), "w")
 
     for opts in tests:
+        total_num += 1
         opts.gen_cmd(fulldir, fullenv, args.datadir, makefile)
 
     makefile.close()
 
 
-
+print("%d total tests" % total_num)

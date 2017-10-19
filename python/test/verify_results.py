@@ -5,6 +5,7 @@ import glob
 import pandas as pd
 from sklearn import metrics
 import argparse
+from math import isnan
 
 parser = argparse.ArgumentParser(description='Compute AUC from CSV file')
 parser.add_argument('csv_file', metavar='FILE', nargs=1)
@@ -18,14 +19,14 @@ args = parser.parse_args()
 expected_pass = pd.read_csv(args.expected).set_index("name").to_dict(orient = "index")
 expected_fail = pd.read_csv(args.fail).set_index( ["env", "name" ]).to_dict(orient = "index")
 
-def compare(actual, expected, verbose = False):
+def compare(name, actual, expected, verbose = False):
     max_deviation = actual * args.approx
+    if (max_deviation < 0.01): max_deviation = 0.01
     lower_bound = expected - max_deviation
     upper_bound = expected + max_deviation
-    passed = (actual > lower_bound and actual < upper_bound)
+    passed =  (actual >= lower_bound and actual <= upper_bound) or (isnan(actual) and isnan(expected))
     if verbose:
-        print("    comparison %.2f < %.2f < %.2f %s" % ( lower_bound, actual, upper_bound, "passed" if passed else "failed") )
-
+        print("   %s comparison %.2f < %.2f < %.2f %s" % ( name, lower_bound, actual, upper_bound, "passed" if passed else "failed") )
 
     return passed
 
@@ -60,8 +61,8 @@ for f in args.csv_file:
         if args.verbose:
             print("%s / %s :" % (t["env"], t["name"]))
 
-        does_pass = compare(t["rmse"], expected_pass[t["name"]]["rmse"], args.verbose)
-        does_pass = compare(t["auc"], expected_pass[t["name"]]["auc"], args.verbose) and does_pass
+        does_pass = compare("rmse", t["rmse"], expected_pass[t["name"]]["rmse"], args.verbose)
+        does_pass = compare("auc", t["auc"], expected_pass[t["name"]]["auc"], args.verbose) and does_pass
         in_fail = (t["env"], t["name"]) in expected_fail
 
         if (not does_pass and not in_fail):
