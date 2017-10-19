@@ -88,7 +88,6 @@ class Test:
 
     def gen_cmd(self, outdir, env, datadir, makefile = None):
         args = self.opts
-        cat("args", args)
 
         args["fulldatadir"] = os.path.join(datadir, args["datasubdir"])
 
@@ -132,6 +131,7 @@ class Test:
 
         os.chdir(fulldir)
 
+        cat("args", args)
         cat("name", name)
         cat("env", env)
 
