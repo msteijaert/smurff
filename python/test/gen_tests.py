@@ -116,6 +116,7 @@ class Test:
         fmt_name += "rowf%d/" % len(args["row_features"])
         fmt_name += "colf%d/" % len(args["col_features"])
         name = fmt_name.format(**args)
+        name = name.replace(',', '')
 
         fulldir = os.path.join(outdir, name)
 
@@ -127,12 +128,14 @@ class Test:
 
         os.chdir(fulldir)
 
+        cat("name", name)
+        cat("env", env)
 
         cat("cmd", """
 #!/bin/bash
 cd %s
 source activate %s
-gtime --output=time --portability \
+/usr/bin/time --output=time --portability \
 %s >stdout 2>stderr
 echo $? >exit_code
 """ % (fulldir, env, cmd))
