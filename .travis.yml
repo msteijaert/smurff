@@ -22,6 +22,7 @@ addons:
   apt:
     packages:
      - libopenblas-dev
+     - liblapack3
 #    - cmake3
 #    - cmake3-data
 script:
