@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
@@ -120,6 +122,6 @@ namespace smurff { namespace matrix_utils {
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
    std::ostream& operator << (std::ostream& os, const TensorConfig& tc);
 
-   bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2);
+   bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision = std::numeric_limits<double>::epsilon());
 
 }}

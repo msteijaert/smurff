@@ -6,16 +6,13 @@ import pandas as pd
 from sklearn import metrics
 import argparse
 
-def parse_time_file(f):
-    with open(f, 'rb') as timefile:
-        line = timefile.readline().rstrip()
-        real_time = line.split()[1]
-        return float(real_time)
-
-def parse_exit_code(fname):
-    with open(fname, 'rb') as f:
+def oneline(dir, fname):
+    try:
+        f = open(os.path.join(dir, fname), 'rb')
         line = f.readline().rstrip()
-        return int(line)
+        return line
+    except:
+        return ''
 
 def parse_predictions_file(f, threshold, val="y", pred="pred_avg"):
     df = pd.read_csv(f)
@@ -23,8 +20,9 @@ def parse_predictions_file(f, threshold, val="y", pred="pred_avg"):
         
     fpr, tpr, thresholds = metrics.roc_curve(df["label"], df[pred])
     auc = metrics.auc(fpr, tpr)
+    rmse = metrics.mean_squared_error(df[val], df[pred])
 
-    return auc
+    return (auc, rmse)
 
 def find_test_dirs(root="."):
     test_dirs = []
@@ -34,26 +32,20 @@ def find_test_dirs(root="."):
     return test_dirs
 
 def process_test_dir(dir):
-    try:
-        pred_file = max(glob.iglob('%s/*predictions*csv' % dir), key=os.path.getctime)
-        auc = parse_predictions_file(pred_file, 5.0)
-    except:
-        auc = float('nan')
 
-    try:
-        real_time = parse_time_file('%s/time' % dir)
-    except:
-        real_time = float('nan')
+    pred_file = max(glob.iglob('%s/*predictions*csv' % dir), key=os.path.getctime)
+    (auc, rmse) = parse_predictions_file(pred_file, 5.0)
+    real_time = float(oneline(dir, 'time').split()[1])
+    exit_code = int(oneline(dir, 'exit_code'))
+    env = os.path.basename(oneline(dir, 'env'))
+    name = oneline(dir, 'name')
 
-    exit_code = parse_exit_code('%s/exit_code' % dir)
-
-
-    return ( dir, exit_code, auc, real_time )
+    return ( env, name, exit_code, auc, rmse, real_time )
 
 
 results = []
 for dir in find_test_dirs():
    results.append(process_test_dir(dir))
 
-pd.DataFrame(results, columns = ( "env", "test", "auc", "real_time" ) ).to_csv("results.csv")
+pd.DataFrame(results, columns = ( "env", "name", "exit_code", "auc", "rmse", "real_time" ) ).to_csv("results.csv")
 
