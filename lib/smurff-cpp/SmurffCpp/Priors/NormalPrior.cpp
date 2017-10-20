@@ -52,13 +52,10 @@ const Eigen::VectorXd NormalPrior::getMu(int) const
     return mu;
 }
 
-void NormalPrior::sample_latents()
+void NormalPrior::update_prior()
 {
-   //this will go in cycle nad call sample_latent(n)
-   ILatentPrior::sample_latents();
-
    const int N = num_cols();
-
+   
    const auto cov = UUcol.combine_and_reset();
    const auto sum = Ucol.combine_and_reset();
 

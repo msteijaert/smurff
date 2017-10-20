@@ -38,8 +38,9 @@ public:
    void save(std::string prefix, std::string suffix) override {}
    void restore(std::string prefix, std::string suffix) override {}
 
-   void sample_latents() override;
    void sample_latent(int n) override;
+
+   void update_prior() override;
 
    // mean value of Z
    std::ostream &status(std::ostream &os, std::string indent) const override;

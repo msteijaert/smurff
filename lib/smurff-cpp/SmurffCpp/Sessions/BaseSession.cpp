@@ -6,7 +6,8 @@ using namespace smurff;
 
 void BaseSession::step() 
 {
-   for(auto &p : priors) p->sample_latents();
+   for(auto &p : priors) 
+      p->sample_latents();
    data().update(model);
 }
 

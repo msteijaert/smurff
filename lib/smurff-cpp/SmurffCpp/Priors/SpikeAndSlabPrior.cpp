@@ -26,24 +26,21 @@ void SpikeAndSlabPrior::init()
    r = MatrixXd::Constant(K,nview,.5);
 }
 
-void SpikeAndSlabPrior::sample_latents()
+void SpikeAndSlabPrior::update_prior()
 {
-   ILatentPrior::sample_latents();
-
    const int nview = data().nview(mode);
-
+   
    auto Zc = Zcol.combine();
    auto W2c = W2col.combine();
 
    // update hyper params (per view)
    for(int v=0; v<nview; ++v) {
        const int D = data().view_size(mode, v);
-
        r.col(v) = ( Zc.col(v).array() + prior_beta ) / ( D + prior_beta * D ) ;
        auto ww = W2c.col(v).array() / 2 + prior_beta_0;
        auto tmpz = Zc.col(v).array() / 2 + prior_alpha_0 ;
        alpha.col(v) = tmpz.binaryExpr(ww, [](double a, double b)->double {
-           return rgamma(a, 1/b) + 1e-7;
+               return rgamma(a, 1/b) + 1e-7;
        });
    }
 
