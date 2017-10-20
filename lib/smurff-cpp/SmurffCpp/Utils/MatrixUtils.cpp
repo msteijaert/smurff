@@ -1,5 +1,6 @@
 #include "MatrixUtils.h"
 
+#include <set>
 #include <unsupported/Eigen/SparseExtra>
 
 template<>
@@ -184,4 +185,50 @@ bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::Matrix
    }
 
    return true;
+}
+
+Eigen::MatrixXd smurff::matrix_utils::slice( const TensorConfig& tensorConfig
+                                           , const std::array<std::uint64_t, 2> fixedDims
+                                           , const std::unordered_map<std::uint64_t, std::uint32_t>& dimCoords)
+{
+   if (dimCoords.size() != (tensorConfig.getNModes() -  2))
+      throw std::runtime_error("dimsCoords.size() should be the same as tensorConfig.getNModes() - 2");
+
+   std::set<std::uint64_t> dims(fixedDims.begin(), fixedDims.end());
+   for (const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc : dimCoords)
+      dims.insert(dc.first);
+
+   if (dims.size() != tensorConfig.getNModes())
+      throw std::runtime_error("dims.size() should be the same as tensorConfig.getNModes()");
+
+   std::unordered_map<std::uint64_t, std::vector<std::uint32_t>::const_iterator> dimColumns;
+   for (const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc : dimCoords)
+   {
+      std::size_t dimOffset = dc.first * tensorConfig.getValues().size();
+      dimColumns[dc.first] = tensorConfig.getColumns().begin() + dimOffset;
+   }
+
+   Eigen::MatrixXd sliceMatrix(tensorConfig.getDims()[fixedDims[0]], tensorConfig.getDims()[fixedDims[1]]);
+   for (std::size_t i = 0; i < tensorConfig.getValues().size(); i++)
+   {
+      bool dimCoordsMatchColumns =
+         std::accumulate( dimCoords.begin()
+                        , dimCoords.end()
+                        , true
+                        , [&](bool acc, const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc)
+                          {
+                             return acc & (*(dimColumns[dc.first] + i) == dc.second);
+                          }
+                        );
+
+      if (dimCoordsMatchColumns)
+      {
+         std::uint32_t d0_coord =
+            tensorConfig.getColumns()[fixedDims[0] * tensorConfig.getValues().size() + i];
+         std::uint32_t d1_coord =
+            tensorConfig.getColumns()[fixedDims[1] * tensorConfig.getValues().size() + i];
+         sliceMatrix(d0_coord, d1_coord) = tensorConfig.getValues()[i];
+      }
+   }
+   return sliceMatrix;
 }

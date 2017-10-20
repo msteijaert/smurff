@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <limits>
+#include <unordered_map>
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
@@ -123,5 +125,9 @@ namespace smurff { namespace matrix_utils {
    std::ostream& operator << (std::ostream& os, const TensorConfig& tc);
 
    bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision = std::numeric_limits<double>::epsilon());
+   Eigen::MatrixXd slice( const TensorConfig& tensorConfig
+                        , const std::array<std::uint64_t, 2> fixedDims
+                        , const std::unordered_map<std::uint64_t, std::uint32_t>& dimCoords
+                        );
 
 }}
