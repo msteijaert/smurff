@@ -1,4 +1,3 @@
-#include <random>
 #include "SpikeAndSlabPrior.h"
 #include <SmurffCpp/IO/MatrixIO.h>
 
@@ -44,10 +43,8 @@ void SpikeAndSlabPrior::sample_latents()
        auto ww = W2c.col(v).array() / 2 + prior_beta_0;
        auto tmpz = Zc.col(v).array() / 2 + prior_alpha_0 ;
        alpha.col(v) = tmpz.binaryExpr(ww, [](double a, double b)->double {
-               std::default_random_engine generator;
-               std::gamma_distribution<double> distribution(a, 1/b);
-               return distribution(generator) + 1e-7;
-               });
+           return rgamma(a, 1/b) + 1e-7;
+       });
    }
 
 
@@ -64,8 +61,6 @@ void SpikeAndSlabPrior::sample_latent(int d)
    auto &W = U(); // alias
    VectorXd Wcol = W.col(d); // local copy
 
-   std::default_random_engine generator;
-   std::uniform_real_distribution<double> udist(0,1);
    ArrayXd log_alpha = alpha.col(v).log();
    ArrayXd log_r = - r.col(v).array().log() + (VectorXd::Ones(K) - r.col(v)).array().log();
 
@@ -78,7 +73,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
       double mu = (1/lambda) * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
       double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
       double z = 1 / (1 + exp(z1));
-      double p = udist(generator);
+      double p = rand_unif(0,1);
       if (Zkeep(k,v) > 0 && p < z) {
          Zcol.local()(k,v)++;
          double var = randn() / sqrt(lambda);

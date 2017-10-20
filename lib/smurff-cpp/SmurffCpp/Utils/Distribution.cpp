@@ -16,23 +16,9 @@ using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
 
-std::vector<std::mt19937> bmrngs;
+static thread_vector<std::mt19937> bmrngs;
 
-// We need a functor that can pretend it's const,
-// but to be a good random number generator 
-// it needs mutable state.
-
-#ifdef __INTEL_COMPILER
-std::random_device srd;
-#pragma omp threadprivate(srd)
-#elif defined(_OPENMP)
-// use thread_local for gcc 
-thread_local static std::random_device srd;
-#else 
-static std::random_device srd;
-#endif
- 
-double smurff::randn0() 
+double smurff::randn0()
 {
    return smurff::bmrandn_single();
 }
@@ -47,7 +33,7 @@ void smurff::bmrandn(double* x, long n)
    #pragma omp parallel 
    {
       std::uniform_real_distribution<double> unif(-1.0, 1.0);
-      std::mt19937& bmrng = bmrngs.at(thread_num());
+      auto& bmrng = bmrngs.local();
       
       #pragma omp for schedule(static)
       for (long i = 0; i < n; i += 2) 
@@ -81,7 +67,7 @@ double smurff::bmrandn_single()
 {
    //TODO: add bmrng as input
    std::uniform_real_distribution<double> unif(-1.0, 1.0);
-   std::mt19937& bmrng = bmrngs.at(thread_num());
+   auto& bmrng = bmrngs.local();
   
    double x1, x2, w;
    do 
@@ -99,7 +85,7 @@ double smurff::bmrandn_single()
 void smurff::bmrandn_single(double* x, long n) 
 {
    std::uniform_real_distribution<double> unif(-1.0, 1.0);
-   std::mt19937& bmrng = bmrngs.at(thread_num());
+   auto& bmrng = bmrngs.local();
 
    for (long i = 0; i < n; i += 2) 
    {
@@ -141,25 +127,25 @@ void smurff::init_bmrng()
 
 void smurff::init_bmrng(int seed) 
 {
-   bmrngs.clear();
-
-   for (int i = 0; i < thread_limit(); i++) 
-   {
-      bmrngs.push_back(std::mt19937(seed + i * 1999));
-   }
+    std::vector<std::mt19937> v;
+    for (int i = 0; i < thread_limit(); i++)
+    {
+        v.push_back(std::mt19937(seed + i * 1999));
+    }
+    bmrngs.init(v);
 }
    
 double smurff::rand_unif() 
 {
-   std::uniform_real_distribution<double> unif(0.0, 1.0);
-   std::mt19937& bmrng = bmrngs.at(thread_num());
-   return unif(bmrng);
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+    auto& bmrng = bmrngs.local();
+    return unif(bmrng);
 }
  
 double smurff::rand_unif(double low, double high) 
 {
    std::uniform_real_distribution<double> unif(low, high);
-   std::mt19937& bmrng = bmrngs.at(thread_num());
+   auto& bmrng = bmrngs.local();
    return unif(bmrng);
 }
 
@@ -168,7 +154,7 @@ double smurff::rand_unif(double low, double high)
 double smurff::rgamma(double shape, double scale) 
 {
    std::gamma_distribution<double> gamma(shape, scale);
-   return gamma(bmrngs.at(thread_num()));
+   return gamma(bmrngs.local());
 }
 
 auto smurff::nrandn(int n) -> decltype(VectorXd::NullaryExpr(n, std::cref(randn))) 
@@ -186,7 +172,7 @@ MatrixXd WishartUnit(int m, int df)
 {
    MatrixXd c(m,m);
    c.setZero();
-   std::mt19937& rng = bmrngs.at(thread_num());
+   auto& rng = bmrngs.local();
 
    for ( int i = 0; i < m; i++ ) 
    {
