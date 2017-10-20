@@ -291,7 +291,7 @@ void Session::save(int isample)
    //save_freq > 0: check modulo
    if (config.save_freq > 0 && ((isample+1) % config.save_freq) != 0) return;
    //save_freq < 0: save last iter
-   if (isample < config.nsamples) return;
+   if (config.save_freq < 0 && isample < config.nsamples) return;
 
    std::string fprefix = config.save_prefix + "-sample-" + std::to_string(isample);
 
