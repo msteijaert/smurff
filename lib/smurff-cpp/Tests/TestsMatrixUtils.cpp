@@ -26,7 +26,7 @@ TEST_CASE("matrix_utils::slice : error handling")
    // Error handling when both fixed dims values are the same
    REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 0, 0 }, {{ 1, 0 }, { 2, 1 }}));
 
-   // Error handking where fixed dims contain invalid dim
+   // Error handling when fixed dims contain invalid dim
    REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 9, 0 }, {{ 1, 0 }, { 2, 1 }}));
 
    // Error handling when there is a missing coord in dimCoords
