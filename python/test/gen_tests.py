@@ -34,6 +34,8 @@ defaults = {
         'direct'      : True,
         'precision'   : 5.0,
         'adaptive'    : None,
+        'test'        : 'test.sdm',
+        'train'       : 'train.sdm',
 }
 
 print("Generating tests in %s" % args.outdir)
@@ -193,33 +195,35 @@ class TestSuite:
 
 def chembl_tests(defaults):
     chembl_defaults = defaults
-    chembl_defaults.update({
-            'datasubdir' : 'chembl_demo',
-            'test'       : 'test_sample1_c1.sdm',
-            'train'      : 'train_sample1_c1.sdm',
-    })
-
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
             { },
-            { "row_prior": "macau",        "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
-            { "row_prior": "normal",       "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
-            { "col_prior": "spikeandslab", "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
+            { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
+            { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
+            { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
     ])
 
     chembl_tests_centering.add_centering_options()
 
     chembl_tests = TestSuite("chembl", chembl_defaults,
         [
-            { "row_prior": "macau",        "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
-            { "row_prior": "macau", "direct": False,  "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ]},
-            { "row_prior": "macauone",     "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
-            { "row_prior": "normal", "center": "none", "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
-            { "col_prior": "spikeandslab", "center": "none", "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
+            { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
+            { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
+            { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
+            { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
+            { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
         ])
 
     chembl_tests.add_testsuite(chembl_tests_centering)
     chembl_tests.add_noise_options()
+
+    chembl_tests.add_options('datasubdir',
+            [
+                'chembl_58/sample1/cluster1', 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
+                'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
+                'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
+            ])
+
 
     print(chembl_tests)
 
@@ -230,7 +234,8 @@ def synthetic_tests(defaults):
     suite = TestSuite("synthetic")
 
     priors = [ "normal", "macau", "spikeandslab" ]
-    datadirs = glob("%s/synthetic/*" % args.datadir)
+    datadirs = glob("%s/synthetic/ones*" % args.datadir)
+    datadirs += glob("%s/synthetic/normal*" % args.datadir)
 
     # each datadir == 1 test
     for d in datadirs:
@@ -255,7 +260,18 @@ def synthetic_tests(defaults):
 
     return suite
         
-    
+  
+def movielens_tests(defaults):
+    suite = TestSuite("movielens")
+    suite.add_test(defaults)
+
+    datadirs = [ "movielens/u" + i for i in  [1,2,3,4,5]  ]
+    suite.add_options('datasubdir', datadirs)
+
+    print(suite)
+    return suite
+
+ 
 
 def all_tests(args):
 

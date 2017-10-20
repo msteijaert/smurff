@@ -22,7 +22,7 @@ sudo apt-get install libopenblas-dev autoconf gfortran
 # checkout and install Smurff:
 git clone https://github.com/ExaScience/smurff.git
 cd smurff
-git checkout smurff
+git checkout master
 git submodule init
 git submodule update
 cd lib/smurff-cpp/makefiles/linux
@@ -44,9 +44,9 @@ Build type switches:
 * CMAKE_BUILD_TYPE - Debug/Release
 
 Algebra library switches (select only one):
-* ENABLE_BLAS - ON/OFF
-* ENABLE_LAPACK - ON/OFF
-* ENABLE_OPENBLAS - ON/OFF
+* ENABLE_BLAS - ON/OFF (only blas is not enough because currently smurff depends on some lapack functions)
+* ENABLE_LAPACK - ON/OFF (should include lapack and blas libraries when linking)
+* ENABLE_OPENBLAS - ON/OFF (should include openblas library when linking. openblas also contains implementation of lapack called relapack)
 
 ```bash
 # install dependencies:
@@ -55,7 +55,7 @@ sudo apt-get install libopenblas-dev autoconf gfortran
 # checkout and install Smurff
 git clone https://github.com/ExaScience/smurff.git
 cd smurff
-git checkout smurff
+git checkout master
 git submodule init
 git submodule update
 cd lib/smurff-cpp/

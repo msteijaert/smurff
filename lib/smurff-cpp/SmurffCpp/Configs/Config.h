@@ -35,6 +35,8 @@ struct Config
     int save_freq           = 0; // never
 
     //-- general
+    bool random_seed_set      = false;
+    int random_seed;
     int verbose               = 1;
     std::string csv_status    = "";
     int burnin                = 200;
