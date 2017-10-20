@@ -1,5 +1,6 @@
 #include "MatrixUtils.h"
 
+#include <numeric>
 #include <set>
 #include <unsupported/Eigen/SparseExtra>
 
