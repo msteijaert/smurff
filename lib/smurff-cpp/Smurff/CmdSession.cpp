@@ -127,7 +127,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {"init-model",       INIT_MODEL	, "NAME",   0, "One of <random|zero>"},
         {"save-prefix",      SAVE_PREFIX	, "PATH",   0, "prefix for result files"},
         {"save-suffix",      SAVE_SUFFIX	, "EXT",   0, "suffix for result files (.csv or .ddm)"},
-        {"save-freq",        SAVE_FREQ	, "NUM",   0, "save every n iterations (0 == never)"},
+        {"save-freq",        SAVE_FREQ	, "NUM",   0, "save every n iterations (0 == never, -1 == final model)"},
         {"threshold",        THRESHOLD	, "NUM",   0, "threshold for binary classification"},
         {"verbose",          VERBOSE	, "NUM",   OPTION_ARG_OPTIONAL, "verbose output (default = 1)"},
         {"quiet",            QUIET	, 0,   0, "no output"},

@@ -257,9 +257,13 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
    os << indent << "  Version: " << Config::version() << "\n" ;
    os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
 
-   if (config.save_freq > 0)
+   if (config.save_freq != 0)
    {
-      os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+      if (config.save_freq > 0) {
+          os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+      } else {
+          os << indent << "  Save model after last iteration\n";
+      }
       os << indent << "  Save prefix: " << config.save_prefix << "\n";
       os << indent << "  Save suffix: " << config.save_suffix << "\n";
    }
@@ -280,10 +284,12 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
 void Session::save(int isample)
 {
-   if (!config.save_freq || isample < 0)
-      return;
-   if (((isample+1) % config.save_freq) != 0)
-      return;
+   if (!config.save_freq || isample < 0) return;
+   
+   //save_freq > 0: check modulo
+   if (config.save_freq > 0 && ((isample+1) % config.save_freq) != 0) return;
+   //save_freq < 0: save last iter
+   if (isample < config.nsamples) return;
 
    std::string fprefix = config.save_prefix + "-sample-" + std::to_string(isample);
 
