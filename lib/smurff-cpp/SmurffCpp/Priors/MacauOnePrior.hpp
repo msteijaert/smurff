@@ -265,14 +265,12 @@ public:
 
    void save(std::string prefix, std::string suffix) override
    {
-      smurff::matrix_io::eigen::write_matrix(prefix + "-latentmean" + suffix, mu);
       prefix += "-F" + std::to_string(mode);
       smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, beta);
    }
 
    void restore(std::string prefix, std::string suffix) override
    {
-      smurff::matrix_io::eigen::read_matrix(prefix + "-latentmean" + suffix, mu);
       prefix += "-F" + std::to_string(mode);
       smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, beta);
    }

@@ -99,12 +99,10 @@ void NormalPrior::sample_latent(int n)
 
 void NormalPrior::save(std::string prefix, std::string suffix)
 {
-   smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
 }
 
 void NormalPrior::restore(std::string prefix, std::string suffix)
 {
-   smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(mode) + "-latentmean" + suffix, mu);
    initUU();
 }
 
