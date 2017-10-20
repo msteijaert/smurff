@@ -193,38 +193,40 @@ void Session::setFromConfig(const Config &c)
 
 void Session::init()
 {
-   threads_init();
-   init_bmrng();
-   data().init();
-   model.init(config.num_latent, data().dim(), config.init_model);
-   for( auto &p : priors)
-      p->init();
-
-   if (config.csv_status.size())
-   {
-      auto f = fopen(config.csv_status.c_str(), "w");
-      fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
-      fclose(f);
-   }
-
-   if (config.verbose)
-      info(std::cout, "");
-
-   if (config.restore_prefix.size())
-   {
-      if (config.verbose)
-         printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
-      restore(config.restore_prefix, config.restore_suffix);
-   }
-
-   if (config.verbose)
-   {
-      printStatus(0);
-      printf(" ====== Sampling (burning phase) ====== \n");
-   }
-
-   iter = 0;
-   is_init = true;
+    threads_init();
+    if (config.random_seed_set) init_bmrng(config.random_seed);
+    else init_bmrng();
+    
+    data().init();
+    model.init(config.num_latent, data().dim(), config.init_model);
+    for( auto &p : priors)
+        p->init();
+    
+    if (config.csv_status.size())
+    {
+        auto f = fopen(config.csv_status.c_str(), "w");
+        fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
+        fclose(f);
+    }
+    
+    if (config.verbose)
+        info(std::cout, "");
+    
+    if (config.restore_prefix.size())
+    {
+        if (config.verbose)
+            printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
+        restore(config.restore_prefix, config.restore_suffix);
+    }
+    
+    if (config.verbose)
+    {
+        printStatus(0);
+        printf(" ====== Sampling (burning phase) ====== \n");
+    }
+    
+    iter = 0;
+    is_init = true;
 }
 
 void Session::run()
@@ -257,9 +259,13 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
    os << indent << "  Version: " << Config::version() << "\n" ;
    os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
 
-   if (config.save_freq > 0)
+   if (config.save_freq != 0)
    {
-      os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+      if (config.save_freq > 0) {
+          os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+      } else {
+          os << indent << "  Save model after last iteration\n";
+      }
       os << indent << "  Save prefix: " << config.save_prefix << "\n";
       os << indent << "  Save suffix: " << config.save_suffix << "\n";
    }
@@ -280,10 +286,12 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
 void Session::save(int isample)
 {
-   if (!config.save_freq || isample < 0)
-      return;
-   if (((isample+1) % config.save_freq) != 0)
-      return;
+   if (!config.save_freq || isample < 0) return;
+   
+   //save_freq > 0: check modulo
+   if (config.save_freq > 0 && ((isample+1) % config.save_freq) != 0) return;
+   //save_freq < 0: save last iter
+   if (isample < config.nsamples) return;
 
    std::string fprefix = config.save_prefix + "-sample-" + std::to_string(isample);
 

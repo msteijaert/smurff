@@ -22,7 +22,7 @@ sudo apt-get install libopenblas-dev autoconf gfortran
 # checkout and install Smurff:
 git clone https://github.com/ExaScience/smurff.git
 cd smurff
-git checkout smurff
+git checkout master
 git submodule init
 git submodule update
 cd lib/smurff-cpp/makefiles/linux
@@ -31,6 +31,45 @@ make
 # test Smurff:
 wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
 ./smurff --train chembl-IC50-346targets.mm
+```
+
+## Source installation on Ubuntu using cmake
+Before continuing installation please check that cmake version is at least 3.6
+
+This is required due to the fixed Find scripts for BLAS libraries that are present in latest version.
+
+cmake has multiple switches:
+
+Build type switches:
+* CMAKE_BUILD_TYPE - Debug/Release
+
+Algebra library switches (select only one):
+* ENABLE_BLAS - ON/OFF (only blas is not enough because currently smurff depends on some lapack functions)
+* ENABLE_LAPACK - ON/OFF (should include lapack and blas libraries when linking)
+* ENABLE_OPENBLAS - ON/OFF (should include openblas library when linking. openblas also contains implementation of lapack called relapack)
+
+```bash
+# install dependencies:
+sudo apt-get install libopenblas-dev autoconf gfortran
+
+# checkout and install Smurff
+git clone https://github.com/ExaScience/smurff.git
+cd smurff
+git checkout master
+git submodule init
+git submodule update
+cd lib/smurff-cpp/
+mkdir build
+cd build
+cmake ../ -DENABLE_OPENBLAS=ON -DCMAKE_BUILD_TYPE=Debug
+make
+
+# test Smurff:
+wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
+../_output/smurff --train chembl-IC50-346targets.mm
+
+# run rests:
+../_output/tests
 ```
 
 ## Installation using Conda

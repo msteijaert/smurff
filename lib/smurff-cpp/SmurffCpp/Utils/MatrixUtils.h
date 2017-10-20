@@ -126,7 +126,7 @@ namespace smurff { namespace matrix_utils {
 
    bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision = std::numeric_limits<double>::epsilon());
    Eigen::MatrixXd slice( const TensorConfig& tensorConfig
-                        , const std::array<std::uint64_t, 2> fixedDims
+                        , const std::array<std::uint64_t, 2>& fixedDims
                         , const std::unordered_map<std::uint64_t, std::uint32_t>& dimCoords
                         );
 

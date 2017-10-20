@@ -1,5 +1,6 @@
 #include "MatrixUtils.h"
 
+#include <numeric>
 #include <set>
 #include <unsupported/Eigen/SparseExtra>
 
@@ -188,18 +189,30 @@ bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::Matrix
 }
 
 Eigen::MatrixXd smurff::matrix_utils::slice( const TensorConfig& tensorConfig
-                                           , const std::array<std::uint64_t, 2> fixedDims
+                                           , const std::array<std::uint64_t, 2>& fixedDims
                                            , const std::unordered_map<std::uint64_t, std::uint32_t>& dimCoords)
 {
+   if (fixedDims[0] == fixedDims[1])
+      throw std::runtime_error("fixedDims should contain 2 unique dimension numbers");
+
+   for (const std::uint64_t& fd : fixedDims)
+      if (fd > tensorConfig.getNModes() - 1)
+         throw std::runtime_error("fixedDims should contain only valid for tensorConfig dimension numbers");
+
    if (dimCoords.size() != (tensorConfig.getNModes() -  2))
       throw std::runtime_error("dimsCoords.size() should be the same as tensorConfig.getNModes() - 2");
 
-   std::set<std::uint64_t> dims(fixedDims.begin(), fixedDims.end());
    for (const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc : dimCoords)
-      dims.insert(dc.first);
+   {
+      if (dc.first == fixedDims[0] || dc.first == fixedDims[1])
+         throw std::runtime_error("dimCoords and fixedDims should not intersect");
 
-   if (dims.size() != tensorConfig.getNModes())
-      throw std::runtime_error("dims.size() should be the same as tensorConfig.getNModes()");
+      if (dc.first >= tensorConfig.getNModes())
+         throw std::runtime_error("dimCoords should contain only valid for tensorConfig dimension numbers");
+
+      if (dc.second >= tensorConfig.getDims()[dc.first])
+         throw std::runtime_error("dimCoords should contain valid coord values for corresponding dimensions");
+   }
 
    std::unordered_map<std::uint64_t, std::vector<std::uint32_t>::const_iterator> dimColumns;
    for (const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc : dimCoords)
