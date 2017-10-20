@@ -96,7 +96,7 @@ class Test:
         fmt_cmd = """smurff --train={fulldatadir}/{train} --burnin={burnin} \
         --test={fulldatadir}/{test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
         --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
-        --save-prefix=results --save-freq=10 \
+        --save-prefix=results --save-freq=10 --seed=1234\
         """
 
         if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
@@ -141,6 +141,7 @@ class Test:
 #!/bin/bash
 cd %s
 source activate %s
+export OMP_NUM_THREADS=1
 /usr/bin/time --output=time --portability \
 %s >stdout 2>stderr
 echo $? >exit_code

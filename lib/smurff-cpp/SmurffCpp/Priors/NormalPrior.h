@@ -13,8 +13,6 @@
 
 namespace smurff {
 
-//why remove update_prior method ?   
-
 // Prior without side information (pure BPMF) 
 class NormalPrior : public ILatentPrior 
 {
@@ -35,8 +33,11 @@ public:
   void init() override;
 
   virtual const Eigen::VectorXd getMu(int) const;
-  void sample_latents() override;
+  
   void sample_latent(int n) override;
+
+  void update_prior() override;
+
   void save(std::string prefix, std::string suffix) override;
   void restore(std::string prefix, std::string suffix) override;
   virtual std::ostream &status(std::ostream &os, std::string indent) const override;

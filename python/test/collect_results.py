@@ -34,6 +34,7 @@ def find_test_dirs(root="."):
 def process_test_dir(dir):
 
     pred_file = max(glob.iglob('%s/*predictions*csv' % dir), key=os.path.getctime)
+    print("Processing %s" % pred_file)
     (auc, rmse) = parse_predictions_file(pred_file, 5.0)
     real_time = float(oneline(dir, 'time').split()[1])
     exit_code = int(oneline(dir, 'exit_code'))

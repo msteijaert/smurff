@@ -75,6 +75,8 @@ void ILatentPrior::sample_latents()
    for(int n = 0; n < U().cols(); n++) 
    {
       #pragma omp task
-      sample_latent(n); 
+      sample_latent(n);
    }
+
+   update_prior();
 }
