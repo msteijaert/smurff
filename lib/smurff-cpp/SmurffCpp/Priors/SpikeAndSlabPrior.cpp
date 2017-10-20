@@ -1,5 +1,5 @@
+#include <random>
 #include "SpikeAndSlabPrior.h"
-
 #include <SmurffCpp/IO/MatrixIO.h>
 
 using namespace smurff;
