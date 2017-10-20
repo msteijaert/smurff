@@ -203,8 +203,16 @@ Eigen::MatrixXd smurff::matrix_utils::slice( const TensorConfig& tensorConfig
       throw std::runtime_error("dimsCoords.size() should be the same as tensorConfig.getNModes() - 2");
 
    for (const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc : dimCoords)
+   {
       if (dc.first == fixedDims[0] || dc.first == fixedDims[1])
          throw std::runtime_error("dimCoords and fixedDims should not intersect");
+
+      if (dc.first >= tensorConfig.getNModes())
+         throw std::runtime_error("dimCoords should contain only valid for tensorConfig dimension numbers");
+
+      if (dc.second >= tensorConfig.getDims()[dc.first])
+         throw std::runtime_error("dimCoords should contain valid coord values for corresponding dimensions");
+   }
 
    std::unordered_map<std::uint64_t, std::vector<std::uint32_t>::const_iterator> dimColumns;
    for (const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc : dimCoords)
