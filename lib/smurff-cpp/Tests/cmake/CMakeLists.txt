@@ -13,8 +13,9 @@ FILE (GLOB SOURCE_FILES "../tests.cpp"
                         "../TestsTensorIO.cpp"
                         "../TestsMatrixConfig.cpp"
                         "../TestsTensorConfig.cpp"
-     	  	   	"../TestsPVec.cpp"
+     	  	   	         "../TestsPVec.cpp"
                         "../TestsTensor.cpp"
+                        "../TestsMatrixUtils.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 

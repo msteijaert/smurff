@@ -10,6 +10,8 @@
 #include <SmurffCpp/DataMatrices/DenseMatrixData.h>
 #include <SmurffCpp/DataMatrices/SparseMatrixData.h>
 
+#include <SmurffCpp/Utils/MatrixUtils.h>
+
 using namespace smurff;
 
 //===
@@ -210,8 +212,8 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_NONE")
    REQUIRE(mnce->getGlobalMean() == Approx(4.33).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(4.33).epsilon(0.01));
 
-   REQUIRE(initialMatrix.isApprox(dmd.getYc().at(0).transpose()));
-   REQUIRE(initialMatrix.isApprox(dmd.getYc().at(1)));
+   REQUIRE(matrix_utils::equals(initialMatrix, dmd.getYc().at(0).transpose()));
+   REQUIRE(matrix_utils::equals(initialMatrix, dmd.getYc().at(1)));
 }
 
 TEST_CASE("DenseMatrixData IMeanCentering CENTER_GLOBAL")
@@ -234,8 +236,8 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_GLOBAL")
    Eigen::MatrixXd expectedMatrix(4, 3);
    expectedMatrix << -3.33, -2.33, -1.33, -4.33, -4.33, -4.33, 2.67,  3.67,  4.67, 5.67, -4.33,  7.67;
 
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(1), 0.01));
 }
 
 TEST_CASE("DenseMatrixData IMeanCentering CENTER_VIEW")
@@ -258,8 +260,8 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_VIEW")
    Eigen::MatrixXd expectedMatrix(4, 3);
    expectedMatrix << -3.33, -2.33, -1.33, -4.33, -4.33, -4.33, 2.67,  3.67,  4.67, 5.67, -4.33,  7.67;
 
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(1), 0.01));
 }
 
 TEST_CASE("DenseMatrixData IMeanCentering CENTER_COLS")
@@ -286,14 +288,14 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_COLS")
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 4.5, 2.5, 6.0;
 
-   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
-   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+   REQUIRE(matrix_utils::equals(rowMeanExpected, mnce->getModeMean(0), 0.01));
+   REQUIRE(matrix_utils::equals(colMeanExpected, mnce->getModeMean(1), 0.01));
 
    Eigen::MatrixXd expectedMatrix(4, 3);
    expectedMatrix << -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 2.67, -7.33,  4.67;
 
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(1), 0.01));
 }
 
 TEST_CASE("DenseMatrixData IMeanCentering CENTER_ROWS")
@@ -320,14 +322,14 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_ROWS")
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 4.5, 2.5, 6.0;
 
-   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
-   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+   REQUIRE(matrix_utils::equals(rowMeanExpected, mnce->getModeMean(0), 0.01));
+   REQUIRE(matrix_utils::equals(colMeanExpected, mnce->getModeMean(1), 0.01));
 
    Eigen::MatrixXd expectedMatrix(4, 3);
    expectedMatrix << -3.5, -0.5, -3.0, -4.5, -2.5, -6, 2.5, 5.5, 3, 5.5, -2.5, 6;
 
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(dmd.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, dmd.getYc().at(1), 0.01));
 }
 
 //===
@@ -360,8 +362,8 @@ TEST_CASE("SparseMatrixData IMeanCentering CENTER_NONE")
    REQUIRE(mnce->getGlobalMean() == Approx(4.33).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(4.33).epsilon(0.01));
 
-   REQUIRE(initialMatrix.isApprox(smd.getYc().at(0).transpose()));
-   REQUIRE(initialMatrix.isApprox(smd.getYc().at(1)));
+   REQUIRE(matrix_utils::equals(initialMatrix, smd.getYc().at(0).transpose()));
+   REQUIRE(matrix_utils::equals(initialMatrix, smd.getYc().at(1)));
 }
 
 //===
@@ -394,8 +396,8 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_NONE")
    REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
 
-   REQUIRE(initialMatrix.isApprox(scm.getYc().at(0).transpose()));
-   REQUIRE(initialMatrix.isApprox(scm.getYc().at(1)));
+   REQUIRE(matrix_utils::equals(initialMatrix, scm.getYc().at(0).transpose()));
+   REQUIRE(matrix_utils::equals(initialMatrix, scm.getYc().at(1)));
 }
 
 TEST_CASE("ScarceMatrixData IMeanCentering CENTER_GLOBAL")
@@ -440,8 +442,8 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_GLOBAL")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(1), 0.01));
 }
 
 TEST_CASE("ScarceMatrixData IMeanCentering CENTER_VIEW")
@@ -486,8 +488,8 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_VIEW")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(1), 0.01));
 }
 
 TEST_CASE("ScarceMatrixData IMeanCentering CENTER_COLS")
@@ -524,8 +526,8 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_COLS")
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
 
-   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
-   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+   REQUIRE(matrix_utils::equals(rowMeanExpected, mnce->getModeMean(0), 0.01));
+   REQUIRE(matrix_utils::equals(colMeanExpected, mnce->getModeMean(1), 0.01));
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
       { 0, 0, -1.0 },
@@ -541,8 +543,8 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_COLS")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(1), 0.01));
 }
 
 TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
@@ -579,8 +581,8 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
 
-   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
-   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+   REQUIRE(matrix_utils::equals(rowMeanExpected, mnce->getModeMean(0), 0.01));
+   REQUIRE(matrix_utils::equals(colMeanExpected, mnce->getModeMean(1), 0.01));
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
       { 0, 0, -5.0 },
@@ -596,8 +598,8 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(scm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, scm.getYc().at(1), 0.01));
 }
 
 //===
@@ -630,8 +632,8 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_NONE")
    REQUIRE(mnce->getGlobalMean() == Approx(6.5).epsilon(0.01));
    REQUIRE(mnce->getCwiseMean() == Approx(6.5).epsilon(0.01));
 
-   REQUIRE(initialMatrix.isApprox(sbm.getYc().at(0).transpose()));
-   REQUIRE(initialMatrix.isApprox(sbm.getYc().at(1)));
+   REQUIRE(matrix_utils::equals(initialMatrix, sbm.getYc().at(0).transpose()));
+   REQUIRE(matrix_utils::equals(initialMatrix, sbm.getYc().at(1)));
 }
 
 TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_GLOBAL")
@@ -676,8 +678,8 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_GLOBAL")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(1), 0.01));
 }
 
 TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_VIEW")
@@ -722,8 +724,8 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_VIEW")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(1), 0.01));
 }
 
 TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_COLS")
@@ -760,8 +762,8 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_COLS")
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
 
-   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
-   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+   REQUIRE(matrix_utils::equals(rowMeanExpected, mnce->getModeMean(0), 0.01));
+   REQUIRE(matrix_utils::equals(colMeanExpected, mnce->getModeMean(1), 0.01));
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
       { 0, 0, -1.0 },
@@ -777,8 +779,8 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_COLS")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(1), 0.01));
 }
 
 TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
@@ -815,8 +817,8 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
    Eigen::VectorXd colMeanExpected(3);
    colMeanExpected << 6.0, 5.0, 8.0;
 
-   REQUIRE(rowMeanExpected.isApprox(mnce->getModeMean(0), 0.01));
-   REQUIRE(colMeanExpected.isApprox(mnce->getModeMean(1), 0.01));
+   REQUIRE(matrix_utils::equals(rowMeanExpected, mnce->getModeMean(0), 0.01));
+   REQUIRE(matrix_utils::equals(colMeanExpected, mnce->getModeMean(1), 0.01));
 
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets = {
       { 0, 0, -5.0 },
@@ -832,6 +834,6 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
    Eigen::SparseMatrix<double> expectedMatrix(4, 3);
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(0).transpose(), 0.01));
-   REQUIRE(expectedMatrix.isApprox(sbm.getYc().at(1), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(0).transpose(), 0.01));
+   REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(1), 0.01));
 }

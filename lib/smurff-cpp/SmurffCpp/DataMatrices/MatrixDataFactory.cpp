@@ -48,23 +48,23 @@ std::unique_ptr<MatrixData> matrix_config_to_matrix(const MatrixConfig &config, 
 {
    std::unique_ptr<MatrixData> local_data_ptr;
 
-   if (config.isDense()) 
+   if (config.isDense())
    {
-      Eigen::MatrixXd Ytrain = dense_to_eigen(config);
+      Eigen::MatrixXd Ytrain = matrix_utils::dense_to_eigen(config);
       local_data_ptr = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
-   } 
-   else 
+   }
+   else
    {
-      Eigen::SparseMatrix<double> Ytrain = sparse_to_eigen(config);
-      if (!scarce) 
+      Eigen::SparseMatrix<double> Ytrain = matrix_utils::sparse_to_eigen(config);
+      if (!scarce)
       {
          local_data_ptr = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
-      } 
-      else if (is_binary(Ytrain)) 
+      }
+      else if (matrix_utils::is_binary(Ytrain))
       {
          local_data_ptr = std::unique_ptr<MatrixData>(new ScarceBinaryMatrixData(Ytrain));
-      } 
-      else 
+      }
+      else
       {
          local_data_ptr = std::unique_ptr<MatrixData>(new ScarceMatrixData(Ytrain));
       }
@@ -75,11 +75,11 @@ std::unique_ptr<MatrixData> matrix_config_to_matrix(const MatrixConfig &config, 
    return local_data_ptr;
 }
 
-std::unique_ptr<MatrixData> smurff::matrix_config_to_matrix(const MatrixConfig &train, 
-                                                            const std::vector<MatrixConfig> &row_features, 
+std::unique_ptr<MatrixData> smurff::matrix_config_to_matrix(const MatrixConfig &train,
+                                                            const std::vector<MatrixConfig> &row_features,
                                                             const std::vector<MatrixConfig> &col_features)
 {
-   if (row_features.empty() && col_features.empty()) 
+   if (row_features.empty() && col_features.empty())
    {
       return ::matrix_config_to_matrix(train, true);
    }
@@ -90,12 +90,12 @@ std::unique_ptr<MatrixData> smurff::matrix_config_to_matrix(const MatrixConfig &
    local_data_ptr->setNoiseModel(new UnusedNoise());
    local_data_ptr->add(PVec<>({0,0}), ::matrix_config_to_matrix(train, true));
 
-   for(size_t i = 0; i < row_features.size(); ++i) 
+   for(size_t i = 0; i < row_features.size(); ++i)
    {
       local_data_ptr->add(PVec<>({0, static_cast<int>(i + 1)}), ::matrix_config_to_matrix(row_features[i], false));
    }
 
-   for(size_t i = 0; i < col_features.size(); ++i) 
+   for(size_t i = 0; i < col_features.size(); ++i)
    {
       local_data_ptr->add(PVec<>({static_cast<int>(i + 1), 0}), ::matrix_config_to_matrix(col_features[i], false));
    }

@@ -26,13 +26,13 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .ddm")
 
    matrix_io::write_matrix(matrixFilename, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
-   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .csv")
@@ -51,13 +51,13 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .csv")
    matrix_io::write_matrix(matrixFilename, matrixConfig);
 
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
-   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sdm")
@@ -79,7 +79,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sdm")
 
    matrix_io::write_matrix(matrixFilename, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
@@ -94,7 +94,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sdm")
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .mtx")
@@ -116,7 +116,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .mtx")
 
    matrix_io::write_matrix(matrixFilename, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
@@ -131,7 +131,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .mtx")
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
@@ -151,7 +151,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
 
    matrix_io::write_matrix(matrixFilename, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_matrix(matrixFilename);
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
@@ -166,7 +166,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 // ===
@@ -185,12 +185,12 @@ TEST_CASE("matrix_io/read_dense_float64_bin | matrix_io/write_dense_float64_bin"
    std::stringstream matrixStream;
    matrix_io::write_dense_float64_bin(matrixStream, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_dense_float64_bin(matrixStream);
-   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_dense_float64_csv | matrix_io/write_dense_float64_csv")
@@ -207,12 +207,12 @@ TEST_CASE("matrix_io/read_dense_float64_csv | matrix_io/write_dense_float64_csv"
    std::stringstream matrixConfigStream;
    matrix_io::write_dense_float64_csv(matrixConfigStream, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_dense_float64_csv(matrixConfigStream);
-   Eigen::MatrixXd actualMatrix = dense_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_sparse_float64_bin | matrix_io/write_sparse_float64_bin")
@@ -233,7 +233,7 @@ TEST_CASE("matrix_io/read_sparse_float64_bin | matrix_io/write_sparse_float64_bi
    std::stringstream matrixConfigStream;
    matrix_io::write_sparse_float64_bin(matrixConfigStream, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_sparse_float64_bin(matrixConfigStream);
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
@@ -247,7 +247,7 @@ TEST_CASE("matrix_io/read_sparse_float64_bin | matrix_io/write_sparse_float64_bi
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_sparse_float64_mtx | matrix_io/write_sparse_float64_mtx")
@@ -268,7 +268,7 @@ TEST_CASE("matrix_io/read_sparse_float64_mtx | matrix_io/write_sparse_float64_mt
    std::stringstream matrixConfigStream;
    matrix_io::write_sparse_float64_mtx(matrixConfigStream, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_sparse_float64_mtx(matrixConfigStream);
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
@@ -282,7 +282,7 @@ TEST_CASE("matrix_io/read_sparse_float64_mtx | matrix_io/write_sparse_float64_mt
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/read_sparse_binary_bin | matrix_io/write_sparse_binary_bin")
@@ -301,7 +301,7 @@ TEST_CASE("matrix_io/read_sparse_binary_bin | matrix_io/write_sparse_binary_bin"
    std::stringstream matrixConfigStream;
    matrix_io::write_sparse_binary_bin(matrixConfigStream, matrixConfig);
    MatrixConfig actualMatrixConfig = matrix_io::read_sparse_binary_bin(matrixConfigStream);
-   Eigen::SparseMatrix<double> actualMatrix = sparse_to_eigen(actualMatrixConfig);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
    std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
@@ -315,7 +315,7 @@ TEST_CASE("matrix_io/read_sparse_binary_bin | matrix_io/write_sparse_binary_bin"
    expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
    expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 // ===
@@ -334,7 +334,7 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Vect
    matrix_io::eigen::read_matrix(matrixFilename, actualMatrix);
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::VectorXd& V) | matrix_io/eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X) | .csv")
@@ -351,7 +351,7 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Vect
    matrix_io::eigen::read_matrix(matrixFilename, actualMatrix);
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 // ===
@@ -368,7 +368,7 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Matr
    matrix_io::eigen::read_matrix(matrixFilename, actualMatrix);
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::MatrixXd& X) | matrix_io/eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X) | .csv")
@@ -383,7 +383,7 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Matr
    matrix_io::eigen::read_matrix(matrixFilename, actualMatrix);
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 // ===
@@ -410,7 +410,7 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Spar
    matrix_io::eigen::read_matrix(matrixFilename, actualMatrix);
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::SparseMatrix<double>& X) | matrix_io/eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X) | .mtx")
@@ -435,7 +435,7 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Spar
    matrix_io::eigen::read_matrix(matrixFilename, actualMatrix);
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::SparseMatrix<double>& X) | matrix_io/eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X) | .sbm")
@@ -460,7 +460,7 @@ TEST_CASE("matrix_io/eigen::read_matrix(const std::string& filename, Eigen::Spar
    matrix_io::eigen::read_matrix(matrixFilename, actualMatrix);
 
    std::remove(matrixFilename.c_str());
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 // ===
@@ -475,7 +475,7 @@ TEST_CASE("matrix_io/eigen::read_dense_float64_bin | matrix_io/eigen::write_dens
    Eigen::MatrixXd actualMatrix;
    matrix_io::eigen::read_dense_float64_bin(matrixStream, actualMatrix);
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_dense_float64_csv | matrix_io/eigen::write_dense_float64_csv")
@@ -488,7 +488,7 @@ TEST_CASE("matrix_io/eigen::read_dense_float64_csv | matrix_io/eigen::write_dens
    Eigen::MatrixXd actualMatrix;
    matrix_io::eigen::read_dense_float64_csv(matrixStream, actualMatrix);
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_sparse_float64_bin | matrix_io/eigen::write_sparse_float64_bin")
@@ -510,7 +510,7 @@ TEST_CASE("matrix_io/eigen::read_sparse_float64_bin | matrix_io/eigen::write_spa
    Eigen::SparseMatrix<double> actualMatrix;;
    matrix_io::eigen::read_sparse_float64_bin(matrixStream, actualMatrix);
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_sparse_float64_mtx | matrix_io/eigen::write_sparse_float64_mtx")
@@ -532,7 +532,7 @@ TEST_CASE("matrix_io/eigen::read_sparse_float64_mtx | matrix_io/eigen::write_spa
    Eigen::SparseMatrix<double> actualMatrix;
    matrix_io::eigen::read_sparse_float64_mtx(matrixStream, actualMatrix);
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
 TEST_CASE("matrix_io/eigen::read_sparse_binary_bin | matrix_io/eigen::write_sparse_binary_bin")
@@ -554,5 +554,5 @@ TEST_CASE("matrix_io/eigen::read_sparse_binary_bin | matrix_io/eigen::write_spar
    Eigen::SparseMatrix<double> actualMatrix;
    matrix_io::eigen::read_sparse_binary_bin(matrixStream, actualMatrix);
 
-   REQUIRE(actualMatrix.isApprox(expectedMatrix));
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }

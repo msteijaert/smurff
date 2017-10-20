@@ -542,7 +542,7 @@ TEST_CASE( "utils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") {
   int cols[3] = {2, 1, 0};
   double vals[3] = {1.0, 0.0, 2.0};
   SparseDoubleMatrix S = {3, 3, 3, rows, cols, vals};
-  Eigen::SparseMatrix<double> Y = sparse_to_eigen(S);
+  Eigen::SparseMatrix<double> Y = matrix_utils::sparse_to_eigen(S);
   REQUIRE( Y.nonZeros() == 3 );
 }
 
@@ -589,8 +589,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   Result p;
   Model model;
   SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
-  ScarceMatrixData data(sparse_to_eigen(S));
-  p.set(sparse_to_eigen(S));
+  ScarceMatrixData data(matrix_utils::sparse_to_eigen(S));
+  p.set(matrix_utils::sparse_to_eigen(S));
   data.setCenterMode("global");
   data.setNoiseModel(new Noiseless());
   data.init();
@@ -675,7 +675,7 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
   int    cols[2] = {0, 1};
   double vals[2] = {1., 2.};
   SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
-  ScarceMatrixData data(sparse_to_eigen(S));
+  ScarceMatrixData data(matrix_utils::sparse_to_eigen(S));
   data.setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
   data.setNoiseModel(new Noiseless());
   data.init();

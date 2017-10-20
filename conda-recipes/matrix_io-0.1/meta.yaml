@@ -3,7 +3,7 @@ package:
   version: 0.1
 
 source:
-  git_url: https://github.com/ExaScience/smurff
+  url: https://github.com/ExaScience/smurff/archive/master.zip
 
 requirements:
     build:

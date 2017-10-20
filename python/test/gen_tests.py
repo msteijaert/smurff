@@ -7,7 +7,6 @@ import sys
 import subprocess
 import itertools
 import datetime
-import hashlib
 
 parser = argparse.ArgumentParser(description='SMURFF tests')
 
@@ -27,14 +26,16 @@ defaults = {
         'num_latent'  : 16,
         'row_prior'   : "normal",
         'col_prior'   : "normal",
-        'burnin'      : 20,
-        'nsamples'    : 200,
+        'burnin'      : 200,
+        'nsamples'    : 500,
         'center'      : "global",
         'row_features': [],
         'col_features': [],
         'direct'      : True,
         'precision'   : 5.0,
         'adaptive'    : None,
+        'test'        : 'test.sdm',
+        'train'       : 'train.sdm',
 }
 
 print("Generating tests in %s" % args.outdir)
@@ -89,7 +90,6 @@ class Test:
 
     def gen_cmd(self, outdir, env, datadir, makefile = None):
         args = self.opts
-        cat("args", args)
 
         args["fulldatadir"] = os.path.join(datadir, args["datasubdir"])
 
@@ -113,26 +113,35 @@ class Test:
         fmt_name += "direct/" if (args["direct"]) else "cgsolve/"
         if (args["precision"]): fmt_name +=  "fprec{precision}/"
         if (args["adaptive"]): fmt_name +=  "aprec{adaptive}/"
-        fmt_name += "rowf%d/" % len(args["row_features"])
-        fmt_name += "colf%d/" % len(args["col_features"])
+        fmt_name += "row"
+        for feat in args["row_features"]: fmt_name += "_%s" % (feat)
+        fmt_name += "/"
+        fmt_name += "col"
+        for feat in args["col_features"]: fmt_name += "_%s" % (feat)
+        fmt_name += "/"
         name = fmt_name.format(**args)
+        name = name.replace(',', '')
 
         fulldir = os.path.join(outdir, name)
 
         try:
             os.makedirs(fulldir)
         except:
-            fulldir += hashlib.md5(cmd.encode('ascii')).hexdigest()[:5] + "/"
-            os.makedirs(fulldir)
+            print("Skipping already existing directory: %s" % fulldir)
+            print(args)
+            return
 
         os.chdir(fulldir)
 
+        cat("args", args)
+        cat("name", name)
+        cat("env", env)
 
         cat("cmd", """
 #!/bin/bash
 cd %s
 source activate %s
-gtime --output=time --portability \
+/usr/bin/time --output=time --portability \
 %s >stdout 2>stderr
 echo $? >exit_code
 """ % (fulldir, env, cmd))
@@ -186,33 +195,35 @@ class TestSuite:
 
 def chembl_tests(defaults):
     chembl_defaults = defaults
-    chembl_defaults.update({
-            'datasubdir' : 'chembl_demo',
-            'test'       : 'test_sample1_c1.sdm',
-            'train'      : 'train_sample1_c1.sdm',
-    })
-
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
             { },
-            { "row_prior": "macau",        "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
-            { "row_prior": "normal",       "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
-            { "col_prior": "spikeandslab", "row_features": [ "side_sample1_c1_chem2vec.ddm" ] },
+            { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
+            { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
+            { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
     ])
 
     chembl_tests_centering.add_centering_options()
 
     chembl_tests = TestSuite("chembl", chembl_defaults,
         [
-            { "row_prior": "macau",        "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
-            { "row_prior": "macau", "direct": False,  "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ]},
-            { "row_prior": "macauone",     "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
-            { "row_prior": "normal", "center": "none", "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
-            { "col_prior": "spikeandslab", "center": "none", "row_features": [ "side_sample1_c1_ecfp6_var005.sbm" ] },
+            { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
+            { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
+            { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
+            { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
+            { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
         ])
 
     chembl_tests.add_testsuite(chembl_tests_centering)
     chembl_tests.add_noise_options()
+
+    chembl_tests.add_options('datasubdir',
+            [
+                'chembl_58/sample1/cluster1', 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
+                'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
+                'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
+            ])
+
 
     print(chembl_tests)
 
@@ -223,7 +234,8 @@ def synthetic_tests(defaults):
     suite = TestSuite("synthetic")
 
     priors = [ "normal", "macau", "spikeandslab" ]
-    datadirs = glob("%s/synthetic/*" % args.datadir)
+    datadirs = glob("%s/synthetic/ones*" % args.datadir)
+    datadirs += glob("%s/synthetic/normal*" % args.datadir)
 
     # each datadir == 1 test
     for d in datadirs:
@@ -248,7 +260,18 @@ def synthetic_tests(defaults):
 
     return suite
         
-    
+  
+def movielens_tests(defaults):
+    suite = TestSuite("movielens")
+    suite.add_test(defaults)
+
+    datadirs = [ "movielens/u" + i for i in  [1,2,3,4,5]  ]
+    suite.add_options('datasubdir', datadirs)
+
+    print(suite)
+    return suite
+
+ 
 
 def all_tests(args):
 
@@ -260,6 +283,9 @@ def all_tests(args):
 
 tests = all_tests(args).tests
 
+print("%d envs" % len(args.envs))
+
+total_num = 0
 for env in args.envs:
     fullenv = os.path.join(args.envdir, env)
     fulldir = os.path.join(args.outdir, env)
@@ -267,9 +293,10 @@ for env in args.envs:
     makefile = open(os.path.join(fulldir, "Makefile"), "w")
 
     for opts in tests:
+        total_num += 1
         opts.gen_cmd(fulldir, fullenv, args.datadir, makefile)
 
     makefile.close()
 
 
-
+print("%d total tests" % total_num)
