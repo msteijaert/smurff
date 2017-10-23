@@ -96,18 +96,21 @@ class Test:
         fmt_cmd = """smurff --train={fulldatadir}/{train} --burnin={burnin} \
         --test={fulldatadir}/{test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
         --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
-        --save-prefix=results --save-freq=10 --seed=1234\
+        --save-prefix=results --save-freq=-1 --seed=1234\
         """
 
+        for feat in args["row_features"]: 
+            fmt_cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
+        for feat in args["col_features"]: 
+            fmt_cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
+
         if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
+
+        # noise arguments should come last, after features!
         if (args["precision"]): fmt_cmd = fmt_cmd + " --precision={precision}"
         if (args["adaptive"]): fmt_cmd = fmt_cmd + " --adaptive={adaptive}"
-        cmd = fmt_cmd.format(**args)
 
-        for feat in args["row_features"]: 
-            cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
-        for feat in args["col_features"]: 
-            cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
+        cmd = fmt_cmd.format(**args)
 
         fmt_name = "{datasubdir}/{train}/{burnin}/{nsamples}/{num_latent}/{row_prior}/{col_prior}/{center}/"
         fmt_name += "direct/" if (args["direct"]) else "cgsolve/"
