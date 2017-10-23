@@ -3,6 +3,7 @@
 import loom.client as lc
 import argparse
 import glob
+import os
 
 parser = argparse.ArgumentParser(description='Loom client for running SMURFF tests')
 
@@ -17,7 +18,8 @@ args = parser.parse_args()
 def main():
     tasks = []
     for f in glob.iglob('%s/**/%s' % (args.dir, args.cmd), recursive=True):
-        task = lc.tasks.run("bash -e %s" % f)
+        full_script = os.path.abspath(f)
+        task = lc.tasks.run("bash -e %s" % full_script)
         tasks.append(task)
     c = lc.Client(args.loom_server, args.loom_port)
     futures = c.submit(tasks)
