@@ -39,7 +39,7 @@ script:
 - cmake --version
 - cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 - make
-- ../_output/tests
+- ${BUILD_TYPE}/tests
 after_success:
   - echo "success"
  
