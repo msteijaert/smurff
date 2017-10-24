@@ -248,13 +248,3 @@ void Config::restore(std::string fname)
    threshold = reader.GetReal("", "threshold",  .0);
 };
 
-std::string Config::version() 
-{
-   return
-#ifdef SMURFF_VERSION
-   SMURFF_VERSION
-#else
-   "unknown"
-#endif
-   ;
-}

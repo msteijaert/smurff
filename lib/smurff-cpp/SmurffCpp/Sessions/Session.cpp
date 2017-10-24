@@ -4,6 +4,8 @@
 
 #include <Eigen/Core>
 
+#include <SmurffCpp/Version.h>
+
 #include <SmurffCpp/Priors/MacauOnePrior.hpp>
 #include <SmurffCpp/Priors/MacauPrior.hpp>
 #include <SmurffCpp/Priors/NormalPrior.h>
@@ -266,7 +268,7 @@ void Session::step()
 std::ostream& Session::info(std::ostream &os, std::string indent)
 {
    BaseSession::info(os, indent);
-   os << indent << "  Version: " << Config::version() << "\n" ;
+   os << indent << "  Version: " << smurff::SMURFF_VERSION << "\n" ;
    os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
 
    if (config.save_freq != 0)

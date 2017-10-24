@@ -3,7 +3,9 @@
 #include <string>
 #include <argp.h>
 #include <memory>
+#include <cstdlib>
 
+#include <SmurffCpp/Version.h>
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Configs/NoiseConfig.h>
 
@@ -20,7 +22,7 @@ enum OPT_ENUM
 {
    ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
    BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
-   RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET, SEED,
+   RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET, VERSION, SEED,
    INIT_MODEL, CENTER, STATUS_FILE
 };
 
@@ -95,6 +97,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case INIT_MODEL:      c.init_model         = optarg; break;
       case VERBOSE:         c.verbose            = optarg ? strtol(optarg, NULL, 0) : 1; break;
       case QUIET:           c.verbose            = 0; break;
+      case VERSION:         std::cout <<  "SMURFF " << smurff::SMURFF_VERSION << std::endl; exit(0);
       case STATUS_FILE:     c.csv_status         = optarg; break;
       default:              return ARGP_ERR_UNKNOWN;
    }
@@ -133,6 +136,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {"threshold",        THRESHOLD	, "NUM",   0, "threshold for binary classification"},
         {"verbose",          VERBOSE	, "NUM",   OPTION_ARG_OPTIONAL, "verbose output (default = 1)"},
         {"quiet",            QUIET	, 0,   0, "no output"},
+        {"version",          VERSION    , 0,   0, "print version info"},
         {"status",           STATUS_FILE, "FILE",  0, "output progress to csv file"},
         {"seed",             SEED, "NUM",  0, "random number generator seed"},
         {0,0,0,0,"Noise model:",4},

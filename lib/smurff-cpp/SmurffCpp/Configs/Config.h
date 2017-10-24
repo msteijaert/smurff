@@ -94,7 +94,6 @@ struct Config
     bool validate(bool = true) const;
     void save(std::string) const;
     void restore(std::string);
-    static std::string version();
 };
 
 } // end namespace smurff
