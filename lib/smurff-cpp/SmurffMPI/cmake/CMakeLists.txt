@@ -11,7 +11,6 @@ source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../MPISession.cpp"
                         "../mpi_smurff.cpp"
-                        "../../Smurff/CmdSession.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
