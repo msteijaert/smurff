@@ -38,6 +38,20 @@ macro(configure_mpi)
    
 endmacro(configure_mpi)
 
+macro(configure_openmp)
+  message ("Dependency check for OpenMP")
+
+  find_package(OpenMP)
+  if(${OPENMP_FOUND})
+      message(STATUS "OpenMP found")
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  else()
+      message(STATUS "OpenMP not found")
+  endif()
+   
+endmacro(configure_openmp)
+
+
 macro(configure_blas)
   message ("Dependency check for blas...")
   set(BLA_VENDOR "Generic")

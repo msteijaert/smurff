@@ -3,7 +3,6 @@
 #if defined(_OPENMP)
 #include <iostream>
 #include <omp.h>
-#include <cblas.h>
 
 inline int nthreads() { return omp_get_num_threads(); }
 inline int thread_limit() 
