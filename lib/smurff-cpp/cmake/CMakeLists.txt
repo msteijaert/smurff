@@ -186,7 +186,7 @@ endif()
 
 message(STATUS "Initializing logging options...")
 
-set (CV ON)
+set (CV OFF)
 
 if (UNIX)
     #set verbose output of cmake
@@ -260,6 +260,10 @@ else()
   message(FATAL_ERROR "Algebra library not specified")
 endif()
 
+enable_testing()
+add_test( unittests tests )
+
+
 # CONFIGURE TARGETS
 
 message(STATUS "Creating folder structure...")
@@ -273,9 +277,7 @@ add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 # utils
 
 add_subdirectory (../Smurff/cmake utils/Smurff)
-if(${ENABLE_MPI})
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
-endif()
 
 # tests
 

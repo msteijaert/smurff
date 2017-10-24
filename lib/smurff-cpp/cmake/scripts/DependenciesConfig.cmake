@@ -30,7 +30,7 @@ macro(configure_mpi)
   message ("Dependency check for mpi...")
 
   find_package(MPI)
-  if(${MPI_CXX_FOUND})
+  if(${MPI_C_FOUND})
     message(STATUS "MPI found")
   else()
     message(STATUS "MPI not found")
@@ -78,7 +78,7 @@ macro(configure_eigen)
   #SUBMODULE INSTALLATION
   set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../../eigen3)
   message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
-
+  add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endmacro(configure_eigen)
 
 
