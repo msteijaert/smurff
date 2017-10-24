@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <sstream>
+#include <cctype>
+#include <algorithm>
 
 #include <unsupported/Eigen/SparseExtra>
 
@@ -127,11 +129,22 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
    std::string headerStr;
    std::getline(in, headerStr);
    std::stringstream headerStream(headerStr);
+
    std::string object;
+   headerStream >> object;
+   std::transform(object.begin(), object.end(), object.begin(), ::toupper);
+
    std::string format;
+   headerStream >> format;
+   std::transform(format.begin(), format.end(), format.begin(), ::toupper);
+
    std::string field;
+   headerStream >> field;
+   std::transform(field.begin(), field.end(), field.begin(), ::toupper);
+
    std::string symmetry;
-   headerStream >> std::skipws >> std::uppercase >> object >> format >> field  >> symmetry;
+   headerStream >> symmetry;
+   std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::toupper);
 
    // Check object type
    if (object != "MATRIX")
@@ -418,6 +431,7 @@ void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& ma
 void matrix_io::write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig)
 {
    out << "%%MatrixMarket ";
+   out << "matrix ";
    out << (matrixConfig.isDense() ? "array " : "coordinate ");
    out << "real general";
    out << std::endl;

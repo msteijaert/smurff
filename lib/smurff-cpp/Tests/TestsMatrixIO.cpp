@@ -171,6 +171,63 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
 
 // ===
 
+TEST_CASE("matrix_io/read_matrix_market | matrix_io/write_matrix_market | dense")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<double> matrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream matrixStream;
+   matrix_io::write_matrix_market(matrixStream, matrixConfig);
+   MatrixConfig actualMatrixConfig = matrix_io::read_matrix_market(matrixStream);
+   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
+
+   Eigen::MatrixXd expectedMatrix(3, 4);
+   expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
+
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
+}
+
+TEST_CASE("matrix_io/read_matrix_market | matrix_io/write_matrix_market | sparse")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> matrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   MatrixConfig matrixConfig( matrixConfigNRow
+                            , matrixConfigNCol
+                            , std::move(matrixConfigRows)
+                            , std::move(matrixConfigCols)
+                            , std::move(matrixConfigValues)
+                            , NoiseConfig()
+                            );
+
+   std::stringstream matrixStream;
+   matrix_io::write_matrix_market(matrixStream, matrixConfig);
+   MatrixConfig actualMatrixConfig = matrix_io::read_matrix_market(matrixStream);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 2));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 3));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 4));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 9));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 10));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 11));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 12));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
+}
+
 TEST_CASE("matrix_io/read_dense_float64_bin | matrix_io/write_dense_float64_bin")
 {
    std::uint64_t matrixConfigNRow = 3;
