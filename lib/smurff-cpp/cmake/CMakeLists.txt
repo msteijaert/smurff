@@ -76,14 +76,14 @@ if (MSVC OR MSVC_IDE OR MSVC_VERSION OR MSVC60 OR MSVC70 OR MSVC71 OR MSVC80 OR 
 elseif (CMAKE_COMPILER_IS_GNUCXX OR APPLE)
    if(APPLE)
       # Set developer directory
-      execute_process(COMMAND /usr/bin/xcode-select -print-path
-      OUTPUT_VARIABLE XCODE_DEVELOPER_DIR
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      #execute_process(COMMAND /usr/bin/xcode-select -print-path
+      #OUTPUT_VARIABLE XCODE_DEVELOPER_DIR
+      #OUTPUT_STRIP_TRAILING_WHITESPACE)
 
       # Set the CMAKE_OSX_SYSROOT to the latest SDK found
-      execute_process(COMMAND /usr/bin/xcrun -sdk macosx --show-sdk-path
-      OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      #execute_process(COMMAND /usr/bin/xcrun -sdk macosx --show-sdk-path
+      #OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
+      #OUTPUT_STRIP_TRAILING_WHITESPACE)
 
       # Locate gcc
       #execute_process(COMMAND /usr/bin/xcrun -sdk macosx -find gcc
