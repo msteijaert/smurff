@@ -273,7 +273,9 @@ add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 # utils
 
 add_subdirectory (../Smurff/cmake utils/Smurff)
+if(${ENABLE_MPI})
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
+endif()
 
 # tests
 
