@@ -63,12 +63,12 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 
    switch (key)
    {
-      case ROW_PRIOR:       c.row_prior          = optarg; break;
-      case COL_PRIOR:       c.col_prior          = optarg; break;
+      case ROW_PRIOR:       c.row_prior_type          = stringToPriorType(optarg); break;
+      case COL_PRIOR:       c.col_prior_type          = stringToPriorType(optarg); break;
 
       case ROW_FEATURES:    c.row_features.push_back(read_matrix(optarg)); break;
       case COL_FEATURES:    c.col_features.push_back(read_matrix(optarg)); break;
-      case CENTER:          c.center_mode        = optarg; break;
+      case CENTER:          c.center_mode_type        = stringToCenterMode(optarg); break;
 
 
       case FNAME_TRAIN:     c.train              = read_matrix(optarg); break;

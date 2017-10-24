@@ -6,21 +6,60 @@
 
 #include "MatrixConfig.h"
 
+#define PRIOR_NAME_DEFAULT "default"
+#define PRIOR_NAME_MACAU "macau"
+#define PRIOR_NAME_MACAU_ONE "macauone"
+#define PRIOR_NAME_SPIKE_AND_SLAB "spikeandslab"
+#define PRIOR_NAME_NORMAL "normal"
+
+#define CENTER_MODE_STR_NONE "none"
+#define CENTER_MODE_STR_GLOBAL "global"
+#define CENTER_MODE_STR_VIEW "view"
+#define CENTER_MODE_STR_ROWS "rows"
+#define CENTER_MODE_STR_COLS "cols"
+
 namespace smurff {
+
+enum class PriorTypes
+{
+   default_prior,
+   macau,
+   macauone,
+   spikeandslab,
+   normal,
+};
+
+enum class CenterModeTypes : int
+{
+   CENTER_INVALID = -10,
+   CENTER_NONE = -3,
+   CENTER_GLOBAL = -2,
+   CENTER_VIEW = -1,
+   CENTER_COLS = 0,
+   CENTER_ROWS = 1
+};
+
+PriorTypes stringToPriorType(std::string name);
+
+std::string priorTypeToString(PriorTypes type);
+
+std::string centerModeToString(CenterModeTypes cm);
+
+CenterModeTypes stringToCenterMode(std::string c);
 
 struct Config 
 {
     //-- train and test
     MatrixConfig train, test;
-    std::string center_mode   = "global";
+    CenterModeTypes center_mode_type = CenterModeTypes::CENTER_GLOBAL;
 
     //-- features
     std::vector<MatrixConfig> row_features;
     std::vector<MatrixConfig> col_features;
 
     // -- priors
-    std::string row_prior = "default";
-    std::string col_prior = "default";
+    PriorTypes row_prior_type = PriorTypes::default_prior;
+    PriorTypes col_prior_type = PriorTypes::default_prior;
 
     //-- restore
     std::string restore_prefix = "";

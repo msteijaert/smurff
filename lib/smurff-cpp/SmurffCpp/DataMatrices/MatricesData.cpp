@@ -69,7 +69,7 @@ void MatricesData::setCenterMode(std::string mode)
       p.data().setCenterMode(mode);
 }
 
-void MatricesData::setCenterMode(IMeanCentering::CenterModeTypes type)
+void MatricesData::setCenterMode(CenterModeTypes type)
 {
    Data::setCenterMode(type);
    for(auto &p : blocks) 

@@ -204,7 +204,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_NONE")
 
    IMeanCentering* mnce = &dmd;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
+   mnce->setCenterMode(CenterModeTypes::CENTER_NONE);
 
    dmd.setNoiseModel(new Noiseless());
    dmd.init();
@@ -225,7 +225,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_GLOBAL")
 
    IMeanCentering* mnce = &dmd;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
+   mnce->setCenterMode(CenterModeTypes::CENTER_GLOBAL);
 
    dmd.setNoiseModel(new Noiseless());
    dmd.init();
@@ -249,7 +249,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_VIEW")
 
    IMeanCentering* mnce = &dmd;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
+   mnce->setCenterMode(CenterModeTypes::CENTER_VIEW);
 
    dmd.setNoiseModel(new Noiseless());
    dmd.init();
@@ -274,7 +274,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_COLS")
    IMeanCentering* mnce = &dmd;
 
    //substract each row mean from each row
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_COLS);
+   mnce->setCenterMode(CenterModeTypes::CENTER_COLS);
 
    dmd.setNoiseModel(new Noiseless());
    dmd.init();
@@ -308,7 +308,7 @@ TEST_CASE("DenseMatrixData IMeanCentering CENTER_ROWS")
    IMeanCentering* mnce = &dmd;
 
    //substract each column mean from each columns
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_ROWS);
+   mnce->setCenterMode(CenterModeTypes::CENTER_ROWS);
 
    dmd.setNoiseModel(new Noiseless());
    dmd.init();
@@ -354,7 +354,7 @@ TEST_CASE("SparseMatrixData IMeanCentering CENTER_NONE")
 
    IMeanCentering* mnce = &smd;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
+   mnce->setCenterMode(CenterModeTypes::CENTER_NONE);
 
    smd.setNoiseModel(new Noiseless());
    smd.init();
@@ -388,7 +388,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_NONE")
 
    IMeanCentering* mnce = &scm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
+   mnce->setCenterMode(CenterModeTypes::CENTER_NONE);
 
    scm.setNoiseModel(new Noiseless());
    scm.init();
@@ -420,7 +420,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_GLOBAL")
 
    IMeanCentering* mnce = &scm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
+   mnce->setCenterMode(CenterModeTypes::CENTER_GLOBAL);
 
    scm.setNoiseModel(new Noiseless());
    scm.init();
@@ -466,7 +466,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_VIEW")
 
    IMeanCentering* mnce = &scm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
+   mnce->setCenterMode(CenterModeTypes::CENTER_VIEW);
 
    scm.setNoiseModel(new Noiseless());
    scm.init();
@@ -512,7 +512,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_COLS")
 
    IMeanCentering* mnce = &scm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_COLS);
+   mnce->setCenterMode(CenterModeTypes::CENTER_COLS);
 
    scm.setNoiseModel(new Noiseless());
    scm.init();
@@ -567,7 +567,7 @@ TEST_CASE("ScarceMatrixData IMeanCentering CENTER_ROWS")
 
    IMeanCentering* mnce = &scm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_ROWS);
+   mnce->setCenterMode(CenterModeTypes::CENTER_ROWS);
 
    scm.setNoiseModel(new Noiseless());
    scm.init();
@@ -624,7 +624,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_NONE")
 
    IMeanCentering* mnce = &sbm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_NONE);
+   mnce->setCenterMode(CenterModeTypes::CENTER_NONE);
 
    sbm.setNoiseModel(new Noiseless());
    sbm.init();
@@ -656,7 +656,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_GLOBAL")
 
    IMeanCentering* mnce = &sbm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_GLOBAL);
+   mnce->setCenterMode(CenterModeTypes::CENTER_GLOBAL);
 
    sbm.setNoiseModel(new Noiseless());
    sbm.init();
@@ -702,7 +702,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_VIEW")
 
    IMeanCentering* mnce = &sbm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_VIEW);
+   mnce->setCenterMode(CenterModeTypes::CENTER_VIEW);
 
    sbm.setNoiseModel(new Noiseless());
    sbm.init();
@@ -748,7 +748,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_COLS")
 
    IMeanCentering* mnce = &sbm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_COLS);
+   mnce->setCenterMode(CenterModeTypes::CENTER_COLS);
 
    sbm.setNoiseModel(new Noiseless());
    sbm.init();
@@ -803,7 +803,7 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
 
    IMeanCentering* mnce = &sbm;
 
-   mnce->setCenterMode(IMeanCentering::CenterModeTypes::CENTER_ROWS);
+   mnce->setCenterMode(CenterModeTypes::CENTER_ROWS);
 
    sbm.setNoiseModel(new Noiseless());
    sbm.init();

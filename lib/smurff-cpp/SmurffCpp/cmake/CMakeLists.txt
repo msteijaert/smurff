@@ -56,7 +56,8 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/MatrixDataFactory.h"
 
                         "../Sessions/BaseSession.h"
-                        "../Sessions/Session.h")
+                        "../Sessions/Session.h"
+                        "../sparsetensor.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -106,7 +107,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../DataMatrices/MatrixDataFactory.cpp"
 
                         "../Sessions/BaseSession.cpp"
-                        "../Sessions/Session.cpp")
+                        "../Sessions/Session.cpp"
+                        "../sparsetensor.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 if(${MPI_CXX_FOUND})

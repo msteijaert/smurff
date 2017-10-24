@@ -11,12 +11,7 @@
 #include <Eigen/Core>
 
 #include <SmurffCpp/model.h>
-
-#define CENTER_MODE_STR_NONE "none"
-#define CENTER_MODE_STR_GLOBAL "global"
-#define CENTER_MODE_STR_VIEW "view"
-#define CENTER_MODE_STR_ROWS "rows"
-#define CENTER_MODE_STR_COLS "cols"
+#include <SmurffCpp/Configs/Config.h>
 
 namespace smurff
 {
@@ -25,17 +20,6 @@ namespace smurff
    // mean and centering
    class IMeanCentering
    {
-   public:
-      enum class CenterModeTypes : int
-      {
-         CENTER_INVALID = -10,
-         CENTER_NONE = -3,
-         CENTER_GLOBAL = -2,
-         CENTER_VIEW = -1,
-         CENTER_COLS = 0,
-         CENTER_ROWS = 1
-      };
-
    private:
       double m_cwise_mean = NAN; // mean of non NA elements in matrix
       bool m_cwise_mean_initialized = false;
@@ -70,7 +54,7 @@ namespace smurff
 
    public:
       virtual void setCenterMode(std::string c);
-      virtual void setCenterMode(CenterModeTypes type);
+      virtual void setCenterMode(smurff::CenterModeTypes type);
 
       //AGE: implementation depends on matrix data type
    public:
@@ -81,7 +65,7 @@ namespace smurff
       double getCwiseMean() const;
       double getGlobalMean() const;
       double getVar() const;
-      CenterModeTypes getCenterMode() const;
+      smurff::CenterModeTypes getCenterMode() const;
       bool getMeanComputed() const;
       double getModeMeanItem(int m, int c) const;
       const Eigen::VectorXd& getModeMean(size_t i) const;
@@ -92,11 +76,6 @@ namespace smurff
       {
          m_centered = value;
       }
-
-   public:
-      static std::string centerModeToString(CenterModeTypes cm);
-
-      static CenterModeTypes stringToCenterMode(std::string c);
    };
    
    class Data : public IMeanCentering

@@ -28,7 +28,7 @@ public:
   int df;
 
 public:
-  NormalPrior(BaseSession &m, int p, std::string name = "NormalPrior");
+  NormalPrior(BaseSession& session, int mode, std::string name = "NormalPrior");
   virtual ~NormalPrior() {}
   void init() override;
 

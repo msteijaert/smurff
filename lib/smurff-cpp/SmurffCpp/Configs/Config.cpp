@@ -8,21 +8,81 @@
 
 using namespace smurff;
 
+PriorTypes smurff::stringToPriorType(std::string name)
+{
+   if(name == PRIOR_NAME_DEFAULT)
+      return PriorTypes::default_prior;
+   else if(name == PRIOR_NAME_MACAU)
+      return PriorTypes::macau;
+   else if(name == PRIOR_NAME_MACAU_ONE)
+      return PriorTypes::macauone;
+   else if(name == PRIOR_NAME_SPIKE_AND_SLAB)
+      return PriorTypes::spikeandslab;
+   else if(name == PRIOR_NAME_NORMAL)
+      return PriorTypes::normal;
+   else
+      throw std::runtime_error("Invalid prior type");
+}
+
+std::string smurff::priorTypeToString(PriorTypes type)
+{
+   switch(type)
+   {
+      case PriorTypes::default_prior:
+         return PRIOR_NAME_DEFAULT;
+      case PriorTypes::macau:
+         return PRIOR_NAME_MACAU;
+      case PriorTypes::macauone:
+         return PRIOR_NAME_MACAU_ONE;
+      case PriorTypes::spikeandslab:
+         return PRIOR_NAME_SPIKE_AND_SLAB;
+      case PriorTypes::normal:
+         return PRIOR_NAME_NORMAL;
+      default:
+         throw std::runtime_error("Invalid prior type");
+   }
+}
+
+std::string smurff::centerModeToString(CenterModeTypes cm)
+{
+   switch (cm)
+   {
+      case CenterModeTypes::CENTER_NONE:
+         return CENTER_MODE_STR_NONE;
+      case CenterModeTypes::CENTER_GLOBAL:
+         return CENTER_MODE_STR_GLOBAL;
+      case CenterModeTypes::CENTER_VIEW:
+         return CENTER_MODE_STR_VIEW;
+      case CenterModeTypes::CENTER_ROWS:
+         return CENTER_MODE_STR_ROWS;
+      case CenterModeTypes::CENTER_COLS:
+         return CENTER_MODE_STR_COLS;
+      default:
+         throw std::runtime_error("Invalid center mode");
+   }
+}
+
+CenterModeTypes smurff::stringToCenterMode(std::string c)
+{
+   if (c == CENTER_MODE_STR_NONE)
+      return CenterModeTypes::CENTER_NONE;
+   else if (c == CENTER_MODE_STR_GLOBAL)
+      return CenterModeTypes::CENTER_GLOBAL;
+   else if (c == CENTER_MODE_STR_VIEW)
+      return CenterModeTypes::CENTER_VIEW;
+   else if (c == CENTER_MODE_STR_ROWS)
+      return CenterModeTypes::CENTER_ROWS;
+   else if (c == CENTER_MODE_STR_COLS)
+      return CenterModeTypes::CENTER_COLS;
+   else
+      throw std::runtime_error("Invalid center mode " + c);
+}
+
+
 bool Config::validate(bool throw_error) const
 {
    if (!train.getRows().size())
       die("Missing train matrix");
-
-   std::set<std::string> prior_names = { "default", "normal", "spikeandslab", "macau", "macauone" };
-
-   if (prior_names.find(col_prior) == prior_names.end()) 
-      die("Unknown col_prior " + col_prior);
-
-   if (prior_names.find(row_prior) == prior_names.end()) 
-      die("Unknown row_prior " + row_prior);
-
-   if(IMeanCentering::stringToCenterMode(center_mode) == IMeanCentering::CenterModeTypes::CENTER_INVALID)
-      die("Unknown center mode " + center_mode);
 
    if (test.getNRow() > 0 && train.getNRow() > 0 && test.getNRow() != train.getNRow())
       die("Train and test matrix should have the same number of rows");
@@ -30,31 +90,39 @@ bool Config::validate(bool throw_error) const
    if (test.getNCol() > 0 && train.getNCol() > 0 && test.getNCol() != train.getNCol())
       die("Train and test matrix should have the same number of cols");
 
-   for (const auto &c: col_features) {
-       if (train.getNCol() != c.getNCol()) {
+   for (const auto &c: col_features) 
+   {
+       if (train.getNCol() != c.getNCol()) 
+       {
            die("Column features and train should have the same number of cols");
        }
    }
 
-   for (const auto &c: row_features) {
-       if (train.getNRow() != c.getNRow()) {
+   for (const auto &c: row_features) 
+   {
+       if (train.getNRow() != c.getNRow()) 
+       {
            die("Row features and train should have the same number of rows");
        }
    }
 
-   if (col_prior == "macau" && col_features.size() != 1) {
+   if (col_prior_type == PriorTypes::macau && col_features.size() != 1) 
+   {
        die("Exactly one set of col-features needed when using macau prior.");
    }
 
-   if (row_prior == "macau" && row_features.size() != 1) {
+   if (row_prior_type == PriorTypes::macau && row_features.size() != 1) 
+   {
        die("Exactly one set of row-features needed when using macau prior.");
    }
 
-   if (col_prior == "macauone" && (col_features.size() != 1 || col_features.at(0).isDense())) {
+   if (col_prior_type == PriorTypes::macauone && (col_features.size() != 1 || col_features.at(0).isDense())) 
+   {
        die("Exactly one set of sparse col-features needed when using macauone prior.");
    }
 
-   if (row_prior == "macauone" && (row_features.size() != 1 || row_features.at(0).isDense())) {
+   if (row_prior_type == PriorTypes::macauone && (row_features.size() != 1 || row_features.at(0).isDense())) 
+   {
        die("Exactly one set of sparse row-features needed when using macauone prior.");
    }
 
@@ -98,8 +166,8 @@ void Config::save(std::string fname) const
    print_features("col_features", col_features);
 
    os << "# priors" << std::endl;
-   os << "row_prior = " << row_prior << std::endl;
-   os << "col_prior = " << col_prior << std::endl;
+   os << "row_prior = " << priorTypeToString(row_prior_type) << std::endl;
+   os << "col_prior = " << priorTypeToString(col_prior_type) << std::endl;
 
    os << "# restore" << std::endl;
    os << "restore_prefix = " << restore_prefix << std::endl;
@@ -143,8 +211,8 @@ void Config::restore(std::string fname)
    }
 
    // -- priors
-   row_prior = reader.Get("", "row_prior",  "default");
-   col_prior = reader.Get("", "col_prior",  "default");
+   row_prior_type = stringToPriorType(reader.Get("", "row_prior",  "default"));
+   col_prior_type = stringToPriorType(reader.Get("", "col_prior",  "default"));
 
    //-- restore
    restore_prefix = reader.Get("", "restore_prefix",  "");

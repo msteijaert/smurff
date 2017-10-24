@@ -16,8 +16,8 @@ using namespace smurff;
 
 //  base class NormalPrior
 
-NormalPrior::NormalPrior(BaseSession &m, int p, std::string name)
-   : ILatentPrior(m, p, name)
+NormalPrior::NormalPrior(BaseSession& session, int mode, std::string name)
+   : ILatentPrior(session, mode, name)
 {
 
 }
@@ -73,7 +73,7 @@ void NormalPrior::sample_latent(int n)
    MM.setZero();
 
    // add pnm
-   data().get_pnm(model(),mode,n,rr,MM);
+   data().get_pnm(model(), m_mode, n, rr, MM);
 
    // add hyperparams
    rr.noalias() += Lambda * mu_u;
@@ -105,7 +105,7 @@ void NormalPrior::restore(std::string prefix, std::string suffix)
 
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
 {
-   os << indent << name << ": mu = " <<  mu.norm() << std::endl;
+   os << indent << m_name << ": mu = " <<  mu.norm() << std::endl;
    return os;
 }
 
@@ -135,24 +135,31 @@ void BPMFPrior::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Ei
 //macau Tensor methods
 /*
 void BPMFPrior::sample_latents(ProbitNoise& noiseModel, TensorData & data,
-                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
+                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, 
+                               int mode, 
+                               const int num_latent
+                              ) 
+{
   // TODO
   throw std::runtime_error("Unimplemented: sample_latents");
 }
 */
 /*
 void BPMFPrior::sample_latents(double noisePrecision,
-                               TensorData & data,
-                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
-                               const int mode,
-                               const int num_latent) {
-  auto& sparseMode = (*data.Y)[mode];
-  auto& U = samples[mode];
+                               TensorData & data, // array of sparse views per dimention
+                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, //vector of matrices per dimention ?
+                               const int mode, //dimention index
+                               const int num_latent //number of latent dimentions
+                              ) 
+{
+  auto& sparseMode = (*data.Y)[mode]; // select sparse view by dimention index
+  auto& U = samples[mode]; // select U matrix by dimention index
   const int N = U->cols();
-  VectorView<Eigen::MatrixXd> view(samples, mode);
+  VectorView<Eigen::MatrixXd> view(samples, mode); // select all other samples except from dimention index
 
-#pragma omp parallel for schedule(dynamic, 2)
-  for (int n = 0; n < N; n++) {
+  #pragma omp parallel for schedule(dynamic, 2)
+  for (int n = 0; n < N; n++) //iterate through each column of U
+  {
     sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu, Lambda);
   }
 }

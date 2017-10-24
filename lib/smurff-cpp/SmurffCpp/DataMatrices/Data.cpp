@@ -42,7 +42,7 @@ void IMeanCentering::setCenterMode(std::string c)
       throw std::runtime_error("Invalid center mode");
 }
 
-void IMeanCentering::setCenterMode(IMeanCentering::CenterModeTypes type)
+void IMeanCentering::setCenterMode(CenterModeTypes type)
 {
    m_center_mode = type;
 }
@@ -64,7 +64,7 @@ double IMeanCentering::getVar() const
    return m_var;
 }
 
-IMeanCentering::CenterModeTypes IMeanCentering::getCenterMode() const
+CenterModeTypes IMeanCentering::getCenterMode() const
 {
    return m_center_mode;
 }
@@ -88,47 +88,7 @@ double IMeanCentering::getModeMeanItem(int m, int c) const
 
 std::string IMeanCentering::getCenterModeName() const
 {
-   std::string name = centerModeToString(m_center_mode);
-   if(name.empty())
-      throw std::runtime_error("Invalid center mode");
-   return name;
-}
-
-std::string IMeanCentering::centerModeToString(IMeanCentering::CenterModeTypes cm)
-{
-   switch (cm)
-   {
-      case CenterModeTypes::CENTER_INVALID:
-         return std::string();
-      case CenterModeTypes::CENTER_NONE:
-         return CENTER_MODE_STR_NONE;
-      case CenterModeTypes::CENTER_GLOBAL:
-         return CENTER_MODE_STR_GLOBAL;
-      case CenterModeTypes::CENTER_VIEW:
-         return CENTER_MODE_STR_VIEW;
-      case CenterModeTypes::CENTER_ROWS:
-         return CENTER_MODE_STR_ROWS;
-      case CenterModeTypes::CENTER_COLS:
-         return CENTER_MODE_STR_COLS;
-      default:
-         return std::string();
-   }
-}
-
-IMeanCentering::CenterModeTypes IMeanCentering::stringToCenterMode(std::string c)
-{
-   if (c == CENTER_MODE_STR_NONE)
-      return CenterModeTypes::CENTER_NONE;
-   else if (c == CENTER_MODE_STR_GLOBAL)
-      return CenterModeTypes::CENTER_GLOBAL;
-   else if (c == CENTER_MODE_STR_VIEW)
-      return CenterModeTypes::CENTER_VIEW;
-   else if (c == CENTER_MODE_STR_ROWS)
-      return CenterModeTypes::CENTER_ROWS;
-   else if (c == CENTER_MODE_STR_COLS)
-      return CenterModeTypes::CENTER_COLS;
-   else
-      return CenterModeTypes::CENTER_INVALID;
+   return centerModeToString(m_center_mode);
 }
 
 //===

@@ -40,14 +40,16 @@ public:
 
    const Eigen::SparseMatrix<double>& SparseYC() const
    {
-       return dynamic_cast<ScarceMatrixData &>(data()).getYc().at(mode);
+       return dynamic_cast<ScarceMatrixData &>(data()).getYc().at(m_mode);
    }
 
 
 public:
 
-   MacauOnePrior(BaseSession& m, int p)
-      : ILatentPrior(m, p) {}
+   MacauOnePrior(BaseSession& session, int mode)
+      : ILatentPrior(session, mode) 
+   {
+   }
 
    void init() override
    {
@@ -258,19 +260,19 @@ public:
 
    void save(std::string prefix, std::string suffix) override
    {
-      prefix += "-F" + std::to_string(mode);
+      prefix += "-F" + std::to_string(m_mode);
       smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, beta);
    }
 
    void restore(std::string prefix, std::string suffix) override
    {
-      prefix += "-F" + std::to_string(mode);
+      prefix += "-F" + std::to_string(m_mode);
       smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, beta);
    }
 
    std::ostream &status(std::ostream &os, std::string indent) const override
    {
-      os << indent << "  " << name << ": Beta = " << beta.norm() << "\n";
+      os << indent << "  " << m_name << ": Beta = " << beta.norm() << "\n";
       return os;
    }
 };

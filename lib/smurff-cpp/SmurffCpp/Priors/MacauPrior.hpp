@@ -38,8 +38,8 @@ public:
    double tol = 1e-6;
 
 public:
-   MacauPrior(BaseSession& m, int p)
-      : NormalPrior(m, p, "MacauPrior")
+   MacauPrior(BaseSession& session, int mode)
+      : NormalPrior(session, mode, "MacauPrior")
    {
 
    }
@@ -143,14 +143,14 @@ public:
    void save(std::string prefix, std::string suffix) override
    {
       NormalPrior::save(prefix, suffix);
-      prefix += "-F" + std::to_string(mode);
+      prefix += "-F" + std::to_string(m_mode);
       smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, this->beta);
    }
 
    void restore(std::string prefix, std::string suffix) override
    {
       NormalPrior::restore(prefix, suffix);
-      prefix += "-F" + std::to_string(mode);
+      prefix += "-F" + std::to_string(m_mode);
       smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, this->beta);
    }
 
@@ -188,7 +188,7 @@ public:
 
    std::ostream &status(std::ostream &os, std::string indent) const override
    {
-      os << indent << "  " << name << ": Beta = " << beta.norm() << "\n";
+      os << indent << "  " << m_name << ": Beta = " << beta.norm() << "\n";
       return os;
    }
 

@@ -3,8 +3,8 @@
 using namespace smurff;
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(BaseSession &m, int p, std::string name)
-   : session(m), mode(p), name(name) 
+ILatentPrior::ILatentPrior(BaseSession& session, int mode, std::string name)
+   : m_session(session), m_mode(mode), m_name(name) 
 {
 
 } 
@@ -17,12 +17,12 @@ void ILatentPrior::init()
 
 Model &ILatentPrior::model() const 
 { 
-   return session.model; 
+   return m_session.model; 
 }
 
 Data &ILatentPrior::data() const 
 { 
-   return session.data(); 
+   return m_session.data(); 
 }
 
 double ILatentPrior::predict(const PVec<> &pos) const {
@@ -36,12 +36,12 @@ INoiseModel &ILatentPrior::noise()
 
 MatrixXd &ILatentPrior::U() 
 { 
-   return model().U(mode); 
+   return model().U(m_mode); 
 }
 
 MatrixXd &ILatentPrior::V() 
 { 
-   return model().V(mode); 
+   return model().V(m_mode); 
 }
 
 int ILatentPrior::num_latent() const 
@@ -51,12 +51,12 @@ int ILatentPrior::num_latent() const
 
 int ILatentPrior::num_cols() const 
 { 
-   return model().U(mode).cols(); 
+   return model().U(m_mode).cols(); 
 }
 
 std::ostream &ILatentPrior::info(std::ostream &os, std::string indent) 
 {
-   os << indent << mode << ": " << name << "\n";
+   os << indent << m_mode << ": " << m_name << "\n";
    return os;
 }
 
@@ -69,7 +69,7 @@ bool ILatentPrior::run_slave()
 
 void ILatentPrior::sample_latents() 
 {
-   data().update_pnm(model(), mode);
+   data().update_pnm(model(), m_mode);
 
    #pragma omp parallel for schedule(guided)
    for(int n = 0; n < U().cols(); n++) 

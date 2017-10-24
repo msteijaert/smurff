@@ -17,15 +17,15 @@ namespace smurff {
 class ILatentPrior
 {
 public:
-   BaseSession &session;
-   int mode;
-   std::string name = "xxxx";
+   BaseSession& m_session;
+   int m_mode;
+   std::string m_name = "xxxx";
 
    thread_vector<Eigen::VectorXd> rrs;
    thread_vector<Eigen::MatrixXd> MMs;
 
 public:
-   ILatentPrior(BaseSession &s, int m, std::string name = "xxxx");
+   ILatentPrior(BaseSession& session, int mode, std::string name = "xxxx");
    virtual ~ILatentPrior() {}
    virtual void init();
 

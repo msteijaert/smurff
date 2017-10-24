@@ -36,10 +36,10 @@ private:
 
 public:
    //TODO: missing implementation
-   MPIMacauPrior(BaseSession &m, int p);
+   MPIMacauPrior(BaseSession& session, int mode);
 
-   MPIMacauPrior(ScarceMatrixData &m, int p, INoiseModel &n) 
-    : MacauPrior<FType>(m, p, n)
+   MPIMacauPrior(ScarceMatrixData& m, int mode, INoiseModel &n) 
+    : MacauPrior<FType>(m, mode, n)
    {
       MPI_Comm_size(MPI_COMM_WORLD, &world_size);
       MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);

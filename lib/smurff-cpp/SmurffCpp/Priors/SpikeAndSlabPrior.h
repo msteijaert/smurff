@@ -31,7 +31,7 @@ public:
    const double prior_beta_0 = 1.; //for alpha
 
 public:
-   SpikeAndSlabPrior(BaseSession &m, int p);
+   SpikeAndSlabPrior(BaseSession& session, int mode);
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 
