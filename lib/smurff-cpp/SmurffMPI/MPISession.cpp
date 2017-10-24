@@ -1,7 +1,8 @@
-#include "MPISession.h"
-
 #include <mpi.h>
 #include <assert.h>
+
+#include <SmurffCpp/Priors/ILatentPrior.h>
+#include "MPISession.h"
 
 using namespace smurff;
 

@@ -12,9 +12,8 @@
 #include <cmath>
 #include <stdlib.h>
 
-#include "omp_util.h"
-#include "linop.h"
-#include "MacauOnePrior.hpp"
+#include <SmurffCpp/Utils/omp_util.h>
+#include <SmurffCpp/Priors/ILatentPrior.h>
 #include "MPISession.h"
 
 using namespace std;
@@ -33,10 +32,9 @@ int main(int argc, char** argv)
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    MPISession macau;
-    macau.setFromArgs(argc, argv);
-
-    macau.run();
+    smurff::MPISession session;
+    session.setFromArgs(argc, argv);
+    session.run();
 
     // Finalize the MPI environment.
     MPI_Finalize();

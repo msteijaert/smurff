@@ -90,6 +90,7 @@ MatrixConfig matrix_io::read_matrix(const std::string& filename)
       {
          std::ifstream fileStream(filename);
          return matrix_io::read_sparse_float64_mtx(fileStream);
+         //return matrix_io::read_matrix_market(fileStream);
       }
    case matrix_io::MatrixType::csv:
       {
@@ -105,6 +106,115 @@ MatrixConfig matrix_io::read_matrix(const std::string& filename)
       throw "Unknown matrix type";
    default:
       throw "Unknown matrix type";
+   }
+}
+
+MatrixConfig matrix_io::read_matrix_market(std::istream& in)
+{
+   // Check that stream has MatrixMarket format data
+   std::array<char, 15> matrixMarketArr;
+   in.read(matrixMarketArr.data(), 14);
+   std::string matrixMarketStr(matrixMarketArr.begin(), matrixMarketArr.end());
+   if (matrixMarketStr != "%%MatrixMarket" && !std::isblank(in.get()))
+   {
+      std::stringstream ss;
+      ss << "Cannot read MatrixMarket from input stream: ";
+      ss << "the first 15 characters must be '%%MatrixMarket' followed by at least one blank";
+      throw std::runtime_error(ss.str());
+   }
+
+   // Parse MatrixMarket header
+   std::string headerStr;
+   std::getline(in, headerStr);
+   std::stringstream headerStream(headerStr);
+   std::string object;
+   std::string format;
+   std::string field;
+   std::string symmetry;
+   headerStream >> std::skipws >> std::uppercase >> object >> format >> field  >> symmetry;
+
+   // Check object type
+   if (object != "MATRIX")
+   {
+      std::stringstream ss;
+      ss << "Invalid MartrixMarket object type: expected 'matrix' but got '" << object << "'";
+      throw std::runtime_error(ss.str());
+   }
+
+   // Check field type
+   if (field != "REAL")
+      throw std::runtime_error("Invalid MatrixMarket field type: only 'real' field type is supported");
+
+   // Check symmetry type
+   if (symmetry != "GENERAL")
+      throw std::runtime_error("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
+
+   // Skip comments and empty lines
+   while (in.peek() == '%' || in.peek() == '\n')
+      in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+   // Read data
+   if (format == "COORDINATE")
+   {
+      std::uint64_t nrows;
+      std::uint64_t ncols;
+      std::uint64_t nnz;
+      in >> nrows >> ncols >> nnz;
+
+      if (in.fail())
+         throw std::runtime_error("Could not get 'rows', 'cols', 'nnz' values for coordinate matrix format");
+
+      std::vector<std::uint32_t> rows(nnz);
+      std::vector<std::uint32_t> cols(nnz);
+      std::vector<double> vals(nnz);
+
+      for (std::uint64_t i = 0; i < nnz; i++)
+      {
+         while (in.peek() == '%' || in.peek() == '\n')
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+         std::uint32_t row;
+         std::uint32_t col;
+         double val;
+         in >> row >> col >> val;
+
+         if (in.fail())
+            throw std::runtime_error("Could not parse an entry line for coordinate matrix format");
+
+         rows[i] = row;
+         cols[i] = col;
+         vals[i] = val;
+      }
+
+      return MatrixConfig(nrows, ncols, std::move(rows), std::move(cols), std::move(vals), NoiseConfig());
+   }
+   else if (format == "ARRAY")
+   {
+      std::uint64_t nrows;
+      std::uint64_t ncols;
+      in >> nrows >> ncols;
+
+      if (in.fail())
+         throw std::runtime_error("Could not get 'rows', 'cols' values for array matrix format");
+
+      std::vector<double> vals(nrows * ncols);
+      for (double& val : vals)
+      {
+         while (in.peek() == '%' || in.peek() == '\n')
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+         in >> val;
+         if (in.fail())
+            throw std::runtime_error("Could not parse an entry line for array matrix format");
+      }
+
+      return MatrixConfig(nrows, ncols, std::move(vals), NoiseConfig());
+   }
+   else
+   {
+      std::stringstream ss;
+      ss << "Invalid MatrixMarket format type: expected 'coordinate' or 'array' but got '" << format << "'";
+      throw std::runtime_error(ss.str());
    }
 }
 
@@ -128,7 +238,7 @@ MatrixConfig matrix_io::read_dense_float64_csv(std::istream& in)
    std::string line;
 
    // rows and cols
-   getline(in, line); 
+   getline(in, line);
    ss.clear();
    ss << line;
    std::uint64_t nrow;
@@ -151,7 +261,7 @@ MatrixConfig matrix_io::read_dense_float64_csv(std::istream& in)
    while(getline(in, line) && row < nrow)
    {
       col = 0;
-      
+
       std::stringstream lineStream(line);
       std::string cell;
 
@@ -221,7 +331,7 @@ MatrixConfig matrix_io::read_sparse_float64_mtx(std::istream& in)
       assert(!ls.fail());
 
       ls >> v;
-      if (ls.fail()) 
+      if (ls.fail())
          v = 1.0;
 
       r--;
@@ -305,6 +415,35 @@ void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& ma
    }
 }
 
+void matrix_io::write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig)
+{
+   out << "%%MatrixMarket ";
+   out << (matrixConfig.isDense() ? "array " : "coordinate ");
+   out << "real general";
+   out << std::endl;
+
+   if (matrixConfig.isDense())
+   {
+      out << matrixConfig.getNRow() << " ";
+      out << matrixConfig.getNCol() << std::endl;
+      for (const double& val : matrixConfig.getValues())
+         out << val << std::endl;
+   }
+   else
+   {
+      out << matrixConfig.getNRow() << " ";
+      out << matrixConfig.getNCol() << " ";
+      out << matrixConfig.getNNZ() << std::endl;
+      for (std::uint64_t i = 0; i < matrixConfig.getNNZ(); i++)
+      {
+         const std::uint32_t& row = matrixConfig.getColumns()[i];
+         const std::uint32_t& col = matrixConfig.getColumns()[i + matrixConfig.getNNZ()];
+         const double& val = matrixConfig.getValues()[i];
+         out << row << " " << col << " " << val << std::endl;
+      }
+   }
+}
+
 void matrix_io::write_dense_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig)
 {
    std::uint64_t nrow = matrixConfig.getNRow();
@@ -325,7 +464,7 @@ void matrix_io::write_dense_float64_csv(std::ostream& out, const MatrixConfig& m
 
    out << nrow << std::endl;
    out << ncol << std::endl;
-   
+
    const std::vector<double>& values = matrixConfig.getValues();
 
    assert(values.size() == nnz);
@@ -379,7 +518,7 @@ void matrix_io::write_sparse_float64_mtx(std::ostream& out, const MatrixConfig& 
    const std::vector<std::uint32_t>& rows = matrixConfig.getRows();
    const std::vector<std::uint32_t>& cols = matrixConfig.getCols();
    const std::vector<double>& values = matrixConfig.getValues();
-   
+
    //write values
    for(std::uint64_t i = 0; i < nnz; i++)
    {
@@ -505,7 +644,7 @@ void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd&
    std::string line;
 
    // rows and cols
-   getline(in, line); 
+   getline(in, line);
    ss.clear();
    ss << line;
    std::uint64_t nrow;
@@ -525,7 +664,7 @@ void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd&
    while(getline(in, line) && row < nrow)
    {
       col = 0;
-      
+
       std::stringstream lineStream(line);
       std::string cell;
 
@@ -598,7 +737,7 @@ void matrix_io::eigen::read_sparse_float64_mtx(std::istream& in, Eigen::SparseMa
       assert(!ls.fail());
 
       ls >> v;
-      if (ls.fail()) 
+      if (ls.fail())
          v = 1.0;
 
       r--;
@@ -737,7 +876,7 @@ void matrix_io::eigen::write_sparse_float64_bin(std::ostream& out, const Eigen::
 {
    std::uint64_t nrow = X.rows();
    std::uint64_t ncol = X.cols();
-   
+
    std::vector<uint32_t> rows;
    std::vector<uint32_t> cols;
    std::vector<double> values;
@@ -766,7 +905,7 @@ void matrix_io::eigen::write_sparse_float64_mtx(std::ostream& out, const Eigen::
 {
    std::uint64_t nrow = X.rows();
    std::uint64_t ncol = X.cols();
-   
+
    std::vector<uint32_t> rows;
    std::vector<uint32_t> cols;
    std::vector<double> values;
@@ -785,7 +924,7 @@ void matrix_io::eigen::write_sparse_float64_mtx(std::ostream& out, const Eigen::
 
    //write row col nnz
    out << nrow << "\t" << ncol << "\t" << nnz << std::endl;
-   
+
    //write values
    for(std::uint64_t i = 0; i < nnz; i++)
    {
@@ -797,10 +936,10 @@ void matrix_io::eigen::write_sparse_binary_bin(std::ostream& out, const Eigen::S
 {
    std::uint64_t nrow = X.rows();
    std::uint64_t ncol = X.cols();
-   
+
    std::vector<uint32_t> rows;
    std::vector<uint32_t> cols;
-   
+
    for (int k = 0; k < X.outerSize(); ++k)
    {
       for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)

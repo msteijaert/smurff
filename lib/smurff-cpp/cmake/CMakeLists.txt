@@ -174,7 +174,7 @@ if(NOT MSVC)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g")
   elseif(CMAKE_BUILD_TYPE MATCHES Release)
     message(STATUS "Release build.")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -DNDEBUG -march=native -flto")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fstrict-aliasing -flto")
   else()
@@ -186,7 +186,7 @@ endif()
 
 message(STATUS "Initializing logging options...")
 
-set (CV ON)
+set (CV OFF)
 
 if (UNIX)
     #set verbose output of cmake
@@ -211,6 +211,7 @@ include(scripts/DependenciesConfig.cmake)
 
 configure_pthreads()
 configure_mpi()
+configure_openmp()
 configure_eigen()
 
 configure_argp()
@@ -260,6 +261,10 @@ else()
   message(FATAL_ERROR "Algebra library not specified")
 endif()
 
+enable_testing()
+add_test( unittests tests )
+
+
 # CONFIGURE TARGETS
 
 message(STATUS "Creating folder structure...")
@@ -273,9 +278,7 @@ add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 # utils
 
 add_subdirectory (../Smurff/cmake utils/Smurff)
-if(${ENABLE_MPI})
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
-endif()
 
 # tests
 
