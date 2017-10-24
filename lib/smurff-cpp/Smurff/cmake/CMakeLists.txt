@@ -3,7 +3,7 @@ set (PROJECT smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-FILE (GLOB HEADER_FILES )
+FILE (GLOB HEADER_FILES "")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../smurff.cpp"
