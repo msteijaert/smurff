@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Smurff/CmdSession.h>
+
 namespace smurff {
 
 class MPISession : public CmdSession 
@@ -10,10 +12,7 @@ public:
 
 public:
    MPISession();
-
    void run();
-
-   std::ostream &info(std::ostream &os, std::string indent) override;
 };
 
 }
