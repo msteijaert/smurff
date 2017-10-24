@@ -22,7 +22,7 @@ class MacauOnePrior : public ILatentPrior
 public:
    Eigen::MatrixXd Uhat;
 
-   std::unique_ptr<FType> F;  // side information
+   std::shared_ptr<FType> Features;  // side information
    Eigen::VectorXd F_colsq;   // sum-of-squares for every feature (column)
 
    Eigen::MatrixXd beta;      // link matrix
@@ -64,8 +64,8 @@ public:
       lambda_b0 = 1.0;
 
       // init SideInfo related
-      Uhat = Eigen::MatrixXd::Constant(num_latent(), F->rows(), 0.0);
-      beta = Eigen::MatrixXd::Constant(num_latent(), F->cols(), 0.0);
+      Uhat = Eigen::MatrixXd::Constant(num_latent(), Features->rows(), 0.0);
+      beta = Eigen::MatrixXd::Constant(num_latent(), Features->cols(), 0.0);
 
       // initial value (should be determined automatically)
       // Hyper-prior for lambda_beta (mean 1.0):
@@ -74,11 +74,11 @@ public:
       lambda_beta_b0 = 0.1;
    }
 
-   void addSideInfo(std::unique_ptr<FType> &Fmat, bool)
+   void addSideInfo(std::shared_ptr<FType> &Fmat, bool)
    {
       // side information
-      F       = std::move(Fmat);
-      F_colsq = col_square_sum(*F);
+      Features = Fmat;
+      F_colsq = col_square_sum(*Features);
    }
 
    void sample_latent(int i) override
@@ -140,7 +140,7 @@ public:
    {
       sample_mu_lambda(U());
       sample_beta(U());
-      compute_uhat(Uhat, *F, beta);
+      compute_uhat(Uhat, *Features, beta);
       sample_lambda_beta();
    }
 
@@ -179,7 +179,7 @@ public:
          {
             Eigen::VectorXd zx(dcount), delta_beta(dcount), randvals(dcount);
             // zx = Z[dstart : dstart + dcount, :] * F[:, f]
-            At_mul_Bt(zx, *F, f, Z);
+            At_mul_Bt(zx, *Features, f, Z);
             // TODO: check if sampling randvals for whole [nfeat x dcount] matrix works faster
             bmrandn_single( randvals );
 
@@ -195,7 +195,7 @@ public:
                beta(dx, f)     = beta_new;
             }
             // Z[dstart : dstart + dcount, :] += F[:, f] * delta_beta'
-            add_Acol_mul_bt(Z, *F, f, delta_beta);
+            add_Acol_mul_bt(Z, *Features, f, delta_beta);
          }
       }
    }

@@ -80,9 +80,7 @@ std::unique_ptr<MatrixData> smurff::matrix_config_to_matrix(const MatrixConfig &
                                                             const std::vector<MatrixConfig> &col_features)
 {
    if (row_features.empty() && col_features.empty())
-   {
       return ::matrix_config_to_matrix(train, true);
-   }
 
    // multiple matrices
    MatricesData* local_data_ptr = new MatricesData();
