@@ -137,10 +137,11 @@ inline void free_csr(struct CSR* csr) {
  }
 
  /** y = A * x */
-inline void bcsr_A_mul_B(double* y, struct BinaryCSR *A, double* x) {
+inline void bcsr_A_mul_B(double* y, struct BinaryCSR *A, double* x) 
+{
    int* row_ptr = A->row_ptr;
    int* cols    = A->cols;
- #pragma omp parallel for schedule(dynamic, 256)
+   #pragma omp parallel for schedule(dynamic, 256)
    for (int row = 0; row < A->nrow; row++) {
      double tmp = 0;
      const int end = row_ptr[row + 1];
@@ -152,24 +153,29 @@ inline void bcsr_A_mul_B(double* y, struct BinaryCSR *A, double* x) {
  }
 
 /** Y = A * X, where Y and X have <ncol> columns and are row-ordered */
-inline void bcsr_A_mul_Bn(double* Y, struct BinaryCSR *A, double* X, const int ncol) {
+inline void bcsr_A_mul_Bn(double* Y, struct BinaryCSR *A, double* X, const int ncol) 
+{
    int* row_ptr = A->row_ptr;
    int* cols    = A->cols;
- #pragma omp parallel
+   #pragma omp parallel
    {
      double* tmp = (double*)malloc(ncol * sizeof(double));
- #pragma omp parallel for schedule(dynamic, 256)
-     for (int row = 0; row < A->nrow; row++) {
+     #pragma omp parallel for schedule(dynamic, 256)
+     for (int row = 0; row < A->nrow; row++) 
+     {
        memset(tmp, 0, ncol * sizeof(double));
        const int end = row_ptr[row + 1];
-       for (int i = row_ptr[row]; i < end; i++) {
+       for (int i = row_ptr[row]; i < end; i++) 
+       {
          int col = cols[i] * ncol;
-         for (int j = 0; j < ncol; j++) {
+         for (int j = 0; j < ncol; j++) 
+         {
             tmp[j] += X[col + j];
          }
        }
        int r = row * ncol;
-       for (int j = 0; j < ncol; j++) {
+       for (int j = 0; j < ncol; j++) 
+       {
          Y[r + j] = tmp[j];
        }
      }
@@ -178,15 +184,18 @@ inline void bcsr_A_mul_Bn(double* Y, struct BinaryCSR *A, double* X, const int n
  }
 
  /** y = A * x */
-inline void csr_A_mul_B(double* y, struct CSR *A, double* x) {
+inline void csr_A_mul_B(double* y, struct CSR *A, double* x) 
+{
    int* row_ptr = A->row_ptr;
    int* cols    = A->cols;
    double* vals = A->vals;
- #pragma omp parallel for schedule(dynamic, 256)
-   for (int row = 0; row < A->nrow; row++) {
+   #pragma omp parallel for schedule(dynamic, 256)
+   for (int row = 0; row < A->nrow; row++) 
+   {
      double tmp = 0;
      const int end = row_ptr[row + 1];
-     for (int i = row_ptr[row]; i < end; i++) {
+     for (int i = row_ptr[row]; i < end; i++) 
+     {
        tmp += x[cols[i]] * vals[i];
      }
      y[row] = tmp;
@@ -194,25 +203,29 @@ inline void csr_A_mul_B(double* y, struct CSR *A, double* x) {
  }
 
  /** Y = A * X, where Y and X have <ncol> columns and are row-ordered */
-inline void csr_A_mul_Bn(double* Y, struct CSR *A, double* X, const int ncol) {
+inline void csr_A_mul_Bn(double* Y, struct CSR *A, double* X, const int ncol) 
+{
    int* row_ptr = A->row_ptr;
    int* cols    = A->cols;
    double* vals = A->vals;
- #pragma omp parallel
+   #pragma omp parallel
    {
      double* tmp = (double*)malloc(ncol * sizeof(double));
- #pragma omp parallel for schedule(dynamic, 256)
+     #pragma omp parallel for schedule(dynamic, 256)
      for (int row = 0; row < A->nrow; row++) {
        memset(tmp, 0, ncol * sizeof(double));
-       for (int i = row_ptr[row], end = row_ptr[row + 1]; i < end; i++) {
+       for (int i = row_ptr[row], end = row_ptr[row + 1]; i < end; i++) 
+       {
          int col = cols[i] * ncol;
          double val = vals[i];
-         for (int j = 0; j < ncol; j++) {
+         for (int j = 0; j < ncol; j++) 
+         {
             tmp[j] += X[col + j] * val;
          }
        }
        int r = row * ncol;
-       for (int j = 0; j < ncol; j++) {
+       for (int j = 0; j < ncol; j++) 
+       {
          Y[r + j] = tmp[j];
        }
      }

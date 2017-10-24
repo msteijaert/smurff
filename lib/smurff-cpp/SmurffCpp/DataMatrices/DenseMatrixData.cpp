@@ -1,5 +1,6 @@
 #include "DenseMatrixData.h"
 
+// _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -50,12 +51,14 @@ void DenseMatrixData::center(double global_mean)
 
 double DenseMatrixData::train_rmse(const SubModel& model) const
 {
-    double se = 0.;
-#pragma omp parallel for schedule(guided) reduction(+:se)
-    for(int c=0; c<Y.cols();++c) {
-        for(int m=0; m<Y.rows(); ++m) {
-            se += square(Y(m,c) - predict({m,c}, model));
-        }
-    }
-    return sqrt( se / Y.rows() / Y.cols() );
+   double se = 0.;
+   #pragma omp parallel for schedule(guided) reduction(+:se)
+   for(int c=0; c<Y.cols();++c) 
+   {
+      for(int m=0; m<Y.rows(); ++m) 
+      {
+         se += square(Y(m,c) - predict({m,c}, model));
+      }
+   }
+   return sqrt( se / Y.rows() / Y.cols() );
 }

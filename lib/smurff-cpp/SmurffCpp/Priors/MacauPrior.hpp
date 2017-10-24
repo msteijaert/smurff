@@ -251,8 +251,8 @@ void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg();
 template<class FType>
 void MacauPrior<FType>::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                                        double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
-    const int N = U.cols();
-#pragma omp parallel for schedule(dynamic, 2)
+  const int N = U.cols();
+  #pragma omp parallel for schedule(dynamic, 2)
   for(int n = 0; n < N; n++) {
     // TODO: try moving mu + Uhat.col(n) inside sample_latent for speed
     sample_latent_blas_probit(U, n, mat, mean_value, samples, mu + Uhat.col(n), Lambda, num_latent);
@@ -282,7 +282,7 @@ void MacauPrior<FType>::sample_latents(double noisePrecision,
   const int N = U->cols();
   VectorView<Eigen::MatrixXd> view(samples, mode);
 
-#pragma omp parallel for schedule(dynamic, 2)
+  #pragma omp parallel for schedule(dynamic, 2)
   for (int n = 0; n < N; n++) {
     Eigen::VectorXd mu2 = mu + Uhat.col(n);
     sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu2, Lambda);

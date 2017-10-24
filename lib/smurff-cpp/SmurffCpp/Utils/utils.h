@@ -120,17 +120,19 @@ inline void row_mean_var(Eigen::VectorXd & mean, Eigen::VectorXd & var, const Ei
   mean.setZero();
   var.setZero();
 
-#pragma omp parallel
+  #pragma omp parallel
   {
     Eigen::VectorXd tmp(D);
     tmp.setZero();
-#pragma omp for schedule(static)
-    for (int i = 0; i < N; i++) {
-      for (int d = 0; d < D; d++) {
+    #pragma omp for schedule(static)
+    for (int i = 0; i < N; i++) 
+    {
+      for (int d = 0; d < D; d++) 
+      {
         tmp(d) += X(d, i);
       }
     }
-#pragma omp critical
+    #pragma omp critical
     {
       mean += tmp;
     }
@@ -138,17 +140,19 @@ inline void row_mean_var(Eigen::VectorXd & mean, Eigen::VectorXd & var, const Ei
   // computing mean
   mean /= N;
 
-#pragma omp parallel
+  #pragma omp parallel
   {
     Eigen::VectorXd tmp(D);
     tmp.setZero();
-#pragma omp for schedule(static)
-    for (int i = 0; i < N; i++) {
-      for (int d = 0; d < D; d++) {
+    #pragma omp for schedule(static)
+    for (int i = 0; i < N; i++) 
+    {
+      for (int d = 0; d < D; d++) 
+      {
         tmp(d) += square(X(d, i) - mean(d));
       }
     }
-#pragma omp critical
+    #pragma omp critical
     {
       var += tmp;
     }

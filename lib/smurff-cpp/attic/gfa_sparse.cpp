@@ -203,7 +203,7 @@ int gfa_sparse(int argc, char *argv[])
             Zcol.setZero();
             W2col.setZero();
 
-#pragma omp parallel for reduction(+:log_t,b_tau_sq,err) reduction(VectorPlus:Zcol,W2col) schedule(dynamic, 8)
+            #pragma omp parallel for reduction(+:log_t,b_tau_sq,err) reduction(VectorPlus:Zcol,W2col) schedule(dynamic, 8)
             for(int d = 0; d<D; d++) {
                 MatrixNNd XX(MatrixNNd::Zero());
                 VectorNd Wcol = W.col(d);
@@ -257,7 +257,7 @@ int gfa_sparse(int argc, char *argv[])
 
         //## Update the latent variables X
         {
-#pragma omp parallel for schedule(dynamic, 8)
+            #pragma omp parallel for schedule(dynamic, 8)
             for(int n = 0; n<N; n++) {
                 MatrixNNd WtauW = MatrixNNd::Identity();
                 VectorNd WY = VectorNd::Zero();

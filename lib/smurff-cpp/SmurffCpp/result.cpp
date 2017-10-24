@@ -92,7 +92,8 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
     if (burnin) {
         double se_1sample = 0.0;
         #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
-        for(unsigned k=0; k<predictions.size(); ++k) {
+        for(unsigned k=0; k<predictions.size(); ++k) 
+        {
             auto &t = predictions[k];
             t.pred_1sample = model.predict({t.row, t.col}, data);
             se_1sample += square(t.val - t.pred_1sample);
@@ -105,8 +106,9 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
         }
     } else {
         double se_1sample = 0.0, se_avg = 0.0;
-#pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
-        for(unsigned k=0; k<predictions.size(); ++k) {
+        #pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
+        for(unsigned k=0; k<predictions.size(); ++k) 
+        {
             auto &t = predictions[k];
             const double pred = model.predict({t.row, t.col}, data);
             se_1sample += square(t.val - pred);
@@ -199,7 +201,7 @@ std::pair<double,double> eval_rmse_tensor(
     throw std::runtime_error("U.cols() and sparseMode size must be equal.");
 	}
 
-#pragma omp parallel for schedule(dynamic, 2) reduction(+:se, se_avg)
+  #pragma omp parallel for schedule(dynamic, 2) reduction(+:se, se_avg)
   for (int n = 0; n < U->cols(); n++) {
     Eigen::VectorXd u = U->col(n);
     for (int j = sparseMode.row_ptr(n);

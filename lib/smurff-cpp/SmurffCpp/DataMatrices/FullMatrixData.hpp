@@ -1,5 +1,6 @@
 #pragma once
 
+// _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -32,17 +33,18 @@ namespace smurff
 
       void update_pnm(const SubModel& model, int mode) override
       {
-          auto &Vf = model.V(mode);
-          const int nl = model.nlatent();
-          thread_vector<Eigen::MatrixXd> VVs(Eigen::MatrixXd::Zero(nl, nl));
+         auto &Vf = model.V(mode);
+         const int nl = model.nlatent();
+         thread_vector<Eigen::MatrixXd> VVs(Eigen::MatrixXd::Zero(nl, nl));
 
-      #pragma omp parallel for schedule(dynamic, 8) shared(VVs)
-          for(int n = 0; n < Vf.cols(); n++) {
-              auto v = Vf.col(n);
-              VVs.local() += v * v.transpose();
-          }
+         #pragma omp parallel for schedule(dynamic, 8) shared(VVs)
+         for(int n = 0; n < Vf.cols(); n++) 
+         {
+            auto v = Vf.col(n);
+            VVs.local() += v * v.transpose();
+         }
 
-          VV[mode] = VVs.combine();
+         VV[mode] = VVs.combine();
       }
 
       int nna() const override
