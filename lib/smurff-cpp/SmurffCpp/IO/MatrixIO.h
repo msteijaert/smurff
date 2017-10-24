@@ -39,6 +39,8 @@ namespace smurff { namespace matrix_io
 
    MatrixConfig read_matrix(const std::string& filename);
 
+   MatrixConfig read_matrix_market(std::istream& in);
+
    MatrixConfig read_dense_float64_bin(std::istream& in);
    MatrixConfig read_dense_float64_csv(std::istream& in);
 
@@ -50,6 +52,8 @@ namespace smurff { namespace matrix_io
    // ===
 
    void write_matrix(const std::string& filename, const MatrixConfig& matrixConfig);
+
+   void write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig);
 
    void write_dense_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig);
    void write_dense_float64_csv(std::ostream& out, const MatrixConfig& matrixConfig);
