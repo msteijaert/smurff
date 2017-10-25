@@ -60,7 +60,10 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent) {
 
 void Session::init() {
     threads_init();
-    init_bmrng();
+
+    if (config.random_seed_set) init_bmrng(config.random_seed);
+    else init_bmrng();
+    
     data->init();
     model.init(config.num_latent, data->dims(), config.init_model);
     for( auto &p : priors) p->init();

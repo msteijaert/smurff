@@ -49,6 +49,9 @@ class thread_vector
             _i = t;
             reset();
         }
+        void init(const std::vector<T> &v) {
+            _m = v;
+        }
 
 
     private:

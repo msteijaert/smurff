@@ -19,24 +19,9 @@ using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
 
-std::vector<std::mt19937> bmrngs;
 
-/*
-  We need a functor that can pretend it's const,
-  but to be a good random number generator 
-  it needs mutable state.
-*/
-
-#ifdef __INTEL_COMPILER
-std::random_device srd;
-#pragma omp threadprivate(srd)
-#elif defined(_OPENMP)
-// use thread_local for gcc 
-thread_local static std::random_device srd;
-#else 
-static std::random_device srd;
-#endif
-
+static thread_vector<std::mt19937> bmrngs;
+ 
 double randn(double) {
   return bmrandn_single() ;
 }
@@ -56,12 +41,14 @@ auto nrandn(int n, int m) -> decltype( ArrayXXd::NullaryExpr(n, m, ptr_fun(randn
     return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); 
 }
 
-void init_bmrng(int seed) {
-
-   bmrngs.clear();
-   for (int i = 0; i < thread_limit(); i++) {
-      bmrngs.push_back(std::mt19937(seed + i * 1999));
-   }
+void init_bmrng(int seed)
+{
+    std::vector<std::mt19937> v;
+    for (int i = 0; i < thread_limit(); i++)
+    {
+        v.push_back(std::mt19937(seed + i * 1999));
+    }
+    bmrngs.init(v);
 }
 
 void init_bmrng() {
@@ -71,11 +58,25 @@ void init_bmrng() {
    init_bmrng(ms);
 }
 
+double rand_unif() 
+{
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+    auto& bmrng = bmrngs.local();
+    return unif(bmrng);
+}
+ 
+double rand_unif(double low, double high) 
+{
+   std::uniform_real_distribution<double> unif(low, high);
+   auto& bmrng = bmrngs.local();
+   return unif(bmrng);
+}
+
 void bmrandn(double* x, long n) {
 #pragma omp parallel 
   {
     std::uniform_real_distribution<double> unif(-1.0, 1.0);
-    std::mt19937& bmrng = bmrngs.at(thread_num());
+    std::mt19937& bmrng = bmrngs.local();
 #pragma omp for schedule(static)
     for (long i = 0; i < n; i += 2) {
       double x1, x2, w;
@@ -102,7 +103,7 @@ void bmrandn(MatrixXd & X) {
 // to be called within OpenMP parallel loop (also from serial code is fine)
 void bmrandn_single(double* x, long n) {
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
-  std::mt19937& bmrng = bmrngs.at(thread_num());
+  std::mt19937& bmrng = bmrngs.local();
   for (long i = 0; i < n; i += 2) {
     double x1, x2, w;
     do {
@@ -122,7 +123,7 @@ void bmrandn_single(double* x, long n) {
 double bmrandn_single() {
   //TODO: add bmrng as input
   std::uniform_real_distribution<double> unif(-1.0, 1.0);
-  std::mt19937& bmrng = bmrngs.at(thread_num());
+  std::mt19937& bmrng = bmrngs.local();
   
     double x1, x2, w;
     do {
@@ -148,7 +149,7 @@ void bmrandn_single(MatrixXd & X) {
  *  with the given shape (k) and scale (theta). See wiki. */
 double rgamma(double shape, double scale) {
   std::gamma_distribution<double> gamma(shape, scale);
-  return gamma(bmrngs.at(thread_num()));
+  return gamma(bmrngs.local());
 }
 
 /** Normal(0, Lambda^-1) for nn columns */
@@ -204,7 +205,7 @@ MatrixXd WishartUnit(int m, int df)
 {
     MatrixXd c(m,m);
     c.setZero();
-    std::mt19937& rng = bmrngs.at(thread_num());
+    std::mt19937& rng = bmrngs.local();
 
     for ( int i = 0; i < m; i++ ) {
         std::gamma_distribution<> gam(0.5*(df - i));

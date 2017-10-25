@@ -22,6 +22,8 @@ void init_bmrng();
 void init_bmrng(int seed);
 
 double rgamma(double shape, double scale);
+double rand_unif();
+double rand_unif(double low, double high);
 
 auto nrandn(int n) -> decltype( Eigen::VectorXd::NullaryExpr(n, std::cref(randn)) ); 
 auto nrandn(int n, int m) -> decltype( Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)) );

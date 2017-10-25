@@ -35,7 +35,7 @@ namespace Macau {
 enum OPT_ENUM {
     ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
     BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
-    RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET,
+    RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET, SEED,
     INIT_MODEL, CENTER, STATUS_FILE
 };
 
@@ -75,7 +75,10 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
                               }
         case NUM_LATENT:      config.num_latent         = strtol(optarg, NULL, 10); break;
         case NSAMPLES:        config.nsamples           = strtol(optarg, NULL, 10); break;
-
+        case SEED:           config.random_seed_set = true;
+                             config.random_seed = strtol(optarg, NULL, 10);
+                             break;
+ 
         case RESTORE_PREFIX:  config.restore_prefix      = std::string(optarg); break;
         case RESTORE_SUFFIX:  config.restore_suffix      = std::string(optarg); break;
         case SAVE_PREFIX:     config.save_prefix      = std::string(optarg); break;
@@ -127,6 +130,7 @@ void CmdSession::setFromArgs(int argc, char** argv) {
         {"verbose",          VERBOSE	, "NUM",   OPTION_ARG_OPTIONAL, "verbose output (default = 1)"},
         {"quiet",            QUIET	, 0,   0, "no output"},
         {"status",           STATUS_FILE, "FILE",  0, "output progress to csv file"},
+        {"seed",             SEED, "NUM",  0, "random number generator seed"},
         {0,0,0,0,"Noise model:",4},
         {"precision",	     PRECISION	, "NUM",   0, "5.0  precision of observations"},
         {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adavtive precision of observations"},
