@@ -1,7 +1,5 @@
 #pragma once
 
-#define EIGEN_RUNTIME_NO_MALLOC
-
 #include <map>
 
 #include <Eigen/Dense>
