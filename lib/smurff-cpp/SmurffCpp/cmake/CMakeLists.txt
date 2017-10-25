@@ -136,4 +136,5 @@ set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 include_directories(../)
 include_directories(../..)
 include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(${ARGP_INCLUDE_PATH})
 
