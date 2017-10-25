@@ -60,7 +60,7 @@ Tests are run by execution the `cmd` `bash` script in every `work/latest` subdir
 * Executing one test:
   `$ bash -e ./smurff-0.6.1/`...`/cmd`
 * Using `find` and `xargs`:
-  `$ find . -name cmd | xargs bash -e` 
+  `$ find . -name cmd | xargs -n 1 bash -e` 
 * Using gnu parallel, on multiple hosts:  
   `$ find . -name cmd | parallel --workdir $PWD --gnu --slf $PBS_NODEFILE --progress --eta  bash -e` 
 

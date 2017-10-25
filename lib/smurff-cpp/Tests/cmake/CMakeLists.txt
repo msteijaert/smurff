@@ -23,7 +23,7 @@ source_group ("Source Files" FILES ${SOURCE_FILES})
 add_executable (${PROJECT} ${HEADER_FILES} ${SOURCE_FILES})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Tests")
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
-install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT} RUNTIME DESTINATION libexec)
 
 #LINK LIBRARIES
 target_link_libraries (${PROJECT} smurff-cpp
