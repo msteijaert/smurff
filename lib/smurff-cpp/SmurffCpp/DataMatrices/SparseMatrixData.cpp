@@ -1,10 +1,5 @@
 #include "SparseMatrixData.h"
 
-// _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 using namespace smurff;
 
 SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)

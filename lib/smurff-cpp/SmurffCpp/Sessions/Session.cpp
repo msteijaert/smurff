@@ -6,6 +6,8 @@
 
 #include <SmurffCpp/Version.h>
 
+#include <SmurffCpp/Utils/omp_util.h>
+
 #include <SmurffCpp/Priors/MacauOnePrior.hpp>
 #include <SmurffCpp/Priors/MacauPrior.hpp>
 #include <SmurffCpp/Priors/NormalPrior.h>

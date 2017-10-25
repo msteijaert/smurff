@@ -75,6 +75,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Utils/chol.cpp"
                         "../Utils/counters.cpp"
                         "../Utils/linop.cpp"
+                        "../Utils/omp_util.cpp"
 
                         "../IO/ini.c"
                         "../IO/INIReader.cpp"
