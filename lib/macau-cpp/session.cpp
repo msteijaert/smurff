@@ -106,7 +106,13 @@ void Session::step() {
 std::ostream &Session::info(std::ostream &os, std::string indent) {
     BaseSession::info(os, indent);
     os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
-    if (config.save_freq > 0) {
+    if (config.save_freq != 0) {
+        if (config.save_freq > 0) {
+            os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+        } else {
+            os << indent << "  Save model after last iteration\n";
+        }
+
         os << indent << "  Save model: every " << config.save_freq << " iteration\n";
         os << indent << "  Save prefix: " << config.save_prefix << "\n";
         os << indent << "  Save suffix: " << config.save_suffix << "\n";
@@ -485,8 +491,12 @@ void Session::printStatus(double elapsedi) {
 }
 
 void Session::save(int isample) {
-    if (!config.save_freq || isample < 0) return;
-    if (((isample+1) % config.save_freq) != 0) return;
+    //save_freq > 0: check modulo
+    if (config.save_freq > 0 && ((isample+1) % config.save_freq) != 0) return;
+    //save_freq < 0: save last iter
+    if (config.save_freq < 0 && isample < config.nsamples) return;
+
+
     string fprefix = config.save_prefix + "-sample-" + std::to_string(isample);
     if (config.verbose) printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.save_suffix.c_str());
     BaseSession::save(fprefix, config.save_suffix);
