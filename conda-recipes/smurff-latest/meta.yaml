@@ -1,0 +1,20 @@
+package:
+  name: smurff
+  version: latest
+
+source:
+  url: https://github.com/ExaScience/smurff/archive/master.zip
+
+requirements:
+  build:
+    - cmake
+    - wget
+    - gcc
+    - openblas
+  run:
+    - libgfortran ==3.0.0
+    - openblas
+
+about:
+  home: https://github.com/ExaScience/smurff
+  license:  MIT
