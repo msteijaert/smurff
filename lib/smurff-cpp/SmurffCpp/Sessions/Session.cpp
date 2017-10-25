@@ -17,21 +17,19 @@ using namespace smurff;
 using namespace Eigen;
 
 template<class SideInfo>
-inline void addMacauPrior(Session &session, PriorTypes prior_type, SideInfo *f, double lambda_beta, double tol, int use_FtF)
+inline void addMacauPrior(Session &session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info, double lambda_beta, double tol, int use_FtF)
 {
-   std::unique_ptr<SideInfo> features(f);
-
    if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
    {
       auto &prior = session.addPrior<MacauPrior<SideInfo>>();
-      prior.addSideInfo(features, use_FtF);
+      prior.addSideInfo(side_info, use_FtF);
       prior.setLambdaBeta(lambda_beta);
       prior.setTol(tol);
    }
    else if(prior_type == PriorTypes::macauone)
    {
       auto &prior = session.addPrior<MacauOnePrior<SideInfo>>();
-      prior.addSideInfo(features, use_FtF);
+      prior.addSideInfo(side_info, use_FtF);
       prior.setLambdaBeta(lambda_beta);
    }
    else
@@ -40,114 +38,138 @@ inline void addMacauPrior(Session &session, PriorTypes prior_type, SideInfo *f, 
    }
 }
 
-void add_macau_prior(Session &session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& features, double lambda_beta, double tol, bool direct)
+std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(const MatrixConfig& sideinfoConfig, int mode)
 {
-   assert(features.size() == 1);
-   auto &s = features.at(0);
+   std::uint64_t nrow = sideinfoConfig.getNRow();
+   std::uint64_t ncol = sideinfoConfig.getNCol();
+   std::uint64_t nnz = sideinfoConfig.getNNZ();
 
-   if (s.isBinary())
+   std::shared_ptr<std::vector<std::uint32_t> > rows = sideinfoConfig.getRowsPtr();
+   std::shared_ptr<std::vector<std::uint32_t> > cols = sideinfoConfig.getColsPtr();
+
+   // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
+   // we will remove these extra memory allocation and manipulation
+   int* rowsRawPtr = new int[nnz];
+   int* colsRawPtr = new int[nnz];
+   for (std::uint64_t i = 0; i < nnz; i++)
    {
-      std::uint64_t nrow = s.getNRow();
-      std::uint64_t ncol = s.getNCol();
-      std::uint64_t nnz = s.getNNZ();
-      std::shared_ptr<std::vector<std::uint32_t> > rows = s.getRowsPtr();
-      std::shared_ptr<std::vector<std::uint32_t> > cols = s.getColsPtr();
+      rowsRawPtr[i] = rows->operator[](i);
+      colsRawPtr[i] = cols->operator[](i);
+   }
 
-      // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
-      // we will remove these extra memory allocation and manipulation
-      int* rowsRawPtr = new int[nnz];
-      int* colsRawPtr = new int[nnz];
-      for (std::uint64_t i = 0; i < nnz; i++)
-      {
-         rowsRawPtr[i] = rows->operator[](i);
-         colsRawPtr[i] = cols->operator[](i);
-      }
+   // Temporary solution #2
+   // macau expects the rows of the matrix to be equal to the mode size, 
+   // if the mode == 1 (col_features) we need to swap the rows and columns
+   if (mode == 1) 
+   {
+       std::swap(nrow, ncol);
+       std::swap(rowsRawPtr, colsRawPtr);
+   }
 
-      // Temporary solution #2
-      // macau expects the rows of the matrix to be equal to the mode
-      // size, if the mode == 1 (col_features) we need to swap the rows and columns
-      if (mode == 1) 
-      {
-          std::swap(nrow, ncol);
-          std::swap(rowsRawPtr, colsRawPtr);
-      }
+   return std::shared_ptr<SparseFeat>(new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr));
+}
 
-      auto sideinfo = new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr);
+std::shared_ptr<Eigen::MatrixXd> side_info_config_to_dense_features(const MatrixConfig& sideinfoConfig, int mode)
+{
+   Eigen::MatrixXd sideinfo = matrix_utils::dense_to_eigen(sideinfoConfig);
+   
+   // Temporary solution #2
+   // macau expects the rows of the matrix to be equal to the mode size, 
+   // if the mode == 1 (col_features) we need to swap the rows and columns
+   if (mode == 1) 
+      sideinfo.transposeInPlace();
+
+   return std::shared_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(sideinfo));
+}
+
+std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(const MatrixConfig& sideinfoConfig, int mode)
+{
+   std::uint64_t nrow = sideinfoConfig.getNRow();
+   std::uint64_t ncol = sideinfoConfig.getNCol();
+   std::uint64_t nnz = sideinfoConfig.getNNZ();
+
+   std::shared_ptr<std::vector<std::uint32_t> > rows = sideinfoConfig.getRowsPtr();
+   std::shared_ptr<std::vector<std::uint32_t> > cols = sideinfoConfig.getColsPtr();
+   std::shared_ptr<std::vector<double> > values = sideinfoConfig.getValuesPtr();
+
+   // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
+   // we will remove these extra memory allocation and manipulation
+   int* rowsRawPtr = new int[nnz];
+   int* colsRawPtr = new int[nnz];
+   double* valuesRawPtr = new double[nnz];
+   for (size_t i = 0; i < nnz; i++)
+   {
+      rowsRawPtr[i] = rows->operator[](i);
+      colsRawPtr[i] = cols->operator[](i);
+      valuesRawPtr[i] = values->operator[](i);
+   }
+
+   // Temporary solution #2
+   // macau expects the rows of the matrix to be equal to the mode
+   // size, if the mode == 1 (col_features) we need to swap the rows and columns
+   if (mode == 1) 
+   {
+       std::swap(nrow, ncol);
+       std::swap(rowsRawPtr, colsRawPtr);
+   }
+
+   return std::shared_ptr<SparseDoubleFeat>(new SparseDoubleFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr));
+}
+
+void add_macau_prior(Session &session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& vsideinfo, double lambda_beta, double tol, bool direct)
+{
+   if(vsideinfo.size() != 1)
+      throw std::runtime_error("Only one feature matrix is allowed");
+
+   const MatrixConfig& sideinfoConfig = vsideinfo.at(0);
+
+   if (sideinfoConfig.isBinary())
+   {
+      std::shared_ptr<SparseFeat> sideinfo = side_info_config_to_sparse_binary_features(sideinfoConfig, mode);
       addMacauPrior(session, prior_type, sideinfo, lambda_beta, tol, direct);
    }
-   else if (s.isDense())
+   else if (sideinfoConfig.isDense())
    {
-      auto sideinfo = matrix_utils::dense_to_eigen(s);
-
-      // Temporary solution #2
-      // macau expects the rows of the matrix to be equal to the mode
-      // size, if the mode == 1 (col_features) we need to swap the rows and columns
-      if (mode == 1) sideinfo.transposeInPlace();
-
-      addMacauPrior(session, prior_type, new MatrixXd(sideinfo), lambda_beta, tol, direct);
+      std::shared_ptr<Eigen::MatrixXd> sideinfo = side_info_config_to_dense_features(sideinfoConfig, mode);
+      addMacauPrior(session, prior_type, sideinfo, lambda_beta, tol, direct);
    }
    else
    {
-      std::uint64_t nrow = s.getNRow();
-      std::uint64_t ncol = s.getNCol();
-      std::uint64_t nnz = s.getNNZ();
-      std::shared_ptr<std::vector<std::uint32_t> > rows = s.getRowsPtr();
-      std::shared_ptr<std::vector<std::uint32_t> > cols = s.getColsPtr();
-      std::shared_ptr<std::vector<double> > values = s.getValuesPtr();
-
-      // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
-      // we will remove these extra memory allocation and manipulation
-      int* rowsRawPtr = new int[nnz];
-      int* colsRawPtr = new int[nnz];
-      double* valuesRawPtr = new double[nnz];
-      for (size_t i = 0; i < nnz; i++)
-      {
-         rowsRawPtr[i] = rows->operator[](i);
-         colsRawPtr[i] = cols->operator[](i);
-         valuesRawPtr[i] = values->operator[](i);
-      }
-
-      // Temporary solution #2
-      // macau expects the rows of the matrix to be equal to the mode
-      // size, if the mode == 1 (col_features) we need to swap the rows and columns
-      if (mode == 1) 
-      {
-          std::swap(nrow, ncol);
-          std::swap(rowsRawPtr, colsRawPtr);
-      }
-
-      auto sideinfo = new SparseDoubleFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr);
+      std::shared_ptr<SparseDoubleFeat> sideinfo = side_info_config_to_sparse_features(sideinfoConfig, mode);
       addMacauPrior(session, prior_type, sideinfo, lambda_beta, tol, direct);
    }
 }
 
-//features - vector of side info
-void add_prior(Session& session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& features, double lambda_beta, double tol, bool direct)
+void add_prior(Session& session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& vsideinfo, double lambda_beta, double tol, bool direct)
 {
-   //-- row prior with side information
-   if (features.size())
+   // row prior with side information
+   // side information can only be applied to macau and macauone priors
+   if (vsideinfo.size())
    {
-      //side information can only be applied to macau and macauone priors
-      if (prior_type == PriorTypes::macau || prior_type == PriorTypes::macauone)
+      switch(prior_type)
       {
-         add_macau_prior(session, mode, prior_type, features, lambda_beta, tol, direct);
-      }
-      else
-      {
+      case PriorTypes::macau:
+      case PriorTypes::macauone:
+         add_macau_prior(session, mode, prior_type, vsideinfo, lambda_beta, tol, direct);
+         break;
+      default:
          throw std::runtime_error("SideInfo only with macau(one) prior");
       }
    }
-   else if(prior_type == PriorTypes::normal || prior_type == PriorTypes::default_prior)
-   {
-      session.addPrior<NormalPrior>();
-   }
-   else if(prior_type == PriorTypes::spikeandslab)
-   {
-      session.addPrior<SpikeAndSlabPrior>();
-   }
    else
    {
-      throw std::runtime_error("Unknown prior without side info: " + priorTypeToString(prior_type));
+      switch(prior_type)
+      {
+      case PriorTypes::normal:
+      case PriorTypes::default_prior:
+         session.addPrior<NormalPrior>();
+         break;
+      case PriorTypes::spikeandslab:
+         session.addPrior<SpikeAndSlabPrior>();
+         break;
+      default:
+         throw std::runtime_error("Unknown prior without side info: " + priorTypeToString(prior_type));
+      }
    }
 }
 
@@ -193,10 +215,8 @@ void Session::setFromConfig(const Config &c)
       }
    */
 
-
    // center mode
    data().setCenterMode(config.center_mode_type);
-
 
    //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
    add_prior(*this, 0, config.row_prior_type, row_sideinfo, config.lambda_beta, config.tol, config.direct);

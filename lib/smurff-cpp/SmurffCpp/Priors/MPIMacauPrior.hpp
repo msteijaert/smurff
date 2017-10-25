@@ -87,8 +87,10 @@ public:
       MatrixXd RHS(nrhs, num_feat), result(nrhs, num_feat);
    
       #pragma omp parallel for schedule(static)
-      for (int f = 0; f < num_feat; f++) {
-         for (int d = 0; d < nrhs; d++) {
+      for (int f = 0; f < num_feat; f++) 
+      {
+         for (int d = 0; d < nrhs; d++) 
+         {
             RHS(d, f) = rec[f + d * num_feat];
          }
       }
@@ -96,11 +98,14 @@ public:
       solve_blockcg(result, *this->F, this->lambda_beta, RHS, this->tol, 32, 8);
       result.transposeInPlace();
       MPI_Gatherv(result.data(), nrhs*num_feat, MPI_DOUBLE, this->Ft_y.data(), sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      if (world_rank == 0) {
+      if (world_rank == 0) 
+      {
          //this->beta = Ft_y.transpose();
          #pragma omp parallel for schedule(static)
-         for (int f = 0; f < num_feat; f++) {
-            for (int d = 0; d < num_latent; d++) {
+         for (int f = 0; f < num_feat; f++) 
+         {
+            for (int d = 0; d < num_latent; d++) 
+            {
                this->beta(d, f) = this->Ft_y(f, d);
             }
          }

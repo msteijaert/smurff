@@ -1,5 +1,6 @@
 #include "ScarceMatrixData.h"
 
+// _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -84,11 +85,14 @@ double ScarceMatrixData::compute_mode_mean_mn(int mode, int pos)
     return col.sum() / col.nonZeros();
 }
 
-double ScarceMatrixData::train_rmse(const SubModel& model) const {
+double ScarceMatrixData::train_rmse(const SubModel& model) const 
+{
    double se = 0.;
-#pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c=0; c<Y.cols();++c) {
-       for (Eigen::SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) {
+   #pragma omp parallel for schedule(guided) reduction(+:se)
+   for(int c=0; c<Y.cols();++c) 
+   {
+       for (Eigen::SparseMatrix<double>::InnerIterator it(Y, c); it; ++it) 
+       {
            se += square(it.value() - predict({(int)it.row(), (int)it.col()}, model));
        }
    }
@@ -119,8 +123,9 @@ void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::Ve
        auto to = Y.outerIndexPtr()[n+1];
        thread_vector<Eigen::VectorXd> rrs(Eigen::VectorXd::Zero(num_latent));
        thread_vector<Eigen::MatrixXd> MMs(Eigen::MatrixXd::Zero(num_latent, num_latent));
-       for(int j=from; j<to; j+=task_size) {
-#pragma omp task shared(model,Y,Vf,rrs,MMs)
+       for(int j=from; j<to; j+=task_size) 
+       {
+           #pragma omp task shared(model,Y,Vf,rrs,MMs)
            {
                auto &my_rr = rrs.local();
                auto &my_MM = MMs.local();
@@ -139,7 +144,8 @@ void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::Ve
 
            }
        }
-#pragma omp taskwait
+       #pragma omp taskwait
+       
        // accumulate + add noise
        MM += MMs.combine() * alpha;
        rr += rrs.combine() * alpha;

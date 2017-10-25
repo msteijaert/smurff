@@ -1,5 +1,6 @@
 #include "SparseMatrixData.h"
 
+// _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -31,7 +32,7 @@ void SparseMatrixData::center(double global_mean)
 double SparseMatrixData::train_rmse(const SubModel& model) const
 {
    double se = 0.;
-#pragma omp parallel for schedule(guided) reduction(+:se)
+   #pragma omp parallel for schedule(guided) reduction(+:se)
    for(int c=0; c<Y.cols();++c)
    {
       int r = 0;

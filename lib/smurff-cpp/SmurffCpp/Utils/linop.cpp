@@ -92,17 +92,21 @@ void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
   out.setZero();
   const int nfeat = A.M.ncol;
 
-#pragma omp parallel for schedule(dynamic, 8)
-  for (int f1 = 0; f1 < nfeat; f1++) {
+  #pragma omp parallel for schedule(dynamic, 8)
+  for (int f1 = 0; f1 < nfeat; f1++) 
+  {
     int end = A.Mt.row_ptr[f1 + 1];
     out(f1, f1) = end - A.Mt.row_ptr[f1];
     // looping over all non-zero rows of f1
-    for (int i = A.Mt.row_ptr[f1]; i < end; i++) {
+    for (int i = A.Mt.row_ptr[f1]; i < end; i++) 
+    {
       int Mrow = A.Mt.cols[i]; /* row in M */
       int end2 = A.M.row_ptr[Mrow + 1];
-      for (int j = A.M.row_ptr[Mrow]; j < end2; j++) {
+      for (int j = A.M.row_ptr[Mrow]; j < end2; j++) 
+      {
         int f2 = A.M.cols[j];
-        if (f1 < f2) {
+        if (f1 < f2) 
+        {
           out(f2, f1) += 1;
         }
       }
@@ -125,16 +129,20 @@ void At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
   out.setZero();
   const int nfeat = A.M.ncol;
 
-#pragma omp parallel for schedule(dynamic, 8)
-  for (int f1 = 0; f1 < nfeat; f1++) {
+  #pragma omp parallel for schedule(dynamic, 8)
+  for (int f1 = 0; f1 < nfeat; f1++) 
+  {
     // looping over all non-zero rows of f1
-    for (int i = A.Mt.row_ptr[f1], end = A.Mt.row_ptr[f1 + 1]; i < end; i++) {
+    for (int i = A.Mt.row_ptr[f1], end = A.Mt.row_ptr[f1 + 1]; i < end; i++) 
+    {
       int Mrow     = A.Mt.cols[i]; /* row in M */
       double val1  = A.Mt.vals[i]; /* value for Mrow */
 
-      for (int j = A.M.row_ptr[Mrow], end2 = A.M.row_ptr[Mrow + 1]; j < end2; j++) {
+      for (int j = A.M.row_ptr[Mrow], end2 = A.M.row_ptr[Mrow + 1]; j < end2; j++) 
+      {
         int f2 = A.M.cols[j];
-        if (f1 <= f2) {
+        if (f1 <= f2) 
+        {
           out(f2, f1) += A.M.vals[j] * val1;
         }
       }
@@ -222,9 +230,11 @@ template<> void AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eig
   A_mul_Bt(out, A.Mt, tmp);
 
   int ncol = out.cols(), nrow = out.rows();
-#pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) {
-    for (int row = 0; row < nrow; row++) {
+  #pragma omp parallel for schedule(static)
+  for (int col = 0; col < ncol; col++) 
+  {
+    for (int row = 0; row < nrow; row++) 
+    {
       out(row, col) += reg * B(row, col);
     }
   }
@@ -238,9 +248,11 @@ void AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::M
   // http://stackoverflow.com/questions/30496365/parallelize-the-addition-of-a-vector-of-matrices-in-openmp
   A_mul_Bt(out, A.Mt, tmp);
   int ncol = out.cols(), nrow = out.rows();
-#pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) {
-    for (int row = 0; row < nrow; row++) {
+  #pragma omp parallel for schedule(static)
+  for (int col = 0; col < ncol; col++) 
+  {
+    for (int row = 0; row < nrow; row++) 
+    {
       out(row, col) += reg * B(row, col);
     }
   }
@@ -255,9 +267,11 @@ void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::Ma
   A_mul_B_blas(out, B, A);
 
   int ncol = out.cols(), nrow = out.rows();
-#pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) {
-    for (int row = 0; row < nrow; row++) {
+  #pragma omp parallel for schedule(static)
+  for (int col = 0; col < ncol; col++) 
+  {
+    for (int row = 0; row < nrow; row++) 
+    {
       out(row, col) += reg * B(row, col);
     }
   }
@@ -304,7 +318,7 @@ void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   std::vector<MatrixXd> Ys;
   Ys.resize(thread_limit(), MatrixXd(n, n));
 
-#pragma omp parallel
+  #pragma omp parallel
   {
     const int ithread  = thread_num();
     int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads());
@@ -348,9 +362,9 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
   Ys.resize(thread_limit(), MatrixXd(n, n));
   int actual_threads = -1;
 
-#pragma omp parallel
+  #pragma omp parallel
   {
-#pragma omp single
+    #pragma omp single
     actual_threads = nthreads();
     const int ithread  = thread_num();
     int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads());
@@ -386,8 +400,9 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
 Eigen::VectorXd col_square_sum(SparseFeat & A) {
   const int ncol = A.cols();
   VectorXd out(ncol);
-#pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) {
+  #pragma omp parallel for schedule(static)
+  for (int col = 0; col < ncol; col++) 
+  {
     out(col) = A.Mt.row_ptr[col + 1] - A.Mt.row_ptr[col];
   }
   return out;
@@ -399,12 +414,14 @@ Eigen::VectorXd col_square_sum(SparseDoubleFeat & A) {
   const double* vals = A.Mt.vals;
   VectorXd out(ncol);
 
-#pragma omp parallel for schedule(dynamic, 256)
-  for (int col = 0; col < ncol; col++) {
+  #pragma omp parallel for schedule(dynamic, 256)
+  for (int col = 0; col < ncol; col++) 
+  {
     double tmp = 0;
     int i   = row_ptr[col];
     int end = row_ptr[col + 1];
-    for (; i < end; i++) {
+    for (; i < end; i++) 
+    {
       tmp += vals[i] * vals[i];
     }
     out(col) = tmp;
@@ -415,8 +432,9 @@ Eigen::VectorXd col_square_sum(SparseDoubleFeat & A) {
 Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A) {
   const int ncol = A.cols();
   VectorXd out(ncol);
-#pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) {
+  #pragma omp parallel for schedule(static)
+  for (int col = 0; col < ncol; col++) 
+  {
     out(col) = (A.col(col+1) - A.col(col)).sum();
   }
   return out;

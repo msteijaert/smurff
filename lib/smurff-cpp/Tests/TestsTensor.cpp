@@ -8,7 +8,7 @@
 #include <SmurffCpp/Configs/TensorConfig.h>
 
 
-TEST_CASE("test tensor constructor")
+TEST_CASE("test tensor constructor 1")
 {
    std::vector<int> tensorConfigDims = { 2, 3, 4, 2 };
    std::vector<int> tensorConfigColumns =
@@ -35,6 +35,7 @@ TEST_CASE("test tensor constructor")
    //td.setTrain(rows, cols, values, nnz, nrows, ncols);
    td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
 
+   /*
    std::cout << "Tensor Data test" << std::endl;
 
    for(std::unique_ptr<SparseMode>& val : *td.Y)
@@ -49,11 +50,10 @@ TEST_CASE("test tensor constructor")
 
       std::cout << std::endl;
    }
+   */
 }
 
-
-/*
-TEST_CASE("test tensor constructor")
+TEST_CASE("test tensor constructor 2")
 {
    std::vector<int> tensorConfigDims = { 2, 3, 4 };
    std::vector<int> tensorConfigColumns =
@@ -74,6 +74,7 @@ TEST_CASE("test tensor constructor")
    //td.setTrain(rows, cols, values, nnz, nrows, ncols);
    td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
 
+   /*
    std::cout << "Tensor Data test" << std::endl;
 
    for(std::unique_ptr<SparseMode>& val : *td.Y)
@@ -88,8 +89,8 @@ TEST_CASE("test tensor constructor")
 
       std::cout << std::endl;
    }
+   */
 }
-*/
 
 //smurff
 

@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
             W2col.setZero();
             WtauW.setZero();
 
-#pragma omp parallel for \
+            #pragma omp parallel for \
             reduction(+:log_t,b_tau_sq,err) \
             reduction(VectorPlus:Zcol,W2col) \
             reduction(MatrixPlus:WtauW) \
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
             auto Sx = covZ.llt().matrixL();
 
             XX.setZero();
-#pragma omp parallel for \
+            #pragma omp parallel for \
             reduction(MatrixPlus:XX) \
             schedule(dynamic, 8)
             for(int n = 0; n<N; n++) {

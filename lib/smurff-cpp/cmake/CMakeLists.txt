@@ -12,6 +12,9 @@ OPTION(ENABLE_BLAS "Enable BLAS library" OFF)
 OPTION(ENABLE_LAPACK "Enable LAPACK library" OFF)
 OPTION(ENABLE_OPENBLAS "Enable OPENBLAS library" OFF)
 
+OPTION(ENABLE_VERBOSE_COMPILER_LOG "Enable verbose compilation log" OFF)
+OPTION(ENABLE_VERBOSE_LINKER_LOG "Enable verbose linker log" OFF)
+
 # INIT CMAKE
 
 message("Initializing cmake ...")
@@ -186,16 +189,14 @@ endif()
 
 message(STATUS "Initializing logging options...")
 
-set (CV OFF)
-
 if (UNIX)
     #set verbose output of cmake
-    if (CV)
+    if (${ENABLE_VERBOSE_COMPILER_LOG})
         set(CMAKE_VERBOSE_MAKEFILE ON)
     endif()
 
     #enable make verbose linker log
-    if (LV)
+    if (${ENABLE_VERBOSE_LINKER_LOG})
         SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -###" )
     endif()
 endif()

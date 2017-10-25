@@ -94,8 +94,8 @@ namespace smurff { namespace matrix_utils {
    template<typename Matrix>
    Eigen::MatrixXd dense_to_eigen(Matrix &Y)
    {
-   std::vector<double> Yvalues = Y.getValues();
-   return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), Y.getNRow(), Y.getNCol());
+      std::vector<double> Yvalues = Y.getValues();
+      return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), Y.getNRow(), Y.getNCol());
    }
 
    // Conversion of libfastsparse matrices to dense eigen matrix - do we need it?

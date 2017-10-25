@@ -211,10 +211,12 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   Eigen::VectorXd norms(nrhs), inorms(nrhs); 
   norms.setZero();
   inorms.setZero();
-#pragma omp parallel for schedule(static)
-  for (int rhs = 0; rhs < nrhs; rhs++) {
+  #pragma omp parallel for schedule(static)
+  for (int rhs = 0; rhs < nrhs; rhs++) 
+  {
     double sumsq = 0.0;
-    for (int feat = 0; feat < nfeat; feat++) {
+    for (int feat = 0; feat < nfeat; feat++) 
+    {
       sumsq += B(rhs, feat) * B(rhs, feat);
     }
     norms(rhs)  = sqrt(sumsq);
@@ -225,9 +227,11 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   Eigen::MatrixXd Ptmp(nrhs, nfeat);
   X.setZero();
   // normalize R and P:
-#pragma omp parallel for schedule(static) collapse(2)
-  for (int feat = 0; feat < nfeat; feat++) {
-    for (int rhs = 0; rhs < nrhs; rhs++) {
+  #pragma omp parallel for schedule(static) collapse(2)
+  for (int feat = 0; feat < nfeat; feat++) 
+  {
+    for (int rhs = 0; rhs < nrhs; rhs++) 
+    {
       R(rhs, feat) = B(rhs, feat) * inorms(rhs);
       P(rhs, feat) = R(rhs, feat);
     }
@@ -263,8 +267,9 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     A.transposeInPlace();
     ////double t3 = tick();
     
-#pragma omp parallel for schedule(dynamic, 4)
-    for (int block = 0; block < nblocks; block++) {
+    #pragma omp parallel for schedule(dynamic, 4)
+    for (int block = 0; block < nblocks; block++) 
+    {
       int col = block * 64;
       int bcols = std::min(64, nfeat - col);
       // X += A' * P
@@ -290,8 +295,9 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////double t5 = tick();
 
     // P = R + Psi' * P (P and R are already transposed)
-#pragma omp parallel for schedule(dynamic, 8)
-    for (int block = 0; block < nblocks; block++) {
+    #pragma omp parallel for schedule(dynamic, 8)
+    for (int block = 0; block < nblocks; block++) 
+    {
       int col = block * 64;
       int bcols = std::min(64, nfeat - col);
       Eigen::MatrixXd xtmp(nrhs, bcols);
@@ -305,9 +311,11 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////printf("t2-t1 = %.3f, t3-t2 = %.3f, t4-t3 = %.3f, t5-t4 = %.3f, t6-t5 = %.3f\n", t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
   }
   // unnormalizing X:
-#pragma omp parallel for schedule(static) collapse(2)
-  for (int feat = 0; feat < nfeat; feat++) {
-    for (int rhs = 0; rhs < nrhs; rhs++) {
+  #pragma omp parallel for schedule(static) collapse(2)
+  for (int feat = 0; feat < nfeat; feat++) 
+  {
+    for (int rhs = 0; rhs < nrhs; rhs++) 
+    {
       X(rhs, feat) *= norms(rhs);
     }
   }
@@ -328,18 +336,22 @@ void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B) {
   const int nrow = A.nrow;
   double* Y = out.data();
   double* X = B.data();
-#pragma omp parallel for schedule(dynamic, 256)
-  for (int row = 0; row < nrow; row++) {
+  #pragma omp parallel for schedule(dynamic, 256)
+  for (int row = 0; row < nrow; row++) 
+  {
     double tmp[N] = { 0 };
     const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) {
+    for (int i = row_ptr[row]; i < end; i++) 
+    {
       int col = cols[i] * N;
-      for (int j = 0; j < N; j++) {
+      for (int j = 0; j < N; j++) 
+      {
          tmp[j] += X[col + j];
       }
     }
     int r = row * N;
-    for (int j = 0; j < N; j++) {
+    for (int j = 0; j < N; j++) 
+    {
       Y[r + j] = tmp[j];
     }
   }
@@ -358,19 +370,23 @@ void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B) {
   const int nrow = A.nrow;
   double* Y = out.data();
   double* X = B.data();
-#pragma omp parallel for schedule(dynamic, 256)
-  for (int row = 0; row < nrow; row++) {
+  #pragma omp parallel for schedule(dynamic, 256)
+  for (int row = 0; row < nrow; row++) 
+  {
     double tmp[N] = { 0 };
     const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) {
+    for (int i = row_ptr[row]; i < end; i++) 
+    {
       int col = cols[i] * N;
       double val = vals[i];
-      for (int j = 0; j < N; j++) {
+      for (int j = 0; j < N; j++) 
+      {
          tmp[j] += X[col + j] * val;
       }
     }
     int r = row * N;
-    for (int j = 0; j < N; j++) {
+    for (int j = 0; j < N; j++) 
+    {
       Y[r + j] = tmp[j];
     }
   }
@@ -456,18 +472,22 @@ void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::Matrix
   double* Y      = out.data();
   double* X      = inner.data();
   double* Braw   = B.data();
-#pragma omp parallel for schedule(dynamic, 256)
-  for (int row = 0; row < nrow; row++) {
+  #pragma omp parallel for schedule(dynamic, 256)
+  for (int row = 0; row < nrow; row++) 
+  {
     double tmp[N] = { 0 };
     const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) {
+    for (int i = row_ptr[row]; i < end; i++) 
+    {
       int col = cols[i] * N;
-      for (int j = 0; j < N; j++) {
+      for (int j = 0; j < N; j++) 
+      {
          tmp[j] += X[col + j];
       }
     }
     int r = row * N;
-    for (int j = 0; j < N; j++) {
+    for (int j = 0; j < N; j++) 
+    {
       Y[r + j] = tmp[j] + reg * Braw[r + j];
     }
   }
@@ -490,19 +510,23 @@ void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::
   double* Y      = out.data();
   double* X      = inner.data();
   double* Braw   = B.data();
-#pragma omp parallel for schedule(dynamic, 256)
-  for (int row = 0; row < nrow; row++) {
+  #pragma omp parallel for schedule(dynamic, 256)
+  for (int row = 0; row < nrow; row++) 
+  {
     double tmp[N] = { 0 };
     const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) {
+    for (int i = row_ptr[row]; i < end; i++) 
+    {
       int col = cols[i] * N;
       double val = vals[i];
-      for (int j = 0; j < N; j++) {
+      for (int j = 0; j < N; j++) 
+      {
         tmp[j] += X[col + j] * val;
       }
     }
     int r = row * N;
-    for (int j = 0; j < N; j++) {
+    for (int j = 0; j < N; j++) 
+    {
       Y[r + j] = tmp[j] + reg * Braw[r + j];
     }
   }
@@ -520,8 +544,9 @@ inline void A_mul_B_omp(
   const int nblocks = (int)ceil(out.cols() / 64.0);
   const int nrow = out.rows();
   const int ncol = out.cols();
-#pragma omp parallel for schedule(dynamic, 8)
-  for (int block = 0; block < nblocks; block++) {
+  #pragma omp parallel for schedule(dynamic, 8)
+  for (int block = 0; block < nblocks; block++) 
+  {
     int col = block * 64;
     int bcols = std::min(64, ncol - col);
     out.block(0, col, nrow, bcols).noalias() = alpha * out.block(0, col, nrow, bcols) + beta * A * B.block(0, col, nrow, bcols);
@@ -539,8 +564,9 @@ inline void A_mul_B_omp(
 {
   assert(out.cols() == B.cols());
   const int nblocks = out.cols() / 64;
-#pragma omp parallel for schedule(dynamic, 8)
-  for (int block = 0; block < nblocks; block++) {
+  #pragma omp parallel for schedule(dynamic, 8)
+  for (int block = 0; block < nblocks; block++) 
+  {
     int col = block * 64;
     out.template block<N, 64>(0, col).noalias() = alpha * out.template block<N, 64>(0, col) + beta * A * B.template block<N, 64>(0, col);
   }

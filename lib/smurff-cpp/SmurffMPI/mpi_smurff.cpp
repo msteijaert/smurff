@@ -14,7 +14,7 @@
 
 #include <SmurffCpp/Utils/omp_util.h>
 #include <SmurffCpp/Priors/ILatentPrior.h>
-#include "MPISession.h"
+#include <SmurffCpp/Sessions/MPISession.h>
 
 using namespace std;
 

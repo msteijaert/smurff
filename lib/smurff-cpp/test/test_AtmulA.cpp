@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <math.h>
+
+// _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
+#if defined(_OPENMP)
 #include <omp.h>
+#endif
 
 #include <Eigen/Dense>
 
@@ -57,9 +61,9 @@ void hello2(double* x, double* y, int n, int k) {
     return;
   }
   int nthreads = -1;
-#pragma omp parallel
+  #pragma omp parallel
   {
-#pragma omp single
+    #pragma omp single
     {
       nthreads = omp_get_num_threads();
     }
@@ -67,7 +71,7 @@ void hello2(double* x, double* y, int n, int k) {
   std::vector<MatrixXd> Ys;
   Ys.resize(nthreads, MatrixXd(n, n));
 
-#pragma omp parallel
+  #pragma omp parallel
   {
     const int ithread  = omp_get_thread_num();
     int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads);

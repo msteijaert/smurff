@@ -27,7 +27,7 @@ class MacauPrior : public NormalPrior
 {
 public:
    Eigen::MatrixXd Uhat;
-   std::unique_ptr<FType> F;  // side information
+   std::shared_ptr<FType> Features;  // side information
    Eigen::MatrixXd FtF;       // F'F
    Eigen::MatrixXd beta;      // link matrix
    bool use_FtF;
@@ -50,18 +50,18 @@ public:
    {
       NormalPrior::init();
 
-      assert((F->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
+      assert((Features->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
 
       if (use_FtF)
       {
-         FtF.resize(F->cols(), F->cols());
-         At_mul_A(FtF, *F);
+         FtF.resize(Features->cols(), Features->cols());
+         At_mul_A(FtF, *Features);
       }
 
-      Uhat.resize(this->num_latent(), F->rows());
+      Uhat.resize(this->num_latent(), Features->rows());
       Uhat.setZero();
 
-      beta.resize(this->num_latent(), F->cols());
+      beta.resize(this->num_latent(), Features->cols());
       beta.setZero();
    }
 
@@ -74,14 +74,14 @@ public:
       // sampling Gaussian
       std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
       sample_beta();
-      compute_uhat(Uhat, *F, beta);
+      compute_uhat(Uhat, *Features, beta);
       lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
    }
 
-   void addSideInfo(std::unique_ptr<FType> &Fmat, bool comp_FtF = false)
+   void addSideInfo(std::shared_ptr<FType> &Fmat, bool comp_FtF = false)
    {
       // side information
-      F = std::move(Fmat);
+      Features = Fmat;
       use_FtF = comp_FtF;
 
       // initial value (should be determined automatically)
@@ -108,7 +108,7 @@ public:
       // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
       Eigen::MatrixXd tmp = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
-      Ft_y = A_mul_B(tmp, *F);
+      Ft_y = A_mul_B(tmp, *Features);
       Eigen::MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 
       #pragma omp parallel for schedule(static)
@@ -179,7 +179,7 @@ public:
    std::ostream &info(std::ostream &os, std::string indent) override
    {
       NormalPrior::info(os, indent);
-      os << indent << " SideInfo: "; printSideInfo(os, *F);
+      os << indent << " SideInfo: "; printSideInfo(os, *Features);
       os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << "\n";
       os << indent << " Tol: " << tol << "\n";
       os << indent << " LambdaBeta: " << lambda_beta << "\n";
@@ -214,7 +214,7 @@ private:
       Eigen::MatrixXd Ft_y;
       this->compute_Ft_y_omp(Ft_y);
 
-      solve_blockcg(beta, *F, lambda_beta, Ft_y, tol, 32, 8);
+      solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
    }
 
 public:
@@ -251,8 +251,8 @@ void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg();
 template<class FType>
 void MacauPrior<FType>::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                                        double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
-    const int N = U.cols();
-#pragma omp parallel for schedule(dynamic, 2)
+  const int N = U.cols();
+  #pragma omp parallel for schedule(dynamic, 2)
   for(int n = 0; n < N; n++) {
     // TODO: try moving mu + Uhat.col(n) inside sample_latent for speed
     sample_latent_blas_probit(U, n, mat, mean_value, samples, mu + Uhat.col(n), Lambda, num_latent);
@@ -282,7 +282,7 @@ void MacauPrior<FType>::sample_latents(double noisePrecision,
   const int N = U->cols();
   VectorView<Eigen::MatrixXd> view(samples, mode);
 
-#pragma omp parallel for schedule(dynamic, 2)
+  #pragma omp parallel for schedule(dynamic, 2)
   for (int n = 0; n < N; n++) {
     Eigen::VectorXd mu2 = mu + Uhat.col(n);
     sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu2, Lambda);

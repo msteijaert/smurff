@@ -35,7 +35,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Noises/ProbitNoise.h"
                         "../Noises/Noiseless.h"
                         "../Noises/UnusedNoise.h"
-			               "../Noises/INoiseModel.h"
+                        "../Noises/INoiseModel.h"
 
                         "../Priors/GlobalPrior.h"
                         "../Priors/ILatentPrior.h"
@@ -57,14 +57,16 @@ FILE (GLOB HEADER_FILES "../Version.h"
 
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
+                        "../Sessions/CmdSession.h"
+
                         "../sparsetensor.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../model.cpp"
                         "../result.cpp"
-                     "../SparseFeat.cpp"
-                     "../SparseDoubleFeat.cpp"
+                        "../SparseFeat.cpp"
+                        "../SparseDoubleFeat.cpp"
 
                         "../Utils/TruncNorm.cpp"
                         "../Utils/InvNormCdf.cpp"
@@ -79,7 +81,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../IO/MatrixIO.cpp"
                         "../IO/TensorIO.cpp"
 
-			               "../Configs/Config.cpp"
+                        "../Configs/Config.cpp"
                         "../Configs/MatrixConfig.cpp"
                         "../Configs/TensorConfig.cpp"
                         "../Configs/NoiseConfig.cpp"
@@ -108,16 +110,26 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
+                        "../Sessions/CmdSession.cpp"
+
                         "../sparsetensor.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
-if(${MPI_CXX_FOUND})
-FILE (GLOB HEADER_FILES_MPI "../Priors/MPIMacauPrior.hpp")
+if(${MPI_C_FOUND})
+FILE (GLOB HEADER_FILES_MPI "../Priors/MPIMacauPrior.hpp"
+                            "../Sessions/MPISession.h")
+
 source_group ("Header Files" FILES ${HEADER_FILES_MPI})
 endif()
 
+if(${MPI_C_FOUND})
+FILE (GLOB SOURCE_FILES_MPI "../Sessions/MPISession.cpp")
+
+source_group ("Source Files" FILES ${SOURCE_FILES_MPI})
+endif()
+
 #SETUP OUTPUT
-add_library (${PROJECT} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${HEADER_FILES_MPI})
+add_library (${PROJECT} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${HEADER_FILES_MPI} ${SOURCE_FILES_MPI})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
 #SETUP INCLUDES
