@@ -462,7 +462,7 @@ void ScarceMatrixData::get_pnm(const SubModel &model, int mode, int n, VectorXd 
         thread_vector<VectorXd> rrs(VectorXd::Zero(num_latent));
         thread_vector<MatrixXd> MMs(MatrixXd::Zero(num_latent, num_latent)); 
         for(int j=from; j<to; j+=task_size) {
-#pragma omp task shared(Y,Vf,rrs,MMs)
+#pragma omp task shared(Y,Vf,rrs,MMs,model)
             {
                 auto &my_rr = rrs.local();
                 auto &my_MM = MMs.local();
