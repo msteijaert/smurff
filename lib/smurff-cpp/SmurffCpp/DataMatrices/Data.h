@@ -24,21 +24,6 @@ namespace smurff
       virtual ~IDataCentringBaseFake(){}
 
    public:
-      static CenterModeTypes stringToCenterMode(std::string c)
-      {
-         return CenterModeTypes::CENTER_INVALID;
-      }
-
-      void setCenterMode(std::string c)
-      {
-
-      }
-
-      void setCenterMode(CenterModeTypes type)
-      {
-
-      }
-
       double offset_to_mean(const PVec<>& pos) const
       {
          return 0.0;
@@ -54,10 +39,6 @@ namespace smurff
          return 0.0;
       }
 
-      std::string getCenterModeName() const
-      {
-         return std::string();
-      }
 
       double getCwiseMean() const
       {

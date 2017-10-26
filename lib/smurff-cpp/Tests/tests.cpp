@@ -591,7 +591,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
   ScarceMatrixData data(matrix_utils::sparse_to_eigen(S));
   p.set(matrix_utils::sparse_to_eigen(S));
-  data.getCenter()->setCenterMode("global");
+  
   data.setNoiseModel(new Noiseless());
   data.init();
   model.init(2, PVec<>({1, 1}), "zero");
@@ -676,7 +676,7 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
   double vals[2] = {1., 2.};
   SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
   ScarceMatrixData data(matrix_utils::sparse_to_eigen(S));
-  data.getCenter()->setCenterMode(CenterModeTypes::CENTER_NONE);
+  
   data.setNoiseModel(new Noiseless());
   data.init();
   REQUIRE(data.var_total() == Approx(0.25));
@@ -686,7 +686,7 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
   Eigen::MatrixXd Y(2, 2);
   Y << 1., 2., 3., 4.;
   DenseMatrixData data(Y);
-  data.getCenter()->setCenterMode(CenterModeTypes::CENTER_NONE);
+  
   data.setNoiseModel(new Noiseless());
   data.init();
   REQUIRE(data.var_total() == Approx(1.25));

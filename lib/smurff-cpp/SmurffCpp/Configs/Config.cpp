@@ -43,42 +43,6 @@ std::string smurff::priorTypeToString(PriorTypes type)
    }
 }
 
-std::string smurff::centerModeToString(CenterModeTypes cm)
-{
-   switch (cm)
-   {
-      case CenterModeTypes::CENTER_NONE:
-         return CENTER_MODE_STR_NONE;
-      case CenterModeTypes::CENTER_GLOBAL:
-         return CENTER_MODE_STR_GLOBAL;
-      case CenterModeTypes::CENTER_VIEW:
-         return CENTER_MODE_STR_VIEW;
-      case CenterModeTypes::CENTER_ROWS:
-         return CENTER_MODE_STR_ROWS;
-      case CenterModeTypes::CENTER_COLS:
-         return CENTER_MODE_STR_COLS;
-      default:
-         throw std::runtime_error("Invalid center mode");
-   }
-}
-
-CenterModeTypes smurff::stringToCenterMode(std::string c)
-{
-   if (c == CENTER_MODE_STR_NONE)
-      return CenterModeTypes::CENTER_NONE;
-   else if (c == CENTER_MODE_STR_GLOBAL)
-      return CenterModeTypes::CENTER_GLOBAL;
-   else if (c == CENTER_MODE_STR_VIEW)
-      return CenterModeTypes::CENTER_VIEW;
-   else if (c == CENTER_MODE_STR_ROWS)
-      return CenterModeTypes::CENTER_ROWS;
-   else if (c == CENTER_MODE_STR_COLS)
-      return CenterModeTypes::CENTER_COLS;
-   else
-      throw std::runtime_error("Invalid center mode " + c);
-}
-
-
 bool Config::validate(bool throw_error) const
 {
    if (!train.getRows().size())

@@ -29,29 +29,14 @@ enum class PriorTypes
    normal,
 };
 
-enum class CenterModeTypes : int
-{
-   CENTER_INVALID = -10,
-   CENTER_NONE = -3,
-   CENTER_GLOBAL = -2,
-   CENTER_VIEW = -1,
-   CENTER_COLS = 0,
-   CENTER_ROWS = 1
-};
-
 PriorTypes stringToPriorType(std::string name);
 
 std::string priorTypeToString(PriorTypes type);
-
-std::string centerModeToString(CenterModeTypes cm);
-
-CenterModeTypes stringToCenterMode(std::string c);
 
 struct Config 
 {
     //-- train and test
     MatrixConfig train, test;
-    CenterModeTypes center_mode_type = CenterModeTypes::CENTER_GLOBAL;
 
     //-- features
     std::vector<MatrixConfig> row_features;
