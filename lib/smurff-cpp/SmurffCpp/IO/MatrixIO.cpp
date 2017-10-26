@@ -111,6 +111,8 @@ MatrixConfig matrix_io::read_matrix(const std::string& filename)
    }
 }
 
+// MatrixMarket format specification
+// https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
 MatrixConfig matrix_io::read_matrix_market(std::istream& in)
 {
    // Check that stream has MatrixMarket format data
@@ -194,8 +196,8 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
          if (in.fail())
             throw std::runtime_error("Could not parse an entry line for coordinate matrix format");
 
-         rows[i] = row;
-         cols[i] = col;
+         rows[i] = row - 1;
+         cols[i] = col - 1;
          vals[i] = val;
       }
 
@@ -406,7 +408,8 @@ void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& ma
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
-         matrix_io::write_sparse_float64_mtx(fileStream, matrixConfig);
+         //matrix_io::write_sparse_float64_mtx(fileStream, matrixConfig);
+         matrix_io::write_matrix_market(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::csv:
@@ -428,6 +431,8 @@ void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& ma
    }
 }
 
+// MatrixMarket format specification
+// https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
 void matrix_io::write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig)
 {
    out << "%%MatrixMarket ";
@@ -450,8 +455,8 @@ void matrix_io::write_matrix_market(std::ostream& out, const MatrixConfig& matri
       out << matrixConfig.getNNZ() << std::endl;
       for (std::uint64_t i = 0; i < matrixConfig.getNNZ(); i++)
       {
-         const std::uint32_t& row = matrixConfig.getColumns()[i];
-         const std::uint32_t& col = matrixConfig.getColumns()[i + matrixConfig.getNNZ()];
+         const std::uint32_t& row = matrixConfig.getColumns()[i] + 1;
+         const std::uint32_t& col = matrixConfig.getColumns()[i + matrixConfig.getNNZ()] + 1;
          const double& val = matrixConfig.getValues()[i];
          out << row << " " << col << " " << val << std::endl;
       }
@@ -570,6 +575,18 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::VectorXd&
    V = X; // this will fail if X has more than one column
 }
 
+void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
+{
+   // Check matrix type == dense
+   throw "Not implemeted yet";
+}
+
+void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<double>& X)
+{
+   // Check matrix type == sparse
+   throw "Not implemeted yet";
+}
+
 void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd& X)
 {
    matrix_io::MatrixType matrixType = ExtensionToMatrixType(filename);
@@ -583,7 +600,11 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd&
    case matrix_io::MatrixType::sbm:
       throw "Invalid matrix type";
    case matrix_io::MatrixType::mtx:
-      throw "Invalid matrix type";
+      {
+         std::ifstream fileStream(filename);
+         matrix_io::eigen::read_matrix_market(fileStream, X);
+      }
+      break;
    case matrix_io::MatrixType::csv:
       {
          std::ifstream fileStream(filename);
@@ -626,7 +647,8 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMat
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
-         matrix_io::eigen::read_sparse_float64_mtx(fileStream, X);
+         //matrix_io::eigen::read_sparse_float64_mtx(fileStream, X);
+         matrix_io::eigen::read_matrix_market(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::csv:
@@ -973,4 +995,14 @@ void matrix_io::eigen::write_sparse_binary_bin(std::ostream& out, const Eigen::S
    out.write(reinterpret_cast<const char*>(&nnz), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
    out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
+}
+
+void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::MatrixXd& X)
+{
+   throw "Not implemeted yet";
+}
+
+void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::SparseMatrix<double>& X)
+{
+   throw "Not implemeted yet";
 }

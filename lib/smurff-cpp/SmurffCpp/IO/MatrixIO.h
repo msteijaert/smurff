@@ -39,8 +39,6 @@ namespace smurff { namespace matrix_io
 
    MatrixConfig read_matrix(const std::string& filename);
 
-   MatrixConfig read_matrix_market(std::istream& in);
-
    MatrixConfig read_dense_float64_bin(std::istream& in);
    MatrixConfig read_dense_float64_csv(std::istream& in);
 
@@ -49,11 +47,11 @@ namespace smurff { namespace matrix_io
 
    MatrixConfig read_sparse_binary_bin(std::istream& in);
 
+   MatrixConfig read_matrix_market(std::istream& in);
+
    // ===
 
    void write_matrix(const std::string& filename, const MatrixConfig& matrixConfig);
-
-   void write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig);
 
    void write_dense_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig);
    void write_dense_float64_csv(std::ostream& out, const MatrixConfig& matrixConfig);
@@ -62,6 +60,8 @@ namespace smurff { namespace matrix_io
    void write_sparse_float64_mtx(std::ostream& out, const MatrixConfig& matrixConfig);
 
    void write_sparse_binary_bin(std::ostream& out, const MatrixConfig& matrixConfig);
+
+   void write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig);
 
    namespace eigen{
       void read_matrix(const std::string& filename, Eigen::VectorXd& V);
@@ -78,6 +78,9 @@ namespace smurff { namespace matrix_io
 
       void read_sparse_binary_bin(std::istream& in, Eigen::SparseMatrix<double>& X);
 
+      void read_matrix_market(std::istream& in, Eigen::MatrixXd& X);
+      void read_matrix_market(std::istream& in, Eigen::SparseMatrix<double>& X);
+
       // ===
 
       void write_matrix(const std::string& filename, const Eigen::MatrixXd& X);
@@ -91,5 +94,8 @@ namespace smurff { namespace matrix_io
       void write_sparse_float64_mtx(std::ostream& out, const Eigen::SparseMatrix<double>& X);
 
       void write_sparse_binary_bin(std::ostream& out, const Eigen::SparseMatrix<double>& X);
+
+      void write_matrix_market(std::ostream& out, const Eigen::MatrixXd& X);
+      void write_matrix_market(std::ostream& out, const Eigen::SparseMatrix<double>& X);
    }
 }}
