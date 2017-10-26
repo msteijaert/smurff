@@ -47,14 +47,14 @@ for f in args.csv_file:
         # skip if not in envs
         if args.env and t["env"] not in args.env:
             num_skipped += 1
-            if verbose:
+            if args.verbose:
                 print(t["name"] + " not in env " + args.envs)
             continue
 
         # warn if not in reference
         if t["name"] not in expected_pass:
             num_skipped += 1
-            if verbose:
+            if args.verbose:
                 print(t["name"] + " not found in " + args.reference)
             continue
 
