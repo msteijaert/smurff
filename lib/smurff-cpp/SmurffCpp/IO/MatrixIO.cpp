@@ -575,18 +575,6 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::VectorXd&
    V = X; // this will fail if X has more than one column
 }
 
-void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
-{
-   // Check matrix type == dense
-   throw "Not implemeted yet";
-}
-
-void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<double>& X)
-{
-   // Check matrix type == sparse
-   throw "Not implemeted yet";
-}
-
 void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd& X)
 {
    matrix_io::MatrixType matrixType = ExtensionToMatrixType(filename);
@@ -823,6 +811,181 @@ void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMat
    X.setFromTriplets(triplets.begin(), triplets.end());
 }
 
+void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
+{
+   // Check that stream has MatrixMarket format data
+   std::array<char, 15> matrixMarketArr;
+   in.read(matrixMarketArr.data(), 14);
+   std::string matrixMarketStr(matrixMarketArr.begin(), matrixMarketArr.end());
+   if (matrixMarketStr != "%%MatrixMarket" && !std::isblank(in.get()))
+   {
+      std::stringstream ss;
+      ss << "Cannot read MatrixMarket from input stream: ";
+      ss << "the first 15 characters must be '%%MatrixMarket' followed by at least one blank";
+      throw std::runtime_error(ss.str());
+   }
+
+   // Parse MatrixMarket header
+   std::string headerStr;
+   std::getline(in, headerStr);
+   std::stringstream headerStream(headerStr);
+
+   std::string object;
+   headerStream >> object;
+   std::transform(object.begin(), object.end(), object.begin(), ::toupper);
+
+   std::string format;
+   headerStream >> format;
+   std::transform(format.begin(), format.end(), format.begin(), ::toupper);
+
+   std::string field;
+   headerStream >> field;
+   std::transform(field.begin(), field.end(), field.begin(), ::toupper);
+
+   std::string symmetry;
+   headerStream >> symmetry;
+   std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::toupper);
+
+   // Check object type
+   if (object != "MATRIX")
+   {
+      std::stringstream ss;
+      ss << "Invalid MartrixMarket object type: expected 'matrix' but got '" << object << "'";
+      throw std::runtime_error(ss.str());
+   }
+
+   // Check field type
+   if (field != "REAL")
+      throw std::runtime_error("Invalid MatrixMarket field type: only 'real' field type is supported");
+
+   // Check symmetry type
+   if (symmetry != "GENERAL")
+      throw std::runtime_error("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
+
+   // Skip comments and empty lines
+   while (in.peek() == '%' || in.peek() == '\n')
+      in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+   if (format != "ARRAY")
+      throw std::runtime_error("Cannot read a sparse matrix as Eigen::MatrixXd");
+
+   std::uint64_t nrows;
+   std::uint64_t ncols;
+   in >> nrows >> ncols;
+
+   if (in.fail())
+      throw std::runtime_error("Could not get 'rows', 'cols' values for array matrix format");
+
+   X.resize(nrows, ncols);
+
+   for (std::uint64_t col = 0; col < ncols; col++)
+   {
+      for (std::uint64_t row = 0; row < nrows; row++)
+      {
+         while (in.peek() == '%' || in.peek() == '\n')
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+         double val;
+         in >> val;
+         if (in.fail())
+            throw std::runtime_error("Could not parse an entry line for array matrix format");
+
+         X(row, col) = val;
+      }
+   }
+}
+
+void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<double>& X)
+{
+   // Check that stream has MatrixMarket format data
+   std::array<char, 15> matrixMarketArr;
+   in.read(matrixMarketArr.data(), 14);
+   std::string matrixMarketStr(matrixMarketArr.begin(), matrixMarketArr.end());
+   if (matrixMarketStr != "%%MatrixMarket" && !std::isblank(in.get()))
+   {
+      std::stringstream ss;
+      ss << "Cannot read MatrixMarket from input stream: ";
+      ss << "the first 15 characters must be '%%MatrixMarket' followed by at least one blank";
+      throw std::runtime_error(ss.str());
+   }
+
+   // Parse MatrixMarket header
+   std::string headerStr;
+   std::getline(in, headerStr);
+   std::stringstream headerStream(headerStr);
+
+   std::string object;
+   headerStream >> object;
+   std::transform(object.begin(), object.end(), object.begin(), ::toupper);
+
+   std::string format;
+   headerStream >> format;
+   std::transform(format.begin(), format.end(), format.begin(), ::toupper);
+
+   std::string field;
+   headerStream >> field;
+   std::transform(field.begin(), field.end(), field.begin(), ::toupper);
+
+   std::string symmetry;
+   headerStream >> symmetry;
+   std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::toupper);
+
+   // Check object type
+   if (object != "MATRIX")
+   {
+      std::stringstream ss;
+      ss << "Invalid MartrixMarket object type: expected 'matrix' but got '" << object << "'";
+      throw std::runtime_error(ss.str());
+   }
+
+   // Check field type
+   if (field != "REAL")
+      throw std::runtime_error("Invalid MatrixMarket field type: only 'real' field type is supported");
+
+   // Check symmetry type
+   if (symmetry != "GENERAL")
+      throw std::runtime_error("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
+
+   // Skip comments and empty lines
+   while (in.peek() == '%' || in.peek() == '\n')
+      in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+
+   if (format != "COORDINATE")
+      throw std::runtime_error("Cannot read a dense matrix as Eigen::SparseMatrix<double>");
+
+   std::uint64_t nrows;
+   std::uint64_t ncols;
+   std::uint64_t nnz;
+   in >> nrows >> ncols >> nnz;
+
+   if (in.fail())
+      throw std::runtime_error("Could not get 'rows', 'cols', 'nnz' values for coordinate matrix format");
+
+   X.resize(nrows, ncols);
+
+   std::vector<Eigen::Triplet<double> > triplets;
+   triplets.reserve(nnz);
+
+   for (std::uint64_t i = 0; i < nnz; i++)
+   {
+      while (in.peek() == '%' || in.peek() == '\n')
+         in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+      std::uint32_t row;
+      std::uint32_t col;
+      double val;
+      in >> row >> col >> val;
+
+      if (in.fail())
+         throw std::runtime_error("Could not parse an entry line for coordinate matrix format");
+
+      triplets.push_back(Eigen::Triplet<double>(row - 1, col - 1, val));
+   }
+
+   X.setFromTriplets(triplets.begin(), triplets.end());
+}
+
 // ======================================================================================================
 
 void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X)
@@ -835,7 +998,10 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
    case matrix_io::MatrixType::sbm:
       throw "Invalid matrix type";
    case matrix_io::MatrixType::mtx:
-      throw "Invalid matrix type";
+      {
+         std::ofstream fileStream(filename);
+         matrix_io::eigen::write_matrix_market(fileStream, X);
+      }
    case matrix_io::MatrixType::csv:
       {
          std::ofstream fileStream(filename);
@@ -875,7 +1041,7 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Sp
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
-         matrix_io::eigen::write_sparse_float64_mtx(fileStream, X);
+         matrix_io::eigen::write_matrix_market(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::csv:
@@ -999,10 +1165,23 @@ void matrix_io::eigen::write_sparse_binary_bin(std::ostream& out, const Eigen::S
 
 void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::MatrixXd& X)
 {
-   throw "Not implemeted yet";
+   out << "%%MatrixMarket matrix array real general" << std::endl;
+   out << X.rows() << " ";
+   out << X.cols() << std::endl;
+
+   for (Eigen::SparseMatrix<double>::Index row = 0; row < X.rows(); row++)
+      for (Eigen::SparseMatrix<double>::Index col = 0; col < X.cols(); col++)
+         out << X(row, col) << std::endl;
 }
 
 void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::SparseMatrix<double>& X)
 {
-   throw "Not implemeted yet";
+   out << "%%MatrixMarket matrix coordinate real general" << std::endl;
+   out << X.rows() << " ";
+   out << X.cols() << " ";
+   out << X.nonZeros() << std::endl;
+
+   for (Eigen::Index i = 0; i < X.outerSize(); ++i)
+      for (Eigen::SparseMatrix<double>::InnerIterator it(X, i); it; ++it)
+         out << it.row() + 1 << " " << it.col() + 1 << " " << it.value() << std::endl;
 }
