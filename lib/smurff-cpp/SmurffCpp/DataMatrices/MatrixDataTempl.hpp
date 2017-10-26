@@ -9,12 +9,12 @@ namespace smurff
    template<typename YType>
    class MatrixDataTempl : public MatrixData
    {
-   public:
-      YType Y; // eigen matrix with the data
+   private:
+      YType m_Y; // eigen matrix with the data
 
    public:
       MatrixDataTempl(YType Y) 
-         : Y(Y)
+         : m_Y(Y)
       {
       }
 
@@ -23,12 +23,29 @@ namespace smurff
          assert(nrow() > 0 && ncol() > 0);
       }
 
-      PVec<>   dim() const override { return PVec<>({ static_cast<int>(Y.rows()), static_cast<int>(Y.cols()) }); }
-      int    nnz() const override { return Y.nonZeros(); }
-      double sum() const override { return Y.sum(); }
+      PVec<> dim() const override 
+      { 
+         return PVec<>({ static_cast<int>(Y().rows()), static_cast<int>(Y().cols()) }); 
+      }
+
+      int nnz() const override 
+      { 
+         return Y().nonZeros(); 
+      }
+
+      double sum() const override 
+      { 
+         return Y().sum(); 
+      }
 
       double var_total() const override;
       double sumsq(const SubModel& model) const override;
+
+   public:
+      const YType& Y() const
+      {
+         return m_Y;
+      }
    };
 
    template<>

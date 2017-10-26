@@ -12,12 +12,12 @@ double DenseMatrixData::train_rmse(const SubModel& model) const
 {
    double se = 0.;
    #pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c=0; c<Y.cols();++c) 
+   for(int c = 0; c < Y().cols(); ++c) 
    {
-      for(int m=0; m<Y.rows(); ++m) 
+      for(int m = 0; m < Y().rows(); ++m) 
       {
-         se += square(Y(m,c) - predict({m,c}, model));
+         se += square(Y()(m,c) - predict({m,c}, model));
       }
    }
-   return sqrt( se / Y.rows() / Y.cols() );
+   return sqrt( se / Y().rows() / Y().cols() );
 }

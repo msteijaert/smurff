@@ -6,8 +6,8 @@ namespace smurff
    double MatrixDataTempl<Eigen::MatrixXd>::var_total() const
    {
       double cwise_mean = this->sum() / (this->size() - this->nna());
-      double se = (Y.array() - cwise_mean).square().sum();
-      double var = se / Y.nonZeros();
+      double se = (Y().array() - cwise_mean).square().sum();
+      double var = se / Y().nonZeros();
       if (var <= 0.0 || std::isnan(var))
       {
          // if var cannot be computed using 1.0
@@ -24,15 +24,15 @@ namespace smurff
       double se = 0.0;
 
       #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
-      for (int k = 0; k < Y.outerSize(); ++k)
+      for (int k = 0; k < Y().outerSize(); ++k)
       {
-         for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it)
+         for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
          {
             se += square(it.value() - cwise_mean);
          }
       }
 
-      double var = se / Y.nonZeros();
+      double var = se / Y().nonZeros();
       if (var <= 0.0 || std::isnan(var))
       {
          // if var cannot be computed using 1.0
@@ -100,7 +100,7 @@ namespace smurff
       {
          for (int i = 0; i < this->nrow(); i++) 
          {
-               sumsq += square(predict({i,j}, model) - this->Y(i,j));
+               sumsq += square(predict({i,j}, model) - this->Y()(i,j));
          }
       }
 
@@ -113,9 +113,9 @@ namespace smurff
       double sumsq = 0.0;
 
       #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-      for (int j = 0; j < Y.outerSize(); j++) 
+      for (int j = 0; j < Y().outerSize(); j++) 
       {
-         for (Eigen::SparseMatrix<double>::InnerIterator it(Y, j); it; ++it) 
+         for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
          {
                int i = it.row();
                sumsq += square(predict({i,j}, model)- it.value());
