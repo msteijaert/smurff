@@ -15,46 +15,10 @@
 
 namespace smurff
 {
-
-   //AGE: This is a fake interface that allows to isolate all code dependencies on matrix centring funcionality
-
-   class IDataCentringBaseFake
-   {
-   public:
-      virtual ~IDataCentringBaseFake(){}
-
-   public:
-      double offset_to_mean(const PVec<>& pos) const
-      {
-         return 0.0;
-      }
-
-      double getModeMeanItem(int m, int c) const
-      {
-         return 0.0;
-      }
-
-      double getGlobalMean() const
-      {
-         return 0.0;
-      }
-
-
-      double getCwiseMean() const
-      {
-         return 0.0;
-      }
-
-      bool getMeanComputed() const
-      {
-         return false;
-      }
-   };
-
    //AGE: This is a fake interface that allows to isolate all code dependencies on matrix centring funcionality
 
    template<typename YType>
-   class IDataCentringFake : public IDataCentringBaseFake
+   class IDataCentringFake
    {
    private:
       std::shared_ptr<std::vector<YType> > Ycentered;
@@ -81,19 +45,11 @@ namespace smurff
 
    //AGE: this is a temp fake field to hold fake interface to isolate matrix centring dependencies
 
-   private:
-      std::shared_ptr<IDataCentringBaseFake> m_center;
-
    public:
       template<typename T>
       std::shared_ptr<IDataCentringFake<T> > getCenter() const
       {
-         return std::dynamic_pointer_cast<IDataCentringFake<T> >(m_center);
-      }
-
-      std::shared_ptr<IDataCentringBaseFake> getCenter() const
-      {
-         return m_center;
+         throw std::runtime_error("not implemented");
       }
 
    protected:

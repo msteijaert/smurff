@@ -69,9 +69,9 @@ SubModel Model::full()
     return SubModel(*this);
 }
 
-double Model::predict(const PVec<> &pos, const Data &data) const
+double Model::predict(const PVec<> &pos) const
 {
-    return dot(pos) + data.getCenter()->offset_to_mean(pos);
+    return dot(pos);
 }
 
 

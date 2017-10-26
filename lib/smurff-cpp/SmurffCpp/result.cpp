@@ -42,24 +42,6 @@ void Result::init() {
     }
 }
 
-
-double Result::rmse_using_globalmean(double mean) {
-    double se = 0.;
-    for(auto t : predictions) se += square(t.val - mean);
-    return sqrt( se / predictions.size() );
-}
-
-double Result::rmse_using_modemean(const Data &data, int mode) {
-     const unsigned N = predictions.size();
-     double se = 0.;
-     for(auto t : predictions) {
-        int n = mode == 0 ? t.row : t.col;
-        double pred = data.getCenter()->getModeMeanItem(mode, n);
-        se += square(t.val - pred);
-     }
-     return sqrt( se / N );
-}
-
 //--- output model to files
 void Result::save(std::string prefix) {
     if (predictions.empty()) return;
@@ -84,18 +66,19 @@ void Result::save(std::string prefix) {
 
 ///--- update RMSE and AUC
 
-void Result::update(const Model &model, const Data &data,  bool burnin)
+void Result::update(const Model &model, bool burnin)
 {
     if (predictions.size() == 0) return;
     const unsigned N = predictions.size();
 
-    if (burnin) {
+    if (burnin) 
+    {
         double se_1sample = 0.0;
         #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
         for(unsigned k=0; k<predictions.size(); ++k) 
         {
             auto &t = predictions[k];
-            t.pred_1sample = model.predict({t.row, t.col}, data);
+            t.pred_1sample = model.predict({t.row, t.col});
             se_1sample += square(t.val - t.pred_1sample);
         }
         burnin_iter++;
@@ -104,13 +87,15 @@ void Result::update(const Model &model, const Data &data,  bool burnin)
             auc_1sample = calc_auc(predictions, threshold, 
                 [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
         }
-    } else {
+    } 
+    else 
+    {
         double se_1sample = 0.0, se_avg = 0.0;
         #pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
         for(unsigned k=0; k<predictions.size(); ++k) 
         {
             auto &t = predictions[k];
-            const double pred = model.predict({t.row, t.col}, data);
+            const double pred = model.predict({t.row, t.col});
             se_1sample += square(t.val - pred);
             double delta = pred - t.pred_avg;
             double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
@@ -238,15 +223,14 @@ std::pair<double,double> eval_rmse_tensor(
 }
 */
 
-std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
+std::ostream &Result::info(std::ostream &os, std::string indent)
 {
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
-        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data.getCenter()->getGlobalMean()) << endl;
-        os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
-        os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;
-    } else {
+    } 
+    else 
+    {
         os << indent << "Test data: -\n";
     }
     if (classify) {

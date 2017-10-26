@@ -26,7 +26,7 @@ Data &ILatentPrior::data() const
 }
 
 double ILatentPrior::predict(const PVec<> &pos) const {
-    return model().predict(pos, data());
+    return model().predict(pos);
 }
 
 INoiseModel &ILatentPrior::noise() 
