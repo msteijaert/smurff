@@ -15,26 +15,6 @@
 
 namespace smurff
 {
-   //AGE: This is a fake interface that allows to isolate all code dependencies on matrix centring funcionality
-
-   template<typename YType>
-   class IDataCentringFake
-   {
-   private:
-      std::shared_ptr<std::vector<YType> > Ycentered;
-
-   public:
-      const std::vector<YType>& getYc() const
-      {
-         return *Ycentered.get();
-      }
-
-      std::shared_ptr<std::vector<YType> > getYcPtr() const
-      {
-         return Ycentered;
-      }
-   };
-
    class Data
    {
       //AGE: Only MatricesData should call init methods, center methods etc
@@ -42,15 +22,6 @@ namespace smurff
 
    public:
       std::string name;
-
-   //AGE: this is a temp fake field to hold fake interface to isolate matrix centring dependencies
-
-   public:
-      template<typename T>
-      std::shared_ptr<IDataCentringFake<T> > getCenter() const
-      {
-         throw std::runtime_error("not implemented");
-      }
 
    protected:
       Data();

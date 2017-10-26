@@ -46,6 +46,11 @@ namespace smurff
       {
          return m_Y;
       }
+
+      const YType& Yc(int mode) const
+      {
+         throw std::runtime_error("Not implemented");
+      }
    };
 
    template<>
