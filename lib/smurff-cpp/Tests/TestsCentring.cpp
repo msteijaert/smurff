@@ -16,6 +16,8 @@ using namespace smurff;
 
 //===
 
+/*
+
 void test_dimentions_scarse(Data* dims)
 {
    REQUIRE(dims->nmode() == 2); // number of dimensions
@@ -837,3 +839,4 @@ TEST_CASE("ScarceBinaryMatrixData IMeanCentering CENTER_ROWS")
    REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(0).transpose(), 0.01));
    REQUIRE(matrix_utils::equals(expectedMatrix, sbm.getYc().at(1), 0.01));
 }
+*/

@@ -5,8 +5,8 @@ namespace smurff
    template<>
    double MatrixDataTempl<Eigen::MatrixXd>::var_total() const
    {
-      assert(getMeanComputed());
-      double se = (Y.array() - getCwiseMean()).square().sum();
+      assert(getCenter()->getMeanComputed());
+      double se = (Y.array() - getCenter()->getCwiseMean()).square().sum();
       double var = se / Y.nonZeros();
       if (var <= 0.0 || std::isnan(var))
       {
@@ -20,7 +20,7 @@ namespace smurff
    template<>
    double MatrixDataTempl<Eigen::SparseMatrix<double> >::var_total() const
    {
-      assert(getMeanComputed());
+      assert(getCenter()->getMeanComputed());
       double se = 0.0;
 
       #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
@@ -28,7 +28,7 @@ namespace smurff
       {
          for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it)
          {
-            se += square(it.value() - getCwiseMean());
+            se += square(it.value() - getCenter()->getCwiseMean());
          }
       }
 

@@ -218,7 +218,7 @@ void Session::setFromConfig(const Config &c)
    */
 
    // center mode
-   data().setCenterMode(config.center_mode_type);
+   data().getCenter()->setCenterMode(config.center_mode_type);
 
    //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
    add_prior(*this, 0, config.row_prior_type, row_sideinfo, config.lambda_beta, config.tol, config.direct);

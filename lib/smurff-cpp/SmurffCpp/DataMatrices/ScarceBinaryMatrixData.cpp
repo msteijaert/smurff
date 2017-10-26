@@ -14,7 +14,7 @@ void ScarceBinaryMatrixData::get_pnm(const SubModel& model, int mode, int n, Eig
 {
     // todo : check noise == probit noise
     auto u = model.U(mode).col(n);
-    for (Eigen::SparseMatrix<double>::InnerIterator it(getYcPtr()->at(mode), n); it; ++it)
+    for (Eigen::SparseMatrix<double>::InnerIterator it(getCenter<Eigen::SparseMatrix<double>>()->getYcPtr()->at(mode), n); it; ++it)
     {
         const auto &col = model.V(mode).col(it.row());
         MM.noalias() += col * col.transpose();

@@ -13,9 +13,9 @@ void ScarceMatrixData::init_pre()
    MatrixDataTempl<Eigen::SparseMatrix<double> >::init_pre();
 
    // check no rows, nor cols withouth data
-   for(unsigned i=0; i<getYcPtr()->size(); ++i)
+   for(unsigned i=0; i<getCenter<Eigen::SparseMatrix<double>>()->getYcPtr()->size(); ++i)
    {
-      auto &v = getYcPtr()->operator[](i);
+      auto &v = getCenter<Eigen::SparseMatrix<double>>()->getYcPtr()->operator[](i);
       auto &count = num_empty[i];
       for (int j = 0; j < v.cols(); j++)
       {
@@ -48,7 +48,7 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
 
 void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
-   auto &Y = getYcPtr()->at(mode);
+   auto &Y = getCenter<Eigen::SparseMatrix<double>>()->getYcPtr()->at(mode);
    const int num_latent = model.nlatent();
    const auto &Vf = model.V(mode);
    const int local_nnz = Y.col(n).nonZeros();

@@ -15,6 +15,81 @@
 
 namespace smurff
 {
+
+   //AGE: This is a fake interface that allows to isolate all code dependencies on matrix centring funcionality
+
+   class IDataCentringBaseFake
+   {
+   public:
+      virtual ~IDataCentringBaseFake(){}
+
+   public:
+      static CenterModeTypes stringToCenterMode(std::string c)
+      {
+         return CenterModeTypes::CENTER_INVALID;
+      }
+
+      void setCenterMode(std::string c)
+      {
+
+      }
+
+      void setCenterMode(CenterModeTypes type)
+      {
+
+      }
+
+      double offset_to_mean(const PVec<>& pos) const
+      {
+         return 0.0;
+      }
+
+      double getModeMeanItem(int m, int c) const
+      {
+         return 0.0;
+      }
+
+      double getGlobalMean() const
+      {
+         return 0.0;
+      }
+
+      std::string getCenterModeName() const
+      {
+         return std::string();
+      }
+
+      double getCwiseMean() const
+      {
+         return 0.0;
+      }
+
+      bool getMeanComputed() const
+      {
+         return false;
+      }
+   };
+
+   //AGE: This is a fake interface that allows to isolate all code dependencies on matrix centring funcionality
+
+   template<typename YType>
+   class IDataCentringFake : public IDataCentringBaseFake
+   {
+   private:
+      std::shared_ptr<std::vector<YType> > Ycentered;
+
+   public:
+      const std::vector<YType>& getYc() const
+      {
+         return *Ycentered.get();
+      }
+
+      std::shared_ptr<std::vector<YType> > getYcPtr() const
+      {
+         return Ycentered;
+      }
+   };
+
    class Data
    {
       //AGE: Only MatricesData should call init methods, center methods etc
@@ -22,6 +97,23 @@ namespace smurff
 
    public:
       std::string name;
+
+   //AGE: this is a temp fake field to hold fake interface to isolate matrix centring dependencies
+
+   private:
+      std::shared_ptr<IDataCentringBaseFake> m_center;
+
+   public:
+      template<typename T>
+      std::shared_ptr<IDataCentringFake<T> > getCenter() const
+      {
+         return std::dynamic_pointer_cast<IDataCentringFake<T> >(m_center);
+      }
+
+      std::shared_ptr<IDataCentringBaseFake> getCenter() const
+      {
+         return m_center;
+      }
 
    protected:
       Data();

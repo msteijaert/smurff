@@ -29,7 +29,7 @@ void Data::update(const SubModel& model)
 
 double Data::predict(const PVec<>& pos, const SubModel& model) const
 {
-   return model.dot(pos) + this->offset_to_mean(pos);
+   return model.dot(pos) + this->getCenter()->offset_to_mean(pos);
 }
 
 //#### dimention functions ####
@@ -79,9 +79,9 @@ void Data::setNoiseModel(INoiseModel* nm)
 std::ostream& Data::info(std::ostream& os, std::string indent)
 {
    os << indent << "Type: " << name << "\n";
-   os << indent << "Component-wise mean: " << getCwiseMean() << "\n";
+   os << indent << "Component-wise mean: " << this->getCenter()->getCwiseMean() << "\n";
    os << indent << "Component-wise variance: " << var_total() << "\n";
-   os << indent << "Center: " << getCenterModeName() << "\n";
+   os << indent << "Center: " << this->getCenter()->getCenterModeName() << "\n";
    os << indent << "Noise: ";
    noise().info(os, "");
    return os;
