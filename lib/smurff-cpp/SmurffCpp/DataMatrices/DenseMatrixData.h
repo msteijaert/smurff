@@ -10,7 +10,6 @@ namespace smurff
       DenseMatrixData(Eigen::MatrixXd Y);
 
    public:
-      void center(double global_mean) override;
       double train_rmse(const SubModel& model) const override;
    };
 }
