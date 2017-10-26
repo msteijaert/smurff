@@ -38,9 +38,9 @@ public:
 
    int l0;
 
-   const Eigen::SparseMatrix<double>& SparseYC() const
+   const Eigen::SparseMatrix<double>& SparseY() const
    {
-      return dynamic_cast<ScarceMatrixData &>(data()).Yc(m_mode);
+      return dynamic_cast<ScarceMatrixData &>(data()).Y(m_mode);
    }
 
 public:
@@ -88,13 +88,13 @@ public:
        auto &Us = U();
        auto &Vs = V();
 
-       const int nnz = SparseYC().col(i).nonZeros();
+       const int nnz = SparseY().col(i).nonZeros();
        Eigen::VectorXd Yhat(nnz);
 
        // precalculating Yhat and Qi
        int idx = 0;
        Eigen::VectorXd Qi = lambda;
-       for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
+       for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
        {
          Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
          Yhat(idx)     = model().dot({(int)it.col(), (int)it.row()});
@@ -110,7 +110,7 @@ public:
            double Lid = lambda(d) * (mu(d) + Uhat(d, i));
 
            idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
+           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
            {
                const double vjd = Vs(d, it.row());
                // L_id += alpha * (Y_ij - k_ijd) * v_jd
@@ -128,7 +128,7 @@ public:
            // updating Yhat
            double uid_delta = Us(d, i) - uid_old;
            idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
+           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
            {
                Yhat(idx) += uid_delta * Vs(d, it.row());
            }

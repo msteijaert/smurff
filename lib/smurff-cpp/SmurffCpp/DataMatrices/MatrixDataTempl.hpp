@@ -10,12 +10,15 @@ namespace smurff
    class MatrixDataTempl : public MatrixData
    {
    private:
-      YType m_Y; // eigen matrix with the data
+      // eigen matrices with the data
+      std::shared_ptr<std::vector<YType> > m_Yv;
 
    public:
-      MatrixDataTempl(YType Y) 
-         : m_Y(Y)
+      MatrixDataTempl(YType Y)
       {
+         m_Yv = std::shared_ptr<std::vector<YType> >(new std::vector<YType>());
+         m_Yv->push_back(Y.transpose());
+         m_Yv->push_back(Y);
       }
 
       void init_pre() override
@@ -42,14 +45,9 @@ namespace smurff
       double sumsq(const SubModel& model) const override;
 
    public:
-      const YType& Y() const
+      const YType& Y(int mode = 1) const
       {
-         return m_Y;
-      }
-
-      const YType& Yc(int mode) const
-      {
-         throw std::runtime_error("Not implemented");
+         return m_Yv->operator[](mode);
       }
    };
 

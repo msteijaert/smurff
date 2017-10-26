@@ -15,7 +15,7 @@ void ScarceMatrixData::init_pre()
    // check no rows, nor cols withouth data
    for(unsigned mode = 0; mode < nmode(); ++mode)
    {
-      auto& m = this->Yc(mode);
+      auto& m = this->Y(mode);
       auto& count = num_empty[mode];
       for (int j = 0; j < m.cols(); j++)
       {
@@ -49,7 +49,7 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
 
 void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
-   auto &Y = this->Yc(mode);
+   auto &Y = this->Y(mode);
    const int num_latent = model.nlatent();
    const auto &Vf = model.V(mode);
    const int local_nnz = Y.col(n).nonZeros();

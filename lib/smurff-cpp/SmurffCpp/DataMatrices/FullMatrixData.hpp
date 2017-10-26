@@ -21,7 +21,7 @@ namespace smurff
       void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
       {
          const double alpha = this->noise().getAlpha();
-         auto& Y = this->Yc(mode);
+         auto& Y = this->Y(mode);
          rr.noalias() += (model.V(mode) * Y.col(d)) * alpha;
          MM.noalias() += VV[mode] * alpha;
       }
