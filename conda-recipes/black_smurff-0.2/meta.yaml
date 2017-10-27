@@ -1,6 +1,6 @@
 package:
   name: black_smurff
-  version: 0.1
+  version: 0.2
 
 source:
   git_url: https://github.com/ExaScience/smurff
@@ -10,6 +10,7 @@ requirements:
         - python
         - setuptools
     run:
+        - matrix_io
         - scipy
         - macau
         - openblas
