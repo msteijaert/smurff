@@ -18,6 +18,12 @@ using namespace smurff;
 #define EXTENSION_CSV ".csv" //dense matrix (txt file)
 #define EXTENSION_DDM ".ddm" //dense double matrix (binary file)
 
+#define MM_OBJ_MATRIX   "MATRIX"
+#define MM_FMT_ARRAY    "ARRAY"
+#define MM_FMT_COORD    "COORDINATE"
+#define MM_FLD_REAL     "REAL"
+#define MM_SYM_GENERAL  "GENERAL"
+
 matrix_io::MatrixType ExtensionToMatrixType(const std::string& fname)
 {
    std::string extension = fname.substr(fname.find_last_of("."));
@@ -254,7 +260,7 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
    std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::toupper);
 
    // Check object type
-   if (object != "MATRIX")
+   if (object != MM_OBJ_MATRIX)
    {
       std::stringstream ss;
       ss << "Invalid MartrixMarket object type: expected 'matrix' but got '" << object << "'";
@@ -262,11 +268,11 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
    }
 
    // Check field type
-   if (field != "REAL")
+   if (field != MM_FLD_REAL)
       throw std::runtime_error("Invalid MatrixMarket field type: only 'real' field type is supported");
 
    // Check symmetry type
-   if (symmetry != "GENERAL")
+   if (symmetry != MM_SYM_GENERAL)
       throw std::runtime_error("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
 
    // Skip comments and empty lines
@@ -274,7 +280,7 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
       in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
    // Read data
-   if (format == "COORDINATE")
+   if (format == MM_FMT_COORD)
    {
       std::uint64_t nrows;
       std::uint64_t ncols;
@@ -308,7 +314,7 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
 
       return MatrixConfig(nrows, ncols, std::move(rows), std::move(cols), std::move(vals), NoiseConfig());
    }
-   else if (format == "ARRAY")
+   else if (format == MM_FMT_ARRAY)
    {
       std::uint64_t nrows;
       std::uint64_t ncols;
@@ -470,10 +476,10 @@ void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& m
 void matrix_io::write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig)
 {
    out << "%%MatrixMarket ";
-   out << "matrix ";
-   out << (matrixConfig.isDense() ? "array " : "coordinate ");
-   out << "real general";
-   out << std::endl;
+   out << MM_OBJ_MATRIX << " ";
+   out << (matrixConfig.isDense() ? MM_FMT_ARRAY : MM_FMT_COORD) << " ";
+   out << MM_FLD_REAL << " ";
+   out << MM_SYM_GENERAL << std::endl;
 
    if (matrixConfig.isDense())
    {
@@ -727,7 +733,7 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
    std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::toupper);
 
    // Check object type
-   if (object != "MATRIX")
+   if (object != MM_OBJ_MATRIX)
    {
       std::stringstream ss;
       ss << "Invalid MartrixMarket object type: expected 'matrix' but got '" << object << "'";
@@ -735,18 +741,18 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
    }
 
    // Check field type
-   if (field != "REAL")
+   if (field != MM_FLD_REAL)
       throw std::runtime_error("Invalid MatrixMarket field type: only 'real' field type is supported");
 
    // Check symmetry type
-   if (symmetry != "GENERAL")
+   if (symmetry != MM_SYM_GENERAL)
       throw std::runtime_error("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
 
    // Skip comments and empty lines
    while (in.peek() == '%' || in.peek() == '\n')
       in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-   if (format != "ARRAY")
+   if (format != MM_FMT_ARRAY)
       throw std::runtime_error("Cannot read a sparse matrix as Eigen::MatrixXd");
 
    std::uint64_t nrows;
@@ -813,7 +819,7 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
    std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::toupper);
 
    // Check object type
-   if (object != "MATRIX")
+   if (object != MM_OBJ_MATRIX)
    {
       std::stringstream ss;
       ss << "Invalid MartrixMarket object type: expected 'matrix' but got '" << object << "'";
@@ -821,19 +827,18 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
    }
 
    // Check field type
-   if (field != "REAL")
+   if (field != MM_FLD_REAL)
       throw std::runtime_error("Invalid MatrixMarket field type: only 'real' field type is supported");
 
    // Check symmetry type
-   if (symmetry != "GENERAL")
+   if (symmetry != MM_SYM_GENERAL)
       throw std::runtime_error("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
 
    // Skip comments and empty lines
    while (in.peek() == '%' || in.peek() == '\n')
       in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-
-   if (format != "COORDINATE")
+   if (format != MM_FMT_COORD)
       throw std::runtime_error("Cannot read a dense matrix as Eigen::SparseMatrix<double>");
 
    std::uint64_t nrows;
@@ -1019,7 +1024,12 @@ void matrix_io::eigen::write_sparse_binary_bin(std::ostream& out, const Eigen::S
 // https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
 void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::MatrixXd& X)
 {
-   out << "%%MatrixMarket matrix array real general" << std::endl;
+   out << "%%MatrixMarket ";
+   out << MM_OBJ_MATRIX << " ";
+   out << MM_FMT_ARRAY << " ";
+   out << MM_FLD_REAL << " ";
+   out << MM_SYM_GENERAL << std::endl;
+
    out << X.rows() << " ";
    out << X.cols() << std::endl;
 
@@ -1032,7 +1042,12 @@ void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::Matri
 // https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
 void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::SparseMatrix<double>& X)
 {
-   out << "%%MatrixMarket matrix coordinate real general" << std::endl;
+   out << "%%MatrixMarket ";
+   out << MM_OBJ_MATRIX << " ";
+   out << MM_FMT_COORD << " ";
+   out << MM_FLD_REAL << " ";
+   out << MM_SYM_GENERAL << std::endl;
+
    out << X.rows() << " ";
    out << X.cols() << " ";
    out << X.nonZeros() << std::endl;
