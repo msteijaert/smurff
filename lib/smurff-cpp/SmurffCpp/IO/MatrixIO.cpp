@@ -91,8 +91,8 @@ MatrixConfig matrix_io::read_matrix(const std::string& filename)
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
-         return matrix_io::read_sparse_float64_mtx(fileStream);
-         //return matrix_io::read_matrix_market(fileStream);
+         //return matrix_io::read_sparse_float64_mtx(fileStream);
+         return matrix_io::read_matrix_market(fileStream);
       }
    case matrix_io::MatrixType::csv:
       {
@@ -1002,6 +1002,7 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
          std::ofstream fileStream(filename);
          matrix_io::eigen::write_matrix_market(fileStream, X);
       }
+      break;
    case matrix_io::MatrixType::csv:
       {
          std::ofstream fileStream(filename);
@@ -1169,8 +1170,8 @@ void matrix_io::eigen::write_matrix_market(std::ostream& out, const Eigen::Matri
    out << X.rows() << " ";
    out << X.cols() << std::endl;
 
-   for (Eigen::SparseMatrix<double>::Index row = 0; row < X.rows(); row++)
-      for (Eigen::SparseMatrix<double>::Index col = 0; col < X.cols(); col++)
+   for (Eigen::SparseMatrix<double>::Index col = 0; col < X.cols(); col++)
+      for (Eigen::SparseMatrix<double>::Index row = 0; row < X.rows(); row++)
          out << X(row, col) << std::endl;
 }
 
