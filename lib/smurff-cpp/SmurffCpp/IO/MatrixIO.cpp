@@ -91,7 +91,6 @@ MatrixConfig matrix_io::read_matrix(const std::string& filename)
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
-         //return matrix_io::read_sparse_float64_mtx(fileStream);
          return matrix_io::read_matrix_market(fileStream);
       }
    case matrix_io::MatrixType::csv:
@@ -194,53 +193,6 @@ MatrixConfig matrix_io::read_sparse_float64_bin(std::istream& in)
    in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
 
    return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
-}
-
-MatrixConfig matrix_io::read_sparse_float64_mtx(std::istream& in)
-{
-   // Ignore headers and comments:
-   while (in.peek() == '%') in.ignore(2048, '\n');
-
-   // Read defining parameters:
-   std::uint64_t nrow;
-   std::uint64_t ncol;
-   std::uint64_t nnz;
-   in >> nrow >> ncol >> nnz;
-   in.ignore(2048, '\n'); // skip to end of line
-
-   std::vector<std::uint32_t> rows(nnz);
-   std::vector<std::uint32_t> cols(nnz);
-   std::vector<double> values(nnz);
-
-   // Read the data
-   char line[2048];
-   std::uint32_t r,c;
-   double v;
-   for (std::uint64_t l = 0; l < nnz; l++)
-   {
-      in.getline(line, 2048);
-      std::stringstream ls(line);
-      ls >> r >> c;
-      assert(!ls.fail());
-
-      ls >> v;
-      if (ls.fail())
-         v = 1.0;
-
-      r--;
-      c--;
-
-      assert(r < nrow);
-      assert(r >= 0);
-      assert(c < ncol);
-      assert(c >= 0);
-
-      rows[l] = r;
-      cols[l] = c;
-      values[l] = v;
-   }
-
-   return smurff::MatrixConfig(nrow, ncol, rows, cols, values, smurff::NoiseConfig());
 }
 
 MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
@@ -408,7 +360,6 @@ void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& ma
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
-         //matrix_io::write_sparse_float64_mtx(fileStream, matrixConfig);
          matrix_io::write_matrix_market(fileStream, matrixConfig);
       }
       break;
@@ -491,26 +442,6 @@ void matrix_io::write_sparse_float64_bin(std::ostream& out, const MatrixConfig& 
    out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
    out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
-}
-
-void matrix_io::write_sparse_float64_mtx(std::ostream& out, const MatrixConfig& matrixConfig)
-{
-   std::uint64_t nrow = matrixConfig.getNRow();
-   std::uint64_t ncol = matrixConfig.getNCol();
-   std::uint64_t nnz = matrixConfig.getNNZ();
-
-   //write row col nnz
-   out << nrow << "\t" << ncol << "\t" << nnz << std::endl;
-
-   const std::vector<std::uint32_t>& rows = matrixConfig.getRows();
-   const std::vector<std::uint32_t>& cols = matrixConfig.getCols();
-   const std::vector<double>& values = matrixConfig.getValues();
-
-   //write values
-   for(std::uint64_t i = 0; i < nnz; i++)
-   {
-      out << rows[i] + 1 << "\t" << cols[i] + 1 << "\t" << values[i] << std::endl;
-   }
 }
 
 void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& matrixConfig)
@@ -635,7 +566,6 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMat
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
-         //matrix_io::eigen::read_sparse_float64_mtx(fileStream, X);
          matrix_io::eigen::read_matrix_market(fileStream, X);
       }
       break;
@@ -724,58 +654,6 @@ void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMa
 
    std::vector<double> values(nnz);
    in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
-
-   std::vector<Eigen::Triplet<double> > triplets;
-   for(uint64_t i = 0; i < nnz; i++)
-      triplets.push_back(Eigen::Triplet<double>(rows[i], cols[i], values[i]));
-
-   X.resize(nrow, ncol);
-   X.setFromTriplets(triplets.begin(), triplets.end());
-}
-
-void matrix_io::eigen::read_sparse_float64_mtx(std::istream& in, Eigen::SparseMatrix<double>& X)
-{
-   // Ignore headers and comments:
-   while (in.peek() == '%') in.ignore(2048, '\n');
-
-   // Read defining parameters:
-   std::uint64_t nrow;
-   std::uint64_t ncol;
-   std::uint64_t nnz;
-   in >> nrow >> ncol >> nnz;
-   in.ignore(2048, '\n'); // skip to end of line
-
-   std::vector<std::uint32_t> rows(nnz);
-   std::vector<std::uint32_t> cols(nnz);
-   std::vector<double> values(nnz);
-
-   // Read the data
-   char line[2048];
-   std::uint32_t r,c;
-   double v;
-   for (std::uint64_t l = 0; l < nnz; l++)
-   {
-      in.getline(line, 2048);
-      std::stringstream ls(line);
-      ls >> r >> c;
-      assert(!ls.fail());
-
-      ls >> v;
-      if (ls.fail())
-         v = 1.0;
-
-      r--;
-      c--;
-
-      assert(r < nrow);
-      assert(r >= 0);
-      assert(c < ncol);
-      assert(c >= 0);
-
-      rows[l] = r;
-      cols[l] = c;
-      values[l] = v;
-   }
 
    std::vector<Eigen::Triplet<double> > triplets;
    for(uint64_t i = 0; i < nnz; i++)
@@ -1106,37 +984,6 @@ void matrix_io::eigen::write_sparse_float64_bin(std::ostream& out, const Eigen::
    out.write(reinterpret_cast<const char*>(rows.data()), rows.size() * sizeof(std::uint32_t));
    out.write(reinterpret_cast<const char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
-}
-
-void matrix_io::eigen::write_sparse_float64_mtx(std::ostream& out, const Eigen::SparseMatrix<double>& X)
-{
-   std::uint64_t nrow = X.rows();
-   std::uint64_t ncol = X.cols();
-
-   std::vector<uint32_t> rows;
-   std::vector<uint32_t> cols;
-   std::vector<double> values;
-
-   for (int k = 0; k < X.outerSize(); ++k)
-   {
-      for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)
-      {
-         rows.push_back(it.row() + 1);
-         cols.push_back(it.col() + 1);
-         values.push_back(it.value());
-      }
-   }
-
-   std::uint64_t nnz = values.size();
-
-   //write row col nnz
-   out << nrow << "\t" << ncol << "\t" << nnz << std::endl;
-
-   //write values
-   for(std::uint64_t i = 0; i < nnz; i++)
-   {
-      out << rows[i] << "\t" << cols[i] << "\t" << values[i] << std::endl;
-   }
 }
 
 void matrix_io::eigen::write_sparse_binary_bin(std::ostream& out, const Eigen::SparseMatrix<double>& X)
