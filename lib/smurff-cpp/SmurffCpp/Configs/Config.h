@@ -69,7 +69,21 @@ struct Config
     std::string init_model = "zero";
 
     //-- save
-    std::string save_prefix = "save";
+private:
+    std::string save_prefix;
+
+public:
+   std::string getSavePrefix() const
+   {
+      return save_prefix;
+   }
+
+   void setSavePrefix(std::string value)
+   {
+      save_prefix = value;
+   }
+
+public:
     std::string save_suffix = ".csv";
     int save_freq           = 0; // never
 
@@ -91,6 +105,13 @@ struct Config
     bool classify             = false;
     double threshold;
 
+public:
+    Config()
+    {
+      save_prefix = "save";
+    }
+
+public:
     bool validate(bool = true) const;
     void save(std::string) const;
     void restore(std::string);

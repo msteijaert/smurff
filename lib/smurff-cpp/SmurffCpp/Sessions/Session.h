@@ -1,14 +1,20 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 
 #include "BaseSession.h"
 #include <SmurffCpp/Configs/Config.h>
 
 namespace smurff {
 
-class Session : public BaseSession 
+class SessionFactory;
+
+class Session : public BaseSession, public std::enable_shared_from_this<Session>
 {
+   //only session factory should call setFromConfig
+   friend class SessionFactory;
+
 public:
    Config config;
    int iter = -1;
@@ -19,13 +25,16 @@ public:
       name = "Session"; 
    }
 
-public:
-   void setFromConfig(const Config &);
+protected:
+   void setFromConfig(const Config& cfg);
 
    // execution of the sampler
 public:
-   void init();
    void run();
+
+   //AGE: I guess these methods should be internal and called only from run ?
+protected:
+   void init();
    void step() override;
 
 public:

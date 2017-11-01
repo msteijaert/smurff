@@ -30,8 +30,12 @@ public:
    const double prior_alpha_0 = 1.; //for alpha
    const double prior_beta_0 = 1.; //for alpha
 
+private:
+   SpikeAndSlabPrior()
+      : ILatentPrior(){}
+
 public:
-   SpikeAndSlabPrior(BaseSession& session, int mode);
+   SpikeAndSlabPrior(std::shared_ptr<BaseSession> session, int mode);
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 

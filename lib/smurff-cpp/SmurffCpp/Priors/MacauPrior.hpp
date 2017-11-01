@@ -37,8 +37,12 @@ public:
 
    double tol = 1e-6;
 
+private:
+   MacauPrior()
+      : NormalPrior(){}
+
 public:
-   MacauPrior(BaseSession& session, int mode)
+   MacauPrior(std::shared_ptr<BaseSession> session, int mode)
       : NormalPrior(session, mode, "MacauPrior")
    {
 

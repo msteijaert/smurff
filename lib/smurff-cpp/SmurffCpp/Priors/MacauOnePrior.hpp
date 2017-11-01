@@ -43,10 +43,12 @@ public:
        return dynamic_cast<ScarceMatrixData &>(data()).getYc().at(m_mode);
    }
 
+private:
+   MacauOnePrior() 
+      : ILatentPrior(){}
 
 public:
-
-   MacauOnePrior(BaseSession& session, int mode)
+   MacauOnePrior(std::shared_ptr<BaseSession> session, int mode)
       : ILatentPrior(session, mode) 
    {
    }

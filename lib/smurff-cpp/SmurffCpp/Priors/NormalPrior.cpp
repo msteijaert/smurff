@@ -16,7 +16,7 @@ using namespace smurff;
 
 //  base class NormalPrior
 
-NormalPrior::NormalPrior(BaseSession& session, int mode, std::string name)
+NormalPrior::NormalPrior(std::shared_ptr<BaseSession> session, int mode, std::string name)
    : ILatentPrior(session, mode, name)
 {
 

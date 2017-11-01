@@ -17,15 +17,18 @@ namespace smurff {
 class ILatentPrior
 {
 public:
-   BaseSession& m_session;
+   std::shared_ptr<BaseSession> m_session;
    int m_mode;
    std::string m_name = "xxxx";
 
    thread_vector<Eigen::VectorXd> rrs;
    thread_vector<Eigen::MatrixXd> MMs;
 
+protected:
+   ILatentPrior(){}
+
 public:
-   ILatentPrior(BaseSession& session, int mode, std::string name = "xxxx");
+   ILatentPrior(std::shared_ptr<BaseSession> session, int mode, std::string name = "xxxx");
    virtual ~ILatentPrior() {}
    virtual void init();
 
@@ -51,5 +54,11 @@ public:
    virtual void sample_latent(int n) = 0;
 
    virtual void update_prior() = 0;
+
+public:
+   void setMode(int value)
+   {
+      m_mode = value;
+   }
 };
 }

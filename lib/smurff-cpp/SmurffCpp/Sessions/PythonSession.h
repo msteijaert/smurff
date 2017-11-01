@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Session.h"
+#include <SmurffCpp/Sessions/Session.h>
 
 namespace smurff {
 

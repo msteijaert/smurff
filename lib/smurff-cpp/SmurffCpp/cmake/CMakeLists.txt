@@ -43,6 +43,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Priors/SpikeAndSlabPrior.h"
                         "../Priors/MacauPrior.hpp"
                         "../Priors/MacauOnePrior.hpp"
+                        "../Priors/PriorFactory.h"
                         
                         "../DataMatrices/Data.h"
                         "../DataMatrices/DenseMatrixData.h"
@@ -58,6 +59,8 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
                         "../Sessions/CmdSession.h"
+                        "../Sessions/PythonSession.h"
+                        "../Sessions/SessionFactory.h"
 
                         "../sparsetensor.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
@@ -98,6 +101,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Priors/NormalPrior.cpp"
                         "../Priors/SpikeAndSlabPrior.cpp"
                         "../Priors/MacauPrior.cpp"
+                        "../Priors/PriorFactory.cpp"
 
                         "../DataMatrices/Data.cpp"
                         "../DataMatrices/DenseMatrixData.cpp"
@@ -112,6 +116,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
                         "../Sessions/CmdSession.cpp"
+                        "../Sessions/PythonSession.cpp"
+                        "../Sessions/SessionFactory.cpp"
 
                         "../sparsetensor.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})

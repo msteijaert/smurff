@@ -3,7 +3,7 @@
 using namespace smurff;
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(BaseSession& session, int mode, std::string name)
+ILatentPrior::ILatentPrior(std::shared_ptr<BaseSession> session, int mode, std::string name)
    : m_session(session), m_mode(mode), m_name(name) 
 {
 
@@ -17,12 +17,12 @@ void ILatentPrior::init()
 
 Model &ILatentPrior::model() const 
 { 
-   return m_session.model; 
+   return m_session->model; 
 }
 
 Data &ILatentPrior::data() const 
 { 
-   return m_session.data(); 
+   return m_session->data(); 
 }
 
 double ILatentPrior::predict(const PVec<> &pos) const {

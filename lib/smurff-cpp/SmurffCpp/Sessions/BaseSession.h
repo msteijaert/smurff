@@ -18,8 +18,9 @@ public:
    Model model;
    Result pred;
 
-public:
-   std::vector<std::unique_ptr<ILatentPrior> > priors;
+protected:
+   std::vector<std::shared_ptr<ILatentPrior> > m_priors;
+
    std::string name;
 
 protected:
@@ -37,17 +38,12 @@ public:
    }
 
 public:
-   template<class Prior>
-   Prior& addPrior()
-   {
-      auto pos = priors.size();
-      Prior *p = new Prior(*this, pos);
-      priors.push_back(std::unique_ptr<ILatentPrior>(p));
-      return *p;
-   }
+   void addPrior(std::shared_ptr<ILatentPrior> prior);
 
+protected:
    virtual void step();
 
+public:
    virtual std::ostream &info(std::ostream &, std::string indent);
 
    void save(std::string prefix, std::string suffix);

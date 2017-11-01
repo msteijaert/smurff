@@ -14,7 +14,8 @@
 
 #include <SmurffCpp/Utils/omp_util.h>
 #include <SmurffCpp/Priors/ILatentPrior.h>
-#include <SmurffCpp/Sessions/MPISession.h>
+
+#include <SmurffCpp/Sessions/SessionFactory.h>
 
 using namespace std;
 
@@ -32,9 +33,8 @@ int main(int argc, char** argv)
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    smurff::MPISession session;
-    session.setFromArgs(argc, argv);
-    session.run();
+    std::shared_ptr<smurff::MPISession> session = SessionFactory::create_mpi_session(argc, argv);
+    session->run();
 
     // Finalize the MPI environment.
     MPI_Finalize();

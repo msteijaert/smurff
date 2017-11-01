@@ -86,7 +86,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
                             break;
       case RESTORE_PREFIX:  c.restore_prefix      = std::string(optarg); break;
       case RESTORE_SUFFIX:  c.restore_suffix      = std::string(optarg); break;
-      case SAVE_PREFIX:     c.save_prefix      = std::string(optarg); break;
+      case SAVE_PREFIX:     c.setSavePrefix(std::string(optarg)); break;
       case SAVE_SUFFIX:     c.save_suffix      = std::string(optarg); break;
       case SAVE_FREQ:       c.save_freq        = strtol(optarg, NULL, 10); break;
 
@@ -150,9 +150,9 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {0}
     };
 
-    Config c;
+    Config cfg;
     struct argp argp = { options, parse_opts, 0, doc };
-    argp_parse (&argp, argc, argv, 0, 0, &c);
+    argp_parse (&argp, argc, argv, 0, 0, &cfg);
 
-    setFromConfig(c);
+    setFromConfig(cfg);
 }
