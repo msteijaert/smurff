@@ -68,8 +68,6 @@ source_group ("Header Files" FILES ${HEADER_FILES})
 FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../model.cpp"
                         "../result.cpp"
-                        "../SparseFeat.cpp"
-                        "../SparseDoubleFeat.cpp"
 
                         "../Utils/TruncNorm.cpp"
                         "../Utils/InvNormCdf.cpp"
