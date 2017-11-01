@@ -175,9 +175,9 @@ INoiseModel& Data::noise() const
    return *noise_ptr;
 }
 
-void Data::setNoiseModel(INoiseModel* nm)
+void Data::setNoiseModel(std::shared_ptr<INoiseModel> nm)
 {
-   noise_ptr.reset(nm);
+   noise_ptr = nm;
 }
 
 //#### info functions ####

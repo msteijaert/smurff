@@ -73,7 +73,7 @@ void NormalPrior::sample_latent(int n)
    MM.setZero();
 
    // add pnm
-   data().get_pnm(model(), m_mode, n, rr, MM);
+   data()->get_pnm(model(), m_mode, n, rr, MM);
 
    // add hyperparams
    rr.noalias() += Lambda * mu_u;

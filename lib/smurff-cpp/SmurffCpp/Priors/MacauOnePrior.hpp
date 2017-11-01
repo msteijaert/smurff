@@ -40,7 +40,7 @@ public:
 
    const Eigen::SparseMatrix<double>& SparseYC() const
    {
-       return dynamic_cast<ScarceMatrixData &>(data()).getYc().at(m_mode);
+      return std::dynamic_pointer_cast<ScarceMatrixData>(data())->getYc().at(m_mode);
    }
 
 private:

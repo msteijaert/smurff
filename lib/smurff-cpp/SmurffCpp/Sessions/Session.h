@@ -40,9 +40,9 @@ protected:
 public:
    std::ostream &info(std::ostream &, std::string indent) override;
 
- private:
-    void save(int isample);
-    void printStatus(double elapsedi);
+private:
+   void save(int isample);
+   void printStatus(double elapsedi);
 };
 
 }

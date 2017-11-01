@@ -69,9 +69,9 @@ SubModel Model::full()
     return SubModel(*this);
 }
 
-double Model::predict(const PVec<> &pos, const Data &data) const
+double Model::predict(const PVec<> &pos, std::shared_ptr<Data> data) const
 {
-    return dot(pos) + data.offset_to_mean(pos);
+    return dot(pos) + data->offset_to_mean(pos);
 }
 
 

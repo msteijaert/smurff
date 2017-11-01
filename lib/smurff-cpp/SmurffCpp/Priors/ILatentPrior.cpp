@@ -15,12 +15,17 @@ void ILatentPrior::init()
    MMs.init(MatrixXd::Zero(num_latent(), num_latent()));
 }
 
-Model &ILatentPrior::model() const 
+const Model& ILatentPrior::model() const 
 { 
-   return m_session->model; 
+   return m_session->model();
 }
 
-Data &ILatentPrior::data() const 
+Model& ILatentPrior::model() 
+{ 
+   return m_session->model();
+}
+
+std::shared_ptr<Data> ILatentPrior::data() const 
 { 
    return m_session->data(); 
 }
@@ -31,7 +36,7 @@ double ILatentPrior::predict(const PVec<> &pos) const {
 
 INoiseModel &ILatentPrior::noise() 
 { 
-   return data().noise(); 
+   return data()->noise(); 
 }
 
 MatrixXd &ILatentPrior::U() 
@@ -69,7 +74,7 @@ bool ILatentPrior::run_slave()
 
 void ILatentPrior::sample_latents() 
 {
-   data().update_pnm(model(), m_mode);
+   data()->update_pnm(model(), m_mode);
 
    #pragma omp parallel for schedule(guided)
    for(int n = 0; n < U().cols(); n++) 

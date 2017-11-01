@@ -57,7 +57,7 @@ struct Result {
 
 
     //-- prediction metrics
-    void update(const Model &, const Data &, bool burnin);
+    void update(const Model &model, std::shared_ptr<Data> data,  bool burnin);
     double rmse_avg = NAN;
     double rmse_1sample = NAN;
     double auc_avg = NAN;
@@ -66,12 +66,12 @@ struct Result {
     int burnin_iter = 0;
 
     double rmse_using_globalmean(double);
-    double rmse_using_modemean(const Data &data, int mode);
+    double rmse_using_modemean( std::shared_ptr<Data> data, int mode);
 
     // general
     void save(std::string fname_prefix);
     void init();
-    std::ostream &info(std::ostream &os, std::string indent, const Data &data);
+    std::ostream &info(std::ostream &os, std::string indent, std::shared_ptr<Data> data);
 
     //-- for binary classification
     int total_pos = -1;

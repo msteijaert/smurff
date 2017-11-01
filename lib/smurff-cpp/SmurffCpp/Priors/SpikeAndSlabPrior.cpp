@@ -14,7 +14,7 @@ void SpikeAndSlabPrior::init()
 {
    const int K = num_latent();
    const int D = num_cols();
-   const int nview = data().nview(m_mode);
+   const int nview = data()->nview(m_mode);
    assert(D > 0);
 
    Zcol.init(MatrixXd::Zero(K,nview));
@@ -28,14 +28,14 @@ void SpikeAndSlabPrior::init()
 
 void SpikeAndSlabPrior::update_prior()
 {
-   const int nview = data().nview(m_mode);
+   const int nview = data()->nview(m_mode);
    
    auto Zc = Zcol.combine();
    auto W2c = W2col.combine();
 
    // update hyper params (per view)
    for(int v=0; v<nview; ++v) {
-       const int D = data().view_size(m_mode, v);
+       const int D = data()->view_size(m_mode, v);
        r.col(v) = ( Zc.col(v).array() + prior_beta ) / ( D + prior_beta * D ) ;
        auto ww = W2c.col(v).array() / 2 + prior_beta_0;
        auto tmpz = Zc.col(v).array() / 2 + prior_alpha_0 ;
@@ -53,7 +53,7 @@ void SpikeAndSlabPrior::update_prior()
 void SpikeAndSlabPrior::sample_latent(int d)
 {
    const int K = num_latent();
-   const int v = data().view(m_mode, d);
+   const int v = data()->view(m_mode, d);
 
    auto &W = U(); // alias
    VectorXd Wcol = W.col(d); // local copy
@@ -63,7 +63,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
    MatrixXd XX = MatrixXd::Zero(K, K);
    VectorXd yX = VectorXd::Zero(K);
-   data().get_pnm(model(), m_mode, d, yX, XX);
+   data()->get_pnm(model(), m_mode, d, yX, XX);
 
    for(int k=0;k<K;++k) {
       double lambda = XX(k,k) + alpha(k,v);
@@ -86,7 +86,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
 std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) const
 {
-   const int V = data().nview(m_mode);
+   const int V = data()->nview(m_mode);
    for(int v=0; v<V; ++v) 
    {
        int Zcount = (Zkeep.col(v).array() > 0).count();

@@ -20,7 +20,7 @@ namespace smurff
       double offset_to_mean(const PVec<>& pos) const override;
 
       // add data
-      MatrixData &add(const PVec<>& p, std::unique_ptr<MatrixData> data);
+      std::shared_ptr<MatrixData> add(const PVec<>& p, std::shared_ptr<MatrixData> data);
 
       // helper functions for noise
       // but
@@ -42,7 +42,7 @@ namespace smurff
       T accumulate(T init, F func) const
       {
          return std::accumulate(blocks.begin(), blocks.end(), init,
-            [func](T s, const Block &b) -> T { return  s + (b.data().*func)(); });
+            [func](T s, const Block &b) -> T { return  s + (b.data().get()->*func)(); });
       }
 
       int    nnz() const override;
@@ -54,7 +54,7 @@ namespace smurff
       struct Block {
           friend class MatricesData;
           // c'tor
-          Block(PVec<> p, std::unique_ptr<MatrixData> c);
+          Block(PVec<> p, std::shared_ptr<MatrixData> m);
 
           // handy position functions
           const PVec<> start() const;
@@ -67,7 +67,7 @@ namespace smurff
           int dim(int mode) const;
           int pos(int mode) const;
 
-          MatrixData& data() const;
+          std::shared_ptr<MatrixData> data() const;
 
           bool in(const PVec<> &p) const;
           bool in(int mode, int p) const;
@@ -76,7 +76,7 @@ namespace smurff
 
         private:
           PVec<> _pos, _start;
-          std::unique_ptr<MatrixData> m;
+          std::shared_ptr<MatrixData> m_matrix;
       };
       std::vector<Block> blocks;
 

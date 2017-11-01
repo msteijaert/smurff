@@ -33,8 +33,10 @@ public:
    virtual void init();
 
    // utility
-   Model &model() const;
-   Data  &data() const;
+   const Model& model() const;
+   Model& model();
+
+   std::shared_ptr<Data> data() const;
    double predict(const PVec<> &) const;
    INoiseModel &noise();
    Eigen::MatrixXd &U();

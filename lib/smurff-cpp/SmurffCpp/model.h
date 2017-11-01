@@ -39,7 +39,7 @@ struct Model {
         for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
         return P.sum();
     }
-    double predict(const PVec<> &pos, const Data &data) const;
+    double predict(const PVec<> &pos, std::shared_ptr<Data> data) const;
 
     //-- for when nmodes == 2
     Eigen::MatrixXd &V(int f) {

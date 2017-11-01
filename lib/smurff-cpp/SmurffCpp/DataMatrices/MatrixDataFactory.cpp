@@ -20,70 +20,82 @@
 
 using namespace smurff;
 
-void setNoiseModel(const NoiseConfig &config, Data* data)
+class NoiseFactory
 {
-    if (config.name == "fixed")
-    {
-        data->setNoiseModel(new FixedGaussianNoise(config.precision));
-    }
-    else if (config.name == "adaptive")
-    {
-        data->setNoiseModel(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
-    }
-    else if (config.name == "probit")
-    {
-        data->setNoiseModel(new ProbitNoise());
-    }
-    else if (config.name == "noiseless")
-    {
-        data->setNoiseModel(new Noiseless());
-    }
-    else
-    {
-        die("Unknown noise model; " + config.name);
-    }
-}
+public:
+   static std::shared_ptr<INoiseModel> create_noise_model(const NoiseConfig& config)
+   {
+      if (config.name == "fixed")
+      {
+         return std::shared_ptr<INoiseModel>(new FixedGaussianNoise(config.precision));
+      }
+      else if (config.name == "adaptive")
+      {
+         return std::shared_ptr<INoiseModel>(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
+      }
+      else if (config.name == "probit")
+      {
+         return std::shared_ptr<INoiseModel>(new ProbitNoise());
+      }
+      else if (config.name == "noiseless")
+      {
+         return std::shared_ptr<INoiseModel>(new Noiseless());
+      }
+      else
+      {
+         throw std::runtime_error("Unknown noise model; " + config.name);
+      }
+   }
 
-std::unique_ptr<MatrixData> matrix_config_to_matrix(const MatrixConfig &config, bool scarce)
+   static std::shared_ptr<INoiseModel> create_noise_model()
+   {
+      return std::shared_ptr<INoiseModel>(new UnusedNoise());
+   }
+};
+
+std::shared_ptr<MatrixData> matrix_config_to_matrix(const MatrixConfig &config, bool scarce)
 {
-   std::unique_ptr<MatrixData> local_data_ptr;
+   std::shared_ptr<INoiseModel> noise = NoiseFactory::create_noise_model(config.getNoiseConfig());
 
    if (config.isDense())
    {
       Eigen::MatrixXd Ytrain = matrix_utils::dense_to_eigen(config);
-      local_data_ptr = std::unique_ptr<MatrixData>(new DenseMatrixData(Ytrain));
+      std::shared_ptr<MatrixData> local_data_ptr(new DenseMatrixData(Ytrain));
+      local_data_ptr->setNoiseModel(noise);
+      return local_data_ptr;
    }
    else
    {
       Eigen::SparseMatrix<double> Ytrain = matrix_utils::sparse_to_eigen(config);
       if (!scarce)
       {
-         local_data_ptr = std::unique_ptr<MatrixData>(new SparseMatrixData(Ytrain));
+         std::shared_ptr<MatrixData> local_data_ptr(new SparseMatrixData(Ytrain));
+         local_data_ptr->setNoiseModel(noise);
+         return local_data_ptr;
       }
       else if (matrix_utils::is_binary(Ytrain))
       {
-         local_data_ptr = std::unique_ptr<MatrixData>(new ScarceBinaryMatrixData(Ytrain));
+         std::shared_ptr<MatrixData> local_data_ptr(new ScarceBinaryMatrixData(Ytrain));
+         local_data_ptr->setNoiseModel(noise);
+         return local_data_ptr;
       }
       else
       {
-         local_data_ptr = std::unique_ptr<MatrixData>(new ScarceMatrixData(Ytrain));
+         std::shared_ptr<MatrixData> local_data_ptr(new ScarceMatrixData(Ytrain));
+         local_data_ptr->setNoiseModel(noise);
+         return local_data_ptr;
       }
    }
-
-   setNoiseModel(config.getNoiseConfig(), local_data_ptr.get());
-
-   return local_data_ptr;
 }
 
-std::unique_ptr<MatrixData> create_matrix(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, const std::vector<MatrixConfig> &col_features)
+std::shared_ptr<MatrixData> create_matrix(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, const std::vector<MatrixConfig> &col_features)
 {
    if (row_features.empty() && col_features.empty())
       return ::matrix_config_to_matrix(train, true);
 
    // multiple matrices
-   MatricesData* local_data_ptr = new MatricesData();
-
-   local_data_ptr->setNoiseModel(new UnusedNoise());
+   std::shared_ptr<MatricesData> local_data_ptr(new MatricesData());
+   local_data_ptr->setNoiseModel(NoiseFactory::create_noise_model());
    local_data_ptr->add(PVec<>({0,0}), ::matrix_config_to_matrix(train, true));
 
    for(size_t i = 0; i < row_features.size(); ++i)
@@ -96,10 +108,10 @@ std::unique_ptr<MatrixData> create_matrix(const MatrixConfig &train, const std::
       local_data_ptr->add(PVec<>({static_cast<int>(i + 1), 0}), ::matrix_config_to_matrix(col_features[i], false));
    }
 
-   return std::unique_ptr<MatrixData>(local_data_ptr);
+   return local_data_ptr;
 }
 
-std::unique_ptr<MatrixData> MatrixDataFactory::create_matrix(std::shared_ptr<Session> session)
+std::shared_ptr<MatrixData> MatrixDataFactory::create_matrix(std::shared_ptr<Session> session)
 {
    //row_matrices and col_matrices are selected if prior is not macau and not macauone
    std::vector<MatrixConfig> row_matrices;

@@ -12,7 +12,7 @@ namespace smurff {
 class MatrixDataFactory
 {
 public:
-   static std::unique_ptr<MatrixData> create_matrix(std::shared_ptr<Session> session);
+   static std::shared_ptr<MatrixData> create_matrix(std::shared_ptr<Session> session);
 };
 
 }

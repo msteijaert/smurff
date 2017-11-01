@@ -49,12 +49,12 @@ double Result::rmse_using_globalmean(double mean) {
     return sqrt( se / predictions.size() );
 }
 
-double Result::rmse_using_modemean(const Data &data, int mode) {
+double Result::rmse_using_modemean(std::shared_ptr<Data> data, int mode) {
      const unsigned N = predictions.size();
      double se = 0.;
      for(auto t : predictions) {
         int n = mode == 0 ? t.row : t.col;
-        double pred = data.getModeMeanItem(mode, n);
+        double pred = data->getModeMeanItem(mode, n);
         se += square(t.val - pred);
      }
      return sqrt( se / N );
@@ -84,7 +84,7 @@ void Result::save(std::string prefix) {
 
 ///--- update RMSE and AUC
 
-void Result::update(const Model &model, const Data &data,  bool burnin)
+void Result::update(const Model &model, std::shared_ptr<Data> data,  bool burnin)
 {
     if (predictions.size() == 0) return;
     const unsigned N = predictions.size();
@@ -238,12 +238,12 @@ std::pair<double,double> eval_rmse_tensor(
 }
 */
 
-std::ostream &Result::info(std::ostream &os, std::string indent, const Data &data)
+std::ostream &Result::info(std::ostream &os, std::string indent, std::shared_ptr<Data> data)
 {
     if (predictions.size()) {
         double test_fill_rate = 100. * predictions.size() / nrows / ncols;
         os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
-        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data.getGlobalMean()) << endl;
+        os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data->getGlobalMean()) << endl;
         os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
         os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;
     } else {

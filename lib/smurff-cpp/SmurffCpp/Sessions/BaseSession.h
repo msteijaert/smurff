@@ -14,27 +14,36 @@ class ILatentPrior;
 
 class BaseSession  
 {
-public:
-   Model model;
-   Result pred;
+protected:
+   Model m_model;
+   Result m_pred;
 
 protected:
    std::vector<std::shared_ptr<ILatentPrior> > m_priors;
-
    std::string name;
 
 protected:
    bool is_init = false;
-   std::unique_ptr<Data> data_ptr;
+   std::shared_ptr<Data> data_ptr;
 
 public:
    virtual ~BaseSession() {}
 
 public:
-   Data& data() 
+   std::shared_ptr<Data> data() const
    { 
       assert(data_ptr); 
-      return *data_ptr; 
+      return data_ptr; 
+   }
+
+   const Model& model() const
+   {
+      return m_model;
+   }
+
+   Model& model()
+   {
+      return m_model;
    }
 
 public:

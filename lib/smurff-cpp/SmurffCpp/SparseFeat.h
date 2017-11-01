@@ -22,5 +22,3 @@ public:
   int nsamples() const {return M.nrow;}
   int rows()     const {return M.nrow;}
 };
-
-std::unique_ptr<SparseFeat> load_bcsr(const char* filename);

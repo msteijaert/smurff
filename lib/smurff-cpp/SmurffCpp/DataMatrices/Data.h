@@ -135,7 +135,7 @@ namespace smurff
    //#### noise, precision, mean functions ####
 
    private:
-      std::unique_ptr<INoiseModel> noise_ptr; // noise model for this data
+      std::shared_ptr<INoiseModel> noise_ptr; // noise model for this data
 
    public:
       virtual double train_rmse(const SubModel& model) const = 0;
@@ -148,7 +148,7 @@ namespace smurff
 
    public:
       INoiseModel& noise() const;
-      void setNoiseModel(INoiseModel* nm);
+      void setNoiseModel(std::shared_ptr<INoiseModel> nm);
 
    //#### info functions ####
    public:
