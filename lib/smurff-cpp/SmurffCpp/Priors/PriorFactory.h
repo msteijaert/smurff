@@ -9,7 +9,7 @@ namespace smurff {
 class PriorFactory
 {
 public:
-   static std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& vsideinfo);
+   static std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode);
 };
 
 }

@@ -150,7 +150,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 
 //mode - 0 (row), 1 (col)
 //vsideinfo - vector of side feature configs (row or col)
-std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& vsideinfo)
+std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& vsideinfo)
 {
    // row prior with side information
    // side information can only be applied to macau and macauone priors
@@ -177,5 +177,34 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
       default:
          throw std::runtime_error("Unknown prior without side info: " + priorTypeToString(prior_type));
       }
+   }
+}
+
+std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
+{
+   switch(mode)
+   {
+      case 0:
+      {
+         //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
+         std::vector<MatrixConfig> row_sideinfo;
+
+         if (session->config.row_prior_type == PriorTypes::macau || session->config.row_prior_type == PriorTypes::macauone)
+            row_sideinfo = session->config.row_features;
+
+         return ::create_prior(session, mode, session->config.row_prior_type, row_sideinfo);
+      }
+      case 1:
+      {
+         //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
+         std::vector<MatrixConfig> col_sideinfo;
+
+         if (session->config.col_prior_type == PriorTypes::macau || session->config.col_prior_type == PriorTypes::macauone)
+            col_sideinfo = session->config.col_features;
+
+         return ::create_prior(session, mode, session->config.col_prior_type, col_sideinfo);
+      }
+      default:
+         throw std::runtime_error("Unknown prior mode");
    }
 }

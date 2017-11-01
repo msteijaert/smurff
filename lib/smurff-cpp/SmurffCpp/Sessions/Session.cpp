@@ -2,21 +2,16 @@
 
 #include <string>
 
-#include <Eigen/Core>
-
 #include <SmurffCpp/Version.h>
 
 #include <SmurffCpp/Utils/omp_util.h>
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
 
-#include <SmurffCpp/Priors/ILatentPrior.h>
-
 #include <SmurffCpp/DataMatrices/MatrixDataFactory.h>
 #include <SmurffCpp/Priors/PriorFactory.h>
 
 using namespace smurff;
-using namespace Eigen;
 
 void Session::setFromConfig(const Config& cfg)
 {
@@ -26,31 +21,18 @@ void Session::setFromConfig(const Config& cfg)
    cfg.save(cfg.getSavePrefix() + ".ini");
    config = cfg;
 
-   // initialize session
+   std::shared_ptr<Session> this_session = shared_from_this();
+
+   // initialize pred
 
    if (config.classify)
       pred.setThreshold(config.threshold);
 
    pred.set(matrix_utils::sparse_to_eigen(config.test));
 
-   std::vector<MatrixConfig> row_matrices;
-   std::vector<MatrixConfig> col_matrices;
+   // initialize data
 
-   std::vector<MatrixConfig> row_sideinfo;
-   std::vector<MatrixConfig> col_sideinfo;
-
-   if (config.row_prior_type == PriorTypes::macau || config.row_prior_type == PriorTypes::macauone)
-      row_sideinfo = config.row_features;
-   else
-      row_matrices = config.row_features;
-
-   if (config.col_prior_type == PriorTypes::macau || config.col_prior_type == PriorTypes::macauone)
-      col_sideinfo = config.col_features;
-   else
-      col_matrices = config.col_features;
-
-   //row_matrices and col_matrices are selected if prior is not macau and not macauone
-   data_ptr = smurff::matrix_config_to_matrix(config.train, row_matrices, col_matrices);
+   data_ptr = MatrixDataFactory::create_matrix(this_session);
 
    // check if data is ScarceBinary
    /*
@@ -63,16 +45,14 @@ void Session::setFromConfig(const Config& cfg)
    */
 
    // center mode
+
    data_ptr->setCenterMode(config.center_mode_type);
 
-   std::shared_ptr<Session> this_session = shared_from_this();
+   // initialize priors
 
-   //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
-   std::shared_ptr<ILatentPrior> rp = PriorFactory::create_prior(this_session, 0, config.row_prior_type, row_sideinfo);
-   this->addPrior(rp);
+   this->addPrior(PriorFactory::create_prior(this_session, 0));
 
-   std::shared_ptr<ILatentPrior> cp = PriorFactory::create_prior(this_session, 1, config.col_prior_type, col_sideinfo);
-   this->addPrior(cp);
+   this->addPrior(PriorFactory::create_prior(this_session, 1));
 }
 
 void Session::init()

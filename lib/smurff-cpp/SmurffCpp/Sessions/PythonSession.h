@@ -16,6 +16,7 @@ public:
       keepRunning = true;
    }
 
+protected:
    void step() override;
 
 private:

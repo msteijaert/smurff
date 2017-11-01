@@ -75,9 +75,7 @@ std::unique_ptr<MatrixData> matrix_config_to_matrix(const MatrixConfig &config, 
    return local_data_ptr;
 }
 
-std::unique_ptr<MatrixData> smurff::matrix_config_to_matrix(const MatrixConfig &train,
-                                                            const std::vector<MatrixConfig> &row_features,
-                                                            const std::vector<MatrixConfig> &col_features)
+std::unique_ptr<MatrixData> create_matrix(const MatrixConfig &train, const std::vector<MatrixConfig> &row_features, const std::vector<MatrixConfig> &col_features)
 {
    if (row_features.empty() && col_features.empty())
       return ::matrix_config_to_matrix(train, true);
@@ -99,4 +97,19 @@ std::unique_ptr<MatrixData> smurff::matrix_config_to_matrix(const MatrixConfig &
    }
 
    return std::unique_ptr<MatrixData>(local_data_ptr);
+}
+
+std::unique_ptr<MatrixData> MatrixDataFactory::create_matrix(std::shared_ptr<Session> session)
+{
+   //row_matrices and col_matrices are selected if prior is not macau and not macauone
+   std::vector<MatrixConfig> row_matrices;
+   std::vector<MatrixConfig> col_matrices;
+
+   if (session->config.row_prior_type != PriorTypes::macau && session->config.row_prior_type != PriorTypes::macauone)
+      row_matrices = session->config.row_features;
+
+   if (session->config.col_prior_type != PriorTypes::macau && session->config.col_prior_type != PriorTypes::macauone)
+      col_matrices = session->config.col_features;
+
+   return ::create_matrix(session->config.train, row_matrices, col_matrices);
 }
