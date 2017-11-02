@@ -13,9 +13,9 @@ namespace smurff {
 // AGE: I dont like this cross reference between Data and Model. Need to think how we can eliminate it.
 class Data;
 
-struct SubModel;
+class SubModel;
 
-struct Model 
+class Model 
 {
 private:
    std::vector<Eigen::MatrixXd> m_samples;
@@ -28,6 +28,7 @@ public:
    {
    }
 
+public:
    void init(int num_latent, const PVec<>& dims, std::string init_model_type);
 
    //-- access for all
@@ -93,14 +94,14 @@ public:
    std::ostream &info(std::ostream &os, std::string indent) const;
    std::ostream &status(std::ostream &os, std::string indent) const;
 
-  public:
+public:
    const PVec<>& getDims() const
    {
       return *m_dims;
    }
 };
 
-struct SubModel 
+class SubModel 
 {
 private:
    const Model& m_model;
@@ -122,6 +123,7 @@ public:
       return m_model.U(f).block(0, m_off.at(f), m_model.nlatent(), m_dims.at(f));
    }
 
+public:
    Eigen::MatrixXd::ConstBlockXpr V(int f) const 
    {
       assert(nmodes() == 2);

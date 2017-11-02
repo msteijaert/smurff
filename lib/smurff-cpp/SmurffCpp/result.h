@@ -9,7 +9,7 @@
 
 namespace smurff {
 
-struct Model;
+class Model;
 class Data;
  
 template<typename Item, typename Compare>

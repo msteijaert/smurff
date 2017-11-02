@@ -6,7 +6,7 @@
 namespace smurff {
 
    class Data;
-   struct SubModel;
+   class SubModel;
    class NoiseFactory;
 
    // interface
