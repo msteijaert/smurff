@@ -13,7 +13,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
 
 using namespace std;

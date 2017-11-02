@@ -15,7 +15,7 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/Utils/Distribution.h>
 
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 
 using namespace std;
 using namespace Eigen;

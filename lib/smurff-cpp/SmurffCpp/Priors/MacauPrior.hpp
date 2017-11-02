@@ -9,8 +9,6 @@
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Utils/Distribution.h>
 
-#include <SmurffCpp/model.h>
-
 #include <SmurffCpp/Priors/NormalPrior.h>
 #include <SmurffCpp/SparseDoubleFeat.h>
 #include <SmurffCpp/SparseFeat.h>

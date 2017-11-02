@@ -10,7 +10,7 @@
 
 #include <Eigen/Core>
 
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 #include <SmurffCpp/Configs/Config.h>
 
 namespace smurff

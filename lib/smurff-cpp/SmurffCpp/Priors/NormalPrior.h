@@ -9,8 +9,6 @@
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
 
-#include <SmurffCpp/model.h>
-
 namespace smurff {
 
 // Prior without side information (pure BPMF) 

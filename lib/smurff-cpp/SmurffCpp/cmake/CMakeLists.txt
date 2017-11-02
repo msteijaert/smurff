@@ -4,7 +4,7 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
-                        "../model.h"
+                        "../Model.h"
                         "../result.h"
                         "../SparseFeat.h"
                         "../SparseDoubleFeat.h"
@@ -67,7 +67,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
-                        "../model.cpp"
+                        "../Model.cpp"
                         "../result.cpp"
 
                         "../Utils/TruncNorm.cpp"

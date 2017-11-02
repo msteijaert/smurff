@@ -9,8 +9,6 @@
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
 
-#include <SmurffCpp/model.h>
-
 namespace smurff {
 
 // Spike and slab prior

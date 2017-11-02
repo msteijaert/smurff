@@ -10,7 +10,7 @@
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/Utils/Distribution.h>
 
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 
 namespace smurff {
 

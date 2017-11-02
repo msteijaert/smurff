@@ -7,7 +7,7 @@
 #include <sstream>
 #include <vector>
 
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 #include <SmurffCpp/sparsetensor.h>
 
 #include <SmurffCpp/Utils/TruncNorm.h>

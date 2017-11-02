@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <SmurffCpp/DataMatrices/Data.h>
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
 
 namespace smurff {

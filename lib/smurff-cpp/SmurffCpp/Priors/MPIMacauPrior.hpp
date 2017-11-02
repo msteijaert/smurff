@@ -12,7 +12,7 @@
 #include "MacauPrior.h"
 
 #include "linop.h"
-#include "model.h"
+#include "Model.h"
 #include "data.h"
 
 namespace smurff 
