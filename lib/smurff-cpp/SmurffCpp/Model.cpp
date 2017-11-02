@@ -26,12 +26,12 @@ using namespace smurff;
 //init_model_type - samples initialization type
 void Model::init(int num_latent, const PVec<>& dims, std::string init_model_type) 
 {
-   num_latent = num_latent;
+   m_num_latent = num_latent;
    m_dims = std::unique_ptr<PVec<> >(new PVec<>(dims));
 
    for(size_t i = 0; i < dims.size(); ++i) 
    {
-      m_samples.push_back(Eigen::MatrixXd(num_latent, dims[i]));
+      m_samples.push_back(Eigen::MatrixXd(m_num_latent, dims[i]));
       auto &M = m_samples.back();
 
       if (init_model_type == "random") 
