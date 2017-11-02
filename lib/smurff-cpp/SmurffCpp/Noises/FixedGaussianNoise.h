@@ -7,21 +7,26 @@
 
 namespace smurff {
 
-// Gaussian noise is fixed for the whole run
-class FixedGaussianNoise : public INoiseModel
-{
-public:
-   double alpha;
+   class NoiseFactory;
 
-public:
-   FixedGaussianNoise(double a = 1.);
+   // Gaussian noise is fixed for the whole run
+   class FixedGaussianNoise : public INoiseModel
+   {
+      friend class NoiseFactory;
+      
+   public:
+      double alpha;
 
-   double getAlpha() override;
+   protected:
+      FixedGaussianNoise(double a = 1.);
 
-   std::ostream& info(std::ostream& os, std::string indent)  override;
-   std::string getStatus() override;
+   public:
+      double getAlpha() override;
 
-   void setPrecision(double a);
-};
+      std::ostream& info(std::ostream& os, std::string indent)  override;
+      std::string getStatus() override;
+
+      void setPrecision(double a);
+   };
 
 }

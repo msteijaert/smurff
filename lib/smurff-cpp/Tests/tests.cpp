@@ -23,7 +23,7 @@
 #include <SmurffCpp/Priors/MacauPrior.hpp>
 #include <SmurffCpp/Priors/MacauOnePrior.hpp>
 
-#include <SmurffCpp/Noises/Noiseless.h>
+#include <SmurffCpp/Noises/NoiseFactory.h>
 
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
@@ -592,7 +592,10 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
   p.set(matrix_utils::sparse_to_eigen(S));
   data->setCenterMode("global");
-  data->setNoiseModel(std::shared_ptr<INoiseModel>(new Noiseless()));
+
+  NoiseConfig ncfg;
+  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+
   data->init();
   model.init(2, PVec<>({1, 1}), "zero");
 
@@ -677,7 +680,10 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
   SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
   data->setCenterMode(CenterModeTypes::CENTER_NONE);
-  data->setNoiseModel(std::shared_ptr<INoiseModel>(new Noiseless()));
+  
+  NoiseConfig ncfg;
+  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+
   data->init();
   REQUIRE(data->var_total() == Approx(0.25));
 }
@@ -687,7 +693,10 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
   Y << 1., 2., 3., 4.;
   std::shared_ptr<Data> data(new DenseMatrixData(Y));
   data->setCenterMode(CenterModeTypes::CENTER_NONE);
-  data->setNoiseModel(std::shared_ptr<INoiseModel>(new Noiseless()));
+  
+  NoiseConfig ncfg;
+  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+
   data->init();
   REQUIRE(data->var_total() == Approx(1.25));
 }

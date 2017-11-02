@@ -7,14 +7,17 @@ namespace smurff {
 
    class Data;
    struct SubModel;
+   class NoiseFactory;
 
    // interface
    class INoiseModel
    {
+      friend class NoiseFactory;
+      
       // Only Data can call init and update methods
       friend class Data;
 
-   public:
+   protected:
       INoiseModel() {}
 
    public:
