@@ -24,6 +24,8 @@ protected:
 
 protected:
    bool is_init = false;
+
+   //train data
    std::shared_ptr<Data> data_ptr;
 
 public:
