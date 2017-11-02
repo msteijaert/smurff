@@ -191,7 +191,7 @@ void Config::save(std::string fname) const
    os << "direct = " << direct << std::endl;
 
    os << "# noise model" << std::endl;
-   os << "noise_model = " << train.getNoiseConfig().name << std::endl;
+   os << "noise_model = " << smurff::noiseTypeToString(train.getNoiseConfig().getNoiseType()) << std::endl;
    os << "precision = " << train.getNoiseConfig().precision << std::endl;
    os << "sn_init = " << train.getNoiseConfig().sn_init << std::endl;
    os << "sn_max = " << train.getNoiseConfig().sn_max << std::endl;
@@ -237,7 +237,7 @@ void Config::restore(std::string fname)
 
    //-- noise model
    NoiseConfig noise;
-   noise.name = reader.Get("", "noise_model",  "fixed");
+   noise.setNoiseType(smurff::stringToNoiseType(reader.Get("", "noise_model",  "fixed")));
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);

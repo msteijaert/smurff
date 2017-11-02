@@ -30,11 +30,11 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
    Config &c = *(Config *)(state->input);
 
-   auto set_noise_model = [&c](std::string name, std::string optarg)
+   auto set_noise_model = [&c](std::string noiseName, std::string optarg)
    {
       NoiseConfig nc;
-      nc.name = name;
-      if (name == "adaptive")
+      nc.setNoiseType(smurff::stringToNoiseType(noiseName));
+      if (nc.getNoiseType() == NoiseTypes::adaptive)
       {
          char *token, *str = strdup(optarg.c_str());
 
@@ -44,22 +44,22 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
          if(str && (token = strsep(&str, ","))) 
             nc.sn_max = strtod(token, NULL);
       }
-      else if (name == "fixed")
+      else if (nc.getNoiseType() == NoiseTypes::fixed)
       {
          nc.precision = strtod(optarg.c_str(), NULL);
       }
 
       // set global noise model
-      if (c.train.getNoiseConfig().name == "noiseless")
+      if (c.train.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
          c.train.setNoiseConfig(nc);
 
       //set for row/col feautres
-      for(auto &m: c.row_features)
-         if (m.getNoiseConfig().name == "noiseless")
+      for(auto& m: c.row_features)
+         if (m.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
             m.setNoiseConfig(nc);
 
-      for(auto &m: c.col_features)
-         if (m.getNoiseConfig().name == "noiseless")
+      for(auto& m: c.col_features)
+         if (m.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
             m.setNoiseConfig(nc);
    };
 
@@ -90,8 +90,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case SAVE_SUFFIX:     c.save_suffix      = std::string(optarg); break;
       case SAVE_FREQ:       c.save_freq        = strtol(optarg, NULL, 10); break;
 
-      case PRECISION:       set_noise_model("fixed", optarg); break;
-      case ADAPTIVE:        set_noise_model("adaptive", optarg); break;
+      case PRECISION:       set_noise_model(NOISE_NAME_FIXED, optarg); break;
+      case ADAPTIVE:        set_noise_model(NOISE_NAME_ADAPTIVE, optarg); break;
 
       case THRESHOLD:       c.threshold          = strtod(optarg, 0); c.classify = true; break;
       case INIT_MODEL:      c.init_model         = optarg; break;

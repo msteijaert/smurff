@@ -1,7 +1,5 @@
 #include "MatrixDataFactory.h"
 
-#include <SmurffCpp/Configs/NoiseConfig.h>
-
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/PVec.hpp>
 
@@ -11,47 +9,10 @@
 #include <SmurffCpp/DataMatrices/DenseMatrixData.h>
 #include <SmurffCpp/DataMatrices/MatricesData.h>
 
-//noise classes
-#include <SmurffCpp/Noises/AdaptiveGaussianNoise.h>
-#include <SmurffCpp/Noises/FixedGaussianNoise.h>
-#include <SmurffCpp/Noises/ProbitNoise.h>
-#include <SmurffCpp/Noises/Noiseless.h>
-#include <SmurffCpp/Noises/UnusedNoise.h>
+#include <SmurffCpp/Configs/NoiseConfig.h>
+#include <SmurffCpp/Noises/NoiseFactory.h>
 
 using namespace smurff;
-
-class NoiseFactory
-{
-public:
-   static std::shared_ptr<INoiseModel> create_noise_model(const NoiseConfig& config)
-   {
-      if (config.name == "fixed")
-      {
-         return std::shared_ptr<INoiseModel>(new FixedGaussianNoise(config.precision));
-      }
-      else if (config.name == "adaptive")
-      {
-         return std::shared_ptr<INoiseModel>(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
-      }
-      else if (config.name == "probit")
-      {
-         return std::shared_ptr<INoiseModel>(new ProbitNoise());
-      }
-      else if (config.name == "noiseless")
-      {
-         return std::shared_ptr<INoiseModel>(new Noiseless());
-      }
-      else
-      {
-         throw std::runtime_error("Unknown noise model; " + config.name);
-      }
-   }
-
-   static std::shared_ptr<INoiseModel> create_noise_model()
-   {
-      return std::shared_ptr<INoiseModel>(new UnusedNoise());
-   }
-};
 
 std::shared_ptr<MatrixData> matrix_config_to_matrix(const MatrixConfig &config, bool scarce)
 {
@@ -94,8 +55,9 @@ std::shared_ptr<MatrixData> create_matrix(const MatrixConfig &train, const std::
       return ::matrix_config_to_matrix(train, true);
 
    // multiple matrices
+   NoiseConfig ncfg(NoiseTypes::unused);
    std::shared_ptr<MatricesData> local_data_ptr(new MatricesData());
-   local_data_ptr->setNoiseModel(NoiseFactory::create_noise_model());
+   local_data_ptr->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
    local_data_ptr->add(PVec<>({0,0}), ::matrix_config_to_matrix(train, true));
 
    for(size_t i = 0; i < row_features.size(); ++i)
