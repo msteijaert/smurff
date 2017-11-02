@@ -8,6 +8,8 @@
 #include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Utils/PVec.hpp>
 
+#include <SmurffCpp/Configs/Config.h>
+
 namespace smurff {
 
 // AGE: I dont like this cross reference between Data and Model. Need to think how we can eliminate it.
@@ -26,7 +28,7 @@ public:
    Model();
 
 public:
-   void init(int num_latent, const PVec<>& dims, std::string init_model_type);
+   void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
  
 public:
    double dot(const PVec<> &indices) const;

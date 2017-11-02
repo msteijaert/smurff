@@ -29,7 +29,7 @@ Model::Model()
 //num_latent - size of latent dimention
 //dims - dimentions of train data
 //init_model_type - samples initialization type
-void Model::init(int num_latent, const PVec<>& dims, std::string init_model_type) 
+void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type) 
 {
    m_num_latent = num_latent;
    m_dims = std::unique_ptr<PVec<> >(new PVec<>(dims));
@@ -39,12 +39,17 @@ void Model::init(int num_latent, const PVec<>& dims, std::string init_model_type
       m_samples.push_back(Eigen::MatrixXd(m_num_latent, dims[i]));
       auto &M = m_samples.back();
 
-      if (init_model_type == "random") 
+      switch(model_init_type)
+      {
+      case ModelInitTypes::random:
          bmrandn(M);
-      else if (init_model_type == "zero") 
+         break;
+      case ModelInitTypes::zero:
          M.setZero();
-      else 
-         assert(false);
+         break;
+      default:
+         throw std::runtime_error("Invalid model init type");
+      }
    }
 }
 

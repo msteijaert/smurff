@@ -597,7 +597,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 
   data->init();
-  model.init(2, PVec<>({1, 1}), "zero");
+  model.init(2, PVec<>({1, 1}), ModelInitTypes::zero);
 
   auto &t = p.predictions.at(0);
 

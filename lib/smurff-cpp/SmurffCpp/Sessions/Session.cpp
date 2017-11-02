@@ -70,7 +70,7 @@ void Session::init()
    data()->init();
 
    //initialize model (samples)
-   m_model.init(config.num_latent, data()->dim(), config.init_model);
+   m_model.init(config.num_latent, data()->dim(), config.model_init_type);
 
    //initialize priors (?)
    for( auto &p : m_priors)

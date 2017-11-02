@@ -94,7 +94,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case ADAPTIVE:        set_noise_model(NOISE_NAME_ADAPTIVE, optarg); break;
 
       case THRESHOLD:       c.threshold          = strtod(optarg, 0); c.classify = true; break;
-      case INIT_MODEL:      c.init_model         = optarg; break;
+      case INIT_MODEL:      c.model_init_type = stringToModelInitType(optarg); break;
       case VERBOSE:         c.verbose            = optarg ? strtol(optarg, NULL, 0) : 1; break;
       case QUIET:           c.verbose            = 0; break;
       case VERSION:         std::cout <<  "SMURFF " << smurff::SMURFF_VERSION << std::endl; exit(0);
