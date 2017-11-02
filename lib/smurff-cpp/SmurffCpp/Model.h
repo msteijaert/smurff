@@ -23,82 +23,47 @@ private:
    std::unique_ptr<PVec<> > m_dims;
 
 public:
-   Model()
-      : m_num_latent(-1)
-   {
-   }
+   Model();
 
 public:
    void init(int num_latent, const PVec<>& dims, std::string init_model_type);
-
-   //-- access for all
-   const Eigen::MatrixXd &U(int f) const 
-   {
-      return m_samples.at(f);
-   }
-
-   Eigen::MatrixXd::ConstColXpr col(int f, int i) const 
-   {
-      return U(f).col(i);
-   }
-
-   Eigen::MatrixXd &U(int f) 
-   {
-      return m_samples.at(f);
-   }
-
-   double dot(const PVec<> &indices) const
-   {
-      Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
-      for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
-      return P.sum();
-   }
+ 
+public:
+   double dot(const PVec<> &indices) const;
 
    double predict(const PVec<> &pos, std::shared_ptr<Data> data) const;
 
-   //-- for when nmodes == 2
-   Eigen::MatrixXd &V(int f) 
-   {
-      assert(nmodes() == 2);
-      return m_samples.at((f+1)%2);
-   }
+public:
+   // access for all
+   const Eigen::MatrixXd &U(int f) const;
+   Eigen::MatrixXd &U(int f);
 
-   const Eigen::MatrixXd &V(int f) const 
-   {
-      assert(nmodes() == 2);
-      return m_samples.at((f+1)%2);
-   }
-
-    // basic stuff
-   int nmodes() const 
-   { 
-      return m_samples.size(); 
-   }
-
-   int nlatent() const 
-   { 
-      return m_num_latent; 
-   }
-
-   int nsamples() const 
-   { 
-      return std::accumulate(m_samples.begin(), m_samples.end(), 0,
-         [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); }); 
-   }
-
-   SubModel full();
-
-   //-- output to file
-   void save(std::string, std::string);
-   void restore(std::string, std::string);
-   std::ostream &info(std::ostream &os, std::string indent) const;
-   std::ostream &status(std::ostream &os, std::string indent) const;
+   // for when nmodes == 2
+   Eigen::MatrixXd &V(int f);
+   const Eigen::MatrixXd &V(int f) const;
+   
+   // access for all
+   Eigen::MatrixXd::ConstColXpr col(int f, int i) const;
 
 public:
-   const PVec<>& getDims() const
-   {
-      return *m_dims;
-   }
+    // basic stuff
+   int nmodes() const;
+   int nlatent() const;
+   int nsamples() const;
+
+public:
+   const PVec<>& getDims() const;
+   
+public:
+   SubModel full();
+
+public:
+   // output to file
+   void save(std::string prefix, std::string suffix);
+   void restore(std::string prefix, std::string suffix);
+
+   std::ostream& info(std::ostream &os, std::string indent) const;
+   std::ostream& status(std::ostream &os, std::string indent) const;
 };
 
 class SubModel 

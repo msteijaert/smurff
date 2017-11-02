@@ -21,6 +21,11 @@ using namespace std;
 using namespace Eigen;
 using namespace smurff;
 
+Model::Model()
+   : m_num_latent(-1)
+{
+}
+
 //num_latent - size of latent dimention
 //dims - dimentions of train data
 //init_model_type - samples initialization type
@@ -43,6 +48,71 @@ void Model::init(int num_latent, const PVec<>& dims, std::string init_model_type
    }
 }
 
+double Model::dot(const PVec<> &indices) const
+{
+   Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
+   for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
+   return P.sum();
+}
+
+double Model::predict(const PVec<> &pos, std::shared_ptr<Data> data) const
+{
+   return dot(pos) + data->offset_to_mean(pos);
+}
+
+const Eigen::MatrixXd& Model::U(int f) const 
+{
+   return m_samples.at(f);
+}
+
+Eigen::MatrixXd& Model::U(int f) 
+{
+   return m_samples.at(f);
+}
+
+Eigen::MatrixXd& Model::V(int f) 
+{
+   assert(nmodes() == 2);
+   return m_samples.at((f+1)%2);
+}
+
+const Eigen::MatrixXd& Model::V(int f) const 
+{
+   assert(nmodes() == 2);
+   return m_samples.at((f+1)%2);
+}
+
+Eigen::MatrixXd::ConstColXpr Model::col(int f, int i) const 
+{
+   return U(f).col(i);
+}
+
+int Model::nmodes() const 
+{ 
+   return m_samples.size(); 
+}
+
+int Model::nlatent() const 
+{ 
+   return m_num_latent; 
+}
+
+int Model::nsamples() const 
+{ 
+   return std::accumulate(m_samples.begin(), m_samples.end(), 0,
+      [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); }); 
+}
+
+const PVec<>& Model::getDims() const
+{
+   return *m_dims;
+}
+
+SubModel Model::full()
+{
+   return SubModel(*this);
+}
+
 void Model::save(std::string prefix, std::string suffix) 
 {
    int i = 0;
@@ -61,26 +131,16 @@ void Model::restore(std::string prefix, std::string suffix)
    }
 }
 
-std::ostream &Model::info(std::ostream &os, std::string indent) const
+std::ostream& Model::info(std::ostream &os, std::string indent) const
 {
    os << indent << "Num-latents: " << m_num_latent << "\n";
    return os;
 }
 
-std::ostream &Model::status(std::ostream &os, std::string indent) const
+std::ostream& Model::status(std::ostream &os, std::string indent) const
 {
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
    for(int d = 0; d < nmodes(); ++d) P *= U(d).rowwise().norm().array();
    os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
    return os;
-}
-
-SubModel Model::full()
-{
-   return SubModel(*this);
-}
-
-double Model::predict(const PVec<> &pos, std::shared_ptr<Data> data) const
-{
-   return dot(pos) + data->offset_to_mean(pos);
 }
