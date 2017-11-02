@@ -85,7 +85,7 @@ public:
 
    void sample_latent(int i) override
    {
-       double alpha = noise().getAlpha();
+       double alpha = noise()->getAlpha();
 
        const int K = num_latent();
        auto &Us = U();

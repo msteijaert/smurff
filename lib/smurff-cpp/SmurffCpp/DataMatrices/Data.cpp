@@ -111,12 +111,12 @@ void Data::init()
 
 void Data::init_post()
 {
-   noise().init(this);
+   noise()->init(this);
 }
 
 void Data::update(const SubModel& model)
 {
-   noise().update(this, model);
+   noise()->update(this, model);
 }
 
 // #### mean centring functions  ####
@@ -169,10 +169,10 @@ int Data::view_size(int m, int v) const
 
 //#### noise, precision, mean functions ####
 
-INoiseModel& Data::noise() const
+std::shared_ptr<INoiseModel> Data::noise() const
 {
    assert(noise_ptr);
-   return *noise_ptr;
+   return noise_ptr;
 }
 
 void Data::setNoiseModel(std::shared_ptr<INoiseModel> nm)
@@ -189,12 +189,12 @@ std::ostream& Data::info(std::ostream& os, std::string indent)
    os << indent << "Component-wise variance: " << var_total() << "\n";
    os << indent << "Center: " << getCenterModeName() << "\n";
    os << indent << "Noise: ";
-   noise().info(os, "");
+   noise()->info(os, "");
    return os;
 }
 
 std::ostream& Data::status(std::ostream& os, std::string indent) const
 {
-   os << indent << noise().getStatus() << "\n";
+   os << indent << noise()->getStatus() << "\n";
    return os;
 }

@@ -38,9 +38,12 @@ public:
 
    std::shared_ptr<Data> data() const;
    double predict(const PVec<> &) const;
-   INoiseModel &noise();
+
+   std::shared_ptr<INoiseModel> noise();
+
    Eigen::MatrixXd &U();
    Eigen::MatrixXd &V();
+
    int num_latent() const;
    int num_cols() const;
 

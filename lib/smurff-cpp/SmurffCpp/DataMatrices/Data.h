@@ -147,7 +147,7 @@ namespace smurff
       virtual double var_total() const = 0;
 
    public:
-      INoiseModel& noise() const;
+      std::shared_ptr<INoiseModel> noise() const;
       void setNoiseModel(std::shared_ptr<INoiseModel> nm);
 
    //#### info functions ####

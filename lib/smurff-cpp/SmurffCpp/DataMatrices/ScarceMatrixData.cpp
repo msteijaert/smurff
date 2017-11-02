@@ -109,7 +109,7 @@ void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::Ve
    const auto &Vf = model.V(mode);
    const int local_nnz = Y.col(n).nonZeros();
    const int total_nnz = Y.nonZeros();
-   const double alpha = noise().getAlpha();
+   const double alpha = noise()->getAlpha();
 
    bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
    if (in_parallel) {
