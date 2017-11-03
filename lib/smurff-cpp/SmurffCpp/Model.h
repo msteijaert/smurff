@@ -20,43 +20,53 @@ class SubModel;
 class Model 
 {
 private:
-   std::vector<Eigen::MatrixXd> m_samples;
-   int m_num_latent;
-   std::unique_ptr<PVec<> > m_dims;
+   std::vector<Eigen::MatrixXd> m_samples; //vector of U, V matrices
+   int m_num_latent; //size of latent dimention for U, V matrices
+   std::unique_ptr<PVec<> > m_dims; //dimentions of train data
 
 public:
    Model();
 
 public:
+   //initialize U/V matrices in the model (random/zero)
    void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
  
 public:
+   //dot product of i'th columns in each U/V matrix
+   //indices - vector of column indices
    double dot(const PVec<> &indices) const;
 
+   //same as dot
    double predict(const PVec<> &pos, std::shared_ptr<Data> data) const;
 
 public:
-   // access for all
+   //return f'th U/V matrix in the model where number of matrices is != 2
    const Eigen::MatrixXd &U(int f) const;
    Eigen::MatrixXd &U(int f);
 
-   // for when nmodes == 2
+   //return f'th U/V matrix in the model where number of matrices is == 2
    Eigen::MatrixXd &V(int f);
    const Eigen::MatrixXd &V(int f) const;
    
-   // access for all
+   //return i'th column of f'th U/V matrix in the model
    Eigen::MatrixXd::ConstColXpr col(int f, int i) const;
 
 public:
-    // basic stuff
+   //number of dimentions in train data
    int nmodes() const;
+
+   //size of latent dimention
    int nlatent() const;
+
+   //sum of number of columns in each U/V matrix in the model
    int nsamples() const;
 
 public:
+   //vector if dimention sizes of train data
    const PVec<>& getDims() const;
    
 public:
+   //returns SubModel proxy class with offset to the first column of each U/V matrix in the model
    SubModel full();
 
 public:
@@ -68,6 +78,7 @@ public:
    std::ostream& status(std::ostream &os, std::string indent) const;
 };
 
+// SubModel is a proxy class that allows to access i'th column of each U/V matrix in the model
 class SubModel 
 {
 private:
@@ -85,28 +96,33 @@ public:
    SubModel(const Model &m) 
       : m_model(m), m_off(m.nmodes()), m_dims(m.getDims()) {}
 
+public:
    Eigen::MatrixXd::ConstBlockXpr U(int f) const 
    {
       return m_model.U(f).block(0, m_off.at(f), m_model.nlatent(), m_dims.at(f));
    }
 
-public:
    Eigen::MatrixXd::ConstBlockXpr V(int f) const 
    {
-      assert(nmodes() == 2);
-      return U((f+1)%2);
+      if(nmodes() != 2)
+         throw std::runtime_error("nmodes value is incorrect");
+      return U((f + 1) % 2);
    }
 
+public:
+   //dot product of i'th columns in each U/V matrix
    double dot(const PVec<> &pos) const  
    {
       return m_model.dot(m_off + pos);
    }
 
+   //size of latent dimention
    int nlatent() const 
    { 
       return m_model.nlatent(); 
    }
 
+   //number of dimentions in train data
    int nmodes() const 
    { 
       return m_model.nmodes(); 

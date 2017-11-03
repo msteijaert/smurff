@@ -56,7 +56,8 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
 double Model::dot(const PVec<> &indices) const
 {
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
-   for(int d = 0; d < nmodes(); ++d) P *= col(d, indices.at(d)).array();
+   for(int d = 0; d < nmodes(); ++d) 
+      P *= col(d, indices.at(d)).array();
    return P.sum();
 }
 
@@ -77,14 +78,16 @@ Eigen::MatrixXd& Model::U(int f)
 
 Eigen::MatrixXd& Model::V(int f) 
 {
-   assert(nmodes() == 2);
-   return m_samples.at((f+1)%2);
+   if(nmodes() != 2)
+      throw std::runtime_error("nmodes value is incorrect");
+   return m_samples.at((f + 1) % 2);
 }
 
 const Eigen::MatrixXd& Model::V(int f) const 
 {
-   assert(nmodes() == 2);
-   return m_samples.at((f+1)%2);
+   if(nmodes() != 2)
+      throw std::runtime_error("nmodes value is incorrect");
+   return m_samples.at((f + 1) % 2);
 }
 
 Eigen::MatrixXd::ConstColXpr Model::col(int f, int i) const 
