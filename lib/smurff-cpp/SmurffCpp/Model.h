@@ -28,11 +28,11 @@ public:
    Model();
 
 public:
-   //initialize U/V matrices in the model (random/zero)
+   //initialize U matrices in the model (random/zero)
    void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
  
 public:
-   //dot product of i'th columns in each U/V matrix
+   //dot product of i'th columns in each U matrix
    //indices - vector of column indices
    double dot(const PVec<> &indices) const;
 
@@ -40,15 +40,15 @@ public:
    double predict(const PVec<> &pos, std::shared_ptr<Data> data) const;
 
 public:
-   //return f'th U/V matrix in the model where number of matrices is != 2
+   //return f'th U matrix in the model where number of matrices is != 2
    const Eigen::MatrixXd &U(int f) const;
    Eigen::MatrixXd &U(int f);
 
-   //return f'th U/V matrix in the model where number of matrices is == 2
+   //return f'th V matrix in the model where number of matrices is == 2
    Eigen::MatrixXd &V(int f);
    const Eigen::MatrixXd &V(int f) const;
    
-   //return i'th column of f'th U/V matrix in the model
+   //return i'th column of f'th U matrix in the model
    Eigen::MatrixXd::ConstColXpr col(int f, int i) const;
 
 public:
@@ -58,7 +58,7 @@ public:
    //size of latent dimention
    int nlatent() const;
 
-   //sum of number of columns in each U/V matrix in the model
+   //sum of number of columns in each U matrix in the model
    int nsamples() const;
 
 public:
@@ -66,7 +66,7 @@ public:
    const PVec<>& getDims() const;
    
 public:
-   //returns SubModel proxy class with offset to the first column of each U/V matrix in the model
+   //returns SubModel proxy class with offset to the first column of each U matrix in the model
    SubModel full();
 
 public:
@@ -78,7 +78,7 @@ public:
    std::ostream& status(std::ostream &os, std::string indent) const;
 };
 
-// SubModel is a proxy class that allows to access i'th column of each U/V matrix in the model
+// SubModel is a proxy class that allows to access i'th column of each U matrix in the model
 class SubModel 
 {
 private:
@@ -110,7 +110,7 @@ public:
    }
 
 public:
-   //dot product of i'th columns in each U/V matrix
+   //dot product of i'th columns in each U matrix
    double dot(const PVec<> &pos) const  
    {
       return m_model.dot(m_off + pos);

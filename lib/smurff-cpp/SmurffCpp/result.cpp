@@ -21,6 +21,7 @@ using namespace Eigen;
 
 namespace smurff {
 
+//Y - test sparse matrix
 void Result::set(Eigen::SparseMatrix<double> Y) 
 {
    for (int k = 0; k < Y.outerSize(); ++k) 
@@ -99,10 +100,13 @@ void Result::save(std::string prefix)
 
 ///--- update RMSE and AUC
 
-void Result::update(const Model &model, std::shared_ptr<Data> data,  bool burnin)
+//model - holds samples (U matrices)
+//data - Y train matrix
+void Result::update(const Model &model, std::shared_ptr<Data> data, bool burnin)
 {
    if (predictions.size() == 0) 
       return;
+
    const unsigned N = predictions.size();
 
    if (burnin) 
@@ -113,7 +117,7 @@ void Result::update(const Model &model, std::shared_ptr<Data> data,  bool burnin
       for(unsigned k=0; k<predictions.size(); ++k) 
       {
          auto &t = predictions[k];
-         t.pred_1sample = model.predict({t.row, t.col}, data);
+         t.pred_1sample = model.predict({t.row, t.col}, data); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - t.pred_1sample);
       }
 
@@ -133,7 +137,7 @@ void Result::update(const Model &model, std::shared_ptr<Data> data,  bool burnin
       for(unsigned k=0; k<predictions.size(); ++k) 
       {
          auto &t = predictions[k];
-         const double pred = model.predict({t.row, t.col}, data);
+         const double pred = model.predict({t.row, t.col}, data); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - pred);
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));

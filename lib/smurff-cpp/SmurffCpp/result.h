@@ -53,9 +53,13 @@ struct Result
       double val, pred_1sample, pred_avg, var, stds;
    };
 
+   //sparse representation of test matrix
    std::vector<Item> predictions;
+
+   //number of rows and columns in test matrix
    int nrows, ncols;
 
+   //Y - test sparse matrix
    void set(Eigen::SparseMatrix<double> Y);
 
    //-- prediction metrics
@@ -71,8 +75,14 @@ struct Result
    double rmse_using_modemean( std::shared_ptr<Data> data, int mode);
 
    // general
+
+public:
    void save(std::string fname_prefix);
+
+private:
    void init();
+
+public:
    std::ostream &info(std::ostream &os, std::string indent, std::shared_ptr<Data> data);
 
    //-- for binary classification
