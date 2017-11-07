@@ -144,10 +144,14 @@ void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::Ve
        // accumulate + add noise
        MM += MMs.combine() * alpha;
        rr += rrs.combine() * alpha;
-   } else {
+   } 
+   else 
+   {
       Eigen::VectorXd my_rr = Eigen::VectorXd::Zero(num_latent);
       Eigen::MatrixXd my_MM = Eigen::MatrixXd::Zero(num_latent, num_latent);
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) {
+      
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) 
+      {
          const auto &col = Vf.col(it.row());
          my_rr.noalias() += col * it.value();
          my_MM.triangularView<Eigen::Lower>() += col * col.transpose();

@@ -165,12 +165,16 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
 void Session::save(int isample)
 {
-   if (!config.save_freq || isample < 0) return;
+   if (!config.save_freq || isample < 0) //do not save if (never save) mode is selected or if burnin
+      return;
    
    //save_freq > 0: check modulo
-   if (config.save_freq > 0 && ((isample+1) % config.save_freq) != 0) return;
+   if (config.save_freq > 0 && ((isample + 1) % config.save_freq) != 0) //do not save if not a save iteration
+      return;
+
    //save_freq < 0: save last iter
-   if (config.save_freq < 0 && isample < config.nsamples) return;
+   if (config.save_freq < 0 && isample < config.nsamples) //do not save if (final model) mode is selected and not a final iteration
+      return;
 
    std::string fprefix = config.getSavePrefix() + "-sample-" + std::to_string(isample);
 

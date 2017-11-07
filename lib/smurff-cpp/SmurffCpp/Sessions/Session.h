@@ -17,7 +17,7 @@ class Session : public BaseSession, public std::enable_shared_from_this<Session>
 
 public:
    Config config;
-   int iter = -1;
+   int iter = -1; //index of step iteration
 
 public:
    Session() 
@@ -32,7 +32,6 @@ protected:
 public:
    void run();
 
-   //AGE: I guess these methods should be internal and called only from run ?
 protected:
    void init();
    void step() override;
@@ -41,6 +40,7 @@ public:
    std::ostream &info(std::ostream &, std::string indent) override;
 
 private:
+   //save iteration
    void save(int isample);
    void printStatus(double elapsedi);
 };
