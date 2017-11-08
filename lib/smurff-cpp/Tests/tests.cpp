@@ -692,8 +692,6 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
   Eigen::MatrixXd Y(2, 2);
   Y << 1., 2., 3., 4.;
 
-  DenseMatrixData data(Y);
-
   std::shared_ptr<Data> data(new DenseMatrixData(Y));
   
   NoiseConfig ncfg;

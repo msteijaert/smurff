@@ -247,7 +247,7 @@ std::pair<double,double> eval_rmse_tensor(
 }
 */
 
-std::ostream &Result::info(std::ostream &os, std::string indent, std::shared_ptr<Data> data)
+std::ostream &Result::info(std::ostream &os, std::string indent)
 {
    if (predictions.size()) 
    {
