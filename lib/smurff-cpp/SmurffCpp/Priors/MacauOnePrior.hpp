@@ -40,12 +40,15 @@ public:
 
    const Eigen::SparseMatrix<double>& SparseY() const
    {
-      return dynamic_cast<ScarceMatrixData &>(data()).Y(m_mode);
+      return std::dynamic_pointer_cast<ScarceMatrixData>(data())->Y(m_mode);
    }
 
-public:
+private:
+   MacauOnePrior() 
+      : ILatentPrior(){}
 
-   MacauOnePrior(BaseSession& session, int mode)
+public:
+   MacauOnePrior(std::shared_ptr<BaseSession> session, int mode)
       : ILatentPrior(session, mode) 
    {
    }
@@ -82,7 +85,7 @@ public:
 
    void sample_latent(int i) override
    {
-       double alpha = noise().getAlpha();
+       double alpha = noise()->getAlpha();
 
        const int K = num_latent();
        auto &Us = U();

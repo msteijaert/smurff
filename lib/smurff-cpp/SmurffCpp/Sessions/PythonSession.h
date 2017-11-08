@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Session.h"
+#include <SmurffCpp/Sessions/Session.h>
 
 namespace smurff {
 
@@ -16,6 +16,7 @@ public:
       keepRunning = true;
    }
 
+protected:
    void step() override;
 
 private:

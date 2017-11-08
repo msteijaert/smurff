@@ -9,8 +9,6 @@
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
 
-#include <SmurffCpp/model.h>
-
 namespace smurff {
 
 // Prior without side information (pure BPMF) 
@@ -27,8 +25,12 @@ public:
   int b0;
   int df;
 
+protected:
+   NormalPrior()
+      : ILatentPrior(){}
+
 public:
-  NormalPrior(BaseSession& session, int mode, std::string name = "NormalPrior");
+  NormalPrior(std::shared_ptr<BaseSession> session, int mode, std::string name = "NormalPrior");
   virtual ~NormalPrior() {}
   void init() override;
 

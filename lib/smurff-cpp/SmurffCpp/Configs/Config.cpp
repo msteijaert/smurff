@@ -20,6 +20,8 @@ PriorTypes smurff::stringToPriorType(std::string name)
       return PriorTypes::spikeandslab;
    else if(name == PRIOR_NAME_NORMAL)
       return PriorTypes::normal;
+   else if(name == PRIOR_NAME_MPI)
+      return PriorTypes::mpi;
    else
       throw std::runtime_error("Invalid prior type");
 }
@@ -38,8 +40,33 @@ std::string smurff::priorTypeToString(PriorTypes type)
          return PRIOR_NAME_SPIKE_AND_SLAB;
       case PriorTypes::normal:
          return PRIOR_NAME_NORMAL;
+      case PriorTypes::mpi:
+         return PRIOR_NAME_MPI;
       default:
          throw std::runtime_error("Invalid prior type");
+   }
+}
+
+ModelInitTypes smurff::stringToModelInitType(std::string name)
+{
+   if(name == MODEL_INIT_NAME_RANDOM)
+      return ModelInitTypes::random;
+   else if (name == MODEL_INIT_NAME_ZERO)
+      return ModelInitTypes::zero;
+   else
+      throw std::runtime_error("Invalid model init type " + name);
+}
+
+std::string smurff::modelInitTypeToString(ModelInitTypes type)
+{
+   switch(type)
+   {
+      case ModelInitTypes::random:
+         return MODEL_INIT_NAME_RANDOM;
+      case ModelInitTypes::zero:
+         return MODEL_INIT_NAME_ZERO;
+      default:
+         throw std::runtime_error("Invalid model init type");
    }
 }
 
@@ -95,11 +122,6 @@ bool Config::validate(bool throw_error) const
    if (save_suffixes.find(save_suffix) == save_suffixes.end()) 
       die("Unknown output suffix: " + save_suffix);
 
-   std::set<std::string> init_models = { "random", "zero" };
-   
-   if (init_models.find(init_model) == init_models.end()) 
-      die("Unknown init model " + init_model);
-
    train.getNoiseConfig().validate();
 
    return true;
@@ -136,7 +158,7 @@ void Config::save(std::string fname) const
    os << "# restore" << std::endl;
    os << "restore_prefix = " << restore_prefix << std::endl;
    os << "restore_suffix = " << restore_suffix << std::endl;
-   os << "init_model = " << init_model << std::endl;
+   os << "init_model = " << modelInitTypeToString(model_init_type) << std::endl;
 
    os << "# save" << std::endl;
    os << "save_prefix = " << save_prefix << std::endl;
@@ -155,7 +177,7 @@ void Config::save(std::string fname) const
    os << "direct = " << direct << std::endl;
 
    os << "# noise model" << std::endl;
-   os << "noise_model = " << train.getNoiseConfig().name << std::endl;
+   os << "noise_model = " << smurff::noiseTypeToString(train.getNoiseConfig().getNoiseType()) << std::endl;
    os << "precision = " << train.getNoiseConfig().precision << std::endl;
    os << "sn_init = " << train.getNoiseConfig().sn_init << std::endl;
    os << "sn_max = " << train.getNoiseConfig().sn_max << std::endl;
@@ -175,13 +197,13 @@ void Config::restore(std::string fname)
    }
 
    // -- priors
-   row_prior_type = stringToPriorType(reader.Get("", "row_prior",  "default"));
-   col_prior_type = stringToPriorType(reader.Get("", "col_prior",  "default"));
+   row_prior_type = stringToPriorType(reader.Get("", "row_prior",  PRIOR_NAME_DEFAULT));
+   col_prior_type = stringToPriorType(reader.Get("", "col_prior",  PRIOR_NAME_DEFAULT));
 
    //-- restore
    restore_prefix = reader.Get("", "restore_prefix",  "");
    restore_suffix = reader.Get("", "restore_suffix",  ".csv");
-   init_model     = reader.Get("", "init_model", "random");
+   model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
 
    //-- save
    save_prefix = reader.Get("", "save_prefix",  "save");
@@ -201,7 +223,7 @@ void Config::restore(std::string fname)
 
    //-- noise model
    NoiseConfig noise;
-   noise.name = reader.Get("", "noise_model",  "fixed");
+   noise.setNoiseType(smurff::stringToNoiseType(reader.Get("", "noise_model",  NOISE_NAME_FIXED)));
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);

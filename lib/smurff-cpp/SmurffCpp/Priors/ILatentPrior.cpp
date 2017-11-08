@@ -3,7 +3,7 @@
 using namespace smurff;
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(BaseSession& session, int mode, std::string name)
+ILatentPrior::ILatentPrior(std::shared_ptr<BaseSession> session, int mode, std::string name)
    : m_session(session), m_mode(mode), m_name(name) 
 {
 
@@ -15,23 +15,29 @@ void ILatentPrior::init()
    MMs.init(MatrixXd::Zero(num_latent(), num_latent()));
 }
 
-Model &ILatentPrior::model() const 
+const Model& ILatentPrior::model() const 
 { 
-   return m_session.model; 
+   return m_session->model();
 }
 
-Data &ILatentPrior::data() const 
+Model& ILatentPrior::model() 
 { 
-   return m_session.data(); 
+   return m_session->model();
 }
 
-double ILatentPrior::predict(const PVec<> &pos) const {
+double ILatentPrior::predict(const PVec<> &pos) const 
+{
     return model().predict(pos);
 }
 
-INoiseModel &ILatentPrior::noise() 
+std::shared_ptr<Data> ILatentPrior::data() const 
 { 
-   return data().noise(); 
+   return m_session->data(); 
+}
+
+std::shared_ptr<INoiseModel> ILatentPrior::noise() 
+{ 
+   return data()->noise(); 
 }
 
 MatrixXd &ILatentPrior::U() 
@@ -69,7 +75,7 @@ bool ILatentPrior::run_slave()
 
 void ILatentPrior::sample_latents() 
 {
-   data().update_pnm(model(), m_mode);
+   data()->update_pnm(model(), m_mode);
 
    #pragma omp parallel for schedule(guided)
    for(int n = 0; n < U().cols(); n++) 

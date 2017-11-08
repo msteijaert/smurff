@@ -16,7 +16,7 @@ using namespace smurff;
 
 //  base class NormalPrior
 
-NormalPrior::NormalPrior(BaseSession& session, int mode, std::string name)
+NormalPrior::NormalPrior(std::shared_ptr<BaseSession> session, int mode, std::string name)
    : ILatentPrior(session, mode, name)
 {
 
@@ -73,22 +73,23 @@ void NormalPrior::sample_latent(int n)
    MM.setZero();
 
    // add pnm
-   data().get_pnm(model(), m_mode, n, rr, MM);
+   data()->get_pnm(model(), m_mode, n, rr, MM);
 
    // add hyperparams
    rr.noalias() += Lambda * mu_u;
    MM.noalias() += Lambda;
 
-   Eigen::LLT<MatrixXd> chol = MM.llt();
+   Eigen::LLT<MatrixXd> chol = MM.llt(); // compute the Cholesky decomposition
    if(chol.info() != Eigen::Success)
    {
       throw std::runtime_error("Cholesky Decomposition failed!");
    }
 
-   chol.matrixL().solveInPlace(rr);
+   chol.matrixL().solveInPlace(rr); // retrieve factor L  in the decomposition (lower triangular matrix)
+                                    // rr = inverse(L) * rr
    rr.noalias() += nrandn(num_latent());
-   chol.matrixU().solveInPlace(rr);
-
+   chol.matrixU().solveInPlace(rr); // retrieve factor L  in the decomposition (upper triangular matrix)
+                                    // rr = inverse(U) * rr
    U().col(n).noalias() = rr;
    Ucol.local().noalias() += rr;
    UUcol.local().noalias() += rr * rr.transpose();

@@ -45,7 +45,7 @@ void MatricesData::init_pre()
    // init sub-matrices
    for(auto &p : blocks)
    {
-       p.data().init_pre();
+      p.data()->init_pre();
    }
 }
 
@@ -56,13 +56,13 @@ void MatricesData::init_post()
    // init sub-matrices
    for(auto &p : blocks)
    {
-      p.data().init_post();
+      p.data()->init_post();
    }
 }
 
-MatrixData& MatricesData::add(const PVec<>& p, std::unique_ptr<MatrixData> data)
+std::shared_ptr<MatrixData> MatricesData::add(const PVec<>& p, std::shared_ptr<MatrixData> data)
 {
-   blocks.push_back(Block(p, std::move(data)));
+   blocks.push_back(Block(p, data));
    return blocks.back().data();
 }
 
@@ -85,10 +85,10 @@ double MatricesData::train_rmse(const SubModel& model) const
 
    for(auto &p : blocks)
    {
-       auto &mtx = p.data();
-       double local_rmse = mtx.train_rmse(p.submodel(model));
-       sum += (local_rmse * local_rmse) * (mtx.size() - mtx.nna());
-       N += (mtx.size() - mtx.nna());
+       auto mtx = p.data();
+       double local_rmse = mtx->train_rmse(p.submodel(model));
+       sum += (local_rmse * local_rmse) * (mtx->size() - mtx->nna());
+       N += (mtx->size() - mtx->nna());
        count++;
    }
 
@@ -101,7 +101,7 @@ void MatricesData::update(const SubModel &model)
 {
    for(auto &b : blocks)
    {
-      b.data().update(b.submodel(model));
+      b.data()->update(b.submodel(model));
    }
 }
 
@@ -109,7 +109,7 @@ void MatricesData::get_pnm(const SubModel& model, int mode, int pos, Eigen::Vect
 {
    int count = 0;
    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
-       b.data().get_pnm(b.submodel(model), mode, pos - b.start(mode), rr, MM);
+       b.data()->get_pnm(b.submodel(model), mode, pos - b.start(mode), rr, MM);
        count++;
    });
    assert(count>0);
@@ -118,7 +118,7 @@ void MatricesData::get_pnm(const SubModel& model, int mode, int pos, Eigen::Vect
 void MatricesData::update_pnm(const SubModel& model, int m)
 {
    for(auto &b : blocks) {
-      b.data().update_pnm(b.submodel(model), m);
+      b.data()->update_pnm(b.submodel(model), m);
   }
 }
 
@@ -131,7 +131,7 @@ std::ostream& MatricesData::info(std::ostream& os, std::string indent)
        os << indent;
        p.pos().info(os);
        os << ":\n";
-       p.data().info(os, indent + "  ");
+       p.data()->info(os, indent + "  ");
        os << std::endl;
    }
    return os;
@@ -144,7 +144,7 @@ std::ostream& MatricesData::status(std::ostream& os, std::string indent) const
    {
        os << indent << "  ";
        p.pos().info(os);
-       os << ": " << p.data().noise().getStatus() << "\n";
+       os << ": " << p.data()->noise()->getStatus() << "\n";
    }
    return os;
 }
@@ -169,10 +169,10 @@ PVec<> MatricesData::dim() const
    return total_dim;
 }
 
-MatricesData::Block::Block(PVec<> p, std::unique_ptr<MatrixData> c)
+MatricesData::Block::Block(PVec<> p, std::shared_ptr<MatrixData> m)
    : _pos(p)
    , _start(2)
-   , m(std::move(c))
+   , m_matrix(m)
 {
 }
 
@@ -188,7 +188,7 @@ const PVec<> MatricesData::Block::end() const
 
 const PVec<> MatricesData::Block::dim() const
 {
-   return data().dim();
+   return data()->dim();
 }
 
 const PVec<> MatricesData::Block::pos() const
@@ -216,9 +216,9 @@ int MatricesData::Block::pos(int mode) const
    return pos().at(mode);
 }
 
-MatrixData& MatricesData::Block::data() const
+std::shared_ptr<MatrixData> MatricesData::Block::data() const
 {
-   return *m;
+   return m_matrix;
 }
 
 bool MatricesData::Block::in(const PVec<> &p) const

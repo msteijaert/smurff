@@ -12,6 +12,7 @@ public:
 
 public:
    MPISession();
+   
    void run();
 };
 

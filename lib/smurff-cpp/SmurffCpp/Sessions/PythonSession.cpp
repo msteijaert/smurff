@@ -2,6 +2,8 @@
 
 #include <signal.h>
 
+#include <SmurffCpp/Priors/ILatentPrior.h>
+
 using namespace smurff;
 
 bool PythonSession::keepRunning = true;

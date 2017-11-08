@@ -4,7 +4,7 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
-                        "../model.h"
+                        "../Model.h"
                         "../result.h"
                         "../SparseFeat.h"
                         "../SparseDoubleFeat.h"
@@ -36,6 +36,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Noises/Noiseless.h"
                         "../Noises/UnusedNoise.h"
                         "../Noises/INoiseModel.h"
+                        "../Noises/NoiseFactory.h"
 
                         "../Priors/GlobalPrior.h"
                         "../Priors/ILatentPrior.h"
@@ -43,6 +44,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Priors/SpikeAndSlabPrior.h"
                         "../Priors/MacauPrior.hpp"
                         "../Priors/MacauOnePrior.hpp"
+                        "../Priors/PriorFactory.h"
                         
                         "../DataMatrices/Data.h"
                         "../DataMatrices/DenseMatrixData.h"
@@ -58,15 +60,15 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
                         "../Sessions/CmdSession.h"
+                        "../Sessions/PythonSession.h"
+                        "../Sessions/SessionFactory.h"
 
                         "../sparsetensor.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
-                        "../model.cpp"
+                        "../Model.cpp"
                         "../result.cpp"
-                        "../SparseFeat.cpp"
-                        "../SparseDoubleFeat.cpp"
 
                         "../Utils/TruncNorm.cpp"
                         "../Utils/InvNormCdf.cpp"
@@ -92,12 +94,14 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Noises/ProbitNoise.cpp"
                         "../Noises/Noiseless.cpp"
                         "../Noises/UnusedNoise.cpp"
+                        "../Noises/NoiseFactory.cpp"
 
                         "../Priors/GlobalPrior.cpp"
                         "../Priors/ILatentPrior.cpp"
                         "../Priors/NormalPrior.cpp"
                         "../Priors/SpikeAndSlabPrior.cpp"
                         "../Priors/MacauPrior.cpp"
+                        "../Priors/PriorFactory.cpp"
 
                         "../DataMatrices/Data.cpp"
                         "../DataMatrices/DenseMatrixData.cpp"
@@ -112,6 +116,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
                         "../Sessions/CmdSession.cpp"
+                        "../Sessions/PythonSession.cpp"
+                        "../Sessions/SessionFactory.cpp"
 
                         "../sparsetensor.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})

@@ -7,15 +7,20 @@
 
 namespace smurff {
 
-class Noiseless : public INoiseModel
-{
-public:
-   Noiseless();
+   class NoiseFactory;
 
-   double getAlpha() override;
+   class Noiseless : public INoiseModel
+   {
+      friend class NoiseFactory;
+      
+   protected:
+      Noiseless();
 
-   std::ostream& info(std::ostream& os, std::string indent) override;
-   std::string getStatus() override;
-};
+   public:
+      double getAlpha() override;
+
+      std::ostream& info(std::ostream& os, std::string indent) override;
+      std::string getStatus() override;
+   };
 
 }

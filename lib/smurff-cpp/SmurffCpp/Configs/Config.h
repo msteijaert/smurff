@@ -11,12 +11,16 @@
 #define PRIOR_NAME_MACAU_ONE "macauone"
 #define PRIOR_NAME_SPIKE_AND_SLAB "spikeandslab"
 #define PRIOR_NAME_NORMAL "normal"
+#define PRIOR_NAME_MPI "mpi"
 
 #define CENTER_MODE_STR_NONE "none"
 #define CENTER_MODE_STR_GLOBAL "global"
 #define CENTER_MODE_STR_VIEW "view"
 #define CENTER_MODE_STR_ROWS "rows"
 #define CENTER_MODE_STR_COLS "cols"
+
+#define MODEL_INIT_NAME_RANDOM "random"
+#define MODEL_INIT_NAME_ZERO "zero"
 
 namespace smurff {
 
@@ -27,11 +31,22 @@ enum class PriorTypes
    macauone,
    spikeandslab,
    normal,
+   mpi
+};
+
+enum class ModelInitTypes
+{
+   random,
+   zero
 };
 
 PriorTypes stringToPriorType(std::string name);
 
 std::string priorTypeToString(PriorTypes type);
+
+ModelInitTypes stringToModelInitType(std::string name);
+
+std::string modelInitTypeToString(ModelInitTypes type);
 
 struct Config 
 {
@@ -51,10 +66,24 @@ struct Config
     std::string restore_suffix = ".csv";
 
     //-- init model
-    std::string init_model = "zero";
+    ModelInitTypes model_init_type = ModelInitTypes::zero;
 
     //-- save
-    std::string save_prefix = "save";
+private:
+    std::string save_prefix;
+
+public:
+   std::string getSavePrefix() const
+   {
+      return save_prefix;
+   }
+
+   void setSavePrefix(std::string value)
+   {
+      save_prefix = value;
+   }
+
+public:
     std::string save_suffix = ".csv";
     int save_freq           = 0; // never
 
@@ -76,6 +105,13 @@ struct Config
     bool classify             = false;
     double threshold;
 
+public:
+    Config()
+    {
+      save_prefix = "save";
+    }
+
+public:
     bool validate(bool = true) const;
     void save(std::string) const;
     void restore(std::string);

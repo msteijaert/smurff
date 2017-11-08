@@ -1,17 +1,23 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 
 #include "BaseSession.h"
 #include <SmurffCpp/Configs/Config.h>
 
 namespace smurff {
 
-class Session : public BaseSession 
+class SessionFactory;
+
+class Session : public BaseSession, public std::enable_shared_from_this<Session>
 {
+   //only session factory should call setFromConfig
+   friend class SessionFactory;
+
 public:
    Config config;
-   int iter = -1;
+   int iter = -1; //index of step iteration
 
 public:
    Session() 
@@ -19,21 +25,24 @@ public:
       name = "Session"; 
    }
 
-public:
-   void setFromConfig(const Config &);
+protected:
+   void setFromConfig(const Config& cfg);
 
    // execution of the sampler
 public:
-   void init();
    void run();
+
+protected:
+   void init();
    void step() override;
 
 public:
    std::ostream &info(std::ostream &, std::string indent) override;
 
- private:
-    void save(int isample);
-    void printStatus(double elapsedi);
+private:
+   //save iteration
+   void save(int isample);
+   void printStatus(double elapsedi);
 };
 
 }

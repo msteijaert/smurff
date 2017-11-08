@@ -10,7 +10,7 @@
 
 #include <Eigen/Core>
 
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 #include <SmurffCpp/Configs/Config.h>
 
 namespace smurff
@@ -66,7 +66,7 @@ namespace smurff
    //#### noise, precision, mean functions ####
 
    private:
-      std::unique_ptr<INoiseModel> noise_ptr; // noise model for this data
+      std::shared_ptr<INoiseModel> noise_ptr; // noise model for this data
 
    public:
       virtual double train_rmse(const SubModel& model) const = 0;
@@ -78,8 +78,8 @@ namespace smurff
       virtual double var_total() const = 0;
 
    public:
-      INoiseModel& noise() const;
-      void setNoiseModel(INoiseModel* nm);
+      std::shared_ptr<INoiseModel> noise() const;
+      void setNoiseModel(std::shared_ptr<INoiseModel> nm);
 
    //#### info functions ####
    public:

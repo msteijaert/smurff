@@ -7,7 +7,7 @@
 #include <sstream>
 #include <vector>
 
-#include <SmurffCpp/model.h>
+#include <SmurffCpp/Model.h>
 #include <SmurffCpp/sparsetensor.h>
 
 #include <SmurffCpp/Utils/TruncNorm.h>
@@ -23,7 +23,7 @@
 #include <SmurffCpp/Priors/MacauPrior.hpp>
 #include <SmurffCpp/Priors/MacauOnePrior.hpp>
 
-#include <SmurffCpp/Noises/Noiseless.h>
+#include <SmurffCpp/Noises/NoiseFactory.h>
 
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
@@ -590,12 +590,14 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   Result p;
   Model model;
   SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
-  ScarceMatrixData data(matrix_utils::sparse_to_eigen(S));
+  std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
   p.set(matrix_utils::sparse_to_eigen(S));
-  
-  data.setNoiseModel(new Noiseless());
-  data.init();
-  model.init(2, PVec<>({1, 1}), "zero");
+
+  NoiseConfig ncfg;
+  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+
+  data->init();
+  model.init(2, PVec<>({1, 1}), ModelInitTypes::zero);
 
   auto &t = p.predictions.at(0);
 
@@ -676,21 +678,29 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
   int    cols[2] = {0, 1};
   double vals[2] = {1., 2.};
   SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
-  ScarceMatrixData data(matrix_utils::sparse_to_eigen(S));
+
+  std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
   
-  data.setNoiseModel(new Noiseless());
-  data.init();
-  REQUIRE(data.var_total() == Approx(0.25));
+  NoiseConfig ncfg;
+  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+
+  data->init();
+  REQUIRE(data->var_total() == Approx(0.25));
 }
 
 TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is correctly calculated") {
   Eigen::MatrixXd Y(2, 2);
   Y << 1., 2., 3., 4.;
+
   DenseMatrixData data(Y);
+
+  std::shared_ptr<Data> data(new DenseMatrixData(Y));
   
-  data.setNoiseModel(new Noiseless());
-  data.init();
-  REQUIRE(data.var_total() == Approx(1.25));
+  NoiseConfig ncfg;
+  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+
+  data->init();
+  REQUIRE(data->var_total() == Approx(1.25));
 }
 
 // smurff

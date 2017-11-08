@@ -7,11 +7,16 @@
 
 namespace smurff {
 
+class NoiseFactory;
+
 class UnusedNoise : public INoiseModel
 {
-public:
+   friend class NoiseFactory;
+
+protected:
    UnusedNoise();
 
+public:
    double getAlpha() override;
 
    std::ostream& info(std::ostream& os, std::string indent) override;
