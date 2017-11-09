@@ -1,7 +1,6 @@
 #include "CmdSession.h"
 
 #include <string>
-#include <argp.h>
 #include <memory>
 #include <cstdlib>
 
@@ -9,7 +8,10 @@
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Configs/NoiseConfig.h>
 
+// !!! DO NOT CHANGE ORDER OF INCLUDES (<algorithm>, <argp.h>)!!!
+// https://stackoverflow.com/questions/19043109/gcc-4-8-1-combining-c-code-with-c11-code
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <argp.h>
 
 using namespace Eigen;
 
