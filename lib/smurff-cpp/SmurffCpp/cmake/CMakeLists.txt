@@ -146,6 +146,9 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${ARGP_INCLUDE_PATH})
 
 #INSTALL
-install (TARGETS smurff-cpp ARCHIVE DESTINATION lib)
-install (FILES ${HEADER_FILES} DESTINATION include/smurff/smurff-cpp/SmurffCpp)
-install (DIRECTORY ${EIGEN3_INCLUDE_DIR} DESTINATION include/smurff)
+install (TARGETS ${PROJECT} ARCHIVE DESTINATION lib)
+install (DIRECTORY ../
+         DESTINATION include/SmurffCpp
+         PATTERN "*.cpp" EXCLUDE
+         PATTERN "*.c" EXCLUDE
+         PATTERN "cmake" EXCLUDE)
