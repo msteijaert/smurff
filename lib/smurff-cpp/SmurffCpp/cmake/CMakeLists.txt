@@ -147,13 +147,6 @@ include_directories(${ARGP_INCLUDE_PATH})
 
 #INSTALL
 install (TARGETS ${PROJECT} ARCHIVE DESTINATION lib)
-<<<<<<< HEAD
-install (DIRECTORY ../
-         DESTINATION include/SmurffCpp
-         PATTERN "*.cpp" EXCLUDE
-         PATTERN "*.c" EXCLUDE
-         PATTERN "cmake" EXCLUDE)
-=======
 install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
@@ -161,4 +154,3 @@ install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../Sessions/Session.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../Sessions/BaseSession.h DESTINATION include/SmurffCpp/Sessions)
->>>>>>> master
