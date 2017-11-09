@@ -19,10 +19,10 @@ public:
    Config config;
    int iter = -1; //index of step iteration
 
-public:
-   Session() 
+protected:
+   Session()
    {
-      name = "Session"; 
+      name = "Session";
    }
 
 protected:

@@ -33,8 +33,8 @@ public:
    virtual void init();
 
    // utility
-   const Model& model() const;
-   Model& model();
+   std::shared_ptr<const Model> model() const;
+   std::shared_ptr<Model> model();
 
    std::shared_ptr<Data> data() const;
    double predict(const PVec<> &) const;

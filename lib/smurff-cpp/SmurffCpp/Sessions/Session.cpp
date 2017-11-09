@@ -11,6 +11,8 @@
 #include <SmurffCpp/DataMatrices/MatrixDataFactory.h>
 #include <SmurffCpp/Priors/PriorFactory.h>
 
+#include <SmurffCpp/result.h>
+
 using namespace smurff;
 
 void Session::setFromConfig(const Config& cfg)
@@ -26,9 +28,9 @@ void Session::setFromConfig(const Config& cfg)
    // initialize pred
 
    if (config.classify)
-      m_pred.setThreshold(config.threshold);
+      m_pred->setThreshold(config.threshold);
 
-   m_pred.set(matrix_utils::sparse_to_eigen(config.test));
+   m_pred->set(matrix_utils::sparse_to_eigen(config.test));
 
    // initialize data
 
@@ -61,21 +63,21 @@ void Session::init()
    threads_init();
 
    //init random generator
-   if(config.random_seed_set) 
+   if(config.random_seed_set)
       init_bmrng(config.random_seed);
-   else 
+   else
       init_bmrng();
-    
+
    //initialize train matrix (centring and noise model)
    data()->init();
 
    //initialize model (samples)
-   m_model.init(config.num_latent, data()->dim(), config.model_init_type);
+   m_model->init(config.num_latent, data()->dim(), config.model_init_type);
 
    //initialize priors (?)
    for( auto &p : m_priors)
       p->init();
-    
+
    //write header to status file
    if (config.csv_status.size())
    {
@@ -83,11 +85,11 @@ void Session::init()
       fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
       fclose(f);
    }
-    
+
    //write info to console
    if (config.verbose)
       info(std::cout, "");
-    
+
    //restore session (model, priors)
    if (config.restore_prefix.size())
    {
@@ -95,14 +97,14 @@ void Session::init()
          printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
       restore(config.restore_prefix, config.restore_suffix);
    }
-    
+
    //print session status to console
    if (config.verbose)
    {
       printStatus(0);
       printf(" ====== Sampling (burning phase) ====== \n");
    }
-    
+
    iter = 0;
    is_init = true;
 }
@@ -110,7 +112,7 @@ void Session::init()
 void Session::run()
 {
    init();
-   while (iter < config.burnin + config.nsamples) 
+   while (iter < config.burnin + config.nsamples)
       step();
 }
 
@@ -167,7 +169,7 @@ void Session::save(int isample)
 {
    if (!config.save_freq || isample < 0) //do not save if (never save) mode is selected or if burnin
       return;
-   
+
    //save_freq > 0: check modulo
    if (config.save_freq > 0 && ((isample + 1) % config.save_freq) != 0) //do not save if not a save iteration
       return;
@@ -186,16 +188,16 @@ void Session::save(int isample)
 
 void Session::printStatus(double elapsedi)
 {
-   m_pred.update(m_model, data(), iter < config.burnin);
+   m_pred->update(m_model, data(), iter < config.burnin);
 
    if(!config.verbose)
       return;
 
-   double snorm0 = m_model.U(0).norm();
-   double snorm1 = m_model.U(1).norm();
+   double snorm0 = m_model->U(0).norm();
+   double snorm1 = m_model->U(1).norm();
 
    auto nnz_per_sec = (data()->nnz()) / elapsedi;
-   auto samples_per_sec = (m_model.nsamples()) / elapsedi;
+   auto samples_per_sec = (m_model->nsamples()) / elapsedi;
 
    std::string phase;
    int i, from;
@@ -218,10 +220,10 @@ void Session::printStatus(double elapsedi)
       from = config.nsamples;
    }
 
-   printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, m_pred.rmse_avg, m_pred.rmse_1sample);
+   printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
 
    if (config.classify)
-      printf(" AUC:%.4f (1samp: %.4f)", m_pred.auc_avg, m_pred.auc_1sample);
+      printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
 
    printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
 
@@ -235,7 +237,7 @@ void Session::printStatus(double elapsedi)
          p->status(std::cout, "     ");
 
       printf("  Model:\n");
-      m_model.status(std::cout, "    ");
+      m_model->status(std::cout, "    ");
       printf("  Noise:\n");
       data()->status(std::cout, "    ");
    }
@@ -247,8 +249,8 @@ void Session::printStatus(double elapsedi)
 
    if (config.csv_status.size())
    {
-      double colmean_rmse = m_pred.rmse_using_modemean(data(), 0);
-      double globalmean_rmse = m_pred.rmse_using_modemean(data(), 1);
+      double colmean_rmse = m_pred->rmse_using_modemean(data(), 0);
+      double globalmean_rmse = m_pred->rmse_using_modemean(data(), 1);
       double train_rmse = data()->train_rmse(m_model);
 
       auto f = fopen(config.csv_status.c_str(), "a");
@@ -256,7 +258,7 @@ void Session::printStatus(double elapsedi)
       fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
             phase.c_str(), i, from,
             globalmean_rmse, colmean_rmse,
-            m_pred.rmse_avg, m_pred.rmse_1sample, train_rmse, m_pred.auc_1sample, m_pred.auc_avg, snorm0, snorm1, elapsedi);
+            m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
 
       fclose(f);
    }
