@@ -4,8 +4,15 @@
 
 namespace smurff {
 
-class CmdSession :  public Session 
+class SessionFactory;
+
+class CmdSession :  public Session
 {
+   friend class SessionFactory;
+
+protected:
+   CmdSession() {}
+
 public:
    void setFromArgs(int argc, char** argv);
 };

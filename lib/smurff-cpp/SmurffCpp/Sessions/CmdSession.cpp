@@ -11,14 +11,12 @@
 
 #include <SmurffCpp/IO/MatrixIO.h>
 
-#include <SmurffCpp/Priors/ILatentPrior.h>
-
 using namespace Eigen;
 
 using namespace smurff;
 using namespace matrix_io;
 
-enum OPT_ENUM 
+enum OPT_ENUM
 {
    ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
    BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
@@ -38,10 +36,10 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       {
          char *token, *str = strdup(optarg.c_str());
 
-         if(str && (token = strsep(&str, ","))) 
+         if(str && (token = strsep(&str, ",")))
             nc.sn_init = strtod(token, NULL);
 
-         if(str && (token = strsep(&str, ","))) 
+         if(str && (token = strsep(&str, ",")))
             nc.sn_max = strtod(token, NULL);
       }
       else if (nc.getNoiseType() == NoiseTypes::fixed)
@@ -105,12 +103,12 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
     return 0;
 }
 
-void CmdSession::setFromArgs(int argc, char** argv) 
+void CmdSession::setFromArgs(int argc, char** argv)
 {
     // Program documentation.
     char doc[] = "SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff";
 
-    struct argp_option options[] = 
+    struct argp_option options[] =
     {
         {0,0,0,0,"Priors and side Info:",1},
         {"row-prior",	     ROW_PRIOR     , "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},

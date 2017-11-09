@@ -7,6 +7,7 @@ import argparse
 import os
 import itertools
 import matrix_io as mio
+from sklearn import preprocessing
 
 #parser = argparse.ArgumentParser(description='SMURFF tests')
 #parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
@@ -45,7 +46,7 @@ def sparsify(A, density):
         J = J.reshape(A.size)
 
     size = V.size
-    num = int(size * density)
+    num = int(size * density) 
     idx = np.random.choice(size, num, replace=False)
 
     return sparse.coo_matrix((V[idx], (I[idx], J[idx])), shape = A.shape)
@@ -86,9 +87,12 @@ def write_data(dirname, train, features = ([],[])):
         write_feat(indx, feat)
     os.chdir("..")
 
-def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1):
+def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1, center = "none"):
+    if (func == "ones" and center != "none"):
+        return
+ 
     shape_str = "_".join(map(str,shape))
-    dirname = "%s_%s_%d_%d_%d_%d" % (func, shape_str, K, int(density * 100), row_split, col_split)
+    dirname = "%s_%s_%d_%d_%d_%d_%s" % (func, shape_str, K, int(density * 100), row_split, col_split, center)
 
     if os.path.exists(dirname):
         print("Already exists: %s. Skipping" % dirname)
@@ -96,8 +100,17 @@ def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1):
 
     print("%s..." % dirname)
 
+    # generate all data in 1 matrix
     m = gen_matrix(shape,K,func);
 
+    if (center == "row"): 
+        m = preprocessing.scale(m, axis = 0, with_std=False)
+    elif (center == "col"):
+        m = preprocessing.scale(m, axis = 1, with_std=False)
+    elif (center == "global"): 
+        m = m - np.mean(m)
+
+    # split rows and cols
     rows_blocked = np.array_split(m, row_split, axis=0)
     blocks = [ np.array_split(b, col_split, axis=1) for b in rows_blocked]
     m = blocks[0][0]
@@ -115,11 +128,14 @@ def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1):
 
     write_data(dirname, m, (row_feat, col_feat))
 
+
 if __name__ == "__main__":
     shape = [2000,100]
+    #shape = [40,30]
     num_latent = 4
     for density in (1, .2):
         for func in ("normal", "ones"):
             for row_split in (1,2,3):
                 for col_split in (1,2,3,):
-                    gen_and_write(shape,num_latent,func,density, row_split, col_split)
+                    for center in ("none", "global", "row", "col"):
+                        gen_and_write(shape,num_latent,func,density, row_split, col_split, center)

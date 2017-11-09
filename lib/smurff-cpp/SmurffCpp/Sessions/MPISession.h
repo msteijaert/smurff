@@ -4,15 +4,19 @@
 
 namespace smurff {
 
-class MPISession : public CmdSession 
+class SessionFactory;
+
+class MPISession : public CmdSession
 {
+   friend class SessionFactory;
+
 public:
    int world_rank;
    int world_size;
 
-public:
+protected:
    MPISession();
-   
+
    void run();
 };
 
