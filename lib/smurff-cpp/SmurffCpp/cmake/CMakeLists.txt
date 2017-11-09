@@ -45,7 +45,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Priors/MacauPrior.hpp"
                         "../Priors/MacauOnePrior.hpp"
                         "../Priors/PriorFactory.h"
-                        
+
                         "../DataMatrices/Data.h"
                         "../DataMatrices/DenseMatrixData.h"
                         "../DataMatrices/FullMatrixData.hpp"
@@ -145,3 +145,7 @@ include_directories(../..)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${ARGP_INCLUDE_PATH})
 
+#INSTALL
+install (TARGETS smurff-cpp ARCHIVE DESTINATION lib)
+install (FILES ${HEADER_FILES} DESTINATION include/smurff/smurff-cpp/SmurffCpp)
+install (DIRECTORY ${EIGEN3_INCLUDE_DIR} DESTINATION include/smurff)
