@@ -4,6 +4,7 @@ from Cython.Build import cythonize
 
 SOURCES = ["smurff.pyx"]
 INCLUDE_DIRS = ["../../lib/eigen3"]
+#INCLUDE_DIRS = ["/usr/local/include/eigen3"]
 LIBRARIES = ["blas", "smurff-cpp"]
 
 setup(
