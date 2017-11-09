@@ -3,8 +3,7 @@ from distutils.extension import Extension
 from Cython.Build import cythonize
 
 SOURCES = ["smurff.pyx"]
-INCLUDE_DIRS = ["../../lib/eigen3"]
-#INCLUDE_DIRS = ["/usr/local/include/eigen3"]
+INCLUDE_DIRS = []
 LIBRARIES = ["blas", "smurff-cpp"]
 
 setup(

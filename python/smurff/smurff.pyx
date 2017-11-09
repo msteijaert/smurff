@@ -16,8 +16,8 @@ import scipy as sp
 def remove_nan(Y):
     if not np.any(np.isnan(Y.data)):
         return Y
-        idx = np.where(np.isnan(Y.data) == False)[0]
-        return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
+    idx = np.where(np.isnan(Y.data) == False)[0]
+    return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
 cdef shared_ptr[MatrixConfig] prepare_sparse(X):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
