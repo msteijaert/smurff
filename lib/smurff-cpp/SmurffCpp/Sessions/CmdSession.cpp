@@ -1,7 +1,7 @@
 #include "CmdSession.h"
 
 #include <string>
-#include <argp.h>
+
 #include <memory>
 #include <cstdlib>
 
@@ -10,6 +10,8 @@
 #include <SmurffCpp/Configs/NoiseConfig.h>
 
 #include <SmurffCpp/IO/MatrixIO.h>
+
+#include <argp.h>
 
 using namespace Eigen;
 
