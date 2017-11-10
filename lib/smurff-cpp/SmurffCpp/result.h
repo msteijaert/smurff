@@ -11,10 +11,10 @@ namespace smurff {
 
 class Model;
 class Data;
- 
+
 template<typename Item, typename Compare>
 double calc_auc(const std::vector<Item> &predictions,
-                double threshold, 
+                double threshold,
                 const Compare &compare)
 {
     auto sorted_predictions = predictions;
@@ -24,7 +24,7 @@ double calc_auc(const std::vector<Item> &predictions,
     int num_negative = 0;
     double auc = .0;
 
-    for(auto &t : sorted_predictions) 
+    for(auto &t : sorted_predictions)
     {
         int is_positive = t.val > threshold;
         int is_negative = !is_positive;
@@ -44,10 +44,10 @@ double calc_auc(const std::vector<Item> &predictions, double threshold)
    return calc_auc(predictions, threshold, [](const Item &a, const Item &b) { return a.pred < b.pred;});
 }
 
-struct Result 
+struct Result
 {
    //-- test set
-   struct Item 
+   struct Item
    {
       int row, col;
       double val, pred_1sample, pred_avg, var, stds;
@@ -63,7 +63,7 @@ struct Result
    void set(Eigen::SparseMatrix<double> Y);
 
    //-- prediction metrics
-   void update(const Model &model, std::shared_ptr<Data> data,  bool burnin);
+   void update(std::shared_ptr<const Model> model, std::shared_ptr<Data> data,  bool burnin);
    double rmse_avg = NAN;
    double rmse_1sample = NAN;
    double auc_avg = NAN;
@@ -90,9 +90,9 @@ public:
    bool classify = false;
    double threshold;
 
-   void setThreshold(double t) 
-   { 
-      threshold = t; classify = true; 
+   void setThreshold(double t)
+   {
+      threshold = t; classify = true;
    }
 };
 

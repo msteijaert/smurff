@@ -4,13 +4,17 @@
 
 namespace smurff {
 
-class PythonSession : public Session 
+class SessionFactory;
+
+class PythonSession : public Session
 {
+   friend class SessionFactory;
+
 private:
    static bool keepRunning;
 
-public:
-   PythonSession() 
+protected:
+   PythonSession()
    {
       name = "PythonSession";
       keepRunning = true;

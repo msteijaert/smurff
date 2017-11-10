@@ -44,12 +44,12 @@ public:
    }
 
 private:
-   MacauOnePrior() 
+   MacauOnePrior()
       : ILatentPrior(){}
 
 public:
    MacauOnePrior(std::shared_ptr<BaseSession> session, int mode)
-      : ILatentPrior(session, mode) 
+      : ILatentPrior(session, mode)
    {
    }
 
@@ -100,7 +100,7 @@ public:
        for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
        {
          Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
-         Yhat(idx)     = model().dot({(int)it.col(), (int)it.row()});
+         Yhat(idx)     = model()->dot({(int)it.col(), (int)it.row()});
        }
 
        Eigen::VectorXd rnorms(num_latent());
