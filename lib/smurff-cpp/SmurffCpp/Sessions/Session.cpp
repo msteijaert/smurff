@@ -30,7 +30,7 @@ void Session::setFromConfig(const Config& cfg)
    if (config.classify)
       m_pred->setThreshold(config.threshold);
 
-   m_pred->set(matrix_utils::sparse_to_eigen(config.test));
+   m_pred->set(config.test);
 
    // initialize data
 
