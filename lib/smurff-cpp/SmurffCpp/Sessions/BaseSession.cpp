@@ -58,3 +58,13 @@ void BaseSession::restore(std::string prefix, std::string suffix)
    for(auto &p : m_priors)
       p->restore(prefix, suffix);
 }
+
+MatrixConfig BaseSession::getResult()
+{
+   throw std::runtime_error("getResult is unimplemented");
+}
+
+MatrixConfig BaseSession::getSample(int dim)
+{
+   throw std::runtime_error("getSample is unimplemented");
+}

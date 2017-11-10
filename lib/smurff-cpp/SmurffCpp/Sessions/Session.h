@@ -34,6 +34,8 @@ public:
 
 protected:
    void init();
+
+public:
    void step() override;
 
 public:
