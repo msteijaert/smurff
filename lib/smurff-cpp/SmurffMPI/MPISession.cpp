@@ -30,3 +30,12 @@ void MPISession::run()
       assert(work_done);
    }
 }
+
+//create mpi session
+//parses args with setFromArgs, then internally calls setFromConfig (to validate, save, set config)
+std::shared_ptr<ISession> smurff::create_mpi_session(int argc, char** argv)
+{
+   std::shared_ptr<MPISession> session(new MPISession());
+   session->setFromArgs(argc, argv);
+   return session;
+}
