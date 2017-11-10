@@ -30,7 +30,7 @@ protected:
 
    // execution of the sampler
 public:
-   void run();
+   void run() override;
 
 protected:
    void init();

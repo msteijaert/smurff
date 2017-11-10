@@ -57,6 +57,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/SparseMatrixData.h"
                         "../DataMatrices/MatrixDataFactory.h"
 
+                        "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
                         "../Sessions/CmdSession.h"

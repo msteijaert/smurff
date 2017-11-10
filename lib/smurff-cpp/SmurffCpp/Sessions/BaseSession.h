@@ -5,6 +5,8 @@
 #include <memory>
 #include <assert.h>
 
+#include <SmurffCpp/Sessions/ISession.h>
+
 namespace smurff {
 
 class ILatentPrior;
@@ -13,7 +15,7 @@ class Model;
 class SessionFactory;
 class Result;
 
-class BaseSession
+class BaseSession : public ISession
 {
    friend class SessionFactory;
 
