@@ -22,18 +22,26 @@ using namespace Eigen;
 namespace smurff {
 
 //Y - test sparse matrix
-void Result::set(Eigen::SparseMatrix<double> Y)
+void Result::set(const MatrixConfig& Y)
 {
-   for (int k = 0; k < Y.outerSize(); ++k)
+   assert(!Y.isDense());
+   
+   auto rowsPtr = Y.getRowsPtr();
+   auto colsPtr = Y.getColsPtr();
+   auto valuesPtr = Y.getValuesPtr();
+   
+   for (std::uint64_t i = 0; i < Y.getNNZ(); i++)
    {
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it)
-      {
-         predictions.push_back({(int)it.row(), (int)it.col(), it.value()});
-      }
+       std::uint32_t row = rowsPtr->operator[](i);
+       std::uint32_t col = colsPtr->operator[](i);
+       double val = valuesPtr->operator[](i);
+       
+       predictions.push_back({row, col, val});
    }
+   
+   m_nrows = Y.getNRow();
+   m_ncols = Y.getNCol();
 
-   nrows = Y.rows();
-   ncols = Y.cols();
    init();
 }
 
@@ -117,7 +125,7 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       for(unsigned k=0; k<predictions.size(); ++k)
       {
          auto &t = predictions[k];
-         t.pred_1sample = model->predict({t.row, t.col}, data); //dot product of i'th columns in each U matrix
+         t.pred_1sample = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - t.pred_1sample);
       }
 
@@ -137,7 +145,7 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       for(unsigned k=0; k<predictions.size(); ++k)
       {
          auto &t = predictions[k];
-         const double pred = model->predict({t.row, t.col}, data); //dot product of i'th columns in each U matrix
+         const double pred = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - pred);
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
@@ -272,8 +280,8 @@ std::ostream &Result::info(std::ostream &os, std::string indent, std::shared_ptr
 {
    if (predictions.size())
    {
-      double test_fill_rate = 100. * predictions.size() / nrows / ncols;
-      os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
+      double test_fill_rate = 100. * predictions.size() / m_nrows / m_ncols;
+      os << indent << "Test data: " << predictions.size() << " [" << m_nrows << " x " << m_ncols << "] (" << test_fill_rate << "%)\n";
       os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data->getGlobalMean()) << endl;
       os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
       os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;

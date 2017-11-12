@@ -24,9 +24,18 @@ void MPISession::run()
    {
       bool work_done = false;
 
-      for(auto &p : priors) 
+      for(auto &p : m_priors) 
          work_done |= p->run_slave();
          
       assert(work_done);
    }
+}
+
+//create mpi session
+//parses args with setFromArgs, then internally calls setFromConfig (to validate, save, set config)
+std::shared_ptr<ISession> smurff::create_mpi_session(int argc, char** argv)
+{
+   std::shared_ptr<MPISession> session(new MPISession());
+   session->setFromArgs(argc, argv);
+   return session;
 }

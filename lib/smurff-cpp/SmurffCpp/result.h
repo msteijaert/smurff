@@ -2,10 +2,8 @@
 
 #include <memory>
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-
 #include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
 namespace smurff {
 
@@ -49,18 +47,25 @@ struct Result
    //-- test set
    struct Item
    {
-      int row, col;
-      double val, pred_1sample, pred_avg, var, stds;
+      std::uint32_t row;
+      std::uint32_t col;
+
+      double val;
+      double pred_1sample;
+      double pred_avg;
+      double var;
+      double stds;
    };
 
    //sparse representation of test matrix
    std::vector<Item> predictions;
 
    //number of rows and columns in test matrix
-   int nrows, ncols;
+   std::uint64_t m_nrows;
+   std::uint64_t m_ncols;
 
    //Y - test sparse matrix
-   void set(Eigen::SparseMatrix<double> Y);
+   void set(const MatrixConfig& Y);
 
    //-- prediction metrics
    void update(std::shared_ptr<const Model> model, std::shared_ptr<Data> data,  bool burnin);

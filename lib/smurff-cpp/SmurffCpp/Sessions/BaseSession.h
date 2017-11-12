@@ -5,6 +5,8 @@
 #include <memory>
 #include <assert.h>
 
+#include <SmurffCpp/Sessions/ISession.h>
+
 namespace smurff {
 
 class ILatentPrior;
@@ -13,7 +15,7 @@ class Model;
 class SessionFactory;
 class Result;
 
-class BaseSession
+class BaseSession : public ISession
 {
    friend class SessionFactory;
 
@@ -57,8 +59,8 @@ public:
 public:
    void addPrior(std::shared_ptr<ILatentPrior> prior);
 
-protected:
-   virtual void step();
+public:
+   void step() override;
 
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);
@@ -66,6 +68,10 @@ public:
    void save(std::string prefix, std::string suffix);
 
    void restore(std::string prefix, std::string suffix);
+
+public:
+   MatrixConfig getResult() override;
+   MatrixConfig getSample(int dim) override;
 };
 
 }
