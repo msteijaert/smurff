@@ -11,11 +11,14 @@ cd lib/macau-cpp/openmp
 
 sed -i -e 's/^LIBLOCS/#LIBLOCS/g' Makefile
 sed -i -e 's/^CXX/#CXX/g' Makefile
+sed -i -e 's/^CXX=/#CXX=/g' ../Makefile.common
 
 echo "CXXFLAGS+=-I/usr/local/include" >> Makefile
+echo "CXXFLAGS+=-I${PREFIX}/include" >> Makefile
 echo "CXXFLAGS+=-O3 -ffast-math -g -fstrict-aliasing -DNDEBUG" >> Makefile
 echo "CXXFLAGS+=-fopenmp" >> Makefile
 echo "LDFLAGS+=-L${PREFIX}/lib -lopenblas" >> Makefile
+echo "LDFLAGS+=-L/usr/local/lib " >> Makefile
 echo 'smurff: cmd_nompi.o $(LIBMACAU) cmd_session.o ' >> Makefile
 echo '	$(CXX) $(CXXFLAGS) $(OUTPUT_OPTIONS) $? -o smurff  $(LDFLAGS)' >> Makefile
 
