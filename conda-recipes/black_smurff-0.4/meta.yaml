@@ -5,6 +5,9 @@ package:
 source:
   url: https://github.com/ExaScience/smurff/archive/b47bd3fcdc1f2ab02c51c07760577d5a407e6576.zip
 
+build:
+    noarch: python
+
 requirements:
     build:
         - python

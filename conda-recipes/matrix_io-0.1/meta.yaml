@@ -5,6 +5,10 @@ package:
 source:
   url: https://github.com/ExaScience/smurff/archive/master.zip
 
+build:
+    noarch: python
+        
+
 requirements:
     build:
         - python

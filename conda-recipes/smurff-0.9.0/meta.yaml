@@ -10,10 +10,10 @@ requirements:
     - cmake
     - wget
     - {{ compiler('cxx') }}    # [not win]
-    - llvm-openmp
+    - llvm-openmp              # [osx]
     - openblas
   run:
-    - llvm-openmp
+    - llvm-openmp              # [osx]
     - openblas
 
 test:
