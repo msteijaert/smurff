@@ -194,8 +194,8 @@ void Session::printStatus(double elapsedi)
    if(!config.verbose)
       return;
 
-   double snorm0 = m_model->U(0).norm();
-   double snorm1 = m_model->U(1).norm();
+   double snorm0 = m_model->U(0)->norm();
+   double snorm1 = m_model->U(1)->norm();
 
    auto nnz_per_sec = (data()->nnz()) / elapsedi;
    auto samples_per_sec = (m_model->nsamples()) / elapsedi;

@@ -55,8 +55,8 @@ void SpikeAndSlabPrior::sample_latent(int d)
    const int K = num_latent();
    const int v = data()->view(m_mode, d);
 
-   auto &W = U(); // alias
-   VectorXd Wcol = W.col(d); // local copy
+   auto W = U(); // alias
+   VectorXd Wcol = W->col(d); // local copy
 
    ArrayXd log_alpha = alpha.col(v).log();
    ArrayXd log_r = - r.col(v).array().log() + (VectorXd::Ones(K) - r.col(v)).array().log();
@@ -80,7 +80,7 @@ void SpikeAndSlabPrior::sample_latent(int d)
       }
    }
 
-   W.col(d) = Wcol;
+   W->col(d) = Wcol;
    W2col.local().col(v) += Wcol.array().square().matrix();
 }
 

@@ -91,7 +91,7 @@ void NormalPrior::sample_latent(int n)
    rr.noalias() += nrandn(num_latent());
    chol.matrixU().solveInPlace(rr); // solve for x: x = U^-1 * y
    
-   U().col(n).noalias() = rr; // rr is equal to x
+   U()->col(n).noalias() = rr; // rr is equal to x
    Ucol.local().noalias() += rr;
    UUcol.local().noalias() += rr * rr.transpose();
 }
@@ -116,8 +116,8 @@ void NormalPrior::initUU()
     const int K = num_latent();
     Ucol.init(VectorXd::Zero(K));
     UUcol.init(MatrixXd::Zero(K, K));
-    UUcol.local() = U() * U().transpose();
-    Ucol.local() = U().rowwise().sum();
+    UUcol.local() = *U() * U()->transpose();
+    Ucol.local() = U()->rowwise().sum();
 }
 
 //macau Probit sample latents

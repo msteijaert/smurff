@@ -604,8 +604,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   auto &t = p->predictions.at(0);
 
   // first iteration
-  model->U(0) << 1.0, 0.0;
-  model->U(1) << 1.0, 0.0;
+  *model->U(0) << 1.0, 0.0;
+  *model->U(1) << 1.0, 0.0;
   p->update(model, data, false);
   REQUIRE(t.pred_avg == Approx(4.5 + 1.0));
   REQUIRE(t.var      == Approx(0.0));
@@ -613,8 +613,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   REQUIRE(p->rmse_avg == Approx(1.0));
 
   //// second iteration
-  model->U(0) << 2.0, 0.0;
-  model->U(1) << 1.0, 0.0;
+  *model->U(0) << 2.0, 0.0;
+  *model->U(1) << 1.0, 0.0;
   p->update(model, data, false);
   REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0) / 2));
   REQUIRE(t.var      == Approx(0.5));
@@ -622,8 +622,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   REQUIRE(p->rmse_avg == 1.5);
 
   //// third iteration
-  model->U(0) << 2.0, 0.0;
-  model->U(1) << 3.0, 0.0;
+  *model->U(0) << 2.0, 0.0;
+  *model->U(1) << 3.0, 0.0;
   p->update(model, data, false);
   REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
   REQUIRE(t.var      == Approx(14.0)); // accumulated variance

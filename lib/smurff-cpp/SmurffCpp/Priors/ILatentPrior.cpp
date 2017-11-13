@@ -40,12 +40,12 @@ std::shared_ptr<INoiseModel> ILatentPrior::noise()
    return data()->noise();
 }
 
-MatrixXd &ILatentPrior::U()
+std::shared_ptr<MatrixXd> ILatentPrior::U()
 {
    return model()->U(m_mode);
 }
 
-MatrixXd &ILatentPrior::V()
+std::shared_ptr<MatrixXd> ILatentPrior::V()
 {
    return model()->V(m_mode);
 }
@@ -57,7 +57,7 @@ int ILatentPrior::num_latent() const
 
 int ILatentPrior::num_cols() const
 {
-   return model()->U(m_mode).cols();
+   return model()->U(m_mode)->cols();
 }
 
 std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
@@ -78,7 +78,7 @@ void ILatentPrior::sample_latents()
    data()->update_pnm(model(), m_mode);
 
    #pragma omp parallel for schedule(guided)
-   for(int n = 0; n < U().cols(); n++)
+   for(int n = 0; n < U()->cols(); n++)
    {
       #pragma omp task
       sample_latent(n);
