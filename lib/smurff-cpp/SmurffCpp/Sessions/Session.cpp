@@ -129,6 +129,9 @@ void Session::step()
    BaseSession::step();
    auto endi = tick();
 
+   //WARNING: update is an expensive operation because of sort (when calculating AUC)
+   m_pred->update(m_model, data(), iter < config.burnin);
+
    printStatus(endi - starti);
    save(iter - config.burnin + 1);
    iter++;
@@ -188,8 +191,6 @@ void Session::save(int isample)
 
 void Session::printStatus(double elapsedi)
 {
-   m_pred->update(m_model, data(), iter < config.burnin);
-
    if(!config.verbose)
       return;
 
