@@ -22,6 +22,6 @@ protected:
    void run();
 };
 
-static std::shared_ptr<ISession> create_mpi_session(int argc, char** argv);
+std::shared_ptr<ISession> create_mpi_session(int argc, char** argv);
 
 }
