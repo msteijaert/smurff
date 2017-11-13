@@ -183,4 +183,4 @@ if (args.save_prefix):
         print("Saving predictions in " + pred_fname)
 
     result.prediction.columns = ["row", "col", "y", "pred_avg", "std" ]
-    result.prediction.to_csv(pred_fname)
+    result.prediction.to_csv(pred_fname, index=False)
