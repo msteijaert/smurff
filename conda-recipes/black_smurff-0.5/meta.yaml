@@ -1,9 +1,9 @@
 package:
   name: black_smurff
-  version: 0.4
+  version: 0.5
 
 source:
-  url: https://github.com/ExaScience/smurff/archive/black_smurff-v0.4.tar.gz
+  url: https://github.com/ExaScience/smurff/archive/black_smurff-v0.5.tar.gz
 
 build:
     noarch: python
