@@ -9,10 +9,10 @@ source:
 requirements:
   build:
     - {{ compiler('cxx') }}    # [not win]
-    - llvm-openmp
+    - llvm-openmp              # [osx]
     - openblas
   run:
-    - llvm-openmp
+    - llvm-openmp              # [osx]
     - openblas
 
 about:

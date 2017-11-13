@@ -10,7 +10,7 @@ requirements:
   build:
     - {{ compiler('cxx') }}    # [not win]
     - {{ compiler('c') }}      # [not win]
-    - llvm-openmp
+    - llvm-openmp              # [osx]
     - cython
     - python
     - setuptools
@@ -19,7 +19,7 @@ requirements:
     - scipy
     - pandas
   run:
-    - llvm-openmp
+    - llvm-openmp             # [osx]
     - python
     - openblas
     - numpy
