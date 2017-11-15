@@ -1,5 +1,8 @@
 #include "ScarceMatrixData.h"
 
+#include <SmurffCpp/VMatrixIterator.hpp>
+#include <SmurffCpp/VMatrixExprIterator.hpp>
+
 using namespace smurff;
 
 ScarceMatrixData::ScarceMatrixData(Eigen::SparseMatrix<double> Y)
@@ -102,41 +105,46 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
     return os;
 }
 
-void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void ScarceMatrixData::get_pnm(const SubModel& model, uint32_t mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    auto &Y = getYcPtr()->at(mode);
    const int num_latent = model.nlatent();
-   const auto &Vf = model.V(mode);
+   auto Vf = *model.CVbegin(mode);
    const int local_nnz = Y.col(n).nonZeros();
    const int total_nnz = Y.nonZeros();
    const double alpha = noise()->getAlpha();
 
    bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
-   if (in_parallel) {
+   if (in_parallel) 
+   {
        const int task_size = ceil(local_nnz / 100.0);
+       
        auto from = Y.outerIndexPtr()[n];
        auto to = Y.outerIndexPtr()[n+1];
+
        thread_vector<Eigen::VectorXd> rrs(Eigen::VectorXd::Zero(num_latent));
        thread_vector<Eigen::MatrixXd> MMs(Eigen::MatrixXd::Zero(num_latent, num_latent));
-       for(int j=from; j<to; j+=task_size) 
+
+       for(int j = from; j < to; j += task_size) 
        {
-           #pragma omp task shared(model,Y,Vf,rrs,MMs)
+           #pragma omp task shared(model, Y, Vf, rrs, MMs)
            {
                auto &my_rr = rrs.local();
                auto &my_MM = MMs.local();
 
-               for(int i=j; i<std::min(j+task_size,to); ++i)
+               auto Vfloc = *model.CVbegin(mode); // why not use Vf?
+
+               for(int i = j; i < std::min(j + task_size, to); ++i)
                {
                    auto val = Y.valuePtr()[i];
                    auto idx = Y.innerIndexPtr()[i];
-                   const auto &col = model.V(mode).col(idx);
+                   const auto &col = Vfloc.col(idx);
                    my_rr.noalias() += col * val;
                    my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
                }
 
                // make MM complete
                my_MM.triangularView<Eigen::Upper>() = my_MM.transpose();
-
            }
        }
        #pragma omp taskwait
@@ -170,7 +178,7 @@ void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::Ve
    }
 }
 
-void ScarceMatrixData::update_pnm(const SubModel &,int)
+void ScarceMatrixData::update_pnm(const SubModel &, uint32_t mode)
 {
 }
 

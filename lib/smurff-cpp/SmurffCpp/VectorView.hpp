@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include <memory>
+#include <vector>
 
 namespace smurff {
 
@@ -19,7 +20,7 @@ protected:
    VectorView(){}
 
 public:
-   VectorView(std::vector<std::shared_ptr<T> >& vec, uint32_t removed) 
+   VectorView(const std::vector<std::shared_ptr<T> >& vec, uint32_t removed) 
       : m_vec(new std::vector<std::shared_ptr<T> >()),
         m_removed(-1)
    {
@@ -34,15 +35,32 @@ public:
       m_removed = removed;
    }
 
-public:
-   std::shared_ptr<T> get(uint32_t i) 
+   VectorView(std::shared_ptr<std::vector<std::shared_ptr<T> > > vec, uint32_t removed)
+      : m_vec(vec),
+        m_removed(-1)
    {
-      return vec[i];
+
    }
 
-   size_t size() 
+public:
+   std::shared_ptr<const T> get(uint32_t i) const 
    {
-      return vec->size();
+      return m_vec->operator[](i);
+   }
+
+   std::shared_ptr<T> get(uint32_t i) 
+   {
+      return m_vec->operator[](i);
+   }
+
+   size_t size() const
+   {
+      return m_vec->size();
+   }
+
+   std::uint32_t removed() const
+   {
+      return m_removed;
    }
 };
 

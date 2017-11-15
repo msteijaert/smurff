@@ -40,7 +40,7 @@ private:
       : NormalPrior(){}
 
 public:
-   MacauPrior(std::shared_ptr<BaseSession> session, int mode)
+   MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalPrior(session, mode, "MacauPrior")
    {
 

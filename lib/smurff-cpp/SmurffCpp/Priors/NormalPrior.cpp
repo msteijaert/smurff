@@ -16,7 +16,7 @@ using namespace smurff;
 
 //  base class NormalPrior
 
-NormalPrior::NormalPrior(std::shared_ptr<BaseSession> session, int mode, std::string name)
+NormalPrior::NormalPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name)
    : ILatentPrior(session, mode, name)
 {
 
@@ -79,13 +79,12 @@ void NormalPrior::sample_latent(int n)
    rr.noalias() += Lambda * mu_u;
    MM.noalias() += Lambda;
 
-   //Solve system of linear equations for x: MM * x = rr
+   //Solve system of linear equations for x: MM * x = rr - not exactly correct  because we have random part
+   //Sample from multivariate normal distribution with mean rr and precision matrix MM
 
    Eigen::LLT<MatrixXd> chol = MM.llt(); // compute the Cholesky decomposition X = L * U
    if(chol.info() != Eigen::Success)
-   {
       throw std::runtime_error("Cholesky Decomposition failed!");
-   }
 
    chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b
    rr.noalias() += nrandn(num_latent());

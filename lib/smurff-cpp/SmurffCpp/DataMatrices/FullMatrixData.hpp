@@ -2,13 +2,16 @@
 
 #include "MatrixDataTempl.hpp"
 
+#include <SmurffCpp/VMatrixIterator.hpp>
+#include <SmurffCpp/VMatrixExprIterator.hpp>
+
 namespace smurff
 {
    template<class YType>
    class FullMatrixData : public MatrixDataTempl<YType>
    {
    private:
-      Eigen::MatrixXd VV[2];
+      Eigen::MatrixXd VV[2]; // sum of v * vT, where v is column of V
 
    public:
       FullMatrixData(YType Y) : MatrixDataTempl<YType>(Y)
@@ -18,17 +21,18 @@ namespace smurff
 
 
    public:
-      void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
+      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
       {
          const double alpha = this->noise()->getAlpha();
-         auto &Y = this->getYcPtr()->at(mode);
-         rr.noalias() += (model.V(mode) * Y.col(d)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
+         auto& Y = this->getYcPtr()->at(mode);
+         auto Vf = *model.CVbegin(mode);
+         rr.noalias() += (Vf * Y.col(d)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
          MM.noalias() += VV[mode] * alpha; // MM = MM + VV[m] * alpha
       }
 
-      void update_pnm(const SubModel& model, int mode) override
+      void update_pnm(const SubModel& model, uint32_t mode) override
       {
-         auto &Vf = model.V(mode);
+         auto Vf = *model.CVbegin(mode);
          const int nl = model.nlatent();
          thread_vector<Eigen::MatrixXd> VVs(Eigen::MatrixXd::Zero(nl, nl));
 

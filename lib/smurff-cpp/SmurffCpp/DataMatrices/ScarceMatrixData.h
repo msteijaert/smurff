@@ -21,8 +21,8 @@ namespace smurff
 
       std::ostream& info(std::ostream& os, std::string indent) override;
 
-      void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
-      void update_pnm(const SubModel& model, int mode) override;
+      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
+      void update_pnm(const SubModel& model, uint32_t mode) override;
 
       int nna() const override;
    };

@@ -48,7 +48,7 @@ private:
       : ILatentPrior(){}
 
 public:
-   MacauOnePrior(std::shared_ptr<BaseSession> session, int mode)
+   MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : ILatentPrior(session, mode)
    {
    }
@@ -89,7 +89,7 @@ public:
 
        const int K = num_latent();
        auto Us = U();
-       auto Vs = V();
+       auto& Vs = **Vbegin();
 
        const int nnz = SparseYC().col(i).nonZeros();
        Eigen::VectorXd Yhat(nnz);
@@ -99,7 +99,7 @@ public:
        Eigen::VectorXd Qi = lambda;
        for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
        {
-         Qi.noalias() += alpha * Vs->col(it.row()).cwiseAbs2();
+         Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
          Yhat(idx)     = model()->dot({(int)it.col(), (int)it.row()});
        }
 
@@ -115,7 +115,7 @@ public:
            idx = 0;
            for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
            {
-               const double vjd = Vs->operator()(d, it.row());
+               const double vjd = Vs(d, it.row());
                // L_id += alpha * (Y_ij - k_ijd) * v_jd
                Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
                //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
@@ -133,7 +133,7 @@ public:
            idx = 0;
            for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
            {
-               Yhat(idx) += uid_delta * Vs->operator()(d, it.row());
+               Yhat(idx) += uid_delta * Vs(d, it.row());
            }
        }
    }

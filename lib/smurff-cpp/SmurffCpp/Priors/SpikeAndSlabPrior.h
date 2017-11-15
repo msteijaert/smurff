@@ -33,7 +33,7 @@ private:
       : ILatentPrior(){}
 
 public:
-   SpikeAndSlabPrior(std::shared_ptr<BaseSession> session, int mode);
+   SpikeAndSlabPrior(std::shared_ptr<BaseSession> session, uint32_t mode);
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 

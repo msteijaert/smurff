@@ -4,7 +4,7 @@
 using namespace smurff;
 using namespace Eigen;
 
-SpikeAndSlabPrior::SpikeAndSlabPrior(std::shared_ptr<BaseSession> session, int mode)
+SpikeAndSlabPrior::SpikeAndSlabPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
    : ILatentPrior(session, mode, "SpikeAndSlabPrior")
 {
 

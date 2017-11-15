@@ -2,6 +2,14 @@
 
 //macau tensor - used in MacauPrior, NormalPrior
 /*
+// U - matrix from Model (for current mode)
+// n - index of column in U
+// sparseMode - sparse view of Y with reduced mode dimension
+// view - vector view all V matrices (matrices from Model other than U)
+// mean_value - mean value of Y
+// alpha - noise precision
+// mu - parameter of distribution
+// Lambda - parameter of distribution
 void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
                           int n,
                           std::unique_ptr<SparseMode> & sparseMode,
@@ -9,13 +17,19 @@ void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
                           double mean_value,
                           double alpha,
                           Eigen::VectorXd & mu,
-                          Eigen::MatrixXd & Lambda) {
+                          Eigen::MatrixXd & Lambda) 
+{
   const int nmodes1 = view.size();
   const int num_latent = U->rows();
 
+  // init MM and rr
+
   MatrixXd MM(num_latent, num_latent);
-  MM = Lambda;
+  MM.setZero();
+
   VectorXd rr = VectorXd::Zero(mu.size());
+
+  // get_pnm
 
   Eigen::VectorXi & row_ptr = sparseMode->row_ptr;
   Eigen::MatrixXi & indices = sparseMode->indices;
@@ -25,28 +39,31 @@ void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
 
   for (int j = row_ptr(n); j < row_ptr(n + 1); j++) 
   {
-    VectorXd col = S0->col(indices(j, 0));
+    VectorXd col = S0->col(indices(j, 0)); //create a copy of column for m = 0
     for (int m = 1; m < nmodes1; m++) 
     {
       col.noalias() = col.cwiseProduct(view.get(m)->col(indices(j, m)));
     }
 
-    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose();
-    rr.noalias() += col * ((values(j) - mean_value) * alpha);
+    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each view)
+    rr.noalias() += col * ((values(j) - mean_value) * alpha); // rr = rr + (col * value) * alpha (where value = j'th value of Y)
   }
+
+  // add hyperparams
+  rr.noalias() += Lambda * mu;
+  MM.noalias() += Lambda;
+
+  //Solve system of linear equations for x: MM * x = rr
 
   Eigen::LLT<MatrixXd> chol = MM.llt();
-  if(chol.info() != Eigen::Success) {
+  if(chol.info() != Eigen::Success) 
     throw std::runtime_error("Cholesky Decomposition failed!");
-  }
 
-  rr.noalias() += Lambda * mu;
-  chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent; i++) {
-    rr[i] += randn0();
-  }
-  chol.matrixU().solveInPlace(rr);
-  U->col(n).noalias() = rr;
+  chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b
+  rr.noalias() += nrandn(num_latent());
+  chol.matrixU().solveInPlace(rr); // solve for x: x = U^-1 * y
+
+  U->col(n).noalias() = rr; // rr is equal to x
 }
 */
 

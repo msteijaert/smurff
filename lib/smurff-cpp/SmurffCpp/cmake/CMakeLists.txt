@@ -5,10 +5,11 @@ project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
                         "../Model.h"
-                        "../VectorView.hpp"
                         "../result.h"
                         "../SparseFeat.h"
                         "../SparseDoubleFeat.h"
+                        "../VMatrixIterator.hpp"
+                        "../VMatrixExprIterator.hpp"
 
                         "../Utils/TruncNorm.h"
                         "../Utils/InvNormCdf.h"

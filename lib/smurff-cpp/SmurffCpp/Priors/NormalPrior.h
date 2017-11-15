@@ -30,7 +30,7 @@ protected:
       : ILatentPrior(){}
 
 public:
-  NormalPrior(std::shared_ptr<BaseSession> session, int mode, std::string name = "NormalPrior");
+  NormalPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name = "NormalPrior");
   virtual ~NormalPrior() {}
   void init() override;
 
