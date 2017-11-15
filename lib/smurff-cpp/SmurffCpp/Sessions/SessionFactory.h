@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include <SmurffCpp/Sessions/Session.h>
+#include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Sessions/ISession.h>
 
 namespace smurff {
