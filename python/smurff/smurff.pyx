@@ -3,7 +3,7 @@ from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 
 from Config cimport Config
-from Session cimport Session
+from ISession cimport ISession
 from NoiseConfig cimport NoiseConfig
 from MatrixConfig cimport MatrixConfig
 from SessionFactory cimport SessionFactory
@@ -77,5 +77,5 @@ def smurff(Y,
     config.num_latent = num_latent
 
     # Create and run session
-    cdef shared_ptr[Session] session = SessionFactory.create_py_session(config)
+    cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
     session.get().run()
