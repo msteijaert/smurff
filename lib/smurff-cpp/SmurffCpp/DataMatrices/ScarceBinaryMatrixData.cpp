@@ -2,8 +2,8 @@
 
 #include <SmurffCpp/Utils/TruncNorm.h>
 
-#include <SmurffCpp/VMatrixIterator.hpp>
 #include <SmurffCpp/VMatrixExprIterator.hpp>
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
 using namespace smurff;
 

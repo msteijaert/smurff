@@ -2,8 +2,8 @@
 
 #include "MatrixDataTempl.hpp"
 
-#include <SmurffCpp/VMatrixIterator.hpp>
 #include <SmurffCpp/VMatrixExprIterator.hpp>
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
 namespace smurff
 {

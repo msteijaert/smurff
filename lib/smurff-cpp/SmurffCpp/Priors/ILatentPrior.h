@@ -11,7 +11,9 @@
 #include <SmurffCpp/Utils/Distribution.h>
 
 #include <SmurffCpp/Model.h>
+
 #include <SmurffCpp/VMatrixIterator.hpp>
+#include <SmurffCpp/ConstVMatrixIterator.hpp>
 
 namespace smurff {
 

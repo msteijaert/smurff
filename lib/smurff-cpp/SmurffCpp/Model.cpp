@@ -18,7 +18,9 @@
 #include <SmurffCpp/Model.h>
 
 #include <SmurffCpp/VMatrixIterator.hpp>
+#include <SmurffCpp/ConstVMatrixIterator.hpp>
 #include <SmurffCpp/VMatrixExprIterator.hpp>
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
 using namespace std;
 using namespace Eigen;
