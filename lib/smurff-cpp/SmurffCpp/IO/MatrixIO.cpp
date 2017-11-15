@@ -404,14 +404,13 @@ void matrix_io::write_dense_float64_csv(std::ostream& out, const MatrixConfig& m
    //write rows and cols
    std::uint64_t nrow = matrixConfig.getNRow();
    std::uint64_t ncol = matrixConfig.getNCol();
-   std::uint64_t nnz = nrow * ncol;
 
    out << nrow << std::endl;
    out << ncol << std::endl;
 
    const std::vector<double>& values = matrixConfig.getValues();
 
-   assert(values.size() == nnz);
+   assert(values.size() == nrow * ncol);
 
    //write values
    for(std::uint64_t i = 0; i < nrow; i++)

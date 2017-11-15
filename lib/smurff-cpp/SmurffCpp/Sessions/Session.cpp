@@ -30,7 +30,7 @@ void Session::setFromConfig(const Config& cfg)
    if (config.classify)
       m_pred->setThreshold(config.threshold);
 
-   m_pred->set(matrix_utils::sparse_to_eigen(config.test));
+   m_pred->set(config.test);
 
    // initialize data
 
@@ -129,6 +129,9 @@ void Session::step()
    BaseSession::step();
    auto endi = tick();
 
+   //WARNING: update is an expensive operation because of sort (when calculating AUC)
+   m_pred->update(m_model, data(), iter < config.burnin);
+
    printStatus(endi - starti);
    save(iter - config.burnin + 1);
    iter++;
@@ -188,13 +191,11 @@ void Session::save(int isample)
 
 void Session::printStatus(double elapsedi)
 {
-   m_pred->update(m_model, data(), iter < config.burnin);
-
    if(!config.verbose)
       return;
 
-   double snorm0 = m_model->U(0).norm();
-   double snorm1 = m_model->U(1).norm();
+   double snorm0 = m_model->U(0)->norm();
+   double snorm1 = m_model->U(1)->norm();
 
    auto nnz_per_sec = (data()->nnz()) / elapsedi;
    auto samples_per_sec = (m_model->nsamples()) / elapsedi;

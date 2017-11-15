@@ -79,18 +79,19 @@ void NormalPrior::sample_latent(int n)
    rr.noalias() += Lambda * mu_u;
    MM.noalias() += Lambda;
 
-   Eigen::LLT<MatrixXd> chol = MM.llt(); // compute the Cholesky decomposition
+   //Solve system of linear equations for x: MM * x = rr
+
+   Eigen::LLT<MatrixXd> chol = MM.llt(); // compute the Cholesky decomposition X = L * U
    if(chol.info() != Eigen::Success)
    {
       throw std::runtime_error("Cholesky Decomposition failed!");
    }
 
-   chol.matrixL().solveInPlace(rr); // retrieve factor L  in the decomposition (lower triangular matrix)
-                                    // rr = inverse(L) * rr
+   chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b
    rr.noalias() += nrandn(num_latent());
-   chol.matrixU().solveInPlace(rr); // retrieve factor L  in the decomposition (upper triangular matrix)
-                                    // rr = inverse(U) * rr
-   U().col(n).noalias() = rr;
+   chol.matrixU().solveInPlace(rr); // solve for x: x = U^-1 * y
+   
+   U()->col(n).noalias() = rr; // rr is equal to x
    Ucol.local().noalias() += rr;
    UUcol.local().noalias() += rr * rr.transpose();
 }
@@ -115,8 +116,8 @@ void NormalPrior::initUU()
     const int K = num_latent();
     Ucol.init(VectorXd::Zero(K));
     UUcol.init(MatrixXd::Zero(K, K));
-    UUcol.local() = U() * U().transpose();
-    Ucol.local() = U().rowwise().sum();
+    UUcol.local() = *U() * U()->transpose();
+    Ucol.local() = U()->rowwise().sum();
 }
 
 //macau Probit sample latents
@@ -149,7 +150,7 @@ void BPMFPrior::sample_latents(ProbitNoise& noiseModel, TensorData & data,
 /*
 void BPMFPrior::sample_latents(double noisePrecision,
                                TensorData & data, // array of sparse views per dimention
-                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, //vector of matrices per dimention ?
+                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, //vector of sample matrices
                                const int mode, //dimention index
                                const int num_latent //number of latent dimentions
                               ) 

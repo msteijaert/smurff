@@ -5,16 +5,18 @@ package:
 source:
   url: https://github.com/ExaScience/smurff/archive/v0.9.0.tar.gz
 
+build:
+    number: 1
+
 requirements:
   build:
     - cmake
     - wget
-    - libgfortran ==3.0.0
-    - gcc
+    - {{ compiler('cxx') }}    # [not win]
+    - llvm-openmp              # [osx]
     - openblas
   run:
-    - gcc
-    - libgfortran ==3.0.0
+    - llvm-openmp              # [osx]
     - openblas
 
 test:

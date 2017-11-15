@@ -20,8 +20,8 @@ class SubModel;
 class Model : public std::enable_shared_from_this<Model>
 {
 private:
-   std::vector<Eigen::MatrixXd> m_samples; //vector of U, V matrices
-   int m_num_latent; //size of latent dimention for U, V matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXd> > m_samples; //vector of U matrices
+   int m_num_latent; //size of latent dimention for U matrices
    std::unique_ptr<PVec<> > m_dims; //dimentions of train data
 
 public:
@@ -41,12 +41,12 @@ public:
 
 public:
    //return f'th U matrix in the model where number of matrices is != 2
-   const Eigen::MatrixXd &U(int f) const;
-   Eigen::MatrixXd &U(int f);
+   std::shared_ptr<const Eigen::MatrixXd> U(int f) const;
+   std::shared_ptr<Eigen::MatrixXd> U(int f);
 
    //return f'th V matrix in the model where number of matrices is == 2
-   Eigen::MatrixXd &V(int f);
-   const Eigen::MatrixXd &V(int f) const;
+   std::shared_ptr<const Eigen::MatrixXd> V(int f) const;
+   std::shared_ptr<Eigen::MatrixXd> V(int f);
 
    //return i'th column of f'th U matrix in the model
    Eigen::MatrixXd::ConstColXpr col(int f, int i) const;
@@ -99,13 +99,14 @@ public:
 public:
    Eigen::MatrixXd::ConstBlockXpr U(int f) const
    {
-      return m_model->U(f).block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
+      return m_model->U(f)->block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
    }
 
    Eigen::MatrixXd::ConstBlockXpr V(int f) const
    {
       if(nmodes() != 2)
          throw std::runtime_error("nmodes value is incorrect");
+         
       return U((f + 1) % 2);
    }
 

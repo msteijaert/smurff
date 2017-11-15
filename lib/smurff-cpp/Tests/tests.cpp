@@ -584,14 +584,15 @@ TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") 
 */
 
 TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
-  int rows[1] = {0};
-  int cols[1] = {0};
-  double vals[1] = {4.5};
+  std::vector<std::uint32_t> rows = {0};
+  std::vector<std::uint32_t> cols = {0};
+  std::vector<double>        vals = {4.5};
+
   std::shared_ptr<Result> p(new Result());
   std::shared_ptr<Model> model(new Model());
-  SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
+  MatrixConfig S = {1,1,rows, cols, vals, NoiseConfig()};
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
-  p->set(matrix_utils::sparse_to_eigen(S));
+  p->set(S);
   data->setCenterMode("global");
 
   NoiseConfig ncfg;
@@ -603,8 +604,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   auto &t = p->predictions.at(0);
 
   // first iteration
-  model->U(0) << 1.0, 0.0;
-  model->U(1) << 1.0, 0.0;
+  *model->U(0) << 1.0, 0.0;
+  *model->U(1) << 1.0, 0.0;
   p->update(model, data, false);
   REQUIRE(t.pred_avg == Approx(4.5 + 1.0));
   REQUIRE(t.var      == Approx(0.0));
@@ -612,8 +613,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   REQUIRE(p->rmse_avg == Approx(1.0));
 
   //// second iteration
-  model->U(0) << 2.0, 0.0;
-  model->U(1) << 1.0, 0.0;
+  *model->U(0) << 2.0, 0.0;
+  *model->U(1) << 1.0, 0.0;
   p->update(model, data, false);
   REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0) / 2));
   REQUIRE(t.var      == Approx(0.5));
@@ -621,8 +622,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   REQUIRE(p->rmse_avg == 1.5);
 
   //// third iteration
-  model->U(0) << 2.0, 0.0;
-  model->U(1) << 3.0, 0.0;
+  *model->U(0) << 2.0, 0.0;
+  *model->U(1) << 3.0, 0.0;
   p->update(model, data, false);
   REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
   REQUIRE(t.var      == Approx(14.0)); // accumulated variance

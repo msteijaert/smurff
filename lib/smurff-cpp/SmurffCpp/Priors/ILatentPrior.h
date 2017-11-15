@@ -41,8 +41,8 @@ public:
 
    std::shared_ptr<INoiseModel> noise();
 
-   Eigen::MatrixXd &U();
-   Eigen::MatrixXd &V();
+   std::shared_ptr<Eigen::MatrixXd> U();
+   std::shared_ptr<Eigen::MatrixXd> V();
 
    int num_latent() const;
    int num_cols() const;

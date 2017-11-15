@@ -6,12 +6,16 @@ source:
   git_url: https://github.com/ExaScience/smurff
   git_tag: v0.6.2
 
+build:
+    number: 1
+
 requirements:
   build:
-    - gcc
+    - {{ compiler('cxx') }}    # [not win]
+    - llvm-openmp              # [osx]
     - openblas
   run:
-    - gcc
+    - llvm-openmp              # [osx]
     - openblas
 
 about:

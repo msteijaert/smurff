@@ -1,12 +1,11 @@
 package:
-  name: matrix_io
-  version: 0.1
+  name: black_smurff
+  version: 0.5
 
 source:
-  url: https://github.com/ExaScience/smurff/archive/master.zip
+  url: https://github.com/ExaScience/smurff/archive/black_smurff-v0.5.tar.gz
 
 build:
-    number: 1
     noarch: python
 
 requirements:
@@ -15,7 +14,9 @@ requirements:
         - setuptools
     run:
         - python
+        - matrix_io
         - scipy
+        - macau
 
 about:
   home: https://github.com/ExaScience/smurff
