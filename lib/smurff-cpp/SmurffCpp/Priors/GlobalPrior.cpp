@@ -24,9 +24,7 @@ void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
 
   // init MM and rr
 
-  MatrixXd MM(num_latent, num_latent);
-  MM.setZero();
-
+  MatrixXd MM = MatrixXd::Zero(num_latent(), num_latent());
   VectorXd rr = VectorXd::Zero(mu.size());
 
   // get_pnm
@@ -37,15 +35,15 @@ void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
 
   Eigen::MatrixXd* S0 = view.get(0);
 
-  for (int j = row_ptr(n); j < row_ptr(n + 1); j++) 
+  for (int j = row_ptr(n); j < row_ptr(n + 1); j++) //j will be the index of row in indices matrix corresponding to plane n in sparse view
   {
-    VectorXd col = S0->col(indices(j, 0)); //create a copy of column for m = 0
-    for (int m = 1; m < nmodes1; m++) 
+    VectorXd col = S0->col(indices(j, 0)); //create a copy of column from m'th V (m = 0)
+    for (int m = 1; m < nmodes1; m++) //go through other V matrices
     {
-      col.noalias() = col.cwiseProduct(view.get(m)->col(indices(j, m)));
+      col.noalias() = col.cwiseProduct(view.get(m)->col(indices(j, m))); //multiply by column from m'th V
     }
 
-    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each view)
+    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each V)
     rr.noalias() += col * ((values(j) - mean_value) * alpha); // rr = rr + (col * value) * alpha (where value = j'th value of Y)
   }
 

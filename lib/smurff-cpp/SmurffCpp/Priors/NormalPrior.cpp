@@ -62,6 +62,7 @@ void NormalPrior::update_prior()
    std::tie(mu, Lambda) = CondNormalWishart(N, cov, sum, mu0, b0, WI, df);
 }
 
+//n is an index of column in U matrix
 void NormalPrior::sample_latent(int n)
 {
    const auto &mu_u = getMu(n);

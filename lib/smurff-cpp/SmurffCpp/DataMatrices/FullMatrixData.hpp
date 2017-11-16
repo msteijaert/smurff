@@ -19,8 +19,8 @@ namespace smurff
          this->name = "MatrixData [fully known]";
       }
 
-
    public:
+      //d is an index of column in U matrix
       void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
       {
          const double alpha = this->noise()->getAlpha();

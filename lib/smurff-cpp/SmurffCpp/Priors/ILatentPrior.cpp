@@ -92,8 +92,6 @@ bool ILatentPrior::run_slave()
    return false;
 }
 
-//update_pnm is smth new and there is no equvalent in old code
-
 void ILatentPrior::sample_latents()
 {
    data()->update_pnm(model(), m_mode);
