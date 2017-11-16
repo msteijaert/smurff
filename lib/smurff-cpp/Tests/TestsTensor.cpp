@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include <SmurffCpp/sparsetensor.h>
+#include <SmurffCpp/TensorDataOld.h>
 #include <SmurffCpp/Configs/TensorConfig.h>
 
 
@@ -31,22 +32,25 @@ TEST_CASE("test tensor constructor 1")
       };
    //TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
-   TensorData td(4);
+   TensorDataOld td(4);
    //td.setTrain(rows, cols, values, nnz, nrows, ncols);
    td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
 
    /*
    std::cout << "Tensor Data test" << std::endl;
 
-   for(std::unique_ptr<SparseMode>& val : *td.Y)
+   for(std::unique_ptr<SparseModeOld>& val : *td.Y)
    {
       std::cout << "num_modes: " << val->num_modes << std::endl;
       std::cout << "nnz: " << val->nnz << std::endl;
       std::cout << "mode: " << val->mode << std::endl;
 
       std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
-      std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
-      std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
+      //std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
+      //std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
+
+      std::cout << "indices:" << std::endl << val->indices << std::endl;
+      std::cout << "values:" << std::endl << val->values << std::endl;
 
       std::cout << std::endl;
    }
@@ -58,6 +62,7 @@ TEST_CASE("test tensor constructor 2")
    std::vector<int> tensorConfigDims = { 2, 3, 4 };
    std::vector<int> tensorConfigColumns =
       {
+         //  1-st xy plane             //2-nd xy plane           //3-rd xy plane            //4-rd xy plane
          // 1D 
          0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,
          // 2D 
@@ -67,29 +72,72 @@ TEST_CASE("test tensor constructor 2")
       };
    std::vector<double> tensorConfigValues =
       {
-                  0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
+         0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
       };
 
-   TensorData td(3);
+   TensorDataOld td(3);
    //td.setTrain(rows, cols, values, nnz, nrows, ncols);
    td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
 
    /*
    std::cout << "Tensor Data test" << std::endl;
 
-   for(std::unique_ptr<SparseMode>& val : *td.Y)
+   for(std::unique_ptr<SparseModeOld>& val : *td.Y)
    {
       std::cout << "num_modes: " << val->num_modes << std::endl;
       std::cout << "nnz: " << val->nnz << std::endl;
       std::cout << "mode: " << val->mode << std::endl;
 
       std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
-      std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
-      std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
+      //std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
+      //std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
+
+      std::cout << "indices:" << std::endl << val->indices << std::endl;
+      std::cout << "values:" << std::endl << val->values << std::endl;
 
       std::cout << std::endl;
    }
    */
+}
+
+TEST_CASE("test tensor constructor 3")
+{
+   std::vector<int> tensorConfigDims = { 2, 3};
+   std::vector<int> tensorConfigColumns =
+      {
+         // 1D 
+         0,  1,  0,  1,  0,  1,     
+         // 2D 
+         0,  0,  1,  1,  2,  2, 
+      };
+   std::vector<double> tensorConfigValues =
+      {
+         0,  3,  1,  4,  2,  5,
+      };
+
+   TensorDataOld td(2);
+   //td.setTrain(rows, cols, values, nnz, nrows, ncols);
+   td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
+
+   
+   std::cout << "Tensor Data test" << std::endl;
+
+   for(std::unique_ptr<SparseModeOld>& val : *td.Y)
+   {
+      std::cout << "num_modes: " << val->num_modes << std::endl;
+      std::cout << "nnz: " << val->nnz << std::endl;
+      std::cout << "mode: " << val->mode << std::endl;
+
+      std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
+      //std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
+      //std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
+
+      std::cout << "indices:" << std::endl << val->indices << std::endl;
+      std::cout << "values:" << std::endl << val->values << std::endl;
+
+      std::cout << std::endl;
+   }
+   
 }
 
 //smurff
