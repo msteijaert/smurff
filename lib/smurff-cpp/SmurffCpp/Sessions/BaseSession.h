@@ -13,7 +13,7 @@ class ILatentPrior;
 class Data;
 class Model;
 class SessionFactory;
-class Result;
+struct Result;
 
 class BaseSession : public ISession
 {
