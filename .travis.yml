@@ -29,6 +29,7 @@ addons:
 #      - libopenblas-dev
       - libblas-dev
       - liblapack-dev
+      - libeigen3-dev
 #      - cmake3
 #      - cmake3-data
 script:
