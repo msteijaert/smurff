@@ -8,10 +8,10 @@ source:
 requirements:
   build:
     - cmake
-    - wget
     - {{ compiler('cxx') }}    # [not win]
     - llvm-openmp              # [osx]
     - openblas
+    - eigen3
   run:
     - llvm-openmp              # [osx]
     - openblas
