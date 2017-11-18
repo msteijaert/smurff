@@ -1,4 +1,3 @@
-cp -r unsupported $PREFIX/include
 language: cpp
 matrix:
   include:
