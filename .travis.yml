@@ -1,3 +1,4 @@
+cp -r unsupported $PREFIX/include
 language: cpp
 matrix:
   include:
@@ -29,7 +30,7 @@ script:
     - mkdir build
     - cd build
     - cmake --version
-    - cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_PREFIX=../eigen3
+    - cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_PREFIX_PATH=../eigen3
     - make
     - make test
 
