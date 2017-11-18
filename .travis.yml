@@ -19,18 +19,20 @@ addons:
 #      - libopenblas-dev
       - libblas-dev
       - liblapack-dev
-      - libeigen3-dev
+#      - libeigen3-dev # too old :(
       - cmake3
       - cmake3-data
 script:
-- cd "${TRAVIS_BUILD_DIR}"
-- cd lib/smurff-cpp/cmake
-- mkdir build
-- cd build
-- cmake --version
-- cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
-- make
-- make test
+    - cd "${TRAVIS_BUILD_DIR}"
+    - cd lib/smurff-cpp/cmake
+    - ./local_eigen.sh eigen3
+    - mkdir build
+    - cd build
+    - cmake --version
+    - cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_PREFIX=../eigen3
+    - make
+    - make test
+
 after_success:
   - echo "success"
  
