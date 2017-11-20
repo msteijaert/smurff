@@ -4,12 +4,128 @@
 #include <string>
 #include <sstream>
 
+#include <Eigen/Core>
+#include <Eigen/SparseCore>
+
+#include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/sparsetensor.h>
 #include <SmurffCpp/TensorDataOld.h>
 #include <SmurffCpp/Configs/TensorConfig.h>
+#include <SmurffCpp/SparseModeNew.h>
+#include <SmurffCpp/TensorDataNew.h>
 
+using namespace smurff;
 
-TEST_CASE("test tensor constructor 1")
+TEST_CASE("test sparse view new 1")
+{  
+   std::vector<std::uint64_t> tensorConfigDims = {2, 3};
+   std::vector<std::uint32_t> tensorConfigColumns =
+      {
+         // 1D 
+         0,  1,  0,  1,  0,  1,
+         // 2D 
+         0,  0,  1,  1,  2,  2,
+      };
+   std::vector<double> tensorConfigValues =
+      {
+         0,  3,  1,  4,  2,  5,
+      };
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+
+   Eigen::MatrixXd actualMatrix0 = matrix_utils::sparse_to_eigen(tensorConfig);
+
+   //std::cout << actualMatrix0 << std::endl;
+
+   TensorDataNew td(tensorConfig);
+
+   /*
+   std::cout << "Tensor Data test" << std::endl;
+  
+   for(uint64_t mode = 0; mode < td.getNModes(); mode++)
+   {
+      std::shared_ptr<SparseModeNew> sview = td.Y(mode);
+
+      std::cout << "===============" << std::endl;
+
+      std::cout << "nmodes: " << sview->getNModes() << std::endl;
+      std::cout << "nnz: " << sview->getNNZ() << std::endl;
+      std::cout << "mode: " << sview->getMode() << std::endl;
+      
+      for(std::uint64_t n = 0; n < sview->getNModes(); n++) // go through each hyper plane in the dimention
+      {
+         std::cout << "-----" << std::endl;
+
+         for (std::uint64_t j = sview->beginMode(n); j < sview->endMode(n); j++) //go through each value in a plane
+         {
+            for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
+            {
+               std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
+            }
+            
+            std::cout << sview->getValues()[j] << std::endl; //print value
+         }
+      }
+
+      std::cout << std::endl;
+   }
+   */
+}
+
+TEST_CASE("test sparse view new 2")
+{  
+   std::vector<std::uint64_t> tensorConfigDims = { 2, 3, 4 };
+   std::vector<std::uint32_t> tensorConfigColumns =
+      {
+         //  1-st xy plane             //2-nd xy plane           //3-rd xy plane            //4-rd xy plane
+         // 1D 
+         0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,
+         // 2D 
+         0,  0,  1,  1,  2,  2,     0,  0,  1,  1,  2,  2,     0,  0,  1,  1,  2,  2,     0,  0,  1,  1,  2,  2,
+         // 3D 
+         0,  0,  0,  0,  0,  0,     1,  1,  1,  1,  1,  1,     2,  2,  2,  2,  2,  2,     3,  3,  3,  3,  3,  3,
+      };
+   std::vector<double> tensorConfigValues =
+      {
+         0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
+      };
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+
+   TensorDataNew td(tensorConfig);
+
+   
+   std::cout << "Tensor Data test" << std::endl;
+  
+   for(uint64_t mode = 0; mode < td.getNModes(); mode++)
+   {
+      std::shared_ptr<SparseModeNew> sview = td.Y(mode);
+
+      std::cout << "===============" << std::endl;
+
+      std::cout << "nmodes: " << sview->getNModes() << std::endl;
+      std::cout << "nnz: " << sview->getNNZ() << std::endl;
+      std::cout << "mode: " << sview->getMode() << std::endl;
+      
+      for(std::uint64_t n = 0; n < sview->getNModes(); n++) // go through each hyper plane in the dimension
+      {
+         std::cout << "-----" << std::endl;
+
+         for (std::uint64_t j = sview->beginMode(n); j < sview->endMode(n); j++) //go through each value in a plane
+         {
+            for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
+            {
+               std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
+            }
+            
+            std::cout << sview->getValues()[j] << std::endl; //print value
+         }
+      }
+
+      std::cout << std::endl;
+   }
+   
+}
+
+TEST_CASE("test tensor constructor 4")
 {
    std::vector<int> tensorConfigDims = { 2, 3, 4, 2 };
    std::vector<int> tensorConfigColumns =
@@ -41,23 +157,35 @@ TEST_CASE("test tensor constructor 1")
 
    for(std::unique_ptr<SparseModeOld>& val : *td.Y)
    {
+      std::cout << "===============" << std::endl;
+
       std::cout << "num_modes: " << val->num_modes << std::endl;
+      std::cout << "modeSize: " << val->modeSize() << std::endl;
       std::cout << "nnz: " << val->nnz << std::endl;
       std::cout << "mode: " << val->mode << std::endl;
 
       std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
-      //std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
-      //std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
 
-      std::cout << "indices:" << std::endl << val->indices << std::endl;
-      std::cout << "values:" << std::endl << val->values << std::endl;
+      std::cout << "indices/data: " << std::endl;
+
+      for(std::uint64_t n = 0; n < val->modeSize(); n++) // go through each hyper plane in the dimention
+      {
+         std::cout << "-----" << std::endl;
+
+         for (std::uint64_t j = val->row_ptr(n); j < val->row_ptr(n + 1); j++) //go through each value in a plane
+         {
+            for (std::uint64_t m = 0; m < val->modeSize(); m++) //go through each coordinate of a value
+               std::cout << val->indices(j, m) << ", "; //print coordinate
+            std::cout << val->values(j) << std::endl; //print value
+         }
+      }
 
       std::cout << std::endl;
    }
    */
 }
 
-TEST_CASE("test tensor constructor 2")
+TEST_CASE("test tensor constructor 3")
 {
    std::vector<int> tensorConfigDims = { 2, 3, 4 };
    std::vector<int> tensorConfigColumns =
@@ -74,6 +202,7 @@ TEST_CASE("test tensor constructor 2")
       {
          0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
       };
+   //TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
    TensorDataOld td(3);
    //td.setTrain(rows, cols, values, nnz, nrows, ncols);
@@ -84,60 +213,85 @@ TEST_CASE("test tensor constructor 2")
 
    for(std::unique_ptr<SparseModeOld>& val : *td.Y)
    {
+      std::cout << "===============" << std::endl;
+
       std::cout << "num_modes: " << val->num_modes << std::endl;
+      std::cout << "modeSize: " << val->modeSize() << std::endl;
       std::cout << "nnz: " << val->nnz << std::endl;
       std::cout << "mode: " << val->mode << std::endl;
 
       std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
-      //std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
-      //std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
 
-      std::cout << "indices:" << std::endl << val->indices << std::endl;
-      std::cout << "values:" << std::endl << val->values << std::endl;
+      std::cout << "indices/data: " << std::endl;
+
+      for(std::uint64_t n = 0; n < val->modeSize(); n++) // go through each hyper plane in the dimention
+      {
+         std::cout << "-----" << std::endl;
+
+         for (std::uint64_t j = val->row_ptr(n); j < val->row_ptr(n + 1); j++) //go through each value in a plane
+         {
+            for (std::uint64_t m = 0; m < val->modeSize(); m++) //go through each coordinate of a value
+               std::cout << val->indices(j, m) << ", "; //print coordinate
+            std::cout << val->values(j) << std::endl; //print value
+         }
+      }
 
       std::cout << std::endl;
    }
    */
 }
 
-TEST_CASE("test tensor constructor 3")
+TEST_CASE("test tensor constructor 2")
 {
    std::vector<int> tensorConfigDims = { 2, 3};
    std::vector<int> tensorConfigColumns =
       {
          // 1D 
-         0,  1,  0,  1,  0,  1,     
+         0,  1,  0,  1,  0,  1,
          // 2D 
-         0,  0,  1,  1,  2,  2, 
+         0,  0,  1,  1,  2,  2,
       };
    std::vector<double> tensorConfigValues =
       {
          0,  3,  1,  4,  2,  5,
       };
+   //TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
    TensorDataOld td(2);
    //td.setTrain(rows, cols, values, nnz, nrows, ncols);
    td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
 
-   
+   /*
    std::cout << "Tensor Data test" << std::endl;
 
    for(std::unique_ptr<SparseModeOld>& val : *td.Y)
    {
+      std::cout << "===============" << std::endl;
+
       std::cout << "num_modes: " << val->num_modes << std::endl;
+      std::cout << "modeSize: " << val->modeSize() << std::endl;
       std::cout << "nnz: " << val->nnz << std::endl;
       std::cout << "mode: " << val->mode << std::endl;
 
       std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
-      //std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
-      //std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
 
-      std::cout << "indices:" << std::endl << val->indices << std::endl;
-      std::cout << "values:" << std::endl << val->values << std::endl;
+      std::cout << "indices/data: " << std::endl;
+
+      for(std::uint64_t n = 0; n < val->modeSize(); n++) // go through each hyper plane in the dimention
+      {
+         std::cout << "-----" << std::endl;
+
+         for (std::uint64_t j = val->row_ptr(n); j < val->row_ptr(n + 1); j++) //go through each value in a plane
+         {
+            for (std::uint64_t m = 0; m < val->modeSize(); m++) //go through each coordinate of a value
+               std::cout << val->indices(j, m) << ", "; //print coordinate
+            std::cout << val->values(j) << std::endl; //print value
+         }
+      }
 
       std::cout << std::endl;
    }
-   
+   */
 }
 
 //smurff
