@@ -78,7 +78,7 @@ def smurff(Y,
     cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
     session.get().run()
 
-    # Get result from session and construct numpy matrix
+    # Get result from session and construct scipy matrix
     cdef shared_ptr[MatrixConfig] result = make_shared[MatrixConfig](session.get().getResult())
 
     cdef shared_ptr[vector[uint32_t]] result_rows_ptr = result.get().getRowsPtr()
@@ -93,5 +93,5 @@ def smurff(Y,
     cdef double[:] result_vals_view = <double[:result_vals_ptr.get().size()]>result_vals_ptr.get().data()
     result_vals = np.array(result_vals_view, copy=False)
 
-    result_sparse_matrix = np.coo_matrix((result_vals, (result_rows, result_cols)), shape=(result.get().getNRow(), result.get().getNCol()))
+    result_sparse_matrix = sp.sparse.coo_matrix((result_vals, (result_rows, result_cols)), shape=(result.get().getNRow(), result.get().getNCol()))
     return result_sparse_matrix
