@@ -26,7 +26,7 @@ private:
 public:
 	//begin constructor
    ConstVMatrixIterator(std::shared_ptr<const Model> model, std::uint32_t mode, std::uint32_t num)
-      : m_model(model), m_mode(mode), m_num(num)
+      : m_model(model), m_mode(mode), m_num(num == mode ? num + 1 : num)
    {
    }
 

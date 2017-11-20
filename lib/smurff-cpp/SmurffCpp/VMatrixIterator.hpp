@@ -28,7 +28,7 @@ private:
 public:
 	//begin constructor
    VMatrixIterator(std::shared_ptr<Model> model, std::uint32_t mode, std::uint32_t num)
-      : m_model(model), m_mode(mode), m_num(num)
+      : m_model(model), m_mode(mode), m_num(num == mode ? num + 1 : num)
    {
    }
 

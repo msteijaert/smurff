@@ -28,7 +28,7 @@ private:
 public:
 	//begin constructor
    ConstVMatrixExprIterator(std::shared_ptr<const Model> model, PVec<> off, PVec<> dims, std::uint32_t mode, std::uint32_t num)
-      : m_model(model), m_off(off), m_dims(dims), m_mode(mode), m_num(num)
+      : m_model(model), m_off(off), m_dims(dims), m_mode(mode), m_num(num == mode ? num + 1 : num)
    {
    }
 
