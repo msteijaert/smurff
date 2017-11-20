@@ -2,7 +2,7 @@ from libc.stdint cimport *
 from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 
-from Config cimport Config
+from Config cimport Config, stringToPriorType
 from ISession cimport ISession
 from NoiseConfig cimport NoiseConfig
 from MatrixConfig cimport MatrixConfig
@@ -49,30 +49,80 @@ cdef shared_ptr[MatrixConfig] prepare_sparse(X):
 
 def smurff(Y,
            Ytest,
-           row_features = [],
-           col_features = [],
-           row_prior    = None,
-           col_prior    = None,
-           lambda_beta  = 5.0,
-           num_latent   = 10,
-           precision    = 1.0,
-           burnin       = 50,
-           nsamples     = 400,
-           tol          = 1e-6,
-           sn_max       = 10.0,
-           save_prefix  = None,
-           verbose      = True):
+           row_features   = [],
+           col_features   = [],
+           row_prior      = None,
+           col_prior      = None,
+           lambda_beta    = 5.0,
+           num_latent     = 10,
+           precision      = 1.0,
+           adaptive       = None,
+           burnin         = 50,
+           nsamples       = 400,
+           tol            = 1e-6,
+           direct         = True,
+           seed           = None,
+           verbose        = True,
+           quite          = False,
+           save_prefix    = None,
+           save_suffix    = None,
+           save_freq      = None,
+           restore_prefix = None,
+           restore_suffix = None,
+           csv_status     = None):
 
     # Create and initialize smurff-cpp Config instance
     cdef Config config
+
     config.train = prepare_sparse(Y).get()[0]
-    config.test = prepare_sparse(Ytest).get()[0]
+    config.test  = prepare_sparse(Ytest).get()[0]
+
+    for rf in row_features:
+        config.row_features.push_back(prepare_sparse(rf).get()[0])
+
+    for cf in col_features:
+        config.col_features.push_back(prepare_sparse(cf).get()[0])
+
+    if row_prior:
+        config.row_prior_type = stringToPriorType(row_prior)
+
+    if col_prior:
+        config.col_prior_type = stringToPriorType(col_prior)
+
+    config.lambda_beta = lambda_beta
+    config.num_latent  = num_latent
+    # config.precision   = ???
+    # config.adaptive    = ???
+    config.burnin      = burnin
+    config.nsamples    = nsamples
+    config.tol         = tol
+    config.direct      = direct
+
+    if seed:
+        config.random_seed_set = True
+        config.random_seed = seed
+
     config.verbose = verbose
-    if (save_prefix):
+    if quite:
+        config.verbose = False
+
+    if save_prefix:
         config.setSavePrefix(save_prefix)
-    config.nsamples = nsamples
-    config.burnin = burnin
-    config.num_latent = num_latent
+
+    if save_suffix:
+        config.save_suffix = save_suffix
+
+    if save_freq:
+        config.save_freq = save_freq
+
+    if restore_prefix:
+        config.restore_prefix = restore_prefix
+
+    if restore_suffix:
+        config.restore_suffix = restore_suffix
+
+    if csv_status:
+        config.csv_status = csv_status
 
     # Create and run session
     cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
