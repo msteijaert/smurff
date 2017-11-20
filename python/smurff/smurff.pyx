@@ -2,7 +2,7 @@ from libc.stdint cimport *
 from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 
-from Config cimport Config, stringToPriorType
+from Config cimport Config, stringToPriorType, stringToModelInitType
 from ISession cimport ISession
 from NoiseConfig cimport NoiseConfig
 from MatrixConfig cimport MatrixConfig
@@ -62,8 +62,10 @@ def smurff(Y,
            tol            = 1e-6,
            direct         = True,
            seed           = None,
+           threshold      = None,
            verbose        = True,
            quite          = False,
+           init_model     = None,
            save_prefix    = None,
            save_suffix    = None,
            save_freq      = None,
@@ -102,9 +104,16 @@ def smurff(Y,
         config.random_seed_set = True
         config.random_seed = seed
 
+    if threshold:
+        config.threshold = threshold
+        config.classify = True
+
     config.verbose = verbose
     if quite:
         config.verbose = False
+
+    if init_model:
+        config.model_init_type = stringToModelInitType(init_model)
 
     if save_prefix:
         config.setSavePrefix(save_prefix)
