@@ -30,6 +30,7 @@ namespace smurff
          MM.noalias() += VV[mode] * alpha; // MM = MM + VV[m] * alpha
       }
 
+      //purpose of update_pnm is to cache VV matrix
       void update_pnm(const SubModel& model, uint32_t mode) override
       {
          auto Vf = *model.CVbegin(mode);

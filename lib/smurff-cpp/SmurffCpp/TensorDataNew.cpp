@@ -4,6 +4,7 @@
 #include <sstream>
 
 using namespace Eigen;
+using namespace smurff;
 
 //convert array of coordinates to [nnz x nmodes] matrix
 MatrixXui32 toMatrixNew(const std::vector<std::uint32_t>& columns, std::uint64_t nnz, std::uint64_t nmodes) 
@@ -40,4 +41,80 @@ std::shared_ptr<SparseModeNew> TensorDataNew::Y(std::uint64_t mode) const
 std::uint64_t TensorDataNew::getNModes() const
 {
    return m_dims.size();
+}
+
+
+void TensorDataNew::init_pre()
+{
+   throw std::runtime_error("not implemented");
+}
+
+double TensorDataNew::sum() const
+{
+   throw std::runtime_error("not implemented");
+}
+
+int TensorDataNew::nmode() const
+{
+   throw std::runtime_error("not implemented");
+}
+
+int TensorDataNew::nnz() const
+{
+   throw std::runtime_error("not implemented");
+}
+
+int TensorDataNew::nna() const
+{
+   throw std::runtime_error("not implemented");
+}
+
+PVec<> TensorDataNew::dim() const
+{
+   throw std::runtime_error("not implemented");
+}
+
+double TensorDataNew::train_rmse(const SubModel& model) const
+{
+   throw std::runtime_error("not implemented");
+}
+
+void TensorDataNew::get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+{
+   throw std::runtime_error("not implemented");
+}
+
+void TensorDataNew::update_pnm(const SubModel& model, uint32_t mode)
+{
+   throw std::runtime_error("not implemented");
+}
+
+double TensorDataNew::sumsq(const SubModel& model) const
+{
+   throw std::runtime_error("not implemented");
+}
+
+double TensorDataNew::var_total() const
+{
+   throw std::runtime_error("not implemented");
+}
+
+std::ostream& TensorDataNew::info(std::ostream& os, std::string indent)
+{
+   throw std::runtime_error("not implemented");
+}
+
+double TensorDataNew::compute_mode_mean_mn(int mode, int pos)
+{
+   throw std::runtime_error("not implemented");
+}
+
+void TensorDataNew::center(double global_mean)
+{
+   throw std::runtime_error("not implemented");
+}
+
+double TensorDataNew::offset_to_mean(const PVec<>& pos) const
+{
+   throw std::runtime_error("not implemented");
 }

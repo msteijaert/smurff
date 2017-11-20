@@ -7,6 +7,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
+namespace smurff {
+
 typedef Eigen::Matrix<std::uint32_t, Eigen::Dynamic, Eigen::Dynamic > MatrixXui32;
 
 //this is a tensor rotation where one dimention is fixed (excluded)
@@ -45,3 +47,5 @@ public:
 
    const MatrixXui32& getIndices() const;
 };
+
+}

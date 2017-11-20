@@ -4,6 +4,7 @@
 #include <sstream>
 
 using namespace Eigen;
+using namespace smurff;
 
 SparseModeNew::SparseModeNew() 
 : m_nnz(0), m_mode(0) 
