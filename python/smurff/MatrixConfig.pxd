@@ -72,4 +72,6 @@ cdef extern from "<SmurffCpp/Configs/MatrixConfig.h>" namespace "smurff":
         shared_ptr[vector[uint32_t]] getRowsPtr()
         shared_ptr[vector[uint32_t]] getColsPtr()
 
+        # TensorConfig methods
         shared_ptr[vector[double]] getValuesPtr()
+        void setNoiseConfig(const NoiseConfig& value)

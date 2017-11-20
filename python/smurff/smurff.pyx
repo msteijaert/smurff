@@ -4,7 +4,7 @@ from libcpp.vector cimport vector
 
 from Config cimport Config, stringToPriorType, stringToModelInitType
 from ISession cimport ISession
-from NoiseConfig cimport NoiseConfig
+from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
 from SessionFactory cimport SessionFactory
 
@@ -56,7 +56,8 @@ def smurff(Y,
            lambda_beta    = 5.0,
            num_latent     = 10,
            precision      = 1.0,
-           adaptive       = None,
+           sn_init        = None,
+           sn_max         = None,
            burnin         = 50,
            nsamples       = 400,
            tol            = 1e-6,
@@ -75,15 +76,34 @@ def smurff(Y,
 
     # Create and initialize smurff-cpp Config instance
     cdef Config config
+    cdef NoiseConfig nc
+
+    if precision:
+        nc.setNoiseType(fixed)
+        nc.precision = precision
+
+    if sn_init and sn_max:
+        nc.setNoiseType(adaptive)
+        nc.sn_init = sn_init
+        nc.sn_max = sn_max
 
     config.train = prepare_sparse(Y).get()[0]
-    config.test  = prepare_sparse(Ytest).get()[0]
+    config.train.setNoiseConfig(nc)
 
+    config.test = prepare_sparse(Ytest).get()[0]
+    config.test.setNoiseConfig(nc)
+
+    cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
-        config.row_features.push_back(prepare_sparse(rf).get()[0])
+        rf_matrix_config = prepare_sparse(rf)
+        rf_matrix_config.get().setNoiseConfig(nc)
+        config.row_features.push_back(rf_matrix_config.get()[0])
 
+    cdef shared_ptr[MatrixConfig] cf_matrix_config
     for cf in col_features:
-        config.col_features.push_back(prepare_sparse(cf).get()[0])
+        cf_matrix_config = prepare_sparse(cf)
+        cf_matrix_config.get().setNoiseConfig(nc)
+        config.col_features.push_back(cf_matrix_config.get()[0])
 
     if row_prior:
         config.row_prior_type = stringToPriorType(row_prior)
@@ -93,8 +113,6 @@ def smurff(Y,
 
     config.lambda_beta = lambda_beta
     config.num_latent  = num_latent
-    # config.precision   = ???
-    # config.adaptive    = ???
     config.burnin      = burnin
     config.nsamples    = nsamples
     config.tol         = tol
