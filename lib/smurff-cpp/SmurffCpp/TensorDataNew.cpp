@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
+
 using namespace Eigen;
 using namespace smurff;
 
@@ -81,12 +83,28 @@ double TensorDataNew::train_rmse(const SubModel& model) const
 
 void TensorDataNew::get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
-   throw std::runtime_error("not implemented");
+   const double alpha = this->noise()->getAlpha();
+   std::shared_ptr<SparseModeNew> sview = Y(mode); //get tensor rotation for mode
+   auto V0 = model.CVbegin(mode); //get first V matrix
+
+   for (std::uint64_t j = sview->beginMode(d); j < sview->endMode(d); j++) //go through hyperplane in tensor rotation
+   {
+      VectorXd col = (*V0).col(sview->getIndices()(j, 0)); //create a copy of m'th column from V (m = 0)
+      auto V = model.CVbegin(mode); //get V matrices for mode      
+      for (std::uint64_t m = 1; m < sview->getNCoords(); m++) //go through each coordinate of value
+      {
+         ++V; //inc iterator prior to access since we are starting from m = 1
+         col.noalias() = col.cwiseProduct((*V).col(sview->getIndices()(j, m))); //multiply by m'th column from V
+      }
+      
+      MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each V)
+      rr.noalias() += col * sview->getValues()[j] * alpha; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
+   }
 }
 
 void TensorDataNew::update_pnm(const SubModel& model, uint32_t mode)
 {
-   throw std::runtime_error("not implemented");
+   
 }
 
 double TensorDataNew::sumsq(const SubModel& model) const

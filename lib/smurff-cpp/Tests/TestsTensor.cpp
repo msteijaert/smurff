@@ -92,7 +92,7 @@ TEST_CASE("test sparse view new 2")
 
    TensorDataNew td(tensorConfig);
 
-   
+   /*   
    std::cout << "Tensor Data test" << std::endl;
   
    for(uint64_t mode = 0; mode < td.getNModes(); mode++)
@@ -122,7 +122,7 @@ TEST_CASE("test sparse view new 2")
 
       std::cout << std::endl;
    }
-   
+   */
 }
 
 TEST_CASE("test tensor constructor 4")
