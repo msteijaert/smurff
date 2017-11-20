@@ -14,27 +14,12 @@ For examples see [documentation](http://macau.readthedocs.io/en/latest/source/ex
 # Installation
 Currently there is only C++ version of smurff available. Python one is comming soon.
 
-## Source installation on Ubuntu
-```bash
-# install dependencies:
-sudo apt-get install libopenblas-dev autoconf gfortran
-
-# checkout and install Smurff:
-git clone https://github.com/ExaScience/smurff.git
-cd smurff
-git checkout master
-git submodule init
-git submodule update
-cd lib/smurff-cpp/makefiles/linux
-make
-
-# test Smurff:
-wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
-./smurff --train chembl-IC50-346targets.mm
-```
 
 ## Source installation on Ubuntu using cmake
-Before continuing installation please check that cmake version is at least 3.6
+
+Before continuing installation please check that 
+ - cmake version is at least 3.6
+ - eigen3 version 3.3.3 or later is installed. 
 
 This is required due to the fixed Find scripts for BLAS libraries that are present in latest version.
 
@@ -54,23 +39,16 @@ sudo apt-get install libopenblas-dev autoconf gfortran
 
 # checkout and install Smurff
 git clone https://github.com/ExaScience/smurff.git
-cd smurff
-git checkout master
-git submodule init
-git submodule update
-cd lib/smurff-cpp/
+cd smurff/lib/smurff-cpp/
 mkdir build
 cd build
 cmake ../ -DENABLE_OPENBLAS=ON -DCMAKE_BUILD_TYPE=Debug
 make
+make test
 
 # test Smurff:
 wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
-../_output/smurff --train chembl-IC50-346targets.mm
-
-# run rests:
-../_output/tests
-```
+Debug/smurff --train chembl-IC50-346targets.mm
 
 ## Installation using Conda
 ```bash
