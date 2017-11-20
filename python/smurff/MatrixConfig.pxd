@@ -65,3 +65,11 @@ cdef extern from "<SmurffCpp/Configs/MatrixConfig.h>" namespace "smurff":
         #MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
         #             std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values,
         #             const NoiseConfig& noiseConfig);
+
+        uint64_t getNRow()
+        uint64_t getNCol()
+
+        shared_ptr[vector[uint32_t]] getRowsPtr()
+        shared_ptr[vector[uint32_t]] getColsPtr()
+
+        shared_ptr[vector[double]] getValuesPtr()

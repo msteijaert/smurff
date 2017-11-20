@@ -9,9 +9,8 @@ from MatrixConfig cimport MatrixConfig
 from SessionFactory cimport SessionFactory
 
 cimport numpy as np
-
-import numpy as np
-import scipy as sp
+import  numpy as np
+import  scipy as sp
 
 def remove_nan(Y):
     if not np.any(np.isnan(Y.data)):
@@ -49,7 +48,7 @@ cdef shared_ptr[MatrixConfig] prepare_sparse(X):
     return make_shared[MatrixConfig](<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector, cols_vector, vals_vector, NoiseConfig())
 
 def smurff(Y,
-           Ytest        = None,
+           Ytest,
            row_features = [],
            col_features = [],
            row_prior    = None,
@@ -67,8 +66,7 @@ def smurff(Y,
     # Create and initialize smurff-cpp Config instance
     cdef Config config
     config.train = prepare_sparse(Y).get()[0]
-    if (Ytest):
-        config.test = prepare_sparse(Ytest).get()[0]
+    config.test = prepare_sparse(Ytest).get()[0]
     config.verbose = verbose
     if (save_prefix):
         config.setSavePrefix(save_prefix)
@@ -79,3 +77,21 @@ def smurff(Y,
     # Create and run session
     cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
     session.get().run()
+
+    # Get result from session and construct numpy matrix
+    cdef shared_ptr[MatrixConfig] result = make_shared[MatrixConfig](session.get().getResult())
+
+    cdef shared_ptr[vector[uint32_t]] result_rows_ptr = result.get().getRowsPtr()
+    cdef uint32_t[:] result_rows_view = <uint32_t[:result_rows_ptr.get().size()]>result_rows_ptr.get().data()
+    result_rows = np.array(result_rows_view, copy=False)
+
+    cdef shared_ptr[vector[uint32_t]] result_cols_ptr = result.get().getColsPtr()
+    cdef uint32_t[:] result_cols_view = <uint32_t[:result_cols_ptr.get().size()]>result_cols_ptr.get().data()
+    result_cols = np.array(result_cols_view, copy=False)
+
+    cdef shared_ptr[vector[double]] result_vals_ptr = result.get().getValuesPtr()
+    cdef double[:] result_vals_view = <double[:result_vals_ptr.get().size()]>result_vals_ptr.get().data()
+    result_vals = np.array(result_vals_view, copy=False)
+
+    result_sparse_matrix = np.coo_matrix((result_vals, (result_rows, result_cols)), shape=(result.get().getNRow(), result.get().getNCol()))
+    return result_sparse_matrix
