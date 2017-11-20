@@ -153,7 +153,9 @@ def smurff(Y,
 
     # Create and run session
     cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
-    session.get().run()
+    session.get().init()
+    for i in range(config.nsamples + config.burnin):
+        session.get().step()
 
     # Get result from session and construct scipy matrix
     cdef shared_ptr[MatrixConfig] result = make_shared[MatrixConfig](session.get().getResult())
