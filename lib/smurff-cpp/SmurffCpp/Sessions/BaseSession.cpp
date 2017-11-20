@@ -84,7 +84,7 @@ MatrixConfig BaseSession::getResult()
                       );
 }
 
-MatrixConfig BaseSession::getSample(int dim)
+MatrixConfig BaseSession::getSample(int mode)
 {
    throw std::runtime_error("getSample is unimplemented");
 }
