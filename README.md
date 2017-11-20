@@ -49,6 +49,7 @@ make test
 # test Smurff:
 wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
 Debug/smurff --train chembl-IC50-346targets.mm
+```
 
 ## Installation using Conda
 ```bash
