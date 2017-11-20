@@ -60,6 +60,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/ScarceMatrixData.h"
                         "../DataMatrices/SparseMatrixData.h"
                         "../DataMatrices/MatrixDataFactory.h"
+                        "../DataMatrices/TensorDataFactory.h"
 
                         "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
@@ -69,8 +70,8 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/SessionFactory.h"
 
                         "../sparsetensor.h"
-                        "../TensorDataOld.h"
                         "../TensorDataNew.h"
+                        "../SparseModeNew.h"
                         "../TensorUtilsOld.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
@@ -120,6 +121,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../DataMatrices/ScarceMatrixData.cpp"
                         "../DataMatrices/SparseMatrixData.cpp"
                         "../DataMatrices/MatrixDataFactory.cpp"
+                        "../DataMatrices/TensorDataFactory.cpp"
 
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
@@ -128,8 +130,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Sessions/SessionFactory.cpp"
 
                         "../sparsetensor.cpp"
-                        "../TensorDataOld.cpp"
                         "../TensorDataNew.cpp"
+                        "../SparseModeNew.cpp"
                         "../TensorUtilsOld.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 

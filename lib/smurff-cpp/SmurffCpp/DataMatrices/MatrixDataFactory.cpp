@@ -73,7 +73,7 @@ std::shared_ptr<MatrixData> create_matrix(const MatrixConfig &train, const std::
    return local_data_ptr;
 }
 
-std::shared_ptr<MatrixData> MatrixDataFactory::create_matrix(std::shared_ptr<Session> session)
+std::shared_ptr<Data> MatrixDataFactory::create_matrix(std::shared_ptr<Session> session)
 {
    //row_matrices and col_matrices are selected if prior is not macau and not macauone
    std::vector<MatrixConfig> row_matrices;
