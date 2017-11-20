@@ -85,15 +85,8 @@ endmacro(configure_openblas)
 
 macro(configure_eigen)
   message ("Dependency check for eigen...")
-
-  # EXTERNAL INSTALLATION
-  #find_package(Eigen3 REQUIRED)
-  #message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
-
-  #SUBMODULE INSTALLATION
-  set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../../eigen3)
+  find_package(Eigen3 REQUIRED)
   message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
-  add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endmacro(configure_eigen)
 
 

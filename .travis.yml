@@ -13,33 +13,26 @@ env:
   global:
     - MAKEFLAGS="-j 2"
 install:
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      if [[ -z "$(ls -A ${DEPS_DIR}/cmake/bin)" ]]; then
-        CMAKE_URL="https://cmake.org/files/v3.9/cmake-3.9.4-Linux-x86_64.tar.gz"
-        mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - "${CMAKE_URL}" | tar --strip-components=1 -xz -C cmake
-      fi
-      export PATH="${DEPS_DIR}/cmake/bin:${PATH}"
-    fi
 addons:
   apt:
     packages:
 #      - libopenblas-dev
       - libblas-dev
       - liblapack-dev
-#      - cmake3
-#      - cmake3-data
+#      - libeigen3-dev # too old :(
+      - cmake3
+      - cmake3-data
 script:
-- cd "${TRAVIS_BUILD_DIR}"
-- cd lib/smurff-cpp/cmake
-- mkdir build
-- cd build
-- cmake --version
-- cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
-- make
-- make test
+    - cd "${TRAVIS_BUILD_DIR}"
+    - cd lib/smurff-cpp/cmake
+    - ./local_eigen.sh eigen3
+    - mkdir build
+    - cd build
+    - cmake --version
+    - cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DEigen3_DIR=$PWD/../eigen3/share/eigen3/cmake
+    - make
+    - make test
+
 after_success:
   - echo "success"
  

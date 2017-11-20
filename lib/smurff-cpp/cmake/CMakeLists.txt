@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.6.0)
+cmake_minimum_required (VERSION 3.5.0)
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 set (PROJECT smurff)
@@ -11,6 +11,8 @@ MESSAGE("smurff")
 OPTION(ENABLE_BLAS "Enable BLAS library" OFF)
 OPTION(ENABLE_LAPACK "Enable LAPACK library" OFF)
 OPTION(ENABLE_OPENBLAS "Enable OPENBLAS library" OFF)
+
+OPTION(ENABLE_PROFILING "Enable performance counters" OFF)
 
 OPTION(ENABLE_VERBOSE_COMPILER_LOG "Enable verbose compilation log" OFF)
 OPTION(ENABLE_VERBOSE_LINKER_LOG "Enable verbose linker log" OFF)
@@ -263,6 +265,10 @@ if(${ALGEBRA_LIB_FOUND})
   message(STATUS ${ALGEBRA_LIBS})
 else()
   message(FATAL_ERROR "Algebra library not specified")
+endif()
+
+if(${ENABLE_PROFILING})
+    add_definitions(-DPROFILING)
 endif()
 
 enable_testing()
