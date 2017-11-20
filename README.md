@@ -3,7 +3,10 @@
 
 ## Bayesian Factorization with Side Information
 
-Highly optimized and parallelized methods for Bayesian Factorization, including BPMF, Macau and GFA.
+Highly optimized and parallelized methods for Bayesian Factorization, including 
+[BPMF](https://www.cs.toronto.edu/~amnih/papers/bpmf.pdf), 
+[Macau](https://arxiv.org/abs/1509.04610) and
+[GFA](https://arxiv.org/pdf/1411.5799.pdf).
 The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices.
 
 Macau method is able to perform **matrix** and **tensor** factorization while incorporating high-dimensional side information to the factorization.
