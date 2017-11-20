@@ -47,9 +47,9 @@ void NormalPrior::init()
    df = K;
 }
 
-const Eigen::VectorXd NormalPrior::getMu(int) const
+const Eigen::VectorXd NormalPrior::getMu(int n) const
 {
-    return mu;
+   return mu;
 }
 
 void NormalPrior::update_prior()
@@ -145,25 +145,5 @@ void BPMFPrior::sample_latents(ProbitNoise& noiseModel, TensorData & data,
 {
   // TODO
   throw std::runtime_error("Unimplemented: sample_latents");
-}
-*/
-/*
-void BPMFPrior::sample_latents(double noisePrecision,
-                               TensorData & data, // array of sparse views per dimention
-                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, //vector of sample matrices
-                               const int mode, //dimention index
-                               const int num_latent //number of latent dimentions
-                              ) 
-{
-  auto& sparseMode = (*data.Y)[mode]; // select sparse view by dimention index
-  auto& U = samples[mode]; // select U matrix by dimention index
-  const int N = U->cols();
-  VectorView<Eigen::MatrixXd> view(samples, mode); // select all other samples except from dimention index
-
-  #pragma omp parallel for schedule(dynamic, 2)
-  for (int n = 0; n < N; n++) //iterate through each column of U
-  {
-    sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu, Lambda);
-  }
 }
 */
