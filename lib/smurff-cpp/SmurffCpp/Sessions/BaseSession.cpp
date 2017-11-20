@@ -61,7 +61,27 @@ void BaseSession::restore(std::string prefix, std::string suffix)
 
 MatrixConfig BaseSession::getResult()
 {
-   throw std::runtime_error("getResult is unimplemented");
+   std::vector<std::uint32_t> resultRows;
+   std::vector<std::uint32_t> resultCols;
+   std::vector<double> resultVals;
+   resultRows.reserve(m_pred->predictions.size());
+   resultCols.reserve(m_pred->predictions.size());
+   resultVals.reserve(m_pred->predictions.size());
+
+   for (const Result::Item& i : m_pred->predictions)
+   {
+      resultRows.push_back(i.row);
+      resultCols.push_back(i.col);
+      resultVals.push_back(i.val);
+   }
+
+   return MatrixConfig( m_pred->m_nrows
+                      , m_pred->m_ncols
+                      , std::move(resultRows)
+                      , std::move(resultCols)
+                      , std::move(resultVals)
+                      , NoiseConfig()
+                      );
 }
 
 MatrixConfig BaseSession::getSample(int dim)
