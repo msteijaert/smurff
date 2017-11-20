@@ -69,8 +69,6 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/SessionFactory.h"
 
                         "../sparsetensor.h"
-                        "../SparseModeOld.h"
-                        "../SparseModeNew.h"
                         "../TensorDataOld.h"
                         "../TensorDataNew.h"
                         "../TensorUtilsOld.h")
@@ -130,8 +128,6 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Sessions/SessionFactory.cpp"
 
                         "../sparsetensor.cpp"
-                        "../SparseModeOld.cpp"
-                        "../SparseModeNew.cpp"
                         "../TensorDataOld.cpp"
                         "../TensorDataNew.cpp"
                         "../TensorUtilsOld.cpp")
