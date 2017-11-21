@@ -6,7 +6,7 @@
 using namespace Eigen;
 using namespace smurff;
 
-SparseModeNew::SparseModeNew() 
+SparseMode::SparseMode() 
 : m_nnz(0), m_mode(0) 
 {
 }
@@ -15,7 +15,7 @@ SparseModeNew::SparseModeNew()
 // vals - vector of values
 // m - index of dimention to fix
 // mode_size - size of dimention to fix
-SparseModeNew::SparseModeNew(const MatrixXui32& idx, const std::vector<double>& vals, std::uint64_t mode, std::uint64_t mode_size) 
+SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, std::uint64_t mode, std::uint64_t mode_size) 
 {
    if ((size_t)idx.rows() != vals.size()) 
       throw std::runtime_error("idx.rows() must equal vals.size()");
@@ -75,42 +75,42 @@ SparseModeNew::SparseModeNew(const MatrixXui32& idx, const std::vector<double>& 
    }
 }
 
-std::uint64_t SparseModeNew::getNNZ() const
+std::uint64_t SparseMode::getNNZ() const
 { 
    return m_nnz; 
 }
 
-std::uint64_t SparseModeNew::getNModes() const
+std::uint64_t SparseMode::getNModes() const
 { 
    return m_row_ptr.size() - 1;
 }
 
-std::uint64_t SparseModeNew::getNCoords() const
+std::uint64_t SparseMode::getNCoords() const
 {
    return m_indices.cols();
 }
 
-const std::vector<double>& SparseModeNew::getValues() const
+const std::vector<double>& SparseMode::getValues() const
 {
    return m_values;
 }
 
-std::uint64_t SparseModeNew::getMode() const
+std::uint64_t SparseMode::getMode() const
 {
    return m_mode;
 }
 
-std::uint64_t SparseModeNew::beginMode(std::uint64_t n) const
+std::uint64_t SparseMode::beginMode(std::uint64_t n) const
 {
    return m_row_ptr[n];
 }
 
-std::uint64_t SparseModeNew::endMode(std::uint64_t n) const
+std::uint64_t SparseMode::endMode(std::uint64_t n) const
 {
    return m_row_ptr[n + 1];
 }
 
-const MatrixXui32& SparseModeNew::getIndices() const
+const MatrixXui32& SparseMode::getIndices() const
 {
    return m_indices;
 }
