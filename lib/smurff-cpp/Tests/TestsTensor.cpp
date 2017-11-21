@@ -10,8 +10,8 @@
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/sparsetensor.h>
 #include <SmurffCpp/Configs/TensorConfig.h>
-#include <SmurffCpp/SparseModeNew.h>
-#include <SmurffCpp/TensorDataNew.h>
+#include <SmurffCpp/SparseMode.h>
+#include <SmurffCpp/TensorData.h>
 
 using namespace smurff;
 

@@ -1,4 +1,4 @@
-#include "SparseModeNew.h"
+#include "SparseMode.h"
 
 #include <iostream>
 #include <sstream>

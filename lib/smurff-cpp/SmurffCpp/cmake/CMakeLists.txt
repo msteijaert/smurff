@@ -70,8 +70,8 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/SessionFactory.h"
 
                         "../sparsetensor.h"
-                        "../TensorDataNew.h"
-                        "../SparseModeNew.h"
+                        "../TensorData.h"
+                        "../SparseMode.h"
                         "../TensorUtilsOld.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
@@ -130,8 +130,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Sessions/SessionFactory.cpp"
 
                         "../sparsetensor.cpp"
-                        "../TensorDataNew.cpp"
-                        "../SparseModeNew.cpp"
+                        "../TensorData.cpp"
+                        "../SparseMode.cpp"
                         "../TensorUtilsOld.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 

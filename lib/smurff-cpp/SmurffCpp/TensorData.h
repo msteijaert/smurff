@@ -8,7 +8,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "SparseModeNew.h"
+#include "SparseMode.h"
 #include <SmurffCpp/Configs/TensorConfig.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 
