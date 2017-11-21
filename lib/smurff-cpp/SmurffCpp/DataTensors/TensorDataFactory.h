@@ -5,7 +5,6 @@
 
 #include <SmurffCpp/Configs/TensorConfig.h>
 #include <SmurffCpp/Sessions/Session.h>
-#include <SmurffCpp/TensorData.h>
 
 namespace smurff {
 
