@@ -4,10 +4,11 @@
 
 #include <SmurffCpp/Configs/TensorConfig.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/TensorUtils.h>
 
 using namespace smurff;
 
-TEST_CASE("matrix_utils::slice : error handling")
+TEST_CASE("tensor_utils::slice : error handling")
 {
    std::vector<std::uint64_t> tensorConfigDims = { 2, 3, 4, 2 };
    std::vector<std::uint32_t> tensorConfigColumns =
@@ -24,25 +25,25 @@ TEST_CASE("matrix_utils::slice : error handling")
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
    // Error handling when both fixed dims values are the same
-   REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 0, 0 }, {{ 1, 0 }, { 2, 1 }}));
+   REQUIRE_THROWS(tensor_utils::slice(tensorConfig, { 0, 0 }, {{ 1, 0 }, { 2, 1 }}));
 
    // Error handling when fixed dims contain invalid dim
-   REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 9, 0 }, {{ 1, 0 }, { 2, 1 }}));
+   REQUIRE_THROWS(tensor_utils::slice(tensorConfig, { 9, 0 }, {{ 1, 0 }, { 2, 1 }}));
 
    // Error handling when there is a missing coord in dimCoords
-   REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 0, 1 }, {{ 2, 0 }}));
+   REQUIRE_THROWS(tensor_utils::slice(tensorConfig, { 0, 1 }, {{ 2, 0 }}));
 
    // Error handling when there is an invalid dimension in dimCoords
-   REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 0, 1 }, {{ 2, 0 }, { 4, 2 }}));
+   REQUIRE_THROWS(tensor_utils::slice(tensorConfig, { 0, 1 }, {{ 2, 0 }, { 4, 2 }}));
 
    // Error handling when there is an invalid coord in dimCoords
-   REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 0, 1 }, {{ 2, 100 }, { 3, 1 }}));
+   REQUIRE_THROWS(tensor_utils::slice(tensorConfig, { 0, 1 }, {{ 2, 100 }, { 3, 1 }}));
 
    // Error handling when fixed dims and dim coords intersect
-   REQUIRE_THROWS(matrix_utils::slice(tensorConfig, { 0, 1 }, {{ 1, 0 }, { 3, 1 }}));
+   REQUIRE_THROWS(tensor_utils::slice(tensorConfig, { 0, 1 }, {{ 1, 0 }, { 3, 1 }}));
 }
 
-TEST_CASE("matrix_utils::slice : 3D tensor")
+TEST_CASE("tensor_utils::slice : 3D tensor")
 {
    std::vector<std::uint64_t> tensorConfigDims = { 2, 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns =
@@ -60,7 +61,7 @@ TEST_CASE("matrix_utils::slice : 3D tensor")
    // 1st and 2nd dimension slice. Matrix with 2 rows and 3 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-         matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                             , { 0, 1 }
                             , {{ 2, 3 }}
                             );
@@ -75,7 +76,7 @@ TEST_CASE("matrix_utils::slice : 3D tensor")
    // 2nd and 1st dimension slice. Matrix with 3 rows and 2 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-         matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                             , { 1, 0 }
                             , {{ 2, 3 }}
                             );
@@ -91,7 +92,7 @@ TEST_CASE("matrix_utils::slice : 3D tensor")
    // 2nd and 3rd dimension slice. Matrix with 3 rows and 4 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-         matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                             , { 1, 2 }
                             , {{ 0, 1 }}
                             );
@@ -107,7 +108,7 @@ TEST_CASE("matrix_utils::slice : 3D tensor")
    // 3rd and 2nd dimension slice. Matrix with 4 rows and 3 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-         matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                             , { 2, 1 }
                             , {{ 0, 1 }}
                             );
@@ -124,7 +125,7 @@ TEST_CASE("matrix_utils::slice : 3D tensor")
    // 1st and 3rd dimension slice. Matrix with 2 rows and 4 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-         matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                             , { 0, 2 }
                             , {{ 1, 1 }}
                             );
@@ -139,7 +140,7 @@ TEST_CASE("matrix_utils::slice : 3D tensor")
    // 3rd and 1st dimension slice. Matrix with 4 rows and 2 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-         matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                             , { 2, 0 }
                             , {{ 1, 1 }}
                             );
@@ -174,7 +175,7 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
    // 1st and 2nd dimension slice. Matrix with 4 rows and 3 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-         matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                             , { 0, 1 }
                             , { { 4, 1 }, { 3, 1 }, { 2, 3 } }
                             );
@@ -191,7 +192,7 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
    // 3rd and 5th dimension slice. Matrix with 5 rows and 2 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-      matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                          , { 2, 4 }
                          , { { 0, 2 }, { 1, 1 }, { 3, 1 } }
                          );
@@ -209,7 +210,7 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
    // 5th and 1st dimension slice. Matrix with 2 rows and 4 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-      matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                          , { 4, 0 }
                          , { { 1, 1 }, { 2, 2 }, { 3, 1 } }
                          );
@@ -224,7 +225,7 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
    // 1st and 5th dimension slice. Matrix with 4 rows and 2 cols
    {
       Eigen::MatrixXd actualTensorSlice =
-      matrix_utils::slice( tensorConfig
+      tensor_utils::slice( tensorConfig
                          , { 0, 4 }
                          , { { 1, 1 }, { 2, 2 }, { 3, 1 } }
                          );

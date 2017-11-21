@@ -8,6 +8,7 @@
 #include <Eigen/SparseCore>
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/TensorUtils.h>
 #include <SmurffCpp/sparsetensor.h>
 #include <SmurffCpp/Configs/TensorConfig.h>
 #include <SmurffCpp/DataTensors/SparseMode.h>
@@ -31,7 +32,7 @@ TEST_CASE("test sparse view new 1")
       };
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
-   Eigen::MatrixXd actualMatrix0 = matrix_utils::sparse_to_eigen(tensorConfig);
+   Eigen::MatrixXd actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
 
    //std::cout << actualMatrix0 << std::endl;
 
