@@ -60,9 +60,8 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/ScarceBinaryMatrixData.h"
                         "../DataMatrices/ScarceMatrixData.h"
                         "../DataMatrices/SparseMatrixData.h"
-                        "../DataMatrices/MatrixDataFactory.h"
+                        "../DataMatrices/DataFactory.h"
 
-                        "../DataTensors/TensorDataFactory.h"
                         "../DataTensors/TensorData.h"
                         "../DataTensors/SparseMode.h"
 
@@ -123,9 +122,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../DataMatrices/ScarceBinaryMatrixData.cpp"
                         "../DataMatrices/ScarceMatrixData.cpp"
                         "../DataMatrices/SparseMatrixData.cpp"
-                        "../DataMatrices/MatrixDataFactory.cpp"
+                        "../DataMatrices/DataFactory.cpp"
                         
-                        "../DataTensors/TensorDataFactory.cpp"
                         "../DataTensors/TensorData.cpp"
                         "../DataTensors/SparseMode.cpp"
 
