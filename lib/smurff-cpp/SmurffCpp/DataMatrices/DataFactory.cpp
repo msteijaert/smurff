@@ -1,4 +1,4 @@
-#include "MatrixDataFactory.h"
+#include "DataFactory.h"
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/PVec.hpp>
