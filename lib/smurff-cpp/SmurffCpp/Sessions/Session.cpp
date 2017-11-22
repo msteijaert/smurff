@@ -34,7 +34,7 @@ void Session::setFromConfig(const Config& cfg)
 
    // initialize data
 
-   data_ptr = MatrixDataFactory::create_matrix(this_session);
+   data_ptr = DataFactory::create_data(this_session);
 
    // check if data is ScarceBinary
    /*

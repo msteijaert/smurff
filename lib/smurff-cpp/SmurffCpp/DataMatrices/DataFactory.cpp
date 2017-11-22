@@ -7,7 +7,7 @@
 
 using namespace smurff;
 
-std::shared_ptr<Data> MatrixDataFactory::create_matrix(std::shared_ptr<Session> session)
+std::shared_ptr<Data> DataFactory::create_data(std::shared_ptr<Session> session)
 {
    //row_matrices and col_matrices are selected if prior is not macau and not macauone
    std::vector<std::shared_ptr<TensorConfig> > row_matrices;
