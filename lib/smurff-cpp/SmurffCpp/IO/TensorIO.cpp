@@ -415,7 +415,7 @@ void tensor_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<Tens
    std::uint64_t nmodes = tensorConfig->getNModes();
    std::uint64_t nnz = tensorConfig->getNNZ();
    const std::vector<std::uint64_t>& dims = tensorConfig->getDims();
-   std::vector<std::uint32_t> columns = tensorConfig->getColumns();
+   std::vector<std::uint32_t> columns = tensorConfig->getColumns(); //create copy of columns
    const std::vector<double>& values = tensorConfig->getValues();
 
    std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col++; });
@@ -432,7 +432,7 @@ void tensor_io::write_sparse_float64_tns(std::ostream& out, std::shared_ptr<Tens
    std::uint64_t nmodes = tensorConfig->getNModes();
    std::uint64_t nnz = tensorConfig->getNNZ();
    const std::vector<std::uint64_t>& dims = tensorConfig->getDims();
-   std::vector<std::uint32_t> columns = tensorConfig->getColumns();
+   std::vector<std::uint32_t> columns = tensorConfig->getColumns(); //create copy of columns
    const std::vector<double>& values = tensorConfig->getValues();
 
    std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col++; });
@@ -477,7 +477,7 @@ void tensor_io::write_sparse_binary_bin(std::ostream& out, std::shared_ptr<Tenso
    std::uint64_t nmodes = tensorConfig->getNModes();
    std::uint64_t nnz = tensorConfig->getNNZ();
    const std::vector<std::uint64_t>& dims = tensorConfig->getDims();
-   std::vector<std::uint32_t> columns = tensorConfig->getColumns();
+   std::vector<std::uint32_t> columns = tensorConfig->getColumns(); //create copy of columns
 
    std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col++; });
 
