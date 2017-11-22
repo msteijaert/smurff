@@ -76,7 +76,7 @@ std::string MatrixTypeToExtension(matrix_io::MatrixType matrixType)
    return std::string();
 }
 
-MatrixConfig matrix_io::read_matrix(const std::string& filename)
+std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename)
 {
    MatrixType matrixType = ExtensionToMatrixType(filename);
 
@@ -116,7 +116,7 @@ MatrixConfig matrix_io::read_matrix(const std::string& filename)
    }
 }
 
-MatrixConfig matrix_io::read_dense_float64_bin(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_dense_float64_bin(std::istream& in)
 {
    std::uint64_t nrow;
    std::uint64_t ncol;
@@ -127,10 +127,10 @@ MatrixConfig matrix_io::read_dense_float64_bin(std::istream& in)
    std::vector<double> values(nrow * ncol);
    in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
 
-   return smurff::MatrixConfig(nrow, ncol, std::move(values), smurff::NoiseConfig());
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(values), smurff::NoiseConfig());
 }
 
-MatrixConfig matrix_io::read_dense_float64_csv(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_dense_float64_csv(std::istream& in)
 {
    std::stringstream ss;
    std::string line;
@@ -174,10 +174,10 @@ MatrixConfig matrix_io::read_dense_float64_csv(std::istream& in)
    assert(row == nrow);
    assert(col == ncol);
 
-   return smurff::MatrixConfig(nrow, ncol, values, smurff::NoiseConfig());
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, values, smurff::NoiseConfig());
 }
 
-MatrixConfig matrix_io::read_sparse_float64_bin(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_sparse_float64_bin(std::istream& in)
 {
    std::uint64_t nrow;
    std::uint64_t ncol;
@@ -198,10 +198,10 @@ MatrixConfig matrix_io::read_sparse_float64_bin(std::istream& in)
    std::vector<double> values(nnz);
    in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
 
-   return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
 }
 
-MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_sparse_binary_bin(std::istream& in)
 {
    std::uint64_t nrow;
    std::uint64_t ncol;
@@ -219,12 +219,12 @@ MatrixConfig matrix_io::read_sparse_binary_bin(std::istream& in)
    in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
    std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
 
-   return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), smurff::NoiseConfig());
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(rows), std::move(cols), smurff::NoiseConfig());
 }
 
 // MatrixMarket format specification
 // https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
-MatrixConfig matrix_io::read_matrix_market(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in)
 {
    // Check that stream has MatrixMarket format data
    std::array<char, 15> matrixMarketArr;
@@ -312,7 +312,7 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
          vals[i] = val;
       }
 
-      return MatrixConfig(nrows, ncols, std::move(rows), std::move(cols), std::move(vals), NoiseConfig());
+      return std::make_shared<smurff::MatrixConfig>(nrows, ncols, std::move(rows), std::move(cols), std::move(vals), NoiseConfig());
    }
    else if (format == MM_FMT_ARRAY)
    {
@@ -334,7 +334,7 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
             throw std::runtime_error("Could not parse an entry line for array matrix format");
       }
 
-      return MatrixConfig(nrows, ncols, std::move(vals), NoiseConfig());
+      return std::make_shared<smurff::MatrixConfig>(nrows, ncols, std::move(vals), NoiseConfig());
    }
    else
    {
@@ -346,7 +346,7 @@ MatrixConfig matrix_io::read_matrix_market(std::istream& in)
 
 // ======================================================================================================
 
-void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& matrixConfig)
+void matrix_io::write_matrix(const std::string& filename, std::shared_ptr<MatrixConfig> matrixConfig)
 {
    MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
@@ -388,27 +388,27 @@ void matrix_io::write_matrix(const std::string& filename, const MatrixConfig& ma
    }
 }
 
-void matrix_io::write_dense_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig)
+void matrix_io::write_dense_float64_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
 {
-   std::uint64_t nrow = matrixConfig.getNRow();
-   std::uint64_t ncol = matrixConfig.getNCol();
-   const std::vector<double>& values = matrixConfig.getValues();
+   std::uint64_t nrow = matrixConfig->getNRow();
+   std::uint64_t ncol = matrixConfig->getNCol();
+   const std::vector<double>& values = matrixConfig->getValues();
 
    out.write(reinterpret_cast<const char*>(&nrow), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(&ncol), sizeof(std::uint64_t));
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void matrix_io::write_dense_float64_csv(std::ostream& out, const MatrixConfig& matrixConfig)
+void matrix_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
 {
    //write rows and cols
-   std::uint64_t nrow = matrixConfig.getNRow();
-   std::uint64_t ncol = matrixConfig.getNCol();
+   std::uint64_t nrow = matrixConfig->getNRow();
+   std::uint64_t ncol = matrixConfig->getNCol();
 
    out << nrow << std::endl;
    out << ncol << std::endl;
 
-   const std::vector<double>& values = matrixConfig.getValues();
+   const std::vector<double>& values = matrixConfig->getValues();
 
    assert(values.size() == nrow * ncol);
 
@@ -426,16 +426,16 @@ void matrix_io::write_dense_float64_csv(std::ostream& out, const MatrixConfig& m
    }
 }
 
-void matrix_io::write_sparse_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig)
+void matrix_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
 {
-   std::uint64_t nrow = matrixConfig.getNRow();
-   std::uint64_t ncol = matrixConfig.getNCol();
-   std::uint64_t nnz = matrixConfig.getNNZ();
+   std::uint64_t nrow = matrixConfig->getNRow();
+   std::uint64_t ncol = matrixConfig->getNCol();
+   std::uint64_t nnz = matrixConfig->getNNZ();
 
    //get values copy
-   std::vector<std::uint32_t> rows = matrixConfig.getRows();
-   std::vector<std::uint32_t> cols = matrixConfig.getCols();
-   std::vector<double> values = matrixConfig.getValues();
+   std::vector<std::uint32_t> rows = matrixConfig->getRows();
+   std::vector<std::uint32_t> cols = matrixConfig->getCols();
+   std::vector<double> values = matrixConfig->getValues();
 
    //increment coordinates
    std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
@@ -449,15 +449,15 @@ void matrix_io::write_sparse_float64_bin(std::ostream& out, const MatrixConfig& 
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& matrixConfig)
+void matrix_io::write_sparse_binary_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
 {
-   std::uint64_t nrow = matrixConfig.getNRow();
-   std::uint64_t ncol = matrixConfig.getNCol();
-   std::uint64_t nnz = matrixConfig.getNNZ();
+   std::uint64_t nrow = matrixConfig->getNRow();
+   std::uint64_t ncol = matrixConfig->getNCol();
+   std::uint64_t nnz = matrixConfig->getNNZ();
 
    //get values copy
-   std::vector<std::uint32_t> rows = matrixConfig.getRows();
-   std::vector<std::uint32_t> cols = matrixConfig.getCols();
+   std::vector<std::uint32_t> rows = matrixConfig->getRows();
+   std::vector<std::uint32_t> cols = matrixConfig->getCols();
 
    //increment coordinates
    std::for_each(rows.begin(), rows.end(), [](std::uint32_t& row){ row++; });
@@ -472,31 +472,31 @@ void matrix_io::write_sparse_binary_bin(std::ostream& out, const MatrixConfig& m
 
 // MatrixMarket format specification
 // https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
-void matrix_io::write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig)
+void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
 {
    out << "%%MatrixMarket ";
    out << MM_OBJ_MATRIX << " ";
-   out << (matrixConfig.isDense() ? MM_FMT_ARRAY : MM_FMT_COORD) << " ";
+   out << (matrixConfig->isDense() ? MM_FMT_ARRAY : MM_FMT_COORD) << " ";
    out << MM_FLD_REAL << " ";
    out << MM_SYM_GENERAL << std::endl;
 
-   if (matrixConfig.isDense())
+   if (matrixConfig->isDense())
    {
-      out << matrixConfig.getNRow() << " ";
-      out << matrixConfig.getNCol() << std::endl;
-      for (const double& val : matrixConfig.getValues())
+      out << matrixConfig->getNRow() << " ";
+      out << matrixConfig->getNCol() << std::endl;
+      for (const double& val : matrixConfig->getValues())
          out << val << std::endl;
    }
    else
    {
-      out << matrixConfig.getNRow() << " ";
-      out << matrixConfig.getNCol() << " ";
-      out << matrixConfig.getNNZ() << std::endl;
-      for (std::uint64_t i = 0; i < matrixConfig.getNNZ(); i++)
+      out << matrixConfig->getNRow() << " ";
+      out << matrixConfig->getNCol() << " ";
+      out << matrixConfig->getNNZ() << std::endl;
+      for (std::uint64_t i = 0; i < matrixConfig->getNNZ(); i++)
       {
-         const std::uint32_t& row = matrixConfig.getColumns()[i] + 1;
-         const std::uint32_t& col = matrixConfig.getColumns()[i + matrixConfig.getNNZ()] + 1;
-         const double& val = matrixConfig.getValues()[i];
+         const std::uint32_t& row = matrixConfig->getColumns()[i] + 1;
+         const std::uint32_t& col = matrixConfig->getColumns()[i + matrixConfig->getNNZ()] + 1;
+         const double& val = matrixConfig->getValues()[i];
          out << row << " " << col << " " << val << std::endl;
       }
    }

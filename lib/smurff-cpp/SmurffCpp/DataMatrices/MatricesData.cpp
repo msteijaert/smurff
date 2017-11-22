@@ -113,7 +113,7 @@ double MatricesData::offset_to_mean(const PVec<>& pos) const
    return b.data()->offset_to_mean(pos - b.start());
 }
 
-std::shared_ptr<MatrixData> MatricesData::add(const PVec<>& p, std::shared_ptr<MatrixData> data)
+std::shared_ptr<Data> MatricesData::add(const PVec<>& p, std::shared_ptr<Data> data)
 {
    blocks.push_back(Block(p, data));
    return blocks.back().data();
@@ -222,7 +222,7 @@ PVec<> MatricesData::dim() const
    return total_dim;
 }
 
-MatricesData::Block::Block(PVec<> p, std::shared_ptr<MatrixData> m)
+MatricesData::Block::Block(PVec<> p, std::shared_ptr<Data> m)
    : _pos(p)
    , _start(2)
    , m_matrix(m)
@@ -269,7 +269,7 @@ int MatricesData::Block::pos(int mode) const
    return pos().at(mode);
 }
 
-std::shared_ptr<MatrixData> MatricesData::Block::data() const
+std::shared_ptr<Data> MatricesData::Block::data() const
 {
    return m_matrix;
 }

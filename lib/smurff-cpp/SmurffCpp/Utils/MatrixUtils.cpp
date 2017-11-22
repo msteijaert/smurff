@@ -4,6 +4,17 @@
 #include <set>
 #include <unsupported/Eigen/SparseExtra>
 
+Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig& Y)
+{
+   std::vector<double> Yvalues = Y.getValues(); //eigen map can not take const values pointer. have to make copy
+   return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), Y.getNRow(), Y.getNCol());
+}
+
+Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(smurff::MatrixConfig& Y)
+{
+   return smurff::matrix_utils::dense_to_eigen(Y);
+}
+
 template<>
 Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
 {

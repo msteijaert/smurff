@@ -65,7 +65,7 @@ struct Result
    std::uint64_t m_ncols;
 
    //Y - test sparse matrix
-   void set(const MatrixConfig& Y);
+   void set(std::shared_ptr<TensorConfig> Y);
 
    //-- prediction metrics
    void update(std::shared_ptr<const Model> model, std::shared_ptr<Data> data,  bool burnin);

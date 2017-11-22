@@ -4,7 +4,7 @@ template<>
 Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig)
 {
    if(tensorConfig.getNModes() != 2)
-      throw "Invalid number of dimentions. Tensor can not be converted to matrix.";
+      throw "Invalid number of dimensions. Tensor can not be converted to matrix.";
 
    std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = tensorConfig.getColumnsPtr();
    std::shared_ptr<std::vector<double> > valuesPtr = tensorConfig.getValuesPtr();

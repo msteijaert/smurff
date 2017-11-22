@@ -50,17 +50,17 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       }
 
       // set global noise model
-      if (c.train.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-         c.train.setNoiseConfig(nc);
+      if (c.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         c.m_train->setNoiseConfig(nc);
 
       //set for row/col feautres
-      for(auto& m: c.row_features)
-         if (m.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-            m.setNoiseConfig(nc);
+      for(auto m: c.m_row_features)
+         if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+            m->setNoiseConfig(nc);
 
-      for(auto& m: c.col_features)
-         if (m.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-            m.setNoiseConfig(nc);
+      for(auto m: c.m_col_features)
+         if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+            m->setNoiseConfig(nc);
    };
 
    switch (key)
@@ -68,20 +68,20 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case ROW_PRIOR:       c.row_prior_type          = stringToPriorType(optarg); break;
       case COL_PRIOR:       c.col_prior_type          = stringToPriorType(optarg); break;
 
-      case ROW_FEATURES:    c.row_features.push_back(read_matrix(optarg)); break;
-      case COL_FEATURES:    c.col_features.push_back(read_matrix(optarg)); break;
+      case ROW_FEATURES:    c.m_row_features.push_back(read_matrix(optarg)); break;
+      case COL_FEATURES:    c.m_col_features.push_back(read_matrix(optarg)); break;
       case CENTER:          c.center_mode_type        = stringToCenterMode(optarg); break;
 
 
-      case FNAME_TRAIN:     c.train              = read_matrix(optarg); break;
+      case FNAME_TRAIN:     c.m_train              = read_matrix(optarg); break;
       case LAMBDA_BETA:     c.lambda_beta        = strtod(optarg, NULL); break;
       case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
       case TOL:             c.tol                = atof(optarg); break;
       case DIRECT:          c.direct             = true; break;
-      case FNAME_TEST:      c.test               = read_matrix(optarg); break;
+      case FNAME_TEST:      c.m_test               = read_matrix(optarg); break;
       case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
       case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
-       case SEED:           c.random_seed_set = true;
+      case SEED:            c.random_seed_set = true;
                             c.random_seed = strtol(optarg, NULL, 10);
                             break;
       case RESTORE_PREFIX:  c.restore_prefix      = std::string(optarg); break;

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "MatrixConfig.h"
 
@@ -65,12 +66,13 @@ std::string modelInitTypeToString(ModelInitTypes type);
 struct Config 
 {
     //-- train and test
-    MatrixConfig train, test;
+    std::shared_ptr<TensorConfig> m_train;
+    std::shared_ptr<TensorConfig> m_test;
     CenterModeTypes center_mode_type = CenterModeTypes::CENTER_GLOBAL;
 
     //-- features
-    std::vector<MatrixConfig> row_features;
-    std::vector<MatrixConfig> col_features;
+    std::vector<std::shared_ptr<MatrixConfig> > m_row_features;
+    std::vector<std::shared_ptr<MatrixConfig> > m_col_features;
 
     // -- priors
     PriorTypes row_prior_type = PriorTypes::default_prior;

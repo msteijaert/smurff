@@ -22,10 +22,12 @@ using namespace Eigen;
 namespace smurff {
 
 //Y - test sparse matrix
-void Result::set(const MatrixConfig& Y)
+void Result::set(std::shared_ptr<TensorConfig> Y)
 {
-   assert(!Y.isDense());
-   
+   if(!Y->isDense())
+      throw std::runtime_error("test data should be dense");
+
+   /*
    auto rowsPtr = Y.getRowsPtr();
    auto colsPtr = Y.getColsPtr();
    auto valuesPtr = Y.getValuesPtr();
@@ -43,6 +45,7 @@ void Result::set(const MatrixConfig& Y)
    m_ncols = Y.getNCol();
 
    init();
+   */
 }
 
 void Result::init()

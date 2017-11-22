@@ -9,6 +9,8 @@
 
 namespace smurff
 {
+   class Data;
+
    class TensorConfig
    {
    private:
@@ -91,5 +93,10 @@ namespace smurff
 
    public:
       virtual std::ostream& info(std::ostream& os) const;
+
+      virtual std::shared_ptr<Data> toData(bool scarce) const;
+
+      virtual std::shared_ptr<Data> toData(const std::vector<std::shared_ptr<TensorConfig> >& row_features, 
+                                           const std::vector<std::shared_ptr<TensorConfig> >& col_features) const;
    };
 }

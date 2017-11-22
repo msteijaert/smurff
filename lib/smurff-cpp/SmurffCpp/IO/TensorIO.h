@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <memory>
 
 #include <SmurffCpp/Configs/TensorConfig.h>
 
@@ -18,25 +19,25 @@ namespace smurff { namespace tensor_io
       ddt
    };
 
-   TensorConfig read_tensor(const std::string& filename);
+   std::shared_ptr<TensorConfig> read_tensor(const std::string& filename);
 
-   TensorConfig read_dense_float64_bin(std::istream& in);
-   TensorConfig read_dense_float64_csv(std::istream& in);
+   std::shared_ptr<TensorConfig> read_dense_float64_bin(std::istream& in);
+   std::shared_ptr<TensorConfig> read_dense_float64_csv(std::istream& in);
 
-   TensorConfig read_sparse_float64_bin(std::istream& in);
-   TensorConfig read_sparse_float64_tns(std::istream& in);
+   std::shared_ptr<TensorConfig> read_sparse_float64_bin(std::istream& in);
+   std::shared_ptr<TensorConfig> read_sparse_float64_tns(std::istream& in);
 
-   TensorConfig read_sparse_binary_bin(std::istream& in);
+   std::shared_ptr<TensorConfig> read_sparse_binary_bin(std::istream& in);
 
    // ===
 
-   void write_tensor(const std::string& filename, const TensorConfig& tensorConfig);
+   void write_tensor(const std::string& filename, std::shared_ptr<TensorConfig> tensorConfig);
 
-   void write_dense_float64_bin(std::ostream& out, const TensorConfig& tensorConfig);
-   void write_dense_float64_csv(std::ostream& out, const TensorConfig& tensorConfig);
+   void write_dense_float64_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
+   void write_dense_float64_csv(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
 
-   void write_sparse_float64_bin(std::ostream& out, const TensorConfig& tensorConfig);
-   void write_sparse_float64_tns(std::ostream& out, const TensorConfig& tensorConfig);
+   void write_sparse_float64_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
+   void write_sparse_float64_tns(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
 
-   void write_sparse_binary_bin(std::ostream& out, const TensorConfig& tensorConfig);
+   void write_sparse_binary_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
 }}
