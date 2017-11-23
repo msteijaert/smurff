@@ -1,7 +1,11 @@
 #include "GenericIO.h"
 
+#include <memory>
+
 #include "MatrixIO.h"
 #include "TensorIO.h"
+
+#include "DataWriter.h"
 
 using namespace smurff;
 
@@ -29,5 +33,5 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
 
 void generic_io::write_data_config(const std::string& filename, std::shared_ptr<TensorConfig> tensorConfig)
 {
-   //call write_matrix or write_tensor
+   tensorConfig->write(std::make_shared<DataWriter>(filename));
 }

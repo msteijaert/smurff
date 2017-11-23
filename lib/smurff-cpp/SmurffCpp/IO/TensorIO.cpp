@@ -329,7 +329,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_binary_bin(std::istream& in
 
 // ======================================================================================================
 
-void tensor_io::write_tensor(const std::string& filename, std::shared_ptr<TensorConfig> tensorConfig)
+void tensor_io::write_tensor(const std::string& filename, std::shared_ptr<const TensorConfig> tensorConfig)
 {
    TensorType tensorType = ExtensionToTensorType(filename);
    switch (tensorType)
@@ -371,7 +371,7 @@ void tensor_io::write_tensor(const std::string& filename, std::shared_ptr<Tensor
    }
 }
 
-void tensor_io::write_dense_float64_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig)
+void tensor_io::write_dense_float64_bin(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig->getNModes();
    const std::vector<std::uint64_t>& dims = tensorConfig->getDims();
@@ -382,7 +382,7 @@ void tensor_io::write_dense_float64_bin(std::ostream& out, std::shared_ptr<Tenso
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void tensor_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig)
+void tensor_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig->getNModes();
 
@@ -416,7 +416,7 @@ void tensor_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<Tenso
    out << std::endl;
 }
 
-void tensor_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig)
+void tensor_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig->getNModes();
    std::uint64_t nnz = tensorConfig->getNNZ();
@@ -433,7 +433,7 @@ void tensor_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<Tens
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void tensor_io::write_sparse_float64_tns(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig)
+void tensor_io::write_sparse_float64_tns(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig->getNModes();
    std::uint64_t nnz = tensorConfig->getNNZ();
@@ -478,7 +478,7 @@ void tensor_io::write_sparse_float64_tns(std::ostream& out, std::shared_ptr<Tens
    out << std::endl;
 }
 
-void tensor_io::write_sparse_binary_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig)
+void tensor_io::write_sparse_binary_bin(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig)
 {
    std::uint64_t nmodes = tensorConfig->getNModes();
    std::uint64_t nnz = tensorConfig->getNNZ();

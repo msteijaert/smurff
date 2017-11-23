@@ -390,3 +390,9 @@ std::shared_ptr<Data> MatrixConfig::toData(const std::vector<std::shared_ptr<Ten
 
    return local_data_ptr;
 }
+
+void MatrixConfig::write(std::shared_ptr<IDataWriter> writer) const
+{
+   //have to use dynamic cast here but only because shared_from_this() can only return base pointer even from child
+   writer->write(std::dynamic_pointer_cast<const MatrixConfig>(shared_from_this()));
+}

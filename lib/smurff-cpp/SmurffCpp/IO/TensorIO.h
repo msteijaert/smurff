@@ -31,13 +31,13 @@ namespace smurff { namespace tensor_io
 
    // ===
 
-   void write_tensor(const std::string& filename, std::shared_ptr<TensorConfig> tensorConfig);
+   void write_tensor(const std::string& filename, std::shared_ptr<const TensorConfig> tensorConfig);
 
-   void write_dense_float64_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
-   void write_dense_float64_csv(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
+   void write_dense_float64_bin(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig);
+   void write_dense_float64_csv(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig);
 
-   void write_sparse_float64_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
-   void write_sparse_float64_tns(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
+   void write_sparse_float64_bin(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig);
+   void write_sparse_float64_tns(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig);
 
-   void write_sparse_binary_bin(std::ostream& out, std::shared_ptr<TensorConfig> tensorConfig);
+   void write_sparse_binary_bin(std::ostream& out, std::shared_ptr<const TensorConfig> tensorConfig);
 }}

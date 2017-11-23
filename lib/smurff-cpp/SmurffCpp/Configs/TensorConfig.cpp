@@ -331,3 +331,8 @@ std::shared_ptr<Data> TensorConfig::toData(const std::vector<std::shared_ptr<Ten
 
    throw std::runtime_error("Tensor config does not support feature matrices");
 }
+
+void TensorConfig::write(std::shared_ptr<IDataWriter> writer) const
+{
+   writer->write(shared_from_this());
+}

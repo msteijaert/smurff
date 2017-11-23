@@ -7,11 +7,13 @@
 
 #include <SmurffCpp/Configs/NoiseConfig.h>
 
+#include <SmurffCpp/IO/IDataWriter.h>
+
 namespace smurff
 {
    class Data;
 
-   class TensorConfig
+   class TensorConfig : public std::enable_shared_from_this<TensorConfig>
    {
    private:
       NoiseConfig m_noiseConfig;
@@ -98,5 +100,8 @@ namespace smurff
 
       virtual std::shared_ptr<Data> toData(const std::vector<std::shared_ptr<TensorConfig> >& row_features, 
                                            const std::vector<std::shared_ptr<TensorConfig> >& col_features) const;
+
+   public:
+      virtual void write(std::shared_ptr<IDataWriter> writer) const;
    };
 }

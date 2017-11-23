@@ -349,7 +349,7 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in)
 
 // ======================================================================================================
 
-void matrix_io::write_matrix(const std::string& filename, std::shared_ptr<MatrixConfig> matrixConfig)
+void matrix_io::write_matrix(const std::string& filename, std::shared_ptr<const MatrixConfig> matrixConfig)
 {
    MatrixType matrixType = ExtensionToMatrixType(filename);
    switch (matrixType)
@@ -391,7 +391,7 @@ void matrix_io::write_matrix(const std::string& filename, std::shared_ptr<Matrix
    }
 }
 
-void matrix_io::write_dense_float64_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
+void matrix_io::write_dense_float64_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig)
 {
    std::uint64_t nrow = matrixConfig->getNRow();
    std::uint64_t ncol = matrixConfig->getNCol();
@@ -402,7 +402,7 @@ void matrix_io::write_dense_float64_bin(std::ostream& out, std::shared_ptr<Matri
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void matrix_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
+void matrix_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig)
 {
    //write rows and cols
    std::uint64_t nrow = matrixConfig->getNRow();
@@ -430,7 +430,7 @@ void matrix_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<Matri
    }
 }
 
-void matrix_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
+void matrix_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig)
 {
    std::uint64_t nrow = matrixConfig->getNRow();
    std::uint64_t ncol = matrixConfig->getNCol();
@@ -453,7 +453,7 @@ void matrix_io::write_sparse_float64_bin(std::ostream& out, std::shared_ptr<Matr
    out.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
 }
 
-void matrix_io::write_sparse_binary_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
+void matrix_io::write_sparse_binary_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig)
 {
    std::uint64_t nrow = matrixConfig->getNRow();
    std::uint64_t ncol = matrixConfig->getNCol();
@@ -476,7 +476,7 @@ void matrix_io::write_sparse_binary_bin(std::ostream& out, std::shared_ptr<Matri
 
 // MatrixMarket format specification
 // https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
-void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig)
+void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig)
 {
    out << "%%MatrixMarket ";
    out << MM_OBJ_MATRIX << " ";

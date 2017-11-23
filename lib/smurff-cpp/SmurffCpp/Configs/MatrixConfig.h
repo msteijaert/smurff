@@ -99,5 +99,8 @@ namespace smurff
 
       std::shared_ptr<Data> toData(const std::vector<std::shared_ptr<TensorConfig> >& row_features, 
                                    const std::vector<std::shared_ptr<TensorConfig> >& col_features) const override;
+
+   public:
+      void write(std::shared_ptr<IDataWriter> writer) const override;
    };
 }

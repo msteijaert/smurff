@@ -50,16 +50,16 @@ namespace smurff { namespace matrix_io
 
    // ===
 
-   void write_matrix(const std::string& filename, std::shared_ptr<MatrixConfig> matrixConfig);
+   void write_matrix(const std::string& filename, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_dense_float64_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig);
-   void write_dense_float64_csv(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig);
+   void write_dense_float64_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
+   void write_dense_float64_csv(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_sparse_float64_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig);
+   void write_sparse_float64_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_sparse_binary_bin(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig);
+   void write_sparse_binary_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_matrix_market(std::ostream& out, std::shared_ptr<MatrixConfig> matrixConfig);
+   void write_matrix_market(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
    namespace eigen{
       void read_matrix(const std::string& filename, Eigen::VectorXd& V);
