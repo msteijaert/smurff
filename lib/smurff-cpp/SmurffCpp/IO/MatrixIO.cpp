@@ -49,7 +49,7 @@ matrix_io::MatrixType ExtensionToMatrixType(const std::string& fname)
    }
    else
    {
-      throw "Unknown file type: " + extension;
+      throw std::runtime_error("Unknown file type: " + extension);
    }
    return matrix_io::MatrixType::none;
 }
@@ -69,9 +69,9 @@ std::string MatrixTypeToExtension(matrix_io::MatrixType matrixType)
    case matrix_io::MatrixType::ddm:
       return EXTENSION_DDM;
    case matrix_io::MatrixType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
    return std::string();
 }
@@ -110,9 +110,9 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
          return matrix_io::read_dense_float64_bin(fileStream);
       }
    case matrix_io::MatrixType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
 }
 
@@ -171,8 +171,11 @@ std::shared_ptr<MatrixConfig> matrix_io::read_dense_float64_csv(std::istream& in
       row++;
    }
 
-   assert(row == nrow);
-   assert(col == ncol);
+   if(row != nrow)
+      throw std::runtime_error("invalid number of rows");
+
+   if(col != ncol)
+      throw std::runtime_error("invalid number of columns");
 
    return std::make_shared<smurff::MatrixConfig>(nrow, ncol, values, smurff::NoiseConfig());
 }
@@ -382,9 +385,9 @@ void matrix_io::write_matrix(const std::string& filename, std::shared_ptr<Matrix
       }
       break;
    case matrix_io::MatrixType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
 }
 
@@ -410,7 +413,8 @@ void matrix_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<Matri
 
    const std::vector<double>& values = matrixConfig->getValues();
 
-   assert(values.size() == nrow * ncol);
+   if(values.size() != nrow * ncol)
+      throw std::runtime_error("invalid number of values");
 
    //write values
    for(std::uint64_t i = 0; i < nrow; i++)
@@ -520,9 +524,9 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd&
    switch (matrixType)
    {
    case matrix_io::MatrixType::sdm:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::sbm:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
@@ -542,9 +546,9 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd&
       }
       break;
    case matrix_io::MatrixType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
 }
 
@@ -575,13 +579,13 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMat
       }
       break;
    case matrix_io::MatrixType::csv:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::ddm:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
 }
 
@@ -635,8 +639,11 @@ void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd&
       row++;
    }
 
-   assert(row == nrow);
-   assert(col == ncol);
+   if(row != nrow)
+      throw std::runtime_error("invalid number of rows");
+
+   if(col != ncol)
+      throw std::runtime_error("invalid number of columns");
 }
 
 void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
@@ -880,9 +887,9 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
    switch (matrixType)
    {
    case matrix_io::MatrixType::sdm:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::sbm:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
@@ -902,9 +909,9 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
       }
       break;
    case matrix_io::MatrixType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
 }
 
@@ -932,13 +939,13 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Sp
       }
       break;
    case matrix_io::MatrixType::csv:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::ddm:
-      throw "Invalid matrix type";
+      throw std::runtime_error("Invalid matrix type");
    case matrix_io::MatrixType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
 }
 

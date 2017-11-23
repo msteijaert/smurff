@@ -39,7 +39,7 @@ tensor_io::TensorType ExtensionToTensorType(const std::string& fname)
    }
    else
    {
-      throw "Unknown file type: " + extension;
+      throw std::runtime_error("Unknown file type: " + extension);
    }
    return tensor_io::TensorType::none;
 }
@@ -59,9 +59,9 @@ std::string TensorTypeToExtension(tensor_io::TensorType tensorType)
    case tensor_io::TensorType::ddt:
       return EXTENSION_DDT;
    case tensor_io::TensorType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
    return std::string();
 }
@@ -100,9 +100,9 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
          return tensor_io::read_dense_float64_bin(fileStream);
       }
    case tensor_io::TensorType::none:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      throw std::runtime_error("Unknown matrix type");
    }
 }
 
@@ -154,11 +154,12 @@ std::shared_ptr<TensorConfig> tensor_io::read_dense_float64_csv(std::istream& in
       dims[dim++] = mode;
    }
 
-   assert(dim == nmodes);
+   if(dim != nmodes)
+      throw std::runtime_error("invalid number of dimensions");
 
    //values
 
-   getline(in, line);
+   std::getline(in, line);
    std::stringstream lineStream1(line);
 
    std::uint64_t nnz = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<std::uint64_t>());
@@ -176,7 +177,8 @@ std::shared_ptr<TensorConfig> tensor_io::read_dense_float64_csv(std::istream& in
       values[nval++] = value;
    }
 
-   assert(nval == nnz);
+   if(nval != nnz)
+      throw std::runtime_error("invalid number of values");
 
    return std::make_shared<TensorConfig>(std::move(dims), std::move(values), NoiseConfig());
 }
@@ -241,7 +243,8 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& i
       dims[dim++] = mode;
    }
 
-   assert(dim == nmodes);
+   if(dim != nmodes)
+      throw std::runtime_error("invalid number of dimensions");
 
    // nmodes
 
@@ -270,7 +273,8 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& i
       columns[col++] = column;
    }
 
-   assert(col == (nmodes * nnz));
+   if(col != nmodes * nnz)
+      throw std::runtime_error("invalid number of coordinates");
    
    std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col--; });
 
@@ -293,7 +297,8 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& i
       values[nval++] = value;
    }
 
-   assert(nval == nnz);
+   if(nval != nnz)
+      throw std::runtime_error("invalid number of values");
 
    return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), std::move(values), NoiseConfig());
 }
@@ -397,7 +402,8 @@ void tensor_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<Tenso
 
    const std::vector<double>& values = tensorConfig->getValues();
 
-   assert(values.size() == tensorConfig->getNNZ());
+   if(values.size() != tensorConfig->getNNZ())
+      throw std::runtime_error("invalid number of values");
 
    for(std::uint64_t i = 0; i < values.size(); i++)
    {
