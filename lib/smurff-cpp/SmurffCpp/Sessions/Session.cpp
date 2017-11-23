@@ -8,7 +8,7 @@
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
 
-#include <SmurffCpp/DataMatrices/DataFactory.h>
+#include <SmurffCpp/DataMatrices/MatrixDataFactory.h>
 #include <SmurffCpp/Priors/PriorFactory.h>
 
 #include <SmurffCpp/result.h>
