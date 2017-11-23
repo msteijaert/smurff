@@ -9,10 +9,10 @@
 
 namespace smurff {
 
-class DataFactory
+class MatrixDataFactory
 {
 public:
-   static std::shared_ptr<Data> create_data(std::shared_ptr<Session> session);
+   static std::shared_ptr<Data> create_matrix_data(std::shared_ptr<Session> session);
 };
 
 }
