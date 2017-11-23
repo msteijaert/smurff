@@ -27,6 +27,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
 
                         "../IO/ini.h"
                         "../IO/INIReader.h"
+                        "../IO/GenericIO.h"
                         "../IO/MatrixIO.h"
                         "../IO/TensorIO.h"
 
@@ -92,6 +93,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 
                         "../IO/ini.c"
                         "../IO/INIReader.cpp"
+                        "../IO/GenericIO.cpp"
                         "../IO/MatrixIO.cpp"
                         "../IO/TensorIO.cpp"
 

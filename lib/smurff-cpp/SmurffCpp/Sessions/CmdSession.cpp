@@ -10,12 +10,14 @@
 
 // !!! DO NOT CHANGE ORDER OF INCLUDES (<algorithm>, <argp.h>)!!!
 // https://stackoverflow.com/questions/19043109/gcc-4-8-1-combining-c-code-with-c11-code
+#include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <argp.h>
 
 using namespace Eigen;
 
 using namespace smurff;
+using namespace generic_io;
 using namespace matrix_io;
 
 enum OPT_ENUM
@@ -73,12 +75,12 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case CENTER:          c.center_mode_type        = stringToCenterMode(optarg); break;
 
 
-      case FNAME_TRAIN:     c.m_train              = read_matrix(optarg); break;
+      case FNAME_TRAIN:     c.m_train              = read_data_config(optarg); break;
       case LAMBDA_BETA:     c.lambda_beta        = strtod(optarg, NULL); break;
       case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
       case TOL:             c.tol                = atof(optarg); break;
       case DIRECT:          c.direct             = true; break;
-      case FNAME_TEST:      c.m_test               = read_matrix(optarg); break;
+      case FNAME_TEST:      c.m_test               = read_data_config(optarg); break;
       case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
       case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
       case SEED:            c.random_seed_set = true;

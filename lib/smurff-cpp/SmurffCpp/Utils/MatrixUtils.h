@@ -81,9 +81,9 @@ namespace smurff { namespace matrix_utils {
 
    // Conversion of dense data to dense eigen matrix - do we need it? (sparse eigen matrix can be converted to dense eigen matrix with = operator)
 
-   Eigen::MatrixXd dense_to_eigen(const smurff::MatrixConfig& Y);
+   Eigen::MatrixXd dense_to_eigen(const smurff::MatrixConfig& matrixConfig);
 
-   Eigen::MatrixXd dense_to_eigen(smurff::MatrixConfig& Y);
+   Eigen::MatrixXd dense_to_eigen(smurff::MatrixConfig& matrixConfig);
 
    // Conversion of libfastsparse matrices to dense eigen matrix - do we need it?
 
