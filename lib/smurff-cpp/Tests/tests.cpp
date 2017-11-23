@@ -583,6 +583,7 @@ TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") 
 }
 */
 
+/*
 TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
   std::vector<std::uint32_t> rows = {0};
   std::vector<std::uint32_t> cols = {0};
@@ -643,7 +644,7 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (mean - mean_tr).norm() == Approx(0.0) );
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
-
+*/
 
 TEST_CASE("utils/auc","AUC ROC") {
   struct TestItem {
