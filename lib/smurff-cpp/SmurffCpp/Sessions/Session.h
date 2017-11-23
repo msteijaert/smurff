@@ -33,7 +33,7 @@ public:
    void run() override;
 
 protected:
-   void init();
+   void init() override;
 
 public:
    void step() override;
