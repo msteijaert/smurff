@@ -2,8 +2,6 @@
 
 #include <numeric>
 
-#include <SmurffCpp/DataTensors/TensorData.h>
-
 using namespace smurff;
 
 TensorConfig::TensorConfig ( bool isDense
@@ -318,18 +316,9 @@ std::ostream& TensorConfig::info(std::ostream& os) const
    return os;
 }
 
-std::shared_ptr<Data> TensorConfig::toData(bool scarce) const
+std::shared_ptr<Data> TensorConfig::create(std::shared_ptr<IDataCreator> creator) const
 {
-   return std::make_shared<TensorData>(*this);
-}
-
-std::shared_ptr<Data> TensorConfig::toData(const std::vector<std::shared_ptr<TensorConfig> >& row_features, 
-                                           const std::vector<std::shared_ptr<TensorConfig> >& col_features) const
-{
-   if (row_features.empty() && col_features.empty())
-      return this->toData(true);
-
-   throw std::runtime_error("Tensor config does not support feature matrices");
+   return creator->create(shared_from_this());
 }
 
 void TensorConfig::write(std::shared_ptr<IDataWriter> writer) const

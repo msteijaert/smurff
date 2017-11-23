@@ -8,7 +8,7 @@
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
 
-#include <SmurffCpp/DataMatrices/MatrixDataFactory.h>
+#include <SmurffCpp/DataMatrices/DataCreator.h>
 #include <SmurffCpp/Priors/PriorFactory.h>
 
 #include <SmurffCpp/result.h>
@@ -34,7 +34,7 @@ void Session::setFromConfig(const Config& cfg)
 
    // initialize data
 
-   data_ptr = MatrixDataFactory::create_matrix_data(this_session);
+   data_ptr = config.m_train->create(std::make_shared<DataCreator>(this_session));
 
    // check if data is ScarceBinary
    /*

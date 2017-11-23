@@ -5,19 +5,75 @@
 
 #include <SmurffCpp/Configs/TensorConfig.h>
 
+//matrix classes
+#include <SmurffCpp/DataMatrices/SparseMatrixData.h>
+#include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
+#include <SmurffCpp/DataMatrices/DenseMatrixData.h>
+#include <SmurffCpp/DataMatrices/MatricesData.h>
+
+//noise classes
+#include <SmurffCpp/Configs/NoiseConfig.h>
+#include <SmurffCpp/Noises/NoiseFactory.h>
+
 using namespace smurff;
 
-std::shared_ptr<Data> MatrixDataFactory::create_matrix_data(std::shared_ptr<Session> session)
+std::shared_ptr<MatrixData> create_matrix_data(std::shared_ptr<const MatrixConfig> matrixConfig, bool scarce)
 {
-   //row_matrices and col_matrices are selected if prior is not macau and not macauone
-   std::vector<std::shared_ptr<TensorConfig> > row_matrices;
-   std::vector<std::shared_ptr<TensorConfig> > col_matrices;
+   std::shared_ptr<INoiseModel> noise = NoiseFactory::create_noise_model(matrixConfig->getNoiseConfig());
+   
+   if (matrixConfig->isDense())
+   {
+      Eigen::MatrixXd Ytrain = matrix_utils::dense_to_eigen(*matrixConfig);
+      std::shared_ptr<MatrixData> local_data_ptr(new DenseMatrixData(Ytrain));
+      local_data_ptr->setNoiseModel(noise);
+      return local_data_ptr;
+   }
+   else
+   {
+      Eigen::SparseMatrix<double> Ytrain = matrix_utils::sparse_to_eigen(*matrixConfig);
+      if (!scarce)
+      {
+         std::shared_ptr<MatrixData> local_data_ptr(new SparseMatrixData(Ytrain));
+         local_data_ptr->setNoiseModel(noise);
+         return local_data_ptr;
+      }
+      else if (matrix_utils::is_binary(Ytrain))
+      {
+         std::shared_ptr<MatrixData> local_data_ptr(new ScarceBinaryMatrixData(Ytrain));
+         local_data_ptr->setNoiseModel(noise);
+         return local_data_ptr;
+      }
+      else
+      {
+         std::shared_ptr<MatrixData> local_data_ptr(new ScarceMatrixData(Ytrain));
+         local_data_ptr->setNoiseModel(noise);
+         return local_data_ptr;
+      }
+   }
+}
 
-   if (session->config.row_prior_type != PriorTypes::macau && session->config.row_prior_type != PriorTypes::macauone)
-      std::copy(session->config.m_row_features.begin(), session->config.m_row_features.end(), row_matrices.end());
+std::shared_ptr<Data> MatrixDataFactory::create_matrix_data(std::shared_ptr<const MatrixConfig> matrixConfig, 
+                                                            const std::vector<std::shared_ptr<MatrixConfig> >& row_features, 
+                                                            const std::vector<std::shared_ptr<MatrixConfig> >& col_features)
+{
+   if (row_features.empty() && col_features.empty())
+      return ::create_matrix_data(matrixConfig, true);
 
-   if (session->config.col_prior_type != PriorTypes::macau && session->config.col_prior_type != PriorTypes::macauone)
-      std::copy(session->config.m_col_features.begin(), session->config.m_col_features.end(), col_matrices.end());
+   // multiple matrices
+   NoiseConfig ncfg(NoiseTypes::unused);
+   std::shared_ptr<MatricesData> local_data_ptr(new MatricesData());
+   local_data_ptr->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+   local_data_ptr->add(PVec<>({0,0}), ::create_matrix_data(matrixConfig, true));
 
-   return session->config.m_train->toData(row_matrices, col_matrices);
+   for(size_t i = 0; i < row_features.size(); ++i)
+   {
+      local_data_ptr->add(PVec<>({0, static_cast<int>(i + 1)}), ::create_matrix_data(row_features[i], false));
+   }
+
+   for(size_t i = 0; i < col_features.size(); ++i)
+   {
+      local_data_ptr->add(PVec<>({static_cast<int>(i + 1), 0}), ::create_matrix_data(col_features[i], false));
+   }
+
+   return local_data_ptr;
 }

@@ -8,6 +8,7 @@
 #include <SmurffCpp/Configs/NoiseConfig.h>
 
 #include <SmurffCpp/IO/IDataWriter.h>
+#include <SmurffCpp/DataMatrices/IDataCreator.h>
 
 namespace smurff
 {
@@ -96,10 +97,8 @@ namespace smurff
    public:
       virtual std::ostream& info(std::ostream& os) const;
 
-      virtual std::shared_ptr<Data> toData(bool scarce) const;
-
-      virtual std::shared_ptr<Data> toData(const std::vector<std::shared_ptr<TensorConfig> >& row_features, 
-                                           const std::vector<std::shared_ptr<TensorConfig> >& col_features) const;
+   public:
+      virtual std::shared_ptr<Data> create(std::shared_ptr<IDataCreator> creator) const;
 
    public:
       virtual void write(std::shared_ptr<IDataWriter> writer) const;

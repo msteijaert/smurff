@@ -95,10 +95,7 @@ namespace smurff
       std::shared_ptr<std::vector<std::uint32_t> > getColsPtr() const;
 
    public:
-      std::shared_ptr<Data> toData(bool scarce) const override;
-
-      std::shared_ptr<Data> toData(const std::vector<std::shared_ptr<TensorConfig> >& row_features, 
-                                   const std::vector<std::shared_ptr<TensorConfig> >& col_features) const override;
+      std::shared_ptr<Data> create(std::shared_ptr<IDataCreator> creator) const override;
 
    public:
       void write(std::shared_ptr<IDataWriter> writer) const override;
