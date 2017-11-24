@@ -12,23 +12,24 @@ from sklearn import preprocessing
 
 parser = argparse.ArgumentParser(description='Center sbm/sdm/ddm')
 parser.add_argument('--mode',  metavar='MODE', dest='mode', action='store', help='global|rows|cols', default='global')
-parser.add_argument('train', metavar='FILE',  help='Train Input File')
-parser.add_argument('test', metavar='FILE',  help='Train Input File')
+parser.add_argument('train', help='Train input file')
+parser.add_argument('test', help='Test input file')
 args = parser.parse_args()
 
 print(args)
 train = mio.read_matrix(args.train)
 test = mio.read_matrix(args.test)
 
-def avg_sparse_cols(m)
+def avg_sparse_cols(m):
     m = m.tocsc(copy=False) 
     sums = m.sum(axis=0).A1
     counts = np.diff(m.indptr)
-    return sums / (counts + 0.000001)
+    avg = sums / (counts + 0.000001)
+    avg = np.expand_dims(avg, 0)
+    return np.broadcast_to(avg, m.shape)
  
 def center_sparse_cols(m, avg):
     m = m.tocsc(copy=False) 
-    avg = np.broadcast_to(avg, m.shape)
     m.data -= np.take(avg, m.indices)
     return m
 
@@ -36,21 +37,22 @@ def avg_sparse_rows(m):
     m = m.tocsr(copy=False) 
     sums = m.sum(axis=1).A1
     counts = np.diff(m.indptr)
-    return sums / (counts + 0.000001)
+    avg = sums / (counts + 0.000001)
+    avg = np.expand_dims(avg, 1)
+    return np.broadcast_to(avg, m.shape)
 
 def center_sparse_rows(m,avg):
     m = m.tocsr(copy=False) 
-    avg = np.broadcast_to(avg, m.shape)
     m.data -= np.take(avg, m.indices)
     return m
 
 if (sparse.issparse(train)):
     if (args.mode == "rows"): 
-        a = avg_sparse_rows(m)
+        a = avg_sparse_rows(train)
         train = center_sparse_rows(train,a)
         test = center_sparse_rows(test,a)
     elif (args.mode == "cols"):
-        a = avg_sparse_cols(m)
+        a = avg_sparse_cols(train)
         train = center_sparse_cols(train,a)
         test = center_sparse_cols(test,a)
     elif (args.mode == "global"): 
