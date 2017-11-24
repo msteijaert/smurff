@@ -26,6 +26,7 @@ def avg_sparse_cols(m):
     counts = np.diff(m.indptr)
     avg = sums / (counts + 0.000001)
     avg = np.expand_dims(avg, 0)
+    sio.mmwrite("col_avg", avg)
     return np.broadcast_to(avg, m.shape)
  
 def center_sparse_cols(m, avg):
@@ -39,6 +40,7 @@ def avg_sparse_rows(m):
     counts = np.diff(m.indptr)
     avg = sums / (counts + 0.000001)
     avg = np.expand_dims(avg, 1)
+    sio.mmwrite("row_avg", avg)
     return np.broadcast_to(avg, m.shape)
 
 def center_sparse_rows(m,avg):
@@ -63,17 +65,21 @@ if (sparse.issparse(train)):
         raise ValueError("Unknown centering mode: %s" % ( args.mode ) )
 else:
     if (args.mode == "rows"): 
-        a = np.mean(train, 0)
-        train = train - np_broadcast_to(train.shape)
-        test = center_sparse_rows(test,a)
+        avg = np.mean(train, 0)
+        avg = np.expand_dims(avg, 1)
+        sio.mmwrite("row_avg", avg)
+        train = train - np_broadcast_to(avg, train.shape)
+        test = center_sparse_rows(test,avg)
     elif (args.mode == "cols"):
-        a = np.mean(train, 1)
-        train = train - np_broadcast_to(train.shape)
-        test = center_sparse_cols(test,a)
+        avg = np.mean(train, 1)
+        avg = np.expand_dims(avg, 1)
+        sio.mmwrite("col_avg", avg)
+        train = train - np_broadcast_to(avg, train.shape)
+        test = center_sparse_cols(test,avg)
     elif (args.mode == "global"): 
-        a = np.mean(train)
-        train = train - np_broadcast_to(train.shape)
-        test.data = test.data - a
+        avg = np.mean(train)
+        train = train - avg
+        test.data = test.data - avg
     elif (args.mode != "none"):
         raise ValueError("Unknown centering mode: %s" % ( args.mode ) )
 
