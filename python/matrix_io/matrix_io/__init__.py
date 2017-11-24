@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.sparse 
+import os
 
 def read_dense_float64(filename):
     with open(filename) as f:
@@ -51,6 +52,21 @@ def write_sparse_binary_matrix(filename, Y):
         np.array( Y.nnz ).astype(np.int64).tofile(f)
         (Y.row + 1).astype(np.int32, copy=False).tofile(f)
         (Y.col + 1).astype(np.int32, copy=False).tofile(f)
+
+ext_map = {
+        ".sbm": ( read_sparse_binary_matrix, write_sparse_binary_matrix ),
+        ".sdm": ( read_sparse_float64,       write_sparse_float64 ),
+        ".ddm": ( read_dense_float64,        write_dense_float64 ),
+}
+
+def read_matrix(filename):
+    base, ext =  os.path.splitext(filename)
+    return ext_map[ext][0](filename)
+
+def write_matrix(filename, Y):
+    base, ext =  os.path.splitext(filename)
+    return ext_map[ext][1](filename, Y)
+
 
 ## example
 
