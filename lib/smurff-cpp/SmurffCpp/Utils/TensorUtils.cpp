@@ -1,8 +1,29 @@
 #include "TensorUtils.h"
 
+Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig& tensorConfig)
+{
+   if(!tensorConfig.isDense())
+      throw std::runtime_error("tensor config should be dense");
+
+   if(tensorConfig.getNModes() != 2)
+      throw "Invalid number of dimensions. Tensor can not be converted to matrix.";
+
+   std::vector<double> Yvalues = tensorConfig.getValues(); //eigen map can not take const values pointer. have to make copy
+   return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
+}
+
+Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(smurff::TensorConfig& tensorConfig)
+{
+   const smurff::TensorConfig& tc = tensorConfig;
+   return smurff::tensor_utils::dense_to_eigen(tc);
+}
+
 template<>
 Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig)
 {
+   if(tensorConfig.isDense())
+      throw std::runtime_error("tensor config should be sparse");
+
    if(tensorConfig.getNModes() != 2)
       throw "Invalid number of dimensions. Tensor can not be converted to matrix.";
 
@@ -36,9 +57,24 @@ smurff::MatrixConfig smurff::tensor_utils::tensor_to_matrix(const smurff::Tensor
    if(tensorConfig.getNModes() != 2)
       throw "Invalid number of dimentions. Tensor can not be converted to matrix.";
 
-   return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1],
-                               tensorConfig.getColumns(), tensorConfig.getValues(),
-                               smurff::NoiseConfig());
+   if(tensorConfig.isDense())
+   {
+      return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1],
+         tensorConfig.getValues(),
+         tensorConfig.getNoiseConfig());
+   }
+   else if(tensorConfig.isBinary())
+   {
+      return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1],
+         tensorConfig.getColumns(),
+         tensorConfig.getNoiseConfig());
+   }
+   else
+   {
+      return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1],
+         tensorConfig.getColumns(), tensorConfig.getValues(),
+         tensorConfig.getNoiseConfig());
+   }
 }
 
 std::ostream& smurff::tensor_utils::operator << (std::ostream& os, const TensorConfig& tc)

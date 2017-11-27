@@ -6,6 +6,9 @@
 
 Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig& matrixConfig)
 {
+   if(!matrixConfig.isDense())
+      throw std::runtime_error("matrix config should be dense");
+
    std::vector<double> Yvalues = matrixConfig.getValues(); //eigen map can not take const values pointer. have to make copy
    return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), matrixConfig.getNRow(), matrixConfig.getNCol());
 }
@@ -19,6 +22,9 @@ Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(smurff::MatrixConfig& matri
 template<>
 Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
 {
+   if(matrixConfig.isDense())
+      throw std::runtime_error("matrix config should be sparse");
+
    Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
    std::shared_ptr<std::vector<std::uint32_t> > rowsPtr = matrixConfig.getRowsPtr();
    std::shared_ptr<std::vector<std::uint32_t> > colsPtr = matrixConfig.getColsPtr();
@@ -44,8 +50,7 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::
 template<>
 Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig)
 {
-   const smurff::MatrixConfig& mc = matrixConfig;
-   return smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(mc);
+   return smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(matrixConfig);
 }
 
 Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseBinaryMatrix& in)

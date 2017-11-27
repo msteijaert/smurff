@@ -11,6 +11,10 @@
 
 namespace smurff { namespace tensor_utils {
 
+Eigen::MatrixXd dense_to_eigen(const smurff::TensorConfig& tensorConfig);
+
+Eigen::MatrixXd dense_to_eigen(smurff::TensorConfig& tensorConfig);
+
 template<typename Tensor>
 Eigen::SparseMatrix<double> sparse_to_eigen(Tensor& Y);
 

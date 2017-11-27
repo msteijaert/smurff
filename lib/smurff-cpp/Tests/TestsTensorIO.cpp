@@ -21,8 +21,8 @@ TEST_CASE("tensor_io/read_dense_float64_bin | tensor_io/write_dense_float64_bin"
    std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_dense_float64_bin(matrixConfigStream);
    MatrixConfig actualMatrixConfig = tensor_utils::tensor_to_matrix(*actualTensorConfig);
 
-   Eigen::MatrixXd actualMatrix0 = tensor_utils::sparse_to_eigen(*actualTensorConfig);
-   Eigen::MatrixXd actualMatrix1 = matrix_utils::sparse_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix0 = tensor_utils::dense_to_eigen(*actualTensorConfig);
+   Eigen::MatrixXd actualMatrix1 = matrix_utils::dense_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;
@@ -106,8 +106,8 @@ TEST_CASE("tensor_io/read_dense_float64_csv | tensor_io/write_dense_float64_csv"
    std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_dense_float64_csv(matrixConfigStream);
    MatrixConfig actualMatrixConfig = tensor_utils::tensor_to_matrix(*actualTensorConfig);
 
-   Eigen::MatrixXd actualMatrix0 = tensor_utils::sparse_to_eigen(*actualTensorConfig);
-   Eigen::MatrixXd actualMatrix1 = matrix_utils::sparse_to_eigen(actualMatrixConfig);
+   Eigen::MatrixXd actualMatrix0 = tensor_utils::dense_to_eigen(*actualTensorConfig);
+   Eigen::MatrixXd actualMatrix1 = matrix_utils::dense_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12;

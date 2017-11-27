@@ -224,7 +224,7 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 }
 
 //
-// Constructors for constructing matrix as a tensor
+// Constructors for constructing sparse matrix as a tensor
 //
 
 MatrixConfig::MatrixConfig( std::uint64_t nrow
@@ -254,6 +254,31 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
                           , const NoiseConfig& noiseConfig
                           )
    : TensorConfig(std::make_shared<std::vector<std::uint64_t> >(std::initializer_list<std::uint64_t>({ nrow, ncol })), columns, values, noiseConfig)
+{
+}
+
+//
+// Constructors for constructing sparse binary matrix as a tensor
+//
+
+MatrixConfig::MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
+               const std::vector<std::uint32_t>& columns, 
+               const NoiseConfig& noiseConfig)
+   : TensorConfig({ nrow, ncol }, columns, noiseConfig)
+{
+}
+
+MatrixConfig::MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, 
+               std::vector<std::uint32_t>&& columns, 
+               const NoiseConfig& noiseConfig)
+   : TensorConfig({ nrow, ncol }, std::move(columns), noiseConfig)
+{
+}
+
+MatrixConfig::MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
+               std::shared_ptr<std::vector<std::uint32_t> > columns, 
+               const NoiseConfig& noiseConfig)
+   : TensorConfig(std::make_shared<std::vector<std::uint64_t> >(std::initializer_list<std::uint64_t>({ nrow, ncol })), columns, noiseConfig)
 {
 }
 
