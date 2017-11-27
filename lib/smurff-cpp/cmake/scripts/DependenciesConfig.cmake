@@ -87,6 +87,7 @@ macro(configure_eigen)
   message ("Dependency check for eigen...")
   find_package(Eigen3 REQUIRED)
   message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
+  add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endmacro(configure_eigen)
 
 
