@@ -583,15 +583,15 @@ TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") 
 }
 */
 
-/*
-TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
+TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") 
+{
   std::vector<std::uint32_t> rows = {0};
   std::vector<std::uint32_t> cols = {0};
   std::vector<double>        vals = {4.5};
 
   std::shared_ptr<Result> p(new Result());
   std::shared_ptr<Model> model(new Model());
-  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1,1,rows, cols, vals, NoiseConfig()));
+  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, NoiseConfig()));
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(*S)));
   p->set(S);
   data->setCenterMode("global");
@@ -608,6 +608,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   *model->U(0) << 1.0, 0.0;
   *model->U(1) << 1.0, 0.0;
   p->update(model, data, false);
+
   REQUIRE(t.pred_avg == Approx(4.5 + 1.0));
   REQUIRE(t.var      == Approx(0.0));
   REQUIRE(p->rmse_1sample == Approx(1.0));
@@ -617,6 +618,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   *model->U(0) << 2.0, 0.0;
   *model->U(1) << 1.0, 0.0;
   p->update(model, data, false);
+
   REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0) / 2));
   REQUIRE(t.var      == Approx(0.5));
   REQUIRE(p->rmse_1sample     == 2.0);
@@ -626,6 +628,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   *model->U(0) << 2.0, 0.0;
   *model->U(1) << 3.0, 0.0;
   p->update(model, data, false);
+
   REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
   REQUIRE(t.var      == Approx(14.0)); // accumulated variance
   REQUIRE(p->rmse_1sample     == 6.0);
@@ -644,7 +647,6 @@ TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
   REQUIRE( (mean - mean_tr).norm() == Approx(0.0) );
   REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
 }
-*/
 
 TEST_CASE("utils/auc","AUC ROC") {
   struct TestItem {

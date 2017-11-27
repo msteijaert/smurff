@@ -24,28 +24,28 @@ namespace smurff {
 //Y - test sparse matrix
 void Result::set(std::shared_ptr<TensorConfig> Y)
 {
-   if(!Y->isDense())
-      throw std::runtime_error("test data should be dense");
+   if(Y->isDense())
+      throw std::runtime_error("test data should be sparse");
 
-   /*
-   auto rowsPtr = Y.getRowsPtr();
-   auto colsPtr = Y.getColsPtr();
-   auto valuesPtr = Y.getValuesPtr();
-   
-   for (std::uint64_t i = 0; i < Y.getNNZ(); i++)
+   if(Y->getNModes() != 2)
+      throw "Invalid number of dimensions. Tensor can not be converted to matrix.";
+
+   std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
+   std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();
+
+   for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
-       std::uint32_t row = rowsPtr->operator[](i);
-       std::uint32_t col = colsPtr->operator[](i);
-       double val = valuesPtr->operator[](i);
-       
-       predictions.push_back({row, col, val});
+      double val = Y->isBinary() ? 1.0 : valuesPtr->operator[](i);
+      std::uint32_t row = columnsPtr->operator[](i);
+      std::uint32_t col = columnsPtr->operator[](i + Y->getNNZ());
+      
+      predictions.push_back({row, col, val});
    }
-   
-   m_nrows = Y.getNRow();
-   m_ncols = Y.getNCol();
+
+   m_nrows = Y->getDims()[0];
+   m_ncols = Y->getDims()[1];
 
    init();
-   */
 }
 
 void Result::init()
