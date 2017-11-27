@@ -51,37 +51,7 @@ class MatrixData : public IData
    Eigen::MatrixXd getTestData() override;
 };
 
-// create vector from another vector and remove 1 element (selected with cremoved)
-template<class T>
-class VectorView 
-{
-public:
-   std::vector<T*> vec;
-   unsigned int removed;
 
-   VectorView(std::vector< std::unique_ptr<T> > & cvec, unsigned int cremoved) 
-   {
-      for (unsigned int i = 0; i < cvec.size(); i++) 
-      {
-         if (cremoved == i) 
-         {
-            continue;
-         }
-         vec.push_back(cvec[i].get());
-      }
-      removed = cremoved;
-   }
-
-   T* get(int i) 
-   {
-      return vec[i];
-   }
-
-   int size() 
-   {
-      return vec.size();
-   }
-};
 
 //////   Tensor data   //////
 

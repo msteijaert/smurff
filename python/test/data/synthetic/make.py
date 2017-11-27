@@ -52,7 +52,7 @@ def sparsify(A, density):
         J = J.reshape(A.size)
 
     size = V.size
-    num = int(size * density)
+    num = int(size * density) 
     idx = np.random.choice(size, num, replace=False)
 
     return sparse.coo_matrix((V[idx], (I[idx], J[idx])), shape = A.shape)
@@ -125,11 +125,10 @@ def gen_test_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, c
         print("%s..." % dirname)
         write_test_data(dirname, test)
 
-
 def gen_train_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, center = "none"):
     if (func == "ones" and center != "none"):
         return
-
+    
     shape_str = "_".join(map(str,shape))
     dirname = "%s_%s_%d_%d_%d_%d_%s" % (func, shape_str, K, int(density * 100), row_split, col_split, center)
 
@@ -138,9 +137,6 @@ def gen_train_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, 
         return
 
     print("%s..." % dirname)
-
-    # generate all data in 1 matrix
-    # m = gen_matrix(shape,K,func);
 
     # split rows and cols
     rows_blocked = np.array_split(m, row_split, axis=0)
@@ -180,6 +176,7 @@ def gen_train_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, 
             col_feat[i] = col_feat[i] - np.mean(col_feat[i])
 
     write_train_data(dirname, m, (row_feat, col_feat))
+
 
 if __name__ == "__main__":
     shape = [2000,100]

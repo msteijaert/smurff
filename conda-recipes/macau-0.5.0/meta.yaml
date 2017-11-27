@@ -8,16 +8,19 @@ source:
 
 requirements:
   build:
+    - {{ compiler('cxx') }}    # [not win]
+    - {{ compiler('c') }}      # [not win]
+    - llvm-openmp              # [osx]
+    - cython
     - python
-    - gcc
+    - setuptools
     - openblas
     - numpy
     - scipy
     - pandas
-    - cython
   run:
+    - llvm-openmp             # [osx]
     - python
-    - gcc
     - openblas
     - numpy
     - scipy

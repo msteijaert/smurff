@@ -3,20 +3,25 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <assert.h>
 
-#include <SmurffCpp/DataMatrices/Data.h>
-#include <SmurffCpp/Model.h>
-#include <SmurffCpp/result.h>
+#include <SmurffCpp/Sessions/ISession.h>
 
 namespace smurff {
 
 class ILatentPrior;
+class Data;
+class Model;
+class SessionFactory;
+class Result;
 
-class BaseSession  
+class BaseSession : public ISession
 {
+   friend class SessionFactory;
+
 protected:
-   Model m_model;
-   Result m_pred;
+   std::shared_ptr<Model> m_model;
+   std::shared_ptr<Result> m_pred;
 
 protected:
    std::vector<std::shared_ptr<ILatentPrior> > m_priors;
@@ -28,22 +33,25 @@ protected:
    //train data
    std::shared_ptr<Data> data_ptr;
 
+protected:
+   BaseSession();
+
 public:
    virtual ~BaseSession() {}
 
 public:
    std::shared_ptr<Data> data() const
-   { 
-      assert(data_ptr); 
-      return data_ptr; 
+   {
+      assert(data_ptr);
+      return data_ptr;
    }
 
-   const Model& model() const
+   std::shared_ptr<const Model> model() const
    {
       return m_model;
    }
 
-   Model& model()
+   std::shared_ptr<Model> model()
    {
       return m_model;
    }
@@ -51,8 +59,8 @@ public:
 public:
    void addPrior(std::shared_ptr<ILatentPrior> prior);
 
-protected:
-   virtual void step();
+public:
+   void step() override;
 
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);
@@ -60,6 +68,10 @@ public:
    void save(std::string prefix, std::string suffix);
 
    void restore(std::string prefix, std::string suffix);
+
+public:
+   MatrixConfig getResult() override;
+   MatrixConfig getSample(int dim) override;
 };
 
 }

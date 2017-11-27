@@ -33,16 +33,16 @@ public:
    virtual void init();
 
    // utility
-   const Model& model() const;
-   Model& model();
+   std::shared_ptr<const Model> model() const;
+   std::shared_ptr<Model> model();
 
    std::shared_ptr<Data> data() const;
    double predict(const PVec<> &) const;
 
    std::shared_ptr<INoiseModel> noise();
 
-   Eigen::MatrixXd &U();
-   Eigen::MatrixXd &V();
+   std::shared_ptr<Eigen::MatrixXd> U();
+   std::shared_ptr<Eigen::MatrixXd> V();
 
    int num_latent() const;
    int num_cols() const;

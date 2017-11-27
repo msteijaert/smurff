@@ -8,10 +8,11 @@ source:
 
 requirements:
   build:
-    - gcc
+    - {{ compiler('cxx') }}    # [not win]
+    - llvm-openmp              # [osx]
     - openblas
   run:
-    - gcc
+    - llvm-openmp              # [osx]
     - openblas
 
 about:

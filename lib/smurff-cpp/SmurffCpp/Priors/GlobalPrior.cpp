@@ -23,9 +23,11 @@ void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
 
   Eigen::MatrixXd* S0 = view.get(0);
 
-  for (int j = row_ptr(n); j < row_ptr(n + 1); j++) {
+  for (int j = row_ptr(n); j < row_ptr(n + 1); j++) 
+  {
     VectorXd col = S0->col(indices(j, 0));
-    for (int m = 1; m < nmodes1; m++) {
+    for (int m = 1; m < nmodes1; m++) 
+    {
       col.noalias() = col.cwiseProduct(view.get(m)->col(indices(j, m)));
     }
 

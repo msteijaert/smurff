@@ -44,12 +44,12 @@ public:
    }
 
 private:
-   MacauOnePrior() 
+   MacauOnePrior()
       : ILatentPrior(){}
 
 public:
    MacauOnePrior(std::shared_ptr<BaseSession> session, int mode)
-      : ILatentPrior(session, mode) 
+      : ILatentPrior(session, mode)
    {
    }
 
@@ -88,8 +88,8 @@ public:
        double alpha = noise()->getAlpha();
 
        const int K = num_latent();
-       auto &Us = U();
-       auto &Vs = V();
+       auto Us = U();
+       auto Vs = V();
 
        const int nnz = SparseY().col(i).nonZeros();
        Eigen::VectorXd Yhat(nnz);
@@ -99,8 +99,8 @@ public:
        Eigen::VectorXd Qi = lambda;
        for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
        {
-         Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
-         Yhat(idx)     = model().dot({(int)it.col(), (int)it.row()});
+         Qi.noalias() += alpha * Vs->col(it.row()).cwiseAbs2();
+         Yhat(idx)     = model()->dot({(int)it.col(), (int)it.row()});
        }
 
        Eigen::VectorXd rnorms(num_latent());
@@ -109,31 +109,31 @@ public:
        for (int d = 0; d < K; d++)
        {
            // computing Lid
-           const double uid = Us(d, i);
+           const double uid = Us->operator()(d, i);
            double Lid = lambda(d) * (mu(d) + Uhat(d, i));
 
            idx = 0;
            for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
            {
-               const double vjd = Vs(d, it.row());
+               const double vjd = Vs->operator()(d, it.row());
                // L_id += alpha * (Y_ij - k_ijd) * v_jd
                Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
                //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
            }
 
            // Now use Lid and Qid to update uid
-           double uid_old = Us(d, i);
+           double uid_old = Us->operator()(d, i);
            double uid_var = 1.0 / Qi(d);
 
            // sampling new u_id ~ Norm(Lid / Qid, 1/Qid)
-           Us(d, i) = Lid * uid_var + sqrt(uid_var) * rnorms(d);
+           Us->operator()(d, i) = Lid * uid_var + sqrt(uid_var) * rnorms(d);
 
            // updating Yhat
-           double uid_delta = Us(d, i) - uid_old;
+           double uid_delta = Us->operator()(d, i) - uid_old;
            idx = 0;
            for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
            {
-               Yhat(idx) += uid_delta * Vs(d, it.row());
+               Yhat(idx) += uid_delta * Vs->operator()(d, it.row());
            }
        }
    }
@@ -153,11 +153,11 @@ public:
 
    //used in update_prior
 
-   void sample_beta(const Eigen::MatrixXd &U)
+   void sample_beta(std::shared_ptr<const Eigen::MatrixXd> U)
    {
       // updating beta and beta_var
       const int nfeat = beta.cols();
-      const int N = U.cols();
+      const int N = U->cols();
       const int blocksize = 4;
 
       Eigen::MatrixXd Z;
@@ -166,14 +166,14 @@ public:
       for (int dstart = 0; dstart < num_latent(); dstart += blocksize)
       {
          const int dcount = std::min(blocksize, num_latent() - dstart);
-         Z.resize(dcount, U.cols());
+         Z.resize(dcount, U->cols());
 
          for (int i = 0; i < N; i++)
          {
             for (int d = 0; d < dcount; d++)
             {
                int dx = d + dstart;
-               Z(d, i) = U(dx, i) - mu(dx) - Uhat(dx, i);
+               Z(d, i) = U->operator()(dx, i) - mu(dx) - Uhat(dx, i);
             }
          }
 
@@ -204,12 +204,12 @@ public:
 
    //used in update_prior
 
-   void sample_mu_lambda(const Eigen::MatrixXd &U)
+   void sample_mu_lambda(std::shared_ptr<const Eigen::MatrixXd> U)
    {
       Eigen::MatrixXd Lambda(num_latent(), num_latent());
       Eigen::MatrixXd WI(num_latent(), num_latent());
       WI.setIdentity();
-      int N = U.cols();
+      int N = U->cols();
 
       Eigen::MatrixXd Udelta(num_latent(), N);
       #pragma omp parallel for schedule(static)
@@ -217,7 +217,7 @@ public:
       {
          for (int d = 0; d < num_latent(); d++)
          {
-            Udelta(d, i) = U(d, i) - Uhat(d, i);
+            Udelta(d, i) = U->operator()(d, i) - Uhat(d, i);
          }
       }
       std::tie(mu, Lambda) = CondNormalWishart(Udelta, Eigen::VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());

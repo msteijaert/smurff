@@ -9,6 +9,7 @@
 
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/sparsetensor.h>
+#include <SmurffCpp/result.h>
 
 #include <SmurffCpp/Utils/TruncNorm.h>
 #include <SmurffCpp/Utils/InvNormCdf.h>
@@ -584,49 +585,55 @@ TEST_CASE( "bpmfutils/sparseFromIJV", "Convert triplets to Eigen SparseMatrix") 
 
 /*
 TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") {
-  int rows[1] = {0};
-  int cols[1] = {0};
-  double vals[1] = {4.5};
-  Result p;
-  Model model;
-  SparseDoubleMatrix S = {1,1,1,rows, cols, vals};
+  std::vector<std::uint32_t> rows = {0};
+  std::vector<std::uint32_t> cols = {0};
+  std::vector<double>        vals = {4.5};
+
+  std::shared_ptr<Result> p(new Result());
+  std::shared_ptr<Model> model(new Model());
+  MatrixConfig S = {1,1,rows, cols, vals, NoiseConfig()};
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
-  p.set(matrix_utils::sparse_to_eigen(S));
+
+  p->set(S);
 
   NoiseConfig ncfg;
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 
   data->init();
-  model.init(2, PVec<>({1, 1}), ModelInitTypes::zero);
+  model->init(2, PVec<>({1, 1}), ModelInitTypes::zero);
 
-  auto &t = p.predictions.at(0);
+  auto &t = p->predictions.at(0);
 
   // first iteration
-  model.U(0) << 1.0, 0.0;
-  model.U(1) << 1.0, 0.0;
-  p.update(model, false);
-  REQUIRE(t.pred_avg == Approx(4.5 + 1.0));
+  *model->U(0) << 1.0, 0.0;
+  *model->U(1) << 1.0, 0.0;
+  p->update(model, false);
+  
+REQUIRE(t.pred_avg == Approx(4.5 + 1.0));
   REQUIRE(t.var      == Approx(0.0));
-  REQUIRE(p.rmse_1sample == Approx(1.0));
-  REQUIRE(p.rmse_avg == Approx(1.0));
+  REQUIRE(p->rmse_1sample == Approx(1.0));
+  REQUIRE(p->rmse_avg == Approx(1.0));
 
   //// second iteration
-  model.U(0) << 2.0, 0.0;
-  model.U(1) << 1.0, 0.0;
-  p.update(model, false);
-  REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0) / 2));
+  *model->U(0) << 2.0, 0.0;
+  *model->U(1) << 1.0, 0.0;
+  p->update(model, false);
+  
+REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0) / 2));
   REQUIRE(t.var      == Approx(0.5));
-  REQUIRE(p.rmse_1sample     == 2.0);
-  REQUIRE(p.rmse_avg == 1.5);
+  REQUIRE(p->rmse_1sample     == 2.0);
+  REQUIRE(p->rmse_avg == 1.5);
 
   //// third iteration
-  model.U(0) << 2.0, 0.0;
-  model.U(1) << 3.0, 0.0;
-  p.update(model, false);
-  REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
+  
+  *model->U(0) << 2.0, 0.0;
+  *model->U(1) << 3.0, 0.0;
+  p->update(model, false);
+  
+REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
   REQUIRE(t.var      == Approx(14.0)); // accumulated variance
-  REQUIRE(p.rmse_1sample     == 6.0);
-  REQUIRE(p.rmse_avg == 3.0);
+  REQUIRE(p->rmse_1sample     == 6.0);
+  REQUIRE(p->rmse_avg == 3.0);
 }
 
 TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
@@ -680,7 +687,7 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
   SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
 
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
-  
+
   NoiseConfig ncfg;
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 
@@ -693,7 +700,7 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
   Y << 1., 2., 3., 4.;
 
   std::shared_ptr<Data> data(new DenseMatrixData(Y));
-  
+
   NoiseConfig ncfg;
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 

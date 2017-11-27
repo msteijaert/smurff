@@ -1,8 +1,16 @@
 #include "BaseSession.h"
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
+#include <SmurffCpp/Model.h>
+#include <SmurffCpp/result.h>
 
 using namespace smurff;
+
+BaseSession::BaseSession()
+   : m_model(std::make_shared<Model>())
+   , m_pred(std::make_shared<Result>())
+{
+}
 
 void BaseSession::addPrior(std::shared_ptr<ILatentPrior> prior)
 {
@@ -10,45 +18,53 @@ void BaseSession::addPrior(std::shared_ptr<ILatentPrior> prior)
    m_priors.push_back(prior);
 }
 
-void BaseSession::step() 
+void BaseSession::step()
 {
-   for(auto &p : m_priors) 
+   for(auto &p : m_priors)
       p->sample_latents();
    data()->update(m_model);
 }
 
-std::ostream &BaseSession::info(std::ostream &os, std::string indent) 
+std::ostream &BaseSession::info(std::ostream &os, std::string indent)
 {
    os << indent << name << " {\n";
    os << indent << "  Data: {\n";
    data()->info(os, indent + "    ");
    os << indent << "  }\n";
    os << indent << "  Model: {\n";
-   m_model.info(os, indent + "    ");
+   m_model->info(os, indent + "    ");
    os << indent << "  }\n";
    os << indent << "  Priors: {\n";
-   for( auto &p : m_priors) 
+   for( auto &p : m_priors)
       p->info(os, indent + "    ");
    os << indent << "  }\n";
    os << indent << "  Result: {\n";
-   
-   m_pred.info(os, indent + "    ");
-   
+   m_pred->info(os, indent + "    ");
    os << indent << "  }\n";
    return os;
 }
 
-void BaseSession::save(std::string prefix, std::string suffix) 
+void BaseSession::save(std::string prefix, std::string suffix)
 {
-   m_model.save(prefix, suffix);
-   m_pred.save(prefix);
-   for(auto &p : m_priors) 
+   m_model->save(prefix, suffix);
+   m_pred->save(prefix);
+   for(auto &p : m_priors)
       p->save(prefix, suffix);
 }
 
-void BaseSession::restore(std::string prefix, std::string suffix) 
+void BaseSession::restore(std::string prefix, std::string suffix)
 {
-   m_model.restore(prefix, suffix);
-   for(auto &p : m_priors) 
+   m_model->restore(prefix, suffix);
+   for(auto &p : m_priors)
       p->restore(prefix, suffix);
+}
+
+MatrixConfig BaseSession::getResult()
+{
+   throw std::runtime_error("getResult is unimplemented");
+}
+
+MatrixConfig BaseSession::getSample(int dim)
+{
+   throw std::runtime_error("getSample is unimplemented");
 }

@@ -5,6 +5,7 @@ project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
                         "../Model.h"
+                        "../VectorView.hpp"
                         "../result.h"
                         "../SparseFeat.h"
                         "../SparseDoubleFeat.h"
@@ -45,7 +46,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Priors/MacauPrior.hpp"
                         "../Priors/MacauOnePrior.hpp"
                         "../Priors/PriorFactory.h"
-                        
+
                         "../DataMatrices/Data.h"
                         "../DataMatrices/DenseMatrixData.h"
                         "../DataMatrices/FullMatrixData.hpp"
@@ -57,6 +58,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/SparseMatrixData.h"
                         "../DataMatrices/MatrixDataFactory.h"
 
+                        "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
                         "../Sessions/CmdSession.h"
@@ -122,21 +124,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../sparsetensor.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
-if(${MPI_C_FOUND})
-FILE (GLOB HEADER_FILES_MPI "../Priors/MPIMacauPrior.hpp"
-                            "../Sessions/MPISession.h")
-
-source_group ("Header Files" FILES ${HEADER_FILES_MPI})
-endif()
-
-if(${MPI_C_FOUND})
-FILE (GLOB SOURCE_FILES_MPI "../Sessions/MPISession.cpp")
-
-source_group ("Source Files" FILES ${SOURCE_FILES_MPI})
-endif()
-
 #SETUP OUTPUT
-add_library (${PROJECT} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${HEADER_FILES_MPI} ${SOURCE_FILES_MPI})
+add_library (${PROJECT} STATIC ${HEADER_FILES} ${SOURCE_FILES})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
 #SETUP INCLUDES
@@ -145,3 +134,12 @@ include_directories(../..)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${ARGP_INCLUDE_PATH})
 
+#INSTALL
+install (TARGETS ${PROJECT} ARCHIVE DESTINATION lib)
+install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
+install (FILES ../Sessions/Session.h DESTINATION include/SmurffCpp/Sessions)
+install (FILES ../Sessions/BaseSession.h DESTINATION include/SmurffCpp/Sessions)

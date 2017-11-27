@@ -5,7 +5,7 @@ using namespace smurff;
 
 int main(int argc, char** argv) 
 {
-    std::shared_ptr<smurff::Session> session = SessionFactory::create_cmd_session(argc, argv);
+    std::shared_ptr<smurff::ISession> session = SessionFactory::create_cmd_session(argc, argv);
     session->run();
     return 0;
 }

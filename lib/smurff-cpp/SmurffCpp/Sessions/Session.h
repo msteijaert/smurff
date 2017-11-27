@@ -19,10 +19,10 @@ public:
    Config config;
    int iter = -1; //index of step iteration
 
-public:
-   Session() 
+protected:
+   Session()
    {
-      name = "Session"; 
+      name = "Session";
    }
 
 protected:
@@ -30,10 +30,12 @@ protected:
 
    // execution of the sampler
 public:
-   void run();
+   void run() override;
 
 protected:
    void init();
+
+public:
    void step() override;
 
 public:

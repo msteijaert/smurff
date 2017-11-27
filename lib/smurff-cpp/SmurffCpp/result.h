@@ -2,19 +2,17 @@
 
 #include <memory>
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-
 #include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
 namespace smurff {
 
 class Model;
 class Data;
- 
+
 template<typename Item, typename Compare>
 double calc_auc(const std::vector<Item> &predictions,
-                double threshold, 
+                double threshold,
                 const Compare &compare)
 {
     auto sorted_predictions = predictions;
@@ -24,7 +22,7 @@ double calc_auc(const std::vector<Item> &predictions,
     int num_negative = 0;
     double auc = .0;
 
-    for(auto &t : sorted_predictions) 
+    for(auto &t : sorted_predictions)
     {
         int is_positive = t.val > threshold;
         int is_negative = !is_positive;
@@ -44,26 +42,34 @@ double calc_auc(const std::vector<Item> &predictions, double threshold)
    return calc_auc(predictions, threshold, [](const Item &a, const Item &b) { return a.pred < b.pred;});
 }
 
-struct Result 
+struct Result
 {
    //-- test set
-   struct Item 
+   struct Item
    {
-      int row, col;
-      double val, pred_1sample, pred_avg, var, stds;
+      std::uint32_t row;
+      std::uint32_t col;
+
+      double val;
+      double pred_1sample;
+      double pred_avg;
+      double var;
+      double stds;
    };
 
    //sparse representation of test matrix
    std::vector<Item> predictions;
 
    //number of rows and columns in test matrix
-   int nrows, ncols;
+   std::uint64_t m_nrows;
+   std::uint64_t m_ncols;
 
    //Y - test sparse matrix
-   void set(Eigen::SparseMatrix<double> Y);
+   void set(const MatrixConfig& Y);
 
    //-- prediction metrics
-   void update(const Model &model, bool burnin);
+   void update(std::shared_ptr<const Model> model, bool burnin);
+
    double rmse_avg = NAN;
    double rmse_1sample = NAN;
    double auc_avg = NAN;
@@ -87,9 +93,9 @@ public:
    bool classify = false;
    double threshold;
 
-   void setThreshold(double t) 
-   { 
-      threshold = t; classify = true; 
+   void setThreshold(double t)
+   {
+      threshold = t; classify = true;
    }
 };
 

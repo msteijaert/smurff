@@ -22,27 +22,35 @@ using namespace Eigen;
 namespace smurff {
 
 //Y - test sparse matrix
-void Result::set(Eigen::SparseMatrix<double> Y) 
+void Result::set(const MatrixConfig& Y)
 {
-   for (int k = 0; k < Y.outerSize(); ++k) 
+   assert(!Y.isDense());
+   
+   auto rowsPtr = Y.getRowsPtr();
+   auto colsPtr = Y.getColsPtr();
+   auto valuesPtr = Y.getValuesPtr();
+   
+   for (std::uint64_t i = 0; i < Y.getNNZ(); i++)
    {
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y,k); it; ++it) 
-      {
-         predictions.push_back({(int)it.row(), (int)it.col(), it.value()});
-      }
+       std::uint32_t row = rowsPtr->operator[](i);
+       std::uint32_t col = colsPtr->operator[](i);
+       double val = valuesPtr->operator[](i);
+       
+       predictions.push_back({row, col, val});
    }
+   
+   m_nrows = Y.getNRow();
+   m_ncols = Y.getNCol();
 
-   nrows = Y.rows();
-   ncols = Y.cols();
    init();
 }
 
-void Result::init() 
+void Result::init()
 {
    total_pos = 0;
-   if (classify) 
+   if (classify)
    {
-      for(auto &t : predictions) 
+      for(auto &t : predictions)
       {
          int is_positive = t.val > threshold;
          total_pos += is_positive;
@@ -53,7 +61,7 @@ void Result::init()
 //--- output model to files
 void Result::save(std::string prefix)
 {
-   if (predictions.empty()) 
+   if (predictions.empty())
       return;
 
    std::string fname_pred = prefix + "-predictions.csv";
@@ -81,42 +89,42 @@ void Result::save(std::string prefix)
 
 //model - holds samples (U matrices)
 //data - Y train matrix
-void Result::update(const Model &model, bool burnin)
+void Result::update(std::shared_ptr<const Model> model, bool burnin)
 {
-   if (predictions.size() == 0) 
+   if (predictions.size() == 0)
       return;
 
    const unsigned N = predictions.size();
 
-   if (burnin) 
+   if (burnin)
    {
       double se_1sample = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
-      for(unsigned k=0; k<predictions.size(); ++k) 
+      for(unsigned k=0; k<predictions.size(); ++k)
       {
          auto &t = predictions[k];
-         t.pred_1sample = model.predict({t.row, t.col}); //dot product of i'th columns in each U matrix
+         t.pred_1sample = model->predict({(int)t.row, (int)t.col}); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - t.pred_1sample);
       }
 
       burnin_iter++;
       rmse_1sample = sqrt( se_1sample / N );
-      if (classify) 
+      if (classify)
       {
-         auc_1sample = calc_auc(predictions, threshold, 
+         auc_1sample = calc_auc(predictions, threshold,
                [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
       }
-   } 
-   else 
+   }
+   else
    {
       double se_1sample = 0.0, se_avg = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
-      for(unsigned k=0; k<predictions.size(); ++k) 
+      for(unsigned k=0; k<predictions.size(); ++k)
       {
          auto &t = predictions[k];
-         const double pred = model.predict({t.row, t.col}); //dot product of i'th columns in each U matrix
+         const double pred = model->predict({(int)t.row, (int)t.col}); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - pred);
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
@@ -132,9 +140,9 @@ void Result::update(const Model &model, bool burnin)
       rmse_1sample = sqrt( se_1sample / N );
       rmse_avg = sqrt( se_avg / N );
 
-      if (classify) 
+      if (classify)
       {
-         auc_1sample = calc_auc(predictions, threshold, 
+         auc_1sample = calc_auc(predictions, threshold,
                [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
 
          auc_avg = calc_auc(predictions, threshold,
@@ -249,23 +257,23 @@ std::pair<double,double> eval_rmse_tensor(
 
 std::ostream &Result::info(std::ostream &os, std::string indent)
 {
-   if (predictions.size()) 
+   if (predictions.size())
    {
-      double test_fill_rate = 100. * predictions.size() / nrows / ncols;
-      os << indent << "Test data: " << predictions.size() << " [" << nrows << " x " << ncols << "] (" << test_fill_rate << "%)\n";
-   } 
-   else 
+      double test_fill_rate = 100. * predictions.size() / m_nrows / m_ncols;
+      os << indent << "Test data: " << predictions.size() << " [" << m_nrows << " x " << m_ncols << "] (" << test_fill_rate << "%)\n";
+   }
+   else
    {
       os << indent << "Test data: -\n";
    }
 
-   if (classify) 
+   if (classify)
    {
       double pos = 100. * (double)total_pos / (double)predictions.size();
       os << indent << "Binary classification threshold: " << threshold << "\n";
       os << indent << "  " << pos << "% positives in test data\n";
    }
-   
+
    return os;
 }
 
