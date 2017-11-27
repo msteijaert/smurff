@@ -14,7 +14,7 @@ void ScarceMatrixData::init_pre()
    MatrixDataTempl<Eigen::SparseMatrix<double> >::init_pre();
 
    // check no rows, nor cols withouth data
-   for(unsigned mode = 0; mode < nmode(); ++mode)
+   for(int mode = 0; mode < nmode(); ++mode)
    {
       auto& m = this->Y(mode);
       auto& count = num_empty[mode];
