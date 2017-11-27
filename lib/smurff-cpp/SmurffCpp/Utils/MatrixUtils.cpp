@@ -25,7 +25,7 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::
 
    assert(eigenTriplets.size() == matrixConfig.getNNZ());
    out.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
-   assert(out.nonZeros() == matrixConfig.getNNZ());
+   assert(out.nonZeros() == (int)matrixConfig.getNNZ());
    return out;
 }
 

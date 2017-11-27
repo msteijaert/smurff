@@ -670,7 +670,7 @@ void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMa
 
    X.resize(nrow, ncol);
    X.setFromTriplets(triplets.begin(), triplets.end());
-   assert(X.nonZeros() == nnz);
+   assert(X.nonZeros() == (int)nnz);
 }
 
 void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
