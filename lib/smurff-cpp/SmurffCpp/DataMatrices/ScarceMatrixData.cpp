@@ -51,12 +51,12 @@ void ScarceMatrixData::center(double global_mean)
       getYcPtr()->at(0).coeffs() -= getCwiseMean();
       getYcPtr()->at(1).coeffs() -= getCwiseMean();
    }
-   else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
+   else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
    {
       center_cols(getYcPtr()->at(0), 0);
       getYcPtr()->at(1) = getYcPtr()->at(0).transpose();
    }
-   else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
+   else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
    {
       center_cols(getYcPtr()->at(1), 1);
       getYcPtr()->at(0) = getYcPtr()->at(1).transpose();
