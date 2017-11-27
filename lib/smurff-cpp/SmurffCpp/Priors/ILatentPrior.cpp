@@ -1,4 +1,5 @@
 #include "ILatentPrior.h"
+#include <SmurffCpp/Utils/counters.h>
 
 using namespace smurff;
 using namespace Eigen;
@@ -75,6 +76,7 @@ bool ILatentPrior::run_slave()
 
 void ILatentPrior::sample_latents()
 {
+   COUNTER("sample_latents");
    data()->update_pnm(model(), m_mode);
 
    #pragma omp parallel for schedule(guided)

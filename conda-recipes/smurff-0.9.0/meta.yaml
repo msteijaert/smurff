@@ -5,6 +5,9 @@ package:
 source:
   url: https://github.com/ExaScience/smurff/archive/v0.9.0.tar.gz
 
+build:
+    number: 1
+
 requirements:
   build:
     - cmake

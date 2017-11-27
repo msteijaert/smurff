@@ -8,13 +8,12 @@ source:
 requirements:
   build:
     - cmake
-    - wget
-    - libgfortran ==3.0.0
-    - gcc
+    - {{ compiler('cxx') }}    # [not win]
+    - llvm-openmp              # [osx]
     - openblas
+    - eigen3
   run:
-    - gcc
-    - libgfortran ==3.0.0
+    - llvm-openmp              # [osx]
     - openblas
 
 test:

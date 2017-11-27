@@ -6,6 +6,9 @@ source:
   git_url: https://github.com/jaak-s/macau
   git_tag: v0.5.0
 
+build:
+    number: 1
+
 requirements:
   build:
     - {{ compiler('cxx') }}    # [not win]

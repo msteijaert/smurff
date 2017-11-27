@@ -3,7 +3,7 @@ package:
   version: 0.5
 
 source:
-  url: https://github.com/ExaScience/smurff/archive/black_smurff-v0.5.tar.gz
+  url: https://github.com/ExaScience/smurff/archive/3bd56dbf158e6a257b4042db7af29ae2886d185e.zip
 
 build:
     noarch: python

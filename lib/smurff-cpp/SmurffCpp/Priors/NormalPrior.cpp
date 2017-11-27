@@ -5,6 +5,7 @@
 #include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/counters.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -64,6 +65,7 @@ void NormalPrior::update_prior()
 
 void NormalPrior::sample_latent(int n)
 {
+   COUNTER("NormalPrior::sample_latent");
    const auto &mu_u = getMu(n);
 
    VectorXd &rr = rrs.local();
@@ -81,10 +83,14 @@ void NormalPrior::sample_latent(int n)
 
    //Solve system of linear equations for x: MM * x = rr
 
-   Eigen::LLT<MatrixXd> chol = MM.llt(); // compute the Cholesky decomposition X = L * U
-   if(chol.info() != Eigen::Success)
+   Eigen::LLT<MatrixXd> chol;
    {
-      throw std::runtime_error("Cholesky Decomposition failed!");
+       COUNTER("cholesky");
+       chol = MM.llt(); // compute the Cholesky decomposition X = L * U
+       if(chol.info() != Eigen::Success)
+       {
+           throw std::runtime_error("Cholesky Decomposition failed!");
+       }
    }
 
    chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b

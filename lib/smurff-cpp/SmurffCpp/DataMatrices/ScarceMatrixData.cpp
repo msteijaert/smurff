@@ -1,4 +1,5 @@
 #include "ScarceMatrixData.h"
+#include "Utils/counters.h"
 
 using namespace smurff;
 
@@ -49,7 +50,9 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
 
 void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
+   COUNTER("get_pnm");
    auto &Y = this->Y(mode);
+
    const int num_latent = model.nlatent();
    const auto &Vf = model.V(mode);
    const int local_nnz = Y.col(n).nonZeros();
