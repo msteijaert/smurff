@@ -1,8 +1,7 @@
 #include "Data.h"
+#include "SmurffCpp/IO/MatrixIO.h"
 
 using namespace smurff;
-
-
 
 Data::Data()
 {

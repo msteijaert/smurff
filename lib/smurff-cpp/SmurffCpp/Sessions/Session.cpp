@@ -247,14 +247,10 @@ void Session::printStatus(double elapsedi)
    if (config.csv_status.size())
    {
       double train_rmse = data()->train_rmse(m_model);
-
       auto f = fopen(config.csv_status.c_str(), "a");
-      
       fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
-            phase.c_str(), i, from,
-            
-            m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
-
+              phase.c_str(), i, from,       
+              m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
       fclose(f);
    }
 }

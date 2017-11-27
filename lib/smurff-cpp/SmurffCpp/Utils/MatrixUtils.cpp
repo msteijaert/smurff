@@ -17,11 +17,15 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::
    {
       std::uint32_t row = rowsPtr->operator[](i);
       std::uint32_t col = colsPtr->operator[](i);
+      assert(row >= 0 && row < matrixConfig.getNRow());
+      assert(col >= 0 && col < matrixConfig.getNCol());
       double val = matrixConfig.isBinary() ? 1.0 : valuesPtr->operator[](i);
       eigenTriplets.push_back(Eigen::Triplet<double>(row, col, val));
    }
 
+   assert(eigenTriplets.size() == matrixConfig.getNNZ());
    out.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
+   assert(out.nonZeros() == (int)matrixConfig.getNNZ());
    return out;
 }
 
