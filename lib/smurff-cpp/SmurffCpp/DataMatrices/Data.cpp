@@ -1,4 +1,5 @@
 #include "Data.h"
+#include "SmurffCpp/IO/MatrixIO.h"
 
 using namespace smurff;
 
@@ -17,6 +18,12 @@ void IMeanCentering::compute_mode_mean_internal(const Data* data)
        M.resize(data->dim(m));
        for (int n = 0; n < data->dim(m); n++)
          M(n) = compute_mode_mean_mn(m, n);
+
+#ifdef DEBUG_MEAN
+       std::string filename = ((m == 0) ? "row_mean.csv" : "col_mean.csv");
+       std::ofstream out(filename);
+       matrix_io::eigen::write_dense_float64_csv(out, M);
+#endif
    }
    m_mean_computed = true;
 }
@@ -135,7 +142,10 @@ void Data::init_cwise_mean()
 
 double Data::predict(const PVec<>& pos, const SubModel& model) const
 {
-   return model.dot(pos) + this->offset_to_mean(pos);
+    double base = model.dot(pos);
+    double off = this->offset_to_mean(pos);
+    // std::cout << "prefict at "; pos.info(std::cout); std::cout << " = " << base << " + " << off << std::endl;
+    return base + off;
 }
 
 //#### dimention functions ####

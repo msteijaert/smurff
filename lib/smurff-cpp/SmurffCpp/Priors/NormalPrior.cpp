@@ -5,6 +5,7 @@
 #include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/counters.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -65,6 +66,7 @@ void NormalPrior::update_prior()
 //n is an index of column in U matrix
 void NormalPrior::sample_latent(int n)
 {
+   COUNTER("NormalPrior::sample_latent");
    const auto &mu_u = getMu(n);
 
    VectorXd &rr = rrs.local();
@@ -83,9 +85,15 @@ void NormalPrior::sample_latent(int n)
    //Solve system of linear equations for x: MM * x = rr - not exactly correct  because we have random part
    //Sample from multivariate normal distribution with mean rr and precision matrix MM
 
-   Eigen::LLT<MatrixXd> chol = MM.llt(); // compute the Cholesky decomposition X = L * U
-   if(chol.info() != Eigen::Success)
-      throw std::runtime_error("Cholesky Decomposition failed!");
+   Eigen::LLT<MatrixXd> chol;
+   {
+       COUNTER("cholesky");
+       chol = MM.llt(); // compute the Cholesky decomposition X = L * U
+       if(chol.info() != Eigen::Success)
+       {
+           throw std::runtime_error("Cholesky Decomposition failed!");
+       }
+   }
 
    chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b
    rr.noalias() += nrandn(num_latent());

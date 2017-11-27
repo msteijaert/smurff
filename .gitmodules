@@ -1,4 +1,0 @@
-[submodule "lib/eigen3"]
-	path = lib/eigen3
-	url = https://github.com/RLovelett/eigen.git
-	shallow = true

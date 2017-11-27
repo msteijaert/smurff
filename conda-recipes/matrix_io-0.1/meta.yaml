@@ -6,8 +6,8 @@ source:
   url: https://github.com/ExaScience/smurff/archive/master.zip
 
 build:
+    number: 1
     noarch: python
-        
 
 requirements:
     build:

@@ -16,7 +16,7 @@ public:
    int world_rank;
    int world_size;
 
-protected:
+public:
    MPISession();
 
    void run();

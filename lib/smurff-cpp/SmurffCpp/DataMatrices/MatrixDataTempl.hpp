@@ -34,8 +34,8 @@ namespace smurff
       {
               if (getCenterMode() == CenterModeTypes::CENTER_GLOBAL) return getGlobalMean();
          else if (getCenterMode() == CenterModeTypes::CENTER_VIEW)   return getCwiseMean();
-         else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)   return getModeMeanItem(1,pos.at(1));
-         else if (getCenterMode() == CenterModeTypes::CENTER_COLS)   return getModeMeanItem(0,pos.at(0));
+         else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)   return getModeMeanItem(0,pos.at(0));
+         else if (getCenterMode() == CenterModeTypes::CENTER_COLS)   return getModeMeanItem(1,pos.at(1));
          else if (getCenterMode() == CenterModeTypes::CENTER_NONE)   return .0;
          assert(false);
          return .0;

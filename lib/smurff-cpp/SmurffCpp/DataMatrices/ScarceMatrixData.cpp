@@ -1,4 +1,5 @@
 #include "ScarceMatrixData.h"
+#include "Utils/counters.h"
 
 #include <SmurffCpp/VMatrixExprIterator.hpp>
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
@@ -53,12 +54,12 @@ void ScarceMatrixData::center(double global_mean)
       getYcPtr()->at(0).coeffs() -= getCwiseMean();
       getYcPtr()->at(1).coeffs() -= getCwiseMean();
    }
-   else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
+   else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
    {
       center_cols(getYcPtr()->at(0), 0);
       getYcPtr()->at(1) = getYcPtr()->at(0).transpose();
    }
-   else if (getCenterMode() == CenterModeTypes::CENTER_ROWS)
+   else if (getCenterMode() == CenterModeTypes::CENTER_COLS)
    {
       center_cols(getYcPtr()->at(1), 1);
       getYcPtr()->at(0) = getYcPtr()->at(1).transpose();
@@ -107,6 +108,7 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
 
 void ScarceMatrixData::get_pnm(const SubModel& model, uint32_t mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
+    COUNTER("get_pnm");
    auto &Y = getYcPtr()->at(mode);
    const int num_latent = model.nlatent();
    auto Vf = *model.CVbegin(mode);
