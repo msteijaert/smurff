@@ -125,7 +125,7 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       double se_1sample = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
-      for(unsigned k=0; k<predictions.size(); ++k)
+      for(unsigned k = 0; k < predictions.size(); ++k)
       {
          auto &t = predictions[k];
          t.pred_1sample = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
@@ -133,7 +133,8 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       }
 
       burnin_iter++;
-      rmse_1sample = sqrt( se_1sample / N );
+      rmse_1sample = sqrt(se_1sample / N);
+
       if (classify)
       {
          auc_1sample = calc_auc(predictions, threshold,
@@ -145,10 +146,11 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       double se_1sample = 0.0, se_avg = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
-      for(unsigned k=0; k<predictions.size(); ++k)
+      for(size_t k = 0; k < predictions.size(); ++k)
       {
          auto &t = predictions[k];
          const double pred = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
+         
          se_1sample += square(t.val - pred);
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
@@ -161,8 +163,8 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       }
 
       sample_iter++;
-      rmse_1sample = sqrt( se_1sample / N );
-      rmse_avg = sqrt( se_avg / N );
+      rmse_1sample = sqrt(se_1sample / N);
+      rmse_avg = sqrt(se_avg / N);
 
       if (classify)
       {
@@ -177,8 +179,11 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
 
 //macau ProbitNoise eval
 /*
-eval_rmse(MatrixData & data, const int n, Eigen::VectorXd & predictions, Eigen::VectorXd & predictions_var,
-        std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
+eval_rmse(MatrixData & data, 
+          const int n, 
+          Eigen::VectorXd & predictions, 
+          Eigen::VectorXd & predictions_var,
+          std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
 {
  const unsigned N = data.Ytest.nonZeros();
   Eigen::VectorXd pred(N);
@@ -212,14 +217,14 @@ eval_rmse(MatrixData & data, const int n, Eigen::VectorXd & predictions, Eigen::
 */
 
 //macau tensor eval
+
 /*
-std::pair<double,double> eval_rmse_tensor(
-		SparseMode & sparseMode,
-		const int Nepoch,
-		Eigen::VectorXd & predictions,
-		Eigen::VectorXd & predictions_var,
-		std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
-		double mean_value)
+std::pair<double,double> eval_rmse_tensor(SparseMode & sparseMode,
+                                          const int Nepoch,
+                                          Eigen::VectorXd & predictions,
+                                          Eigen::VectorXd & predictions_var,
+                                          std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
+                                          double mean_value)
 {
   auto& U = samples[0];
 
@@ -229,50 +234,59 @@ std::pair<double,double> eval_rmse_tensor(
   const unsigned N = sparseMode.values.size();
   double se = 0.0, se_avg = 0.0;
 
-  if (N == 0) {
-    // No test data, returning NaN's
-    return std::make_pair(std::numeric_limits<double>::quiet_NaN(),
-                          std::numeric_limits<double>::quiet_NaN());
-  }
+   if (N == 0) 
+   {
+      // No test data, returning NaN's
+      return std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
+   }
 
-  if (N != predictions.size()) {
-    throw std::runtime_error("Ytest.size() and predictions.size() must be equal.");
-  }
-	if (sparseMode.row_ptr.size() - 1 != U->cols()) {
-    throw std::runtime_error("U.cols() and sparseMode size must be equal.");
+   if (N != predictions.size()) 
+   {
+      throw std::runtime_error("Ytest.size() and predictions.size() must be equal.");
+   }
+
+   if (sparseMode.row_ptr.size() - 1 != U->cols()) 
+   {
+      throw std::runtime_error("U.cols() and sparseMode size must be equal.");
 	}
 
   #pragma omp parallel for schedule(dynamic, 2) reduction(+:se, se_avg)
-  for (int n = 0; n < U->cols(); n++) {
+  for (int n = 0; n < U->cols(); n++) 
+  {
     Eigen::VectorXd u = U->col(n);
-    for (int j = sparseMode.row_ptr(n);
-             j < sparseMode.row_ptr(n + 1);
-             j++)
+    for (int j = sparseMode.row_ptr(n); j < sparseMode.row_ptr(n + 1); j++)
     {
       VectorXi idx = sparseMode.indices.row(j);
       double pred = mean_value;
-      for (int d = 0; d < num_latents; d++) {
+      for (int d = 0; d < num_latents; d++) 
+      {
         double tmp = u(d);
 
-        for (int m = 1; m < nmodes; m++) {
+        for (int m = 1; m < nmodes; m++) 
+        {
           tmp *= (*samples[m])(d, idx(m - 1));
         }
         pred += tmp;
       }
 
       double pred_avg;
-      if (Nepoch == 0) {
+      if (Nepoch == 0) 
+      {
         pred_avg = pred;
-      } else {
+      } 
+      else 
+      {
         double delta = pred - predictions(j);
         pred_avg = (predictions(j) + delta / (Nepoch + 1));
         predictions_var(j) += delta * (pred - pred_avg);
       }
+
       se     += square(sparseMode.values(j) - pred);
       se_avg += square(sparseMode.values(j) - pred_avg);
       predictions(j) = pred_avg;
     }
   }
+
   const double rmse = sqrt(se / N);
   const double rmse_avg = sqrt(se_avg / N);
   return std::make_pair(rmse, rmse_avg);
