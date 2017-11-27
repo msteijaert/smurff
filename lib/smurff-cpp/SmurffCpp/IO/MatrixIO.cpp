@@ -198,6 +198,10 @@ MatrixConfig matrix_io::read_sparse_float64_bin(std::istream& in)
    std::vector<double> values(nnz);
    in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
 
+   assert(values.size() == nnz);
+   assert(rows.size() == nnz);
+   assert(cols.size() == nnz);
+
    return smurff::MatrixConfig(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
 }
 
@@ -666,6 +670,7 @@ void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMa
 
    X.resize(nrow, ncol);
    X.setFromTriplets(triplets.begin(), triplets.end());
+   assert(X.nonZeros() == nnz);
 }
 
 void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
