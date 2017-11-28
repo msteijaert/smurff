@@ -47,15 +47,16 @@ TEST_CASE("test sparse view new 1")
 
       std::cout << "===============" << std::endl;
 
-      std::cout << "nmodes: " << sview->getNModes() << std::endl;
+      std::cout << "nplanes: " << sview->getNPlanes() << std::endl;
       std::cout << "nnz: " << sview->getNNZ() << std::endl;
+      std::cout << "ncoords: " << sview->getNCoords() << std::endl;
       std::cout << "mode: " << sview->getMode() << std::endl;
       
-      for(std::uint64_t n = 0; n < sview->getNModes(); n++) // go through each hyper plane in the dimention
+      for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) // go through each hyper plane in the dimention
       {
          std::cout << "-----" << std::endl;
 
-         for (std::uint64_t j = sview->beginMode(n); j < sview->endMode(n); j++) //go through each value in a plane
+         for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each value in a plane
          {
             for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
             {
@@ -92,7 +93,7 @@ TEST_CASE("test sparse view new 2")
 
    TensorData td(tensorConfig);
 
-   /*   
+   /*
    std::cout << "Tensor Data test" << std::endl;
   
    for(uint64_t mode = 0; mode < td.getNModes(); mode++)
@@ -101,15 +102,16 @@ TEST_CASE("test sparse view new 2")
 
       std::cout << "===============" << std::endl;
 
-      std::cout << "nmodes: " << sview->getNModes() << std::endl;
+      std::cout << "nplanes: " << sview->getNPlanes() << std::endl;
       std::cout << "nnz: " << sview->getNNZ() << std::endl;
+      std::cout << "ncoords: " << sview->getNCoords() << std::endl;
       std::cout << "mode: " << sview->getMode() << std::endl;
       
-      for(std::uint64_t n = 0; n < sview->getNModes(); n++) // go through each hyper plane in the dimension
+      for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) // go through each hyper plane in the dimension
       {
          std::cout << "-----" << std::endl;
 
-         for (std::uint64_t j = sview->beginMode(n); j < sview->endMode(n); j++) //go through each value in a plane
+         for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each value in a plane
          {
             for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
             {

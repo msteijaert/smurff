@@ -63,7 +63,7 @@ double Model::dot(const PVec<> &indices) const
 {
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
    for(uint32_t d = 0; d < nmodes(); ++d)
-      P *= col(d, indices.at(d)).array();
+      P *= col(d, indices.at(d)).array(); //this is column wise product!
    return P.sum();
 }
 

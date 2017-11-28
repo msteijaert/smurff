@@ -81,13 +81,17 @@ double TensorData::train_rmse(const SubModel& model) const
    throw std::runtime_error("not implemented");
 }
 
+//d is an index of column in U matrix
+//this function selects d'th hyperplane from mode`th SparseMode
+//it does j multiplications
+//where each multiplication is a cwiseProduct of columns from each V matrix
 void TensorData::get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    const double alpha = this->noise()->getAlpha();
    std::shared_ptr<SparseMode> sview = Y(mode); //get tensor rotation for mode
+   
    auto V0 = model.CVbegin(mode); //get first V matrix
-
-   for (std::uint64_t j = sview->beginMode(d); j < sview->endMode(d); j++) //go through hyperplane in tensor rotation
+   for (std::uint64_t j = sview->beginPlane(d); j < sview->endPlane(d); j++) //go through hyperplane in tensor rotation
    {
       VectorXd col = (*V0).col(sview->getIndices()(j, 0)); //create a copy of m'th column from V (m = 0)
       auto V = model.CVbegin(mode); //get V matrices for mode      
