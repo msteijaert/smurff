@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/ConstVMatrixIterator.hpp>
 #include <SmurffCpp/Utils/utils.h>
 
 #include <Eigen/Dense>
@@ -218,52 +219,60 @@ eval_rmse(MatrixData & data,
 
 //macau tensor eval
 
-/*
-std::pair<double,double> eval_rmse_tensor(SparseMode & sparseMode,
+//sview - sparse view that is constructed from YTest by fixing mode 0 and taking nrows as mode_size
+//Nepoch - similar to (iter < config.burnin)
+
+typedef Eigen::Matrix<std::uint32_t, Eigen::Dynamic, 1 > VectorXui32;
+
+std::pair<double,double> eval_rmse_tensor(std::shared_ptr<const Model> model,
+                                          std::shared_ptr<SparseMode> sview,
                                           const int Nepoch,
                                           Eigen::VectorXd & predictions,
                                           Eigen::VectorXd & predictions_var,
-                                          std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
-                                          double mean_value)
+                                          double mean_value
+                                          )
 {
-   auto& U = samples[0];
-
-   const int nmodes = samples.size();
-   const int num_latents = U->rows();
-
-   const unsigned N = sparseMode.values.size();
-   double se = 0.0, se_avg = 0.0;
-
    // No test data, returning NaN's
-   if (N == 0) 
+   if (sview->getNNZ() == 0) 
       return std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
 
-   if (N != predictions.size()) 
+   if (sview->getNNZ() != predictions.size()) 
       throw std::runtime_error("Ytest.size() and predictions.size() must be equal.");
 
-   if (sparseMode.row_ptr.size() - 1 != U->cols()) 
-      throw std::runtime_error("U.cols() and sparseMode size must be equal.");
+   if (sview->getNPlanes() != model->U(0)->cols()) 
+      throw std::runtime_error("U.cols() and sview size must be equal.");
 
+   double se = 0.0;
+   double se_avg = 0.0;
+
+   const unsigned NNZ = sview->getNNZ();
+
+   std::shared_ptr<const Eigen::MatrixXd> U0 = model->U(0);
+   
    #pragma omp parallel for schedule(dynamic, 2) reduction(+:se, se_avg)
-   for (int n = 0; n < U->cols(); n++) 
+   for(int n = 0; n < U0->cols(); n++)
    {
-      Eigen::VectorXd u = U->col(n);
-      for (int j = sparseMode.row_ptr(n); j < sparseMode.row_ptr(n + 1); j++)
-      {
-         VectorXi idx = sparseMode.indices.row(j);
-         double pred = mean_value;
-         for (int d = 0; d < num_latents; d++) 
-         {
-            double tmp = u(d);
+      const Eigen::VectorXd& u0_col = U0->col(n); //get column from U
 
-            for (int m = 1; m < nmodes; m++) 
+      for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through hyperplane in tensor rotation
+      {
+         double pred = 0;
+
+         for (int nl = 0; nl < U0->rows(); nl++) // go through each latent vector
+         {
+            double tmp = u0_col(nl); //value from n'th column of U0
+
+            ConstVMatrixIterator<Eigen::MatrixXd> V = model->CVbegin(0); //get V matrices for mode      
+            for (std::uint64_t m = 0; m < sview->getNCoords(); m++, ++V) //go through each coordinate of value
             {
-               tmp *= (*samples[m])(d, idx(m - 1));
+               const Eigen::VectorXd& vm_col = V->col(sview->getIndices()(j, m)); //get m'th column from V
+               tmp *= vm_col(nl);
             }
+
             pred += tmp;
          }
 
-         double pred_avg;
+         double pred_avg = 0;
          if (Nepoch == 0) 
          {
             pred_avg = pred;
@@ -275,17 +284,16 @@ std::pair<double,double> eval_rmse_tensor(SparseMode & sparseMode,
             predictions_var(j) += delta * (pred - pred_avg);
          }
 
-         se     += square(sparseMode.values(j) - pred);
-         se_avg += square(sparseMode.values(j) - pred_avg);
+         se     += square(sview->getValues()[j] - pred);
+         se_avg += square(sview->getValues()[j] - pred_avg);
          predictions(j) = pred_avg;
       }
    }
 
-   const double rmse = sqrt(se / N);
-   const double rmse_avg = sqrt(se_avg / N);
+   const double rmse = sqrt(se / NNZ);
+   const double rmse_avg = sqrt(se_avg / NNZ);
    return std::make_pair(rmse, rmse_avg);
 }
-*/
 
 std::ostream &Result::info(std::ostream &os, std::string indent, std::shared_ptr<Data> data)
 {
