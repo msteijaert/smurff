@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <algorithm>
 #include <chrono>
@@ -28,23 +29,21 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
    if(Y->isDense())
       throw std::runtime_error("test data should be sparse");
 
-   if(Y->getNModes() != 2)
-      throw "Invalid number of dimensions. Tensor can not be converted to matrix.";
-
    std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
    std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();
 
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
       double val = Y->isBinary() ? 1.0 : valuesPtr->operator[](i);
-      std::uint32_t row = columnsPtr->operator[](i);
-      std::uint32_t col = columnsPtr->operator[](i + Y->getNNZ());
-      
-      predictions.push_back({row, col, val});
+
+      std::vector<int> coords;
+      for(std::uint64_t m = 0; m < Y->getNModes(); m++)
+         coords.push_back((int)columnsPtr->operator[](Y->getNNZ() * m + i));
+
+      m_predictions.push_back({smurff::PVec<>(coords), val});
    }
 
-   m_nrows = Y->getDims()[0];
-   m_ncols = Y->getDims()[1];
+   m_dims = Y->getDims();
 
    init();
 }
@@ -54,7 +53,7 @@ void Result::init()
    total_pos = 0;
    if (classify)
    {
-      for(auto &t : predictions)
+      for(auto &t : m_predictions)
       {
          int is_positive = t.val > threshold;
          total_pos += is_positive;
@@ -62,49 +61,30 @@ void Result::init()
    }
 }
 
-double Result::rmse_using_globalmean(double mean)
-{
-   double se = 0.;
-   for(auto t : predictions)
-      se += square(t.val - mean);
-   return sqrt( se / predictions.size() );
-}
-
-double Result::rmse_using_modemean(std::shared_ptr<Data> data, int mode)
-{
-   const unsigned N = predictions.size();
-   double se = 0.;
-   for(auto t : predictions)
-   {
-      int n = mode == 0 ? t.row : t.col;
-      double pred = data->getModeMeanItem(mode, n);
-      se += square(t.val - pred);
-   }
-   return sqrt( se / N );
-}
-
 //--- output model to files
 void Result::save(std::string prefix)
 {
-   if (predictions.empty())
+   if (m_predictions.empty())
       return;
 
    std::string fname_pred = prefix + "-predictions.csv";
    std::ofstream predfile;
    predfile.open(fname_pred);
-   predfile << "row,col,y,pred_1samp,pred_avg,var,std\n";
 
-   for ( auto &t : predictions)
+   for(size_t d = 0; d < m_dims.size(); d++)
+      predfile << "c" << d << ",";
+
+   predfile << "y,pred_1samp,pred_avg,var,std" << std::endl;
+
+   for (auto &t : m_predictions)
    {
-      predfile
-             << to_string( t.row  )
-      << "," << to_string( t.col  )
-      << "," << to_string( t.val  )
-      << "," << to_string( t.pred_1sample )
-      << "," << to_string( t.pred_avg )
-      << "," << to_string( t.var )
-      << "," << to_string( t.stds )
-      << "\n";
+      t.coords.save(predfile)
+         << "," << to_string(t.val)
+         << "," << to_string(t.pred_1sample)
+         << "," << to_string(t.pred_avg)
+         << "," << to_string(t.var)
+         << "," << to_string(t.stds)
+         << std::endl;
    }
 
    predfile.close();
@@ -116,46 +96,48 @@ void Result::save(std::string prefix)
 //data - Y train matrix
 void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> data, bool burnin)
 {
-   if (predictions.size() == 0)
+   if (m_predictions.size() == 0)
       return;
 
-   const unsigned N = predictions.size();
+   const size_t NNZ = m_predictions.size();
 
    if (burnin)
    {
       double se_1sample = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
-      for(unsigned k = 0; k < predictions.size(); ++k)
+      for(size_t k = 0; k < m_predictions.size(); ++k)
       {
-         auto &t = predictions[k];
-         t.pred_1sample = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
+         auto &t = m_predictions[k];
+         t.pred_1sample = model->predict(t.coords, data); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - t.pred_1sample);
       }
 
       burnin_iter++;
-      rmse_1sample = sqrt(se_1sample / N);
+      rmse_1sample = sqrt(se_1sample / NNZ);
 
       if (classify)
       {
-         auc_1sample = calc_auc(predictions, threshold,
+         auc_1sample = calc_auc(m_predictions, threshold,
                [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
       }
    }
    else
    {
-      double se_1sample = 0.0, se_avg = 0.0;
+      double se_1sample = 0.0;
+      double se_avg = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
-      for(size_t k = 0; k < predictions.size(); ++k)
+      for(size_t k = 0; k < m_predictions.size(); ++k)
       {
-         auto &t = predictions[k];
-         const double pred = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
-         
+         auto &t = m_predictions[k];
+         const double pred = model->predict(t.coords, data); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - pred);
+
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
          t.var += delta * (pred - pred_avg);
+         
          const double inorm = 1.0 / sample_iter;
          t.stds = sqrt(t.var * inorm);
          t.pred_avg = pred_avg;
@@ -164,15 +146,15 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       }
 
       sample_iter++;
-      rmse_1sample = sqrt(se_1sample / N);
-      rmse_avg = sqrt(se_avg / N);
+      rmse_1sample = sqrt(se_1sample / NNZ);
+      rmse_avg = sqrt(se_avg / NNZ);
 
       if (classify)
       {
-         auc_1sample = calc_auc(predictions, threshold,
+         auc_1sample = calc_auc(m_predictions, threshold,
                [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
 
-         auc_avg = calc_auc(predictions, threshold,
+         auc_avg = calc_auc(m_predictions, threshold,
                [](const Item &a, const Item &b) { return a.pred_avg < b.pred_avg;});
       }
    }
@@ -252,8 +234,9 @@ std::pair<double,double> eval_rmse_tensor(std::shared_ptr<const Model> model,
    #pragma omp parallel for schedule(dynamic, 2) reduction(+:se, se_avg)
    for(int n = 0; n < U0->cols(); n++)
    {
-      const Eigen::VectorXd& u0_col = U0->col(n); //get column from U
+      const Eigen::VectorXd& u0_col = U0->col(n); //get n'th column from U
 
+      //calculate predictions j times
       for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through hyperplane in tensor rotation
       {
          double pred = 0;
@@ -297,24 +280,38 @@ std::pair<double,double> eval_rmse_tensor(std::shared_ptr<const Model> model,
 
 std::ostream &Result::info(std::ostream &os, std::string indent, std::shared_ptr<Data> data)
 {
-   if (predictions.size())
+   if (m_predictions.size())
    {
-      double test_fill_rate = 100. * predictions.size() / m_nrows / m_ncols;
-      os << indent << "Test data: " << predictions.size() << " [" << m_nrows << " x " << m_ncols << "] (" << test_fill_rate << "%)\n";
-      os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data->getGlobalMean()) << endl;
-      os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
-      os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;
+      std::uint64_t dtotal = 1;
+      for(size_t d = 0; d < m_dims.size(); d++)
+         dtotal *= m_dims[d];
+
+      double test_fill_rate = 100. * m_predictions.size() / dtotal;
+      
+      os << indent << "Test data: " << m_predictions.size();
+             
+      os << " [";
+      for(size_t d = 0; d < m_dims.size(); d++)
+      {
+         if(d == m_dims.size() - 1)
+            os << m_dims[d];
+         else
+            os << m_dims[d] << " x ";
+      }
+      os << "]";
+
+      os << " (" << test_fill_rate << "%)" << std::endl;
    }
    else
    {
-    os << indent << "Test data: -\n";
+      os << indent << "Test data: -" << std::endl;
    }
 
    if (classify)
    {
-      double pos = 100. * (double)total_pos / (double)predictions.size();
-      os << indent << "Binary classification threshold: " << threshold << "\n";
-      os << indent << "  " << pos << "% positives in test data\n";
+      double pos = 100. * (double)total_pos / (double)m_predictions.size();
+      os << indent << "Binary classification threshold: " << threshold << std::endl;
+      os << indent << "  " << pos << "% positives in test data" << std::endl;
    }
 
    return os;
