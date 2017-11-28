@@ -15,7 +15,6 @@ typedef Eigen::Matrix<std::uint32_t, Eigen::Dynamic, Eigen::Dynamic > MatrixXui3
 class SparseMode
 {
 private:
-   std::uint64_t m_nnz; //number of rows in m_indices
    std::uint64_t m_mode; // index of dimension that it fixed
 
    std::vector<std::uint64_t> m_row_ptr; // vector of offsets (in values and in indices) to each hyperplane
@@ -33,7 +32,7 @@ public:
 
    std::uint64_t getNNZ() const;
 
-   std::uint64_t getNModes() const;
+   std::uint64_t getNPlanes() const;
 
    std::uint64_t getNCoords() const;
 
@@ -41,9 +40,9 @@ public:
 
    std::uint64_t getMode() const;
 
-   std::uint64_t beginMode(std::uint64_t n) const;
+   std::uint64_t beginPlane(std::uint64_t n) const;
 
-   std::uint64_t endMode(std::uint64_t n) const;
+   std::uint64_t endPlane(std::uint64_t n) const;
 
    const MatrixXui32& getIndices() const;
 };

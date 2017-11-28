@@ -7,7 +7,7 @@ using namespace Eigen;
 using namespace smurff;
 
 SparseMode::SparseMode() 
-: m_nnz(0), m_mode(0) 
+: m_mode(0) 
 {
 }
 
@@ -25,13 +25,13 @@ SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, 
    m_indices.resize(idx.rows(), idx.cols() - 1); // reduce number of columns by 1 (exclude fixed dimension)
 
    m_mode = mode; // save dimension index that is fixed
-   m_nnz  = idx.rows(); // get nnz from index matrix
+   std::uint64_t nnz  = idx.rows(); // get nnz from index matrix
 
    auto rows = idx.col(m_mode); // get column with coordinates for fixed dimension
    
    // compute number of non-zero entries per each element for the mode
    // (compute number of non-zero elements for each coordinate in specific dimension)
-   for (std::uint64_t i = 0; i < m_nnz; i++) 
+   for (std::uint64_t i = 0; i < nnz; i++) 
    {
       if (rows(i) >= mode_size) //index in column should be within dimension size
          throw std::runtime_error("SparseMode: mode value larger than mode_size");
@@ -45,10 +45,10 @@ SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, 
       m_row_ptr[row] = cumsum;
       cumsum += temp;
    }
-   m_row_ptr[mode_size] = m_nnz; //last element should be equal to nnz
+   m_row_ptr[mode_size] = nnz; //last element should be equal to nnz
 
    // transform index matrix into index matrix with one reduced/fixed dimension
-   for (std::uint64_t i = 0; i < m_nnz; i++) 
+   for (std::uint64_t i = 0; i < nnz; i++) 
    {
       std::uint32_t row  = rows(i); // coordinate in fixed dimension
       std::uint64_t dest = m_row_ptr[row]; // commulative number of elements for this index
@@ -77,10 +77,10 @@ SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, 
 
 std::uint64_t SparseMode::getNNZ() const
 { 
-   return m_nnz; 
+   return m_indices.rows(); 
 }
 
-std::uint64_t SparseMode::getNModes() const
+std::uint64_t SparseMode::getNPlanes() const
 { 
    return m_row_ptr.size() - 1;
 }
@@ -100,12 +100,12 @@ std::uint64_t SparseMode::getMode() const
    return m_mode;
 }
 
-std::uint64_t SparseMode::beginMode(std::uint64_t n) const
+std::uint64_t SparseMode::beginPlane(std::uint64_t n) const
 {
    return m_row_ptr[n];
 }
 
-std::uint64_t SparseMode::endMode(std::uint64_t n) const
+std::uint64_t SparseMode::endPlane(std::uint64_t n) const
 {
    return m_row_ptr[n + 1];
 }
