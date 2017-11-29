@@ -94,7 +94,7 @@ void Result::save(std::string prefix)
 
 //model - holds samples (U matrices)
 //data - Y train matrix
-void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> data, bool burnin)
+void Result::update(std::shared_ptr<const Model> model, bool burnin)
 {
    if (m_predictions.size() == 0)
       return;
@@ -109,7 +109,7 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       for(size_t k = 0; k < m_predictions.size(); ++k)
       {
          auto &t = m_predictions[k];
-         t.pred_1sample = model->predict(t.coords, data); //dot product of i'th columns in each U matrix
+         t.pred_1sample = model->predict(t.coords); //dot product of i'th columns in each U matrix  
          se_1sample += square(t.val - t.pred_1sample);
       }
 
@@ -131,7 +131,7 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       for(size_t k = 0; k < m_predictions.size(); ++k)
       {
          auto &t = m_predictions[k];
-         const double pred = model->predict(t.coords, data); //dot product of i'th columns in each U matrix
+         const double pred = model->predict(t.coords); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - pred);
 
          double delta = pred - t.pred_avg;
@@ -278,7 +278,7 @@ std::pair<double,double> eval_rmse_tensor(std::shared_ptr<const Model> model,
    return std::make_pair(rmse, rmse_avg);
 }
 
-std::ostream &Result::info(std::ostream &os, std::string indent, std::shared_ptr<Data> data)
+std::ostream &Result::info(std::ostream &os, std::string indent)
 {
    if (m_predictions.size())
    {

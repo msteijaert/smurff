@@ -46,10 +46,6 @@ void Session::setFromConfig(const Config& cfg)
       }
    */
 
-   // center mode
-
-   data_ptr->setCenterMode(config.center_mode_type);
-
    // initialize priors
 
    this->addPrior(PriorFactory::create_prior(this_session, 0));
@@ -130,7 +126,7 @@ void Session::step()
    auto endi = tick();
 
    //WARNING: update is an expensive operation because of sort (when calculating AUC)
-   m_pred->update(m_model, data(), iter < config.burnin);
+   m_pred->update(m_model, iter < config.burnin);
 
    printStatus(endi - starti);
    save(iter - config.burnin + 1);
@@ -253,8 +249,8 @@ void Session::printStatus(double elapsedi)
       double train_rmse = data()->train_rmse(m_model);
       auto f = fopen(config.csv_status.c_str(), "a");
       fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
-            phase.c_str(), i, from,
-            m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
+                  phase.c_str(), i, from,
+                  m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
       fclose(f);
    }
 }

@@ -67,9 +67,9 @@ double Model::dot(const PVec<> &indices) const
    return P.sum();
 }
 
-double Model::predict(const PVec<> &pos, std::shared_ptr<Data> data) const
+double Model::predict(const PVec<> &pos) const
 {
-   return dot(pos) + data->offset_to_mean(pos);
+   return dot(pos);
 }
 
 std::shared_ptr<const Eigen::MatrixXd> Model::U(uint32_t f) const
@@ -161,8 +161,10 @@ std::ostream& Model::info(std::ostream &os, std::string indent) const
 std::ostream& Model::status(std::ostream &os, std::string indent) const
 {
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
-   for(uint32_t d = 0; d < nmodes(); ++d) 
+   
+   for(std::uint64_t d = 0; d < nmodes(); ++d)
       P *= U(d)->rowwise().norm().array();
+
    os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
    return os;
 }

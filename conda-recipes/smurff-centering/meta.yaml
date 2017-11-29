@@ -1,19 +1,20 @@
 package:
   name: smurff
-  version: latest
+  version: centering
 
 source:
-  git_url: https://github.com/ExaScience/smurff
+  url: https://github.com/ExaScience/smurff/archive/remove-data-centring-new.zip
 
 requirements:
   build:
     - cmake
-    - {{ compiler('cxx') }}    # [not win]
-    - llvm-openmp              # [osx]
+    - wget
+    - libgfortran ==3.0.0
+    - gcc
     - openblas
-    - eigen3
   run:
-    - llvm-openmp              # [osx]
+    - gcc
+    - libgfortran ==3.0.0
     - openblas
 
 test:

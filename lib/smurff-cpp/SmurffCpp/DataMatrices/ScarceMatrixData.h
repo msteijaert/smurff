@@ -14,15 +14,13 @@ namespace smurff
 
    public:
       void init_pre() override;
-      void center(double global_mean) override;
-      double compute_mode_mean_mn(int mode, int pos) override;
-
+      
       double train_rmse(const SubModel& model) const override;
 
       std::ostream& info(std::ostream& os, std::string indent) override;
 
-      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
-      void update_pnm(const SubModel& model, uint32_t mode) override;
+      void get_pnm(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
+      void update_pnm(const SubModel& model, std::uint32_t mode) override;
 
       int nna() const override;
    };

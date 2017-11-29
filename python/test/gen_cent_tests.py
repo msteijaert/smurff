@@ -29,8 +29,8 @@ defaults = {
         'num_latent'  : 16,
         'row_prior'   : "normal",
         'col_prior'   : "normal",
-        'burnin'      : 200,
-        'nsamples'    : 500,
+        'burnin'      : 20,
+        'nsamples'    : 50,
         'center'      : "global",
         'row_features': [],
         'col_features': [],
@@ -58,6 +58,8 @@ def cat(fname, s):
         f.write(str(s))
 
 class Test:
+    gen_count = 0
+
     def __init__(self, base, upd = {}):
         self.opts = base.copy()
         self.update(upd)
@@ -93,19 +95,24 @@ class Test:
 
     def gen_cmd(self, outdir, env, datadir, makefile = None):
         args = self.opts
+        args["env"] = env
 
         args["fulldatadir"] = os.path.join(datadir, args["datasubdir"])
 
-        fmt_cmd = """{smurff} --train=centered_{train} --burnin={burnin} \
-        --test=centered_{test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
-        --row-prior={row_prior} --col-prior={col_prior} --center=none --status=stats.csv \
+        center_cmd = center_script + (" --mode={precenter} --train={fulldatadir}/{train} --test={fulldatadir}/{test}".format(**args))
+
+        fmt_cmd = """{smurff} --train={train} --burnin={burnin} \
+        --test={test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
+        --row-prior={row_prior} --col-prior={col_prior} --center={incenter} --status=stats.csv \
         --save-prefix=results --save-freq=-1 --seed=1234\
         """
 
         for feat in args["row_features"]:
-            fmt_cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
+            center_cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
+            fmt_cmd += " --row-features=%s" % (feat)
         for feat in args["col_features"]:
-            fmt_cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
+            center_cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
+            fmt_cmd += " --col-features=%s" % (feat)
 
         if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
 
@@ -114,20 +121,9 @@ class Test:
         if (args["adaptive"]): fmt_cmd = fmt_cmd + " --adaptive={adaptive}"
 
         smurff_cmd = fmt_cmd.format(**args)
-        center_cmd = center_script + (" --mode={center} {fulldatadir}/{train} {fulldatadir}/{test}".format(**args))
 
-        fmt_name = "{smurff}/{datasubdir}/{train}/{burnin}/{nsamples}/{num_latent}/{row_prior}/{col_prior}/{center}/"
-        fmt_name += "direct/" if (args["direct"]) else "cgsolve/"
-        if (args["precision"]): fmt_name +=  "fprec{precision}/"
-        if (args["adaptive"]): fmt_name +=  "aprec{adaptive}/"
-        fmt_name += "row"
-        for feat in args["row_features"]: fmt_name += "_%s" % (feat)
-        fmt_name += "/"
-        fmt_name += "col"
-        for feat in args["col_features"]: fmt_name += "_%s" % (feat)
-        fmt_name += "/"
-        name = fmt_name.format(**args)
-        name = name.replace(',', '')
+        name = "%03d" % Test.gen_count
+        Test.gen_count += 1
 
         fulldir = os.path.join(outdir, name)
 
@@ -146,13 +142,19 @@ class Test:
 
         cat("cmd", """
 #!/bin/bash
+
+log_exit_code() {
+    echo $? >exit_code 
+}
+trap "log_exit_code" INT TERM EXIT
+
 cd %s
+exec >stdout 2>stderr
 source activate %s
 %s
 export OMP_NUM_THREADS=1
 /usr/bin/time --output=time --portability \
-%s >stdout 2>stderr
-echo $? >exit_code
+%s
 """ % (fulldir, env, center_cmd, smurff_cmd))
 
         if (makefile):
@@ -193,7 +195,8 @@ class TestSuite:
                 self.add_test(t, { arg_name : c })
 
     def add_centering_options(self):
-        return self.add_options("center", ("none", "global", "rows", "cols"))
+        self.add_options("precenter", ("none", "global", "rows", "cols"))
+        self.add_options("incenter", ("none", "global", "rows", "cols"))
 
     def add_noise_options(self):
         tests = self.tests
@@ -207,30 +210,31 @@ def chembl_tests(defaults):
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
             { },
-            { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
-            { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
-            { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
+    #        { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
+             { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
+    #        { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
     ])
 
     chembl_tests_centering.add_centering_options()
 
-    chembl_tests = TestSuite("chembl", chembl_defaults,
-        [
-            { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
-            { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
-            { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
-            { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-            { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-        ])
+    chembl_tests = TestSuite("chembl", chembl_defaults)
+    # chembl_tests = TestSuite("chembl", chembl_defaults,
+    #     [
+    #         { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
+    #         { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
+    #         { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
+    #         { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
+    #         { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
+    #     ])
 
     chembl_tests.add_testsuite(chembl_tests_centering)
-    chembl_tests.add_noise_options()
+    #chembl_tests.add_noise_options()
 
     chembl_tests.add_options('datasubdir',
             [
-                'chembl_58/sample1/cluster1', 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
-                'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
-                'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
+              'chembl_58/sample1/cluster1', # 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
+     #           'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
+     #           'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
             ])
 
     # chembl_tests.add_options('smurff', ['smurff', 'mpi_smurff'])
@@ -298,13 +302,11 @@ print("%d envs" % len(args.envs))
 total_num = 0
 for env in args.envs:
     fullenv = os.path.join(args.envdir, env)
-    fulldir = os.path.join(args.outdir, env)
-    os.makedirs(fulldir)
-    makefile = open(os.path.join(fulldir, "Makefile"), "w")
+    makefile = open(os.path.join(args.outdir, "Makefile"), "w")
 
     for opts in tests:
         total_num += 1
-        opts.gen_cmd(fulldir, fullenv, args.datadir, makefile)
+        opts.gen_cmd(args.outdir, fullenv, args.datadir, makefile)
 
     makefile.close()
 

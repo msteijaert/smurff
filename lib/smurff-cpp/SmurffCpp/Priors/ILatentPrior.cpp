@@ -26,14 +26,14 @@ std::shared_ptr<Model> ILatentPrior::model()
    return m_session->model();
 }
 
+double ILatentPrior::predict(const PVec<> &pos) const
+{
+    return model()->predict(pos);
+}
+
 std::shared_ptr<Data> ILatentPrior::data() const
 {
    return m_session->data();
-}
-
-double ILatentPrior::predict(const PVec<> &pos) const
-{
-    return model()->predict(pos, data());
 }
 
 std::shared_ptr<INoiseModel> ILatentPrior::noise()

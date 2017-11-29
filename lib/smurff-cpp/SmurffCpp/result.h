@@ -68,7 +68,8 @@ struct Result
    void set(std::shared_ptr<TensorConfig> Y);
 
    //-- prediction metrics
-   void update(std::shared_ptr<const Model> model, std::shared_ptr<Data> data,  bool burnin);
+   void update(std::shared_ptr<const Model> model, bool burnin);
+
    double rmse_avg = NAN;
    double rmse_1sample = NAN;
    double auc_avg = NAN;
@@ -85,7 +86,7 @@ private:
    void init();
 
 public:
-   std::ostream &info(std::ostream &os, std::string indent, std::shared_ptr<Data> data);
+   std::ostream &info(std::ostream &os, std::string indent);
 
    //-- for binary classification
    int total_pos = -1;
