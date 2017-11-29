@@ -32,14 +32,14 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
    std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
    std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();
 
+   std::vector<int> coords(Y->getNModes());
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
       double val = Y->isBinary() ? 1.0 : valuesPtr->operator[](i);
 
-      std::vector<int> coords;
       for(std::uint64_t m = 0; m < Y->getNModes(); m++)
-         coords.push_back((int)columnsPtr->operator[](Y->getNNZ() * m + i));
-
+         coords[m] = (int)columnsPtr->operator[](Y->getNNZ() * m + i);
+         
       m_predictions.push_back({smurff::PVec<>(coords), val});
    }
 
