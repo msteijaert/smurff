@@ -18,14 +18,13 @@ class TensorData : public Data
 {
 private:
    std::vector<std::uint64_t> m_dims; //vector of dimention sizes
+   std::uint64_t m_nnz;
    std::shared_ptr<std::vector<std::shared_ptr<SparseMode> > > m_Y; // this is a vector of tensor rotations
 
 public:
    TensorData(const smurff::TensorConfig& tc);
 
    std::shared_ptr<SparseMode> Y(std::uint64_t mode) const;
-
-   std::uint64_t getNModes() const;
 
 protected:
    void init_pre() override;
@@ -34,9 +33,9 @@ public:
    double sum() const override;
 
 public:
-   int nmode() const override;
-   int nnz() const override;
-   int nna() const override;
+   std::uint64_t nmode() const override;
+   std::uint64_t nnz() const override;
+   std::uint64_t nna() const override;
    PVec<> dim() const override;
 
 public:

@@ -24,6 +24,7 @@ MatrixXui32 toMatrixNew(const std::vector<std::uint32_t>& columns, std::uint64_t
 
 TensorData::TensorData(const smurff::TensorConfig& tc) 
    : m_dims(tc.getDims()),
+     m_nnz(tc.getNNZ()),
      m_Y(std::make_shared<std::vector<std::shared_ptr<SparseMode> > >())
 {
    //combine coordinates into [nnz x nmodes] matrix
@@ -40,11 +41,6 @@ std::shared_ptr<SparseMode> TensorData::Y(std::uint64_t mode) const
    return m_Y->operator[](mode);
 }
 
-std::uint64_t TensorData::getNModes() const
-{
-   return m_dims.size();
-}
-
 
 void TensorData::init_pre()
 {
@@ -56,19 +52,19 @@ double TensorData::sum() const
    throw std::runtime_error("not implemented");
 }
 
-int TensorData::nmode() const
+std::uint64_t TensorData::nmode() const
 {
-   throw std::runtime_error("not implemented");
+   return m_dims.size();
 }
 
-int TensorData::nnz() const
+std::uint64_t TensorData::nnz() const
 {
-   throw std::runtime_error("not implemented");
+   return m_nnz;
 }
 
-int TensorData::nna() const
+std::uint64_t TensorData::nna() const
 {
-   throw std::runtime_error("not implemented");
+   return 0;
 }
 
 PVec<> TensorData::dim() const
@@ -108,7 +104,7 @@ void TensorData::get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::Vec
 
 void TensorData::update_pnm(const SubModel& model, uint32_t mode)
 {
-   
+   //do not need to cache VV here
 }
 
 double TensorData::sumsq(const SubModel& model) const
