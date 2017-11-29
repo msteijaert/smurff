@@ -51,7 +51,7 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
     return os;
 }
 
-void ScarceMatrixData::get_pnm(const SubModel& model, uint32_t mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    COUNTER("get_pnm");
    auto &Y = this->Y(mode);
@@ -126,7 +126,7 @@ void ScarceMatrixData::get_pnm(const SubModel& model, uint32_t mode, int n, Eige
    }
 }
 
-void ScarceMatrixData::update_pnm(const SubModel &, uint32_t mode)
+void ScarceMatrixData::update_pnm(const SubModel &, std::uint32_t mode)
 {
 }
 

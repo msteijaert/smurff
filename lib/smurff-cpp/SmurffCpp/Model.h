@@ -70,7 +70,7 @@ public:
 
 public:
    //number of dimentions in train data
-   std::uint32_t nmodes() const;
+   std::uint64_t nmodes() const;
 
    //size of latent dimention
    int nlatent() const;

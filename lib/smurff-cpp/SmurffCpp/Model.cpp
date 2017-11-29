@@ -107,7 +107,7 @@ Eigen::MatrixXd::ConstColXpr Model::col(int f, int i) const
    return U(f)->col(i);
 }
 
-std::uint32_t Model::nmodes() const
+std::uint64_t Model::nmodes() const
 {
    return m_samples.size();
 }
