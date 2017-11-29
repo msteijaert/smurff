@@ -125,18 +125,3 @@ std::ostream& TensorData::info(std::ostream& os, std::string indent)
 {
    throw std::runtime_error("not implemented");
 }
-
-double TensorData::compute_mode_mean_mn(int mode, int pos)
-{
-   throw std::runtime_error("not implemented");
-}
-
-void TensorData::center(double global_mean)
-{
-   throw std::runtime_error("not implemented");
-}
-
-double TensorData::offset_to_mean(const PVec<>& pos) const
-{
-   throw std::runtime_error("not implemented");
-}

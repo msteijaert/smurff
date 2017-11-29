@@ -50,15 +50,6 @@ public:
 
 public:
    std::ostream& info(std::ostream& os, std::string indent) override;
-   
-protected:
-   double compute_mode_mean_mn(int mode, int pos) override;
-
-protected:
-   void center(double global_mean) override;
-
-public:
-   double offset_to_mean(const PVec<>& pos) const override;
 };
 
 }
