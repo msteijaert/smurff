@@ -601,7 +601,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 
   data->init();
-  model->init(2, PVec<>({1, 1}), ModelInitTypes::zero);
+  model->init(2, PVec<>({1, 1}), ModelInitTypes::zero); //latent dimention has size 2
 
   auto &t = p->m_predictions.at(0);
 
@@ -611,10 +611,10 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
 
   p->update(model, false);
   
-  REQUIRE(t.pred_avg == Approx(4.5 + 1.0));
-  REQUIRE(t.var      == Approx(0.0));
-  REQUIRE(p->rmse_1sample == Approx(1.0));
-  REQUIRE(p->rmse_avg == Approx(1.0));
+  REQUIRE(t.pred_avg == Approx(1.0 * 1.0 + 0.0 * 0.0));
+  REQUIRE(t.var == Approx(0.0));
+  REQUIRE(p->rmse_1sample == Approx(sqrt(square(4.5 - (1.0 * 1.0 + 0.0 * 0.0)))));
+  REQUIRE(p->rmse_avg == Approx(sqrt(square(4.5 - (1.0 * 1.0 + 0.0 * 0.0)))));
 
   //// second iteration
   *model->U(0) << 2.0, 0.0;
@@ -622,10 +622,10 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
 
   p->update(model, false);
   
-  REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0) / 2));
-  REQUIRE(t.var      == Approx(0.5));
-  REQUIRE(p->rmse_1sample     == 2.0);
-  REQUIRE(p->rmse_avg == 1.5);
+  REQUIRE(t.pred_avg == Approx(((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)) / 2));
+  REQUIRE(t.var == Approx(0.5));
+  REQUIRE(p->rmse_1sample == Approx(sqrt(square(4.5 - (2.0 * 1.0 + 0.0 * 0.0)))));
+  REQUIRE(p->rmse_avg == Approx((sqrt(square(4.5 - (1.0 * 1.0 + 0.0 * 0.0))) + sqrt(square(4.5 - (2.0 * 1.0 + 0.0 * 0.0)))) / 2));
 
   //// third iteration
   
@@ -634,10 +634,10 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   
   p->update(model, false);
 
-  REQUIRE(t.pred_avg == Approx(4.5 + (1.0 + 2.0 + 6.0) / 3));
-  REQUIRE(t.var      == Approx(14.0)); // accumulated variance
-  REQUIRE(p->rmse_1sample     == 6.0);
-  REQUIRE(p->rmse_avg == 3.0);
+  REQUIRE(t.pred_avg == Approx(((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)+ (2.0 * 3.0 + 0.0 * 0.0)) / 3));
+  REQUIRE(t.var == Approx(14.0)); // accumulated variance
+  REQUIRE(p->rmse_1sample == Approx(sqrt(square(4.5 - (2.0 * 3.0 + 0.0 * 0.0)))));
+  REQUIRE(p->rmse_avg == Approx((sqrt(square(4.5 - (1.0 * 1.0 + 0.0 * 0.0))) + sqrt(square(4.5 - (2.0 * 1.0 + 0.0 * 0.0))) + sqrt(square(4.5 - (2.0 * 3.0 + 0.0 * 0.0)))) / 3));
 }
 
 TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
