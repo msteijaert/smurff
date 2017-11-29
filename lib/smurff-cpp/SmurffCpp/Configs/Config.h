@@ -3,6 +3,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "MatrixConfig.h"
 
@@ -34,16 +35,6 @@ enum class PriorTypes
    mpi
 };
 
-enum class CenterModeTypes : int
-{
-   CENTER_INVALID = -10,
-   CENTER_NONE = -3,
-   CENTER_GLOBAL = -2,
-   CENTER_VIEW = -1,
-   CENTER_COLS = 0,
-   CENTER_ROWS = 1
-};
-
 enum class ModelInitTypes
 {
    random,
@@ -54,10 +45,6 @@ PriorTypes stringToPriorType(std::string name);
 
 std::string priorTypeToString(PriorTypes type);
 
-std::string centerModeToString(CenterModeTypes cm);
-
-CenterModeTypes stringToCenterMode(std::string c);
-
 ModelInitTypes stringToModelInitType(std::string name);
 
 std::string modelInitTypeToString(ModelInitTypes type);
@@ -65,12 +52,12 @@ std::string modelInitTypeToString(ModelInitTypes type);
 struct Config 
 {
     //-- train and test
-    MatrixConfig train, test;
-    CenterModeTypes center_mode_type = CenterModeTypes::CENTER_GLOBAL;
+    std::shared_ptr<TensorConfig> m_train;
+    std::shared_ptr<TensorConfig> m_test;
 
     //-- features
-    std::vector<MatrixConfig> row_features;
-    std::vector<MatrixConfig> col_features;
+    std::vector<std::shared_ptr<MatrixConfig> > m_row_features;
+    std::vector<std::shared_ptr<MatrixConfig> > m_col_features;
 
     // -- priors
     PriorTypes row_prior_type = PriorTypes::default_prior;

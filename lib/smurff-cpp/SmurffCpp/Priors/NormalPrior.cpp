@@ -5,6 +5,7 @@
 #include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/counters.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -16,7 +17,7 @@ using namespace smurff;
 
 //  base class NormalPrior
 
-NormalPrior::NormalPrior(std::shared_ptr<BaseSession> session, int mode, std::string name)
+NormalPrior::NormalPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name)
    : ILatentPrior(session, mode, name)
 {
 
@@ -47,9 +48,9 @@ void NormalPrior::init()
    df = K;
 }
 
-const Eigen::VectorXd NormalPrior::getMu(int) const
+const Eigen::VectorXd NormalPrior::getMu(int n) const
 {
-    return mu;
+   return mu;
 }
 
 void NormalPrior::update_prior()
@@ -62,8 +63,10 @@ void NormalPrior::update_prior()
    std::tie(mu, Lambda) = CondNormalWishart(N, cov, sum, mu0, b0, WI, df);
 }
 
+//n is an index of column in U matrix
 void NormalPrior::sample_latent(int n)
 {
+   COUNTER("NormalPrior::sample_latent");
    const auto &mu_u = getMu(n);
 
    VectorXd &rr = rrs.local();
@@ -79,12 +82,17 @@ void NormalPrior::sample_latent(int n)
    rr.noalias() += Lambda * mu_u;
    MM.noalias() += Lambda;
 
-   //Solve system of linear equations for x: MM * x = rr
+   //Solve system of linear equations for x: MM * x = rr - not exactly correct  because we have random part
+   //Sample from multivariate normal distribution with mean rr and precision matrix MM
 
-   Eigen::LLT<MatrixXd> chol = MM.llt(); // compute the Cholesky decomposition X = L * U
-   if(chol.info() != Eigen::Success)
+   Eigen::LLT<MatrixXd> chol;
    {
-      throw std::runtime_error("Cholesky Decomposition failed!");
+       COUNTER("cholesky");
+       chol = MM.llt(); // compute the Cholesky decomposition X = L * U
+       if(chol.info() != Eigen::Success)
+       {
+           throw std::runtime_error("Cholesky Decomposition failed!");
+       }
    }
 
    chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b
@@ -145,25 +153,5 @@ void BPMFPrior::sample_latents(ProbitNoise& noiseModel, TensorData & data,
 {
   // TODO
   throw std::runtime_error("Unimplemented: sample_latents");
-}
-*/
-/*
-void BPMFPrior::sample_latents(double noisePrecision,
-                               TensorData & data, // array of sparse views per dimention
-                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, //vector of sample matrices
-                               const int mode, //dimention index
-                               const int num_latent //number of latent dimentions
-                              ) 
-{
-  auto& sparseMode = (*data.Y)[mode]; // select sparse view by dimention index
-  auto& U = samples[mode]; // select U matrix by dimention index
-  const int N = U->cols();
-  VectorView<Eigen::MatrixXd> view(samples, mode); // select all other samples except from dimention index
-
-  #pragma omp parallel for schedule(dynamic, 2)
-  for (int n = 0; n < N; n++) //iterate through each column of U
-  {
-    sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu, Lambda);
-  }
 }
 */

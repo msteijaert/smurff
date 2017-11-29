@@ -30,11 +30,14 @@ protected:
       : ILatentPrior(){}
 
 public:
-  NormalPrior(std::shared_ptr<BaseSession> session, int mode, std::string name = "NormalPrior");
+  NormalPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name = "NormalPrior");
   virtual ~NormalPrior() {}
   void init() override;
 
-  virtual const Eigen::VectorXd getMu(int) const;
+  //mu in NormalPrior does not depend on column index
+  //however successors of this class can override this method
+  //for example in MacauPrior mu depends on Uhat.col(n)
+  virtual const Eigen::VectorXd getMu(int n) const;
   
   void sample_latent(int n) override;
 

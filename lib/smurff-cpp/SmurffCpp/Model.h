@@ -12,10 +12,21 @@
 
 namespace smurff {
 
-// AGE: I dont like this cross reference between Data and Model. Need to think how we can eliminate it.
 class Data;
 
 class SubModel;
+
+template<class T>
+class VMatrixExprIterator;
+
+template<class T>
+class ConstVMatrixExprIterator;
+
+template<class T>
+class VMatrixIterator;
+
+template<class T>
+class ConstVMatrixIterator;
 
 class Model : public std::enable_shared_from_this<Model>
 {
@@ -37,23 +48,29 @@ public:
    double dot(const PVec<> &indices) const;
 
    //same as dot
-   double predict(const PVec<> &pos, std::shared_ptr<Data> data) const;
+   double predict(const PVec<> &pos) const;
 
 public:
-   //return f'th U matrix in the model where number of matrices is != 2
-   std::shared_ptr<const Eigen::MatrixXd> U(int f) const;
-   std::shared_ptr<Eigen::MatrixXd> U(int f);
+   //return f'th U matrix in the model
+   std::shared_ptr<Eigen::MatrixXd> U(uint32_t f);
 
-   //return f'th V matrix in the model where number of matrices is == 2
-   std::shared_ptr<const Eigen::MatrixXd> V(int f) const;
-   std::shared_ptr<Eigen::MatrixXd> V(int f);
+   std::shared_ptr<const Eigen::MatrixXd> U(uint32_t f) const;
+
+   //return V matrices in the model opposite to mode
+   VMatrixIterator<Eigen::MatrixXd> Vbegin(std::uint32_t mode);
+   
+   VMatrixIterator<Eigen::MatrixXd> Vend();
+
+   ConstVMatrixIterator<Eigen::MatrixXd> CVbegin(std::uint32_t mode) const;
+   
+   ConstVMatrixIterator<Eigen::MatrixXd> CVend() const;
 
    //return i'th column of f'th U matrix in the model
    Eigen::MatrixXd::ConstColXpr col(int f, int i) const;
 
 public:
    //number of dimentions in train data
-   int nmodes() const;
+   std::uint64_t nmodes() const;
 
    //size of latent dimention
    int nlatent() const;
@@ -82,7 +99,7 @@ public:
 class SubModel
 {
 private:
-   std::shared_ptr<const Model> m_model;
+   std::shared_ptr<Model> m_model;
    PVec<> m_off;
    PVec<> m_dims;
 
@@ -97,18 +114,17 @@ public:
       : m_model(m), m_off(m->nmodes()), m_dims(m->getDims()) {}
 
 public:
-   Eigen::MatrixXd::ConstBlockXpr U(int f) const
-   {
-      return m_model->U(f)->block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
-   }
+   Eigen::MatrixXd::BlockXpr U(int f);
 
-   Eigen::MatrixXd::ConstBlockXpr V(int f) const
-   {
-      if(nmodes() != 2)
-         throw std::runtime_error("nmodes value is incorrect");
-         
-      return U((f + 1) % 2);
-   }
+   Eigen::MatrixXd::ConstBlockXpr U(int f) const;
+
+   VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> Vbegin(std::uint32_t mode);
+
+   VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> Vend();
+
+   ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> CVbegin(std::uint32_t mode) const;
+
+   ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> CVend() const;
 
 public:
    //dot product of i'th columns in each U matrix
@@ -124,7 +140,7 @@ public:
    }
 
    //number of dimentions in train data
-   int nmodes() const
+   std::uint32_t nmodes() const
    {
       return m_model->nmodes();
    }

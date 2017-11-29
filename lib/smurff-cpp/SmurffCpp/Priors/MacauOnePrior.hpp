@@ -38,9 +38,9 @@ public:
 
    int l0;
 
-   const Eigen::SparseMatrix<double>& SparseYC() const
+   const Eigen::SparseMatrix<double>& SparseY() const
    {
-      return std::dynamic_pointer_cast<ScarceMatrixData>(data())->getYc().at(m_mode);
+      return std::dynamic_pointer_cast<ScarceMatrixData>(data())->Y(m_mode);
    }
 
 private:
@@ -48,7 +48,7 @@ private:
       : ILatentPrior(){}
 
 public:
-   MacauOnePrior(std::shared_ptr<BaseSession> session, int mode)
+   MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : ILatentPrior(session, mode)
    {
    }
@@ -89,17 +89,17 @@ public:
 
        const int K = num_latent();
        auto Us = U();
-       auto Vs = V();
+       auto& Vs = **Vbegin();
 
-       const int nnz = SparseYC().col(i).nonZeros();
+       const int nnz = SparseY().col(i).nonZeros();
        Eigen::VectorXd Yhat(nnz);
 
        // precalculating Yhat and Qi
        int idx = 0;
        Eigen::VectorXd Qi = lambda;
-       for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
+       for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
        {
-         Qi.noalias() += alpha * Vs->col(it.row()).cwiseAbs2();
+         Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
          Yhat(idx)     = model()->dot({(int)it.col(), (int)it.row()});
        }
 
@@ -113,9 +113,9 @@ public:
            double Lid = lambda(d) * (mu(d) + Uhat(d, i));
 
            idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
+           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
            {
-               const double vjd = Vs->operator()(d, it.row());
+               const double vjd = Vs(d, it.row());
                // L_id += alpha * (Y_ij - k_ijd) * v_jd
                Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
                //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
@@ -131,9 +131,9 @@ public:
            // updating Yhat
            double uid_delta = Us->operator()(d, i) - uid_old;
            idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseYC(), i); it; ++it, idx++)
+           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
            {
-               Yhat(idx) += uid_delta * Vs->operator()(d, it.row());
+               Yhat(idx) += uid_delta * Vs(d, it.row());
            }
        }
    }

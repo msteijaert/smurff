@@ -42,13 +42,10 @@ void MatricesData::init_pre()
 
    }
 
-   init_cwise_mean();
-
    // init sub-matrices
    for(auto &p : blocks)
    {
-       p.data()->init_pre();
-       p.data()->compute_mode_mean();
+      p.data()->init_pre();
    }
 }
 
@@ -61,56 +58,6 @@ void MatricesData::init_post()
    {
       p.data()->init_post();
    }
-}
-void MatricesData::setCenterMode(std::string mode)
-{
-   Data::setCenterMode(mode);
-   for(auto &p : blocks) 
-      p.data()->setCenterMode(mode);
-}
-
-void MatricesData::setCenterMode(CenterModeTypes type)
-{
-   Data::setCenterMode(type);
-   for(auto &p : blocks) 
-      p.data()->setCenterMode(type);
-}
-
-void MatricesData::center(double global_mean)
-{
-    IMeanCentering::center(global_mean);
-
-    // center sub-matrices
-    assert(global_mean == getCwiseMean());
-
-    for(auto &p : blocks)
-      p.data()->center(getCwiseMean());
-
-   setCentered(true);
-}
-
-double MatricesData::compute_mode_mean_mn(int mode, int pos)
-{
-   double sum = .0;
-   int N = 0;
-   int count = 0;
-
-   apply(mode, pos, [&](const Block &b) {
-       double local_mean = b.data()->getModeMeanItem(mode, pos - b.start(mode));
-       sum += local_mean * b.dim(mode);
-       N += b.dim(mode);
-       count++;
-   });
-
-   assert(N>0);
-
-   return sum / N;
-}
-
-double MatricesData::offset_to_mean(const PVec<>& pos) const
-{
-   const Block &b = find(pos);
-   return b.data()->offset_to_mean(pos - b.start());
 }
 
 std::shared_ptr<MatrixData> MatricesData::add(const PVec<>& p, std::shared_ptr<MatrixData> data)
@@ -158,7 +105,7 @@ void MatricesData::update(const SubModel &model)
    }
 }
 
-void MatricesData::get_pnm(const SubModel& model, int mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void MatricesData::get_pnm(const SubModel& model, uint32_t mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    int count = 0;
    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
@@ -168,10 +115,10 @@ void MatricesData::get_pnm(const SubModel& model, int mode, int pos, Eigen::Vect
    assert(count>0);
 }
 
-void MatricesData::update_pnm(const SubModel& model, int m)
+void MatricesData::update_pnm(const SubModel& model, uint32_t mode)
 {
    for(auto &b : blocks) {
-      b.data()->update_pnm(b.submodel(model), m);
+      b.data()->update_pnm(b.submodel(model), mode);
   }
 }
 

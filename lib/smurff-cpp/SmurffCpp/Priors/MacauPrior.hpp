@@ -40,7 +40,7 @@ private:
       : NormalPrior(){}
 
 public:
-   MacauPrior(std::shared_ptr<BaseSession> session, int mode)
+   MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalPrior(session, mode, "MacauPrior")
    {
 
@@ -268,26 +268,5 @@ template<class FType>
 void MacauPrior<FType>::sample_latents(ProbitNoise& noiseModel, TensorData & data,
                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
   // TODO:
-}
-*/
-
-//macau Tensor method
-/*
-template<class FType>
-void MacauPrior<FType>::sample_latents(double noisePrecision,
-                                       TensorData & data,
-                                       std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
-                                       int mode,
-                                       const int num_latent) {
-  auto& sparseMode = (*data.Y)[mode];
-  auto& U = samples[mode];
-  const int N = U->cols();
-  VectorView<Eigen::MatrixXd> view(samples, mode);
-
-  #pragma omp parallel for schedule(dynamic, 2)
-  for (int n = 0; n < N; n++) {
-    Eigen::VectorXd mu2 = mu + Uhat.col(n);
-    sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu2, Lambda);
-  }
 }
 */

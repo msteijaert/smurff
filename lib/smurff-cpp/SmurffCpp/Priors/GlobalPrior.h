@@ -11,14 +11,5 @@ void sample_latent_blas_probit(Eigen::MatrixXd &s,
                         const Eigen::MatrixXd &Lambda_u,
                         const int num_latent);
                         
-void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
-                          int n,
-                          std::unique_ptr<SparseMode> & sparseMode,
-                          VectorView<Eigen::MatrixXd> & view,
-                          double mean_value,
-                          double alpha,
-                          Eigen::VectorXd & mu,
-                          Eigen::MatrixXd & Lambda);
-
 MacauPrior<Eigen::MatrixXd>* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF);
 */

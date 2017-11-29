@@ -2,33 +2,40 @@
 
 #include "MatrixDataTempl.hpp"
 
+#include <SmurffCpp/VMatrixExprIterator.hpp>
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
+
 namespace smurff
 {
    template<class YType>
    class FullMatrixData : public MatrixDataTempl<YType>
    {
    private:
-      Eigen::MatrixXd VV[2];
+      Eigen::MatrixXd VV[2]; // sum of v * vT, where v is column of V
 
    public:
-      FullMatrixData(YType Y) : MatrixDataTempl<YType>(Y)
+      FullMatrixData(YType Y) 
+         : MatrixDataTempl<YType>(Y)
       {
          this->name = "MatrixData [fully known]";
       }
 
-
    public:
-      void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
+      //d is an index of column in U matrix
+      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
       {
          const double alpha = this->noise()->getAlpha();
-         auto &Y = this->getYcPtr()->at(mode);
-         rr.noalias() += (model.V(mode) * Y.col(d)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
+         auto& Y = this->Y(mode);
+         auto Vf = *model.CVbegin(mode);
+         
+         rr.noalias() += (Vf * Y.col(d)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
          MM.noalias() += VV[mode] * alpha; // MM = MM + VV[m] * alpha
       }
 
-      void update_pnm(const SubModel& model, int mode) override
+      //purpose of update_pnm is to cache VV matrix
+      void update_pnm(const SubModel& model, uint32_t mode) override
       {
-         auto &Vf = model.V(mode);
+         auto Vf = *model.CVbegin(mode);
          const int nl = model.nlatent();
          thread_vector<Eigen::MatrixXd> VVs(Eigen::MatrixXd::Zero(nl, nl));
 
@@ -46,15 +53,6 @@ namespace smurff
       int nna() const override
       {
          return 0;
-      }
-
-   private:
-      double compute_mode_mean_mn(int mode, int pos) override
-      {
-          const auto &col = this->getYcPtr()->at(mode).col(pos);
-          if (col.nonZeros() == 0)
-            return this->getCwiseMean();
-          return col.sum() / this->getYcPtr()->at(mode).rows();
       }
    };
 }

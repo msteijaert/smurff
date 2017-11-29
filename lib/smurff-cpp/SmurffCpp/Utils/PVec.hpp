@@ -169,8 +169,15 @@ namespace smurff
       {
          os << "[ ";
          for(size_t i = 0; i < m_size; ++i)
-            os << at(i) << ((i != m_size-1) ? " x " : "");
+            os << at(i) << ((i != m_size - 1) ? " x " : "");
          os << " ]";
+         return os;
+      }
+
+      std::ostream& save(std::ostream& os) const
+      {
+         for(size_t i = 0; i < m_size; ++i)
+            os << at(i) << ((i != m_size - 1) ? "," : "");
          return os;
       }
    };

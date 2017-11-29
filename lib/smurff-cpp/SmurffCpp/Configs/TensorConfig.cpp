@@ -315,3 +315,13 @@ std::ostream& TensorConfig::info(std::ostream& os) const
    }
    return os;
 }
+
+std::shared_ptr<Data> TensorConfig::create(std::shared_ptr<IDataCreator> creator) const
+{
+   return creator->create(shared_from_this());
+}
+
+void TensorConfig::write(std::shared_ptr<IDataWriter> writer) const
+{
+   writer->write(shared_from_this());
+}

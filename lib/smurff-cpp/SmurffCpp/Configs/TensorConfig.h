@@ -7,9 +7,14 @@
 
 #include <SmurffCpp/Configs/NoiseConfig.h>
 
+#include <SmurffCpp/IO/IDataWriter.h>
+#include <SmurffCpp/DataMatrices/IDataCreator.h>
+
 namespace smurff
 {
-   class TensorConfig
+   class Data;
+
+   class TensorConfig : public std::enable_shared_from_this<TensorConfig>
    {
    private:
       NoiseConfig m_noiseConfig;
@@ -91,5 +96,11 @@ namespace smurff
 
    public:
       virtual std::ostream& info(std::ostream& os) const;
+
+   public:
+      virtual std::shared_ptr<Data> create(std::shared_ptr<IDataCreator> creator) const;
+
+   public:
+      virtual void write(std::shared_ptr<IDataWriter> writer) const;
    };
 }

@@ -39,7 +39,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent)
       p->info(os, indent + "    ");
    os << indent << "  }\n";
    os << indent << "  Result: {\n";
-   m_pred->info(os, indent + "    ", data());
+   m_pred->info(os, indent + "    ");
    os << indent << "  }\n";
    return os;
 }
@@ -61,14 +61,15 @@ void BaseSession::restore(std::string prefix, std::string suffix)
 
 MatrixConfig BaseSession::getResult()
 {
+   /*
    std::vector<std::uint32_t> resultRows;
    std::vector<std::uint32_t> resultCols;
    std::vector<double> resultVals;
-   resultRows.reserve(m_pred->predictions.size());
-   resultCols.reserve(m_pred->predictions.size());
-   resultVals.reserve(m_pred->predictions.size());
+   resultRows.reserve(m_pred->m_predictions.size());
+   resultCols.reserve(m_pred->m_predictions.size());
+   resultVals.reserve(m_pred->m_predictions.size());
 
-   for (const Result::Item& i : m_pred->predictions)
+   for (const Result::Item& i : m_pred->m_predictions)
    {
       resultRows.push_back(i.row);
       resultCols.push_back(i.col);
@@ -82,6 +83,9 @@ MatrixConfig BaseSession::getResult()
                       , std::move(resultVals)
                       , NoiseConfig()
                       );
+   */
+
+   throw std::runtime_error("not implemented");
 }
 
 MatrixConfig BaseSession::getSample(int mode)

@@ -17,6 +17,11 @@
 
 #include <SmurffCpp/Model.h>
 
+#include <SmurffCpp/VMatrixIterator.hpp>
+#include <SmurffCpp/ConstVMatrixIterator.hpp>
+#include <SmurffCpp/VMatrixExprIterator.hpp>
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
+
 using namespace std;
 using namespace Eigen;
 using namespace smurff;
@@ -57,38 +62,44 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
 double Model::dot(const PVec<> &indices) const
 {
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
-   for(int d = 0; d < nmodes(); ++d)
-      P *= col(d, indices.at(d)).array();
+   for(uint32_t d = 0; d < nmodes(); ++d)
+      P *= col(d, indices.at(d)).array(); //this is column wise product!
    return P.sum();
 }
 
-double Model::predict(const PVec<> &pos, std::shared_ptr<Data> data) const
+double Model::predict(const PVec<> &pos) const
 {
-   return dot(pos) + data->offset_to_mean(pos);
+   return dot(pos);
 }
 
-std::shared_ptr<const Eigen::MatrixXd> Model::U(int f) const
+std::shared_ptr<const Eigen::MatrixXd> Model::U(uint32_t f) const
 {
    return m_samples.at(f);
 }
 
-std::shared_ptr<Eigen::MatrixXd> Model::U(int f)
+std::shared_ptr<Eigen::MatrixXd> Model::U(uint32_t f)
 {
    return m_samples.at(f);
 }
 
-std::shared_ptr<const Eigen::MatrixXd> Model::V(int f) const
+VMatrixIterator<Eigen::MatrixXd> Model::Vbegin(std::uint32_t mode)
 {
-   if(nmodes() != 2)
-      throw std::runtime_error("nmodes value is incorrect");
-   return m_samples.at((f + 1) % 2);
+   return VMatrixIterator<Eigen::MatrixXd>(shared_from_this(), mode, 0);
 }
 
-std::shared_ptr<Eigen::MatrixXd> Model::V(int f)
+VMatrixIterator<Eigen::MatrixXd> Model::Vend()
 {
-   if(nmodes() != 2)
-      throw std::runtime_error("nmodes value is incorrect");
-   return m_samples.at((f + 1) % 2);
+   return VMatrixIterator<Eigen::MatrixXd>(m_samples.size());
+}
+
+ConstVMatrixIterator<Eigen::MatrixXd> Model::CVbegin(std::uint32_t mode) const
+{
+   return ConstVMatrixIterator<Eigen::MatrixXd>(shared_from_this(), mode, 0);
+}
+
+ConstVMatrixIterator<Eigen::MatrixXd> Model::CVend() const
+{
+   return ConstVMatrixIterator<Eigen::MatrixXd>(m_samples.size());
 }
 
 Eigen::MatrixXd::ConstColXpr Model::col(int f, int i) const
@@ -96,7 +107,7 @@ Eigen::MatrixXd::ConstColXpr Model::col(int f, int i) const
    return U(f)->col(i);
 }
 
-int Model::nmodes() const
+std::uint64_t Model::nmodes() const
 {
    return m_samples.size();
 }
@@ -150,7 +161,41 @@ std::ostream& Model::info(std::ostream &os, std::string indent) const
 std::ostream& Model::status(std::ostream &os, std::string indent) const
 {
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
-   for(int d = 0; d < nmodes(); ++d) P *= U(d)->rowwise().norm().array();
+   
+   for(std::uint64_t d = 0; d < nmodes(); ++d)
+      P *= U(d)->rowwise().norm().array();
+
    os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
    return os;
+}
+
+Eigen::MatrixXd::BlockXpr SubModel::U(int f)
+{
+   return m_model->U(f)->block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
+}
+
+Eigen::MatrixXd::ConstBlockXpr SubModel::U(int f) const
+{
+   std::shared_ptr<const Eigen::MatrixXd> u = m_model->U(f); //force const
+   return u->block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
+}
+
+VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vbegin(std::uint32_t mode)
+{
+   return VMatrixExprIterator<Eigen::MatrixXd::BlockXpr>(m_model, m_off, m_dims, mode, 0);
+}
+
+VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vend()
+{
+   return VMatrixExprIterator<Eigen::MatrixXd::BlockXpr>(m_model->nmodes());
+}
+
+ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVbegin(std::uint32_t mode) const
+{
+   return ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr>(m_model, m_off, m_dims, mode, 0);
+}
+
+ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVend() const
+{
+   return ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr>(m_model->nmodes());
 }

@@ -1,55 +1,5 @@
 #include "GlobalPrior.h"
 
-//macau tensor - used in MacauPrior, NormalPrior
-/*
-void sample_latent_tensor(std::unique_ptr<Eigen::MatrixXd> &U,
-                          int n,
-                          std::unique_ptr<SparseMode> & sparseMode,
-                          VectorView<Eigen::MatrixXd> & view,
-                          double mean_value,
-                          double alpha,
-                          Eigen::VectorXd & mu,
-                          Eigen::MatrixXd & Lambda) {
-  const int nmodes1 = view.size();
-  const int num_latent = U->rows();
-
-  MatrixXd MM(num_latent, num_latent);
-  MM = Lambda;
-  VectorXd rr = VectorXd::Zero(mu.size());
-
-  Eigen::VectorXi & row_ptr = sparseMode->row_ptr;
-  Eigen::MatrixXi & indices = sparseMode->indices;
-  Eigen::VectorXd & values  = sparseMode->values;
-
-  Eigen::MatrixXd* S0 = view.get(0);
-
-  for (int j = row_ptr(n); j < row_ptr(n + 1); j++) 
-  {
-    VectorXd col = S0->col(indices(j, 0));
-    for (int m = 1; m < nmodes1; m++) 
-    {
-      col.noalias() = col.cwiseProduct(view.get(m)->col(indices(j, m)));
-    }
-
-    MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose();
-    rr.noalias() += col * ((values(j) - mean_value) * alpha);
-  }
-
-  Eigen::LLT<MatrixXd> chol = MM.llt();
-  if(chol.info() != Eigen::Success) {
-    throw std::runtime_error("Cholesky Decomposition failed!");
-  }
-
-  rr.noalias() += Lambda * mu;
-  chol.matrixL().solveInPlace(rr);
-  for (int i = 0; i < num_latent; i++) {
-    rr[i] += randn0();
-  }
-  chol.matrixU().solveInPlace(rr);
-  U->col(n).noalias() = rr;
-}
-*/
-
 //macau probit - used in MacauPrior, NormalPrior
 /*
 void sample_latent_blas_probit(MatrixXd &s, int mm, const SparseMatrix<double> &mat, double mean_rating,

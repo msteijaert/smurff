@@ -47,41 +47,6 @@ std::string smurff::priorTypeToString(PriorTypes type)
    }
 }
 
-std::string smurff::centerModeToString(CenterModeTypes cm)
-{
-   switch (cm)
-   {
-      case CenterModeTypes::CENTER_NONE:
-         return CENTER_MODE_STR_NONE;
-      case CenterModeTypes::CENTER_GLOBAL:
-         return CENTER_MODE_STR_GLOBAL;
-      case CenterModeTypes::CENTER_VIEW:
-         return CENTER_MODE_STR_VIEW;
-      case CenterModeTypes::CENTER_ROWS:
-         return CENTER_MODE_STR_ROWS;
-      case CenterModeTypes::CENTER_COLS:
-         return CENTER_MODE_STR_COLS;
-      default:
-         throw std::runtime_error("Invalid center mode");
-   }
-}
-
-CenterModeTypes smurff::stringToCenterMode(std::string c)
-{
-   if (c == CENTER_MODE_STR_NONE)
-      return CenterModeTypes::CENTER_NONE;
-   else if (c == CENTER_MODE_STR_GLOBAL)
-      return CenterModeTypes::CENTER_GLOBAL;
-   else if (c == CENTER_MODE_STR_VIEW)
-      return CenterModeTypes::CENTER_VIEW;
-   else if (c == CENTER_MODE_STR_ROWS)
-      return CenterModeTypes::CENTER_ROWS;
-   else if (c == CENTER_MODE_STR_COLS)
-      return CenterModeTypes::CENTER_COLS;
-   else
-      throw std::runtime_error("Invalid center mode " + c);
-}
-
 ModelInitTypes smurff::stringToModelInitType(std::string name)
 {
    if(name == MODEL_INIT_NAME_RANDOM)
@@ -107,57 +72,48 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
 
 bool Config::validate(bool throw_error) const
 {
-   if (!train.getRows().size())
-      die("Missing train matrix");
+   if (!m_train->getNNZ())
+      throw std::runtime_error("Missing train data");
 
-   if (test.getNRow() > 0 && train.getNRow() > 0 && test.getNRow() != train.getNRow())
-      die("Train and test matrix should have the same number of rows");
+   if (!m_test->getNNZ())
+      throw std::runtime_error("Missing train data");
 
-   if (test.getNCol() > 0 && train.getNCol() > 0 && test.getNCol() != train.getNCol())
-      die("Train and test matrix should have the same number of cols");
+   if (m_test->getDims() != m_train->getDims())
+      throw std::runtime_error("Train and test data should have the same dimensions");
 
-   for (const auto &c: col_features) 
+   if (m_test->getNNZ() != m_train->getNNZ())
+      throw std::runtime_error("Train and test data should have the same dimensions");
+
+   for (const auto r: m_row_features) 
    {
-       if (train.getNCol() != c.getNCol()) 
-       {
-           die("Column features and train should have the same number of cols");
-       }
+      if (m_train->getDims()[0] != r->getNRow()) 
+         throw std::runtime_error("Row features and train should have the same number of rows");
    }
 
-   for (const auto &c: row_features) 
+   for (const auto c: m_col_features) 
    {
-       if (train.getNRow() != c.getNRow()) 
-       {
-           die("Row features and train should have the same number of rows");
-       }
+      if (m_train->getDims()[1] != c->getNCol()) 
+         throw std::runtime_error("Column features and train should have the same number of cols");
    }
 
-   if (col_prior_type == PriorTypes::macau && col_features.size() != 1) 
-   {
-       die("Exactly one set of col-features needed when using macau prior.");
-   }
+   if (col_prior_type == PriorTypes::macau && m_col_features.size() != 1) 
+      throw std::runtime_error("Exactly one set of col-features needed when using macau prior.");
 
-   if (row_prior_type == PriorTypes::macau && row_features.size() != 1) 
-   {
-       die("Exactly one set of row-features needed when using macau prior.");
-   }
+   if (row_prior_type == PriorTypes::macau && m_row_features.size() != 1) 
+      throw std::runtime_error("Exactly one set of row-features needed when using macau prior.");
 
-   if (col_prior_type == PriorTypes::macauone && (col_features.size() != 1 || col_features.at(0).isDense())) 
-   {
-       die("Exactly one set of sparse col-features needed when using macauone prior.");
-   }
+   if (col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense())) 
+      throw std::runtime_error("Exactly one set of sparse col-features needed when using macauone prior.");
 
-   if (row_prior_type == PriorTypes::macauone && (row_features.size() != 1 || row_features.at(0).isDense())) 
-   {
-       die("Exactly one set of sparse row-features needed when using macauone prior.");
-   }
+   if (row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense())) 
+      throw std::runtime_error("Exactly one set of sparse row-features needed when using macauone prior.");
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
    if (save_suffixes.find(save_suffix) == save_suffixes.end()) 
-      die("Unknown output suffix: " + save_suffix);
+      throw std::runtime_error("Unknown output suffix: " + save_suffix);
 
-   train.getNoiseConfig().validate();
+   m_train->getNoiseConfig().validate();
 
    return true;
 }
@@ -169,22 +125,29 @@ void Config::save(std::string fname) const
 
    std::ofstream os(fname);
 
-   os << "# train = "; train.info(os); os << std::endl;
-   os << "# test = "; test.info(os); os << std::endl;
+   os << "# train = "; 
+   m_train->info(os); 
+   os << std::endl;
+   
+   os << "# test = "; 
+   m_test->info(os); 
+   os << std::endl;
 
    os << "# features" << std::endl;
 
-   auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
+   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<MatrixConfig> > &vec) -> void 
+   {
       os << "[" << name << "]\n";
-      for (unsigned i=0; i<vec.size(); ++i) {
+      for (size_t i = 0; i < vec.size(); ++i) 
+      {
          os << "# " << i << " ";
-         vec.at(i).info(os);
+         vec.at(i)->info(os);
          os << std::endl;
       }
    };
 
-   print_features("row_features", row_features);
-   print_features("col_features", col_features);
+   print_features("row_features", m_row_features);
+   print_features("col_features", m_col_features);
 
    os << "# priors" << std::endl;
    os << "row_prior = " << priorTypeToString(row_prior_type) << std::endl;
@@ -212,10 +175,10 @@ void Config::save(std::string fname) const
    os << "direct = " << direct << std::endl;
 
    os << "# noise model" << std::endl;
-   os << "noise_model = " << smurff::noiseTypeToString(train.getNoiseConfig().getNoiseType()) << std::endl;
-   os << "precision = " << train.getNoiseConfig().precision << std::endl;
-   os << "sn_init = " << train.getNoiseConfig().sn_init << std::endl;
-   os << "sn_max = " << train.getNoiseConfig().sn_max << std::endl;
+   os << "noise_model = " << smurff::noiseTypeToString(m_train->getNoiseConfig().getNoiseType()) << std::endl;
+   os << "precision = " << m_train->getNoiseConfig().precision << std::endl;
+   os << "sn_init = " << m_train->getNoiseConfig().sn_init << std::endl;
+   os << "sn_max = " << m_train->getNoiseConfig().sn_max << std::endl;
 
    os << "# binary classification" << std::endl;
    os << "classify = " << classify << std::endl;
@@ -262,7 +225,7 @@ void Config::restore(std::string fname)
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
-   train.setNoiseConfig(noise);
+   m_train->setNoiseConfig(noise);
 
    //-- binary classification
    classify = reader.GetBoolean("", "classify",  false);

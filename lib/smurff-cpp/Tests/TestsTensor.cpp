@@ -4,60 +4,80 @@
 #include <string>
 #include <sstream>
 
+#include <Eigen/Core>
+#include <Eigen/SparseCore>
+
+#include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/TensorUtils.h>
 #include <SmurffCpp/sparsetensor.h>
 #include <SmurffCpp/Configs/TensorConfig.h>
+#include <SmurffCpp/DataTensors/SparseMode.h>
+#include <SmurffCpp/DataTensors/TensorData.h>
 
+using namespace smurff;
 
-TEST_CASE("test tensor constructor 1")
-{
-   std::vector<int> tensorConfigDims = { 2, 3, 4, 2 };
-   std::vector<int> tensorConfigColumns =
+TEST_CASE("test sparse view new 1")
+{  
+   std::vector<std::uint64_t> tensorConfigDims = {2, 3};
+   std::vector<std::uint32_t> tensorConfigColumns =
       {
-         // 1D  
-         0, 1, 0, 1, 0, 1,    0, 1, 0, 1, 0, 1,    0, 1, 0, 1, 0, 1,    0, 1, 0, 1, 0, 1,    0, 1, 0, 1, 0, 1,    0, 1, 0, 1, 0, 1,    0, 1, 0, 1, 0, 1,    0, 1, 0, 1, 0, 1,
-         // 2D  
-         0, 0, 1, 1, 2, 2,    0, 0, 1, 1, 2, 2,    0, 0, 1, 1, 2, 2,    0, 0, 1, 1, 2, 2,    0, 0, 1, 1, 2, 2,    0, 0, 1, 1, 2, 2,    0, 0, 1, 1, 2, 2,    0, 0, 1, 1, 2, 2,
-         // 3D  
-         0, 0, 0, 0, 0, 0,    1, 1, 1, 1, 1, 1,    2, 2, 2, 2, 2, 2,    3, 3, 3, 3, 3, 3,    0, 0, 0, 0, 0, 0,    1, 1, 1, 1, 1, 1,    2, 2, 2, 2, 2, 2,    3, 3, 3, 3, 3, 3,
-         // 4D  
-         0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,    1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1
+         // 1D 
+         0,  1,  0,  1,  0,  1,
+         // 2D 
+         0,  0,  1,  1,  2,  2,
       };
    std::vector<double> tensorConfigValues =
       {
-                  0, 1, 2, 3, 4, 5,    6, 7, 8, 9, 10, 11,    
-                  12, 13, 14, 15, 16, 17,    18, 19, 20, 21, 22, 23,    
-                  24, 25, 26, 27, 28, 29,   30, 31, 32, 33, 34, 35,   
-                  36, 37, 38, 39, 40, 41,    42, 43, 44, 45, 46, 47
+         0,  3,  1,  4,  2,  5,
       };
-   //TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
-   TensorData td(4);
-   //td.setTrain(rows, cols, values, nnz, nrows, ncols);
-   td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
+   Eigen::MatrixXd actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
+
+   //std::cout << actualMatrix0 << std::endl;
+
+   TensorData td(tensorConfig);
 
    /*
    std::cout << "Tensor Data test" << std::endl;
-
-   for(std::unique_ptr<SparseMode>& val : *td.Y)
+  
+   for(uint64_t mode = 0; mode < td.getNModes(); mode++)
    {
-      std::cout << "num_modes: " << val->num_modes << std::endl;
-      std::cout << "nnz: " << val->nnz << std::endl;
-      std::cout << "mode: " << val->mode << std::endl;
+      std::shared_ptr<SparseMode> sview = td.Y(mode);
 
-      std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
-      std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
-      std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
+      std::cout << "===============" << std::endl;
+
+      std::cout << "nplanes: " << sview->getNPlanes() << std::endl;
+      std::cout << "nnz: " << sview->getNNZ() << std::endl;
+      std::cout << "ncoords: " << sview->getNCoords() << std::endl;
+      std::cout << "mode: " << sview->getMode() << std::endl;
+      
+      for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) // go through each hyper plane in the dimention
+      {
+         std::cout << "-----" << std::endl;
+
+         for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each value in a plane
+         {
+            for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
+            {
+               std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
+            }
+            
+            std::cout << sview->getValues()[j] << std::endl; //print value
+         }
+      }
 
       std::cout << std::endl;
    }
    */
 }
 
-TEST_CASE("test tensor constructor 2")
-{
-   std::vector<int> tensorConfigDims = { 2, 3, 4 };
-   std::vector<int> tensorConfigColumns =
+TEST_CASE("test sparse view new 2")
+{  
+   std::vector<std::uint64_t> tensorConfigDims = { 2, 3, 4 };
+   std::vector<std::uint32_t> tensorConfigColumns =
       {
+         //  1-st xy plane             //2-nd xy plane           //3-rd xy plane            //4-rd xy plane
          // 1D 
          0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,
          // 2D 
@@ -67,25 +87,40 @@ TEST_CASE("test tensor constructor 2")
       };
    std::vector<double> tensorConfigValues =
       {
-                  0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
+         0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
       };
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
-   TensorData td(3);
-   //td.setTrain(rows, cols, values, nnz, nrows, ncols);
-   td.setTrain(tensorConfigColumns.data(), tensorConfigDims.size(), tensorConfigValues.data(), tensorConfigValues.size(), tensorConfigDims.data());
+   TensorData td(tensorConfig);
 
    /*
    std::cout << "Tensor Data test" << std::endl;
-
-   for(std::unique_ptr<SparseMode>& val : *td.Y)
+  
+   for(uint64_t mode = 0; mode < td.getNModes(); mode++)
    {
-      std::cout << "num_modes: " << val->num_modes << std::endl;
-      std::cout << "nnz: " << val->nnz << std::endl;
-      std::cout << "mode: " << val->mode << std::endl;
+      std::shared_ptr<SparseMode> sview = td.Y(mode);
 
-      std::cout << "row_ptr:" << std::endl << val->row_ptr << std::endl;
-      std::cout << "indices:" << std::endl << val->indices.transpose() << std::endl;
-      std::cout << "values:" << std::endl << val->values.transpose() << std::endl;
+      std::cout << "===============" << std::endl;
+
+      std::cout << "nplanes: " << sview->getNPlanes() << std::endl;
+      std::cout << "nnz: " << sview->getNNZ() << std::endl;
+      std::cout << "ncoords: " << sview->getNCoords() << std::endl;
+      std::cout << "mode: " << sview->getMode() << std::endl;
+      
+      for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) // go through each hyper plane in the dimension
+      {
+         std::cout << "-----" << std::endl;
+
+         for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each value in a plane
+         {
+            for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
+            {
+               std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
+            }
+            
+            std::cout << sview->getValues()[j] << std::endl; //print value
+         }
+      }
 
       std::cout << std::endl;
    }

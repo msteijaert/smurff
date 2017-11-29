@@ -9,6 +9,8 @@
 
 namespace smurff
 {
+   class Data;
+
    class MatrixConfig : public TensorConfig
    {
    private:
@@ -64,7 +66,7 @@ namespace smurff
                    const NoiseConfig& noiseConfig);
 
    //
-   // Constructors for constructing matrix as a tensor
+   // Constructors for constructing sparse matrix as a tensor
    //
    public:
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
@@ -79,6 +81,22 @@ namespace smurff
                    std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values,
                    const NoiseConfig& noiseConfig);
 
+   //
+   // Constructors for constructing sparse binary matrix as a tensor
+   //
+   public:
+      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
+                   const std::vector<std::uint32_t>& columns, 
+                   const NoiseConfig& noiseConfig);
+      
+      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, 
+                   std::vector<std::uint32_t>&& columns, 
+                   const NoiseConfig& noiseConfig);
+
+      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
+                   std::shared_ptr<std::vector<std::uint32_t> > columns, 
+                   const NoiseConfig& noiseConfig);
+
    public:
       MatrixConfig();
 
@@ -91,5 +109,11 @@ namespace smurff
 
       std::shared_ptr<std::vector<std::uint32_t> > getRowsPtr() const;
       std::shared_ptr<std::vector<std::uint32_t> > getColsPtr() const;
+
+   public:
+      std::shared_ptr<Data> create(std::shared_ptr<IDataCreator> creator) const override;
+
+   public:
+      void write(std::shared_ptr<IDataWriter> writer) const override;
    };
 }

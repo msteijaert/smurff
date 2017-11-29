@@ -12,13 +12,7 @@ namespace smurff
    public:
       void init_pre() override;
       void init_post() override;
-      void setCenterMode(std::string mode) override;
-      void setCenterMode(CenterModeTypes type) override;
-
-      void center(double global_mean) override;
-      double compute_mode_mean_mn(int mode, int pos) override;
-      double offset_to_mean(const PVec<>& pos) const override;
-
+      
       // add data
       std::shared_ptr<MatrixData> add(const PVec<>& p, std::shared_ptr<MatrixData> data);
 
@@ -30,8 +24,8 @@ namespace smurff
 
       // update noise and precision/mean
       void update(const SubModel& model) override;
-      void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
-      void update_pnm(const SubModel& model, int mode) override;
+      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
+      void update_pnm(const SubModel& model, uint32_t mode) override;
 
       //-- print info
       std::ostream& info(std::ostream& os, std::string indent) override;
@@ -51,7 +45,8 @@ namespace smurff
       PVec<>   dim() const override;
 
    private:
-      struct Block {
+      struct Block 
+      {
           friend class MatricesData;
           // c'tor
           Block(PVec<> p, std::shared_ptr<MatrixData> m);

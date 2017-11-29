@@ -12,13 +12,16 @@
 
 #include <SmurffCpp/Model.h>
 
+#include <SmurffCpp/VMatrixIterator.hpp>
+#include <SmurffCpp/ConstVMatrixIterator.hpp>
+
 namespace smurff {
 
 class ILatentPrior
 {
 public:
    std::shared_ptr<BaseSession> m_session;
-   int m_mode;
+   uint32_t m_mode;
    std::string m_name = "xxxx";
 
    thread_vector<Eigen::VectorXd> rrs;
@@ -28,7 +31,7 @@ protected:
    ILatentPrior(){}
 
 public:
-   ILatentPrior(std::shared_ptr<BaseSession> session, int mode, std::string name = "xxxx");
+   ILatentPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name = "xxxx");
    virtual ~ILatentPrior() {}
    virtual void init();
 
@@ -42,7 +45,16 @@ public:
    std::shared_ptr<INoiseModel> noise();
 
    std::shared_ptr<Eigen::MatrixXd> U();
-   std::shared_ptr<Eigen::MatrixXd> V();
+   std::shared_ptr<const Eigen::MatrixXd> U() const;
+
+   //return V matrices in the model opposite to mode
+   VMatrixIterator<Eigen::MatrixXd> Vbegin();
+   
+   VMatrixIterator<Eigen::MatrixXd> Vend();
+
+   ConstVMatrixIterator<Eigen::MatrixXd> CVbegin() const;
+   
+   ConstVMatrixIterator<Eigen::MatrixXd> CVend() const;
 
    int num_latent() const;
    int num_cols() const;
