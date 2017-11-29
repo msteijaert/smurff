@@ -31,9 +31,10 @@ void ScarceBinaryMatrixData::get_pnm(const SubModel& model, uint32_t mode, int n
 
 void ScarceBinaryMatrixData::update_pnm(const SubModel& model, uint32_t mode)
 {
+   //can not cache VV because of scarceness
 }
 
-int ScarceBinaryMatrixData::nna() const
+std::uint64_t ScarceBinaryMatrixData::nna() const
 {
    return size() - nnz();
 }

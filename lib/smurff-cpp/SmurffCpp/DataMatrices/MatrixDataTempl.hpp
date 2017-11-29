@@ -31,7 +31,7 @@ namespace smurff
          return PVec<>({ static_cast<int>(Y().rows()), static_cast<int>(Y().cols()) }); 
       }
 
-      int nnz() const override 
+      std::uint64_t nnz() const override 
       { 
          return Y().nonZeros(); 
       }

@@ -128,9 +128,10 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
 
 void ScarceMatrixData::update_pnm(const SubModel &, std::uint32_t mode)
 {
+   //can not cache VV because of scarceness
 }
 
-int ScarceMatrixData::nna() const
+std::uint64_t ScarceMatrixData::nna() const
 {
    return size() - nnz();
 }

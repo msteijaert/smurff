@@ -39,8 +39,8 @@ namespace smurff
             [func](T s, const Block &b) -> T { return  s + (b.data().get()->*func)(); });
       }
 
-      int    nnz() const override;
-      int    nna() const override;
+      std::uint64_t    nnz() const override;
+      std::uint64_t    nna() const override;
       double sum() const override;
       PVec<>   dim() const override;
 

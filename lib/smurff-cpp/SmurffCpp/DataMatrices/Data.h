@@ -47,9 +47,9 @@ namespace smurff
 
    //#### dimention functions ####
    public:
-      virtual int nmode() const = 0; // number of dimensions
-      virtual int nnz() const = 0; // number of non zero elements
-      virtual int nna() const = 0; // number of NA elements
+      virtual std::uint64_t nmode() const = 0; // number of dimensions
+      virtual std::uint64_t nnz() const = 0; // number of non zero elements
+      virtual std::uint64_t nna() const = 0; // number of NA elements
       virtual PVec<> dim() const = 0; // dimension vector
 
    public:
