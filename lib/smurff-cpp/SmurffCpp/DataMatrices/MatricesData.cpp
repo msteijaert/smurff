@@ -11,7 +11,7 @@ MatricesData::MatricesData()
 void MatricesData::init_pre()
 {
    mode_dim.resize(nmode());
-   for(int n = 0; n<nmode(); ++n)
+   for(std::uint64_t n = 0; n < nmode(); ++n)
    {
        std::vector<int> S(blocks.size());
        int max_pos = -1;

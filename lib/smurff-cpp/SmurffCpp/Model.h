@@ -44,11 +44,8 @@ public:
 
 public:
    //dot product of i'th columns in each U matrix
-   //indices - vector of column indices
-   double dot(const PVec<> &indices) const;
-
-   //same as dot
-   double predict(const PVec<> &pos) const;
+   //pos - vector of column indices
+   double predict(const PVec<>& pos) const;
 
 public:
    //return f'th U matrix in the model
@@ -128,9 +125,9 @@ public:
 
 public:
    //dot product of i'th columns in each U matrix
-   double dot(const PVec<> &pos) const
+   double predict(const PVec<> &pos) const
    {
-      return m_model->dot(m_off + pos);
+      return m_model->predict(m_off + pos);
    }
 
    //size of latent dimention

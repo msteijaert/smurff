@@ -28,7 +28,7 @@ void Data::update(const SubModel& model)
 
 double Data::predict(const PVec<>& pos, const SubModel& model) const
 {
-   return model.dot(pos);
+   return model.predict(pos);
 }
 
 //#### dimention functions ####
