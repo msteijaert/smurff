@@ -11,17 +11,17 @@ namespace smurff
       Eigen::MatrixXd VV[2];
 
    public:
-      FullMatrixData(YType Y) : MatrixDataTempl<YType>(Y)
+      FullMatrixData(YType Y) 
+         : MatrixDataTempl<YType>(Y)
       {
          this->name = "MatrixData [fully known]";
       }
-
 
    public:
       void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
       {
          const double alpha = this->noise()->getAlpha();
-         auto &Y = this->getYcPtr()->at(mode);
+         auto& Y = this->Y(mode);
          rr.noalias() += (model.V(mode) * Y.col(d)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
          MM.noalias() += VV[mode] * alpha; // MM = MM + VV[m] * alpha
       }
@@ -46,15 +46,6 @@ namespace smurff
       int nna() const override
       {
          return 0;
-      }
-
-   private:
-      double compute_mode_mean_mn(int mode, int pos) override
-      {
-          const auto &col = this->getYcPtr()->at(mode).col(pos);
-          if (col.nonZeros() == 0)
-            return this->getCwiseMean();
-          return col.sum() / this->getYcPtr()->at(mode).rows();
       }
    };
 }
