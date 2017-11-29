@@ -37,11 +37,10 @@ TEST_CASE("test sparse view new 1")
    //std::cout << actualMatrix0 << std::endl;
 
    TensorData td(tensorConfig);
-
    /*
    std::cout << "Tensor Data test" << std::endl;
   
-   for(uint64_t mode = 0; mode < td.getNModes(); mode++)
+   for(uint64_t mode = 0; mode < td.nmode(); mode++)
    {
       std::shared_ptr<SparseMode> sview = td.Y(mode);
 
@@ -92,11 +91,10 @@ TEST_CASE("test sparse view new 2")
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
 
    TensorData td(tensorConfig);
-
    /*
    std::cout << "Tensor Data test" << std::endl;
   
-   for(uint64_t mode = 0; mode < td.getNModes(); mode++)
+   for(uint64_t mode = 0; mode < td.nmode(); mode++)
    {
       std::shared_ptr<SparseMode> sview = td.Y(mode);
 
