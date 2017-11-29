@@ -70,8 +70,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 
       case ROW_FEATURES:    c.row_features.push_back(read_matrix(optarg)); break;
       case COL_FEATURES:    c.col_features.push_back(read_matrix(optarg)); break;
-      case CENTER:          c.center_mode_type        = stringToCenterMode(optarg); break;
-
+      case CENTER:          break;
 
       case FNAME_TRAIN:     c.train              = read_matrix(optarg); break;
       case LAMBDA_BETA:     c.lambda_beta        = strtod(optarg, NULL); break;

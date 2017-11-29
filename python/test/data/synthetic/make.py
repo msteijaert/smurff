@@ -3,11 +3,17 @@
 import numpy as np
 from scipy import sparse
 import scipy.io as sio
-import argparse 
+import argparse
 import os
 import itertools
 import matrix_io as mio
 from sklearn import preprocessing
+
+def write_dense_float64_col_major(filename, Y):
+    with open(filename, 'wb') as f:
+        np.array(Y.shape[0]).astype(np.int64).tofile(f)
+        np.array(Y.shape[1]).astype(np.int64).tofile(f)
+        f.write(Y.astype(np.float64).tobytes(order='F'))
 
 #parser = argparse.ArgumentParser(description='SMURFF tests')
 #parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
@@ -69,7 +75,10 @@ def write_matrix(filename, A):
     if sparse.issparse(A):
         mio.write_sparse_float64(filename + ".sdm", A)
     else:
-        mio.write_dense_float64(filename + ".ddm", A)
+        # TRANSPOSE BECAUSE OF INTERNAL REPRESENTATION OF DENSE
+        # mio.write_dense_float64(filename + ".ddm", A.transpose())
+        # mio.write_dense_float64(filename + ".ddm", A)
+        write_dense_float64_col_major(filename + ".ddm", A)
 
     sio.mmwrite(filename, A)
 
@@ -77,20 +86,49 @@ def write_feat(base, features):
     for (indx,F) in enumerate(features):
         write_matrix("feat_%d_%d" % (base, indx), F)
 
-def write_data(dirname, train, features = ([],[])):
+def write_test_data(dirname, test):
+    os.chdir(dirname)
+    write_matrix("test", test)
+    os.chdir("..")
+
+def write_train_data(dirname, train, features = ([],[])):
     os.makedirs(dirname)
     os.chdir(dirname)
     write_matrix("train", train)
-    test = sparsify(train, 0.2)
-    write_matrix("test", test)
     for (indx,feat) in enumerate(features):
         write_feat(indx, feat)
     os.chdir("..")
 
-def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1, center = "none"):
+def gen_test_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, center_list=["none"]):
+    # split rows and cols
+    rows_blocked = np.array_split(m, row_split, axis=0)
+    blocks = [ np.array_split(b, col_split, axis=1) for b in rows_blocked]
+    m = blocks[0][0]
+    col_feat = [b[0] for b in blocks[1:]]
+    row_feat = blocks[0][1:]
+
+    assert len(col_feat) == row_split - 1
+    assert len(row_feat) == col_split - 1
+
+    for r in row_feat: assert r.shape[0] == m.shape[0]
+    for r in col_feat: assert r.shape[1] == m.shape[1]
+
+    test = sparsify(m, 0.2)
+
+    for center in center_list:
+        if (func == "ones" and center != "none"):
+            continue
+
+        shape_str = "_".join(map(str,shape))
+        dirname = "%s_%s_%d_%d_%d_%d_%s" % (func, shape_str, K, int(density * 100), row_split, col_split, center)
+
+        print("%s..." % dirname)
+        write_test_data(dirname, test)
+
+def gen_train_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, center = "none"):
     if (func == "ones" and center != "none"):
         return
- 
+    
     shape_str = "_".join(map(str,shape))
     dirname = "%s_%s_%d_%d_%d_%d_%s" % (func, shape_str, K, int(density * 100), row_split, col_split, center)
 
@@ -99,16 +137,6 @@ def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1, center = 
         return
 
     print("%s..." % dirname)
-
-    # generate all data in 1 matrix
-    m = gen_matrix(shape,K,func);
-
-    if (center == "row"): 
-        m = preprocessing.scale(m, axis = 0, with_std=False)
-    elif (center == "col"):
-        m = preprocessing.scale(m, axis = 1, with_std=False)
-    elif (center == "global"): 
-        m = m - np.mean(m)
 
     # split rows and cols
     rows_blocked = np.array_split(m, row_split, axis=0)
@@ -123,19 +151,45 @@ def gen_and_write(shape, K,func,density, row_split = 1, col_split = 1, center = 
     for r in row_feat: assert r.shape[0] == m.shape[0]
     for r in col_feat: assert r.shape[1] == m.shape[1]
 
-    if density < 1.0:
-        m = sparsify(m, density)
+    # PAY ATTENTION TO AXIS ORDER
+    if (center == "row"):
+        m = preprocessing.scale(m, axis = 0, with_std=False)
+    elif (center == "col"):
+        m = preprocessing.scale(m, axis = 1, with_std=False)
+    elif (center == "global"):
+        m = m - np.mean(m)
 
-    write_data(dirname, m, (row_feat, col_feat))
+    for i in range(len(row_feat)):
+        if (center == "row"):
+            row_feat[i] = preprocessing.scale(row_feat[i], axis = 0, with_std=False)
+        elif (center == "col"):
+            row_feat[i] = preprocessing.scale(row_feat[i], axis = 1, with_std=False)
+        elif (center == "global"):
+            row_feat[i] = row_feat[i] - np.mean(row_feat[i])
+
+    for i in range(len(col_feat)):
+        if (center == "row"):
+            col_feat[i] = preprocessing.scale(col_feat[i], axis = 0, with_std=False)
+        elif (center == "col"):
+            col_feat[i] = preprocessing.scale(col_feat[i], axis = 1, with_std=False)
+        elif (center == "global"):
+            col_feat[i] = col_feat[i] - np.mean(col_feat[i])
+
+    write_train_data(dirname, m, (row_feat, col_feat))
 
 
 if __name__ == "__main__":
     shape = [2000,100]
     #shape = [40,30]
     num_latent = 4
-    for density in (1, .2):
+    # for density in (1, .2):
+    for density in (1,):
         for func in ("normal", "ones"):
+            # CALL GEN MATRIX ONLY ONCE
+            m = gen_matrix(shape,num_latent,func)
             for row_split in (1,2,3):
                 for col_split in (1,2,3,):
                     for center in ("none", "global", "row", "col"):
-                        gen_and_write(shape,num_latent,func,density, row_split, col_split, center)
+                        gen_train_and_write(m,shape,num_latent,func,density, row_split, col_split, center)
+                    # SPARSIFY SHOULD BE CALLED ONLY ONCE
+                    gen_test_and_write(m,shape,num_latent,func,density, row_split, col_split, ("none", "global", "row", "col"))

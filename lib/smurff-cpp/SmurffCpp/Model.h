@@ -37,7 +37,7 @@ public:
    double dot(const PVec<> &indices) const;
 
    //same as dot
-   double predict(const PVec<> &pos, std::shared_ptr<Data> data) const;
+   double predict(const PVec<> &pos) const;
 
 public:
    //return f'th U matrix in the model where number of matrices is != 2

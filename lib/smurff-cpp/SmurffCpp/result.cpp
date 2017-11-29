@@ -58,27 +58,6 @@ void Result::init()
    }
 }
 
-double Result::rmse_using_globalmean(double mean)
-{
-   double se = 0.;
-   for(auto t : predictions)
-      se += square(t.val - mean);
-   return sqrt( se / predictions.size() );
-}
-
-double Result::rmse_using_modemean(std::shared_ptr<Data> data, int mode)
-{
-   const unsigned N = predictions.size();
-   double se = 0.;
-   for(auto t : predictions)
-   {
-      int n = mode == 0 ? t.row : t.col;
-      double pred = data->getModeMeanItem(mode, n);
-      se += square(t.val - pred);
-   }
-   return sqrt( se / N );
-}
-
 //--- output model to files
 void Result::save(std::string prefix)
 {
@@ -110,7 +89,7 @@ void Result::save(std::string prefix)
 
 //model - holds samples (U matrices)
 //data - Y train matrix
-void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> data, bool burnin)
+void Result::update(std::shared_ptr<const Model> model, bool burnin)
 {
    if (predictions.size() == 0)
       return;
@@ -125,7 +104,7 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       for(unsigned k=0; k<predictions.size(); ++k)
       {
          auto &t = predictions[k];
-         t.pred_1sample = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
+         t.pred_1sample = model->predict({(int)t.row, (int)t.col}); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - t.pred_1sample);
       }
 
@@ -145,7 +124,7 @@ void Result::update(std::shared_ptr<const Model> model, std::shared_ptr<Data> da
       for(unsigned k=0; k<predictions.size(); ++k)
       {
          auto &t = predictions[k];
-         const double pred = model->predict({(int)t.row, (int)t.col}, data); //dot product of i'th columns in each U matrix
+         const double pred = model->predict({(int)t.row, (int)t.col}); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - pred);
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
@@ -276,19 +255,16 @@ std::pair<double,double> eval_rmse_tensor(
 }
 */
 
-std::ostream &Result::info(std::ostream &os, std::string indent, std::shared_ptr<Data> data)
+std::ostream &Result::info(std::ostream &os, std::string indent)
 {
    if (predictions.size())
    {
       double test_fill_rate = 100. * predictions.size() / m_nrows / m_ncols;
       os << indent << "Test data: " << predictions.size() << " [" << m_nrows << " x " << m_ncols << "] (" << test_fill_rate << "%)\n";
-      os << indent << "RMSE using globalmean: " << rmse_using_globalmean(data->getGlobalMean()) << endl;
-      os << indent << "RMSE using rowmean: " << rmse_using_modemean(data,0) << endl;
-      os << indent << "RMSE using colmean: " << rmse_using_modemean(data,1) << endl;
    }
    else
    {
-    os << indent << "Test data: -\n";
+      os << indent << "Test data: -\n";
    }
 
    if (classify)

@@ -8,7 +8,6 @@ FILE (GLOB HEADER_FILES "../catch.hpp"
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../tests.cpp"
-			"../TestsCentring.cpp"
                         "../TestsMatrixIO.cpp"
                         "../TestsTensorIO.cpp"
                         "../TestsMatrixConfig.cpp"

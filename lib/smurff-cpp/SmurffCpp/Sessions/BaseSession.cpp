@@ -39,7 +39,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent)
       p->info(os, indent + "    ");
    os << indent << "  }\n";
    os << indent << "  Result: {\n";
-   m_pred->info(os, indent + "    ", data());
+   m_pred->info(os, indent + "    ");
    os << indent << "  }\n";
    return os;
 }
