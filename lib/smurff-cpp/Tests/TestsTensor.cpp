@@ -128,57 +128,6 @@ TEST_CASE("test sparse view new 2")
 //smurff
 
 /* 
-TEST_CASE("sparsetensor/sparsemode", "SparseMode constructor") {
-  Eigen::MatrixXi C(5, 3);
-  C << 0, 1, 0,
-       0, 0, 0,
-       1, 3, 1,
-       2, 3, 0,
-       1, 0, 1;
-  Eigen::VectorXd v(5);
-  v << 0.1, 0.2, 0.3, 0.4, 0.5;
-
-  // mode 0
-  SparseMode sm0(C, v, 0, 4);
-
-  REQUIRE( sm0.num_modes == 3);
-  REQUIRE( sm0.row_ptr.size() == 5 );
-  REQUIRE( sm0.nnz == 5 );
-  REQUIRE( sm0.row_ptr(0) == 0 );
-  REQUIRE( sm0.row_ptr(1) == 2 );
-  REQUIRE( sm0.row_ptr(2) == 4 );
-  REQUIRE( sm0.row_ptr(3) == 5 );
-  REQUIRE( sm0.row_ptr(4) == 5 );
-  REQUIRE( sm0.modeSize() == 4 );
-
-  Eigen::MatrixXi I0(5, 2);
-  I0 << 1, 0,
-        0, 0,
-        3, 1,
-        0, 1,
-        3, 0;
-  Eigen::VectorXd v0(5);
-  v0 << 0.1, 0.2, 0.3, 0.5, 0.4;
-  REQUIRE( (sm0.indices - I0).norm() == 0 );
-  REQUIRE( (sm0.values  - v0).norm() == 0 );
-
-  // mode 1
-  SparseMode sm1(C, v, 1, 4);
-  Eigen::VectorXi ptr1(5);
-  ptr1 << 0, 2, 3, 3, 5;
-  I0   << 0, 0,
-          1, 1,
-          0, 0,
-          1, 1,
-          2, 0;
-  v0 << 0.2, 0.5, 0.1, 0.3, 0.4;
-  REQUIRE( sm1.num_modes == 3);
-  REQUIRE( (sm1.row_ptr - ptr1).norm() == 0 );
-  REQUIRE( (sm1.indices - I0).norm()   == 0 );
-  REQUIRE( (sm1.values  - v0).norm()   == 0 );
-  REQUIRE( sm1.modeSize() == 4 );
-}
-
 TEST_CASE("bpmfutils/eval_rmse_tensor", "Testing eval_rmse_tensor") {
   Eigen::MatrixXi C(5, 3);
   C << 0, 1, 0,
@@ -217,72 +166,6 @@ TEST_CASE("bpmfutils/eval_rmse_tensor", "Testing eval_rmse_tensor") {
                   cwiseProduct( samples[2]->col(C(i, 2)) ).sum();
     REQUIRE(v0 == Approx(pred(i)));
   }
-}
-
-TEST_CASE("sparsetensor/sparsetensor", "TensorData constructor") {
-  Eigen::MatrixXi C(5, 3);
-  C << 0, 1, 0,
-       0, 0, 0,
-       1, 3, 1,
-       2, 3, 0,
-       1, 0, 1;
-  Eigen::VectorXd v(5);
-  v << 0.1, 0.2, 0.3, 0.4, 0.5;
-  Eigen::VectorXi dims(3);
-  dims << 4, 4, 2;
-
-  TensorData st(3);
-  st.setTrain(C, v, dims);
-  REQUIRE( st.Y->size() == 3 );
-  REQUIRE( (*st.Y)[0]->nonZeros() == 5 );
-  REQUIRE( st.mean_value == Approx(v.mean()) );
-  REQUIRE( st.N == 3 );
-  REQUIRE( st.dims(0) == dims(0) );
-  REQUIRE( st.dims(1) == dims(1) );
-  REQUIRE( st.dims(2) == dims(2) );
-
-  // test data
-  Eigen::MatrixXi Cte(6, 3);
-  Cte << 1, 1, 0,
-         0, 0, 0,
-         1, 3, 0,
-         0, 3, 0,
-         2, 3, 1,
-         2, 0, 0;
-  Eigen::VectorXd vte(6);
-  vte << -0.1, -0.2, -0.3, -0.4, -0.5, -0.6;
-  st.setTest(Cte, vte, dims);
-
-  // fetch test data:
-  Eigen::MatrixXd testData = st.getTestData();
-
-  REQUIRE( st.getTestNonzeros() == Cte.rows() );
-  REQUIRE( testData.rows() == Cte.rows() );
-  REQUIRE( testData.cols() == 4 );
-
-  Eigen::MatrixXd testDataTr(6, 4);
-  testDataTr << 0, 0, 0, -0.2,
-                0, 3, 0, -0.4,
-                1, 1, 0, -0.1,
-                1, 3, 0, -0.3,
-                2, 3, 1, -0.5,
-                2, 0, 0, -0.6;
-  REQUIRE( (testDataTr - testData).norm() == 0);
-}
-
-TEST_CASE("sparsetensor/vectorview", "VectorView test") {
-	std::vector<std::unique_ptr<int> > vec2;
-	vec2.push_back( std::unique_ptr<int>(new int(0)) );
-	vec2.push_back( std::unique_ptr<int>(new int(2)) );
-	vec2.push_back( std::unique_ptr<int>(new int(4)) );
-	vec2.push_back( std::unique_ptr<int>(new int(6)) );
-	vec2.push_back( std::unique_ptr<int>(new int(8)) );
-	VectorView<int> vv2(vec2, 1);
-	REQUIRE( *vv2.get(0) == 0 );
-	REQUIRE( *vv2.get(1) == 4 );
-	REQUIRE( *vv2.get(2) == 6 );
-	REQUIRE( *vv2.get(3) == 8 );
-	REQUIRE( vv2.size() == 4 );
 }
 
 TEST_CASE("latentprior/sample_tensor", "Test whether sampling tensor is correct") {
