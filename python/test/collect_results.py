@@ -32,21 +32,44 @@ def find_test_dirs(root="."):
     return test_dirs
 
 def process_test_dir(dir):
-
-    pred_file = max(glob.iglob('%s/*predictions*csv' % dir), key=os.path.getctime)
-    print("Processing %s" % pred_file)
-    (auc, rmse) = parse_predictions_file(pred_file, 5.0)
-    real_time = float(oneline(dir, 'time').split()[1])
+    args = open(os.path.join(dir, "args"), 'r').read()
     exit_code = int(oneline(dir, 'exit_code'))
-    env = os.path.basename(oneline(dir, 'env'))
-    name = oneline(dir, 'name')
 
-    return ( env, name, exit_code, auc, rmse, real_time )
+    try:
+        pred_file = max(glob.iglob('%s/*predictions*csv' % dir), key=os.path.getctime)
+        print("Processing %s" % pred_file)
+        (auc, rmse) = parse_predictions_file(pred_file, 5.0)
+        real_time = float(oneline(dir, 'time').split()[1])
+    except:
+        print("Failed %s" % dir)
+        auc = rmse = real_time = -1
 
+    result = {
+        "auc" : auc,
+        "rmse" : rmse,
+        "real_time" : real_time,
+        "exit_code" : exit_code,
+        "time": os.path.getctime(os.path.join(dir, 'exit_code'))
+    }
+
+    run = {
+        "args" : eval(args),
+        "result": result
+        
+    }
+
+    with open(os.path.join(dir, "result"), "w") as f:
+        f.write(str(result))
+
+    return run
 
 results = []
 for dir in find_test_dirs():
    results.append(process_test_dir(dir))
 
-pd.DataFrame(results, columns = ( "env", "name", "exit_code", "auc", "rmse", "real_time" ) ).to_csv("results.csv")
+def cat(fname, s):
+    with open(fname, "w") as f:
+        f.write(str(s))
 
+pd.DataFrame(results).to_csv("results.csv")
+cat("results.pydata", results)
