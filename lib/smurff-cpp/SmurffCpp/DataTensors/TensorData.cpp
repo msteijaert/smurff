@@ -49,7 +49,21 @@ void TensorData::init_pre()
 
 double TensorData::sum() const
 {
-   throw std::runtime_error("not implemented");
+   double esum = 0.0;
+   double mean_value = 0; // what should be mean value?
+
+   std::shared_ptr<SparseMode> sview = Y(0);
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:esum)
+   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   {
+      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      {
+         esum += sview->getValues()[j];
+      }
+   }
+
+   return esum;
 }
 
 std::uint64_t TensorData::nmode() const
