@@ -113,8 +113,38 @@ void TensorData::update_pnm(const SubModel& model, uint32_t mode)
 
 double TensorData::sumsq(const SubModel& model) const
 {
-   //there is old implementation down below
-   throw std::runtime_error("not implemented");
+   double sumsq = 0.0;
+
+   std::shared_ptr<SparseMode> sview = Y(0);
+   auto U0 = model.U(0);
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   for (int n = 0; n < U0.cols(); n++) 
+   {
+      const Eigen::VectorXd& u0_col = U0.col(n);
+
+      for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++)
+      {
+         double pred = 0;
+         
+         for (int d = 0; d < U0.rows(); d++) 
+         {
+            double tmp = u0_col(d);
+
+            auto V = model.CVbegin(0);
+            for (std::uint64_t m = 0; m < sview->getNCoords(); m++, V++)
+            {
+               tmp *= (*V)(d, sview->getIndices()(j, m))
+            }
+
+            pred += tmp;
+         }
+
+         sumsq += square(pred - sview->getValues(j));
+      }
+   }
+
+   return sumsq;
 }
 
 double TensorData::var_total() const
@@ -127,46 +157,6 @@ std::ostream& TensorData::info(std::ostream& os, std::string indent)
 {
    throw std::runtime_error("not implemented");
 }
-
-//macau
-/*
-double sumsq(TensorData & data, std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
-{
-   double sumsq = 0.0;
-   double mean_value = data.mean_value;
-
-   auto& sparseMode = (*data.Y)[0];
-   auto& U = samples[0];
-
-   const int nmodes = samples.size();
-   const int num_latents = U->rows();
-
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-   for (int n = 0; n < data.dims(0); n++) {
-      Eigen::VectorXd u = U->col(n);
-      for (int j = sparseMode->row_ptr(n);
-               j < sparseMode->row_ptr(n + 1);
-               j++)
-      {
-         VectorXi idx = sparseMode->indices.row(j);
-         // computing prediction from tensor
-         double Yhat = mean_value;
-         for (int d = 0; d < num_latents; d++) {
-         double tmp = u(d);
-
-         for (int m = 1; m < nmodes; m++) {
-            tmp *= (*samples[m])(d, idx(m - 1));
-         }
-         Yhat += tmp;
-         }
-         sumsq += square(Yhat - sparseMode->values(j));
-      }
-
-   }
-
-   return sumsq;
-}
-*/
 
 //macau
 /*
