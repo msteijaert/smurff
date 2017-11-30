@@ -31,7 +31,8 @@ defaults = {
         'col_prior'   : "normal",
         'burnin'      : 20,
         'nsamples'    : 50,
-        'center'      : "global",
+        'incenter'    : "global",
+        'precenter'   : "none",
         'row_features': [],
         'col_features': [],
         'direct'      : True,
@@ -210,12 +211,12 @@ def chembl_tests(defaults):
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
             { },
-    #        { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
-             { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
-    #        { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
+            { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
+            { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
+            { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
     ])
 
-    chembl_tests_centering.add_centering_options()
+    # chembl_tests_centering.add_centering_options()
 
     chembl_tests = TestSuite("chembl", chembl_defaults)
     # chembl_tests = TestSuite("chembl", chembl_defaults,
