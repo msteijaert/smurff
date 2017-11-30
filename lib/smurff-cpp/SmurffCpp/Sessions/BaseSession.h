@@ -70,7 +70,7 @@ public:
    void restore(std::string prefix, std::string suffix);
 
 public:
-   MatrixConfig getResult() override;
+   std::vector<Result::Item> getResult() override;
    MatrixConfig getSample(int dim) override;
 };
 

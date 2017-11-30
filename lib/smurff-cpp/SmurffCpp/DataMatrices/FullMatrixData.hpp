@@ -50,7 +50,7 @@ namespace smurff
          VV[mode] = VVs.combine(); //accumulate sum
       }
 
-      int nna() const override
+      std::uint64_t nna() const override
       {
          return 0;
       }

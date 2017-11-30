@@ -17,7 +17,7 @@ void ScarceMatrixData::init_pre()
    MatrixDataTempl<Eigen::SparseMatrix<double> >::init_pre();
 
    // check no rows, nor cols withouth data
-   for(int mode = 0; mode < nmode(); ++mode)
+   for(std::uint64_t mode = 0; mode < nmode(); ++mode)
    {
       auto& m = this->Y(mode);
       auto& count = num_empty[mode];
@@ -128,9 +128,10 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
 
 void ScarceMatrixData::update_pnm(const SubModel &, std::uint32_t mode)
 {
+   //can not cache VV because of scarceness
 }
 
-int ScarceMatrixData::nna() const
+std::uint64_t ScarceMatrixData::nna() const
 {
    return size() - nnz();
 }

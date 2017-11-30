@@ -59,17 +59,12 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
    }
 }
 
-double Model::dot(const PVec<> &indices) const
+double Model::predict(const PVec<> &pos) const
 {
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
    for(uint32_t d = 0; d < nmodes(); ++d)
-      P *= col(d, indices.at(d)).array(); //this is column wise product!
+      P *= col(d, pos.at(d)).array();
    return P.sum();
-}
-
-double Model::predict(const PVec<> &pos) const
-{
-   return dot(pos);
 }
 
 std::shared_ptr<const Eigen::MatrixXd> Model::U(uint32_t f) const

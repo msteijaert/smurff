@@ -11,7 +11,7 @@ MatricesData::MatricesData()
 void MatricesData::init_pre()
 {
    mode_dim.resize(nmode());
-   for(int n = 0; n<nmode(); ++n)
+   for(std::uint64_t n = 0; n < nmode(); ++n)
    {
        std::vector<int> S(blocks.size());
        int max_pos = -1;
@@ -149,12 +149,12 @@ std::ostream& MatricesData::status(std::ostream& os, std::string indent) const
    return os;
 }
 
-int MatricesData::nnz() const
+std::uint64_t MatricesData::nnz() const
 {
    return accumulate(0, &MatrixData::nnz);
 }
 
-int MatricesData::nna() const
+std::uint64_t MatricesData::nna() const
 {
    return accumulate(0, &MatrixData::nna);
 }
