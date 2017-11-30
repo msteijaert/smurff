@@ -177,7 +177,7 @@ std::shared_ptr<MatrixConfig> matrix_io::read_dense_float64_csv(std::istream& in
    if(col != ncol)
       throw std::runtime_error("invalid number of columns");
 
-   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, values, smurff::NoiseConfig());
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(values), smurff::NoiseConfig());
 }
 
 std::shared_ptr<MatrixConfig> matrix_io::read_sparse_float64_bin(std::istream& in)
