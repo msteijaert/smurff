@@ -36,5 +36,5 @@ void ScarceBinaryMatrixData::update_pnm(const SubModel& model, uint32_t mode)
 
 std::uint64_t ScarceBinaryMatrixData::nna() const
 {
-   return size() - nnz();
+   return size() - nnz(); //nrows * ncols - nnz
 }
