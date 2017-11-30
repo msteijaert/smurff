@@ -42,30 +42,6 @@ namespace smurff
       return var;
    }
 
-   //macau
-   /*
-   double var_total(MatrixData & matrixData)
-   {
-   double se = 0.0;
-   double mean_value = matrixData.mean_value;
-
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
-   for (int k = 0; k < matrixData.Y.outerSize(); ++k) {
-      for (SparseMatrix<double>::InnerIterator it(matrixData.Y, k); it; ++it) {
-         se += square(it.value() - mean_value);
-      }
-   }
-
-   var_total = se / matrixData.Y.nonZeros();
-   if (var_total <= 0.0 || std::isnan(var_total)) {
-      // if var cannot be computed using 1.0
-      var_total = 1.0;
-   }
-
-   return var_total;
-   }
-   */
-
    // for the adaptive gaussian noise
    template<>
    double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel& model) const
@@ -101,28 +77,4 @@ namespace smurff
 
       return sumsq;
    }
-
-   //macau
-   /*
-   double sumsq(MatrixData & data, std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
-   {
-   double sumsq = 0.0;
-   MatrixXd & U = *samples[0];
-   MatrixXd & V = *samples[1];
-
-   Eigen::SparseMatrix<double> & train = data.Y;
-   double mean_value = data.mean_value;
-
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-   for (int j = 0; j < train.outerSize(); j++) {
-      auto Vj = V.col(j);
-      for (SparseMatrix<double>::InnerIterator it(train, j); it; ++it) {
-         double Yhat = Vj.dot( U.col(it.row()) ) + mean_value;
-         sumsq += square(Yhat - it.value());
-      }
-   }
-
-   return sumsq;
-   }
-   */
 }
