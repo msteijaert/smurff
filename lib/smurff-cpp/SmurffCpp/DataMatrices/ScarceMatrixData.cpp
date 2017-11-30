@@ -133,5 +133,5 @@ void ScarceMatrixData::update_pnm(const SubModel &, std::uint32_t mode)
 
 std::uint64_t ScarceMatrixData::nna() const
 {
-   return size() - nnz();
+   return size() - nnz(); //nrows * ncols - nnz
 }
