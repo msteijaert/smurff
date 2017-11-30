@@ -116,31 +116,21 @@ double TensorData::sumsq(const SubModel& model) const
    double sumsq = 0.0;
 
    std::shared_ptr<SparseMode> sview = Y(0);
-   auto U0 = model.U(0);
+
+   std::vector<int> coords(this->nmode());
 
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-   for (int n = 0; n < U0.cols(); n++) 
+   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
    {
-      const Eigen::VectorXd& u0_col = U0.col(n);
+      coords[0] = n;
 
-      for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++)
+      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
       {
-         double pred = 0;
-         
-         for (int d = 0; d < U0.rows(); d++) 
-         {
-            double tmp = u0_col(d);
+         for(std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of the item
+            coords[m + 1] = static_cast<int>(sview->getIndices()(j, m));
 
-            auto V = model.CVbegin(0);
-            for (std::uint64_t m = 0; m < sview->getNCoords(); m++, V++)
-            {
-               tmp *= (*V)(d, sview->getIndices()(j, m))
-            }
-
-            pred += tmp;
-         }
-
-         sumsq += square(pred - sview->getValues(j));
+         double pred = model.predict(smurff::PVec<>(coords));
+         sumsq += square(pred - sview->getValues()[j]);
       }
    }
 
