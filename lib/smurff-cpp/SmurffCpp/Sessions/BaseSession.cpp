@@ -59,33 +59,9 @@ void BaseSession::restore(std::string prefix, std::string suffix)
       p->restore(prefix, suffix);
 }
 
-MatrixConfig BaseSession::getResult()
+std::vector<Result::Item> BaseSession::getResult()
 {
-   /*
-   std::vector<std::uint32_t> resultRows;
-   std::vector<std::uint32_t> resultCols;
-   std::vector<double> resultVals;
-   resultRows.reserve(m_pred->m_predictions.size());
-   resultCols.reserve(m_pred->m_predictions.size());
-   resultVals.reserve(m_pred->m_predictions.size());
-
-   for (const Result::Item& i : m_pred->m_predictions)
-   {
-      resultRows.push_back(i.row);
-      resultCols.push_back(i.col);
-      resultVals.push_back(i.val);
-   }
-
-   return MatrixConfig( m_pred->m_nrows
-                      , m_pred->m_ncols
-                      , std::move(resultRows)
-                      , std::move(resultCols)
-                      , std::move(resultVals)
-                      , NoiseConfig()
-                      );
-   */
-
-   throw std::runtime_error("not implemented");
+   return m_pred->m_predictions;
 }
 
 MatrixConfig BaseSession::getSample(int mode)
