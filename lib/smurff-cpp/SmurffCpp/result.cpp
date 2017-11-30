@@ -38,7 +38,7 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
       double val = Y->isBinary() ? 1.0 : valuesPtr->operator[](i);
 
       for(std::uint64_t m = 0; m < Y->getNModes(); m++)
-         coords[m] = (int)columnsPtr->operator[](Y->getNNZ() * m + i);
+         coords[m] = static_cast<int>(columnsPtr->operator[](Y->getNNZ() * m + i));
          
       m_predictions.push_back({smurff::PVec<>(coords), val});
    }
