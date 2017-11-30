@@ -139,34 +139,31 @@ double TensorData::sumsq(const SubModel& model) const
 
 double TensorData::var_total() const
 {
-   //there is old implementation down below
-   throw std::runtime_error("not implemented");
+   double se = 0.0;
+   double mean_value = 0; // what should be mean value?
+
+   std::shared_ptr<SparseMode> sview = Y(0);
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   {
+      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      {
+         se += square(sview->getValues()[j] - mean_value);
+      }
+   }
+
+   double var = se / sview->getValues().size();
+   if (var <= 0.0 || std::isnan(var))
+   {
+      // if var cannot be computed using 1.0
+      var = 1.0;
+   }
+
+   return var;
 }
 
 std::ostream& TensorData::info(std::ostream& os, std::string indent)
 {
    throw std::runtime_error("not implemented");
 }
-
-//macau
-/*
-double var_total(TensorData & data)
-{
-   double se = 0.0;
-   double mean_value = data.mean_value;
-
-   auto& sparseMode   = (*data.Y)[0];
-   VectorXd & values  = sparseMode->values;
-
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
-   for (int i = 0; i < values.size(); i++) {
-      se += square(values(i) - mean_value);
-   }
-   var_total = se / values.size();
-   if (var_total <= 0.0 || std::isnan(var_total)) {
-      var_total = 1.0;
-   }
-
-   return var_total;
-}
-*/
