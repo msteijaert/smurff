@@ -44,7 +44,7 @@ std::shared_ptr<SparseMode> TensorData::Y(std::uint64_t mode) const
 
 void TensorData::init_pre()
 {
-   throw std::runtime_error("not implemented");
+   //no logic here
 }
 
 double TensorData::sum() const
