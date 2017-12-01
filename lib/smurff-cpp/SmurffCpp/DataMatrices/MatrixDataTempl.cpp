@@ -53,7 +53,7 @@ namespace smurff
       {
          for (int i = 0; i < this->nrow(); i++) 
          {
-               sumsq += square(predict({i,j}, model) - this->Y()(i,j));
+               sumsq += square(model.predict({i,j}) - this->Y()(i,j));
          }
       }
 
@@ -71,7 +71,7 @@ namespace smurff
          for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
          {
                int i = it.row();
-               sumsq += square(predict({i,j}, model)- it.value());
+               sumsq += square(model.predict({i,j})- it.value());
          }
       }
 

@@ -41,10 +41,6 @@ namespace smurff
    public:
       virtual double sum() const = 0;
 
-   //#### prediction functions ####
-   public:
-      virtual double predict(const PVec<>& pos, const SubModel& model) const;
-
    //#### dimention functions ####
    public:
       virtual std::uint64_t nmode() const = 0; // number of dimensions

@@ -37,7 +37,7 @@ double ScarceMatrixData::train_rmse(const SubModel& model) const
    {
        for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it) 
        {
-           se += square(it.value() - predict({(int)it.row(), (int)it.col()}, model));
+           se += square(it.value() - model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())}));
        }
    }
    return sqrt( se / Y().nonZeros() );

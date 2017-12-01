@@ -16,7 +16,7 @@ double DenseMatrixData::train_rmse(const SubModel& model) const
    {
       for(int m = 0; m < Y().rows(); ++m) 
       {
-         se += square(Y()(m,c) - predict({m,c}, model));
+         se += square(Y()(m,c) - model.predict({m,c}));
       }
    }
    return sqrt( se / Y().rows() / Y().cols() );

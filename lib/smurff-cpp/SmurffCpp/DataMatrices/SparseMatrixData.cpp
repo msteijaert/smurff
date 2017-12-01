@@ -17,12 +17,14 @@ double SparseMatrixData::train_rmse(const SubModel& model) const
       int r = 0;
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
-         while (r < it.row())
-            se += square(predict({r++, c}, model));
-         se += square(it.value() - predict({r, c}, model));
+         while (r < it.row()) //handle implicit zeroes
+            se += square(model.predict({r++, c}));
+
+         se += square(it.value() - model.predict({r, c}));
       }
-      for(; r < Y().rows(); r++) 
-         se += square(predict({r, c}, model));
+
+      for(; r < Y().rows(); r++) //handle implicit zeroes
+         se += square(model.predict({r, c}));
    }
    return sqrt(se / Y().rows() / Y().cols());
 }
