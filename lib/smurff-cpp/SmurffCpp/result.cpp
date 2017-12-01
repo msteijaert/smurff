@@ -39,7 +39,7 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
 
       for(std::uint64_t m = 0; m < Y->getNModes(); m++)
          coords[m] = static_cast<int>(columnsPtr->operator[](Y->getNNZ() * m + i));
-         
+
       m_predictions.push_back({smurff::PVec<>(coords), val});
    }
 
@@ -108,7 +108,7 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       for(size_t k = 0; k < m_predictions.size(); ++k)
       {
          auto &t = m_predictions[k];
-         t.pred_1sample = model->predict(t.coords); //dot product of i'th columns in each U matrix  
+         t.pred_1sample = model->predict(t.coords); //dot product of i'th columns in each U matrix
          se_1sample += square(t.val - t.pred_1sample);
       }
 
@@ -118,7 +118,7 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       if (classify)
       {
          auc_1sample = calc_auc(m_predictions, threshold,
-               [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
+               [](const ResultItem &a, const ResultItem &b) { return a.pred_1sample < b.pred_1sample;});
       }
    }
    else
@@ -136,7 +136,7 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
          t.var += delta * (pred - pred_avg);
-         
+
          const double inorm = 1.0 / sample_iter;
          t.stds = sqrt(t.var * inorm);
          t.pred_avg = pred_avg;
@@ -151,10 +151,10 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       if (classify)
       {
          auc_1sample = calc_auc(m_predictions, threshold,
-               [](const Item &a, const Item &b) { return a.pred_1sample < b.pred_1sample;});
+               [](const ResultItem &a, const ResultItem &b) { return a.pred_1sample < b.pred_1sample;});
 
          auc_avg = calc_auc(m_predictions, threshold,
-               [](const Item &a, const Item &b) { return a.pred_avg < b.pred_avg;});
+               [](const ResultItem &a, const ResultItem &b) { return a.pred_avg < b.pred_avg;});
       }
    }
 }
@@ -168,9 +168,9 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
          dtotal *= m_dims[d];
 
       double test_fill_rate = 100. * m_predictions.size() / dtotal;
-      
+
       os << indent << "Test data: " << m_predictions.size();
-             
+
       os << " [";
       for(size_t d = 0; d < m_dims.size(); d++)
       {
@@ -200,9 +200,9 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
 
 //macau ProbitNoise eval
 /*
-eval_rmse(MatrixData & data, 
-          const int n, 
-          Eigen::VectorXd & predictions, 
+eval_rmse(MatrixData & data,
+          const int n,
+          Eigen::VectorXd & predictions,
           Eigen::VectorXd & predictions_var,
           std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
 {

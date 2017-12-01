@@ -81,36 +81,33 @@ bool Config::validate(bool throw_error) const
    if (m_test->getDims() != m_train->getDims())
       throw std::runtime_error("Train and test data should have the same dimensions");
 
-   if (m_test->getNNZ() != m_train->getNNZ())
-      throw std::runtime_error("Train and test data should have the same dimensions");
-
-   for (const auto r: m_row_features) 
+   for (const auto r: m_row_features)
    {
-      if (m_train->getDims()[0] != r->getNRow()) 
+      if (m_train->getDims()[0] != r->getNRow())
          throw std::runtime_error("Row features and train should have the same number of rows");
    }
 
-   for (const auto c: m_col_features) 
+   for (const auto c: m_col_features)
    {
-      if (m_train->getDims()[1] != c->getNCol()) 
+      if (m_train->getDims()[1] != c->getNCol())
          throw std::runtime_error("Column features and train should have the same number of cols");
    }
 
-   if (col_prior_type == PriorTypes::macau && m_col_features.size() != 1) 
+   if (col_prior_type == PriorTypes::macau && m_col_features.size() != 1)
       throw std::runtime_error("Exactly one set of col-features needed when using macau prior.");
 
-   if (row_prior_type == PriorTypes::macau && m_row_features.size() != 1) 
+   if (row_prior_type == PriorTypes::macau && m_row_features.size() != 1)
       throw std::runtime_error("Exactly one set of row-features needed when using macau prior.");
 
-   if (col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense())) 
+   if (col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense()))
       throw std::runtime_error("Exactly one set of sparse col-features needed when using macauone prior.");
 
-   if (row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense())) 
+   if (row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense()))
       throw std::runtime_error("Exactly one set of sparse row-features needed when using macauone prior.");
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
-   if (save_suffixes.find(save_suffix) == save_suffixes.end()) 
+   if (save_suffixes.find(save_suffix) == save_suffixes.end())
       throw std::runtime_error("Unknown output suffix: " + save_suffix);
 
    m_train->getNoiseConfig().validate();
@@ -120,25 +117,25 @@ bool Config::validate(bool throw_error) const
 
 void Config::save(std::string fname) const
 {
-   if (!save_freq) 
+   if (!save_freq)
       return;
 
    std::ofstream os(fname);
 
-   os << "# train = "; 
-   m_train->info(os); 
+   os << "# train = ";
+   m_train->info(os);
    os << std::endl;
-   
-   os << "# test = "; 
-   m_test->info(os); 
+
+   os << "# test = ";
+   m_test->info(os);
    os << std::endl;
 
    os << "# features" << std::endl;
 
-   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<MatrixConfig> > &vec) -> void 
+   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<MatrixConfig> > &vec) -> void
    {
       os << "[" << name << "]\n";
-      for (size_t i = 0; i < vec.size(); ++i) 
+      for (size_t i = 0; i < vec.size(); ++i)
       {
          os << "# " << i << " ";
          vec.at(i)->info(os);
@@ -185,11 +182,11 @@ void Config::save(std::string fname) const
    os << "threshold = " << threshold << std::endl;
 }
 
-void Config::restore(std::string fname) 
+void Config::restore(std::string fname)
 {
    INIReader reader(fname);
 
-   if (reader.ParseError() < 0) 
+   if (reader.ParseError() < 0)
    {
       std::cout << "Can't load '" << fname << "'\n";
    }
