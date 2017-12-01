@@ -8,7 +8,6 @@ from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
 from TensorConfig cimport TensorConfig
 from SessionFactory cimport SessionFactory
-from ResultItem cimport ResultItem
 
 cimport numpy as np
 import  numpy as np
@@ -52,7 +51,7 @@ cdef MatrixConfig* prepare_sparse(X):
     cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig())
     return matrix_config_ptr
 
-class ResultItemPy:
+class ResultItem:
     def __init__(self, coords, val, pred_1sample, pred_avg, var, stds):
         self.coords = coords
         self.val = val
@@ -171,9 +170,8 @@ def smurff(Y,
     for i in range(config.nsamples + config.burnin):
         session.get().step()
 
-    # Create Python list of ResultItemPy from C++ vector of ResultItem
-    cdef vector[ResultItem] cpp_result_items = session.get().getResult()
-    cdef ResultItem* cpp_result_item_ptr
+    # Create Python list of ResultItem from C++ vector of ResultItem
+    cpp_result_items = session.get().getResult()
     py_result_items = []
     for i in range(cpp_result_items.size()):
         cpp_result_item_ptr = &(cpp_result_items[i])
@@ -181,13 +179,13 @@ def smurff(Y,
         for coord_index in range(cpp_result_item_ptr.coords.size()):
             coord = cpp_result_item_ptr.coords[coord_index]
             py_result_item_coords.append(coord)
-        py_result_item = ResultItemPy( py_result_item_coords
-                                     , cpp_result_item_ptr.val
-                                     , cpp_result_item_ptr.pred_1sample
-                                     , cpp_result_item_ptr.pred_avg
-                                     , cpp_result_item_ptr.var
-                                     , cpp_result_item_ptr.stds
-                                     )
+        py_result_item = ResultItem( py_result_item_coords
+                                   , cpp_result_item_ptr.val
+                                   , cpp_result_item_ptr.pred_1sample
+                                   , cpp_result_item_ptr.pred_avg
+                                   , cpp_result_item_ptr.var
+                                   , cpp_result_item_ptr.stds
+                                   )
         py_result_items.append(py_result_item)
 
     return py_result_items
