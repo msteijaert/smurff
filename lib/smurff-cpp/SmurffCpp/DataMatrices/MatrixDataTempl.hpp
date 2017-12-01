@@ -41,25 +41,10 @@ namespace smurff
          return Y().sum(); 
       }
 
-      double var_total() const override;
-      double sumsq(const SubModel& model) const override;
-
    public:
       const YType& Y(int mode = 1) const
       {
          return m_Yv->operator[](mode);
       }
    };
-
-   template<>
-   double MatrixDataTempl<Eigen::MatrixXd>::var_total() const;
-
-   template<>
-   double MatrixDataTempl<Eigen::SparseMatrix<double> >::var_total() const;
-
-   template<>
-   double MatrixDataTempl<Eigen::MatrixXd>::sumsq(const SubModel &model) const;
-
-   template<>
-   double MatrixDataTempl<Eigen::SparseMatrix<double> >::sumsq(const SubModel &model) const;
 }

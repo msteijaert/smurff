@@ -135,3 +135,44 @@ std::uint64_t ScarceMatrixData::nna() const
 {
    return size() - nnz(); //nrows * ncols - nnz
 }
+
+double ScarceMatrixData::var_total() const
+{
+   double cwise_mean = this->sum() / (this->size() - this->nna());
+   double se = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   for (int k = 0; k < Y().outerSize(); ++k)
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
+      {
+         se += square(it.value() - cwise_mean);
+      }
+   }
+
+   double var = se / Y().nonZeros();
+   if (var <= 0.0 || std::isnan(var))
+   {
+      // if var cannot be computed using 1.0
+      var = 1.0;
+   }
+
+   return var;
+}
+
+double ScarceMatrixData::sumsq(const SubModel& model) const
+{
+   double sumsq = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   for (int j = 0; j < Y().outerSize(); j++) 
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
+      {
+            int i = it.row();
+            sumsq += square(model.predict({i,j})- it.value());
+      }
+   }
+
+   return sumsq;
+}

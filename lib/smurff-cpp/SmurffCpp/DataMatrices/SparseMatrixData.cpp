@@ -28,3 +28,13 @@ double SparseMatrixData::train_rmse(const SubModel& model) const
    }
    return sqrt(se / Y().rows() / Y().cols());
 }
+
+double SparseMatrixData::var_total() const
+{
+   throw std::runtime_error("not implemented");
+}
+
+double SparseMatrixData::sumsq(const SubModel& model) const
+{
+   throw std::runtime_error("not implemented");
+}
