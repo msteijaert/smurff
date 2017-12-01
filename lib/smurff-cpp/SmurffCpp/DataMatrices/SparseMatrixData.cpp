@@ -17,8 +17,8 @@ double SparseMatrixData::train_rmse(const SubModel& model) const
       int r = 0;
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
-         while (r < it.row()) //handle implicit zeroes
-            se += square(model.predict({r++, c}));
+         for(; r < it.row(); r++) //handle implicit zeroes
+            se += square(model.predict({r, c}));
 
          se += square(it.value() - model.predict({r, c}));
       }
@@ -31,10 +31,54 @@ double SparseMatrixData::train_rmse(const SubModel& model) const
 
 double SparseMatrixData::var_total() const
 {
-   throw std::runtime_error("not implemented");
+   double cwise_mean = this->sum() / (this->size() - this->nna());
+   double se = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   for(int c = 0; c < Y().cols(); ++c)
+   {
+      int r = 0;
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
+      {
+         for(; r < it.row(); r++) //handle implicit zeroes
+            se += square(cwise_mean);
+
+         se += square(it.value() - cwise_mean);
+      }
+
+      for(; r < Y().rows(); r++) //handle implicit zeroes
+         se += square(cwise_mean);
+   }
+
+   double var = se / Y().nonZeros();
+   if (var <= 0.0 || std::isnan(var))
+   {
+      // if var cannot be computed using 1.0
+      var = 1.0;
+   }
+
+   return var;
 }
 
 double SparseMatrixData::sumsq(const SubModel& model) const
 {
-   throw std::runtime_error("not implemented");
+   double sumsq = 0.0;
+   
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   for(int c = 0; c < Y().cols(); ++c)
+   {
+      int r = 0;
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
+      {
+         for(; r < it.row(); r++) //handle implicit zeroes
+            sumsq += square(model.predict({r, c}));
+
+         sumsq += square(model.predict({r, c}) - it.value());
+      }
+
+      for(; r < Y().rows(); r++) //handle implicit zeroes
+         sumsq += square(model.predict({r, c}));
+   }
+
+   return sumsq;
 }
