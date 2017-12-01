@@ -181,12 +181,12 @@ def smurff(Y,
         for coord_index in range(cpp_result_item_ptr.coords.size()):
             coord = cpp_result_item_ptr.coords[coord_index]
             py_result_item_coords.append(coord)
-        py_result_item = ResultItemPy( coords       = py_result_item_coords
-                                     , val          = cpp_result_item_ptr.val
-                                     , pred_1sample = cpp_result_item_ptr.pred_1sample
-                                     , pred_avg     = cpp_result_item_ptr.pred_avg
-                                     , var          = cpp_result_item_ptr.var
-                                     , std          = cpp_result_item_ptr.stds
+        py_result_item = ResultItemPy( py_result_item_coords
+                                     , cpp_result_item_ptr.val
+                                     , cpp_result_item_ptr.pred_1sample
+                                     , cpp_result_item_ptr.pred_avg
+                                     , cpp_result_item_ptr.var
+                                     , cpp_result_item_ptr.stds
                                      )
         py_result_items.append(py_result_item)
 
