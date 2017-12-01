@@ -6,7 +6,9 @@ from Config cimport Config, stringToPriorType, stringToModelInitType
 from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
+from TensorConfig cimport TensorConfig
 from SessionFactory cimport SessionFactory
+from ResultItem cimport ResultItem
 
 cimport numpy as np
 import  numpy as np
@@ -18,7 +20,7 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef shared_ptr[MatrixConfig] prepare_sparse(X):
+cdef MatrixConfig* prepare_sparse(X):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
     X = X.tocoo(copy = False)
@@ -36,16 +38,28 @@ cdef shared_ptr[MatrixConfig] prepare_sparse(X):
     cdef double* vals_end = vals_begin + vals.shape[0]
 
     # Create vectors from pointers
-    cdef vector[uint32_t] rows_vector
-    rows_vector.assign(irows_begin, irows_end)
-    cdef vector[uint32_t] cols_vector
-    cols_vector.assign(icols_begin, icols_end)
-    cdef vector[double] vals_vector
-    vals_vector.assign(vals_begin, vals_end)
+    cdef vector[uint32_t]* rows_vector_ptr = new vector[uint32_t]()
+    rows_vector_ptr.assign(irows_begin, irows_end)
+    cdef vector[uint32_t]* cols_vector_ptr = new vector[uint32_t]()
+    cols_vector_ptr.assign(icols_begin, icols_end)
+    cdef vector[double]* vals_vector_ptr = new vector[double]()
+    vals_vector_ptr.assign(vals_begin, vals_end)
 
-    # Kind of a hack, because to return a MatrixConfig it is needed to have a default constructor
-    # So shared_ptr is used to overcome this cython limitation
-    return make_shared[MatrixConfig](<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector, cols_vector, vals_vector, NoiseConfig())
+    cdef shared_ptr[vector[uint32_t]] rows_vector_shared_ptr = shared_ptr[vector[uint32_t]](rows_vector_ptr)
+    cdef shared_ptr[vector[uint32_t]] cols_vector_shared_ptr = shared_ptr[vector[uint32_t]](cols_vector_ptr)
+    cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
+
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig())
+    return matrix_config_ptr
+
+class ResultItemPy:
+    def __init__(self, coords, val, pred_1sample, pred_avg, var, stds):
+        self.coords = coords
+        self.val = val
+        self.pred_1sample = pred_1sample
+        self.pred_avg = pred_avg
+        self.var = var
+        self.stds = stds
 
 def smurff(Y,
            Ytest,
@@ -87,23 +101,23 @@ def smurff(Y,
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    config.train = prepare_sparse(Y).get()[0]
-    config.train.setNoiseConfig(nc)
+    config.m_train = shared_ptr[TensorConfig](prepare_sparse(Y))
+    config.m_train.get().setNoiseConfig(nc)
 
-    config.test = prepare_sparse(Ytest).get()[0]
-    config.test.setNoiseConfig(nc)
+    config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest))
+    config.m_test.get().setNoiseConfig(nc)
 
     cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
-        rf_matrix_config = prepare_sparse(rf)
+        rf_matrix_config.reset(prepare_sparse(rf))
         rf_matrix_config.get().setNoiseConfig(nc)
-        config.row_features.push_back(rf_matrix_config.get()[0])
+        config.m_row_features.push_back(rf_matrix_config)
 
     cdef shared_ptr[MatrixConfig] cf_matrix_config
     for cf in col_features:
-        cf_matrix_config = prepare_sparse(cf)
+        cf_matrix_config.reset(prepare_sparse(cf))
         cf_matrix_config.get().setNoiseConfig(nc)
-        config.col_features.push_back(cf_matrix_config.get()[0])
+        config.m_col_features.push_back(cf_matrix_config)
 
     if row_prior:
         config.row_prior_type = stringToPriorType(row_prior)
@@ -157,20 +171,23 @@ def smurff(Y,
     for i in range(config.nsamples + config.burnin):
         session.get().step()
 
-    # Get result from session and construct scipy matrix
-    cdef shared_ptr[MatrixConfig] result = make_shared[MatrixConfig](session.get().getResult())
+    # Create Python list of ResultItemPy from C++ vector of ResultItem
+    cdef vector[ResultItem] cpp_result_items = session.get().getResult()
+    cdef ResultItem* cpp_result_item_ptr
+    py_result_items = []
+    for i in range(cpp_result_items.size()):
+        cpp_result_item_ptr = &(cpp_result_items[i])
+        py_result_item_coords = []
+        for coord_index in range(cpp_result_item_ptr.coords.size()):
+            coord = cpp_result_item_ptr.coords[coord_index]
+            py_result_item_coords.append(coord)
+        py_result_item = ResultItemPy( coords       = py_result_item_coords
+                                     , val          = cpp_result_item_ptr.val
+                                     , pred_1sample = cpp_result_item_ptr.pred_1sample
+                                     , pred_avg     = cpp_result_item_ptr.pred_avg
+                                     , var          = cpp_result_item_ptr.var
+                                     , std          = cpp_result_item_ptr.stds
+                                     )
+        py_result_items.append(py_result_item)
 
-    cdef shared_ptr[vector[uint32_t]] result_rows_ptr = result.get().getRowsPtr()
-    cdef uint32_t[:] result_rows_view = <uint32_t[:result_rows_ptr.get().size()]>result_rows_ptr.get().data()
-    result_rows = np.array(result_rows_view, copy=False)
-
-    cdef shared_ptr[vector[uint32_t]] result_cols_ptr = result.get().getColsPtr()
-    cdef uint32_t[:] result_cols_view = <uint32_t[:result_cols_ptr.get().size()]>result_cols_ptr.get().data()
-    result_cols = np.array(result_cols_view, copy=False)
-
-    cdef shared_ptr[vector[double]] result_vals_ptr = result.get().getValuesPtr()
-    cdef double[:] result_vals_view = <double[:result_vals_ptr.get().size()]>result_vals_ptr.get().data()
-    result_vals = np.array(result_vals_view, copy=False)
-
-    result_sparse_matrix = sp.sparse.coo_matrix((result_vals, (result_rows, result_cols)), shape=(result.get().getNRow(), result.get().getNCol()))
-    return result_sparse_matrix
+    return py_result_items

@@ -1,31 +1,29 @@
 from libcpp cimport bool
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.memory cimport shared_ptr
 
 from MatrixConfig cimport MatrixConfig
+from TensorConfig cimport TensorConfig
 
 cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
     cdef cppclass PriorTypes:
-        pass
-
-    cdef cppclass CenterModeTypes:
         pass
 
     cdef cppclass ModelInitTypes:
         pass
 
     PriorTypes stringToPriorType(string name)
-    CenterModeTypes stringToCenterMode(string c)
     ModelInitTypes stringToModelInitType(string name)
 
     cdef cppclass Config:
         #-- train and test
-        MatrixConfig train, test
-        CenterModeTypes center_mode_type
+        shared_ptr[TensorConfig] m_train
+        shared_ptr[TensorConfig] m_test
 
         #-- features
-        vector[MatrixConfig] row_features
-        vector[MatrixConfig] col_features
+        vector[shared_ptr[MatrixConfig]] m_row_features
+        vector[shared_ptr[MatrixConfig]] m_col_features
 
         #-- priors
         PriorTypes row_prior_type

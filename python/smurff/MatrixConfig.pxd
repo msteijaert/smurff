@@ -2,10 +2,11 @@ from libc.stdint cimport *
 from libcpp.vector cimport vector
 from libcpp.memory cimport shared_ptr
 
+from TensorConfig cimport TensorConfig
 from NoiseConfig cimport NoiseConfig
 
 cdef extern from "<SmurffCpp/Configs/MatrixConfig.h>" namespace "smurff":
-    cdef cppclass MatrixConfig:
+    cdef cppclass MatrixConfig(TensorConfig):
         #
         # Dense double matrix constructos
         #
@@ -24,14 +25,6 @@ cdef extern from "<SmurffCpp/Configs/MatrixConfig.h>" namespace "smurff":
         #
         # Sparse double matrix constructors
         #
-        MatrixConfig(uint64_t nrow, uint64_t ncol,
-                     const vector[uint32_t]& rows, const vector[uint32_t]& cols, const vector[double]& values,
-                     const NoiseConfig& noiseConfig) except +
-
-        MatrixConfig(uint64_t nrow, uint64_t ncol,
-                     vector[uint32_t]&& rows, vector[uint32_t]&& cols, vector[double]&& values,
-                     const NoiseConfig& noiseConfig) except +
-
         MatrixConfig(uint64_t nrow, uint64_t ncol,
                      shared_ptr[vector[uint32_t]] rows, shared_ptr[vector[uint32_t]] cols, shared_ptr[vector[double]] values,
                      const NoiseConfig& noiseConfig) except +
@@ -71,7 +64,3 @@ cdef extern from "<SmurffCpp/Configs/MatrixConfig.h>" namespace "smurff":
 
         shared_ptr[vector[uint32_t]] getRowsPtr()
         shared_ptr[vector[uint32_t]] getColsPtr()
-
-        # TensorConfig methods
-        shared_ptr[vector[double]] getValuesPtr()
-        void setNoiseConfig(const NoiseConfig& value)

@@ -2,6 +2,9 @@
 
 #include <numeric>
 
+#include <SmurffCpp/IO/IDataWriter.h>
+#include <SmurffCpp/DataMatrices/IDataCreator.h>
+
 using namespace smurff;
 
 TensorConfig::TensorConfig ( bool isDense
