@@ -63,7 +63,7 @@ class ResultItem:
     def __str__(self):
         return "{}: {} | 1sample: {} | avg: {} | var: {} | stds: {}".format(self.coords, self.val, self.pred_1sample, self.pred_avg, self.var, self.stds)
 
-    def __repr(self):
+    def __repr__(self):
         return str(self)
 
 def smurff(Y,
