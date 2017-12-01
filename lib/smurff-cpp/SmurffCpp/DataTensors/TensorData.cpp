@@ -44,12 +44,26 @@ std::shared_ptr<SparseMode> TensorData::Y(std::uint64_t mode) const
 
 void TensorData::init_pre()
 {
-   throw std::runtime_error("not implemented");
+   //no logic here
 }
 
 double TensorData::sum() const
 {
-   throw std::runtime_error("not implemented");
+   double esum = 0.0;
+   double mean_value = 0; // what should be mean value?
+
+   std::shared_ptr<SparseMode> sview = Y(0);
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:esum)
+   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   {
+      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      {
+         esum += sview->getValues()[j];
+      }
+   }
+
+   return esum;
 }
 
 std::uint64_t TensorData::nmode() const
@@ -113,80 +127,57 @@ void TensorData::update_pnm(const SubModel& model, uint32_t mode)
 
 double TensorData::sumsq(const SubModel& model) const
 {
-   //there is old implementation down below
-   throw std::runtime_error("not implemented");
+   double sumsq = 0.0;
+
+   std::shared_ptr<SparseMode> sview = Y(0);
+
+   std::vector<int> coords(this->nmode());
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   {
+      coords[0] = n;
+
+      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      {
+         for(std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of the item
+            coords[m + 1] = static_cast<int>(sview->getIndices()(j, m));
+
+         double pred = model.predict(smurff::PVec<>(coords));
+         sumsq += square(pred - sview->getValues()[j]);
+      }
+   }
+
+   return sumsq;
 }
 
 double TensorData::var_total() const
 {
-   //there is old implementation down below
-   throw std::runtime_error("not implemented");
+   double se = 0.0;
+   double mean_value = 0; // what should be mean value?
+
+   std::shared_ptr<SparseMode> sview = Y(0);
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   {
+      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      {
+         se += square(sview->getValues()[j] - mean_value);
+      }
+   }
+
+   double var = se / sview->getValues().size();
+   if (var <= 0.0 || std::isnan(var))
+   {
+      // if var cannot be computed using 1.0
+      var = 1.0;
+   }
+
+   return var;
 }
 
 std::ostream& TensorData::info(std::ostream& os, std::string indent)
 {
    throw std::runtime_error("not implemented");
 }
-
-//macau
-/*
-double sumsq(TensorData & data, std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples)
-{
-   double sumsq = 0.0;
-   double mean_value = data.mean_value;
-
-   auto& sparseMode = (*data.Y)[0];
-   auto& U = samples[0];
-
-   const int nmodes = samples.size();
-   const int num_latents = U->rows();
-
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-   for (int n = 0; n < data.dims(0); n++) {
-      Eigen::VectorXd u = U->col(n);
-      for (int j = sparseMode->row_ptr(n);
-               j < sparseMode->row_ptr(n + 1);
-               j++)
-      {
-         VectorXi idx = sparseMode->indices.row(j);
-         // computing prediction from tensor
-         double Yhat = mean_value;
-         for (int d = 0; d < num_latents; d++) {
-         double tmp = u(d);
-
-         for (int m = 1; m < nmodes; m++) {
-            tmp *= (*samples[m])(d, idx(m - 1));
-         }
-         Yhat += tmp;
-         }
-         sumsq += square(Yhat - sparseMode->values(j));
-      }
-
-   }
-
-   return sumsq;
-}
-*/
-
-//macau
-/*
-double var_total(TensorData & data)
-{
-   double se = 0.0;
-   double mean_value = data.mean_value;
-
-   auto& sparseMode   = (*data.Y)[0];
-   VectorXd & values  = sparseMode->values;
-
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
-   for (int i = 0; i < values.size(); i++) {
-      se += square(values(i) - mean_value);
-   }
-   var_total = se / values.size();
-   if (var_total <= 0.0 || std::isnan(var_total)) {
-      var_total = 1.0;
-   }
-
-   return var_total;
-}
-*/
