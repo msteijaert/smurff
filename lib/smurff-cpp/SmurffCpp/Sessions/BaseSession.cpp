@@ -59,7 +59,7 @@ void BaseSession::restore(std::string prefix, std::string suffix)
       p->restore(prefix, suffix);
 }
 
-std::vector<Result::Item> BaseSession::getResult()
+std::vector<ResultItem> BaseSession::getResult()
 {
    return m_pred->m_predictions;
 }

@@ -2,8 +2,8 @@
 
 #include <memory>
 
+#include <SmurffCpp/ResultItem.h>
 #include <SmurffCpp/Utils/utils.h>
-#include <SmurffCpp/Utils/PVec.hpp>
 #include <SmurffCpp/Configs/MatrixConfig.h>
 #include <SmurffCpp/DataTensors/SparseMode.h>
 
@@ -46,20 +46,8 @@ double calc_auc(const std::vector<Item> &predictions, double threshold)
 
 struct Result
 {
-   //-- test set
-   struct Item
-   {
-      smurff::PVec<> coords;
-
-      double val;
-      double pred_1sample;
-      double pred_avg;
-      double var;
-      double stds;
-   };
-
    //sparse representation of test matrix
-   std::vector<Item> m_predictions;
+   std::vector<ResultItem> m_predictions;
 
    //dimensions of Ytest
    std::vector<std::uint64_t> m_dims;
