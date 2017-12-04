@@ -114,6 +114,20 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
    return os;
 }
 
+bool smurff::matrix_utils::is_explicit_binary(const Eigen::SparseMatrix<double>& M)
+{
+   auto *values = M.valuePtr();
+   for(int i = 0; i < M.nonZeros(); ++i) 
+   {
+      if (values[i] != 1.0 && values[i] != 0.0)
+         return false;
+   }
+
+   std::cout << "Detected binary matrix\n";
+
+   return true;
+}
+
 bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision)
 {
    if (m1.rows() != m2.rows() || m1.cols() != m2.cols())

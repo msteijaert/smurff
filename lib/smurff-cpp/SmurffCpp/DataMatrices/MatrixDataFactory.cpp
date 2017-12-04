@@ -37,7 +37,7 @@ std::shared_ptr<MatrixData> create_matrix_data(std::shared_ptr<const MatrixConfi
          local_data_ptr->setNoiseModel(noise);
          return local_data_ptr;
       }
-      else if (matrix_utils::is_binary(Ytrain))
+      else if (matrix_utils::is_explicit_binary(Ytrain))
       {
          std::shared_ptr<MatrixData> local_data_ptr(new ScarceBinaryMatrixData(Ytrain));
          local_data_ptr->setNoiseModel(noise);
