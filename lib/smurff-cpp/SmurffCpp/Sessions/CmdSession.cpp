@@ -70,17 +70,17 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case ROW_PRIOR:       c.row_prior_type          = stringToPriorType(optarg); break;
       case COL_PRIOR:       c.col_prior_type          = stringToPriorType(optarg); break;
 
-      case ROW_FEATURES:    c.m_row_features.push_back(read_matrix(optarg)); break;
-      case COL_FEATURES:    c.m_col_features.push_back(read_matrix(optarg)); break;
+      case ROW_FEATURES:    c.m_row_features.push_back(read_matrix(optarg, false)); break;
+      case COL_FEATURES:    c.m_col_features.push_back(read_matrix(optarg, false)); break;
       
       case CENTER:          break;
       
-      case FNAME_TRAIN:     c.m_train              = read_data_config(optarg); break;
+      case FNAME_TRAIN:     c.m_train              = read_data_config(optarg, true); break;
       case LAMBDA_BETA:     c.lambda_beta        = strtod(optarg, NULL); break;
       case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
       case TOL:             c.tol                = atof(optarg); break;
       case DIRECT:          c.direct             = true; break;
-      case FNAME_TEST:      c.m_test               = read_data_config(optarg); break;
+      case FNAME_TEST:      c.m_test               = read_data_config(optarg, true); break;
       case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
       case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
       case SEED:            c.random_seed_set = true;

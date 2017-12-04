@@ -37,7 +37,7 @@ namespace smurff { namespace matrix_io
       ddm
    };
 
-   std::shared_ptr<MatrixConfig> read_matrix(const std::string& filename, bool isScarce = false);
+   std::shared_ptr<MatrixConfig> read_matrix(const std::string& filename, bool isScarce);
 
    std::shared_ptr<MatrixConfig> read_dense_float64_bin(std::istream& in);
    std::shared_ptr<MatrixConfig> read_dense_float64_csv(std::istream& in);
