@@ -22,6 +22,7 @@ namespace smurff
    protected:
       bool m_isDense;
       bool m_isBinary;
+      bool m_isScarce;
 
       std::uint64_t m_nmodes;
       std::uint64_t m_nnz;
@@ -31,7 +32,7 @@ namespace smurff
       std::shared_ptr<std::vector<double> > m_values;
 
    protected:
-      TensorConfig(bool isDense, bool isBinary, 
+      TensorConfig(bool isDense, bool isBinary, bool isScarce,
                    std::uint64_t nmodes, std::uint64_t nnz, 
                    const NoiseConfig& noiseConfig);
 
@@ -53,25 +54,26 @@ namespace smurff
    //
    public:
       TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const std::vector<double>& values, 
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, std::vector<double>&& values, 
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values, 
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
    //
    // Sparse binary tensor constructors
    //
    public:
-      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const NoiseConfig& noiseConfig);
+      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns,
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, 
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, 
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
    public:
       virtual ~TensorConfig();
@@ -82,6 +84,7 @@ namespace smurff
 
       bool isDense() const;
       bool isBinary() const;
+      bool isScarce() const;
 
       std::uint64_t getNModes() const;
       std::uint64_t getNNZ() const;

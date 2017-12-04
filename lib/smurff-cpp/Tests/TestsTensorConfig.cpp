@@ -79,7 +79,7 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
                                                       0, 1, 2, 3, 0, 1, 2, 3
                                                     };
    std::vector<double> tensorConfigValues = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
    MatrixConfig matrixConfig = tensor_utils::tensor_to_matrix(tensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
@@ -111,6 +111,7 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint
                             , std::move(tensorConfigColumns)
                             , std::move(tensorConfigValues)
                             , NoiseConfig()
+                            , false
                             );
    MatrixConfig matrixConfig = tensor_utils::tensor_to_matrix(tensorConfig);
 
@@ -153,7 +154,7 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
       std::make_shared<std::vector<double> >(
          std::initializer_list<double>({ 1, 2, 3, 4, 9, 10, 11, 12 })
       );
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
    MatrixConfig matrixConfig = tensor_utils::tensor_to_matrix(tensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
@@ -180,7 +181,7 @@ TEST_CASE("TensorConfig(const std::vector<std::uint64_t>& dims, const std::vecto
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2,
                                                       0, 1, 2, 3, 0, 1, 2, 3
                                                     };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig(), false);
    MatrixConfig matrixConfig = tensor_utils::tensor_to_matrix(tensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
@@ -207,7 +208,7 @@ TEST_CASE("TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2,
                                                       0, 1, 2, 3, 0, 1, 2, 3
                                                     };
-   TensorConfig tensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), NoiseConfig());
+   TensorConfig tensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), NoiseConfig(), false);
    MatrixConfig matrixConfig = tensor_utils::tensor_to_matrix(tensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
@@ -244,7 +245,7 @@ TEST_CASE("TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::
             0, 1, 2, 3, 0, 1, 2, 3
          })
       );
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, NoiseConfig(), false);
    MatrixConfig matrixConfig = tensor_utils::tensor_to_matrix(tensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);

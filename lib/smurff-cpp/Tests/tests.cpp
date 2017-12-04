@@ -592,7 +592,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   std::shared_ptr<Result> p(new Result());
   std::shared_ptr<Model> model(new Model());
   
-  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, NoiseConfig()));
+  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, NoiseConfig(), false));
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(*S)));
   
   p->set(S);

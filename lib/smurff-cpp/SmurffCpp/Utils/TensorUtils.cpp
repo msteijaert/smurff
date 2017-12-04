@@ -67,13 +67,15 @@ smurff::MatrixConfig smurff::tensor_utils::tensor_to_matrix(const smurff::Tensor
    {
       return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1],
          tensorConfig.getColumns(),
-         tensorConfig.getNoiseConfig());
+         tensorConfig.getNoiseConfig(),
+         tensorConfig.isScarce());
    }
    else
    {
       return smurff::MatrixConfig(tensorConfig.getDims()[0], tensorConfig.getDims()[1],
          tensorConfig.getColumns(), tensorConfig.getValues(),
-         tensorConfig.getNoiseConfig());
+         tensorConfig.getNoiseConfig(),
+         tensorConfig.isScarce());
    }
 }
 

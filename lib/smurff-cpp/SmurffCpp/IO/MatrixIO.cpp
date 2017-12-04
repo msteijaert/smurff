@@ -76,7 +76,7 @@ std::string MatrixTypeToExtension(matrix_io::MatrixType matrixType)
    return std::string();
 }
 
-std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename)
+std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename, bool isScarce)
 {
    MatrixType matrixType = ExtensionToMatrixType(filename);
 
@@ -87,17 +87,17 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
    case matrix_io::MatrixType::sdm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return matrix_io::read_sparse_float64_bin(fileStream);
+         return matrix_io::read_sparse_float64_bin(fileStream, isScarce);
       }
    case matrix_io::MatrixType::sbm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return matrix_io::read_sparse_binary_bin(fileStream);
+         return matrix_io::read_sparse_binary_bin(fileStream, isScarce);
       }
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
-         return matrix_io::read_matrix_market(fileStream);
+         return matrix_io::read_matrix_market(fileStream, isScarce);
       }
    case matrix_io::MatrixType::csv:
       {
@@ -180,7 +180,7 @@ std::shared_ptr<MatrixConfig> matrix_io::read_dense_float64_csv(std::istream& in
    return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(values), smurff::NoiseConfig());
 }
 
-std::shared_ptr<MatrixConfig> matrix_io::read_sparse_float64_bin(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_sparse_float64_bin(std::istream& in, bool isScarce)
 {
    std::uint64_t nrow;
    std::uint64_t ncol;
@@ -205,10 +205,10 @@ std::shared_ptr<MatrixConfig> matrix_io::read_sparse_float64_bin(std::istream& i
    assert(rows.size() == nnz);
    assert(cols.size() == nnz);
 
-   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig());
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig(), isScarce);
 }
 
-std::shared_ptr<MatrixConfig> matrix_io::read_sparse_binary_bin(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_sparse_binary_bin(std::istream& in, bool isScarce)
 {
    std::uint64_t nrow;
    std::uint64_t ncol;
@@ -226,12 +226,12 @@ std::shared_ptr<MatrixConfig> matrix_io::read_sparse_binary_bin(std::istream& in
    in.read(reinterpret_cast<char*>(cols.data()), cols.size() * sizeof(std::uint32_t));
    std::for_each(cols.begin(), cols.end(), [](std::uint32_t& col){ col--; });
 
-   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(rows), std::move(cols), smurff::NoiseConfig());
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(rows), std::move(cols), smurff::NoiseConfig(), isScarce);
 }
 
 // MatrixMarket format specification
 // https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
-std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in)
+std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bool isScarce)
 {
    // Check that stream has MatrixMarket format data
    std::array<char, 15> matrixMarketArr;
@@ -319,7 +319,7 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in)
          vals[i] = val;
       }
 
-      return std::make_shared<smurff::MatrixConfig>(nrows, ncols, std::move(rows), std::move(cols), std::move(vals), NoiseConfig());
+      return std::make_shared<smurff::MatrixConfig>(nrows, ncols, std::move(rows), std::move(cols), std::move(vals), NoiseConfig(), isScarce);
    }
    else if (format == MM_FMT_ARRAY)
    {

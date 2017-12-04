@@ -66,7 +66,7 @@ std::string TensorTypeToExtension(tensor_io::TensorType tensorType)
    return std::string();
 }
 
-std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename)
+std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename, bool isScarce)
 {
    TensorType tensorType = ExtensionToTensorType(filename);
    
@@ -77,17 +77,17 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
    case tensor_io::TensorType::sdt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return tensor_io::read_sparse_float64_bin(fileStream);
+         return tensor_io::read_sparse_float64_bin(fileStream, isScarce);
       }
    case tensor_io::TensorType::sbt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return tensor_io::read_sparse_binary_bin(fileStream);
+         return tensor_io::read_sparse_binary_bin(fileStream, isScarce);
       }
    case tensor_io::TensorType::tns:
       {
          std::ifstream fileStream(filename);
-         return tensor_io::read_sparse_float64_tns(fileStream);
+         return tensor_io::read_sparse_float64_tns(fileStream, isScarce);
       }
    case tensor_io::TensorType::csv:
       {
@@ -183,7 +183,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_dense_float64_csv(std::istream& in
    return std::make_shared<TensorConfig>(std::move(dims), std::move(values), NoiseConfig());
 }
 
-std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_bin(std::istream& in)
+std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_bin(std::istream& in, bool isScarce)
 {
    std::uint64_t nmodes;
    in.read(reinterpret_cast<char*>(&nmodes), sizeof(std::uint64_t));
@@ -207,10 +207,10 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_bin(std::istream& i
    std::vector<double> values(nnz);
    in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
 
-   return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), std::move(values), NoiseConfig());
+   return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), std::move(values), NoiseConfig(), isScarce);
 }
 
-std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& in)
+std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& in, bool isScarce)
 {
    std::stringstream ss;
    std::string line;
@@ -300,10 +300,10 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& i
    if(nval != nnz)
       throw std::runtime_error("invalid number of values");
 
-   return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), std::move(values), NoiseConfig());
+   return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), std::move(values), NoiseConfig(), isScarce);
 }
 
-std::shared_ptr<TensorConfig> tensor_io::read_sparse_binary_bin(std::istream& in)
+std::shared_ptr<TensorConfig> tensor_io::read_sparse_binary_bin(std::istream& in, bool isScarce)
 {
    std::uint64_t nmodes;
    in.read(reinterpret_cast<char*>(&nmodes), sizeof(std::uint64_t));
@@ -324,7 +324,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_binary_bin(std::istream& in
 
    std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col--; });
 
-   return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), NoiseConfig());
+   return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), NoiseConfig(), isScarce);
 }
 
 // ======================================================================================================
