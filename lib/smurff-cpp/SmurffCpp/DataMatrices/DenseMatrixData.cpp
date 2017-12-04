@@ -26,7 +26,8 @@ double DenseMatrixData::var_total() const
 {
    double cwise_mean = this->sum() / (this->size() - this->nna());
    double se = (Y().array() - cwise_mean).square().sum();
-   double var = se / Y().nonZeros();
+   
+   double var = se / nnz();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0

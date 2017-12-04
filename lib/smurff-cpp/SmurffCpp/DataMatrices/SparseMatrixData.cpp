@@ -52,7 +52,7 @@ double SparseMatrixData::var_total() const
          se += square(cwise_mean);
    }
 
-   double var = se / Y().nonZeros();
+   double var = se / nnz();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0
