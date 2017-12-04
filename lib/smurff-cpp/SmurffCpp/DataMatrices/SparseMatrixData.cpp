@@ -21,6 +21,7 @@ double SparseMatrixData::train_rmse(const SubModel& model) const
             se += square(model.predict({r, c}));
 
          se += square(it.value() - model.predict({r, c}));
+         r++;
       }
 
       for(; r < Y().rows(); r++) //handle implicit zeroes
@@ -44,6 +45,7 @@ double SparseMatrixData::var_total() const
             se += square(cwise_mean);
 
          se += square(it.value() - cwise_mean);
+         r++;
       }
 
       for(; r < Y().rows(); r++) //handle implicit zeroes
@@ -74,6 +76,7 @@ double SparseMatrixData::sumsq(const SubModel& model) const
             sumsq += square(model.predict({r, c}));
 
          sumsq += square(model.predict({r, c}) - it.value());
+         r++;
       }
 
       for(; r < Y().rows(); r++) //handle implicit zeroes
