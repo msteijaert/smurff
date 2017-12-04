@@ -50,7 +50,6 @@ void TensorData::init_pre()
 double TensorData::sum() const
 {
    double esum = 0.0;
-   double mean_value = 0; // what should be mean value?
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
@@ -78,7 +77,7 @@ std::uint64_t TensorData::nnz() const
 
 std::uint64_t TensorData::nna() const
 {
-   return size() - nnz();
+   return size() - this->nnz();
 }
 
 PVec<> TensorData::dim() const
@@ -91,8 +90,28 @@ PVec<> TensorData::dim() const
 
 double TensorData::train_rmse(const SubModel& model) const
 {
-   //there was no implementation of train_rmse for tensors in macau
-   throw std::runtime_error("not implemented");
+   double se = 0.0;
+   
+   std::shared_ptr<SparseMode> sview = Y(0);
+
+   std::vector<int> coords(this->nmode());
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   {
+      coords[0] = n;
+
+      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      {
+         for(std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of the item
+            coords[m + 1] = static_cast<int>(sview->getIndices()(j, m));
+
+         double pred = model.predict(smurff::PVec<>(coords));
+         se += square(sview->getValues()[j] - pred);
+      }
+   }
+
+   return sqrt(se / this->nnz());
 }
 
 //d is an index of column in U matrix
@@ -153,7 +172,7 @@ double TensorData::sumsq(const SubModel& model) const
 
 double TensorData::var_total() const
 {
-   double cwise_mean = this->sum() / (this->size() - this->nna());
+   double cwise_mean = this->sum() / this->nnz();
    double se = 0.0;
 
    std::shared_ptr<SparseMode> sview = Y(0);
@@ -167,7 +186,7 @@ double TensorData::var_total() const
       }
    }
 
-   double var = se / nnz();
+   double var = se / this->nnz();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0
