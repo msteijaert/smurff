@@ -61,10 +61,10 @@ class Test:
 
     def valid(self):
         opts = self.opts
-        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1: 
+        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1:
             return False
 
-        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) != 1: 
+        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) != 1:
             return False
 
         if opts["row_prior"].startswith("macau") and len(opts["col_features"]) != 0:
@@ -73,11 +73,11 @@ class Test:
         if opts["col_prior"].startswith("macau") and len(opts["row_features"]) != 0:
             return False
 
-        if (not opts["col_prior"].startswith("macau")) and opts["direct"]: 
+        if (not opts["col_prior"].startswith("macau")) and opts["direct"]:
             return False
 
         return True
-        
+
 
     def update(self, upd):
         self.opts.update(upd.copy())
@@ -99,9 +99,9 @@ class Test:
         --save-prefix=results --save-freq=-1 --seed=1234\
         """
 
-        for feat in args["row_features"]: 
+        for feat in args["row_features"]:
             fmt_cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
-        for feat in args["col_features"]: 
+        for feat in args["col_features"]:
             fmt_cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
 
         if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
@@ -245,8 +245,8 @@ def synthetic_tests(defaults):
     for d in datadirs:
         test = suite.add_test(defaults)
         test.update_one("datasubdir", os.path.join("synthetic", os.path.basename(d)))
-        train_file = os.path.basename(list(glob('%s/train.*dm' % d))[0])
-        test_file  = "test.sdm"
+        train_file = os.path.basename(list(glob('%s/train.*dt' % d))[0])
+        test_file  = "test.sdt"
         test.update({ 'train' : train_file, 'test' : test_file, })
         test.update_one("row_features", [])
         test.update_one("col_features", [])
@@ -263,8 +263,8 @@ def synthetic_tests(defaults):
     print(suite)
 
     return suite
-        
-  
+
+
 def movielens_tests(defaults):
     suite = TestSuite("movielens")
     suite.add_test(defaults)
@@ -275,7 +275,7 @@ def movielens_tests(defaults):
     print(suite)
     return suite
 
- 
+
 
 def all_tests(args):
 

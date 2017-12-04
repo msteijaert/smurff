@@ -1,0 +1,27 @@
+package:
+  name: smurff
+  version: tensor
+
+source:
+  url: https://github.com/ExaScience/smurff/archive/add-tensor-support.zip
+
+requirements:
+  build:
+    - cmake
+    - wget
+    - libgfortran ==3.0.0
+    - gcc
+    - openblas
+  run:
+    - gcc
+    - libgfortran ==3.0.0
+    - openblas
+
+test:
+    commands:
+        $PREFIX/libexec/tests
+
+
+about:
+  home: https://github.com/ExaScience/smurff
+  license:  MIT
