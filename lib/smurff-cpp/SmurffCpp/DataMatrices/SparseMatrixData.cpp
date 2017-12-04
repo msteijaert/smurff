@@ -27,12 +27,12 @@ double SparseMatrixData::train_rmse(const SubModel& model) const
       for(; r < Y().rows(); r++) //handle implicit zeroes
          se += square(model.predict({r, c}));
    }
-   return sqrt(se / Y().rows() / Y().cols());
+   return sqrt(se / this->size());
 }
 
 double SparseMatrixData::var_total() const
 {
-   double cwise_mean = this->sum() / (this->size() - this->nna());
+   double cwise_mean = this->sum() / this->size();
    double se = 0.0;
 
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
@@ -52,7 +52,7 @@ double SparseMatrixData::var_total() const
          se += square(cwise_mean);
    }
 
-   double var = se / nnz();
+   double var = se / this->size();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0

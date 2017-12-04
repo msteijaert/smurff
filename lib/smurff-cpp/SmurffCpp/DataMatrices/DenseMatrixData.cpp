@@ -19,15 +19,15 @@ double DenseMatrixData::train_rmse(const SubModel& model) const
          se += square(Y()(m,c) - model.predict({m,c}));
       }
    }
-   return sqrt( se / Y().rows() / Y().cols() );
+   return sqrt(se / this->size());
 }
 
 double DenseMatrixData::var_total() const
 {
-   double cwise_mean = this->sum() / (this->size() - this->nna());
+   double cwise_mean = this->sum() / this->size();
    double se = (Y().array() - cwise_mean).square().sum();
    
-   double var = se / nnz();
+   double var = se / this->size();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0
