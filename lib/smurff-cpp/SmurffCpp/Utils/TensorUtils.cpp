@@ -35,7 +35,7 @@ Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<const smurff::
    std::vector<Eigen::Triplet<double> > triplets;
    for(std::uint64_t i = 0; i < tensorConfig.getNNZ(); i++)
    {
-      double val = tensorConfig.isBinary() ? 1.0 : valuesPtr->operator[](i);
+      double val = valuesPtr->operator[](i);
       std::uint32_t row = columnsPtr->operator[](i);
       std::uint32_t col = columnsPtr->operator[](i + tensorConfig.getNNZ());
       triplets.push_back(Eigen::Triplet<double>(row, col, val));

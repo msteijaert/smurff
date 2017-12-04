@@ -37,7 +37,7 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::
       std::uint32_t col = colsPtr->operator[](i);
       assert(row >= 0 && row < matrixConfig.getNRow());
       assert(col >= 0 && col < matrixConfig.getNCol());
-      double val = matrixConfig.isBinary() ? 1.0 : valuesPtr->operator[](i);
+      double val = valuesPtr->operator[](i);
       eigenTriplets.push_back(Eigen::Triplet<double>(row, col, val));
    }
 
