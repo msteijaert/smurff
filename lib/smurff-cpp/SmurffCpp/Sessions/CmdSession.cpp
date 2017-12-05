@@ -28,42 +28,42 @@ enum OPT_ENUM
    INIT_MODEL, CENTER, STATUS_FILE
 };
 
+void set_noise_model(Config& config, std::string noiseName, std::string optarg)
+{
+   NoiseConfig nc;
+   nc.setNoiseType(smurff::stringToNoiseType(noiseName));
+   if (nc.getNoiseType() == NoiseTypes::adaptive)
+   {
+      char *token, *str = strdup(optarg.c_str());
+
+      if(str && (token = strsep(&str, ",")))
+         nc.sn_init = strtod(token, NULL);
+
+      if(str && (token = strsep(&str, ",")))
+         nc.sn_max = strtod(token, NULL);
+   }
+   else if (nc.getNoiseType() == NoiseTypes::fixed)
+   {
+      nc.precision = strtod(optarg.c_str(), NULL);
+   }
+
+   // set global noise model
+   if (config.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+   config.m_train->setNoiseConfig(nc);
+
+   //set for row/col feautres
+   for(auto m: config.m_row_features)
+      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         m->setNoiseConfig(nc);
+
+   for(auto m: config.m_col_features)
+      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         m->setNoiseConfig(nc);
+}
+
 static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
    Config &c = *(Config *)(state->input);
-
-   auto set_noise_model = [&c](std::string noiseName, std::string optarg)
-   {
-      NoiseConfig nc;
-      nc.setNoiseType(smurff::stringToNoiseType(noiseName));
-      if (nc.getNoiseType() == NoiseTypes::adaptive)
-      {
-         char *token, *str = strdup(optarg.c_str());
-
-         if(str && (token = strsep(&str, ",")))
-            nc.sn_init = strtod(token, NULL);
-
-         if(str && (token = strsep(&str, ",")))
-            nc.sn_max = strtod(token, NULL);
-      }
-      else if (nc.getNoiseType() == NoiseTypes::fixed)
-      {
-         nc.precision = strtod(optarg.c_str(), NULL);
-      }
-
-      // set global noise model
-      if (c.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-         c.m_train->setNoiseConfig(nc);
-
-      //set for row/col feautres
-      for(auto m: c.m_row_features)
-         if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-            m->setNoiseConfig(nc);
-
-      for(auto m: c.m_col_features)
-         if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-            m->setNoiseConfig(nc);
-   };
 
    switch (key)
    {
@@ -92,8 +92,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case SAVE_SUFFIX:     c.save_suffix      = std::string(optarg); break;
       case SAVE_FREQ:       c.save_freq        = strtol(optarg, NULL, 10); break;
 
-      case PRECISION:       set_noise_model(NOISE_NAME_FIXED, optarg); break;
-      case ADAPTIVE:        set_noise_model(NOISE_NAME_ADAPTIVE, optarg); break;
+      case PRECISION:       set_noise_model(c, NOISE_NAME_FIXED, optarg); break;
+      case ADAPTIVE:        set_noise_model(c, NOISE_NAME_ADAPTIVE, optarg); break;
 
       case THRESHOLD:       c.threshold          = strtod(optarg, 0); c.classify = true; break;
       case INIT_MODEL:      c.model_init_type = stringToModelInitType(optarg); break;
