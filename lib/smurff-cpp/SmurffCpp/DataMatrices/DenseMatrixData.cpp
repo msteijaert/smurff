@@ -10,16 +10,7 @@ DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)
 
 double DenseMatrixData::train_rmse(const SubModel& model) const
 {
-   double se = 0.;
-   #pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c = 0; c < Y().cols(); ++c) 
-   {
-      for(int m = 0; m < Y().rows(); ++m) 
-      {
-         se += square(Y()(m,c) - model.predict({m,c}));
-      }
-   }
-   return sqrt(se / this->size());
+   return sqrt(sumsq(model) / this->size());
 }
 
 double DenseMatrixData::var_total() const

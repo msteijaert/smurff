@@ -90,28 +90,7 @@ PVec<> TensorData::dim() const
 
 double TensorData::train_rmse(const SubModel& model) const
 {
-   double se = 0.0;
-   
-   std::shared_ptr<SparseMode> sview = Y(0);
-
-   std::vector<int> coords(this->nmode());
-
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
-   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
-   {
-      coords[0] = n;
-
-      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
-      {
-         for(std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of the item
-            coords[m + 1] = static_cast<int>(sview->getIndices()(j, m));
-
-         double pred = model.predict(smurff::PVec<>(coords));
-         se += square(sview->getValues()[j] - pred);
-      }
-   }
-
-   return sqrt(se / this->nnz());
+   return sqrt(sumsq(model) / this->nnz());
 }
 
 //d is an index of column in U matrix

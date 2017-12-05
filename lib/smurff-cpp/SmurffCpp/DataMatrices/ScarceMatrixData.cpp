@@ -31,16 +31,7 @@ void ScarceMatrixData::init_pre()
 
 double ScarceMatrixData::train_rmse(const SubModel& model) const 
 {
-   double se = 0.;
-   #pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c = 0; c < Y().cols();++c) 
-   {
-       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it) 
-       {
-           se += square(it.value() - model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())}));
-       }
-   }
-   return sqrt(se / this->nnz());
+   return sqrt(sumsq(model) / this->nnz());
 }
 
 std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
@@ -169,8 +160,7 @@ double ScarceMatrixData::sumsq(const SubModel& model) const
    {
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
       {
-            int i = it.row();
-            sumsq += square(model.predict({i,j})- it.value());
+         sumsq += square(model.predict({it.row(), it.col()})- it.value());
       }
    }
 

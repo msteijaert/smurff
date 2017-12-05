@@ -10,24 +10,7 @@ SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
 
 double SparseMatrixData::train_rmse(const SubModel& model) const
 {
-   double se = 0.;
-   #pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c = 0; c < Y().cols(); ++c)
-   {
-      int r = 0;
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
-      {
-         for(; r < it.row(); r++) //handle implicit zeroes
-            se += square(model.predict({r, c}));
-
-         se += square(it.value() - model.predict({r, c}));
-         r++;
-      }
-
-      for(; r < Y().rows(); r++) //handle implicit zeroes
-         se += square(model.predict({r, c}));
-   }
-   return sqrt(se / this->size());
+   return sqrt(sumsq(model) / this->size());
 }
 
 double SparseMatrixData::var_total() const
