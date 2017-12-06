@@ -59,8 +59,11 @@ public:
    int num_latent() const;
    int num_cols() const;
 
-   virtual void save(std::string prefix, std::string suffix) = 0;
-   virtual void restore(std::string prefix, std::string suffix) = 0;
+   const Eigen::VectorXd& getUsum() { return Usum; } 
+   const Eigen::MatrixXd& getUUsum()  { return UUsum; }
+
+   virtual void save(std::string prefix, std::string suffix);
+   virtual void restore(std::string prefix, std::string suffix);
    virtual std::ostream &info(std::ostream &os, std::string indent);
    virtual std::ostream &status(std::ostream &os, std::string indent) const = 0;
 
@@ -71,6 +74,11 @@ public:
    virtual void sample_latent(int n) = 0;
 
    virtual void update_prior() = 0;
+
+private:
+   void init_Usum();
+   Eigen::VectorXd Usum;
+   Eigen::MatrixXd UUsum;
 
 public:
    void setMode(int value)

@@ -14,6 +14,9 @@ void ILatentPrior::init()
 {
    rrs.init(VectorXd::Zero(num_latent()));
    MMs.init(MatrixXd::Zero(num_latent(), num_latent()));
+
+   //this is some new initialization
+   init_Usum();
 }
 
 std::shared_ptr<const Model> ILatentPrior::model() const
@@ -98,12 +101,39 @@ void ILatentPrior::sample_latents()
    COUNTER("sample_latents");
    data()->update_pnm(model(), m_mode);
 
+   // for effiency, we keep + update Ucol and UUcol by every thread
+   thread_vector<VectorXd> Ucol(VectorXd::Zero(num_latent()));
+   thread_vector<MatrixXd> UUcol(MatrixXd::Zero(num_latent(), num_latent()));
+
    #pragma omp parallel for schedule(guided)
    for(int n = 0; n < U()->cols(); n++)
    {
-      #pragma omp task
-      sample_latent(n);
+       #pragma omp task
+       {
+           sample_latent(n);
+           const auto& col = U()->col(n);
+           Ucol.local().noalias() += col;
+           UUcol.local().noalias() += col * col.transpose();
+       }
    }
 
+   Usum  = Ucol.combine();
+   UUsum = UUcol.combine();
+
    update_prior();
+}
+
+void ILatentPrior::save(std::string prefix, std::string suffix)
+{
+}
+
+void ILatentPrior::restore(std::string prefix, std::string suffix)
+{
+    init_Usum();
+}
+
+void ILatentPrior::init_Usum()
+{
+    Usum = U()->rowwise().sum();
+    UUsum = *U() * U()->transpose(); 
 }

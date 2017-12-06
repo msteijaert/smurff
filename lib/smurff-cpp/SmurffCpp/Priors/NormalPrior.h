@@ -42,17 +42,6 @@ public:
   void sample_latent(int n) override;
 
   void update_prior() override;
-
-  void save(std::string prefix, std::string suffix) override;
-  void restore(std::string prefix, std::string suffix) override;
   virtual std::ostream &status(std::ostream &os, std::string indent) const override;
-
-private:
-   // for effiency, we keep + update Ucol and UUcol by every thread
-   thread_vector<Eigen::VectorXd> Ucol;
-   thread_vector<Eigen::MatrixXd> UUcol;
-
-private:
-  void initUU();
 };
 }

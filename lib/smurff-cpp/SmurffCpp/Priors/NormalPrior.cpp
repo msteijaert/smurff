@@ -28,9 +28,6 @@ void NormalPrior::init()
    //does not look that there was such init previously
    ILatentPrior::init();
 
-   //this is some new initialization
-   initUU();
-
    const int K = num_latent();
    mu.resize(K);
    mu.setZero();
@@ -55,16 +52,11 @@ const Eigen::VectorXd NormalPrior::getMu(int n) const
 
 void NormalPrior::update_prior()
 {
-   const int N = num_cols();
-   
-   const auto cov = UUcol.combine_and_reset();
-   const auto sum = Ucol.combine_and_reset();
-
-   std::tie(mu, Lambda) = CondNormalWishart(N, cov, sum, mu0, b0, WI, df);
+   std::tie(mu, Lambda) = CondNormalWishart(num_cols(), getUUsum(), getUsum(), mu0, b0, WI, df);
 }
 
 //n is an index of column in U matrix
-void NormalPrior::sample_latent(int n)
+void  NormalPrior::sample_latent(int n)
 {
    COUNTER("NormalPrior::sample_latent");
    const auto &mu_u = getMu(n);
@@ -100,17 +92,6 @@ void NormalPrior::sample_latent(int n)
    chol.matrixU().solveInPlace(rr); // solve for x: x = U^-1 * y
    
    U()->col(n).noalias() = rr; // rr is equal to x
-   Ucol.local().noalias() += rr;
-   UUcol.local().noalias() += rr * rr.transpose();
-}
-
-void NormalPrior::save(std::string prefix, std::string suffix)
-{
-}
-
-void NormalPrior::restore(std::string prefix, std::string suffix)
-{
-   initUU();
 }
 
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
@@ -118,16 +99,6 @@ std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
    os << indent << m_name << ": mu = " <<  mu.norm() << std::endl;
    return os;
 }
-
-void NormalPrior::initUU()
-{
-    const int K = num_latent();
-    Ucol.init(VectorXd::Zero(K));
-    UUcol.init(MatrixXd::Zero(K, K));
-    UUcol.local() = *U() * U()->transpose();
-    Ucol.local() = U()->rowwise().sum();
-}
-
 //macau Probit sample latents
 /*
 void BPMFPrior::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
