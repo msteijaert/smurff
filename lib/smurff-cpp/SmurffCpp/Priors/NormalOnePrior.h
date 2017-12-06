@@ -14,6 +14,17 @@ namespace smurff {
 // Spike and slab prior
 class NormalOnePrior : public ILatentPrior 
 {
+public:
+  // hyperparams
+  Eigen::VectorXd mu; 
+  Eigen::MatrixXd Lambda;
+  Eigen::MatrixXd WI;
+  Eigen::VectorXd mu0;
+
+  // constants
+  int b0;
+  int df;
+
 private:
    NormalOnePrior()
       : ILatentPrior(){}
