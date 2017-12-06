@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace Eigen;
 using namespace smurff;
 
@@ -18,7 +20,7 @@ SparseMode::SparseMode()
 SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, std::uint64_t mode, std::uint64_t mode_size) 
 {
    if ((size_t)idx.rows() != vals.size()) 
-      throw std::runtime_error("idx.rows() must equal vals.size()");
+      THROWERROR("Number of rows in 'idx' should equal number of values in 'vals'");
 
    m_row_ptr.resize(mode_size + 1); // mode_size + 1 because this vector will hold commulative sum of number of elements
    m_values.resize(vals.size()); // resize values vector
@@ -34,7 +36,7 @@ SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, 
    for (std::uint64_t i = 0; i < nnz; i++) 
    {
       if (rows(i) >= mode_size) //index in column should be within dimension size
-         throw std::runtime_error("SparseMode: mode value larger than mode_size");
+         THROWERROR("'idx' value is larger than 'mode_size'");
       m_row_ptr[rows(i)]++; //count item with specific index
    }
 

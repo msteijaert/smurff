@@ -24,6 +24,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Utils/linop.h"
                         "../Utils/omp_util.h"
                         "../Utils/utils.h"
+                        "../Utils/Error.h"
 
                         "../IO/ini.h"
                         "../IO/INIReader.h"
@@ -77,10 +78,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/Session.h"
                         "../Sessions/CmdSession.h"
                         "../Sessions/PythonSession.h"
-                        "../Sessions/SessionFactory.h"
-
-                        "../sparsetensor.h"
-                        "../TensorUtilsOld.h")
+                        "../Sessions/SessionFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -96,6 +94,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Utils/counters.cpp"
                         "../Utils/linop.cpp"
                         "../Utils/omp_util.cpp"
+                        "../Utils/Error.cpp"
 
                         "../IO/ini.c"
                         "../IO/INIReader.cpp"
@@ -142,10 +141,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Sessions/Session.cpp"
                         "../Sessions/CmdSession.cpp"
                         "../Sessions/PythonSession.cpp"
-                        "../Sessions/SessionFactory.cpp"
-
-                        "../sparsetensor.cpp"
-                        "../TensorUtilsOld.cpp")
+                        "../Sessions/SessionFactory.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT

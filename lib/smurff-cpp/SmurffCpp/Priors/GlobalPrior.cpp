@@ -19,7 +19,7 @@ void sample_latent_blas_probit(MatrixXd &s, int mm, const SparseMatrix<double> &
     }
   Eigen::LLT<MatrixXd> chol = MM.llt();
   if(chol.info() != Eigen::Success) {
-    throw std::runtime_error("Cholesky Decomposition failed!");
+    THROWERROR("Cholesky Decomposition failed!");
   }
 
   rr.noalias() += Lambda_u * mu_u;

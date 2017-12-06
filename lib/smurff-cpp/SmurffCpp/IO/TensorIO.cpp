@@ -5,6 +5,7 @@
 #include <numeric>
 
 #include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 
@@ -39,7 +40,7 @@ tensor_io::TensorType ExtensionToTensorType(const std::string& fname)
    }
    else
    {
-      throw std::runtime_error("Unknown file type: " + extension);
+      THROWERROR("Unknown file type: " + extension);
    }
    return tensor_io::TensorType::none;
 }
@@ -59,9 +60,9 @@ std::string TensorTypeToExtension(tensor_io::TensorType tensorType)
    case tensor_io::TensorType::ddt:
       return EXTENSION_DDT;
    case tensor_io::TensorType::none:
-      throw std::runtime_error("Unknown matrix type");
+      THROWERROR("Unknown matrix type");
    default:
-      throw std::runtime_error("Unknown matrix type");
+      THROWERROR("Unknown matrix type");
    }
    return std::string();
 }
@@ -100,9 +101,9 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
          return tensor_io::read_dense_float64_bin(fileStream);
       }
    case tensor_io::TensorType::none:
-      throw std::runtime_error("Unknown matrix type");
+      THROWERROR("Unknown matrix type");
    default:
-      throw std::runtime_error("Unknown matrix type");
+      THROWERROR("Unknown matrix type");
    }
 }
 
@@ -155,7 +156,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_dense_float64_csv(std::istream& in
    }
 
    if(dim != nmodes)
-      throw std::runtime_error("invalid number of dimensions");
+      THROWERROR("invalid number of dimensions");
 
    //values
 
@@ -178,7 +179,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_dense_float64_csv(std::istream& in
    }
 
    if(nval != nnz)
-      throw std::runtime_error("invalid number of values");
+      THROWERROR("invalid number of values");
 
    return std::make_shared<TensorConfig>(std::move(dims), std::move(values), NoiseConfig());
 }
@@ -244,7 +245,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& i
    }
 
    if(dim != nmodes)
-      throw std::runtime_error("invalid number of dimensions");
+      THROWERROR("invalid number of dimensions");
 
    // nmodes
 
@@ -274,7 +275,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& i
    }
 
    if(col != nmodes * nnz)
-      throw std::runtime_error("invalid number of coordinates");
+      THROWERROR("invalid number of coordinates");
    
    std::for_each(columns.begin(), columns.end(), [](std::uint32_t& col){ col--; });
 
@@ -298,7 +299,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_sparse_float64_tns(std::istream& i
    }
 
    if(nval != nnz)
-      throw std::runtime_error("invalid number of values");
+      THROWERROR("invalid number of values");
 
    return std::make_shared<TensorConfig>(std::move(dims), std::move(columns), std::move(values), NoiseConfig(), isScarce);
 }
@@ -365,9 +366,9 @@ void tensor_io::write_tensor(const std::string& filename, std::shared_ptr<const 
       }
       break;
    case tensor_io::TensorType::none:
-      throw "Unknown matrix type";
+      THROWERROR("Unknown matrix type");
    default:
-      throw "Unknown matrix type";
+      THROWERROR("Unknown matrix type");
    }
 }
 
@@ -403,7 +404,7 @@ void tensor_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<const
    const std::vector<double>& values = tensorConfig->getValues();
 
    if(values.size() != tensorConfig->getNNZ())
-      throw std::runtime_error("invalid number of values");
+      THROWERROR("invalid number of values");
 
    for(std::uint64_t i = 0; i < values.size(); i++)
    {

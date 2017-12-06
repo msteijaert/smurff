@@ -9,7 +9,6 @@
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/TensorUtils.h>
-#include <SmurffCpp/sparsetensor.h>
 #include <SmurffCpp/Configs/TensorConfig.h>
 #include <SmurffCpp/DataTensors/SparseMode.h>
 #include <SmurffCpp/DataTensors/TensorData.h>

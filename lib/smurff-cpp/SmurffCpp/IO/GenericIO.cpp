@@ -7,6 +7,8 @@
 
 #include "DataWriter.h"
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& filename, bool isScarce)
@@ -14,7 +16,6 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
    try
    {
       //read will throw exception if file extension is not correct
-      //for csv it will throw exception if mode != 2
       return matrix_io::read_matrix(filename, isScarce);
    }
    catch(std::runtime_error& e)
@@ -26,7 +27,7 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
       }
       catch(std::runtime_error& e)
       {
-         throw std::runtime_error("Wrong file format " + filename);
+         THROWERROR("Wrong file format " + filename);
       }
    }
 }

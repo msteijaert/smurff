@@ -3,6 +3,8 @@
 #include <SmurffCpp/DataTensors/TensorData.h>
 #include <SmurffCpp/Noises/NoiseFactory.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 std::shared_ptr<Data> TensorDataFactory::create_tensor_data(std::shared_ptr<const TensorConfig> config,
@@ -12,7 +14,7 @@ std::shared_ptr<Data> TensorDataFactory::create_tensor_data(std::shared_ptr<cons
    if (row_features.empty() && col_features.empty())
    {
       if(!config->isScarce())
-         throw std::runtime_error("Tensor config should be scarse");
+         THROWERROR("Tensor config should be scarse");
 
       std::shared_ptr<TensorData> tensorData = std::make_shared<TensorData>(*config);
       std::shared_ptr<INoiseModel> noise = NoiseFactory::create_noise_model(config->getNoiseConfig());
@@ -20,5 +22,5 @@ std::shared_ptr<Data> TensorDataFactory::create_tensor_data(std::shared_ptr<cons
       return tensorData;
    }
 
-   throw std::runtime_error("Tensor config does not support feature matrices");
+   THROWERROR("Tensor config does not support feature matrices");
 }

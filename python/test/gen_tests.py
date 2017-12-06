@@ -233,9 +233,39 @@ def chembl_tests(defaults):
 
     return chembl_tests
 
+def synthetic_matrix_tests(defaults):
+    suite = TestSuite("synthetic_matrix")
 
-def synthetic_tests(defaults):
-    suite = TestSuite("synthetic")
+    priors = [ "normal", "macau", "spikeandslab" ]
+    datadirs = glob("%s/synthetic/ones*" % args.datadir)
+    datadirs += glob("%s/synthetic/normal*" % args.datadir)
+
+    # each datadir == 1 test
+    for d in datadirs:
+        test = suite.add_test(defaults)
+        test.update_one("datasubdir", os.path.join("synthetic", os.path.basename(d)))
+        train_file = os.path.basename(list(glob('%s/train.*dm' % d))[0])
+        test_file  = "test.sdm"
+        test.update({ 'train' : train_file, 'test' : test_file, })
+        test.update_one("row_features", [])
+        test.update_one("col_features", [])
+        for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
+        for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
+
+    suite.add_options("row_prior", priors)
+    suite.add_options("col_prior", priors)
+    suite.add_centering_options()
+    suite.add_noise_options()
+
+    suite.filter_tests()
+
+    print(suite)
+
+    return suite
+
+
+def synthetic_tensor_tests(defaults):
+    suite = TestSuite("synthetic_tensor")
 
     priors = [ "normal", "macau", "spikeandslab" ]
     datadirs = glob("%s/synthetic/ones*" % args.datadir)
@@ -280,7 +310,8 @@ def movielens_tests(defaults):
 def all_tests(args):
 
     all_tests = chembl_tests(defaults)
-    all_tests.add_testsuite(synthetic_tests(defaults))
+    all_tests.add_testsuite(synthetic_matrix_tests(defaults))
+    all_tests.add_testsuite(synthetic_tensor_tests(defaults))
 
     return all_tests
 

@@ -22,6 +22,8 @@
 #include <SmurffCpp/VMatrixExprIterator.hpp>
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace std;
 using namespace Eigen;
 using namespace smurff;
@@ -52,7 +54,7 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
          sample->setZero();
          break;
       default:
-         throw std::runtime_error("Invalid model init type");
+         THROWERROR("Invalid model init type");
       }
 
       m_samples.push_back(sample);
