@@ -112,12 +112,14 @@ def write_feat(base, features):
 
 def write_test_data(dirname, test):
     os.chdir(dirname)
+    write_matrix("test", test)
     write_tensor("test", test)
     os.chdir("..")
 
 def write_train_data(dirname, train, features = ([],[])):
     os.makedirs(dirname)
     os.chdir(dirname)
+    write_matrix("train", train)
     write_tensor("train", train)
     for (indx,feat) in enumerate(features):
         write_feat(indx, feat)
@@ -206,8 +208,7 @@ if __name__ == "__main__":
     shape = [2000,100]
     #shape = [40,30]
     num_latent = 4
-    # for density in (1, .2):
-    for density in (1,):
+    for density in (1, .2):
         for func in ("normal", "ones"):
             # CALL GEN MATRIX ONLY ONCE
             m = gen_matrix(shape,num_latent,func)
