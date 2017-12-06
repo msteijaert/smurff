@@ -34,10 +34,7 @@ void NormalOnePrior::init()
 
 void NormalOnePrior::update_prior()
 {
-    const int N = num_cols();
-    const auto cov = *U() * U()->transpose();
-    const auto sum = U()->rowwise().sum();
-    std::tie(mu, Lambda) = CondNormalWishart(N, cov, sum, mu0, b0, WI, df);
+    std::tie(mu, Lambda) = CondNormalWishart(num_cols(), getUUsum(), getUsum(), mu0, b0, WI, df);
 }
 
 void NormalOnePrior::sample_latent(int d)
