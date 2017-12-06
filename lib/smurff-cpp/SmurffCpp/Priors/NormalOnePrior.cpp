@@ -51,14 +51,17 @@ void NormalOnePrior::sample_latent(int d)
    yX.noalias() += Lambda * mu;
    XX.noalias() += Lambda;
 
-   for(int k=0;k<K;++k) {
-       double lambda = XX(k,k);
-       double mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
-       double var = randn() / sqrt(lambda);
-       Ucol(k) = mu + var;
-   }
-
+   for(int k=0;k<K;++k) sample_latent(Ucol, k, XX, yX);
+  
    U()->col(d) = Ucol;
+}
+ 
+void NormalOnePrior::sample_latent(VectorXd &Ucol, int k, const MatrixXd& XX, const VectorXd& yX)
+{
+    double lambda = XX(k,k);
+    double mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
+    double var = randn() / sqrt(lambda);
+    Ucol(k) = mu + var;
 }
 
 std::ostream &NormalOnePrior::status(std::ostream &os, std::string indent) const

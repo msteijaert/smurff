@@ -61,6 +61,33 @@ void SpikeAndSlabPrior::sample_latent(int d)
    ArrayXd log_alpha = alpha.col(v).log();
    ArrayXd log_r = - r.col(v).array().log() + (VectorXd::Ones(K) - r.col(v)).array().log();
 
+
+
+   /*
+   const int K = num_latent();
+
+   VectorXd Ucol = U()->col(d); // local copy
+   MatrixXd XX = MatrixXd::Zero(K, K);
+   VectorXd yX = VectorXd::Zero(K);
+
+   data()->get_pnm(model(), m_mode, d, yX, XX);
+
+   // add hyperparams
+   yX.noalias() += Lambda * mu;
+   XX.noalias() += Lambda;
+
+   for(int k=0;k<K;++k) {
+       double lambda = XX(k,k);
+       double mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
+       double var = randn() / sqrt(lambda);
+       Ucol(k) = mu + var;
+   }
+
+   U()->col(d) = Ucol;
+
+    */
+
+
    MatrixXd XX = MatrixXd::Zero(K, K);
    VectorXd yX = VectorXd::Zero(K);
    data()->get_pnm(model(), m_mode, d, yX, XX);

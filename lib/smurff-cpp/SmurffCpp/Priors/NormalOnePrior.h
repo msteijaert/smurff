@@ -38,6 +38,7 @@ public:
    void restore(std::string prefix, std::string suffix) override {}
 
    void sample_latent(int n) override;
+   virtual void sample_latent(Eigen::VectorXd &Ucol, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX);
 
    void update_prior() override;
 
