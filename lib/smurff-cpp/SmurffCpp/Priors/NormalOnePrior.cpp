@@ -4,8 +4,8 @@
 using namespace smurff;
 using namespace Eigen;
 
-NormalOnePrior::NormalOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
-   : ILatentPrior(session, mode, "NormalOnePrior")
+NormalOnePrior::NormalOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name)
+   : ILatentPrior(session, mode, name)
 {
 
 }
@@ -41,7 +41,6 @@ void NormalOnePrior::sample_latent(int d)
 {
    const int K = num_latent();
 
-   VectorXd Ucol = U()->col(d); // local copy
    MatrixXd XX = MatrixXd::Zero(K, K);
    VectorXd yX = VectorXd::Zero(K);
 
@@ -51,17 +50,16 @@ void NormalOnePrior::sample_latent(int d)
    yX.noalias() += Lambda * mu;
    XX.noalias() += Lambda;
 
-   for(int k=0;k<K;++k) sample_latent(Ucol, k, XX, yX);
-  
-   U()->col(d) = Ucol;
+   for(int k=0;k<K;++k) sample_latent(d, k, XX, yX);
 }
  
-void NormalOnePrior::sample_latent(VectorXd &Ucol, int k, const MatrixXd& XX, const VectorXd& yX)
+std::pair<double,double> NormalOnePrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)
 {
+    auto Ucol = U()->col(d);
     double lambda = XX(k,k);
     double mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
-    double var = randn() / sqrt(lambda);
-    Ucol(k) = mu + var;
+    Ucol(k) = mu + randn() / sqrt(lambda);
+    return std::make_pair(mu, lambda);
 }
 
 std::ostream &NormalOnePrior::status(std::ostream &os, std::string indent) const

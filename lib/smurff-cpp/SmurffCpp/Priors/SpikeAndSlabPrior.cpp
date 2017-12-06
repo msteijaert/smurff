@@ -5,13 +5,15 @@ using namespace smurff;
 using namespace Eigen;
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
-   : ILatentPrior(session, mode, "SpikeAndSlabPrior")
+   : NormalOnePrior(session, mode, "SpikeAndSlabPrior")
 {
 
 }
 
 void SpikeAndSlabPrior::init()
 {
+   NormalOnePrior::init();
+
    const int K = num_latent();
    const int D = num_cols();
    const int nview = data()->nview(m_mode);
@@ -22,12 +24,17 @@ void SpikeAndSlabPrior::init()
 
    //-- prior params
    alpha = ArrayXXd::Ones(K,nview);
+   //FIXME!
+   log_alpha = ArrayXXd::Ones(K,nview);
    Zkeep = MatrixXd::Constant(K, nview, D);
    r = MatrixXd::Constant(K,nview,.5);
+   //FIXME!
+   log_r = MatrixXd::Constant(K,nview,.5);
 }
 
 void SpikeAndSlabPrior::update_prior()
 {
+   const int K = num_latent();
    const int nview = data()->nview(m_mode);
    
    auto Zc = Zcol.combine();
@@ -42,73 +49,39 @@ void SpikeAndSlabPrior::update_prior()
        alpha.col(v) = tmpz.binaryExpr(ww, [](double a, double b)->double {
                return rgamma(a, 1/b) + 1e-7;
        });
-   }
 
+       log_alpha.col(v) = alpha.col(v).log();
+       log_r.col(v) = - r.col(v).array().log() + (VectorXd::Ones(K) - r.col(v)).array().log();
+
+   }
 
    Zkeep = Zc.array();
    Zcol.reset();
    W2col.reset();
 }
 
-void SpikeAndSlabPrior::sample_latent(int d)
+std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)
 {
-   const int K = num_latent();
-   const int v = data()->view(m_mode, d);
+    const int v = data()->view(m_mode, d);
+    double mu, lambda;
 
-   auto W = U(); // alias
-   VectorXd Wcol = W->col(d); // local copy
+    MatrixXd aXX = alpha.matrix().col(v).asDiagonal();
+    aXX += XX;
+    std::tie(mu, lambda) = NormalOnePrior::sample_latent(d, k, aXX, yX);
 
-   ArrayXd log_alpha = alpha.col(v).log();
-   ArrayXd log_r = - r.col(v).array().log() + (VectorXd::Ones(K) - r.col(v)).array().log();
+    auto Ucol = U()->col(d);
 
+    double z1 = log_r(k,v) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k,v));
+    double z = 1 / (1 + exp(z1));
+    double p = rand_unif(0,1);
+    if (Zkeep(k,v) > 0 && p < z) {
+        Zcol.local()(k,v)++;
+        W2col.local()(k,v) += Ucol(k) * Ucol(k);
+    } else {
+        Ucol(k) = .0;
+    }
 
-
-   /*
-   const int K = num_latent();
-
-   VectorXd Ucol = U()->col(d); // local copy
-   MatrixXd XX = MatrixXd::Zero(K, K);
-   VectorXd yX = VectorXd::Zero(K);
-
-   data()->get_pnm(model(), m_mode, d, yX, XX);
-
-   // add hyperparams
-   yX.noalias() += Lambda * mu;
-   XX.noalias() += Lambda;
-
-   for(int k=0;k<K;++k) {
-       double lambda = XX(k,k);
-       double mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
-       double var = randn() / sqrt(lambda);
-       Ucol(k) = mu + var;
-   }
-
-   U()->col(d) = Ucol;
-
-    */
-
-
-   MatrixXd XX = MatrixXd::Zero(K, K);
-   VectorXd yX = VectorXd::Zero(K);
-   data()->get_pnm(model(), m_mode, d, yX, XX);
-
-   for(int k=0;k<K;++k) {
-      double lambda = XX(k,k) + alpha(k,v);
-      double mu = (1/lambda) * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
-      double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
-      double z = 1 / (1 + exp(z1));
-      double p = rand_unif(0,1);
-      if (Zkeep(k,v) > 0 && p < z) {
-         Zcol.local()(k,v)++;
-         double var = randn() / sqrt(lambda);
-         Wcol(k) = mu + var;
-      } else {
-         Wcol(k) = .0;
-      }
-   }
-
-   W->col(d) = Wcol;
-   W2col.local().col(v) += Wcol.array().square().matrix();
+    return std::make_pair(mu, lambda);
 }
 
 std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) const

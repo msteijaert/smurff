@@ -30,7 +30,7 @@ private:
       : ILatentPrior(){}
 
 public:
-   NormalOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode);
+   NormalOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name = "NormalOnePrior");
    virtual ~NormalOnePrior() {}
    void init() override;
 
@@ -38,7 +38,7 @@ public:
    void restore(std::string prefix, std::string suffix) override {}
 
    void sample_latent(int n) override;
-   virtual void sample_latent(Eigen::VectorXd &Ucol, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX);
+   virtual std::pair<double,double> sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX);
 
    void update_prior() override;
 
