@@ -37,6 +37,11 @@ public:
    void save(std::string prefix, std::string suffix) override {}
    void restore(std::string prefix, std::string suffix) override {}
 
+   //mu in NormalPrior does not depend on column index
+   //however successors of this class can override this method
+   //for example in MacauPrior mu depends on Uhat.col(n)
+   virtual const Eigen::VectorXd getMu(int n) const;
+
    void sample_latent(int n) override;
    virtual std::pair<double,double> sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX);
 

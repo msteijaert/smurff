@@ -9,7 +9,7 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/Utils/linop.h>
 
-#include <SmurffCpp/Priors/ILatentPrior.h>
+#include <SmurffCpp/Priors/NormalOnePrior.h>
 
 namespace smurff {
 
@@ -17,7 +17,7 @@ namespace smurff {
 //init method in other priors and the other method addSideInfo which we use in pair
 
 template<class FType>
-class MacauOnePrior : public ILatentPrior
+class MacauOnePrior : public NormalOnePrior
 {
 public:
    Eigen::MatrixXd Uhat;
@@ -31,39 +31,15 @@ public:
    double lambda_beta_a0; // Hyper-prior for lambda_beta
    double lambda_beta_b0; // Hyper-prior for lambda_beta
 
-   Eigen::VectorXd mu;
-   Eigen::VectorXd lambda;
-   double lambda_a0;
-   double lambda_b0;
-
-   int l0;
-
-   const Eigen::SparseMatrix<double>& SparseY() const
-   {
-      return std::dynamic_pointer_cast<ScarceMatrixData>(data())->Y(m_mode);
-   }
-
-private:
-   MacauOnePrior()
-      : ILatentPrior(){}
-
 public:
    MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
-      : ILatentPrior(session, mode)
+      : NormalOnePrior(session, mode, "MacauOnePrior")
    {
    }
 
    void init() override
    {
-      ILatentPrior::init();
-
-      // parameters of Normal-Gamma distributions
-      mu     = Eigen::VectorXd::Constant(num_latent(), 0.0);
-      lambda = Eigen::VectorXd::Constant(num_latent(), 10.0);
-      // hyperparameter (lambda_0)
-      l0 = 2.0;
-      lambda_a0 = 1.0;
-      lambda_b0 = 1.0;
+      NormalOnePrior::init();
 
       // init SideInfo related
       Uhat = Eigen::MatrixXd::Constant(num_latent(), Features->rows(), 0.0);
@@ -83,61 +59,6 @@ public:
       F_colsq = col_square_sum(*Features);
    }
 
-   void sample_latent(int i) override
-   {
-       double alpha = noise()->getAlpha();
-
-       const int K = num_latent();
-       auto Us = U();
-       auto& Vs = **Vbegin();
-
-       const int nnz = SparseY().col(i).nonZeros();
-       Eigen::VectorXd Yhat(nnz);
-
-       // precalculating Yhat and Qi
-       int idx = 0;
-       Eigen::VectorXd Qi = lambda;
-       for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
-       {
-         Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
-         Yhat(idx)     = model()->predict({(int)it.col(), (int)it.row()});
-       }
-
-       Eigen::VectorXd rnorms(num_latent());
-       bmrandn_single(rnorms);
-
-       for (int d = 0; d < K; d++)
-       {
-           // computing Lid
-           const double uid = Us->operator()(d, i);
-           double Lid = lambda(d) * (mu(d) + Uhat(d, i));
-
-           idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
-           {
-               const double vjd = Vs(d, it.row());
-               // L_id += alpha * (Y_ij - k_ijd) * v_jd
-               Lid += alpha * (it.value() - (Yhat(idx) - uid*vjd)) * vjd;
-               //std::cout << "U(" << d << ", " << i << "): Lid = " << Lid <<std::endl;
-           }
-
-           // Now use Lid and Qid to update uid
-           double uid_old = Us->operator()(d, i);
-           double uid_var = 1.0 / Qi(d);
-
-           // sampling new u_id ~ Norm(Lid / Qid, 1/Qid)
-           Us->operator()(d, i) = Lid * uid_var + sqrt(uid_var) * rnorms(d);
-
-           // updating Yhat
-           double uid_delta = Us->operator()(d, i) - uid_old;
-           idx = 0;
-           for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
-           {
-               Yhat(idx) += uid_delta * Vs(d, it.row());
-           }
-       }
-   }
-
    void update_prior() override
    {
       sample_mu_lambda(U());
@@ -145,6 +66,12 @@ public:
       compute_uhat(Uhat, *Features, beta);
       sample_lambda_beta();
    }
+    
+   const Eigen::VectorXd getMu(int n) const override
+   {
+      return this->mu + Uhat.col(n);
+   }
+
 
    double getLinkLambda()
    {
@@ -188,8 +115,8 @@ public:
             for (int d = 0; d < dcount; d++)
             {
                int dx = d + dstart;
-               double A_df     = lambda_beta(dx) + lambda(dx) * F_colsq(f);
-               double B_df     = lambda(dx) * (zx(d) + beta(dx,f) * F_colsq(f));
+               double A_df     = lambda_beta(dx) + Lambda(dx,dx) * F_colsq(f);
+               double B_df     = Lambda(dx,dx) * (zx(d) + beta(dx,f) * F_colsq(f));
                double A_inv    = 1.0 / A_df;
                double beta_new = B_df * A_inv + sqrt(A_inv) * randvals(d);
                delta_beta(d)   = beta(dx,f) - beta_new;
@@ -221,7 +148,6 @@ public:
          }
       }
       std::tie(mu, Lambda) = CondNormalWishart(Udelta, Eigen::VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
-      lambda = Lambda.diagonal();
    }
 
    //used in update_prior

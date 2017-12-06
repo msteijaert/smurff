@@ -32,6 +32,11 @@ void NormalOnePrior::init()
    df = K;
 }
 
+const Eigen::VectorXd NormalOnePrior::getMu(int n) const
+{
+   return mu;
+}
+
 void NormalOnePrior::update_prior()
 {
     std::tie(mu, Lambda) = CondNormalWishart(num_cols(), getUUsum(), getUsum(), mu0, b0, WI, df);
