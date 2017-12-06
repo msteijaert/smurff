@@ -169,31 +169,6 @@ inline std::string to_string_with_precision(const double a_value, const int n = 
     return out.str();
 }
 
-inline bool file_exists(const char *fileName)
-{
-   std::ifstream infile(fileName);
-   return infile.good();
-}
-
-inline bool file_exists(const std::string fileName)
-{
-   return file_exists(fileName.c_str());
-}
-
-inline void die(std::string message) {
-   THROWERROR(std::string("[ERROR]: ") + message +  "\n");
-}
-
-inline void not_implemented(std::string message) {
-   THROWERROR(std::string("[Not implemented]: '") + message +  "'\n");
-}
-
-inline void die_unless_file_exists(std::string fname) {
-    if ( fname.size() && ! file_exists(fname) ) {
-      THROWERROR(std::string("[ERROR]\nFile '") + fname +  "' not found.\n");
-    }
-}
-
 template<typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
     out << "[";
