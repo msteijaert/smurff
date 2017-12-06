@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include "TensorUtils.h"
 
 Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig& tensorConfig)
