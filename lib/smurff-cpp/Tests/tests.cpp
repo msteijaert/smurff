@@ -42,7 +42,7 @@ TEST_CASE( "SparseFeat/At_mul_A_bcsr", "[At_mul_A] for BinaryCSR" ) {
   REQUIRE( sf.M.ncol == 4 );
 
   Eigen::MatrixXd AA(4, 4);
-  At_mul_A(AA, sf);
+  smurff::linop::At_mul_A(AA, sf);
   REQUIRE( AA(0,0) == 2 );
   REQUIRE( AA(1,1) == 3 );
   REQUIRE( AA(2,2) == 2 );
@@ -67,7 +67,7 @@ TEST_CASE( "SparseFeat/At_mul_A_csr", "[At_mul_A] for CSR" ) {
   REQUIRE( sf.M.ncol == 4 );
 
   Eigen::MatrixXd AA(4, 4);
-  At_mul_A(AA, sf);
+  smurff::linop::At_mul_A(AA, sf);
   REQUIRE( AA(0,0) == Approx(4.3801) );
   REQUIRE( AA(1,1) == Approx(2.4485) );
   REQUIRE( AA(2,2) == Approx(8.6420) );
@@ -93,7 +93,7 @@ TEST_CASE( "linop/A_mul_Bx(csr)", "A_mul_Bx for CSR" ) {
         0.03,  0.88,  1.32, -0.31;
   Xtr << 0.624 , -0.8528,  1.2268,  0.6344, -3.4022, -0.4392,
          0.528 , -0.7216,  1.0286,  1.9308,  3.4113, -0.7564;
-  A_mul_Bx<2>(X, sf.M,  B);
+  smurff::linop::A_mul_Bx<2>(X, sf.M,  B);
   REQUIRE( (X - Xtr).norm() == Approx(0) );
 }
 
@@ -114,7 +114,7 @@ TEST_CASE( "linop/AtA_mul_Bx(csr)", "AtA_mul_Bx for CSR" ) {
         1.95,  0.  ,  2.54,  0.  ,
         0.  ,  0.  ,  0.  ,  2.44;
 
-  AtA_mul_Bx<2>(out, sf, reg, B, tmp);
+  smurff::linop::AtA_mul_Bx<2>(out, sf, reg, B, tmp);
   outtr = (X.transpose() * X * B.transpose() + reg * B.transpose()).transpose();
   REQUIRE( (out - outtr).norm() == Approx(0) );
 }
@@ -132,7 +132,7 @@ TEST_CASE( "SparseFeat/compute_uhat", "compute_uhat" ) {
                -0.71, -0.71, -0.99,  2.43,  2.43, -0.28,
                 0.37,  0.37,  1.23, -0.89, -0.89,  0.86;
 
-  compute_uhat(uhat, sf, beta);
+  smurff::linop::compute_uhat(uhat, sf, beta);
   for (int i = 0; i < uhat.rows(); i++) {
     for (int j = 0; j < uhat.cols(); j++) {
       REQUIRE( uhat(i,j) == Approx(uhat_true(i,j)) );
@@ -148,7 +148,7 @@ TEST_CASE( "SparseFeat/solve_blockcg", "BlockCG solver (1rhs)" ) {
 
   B << 0.56,  0.55,  0.3 , -1.78;
   X_true << 0.35555556,  0.40709677, -0.16444444, -0.87483871;
-  int niter = solve_blockcg(X, sf, 0.5, B, 1e-6);
+  int niter = smurff::linop::solve_blockcg(X, sf, 0.5, B, 1e-6);
   for (int i = 0; i < X.rows(); i++) {
     for (int j = 0; j < X.cols(); j++) {
       REQUIRE( X(i,j) == Approx(X_true(i,j)) );
@@ -172,7 +172,7 @@ TEST_CASE( "SparseFeat/solve_blockcg_1_0", "BlockCG solver (3rhs separately)" ) 
             1.69333333, -0.12709677, -1.94666667,  0.49483871,
             0.66      , -0.04064516, -0.78      ,  0.65225806;
 
-  solve_blockcg(X, sf, 0.5, B, 1e-6, 1, 0);
+  smurff::linop::solve_blockcg(X, sf, 0.5, B, 1e-6, 1, 0);
   for (int i = 0; i < X.rows(); i++) {
     for (int j = 0; j < X.cols(); j++) {
       REQUIRE( X(i,j) == Approx(X_true(i,j)) );
@@ -192,7 +192,7 @@ TEST_CASE( "MatrixXd/compute_uhat", "compute_uhat for MatrixXd" ) {
            -1.33,  -1.42,   0.03,  -2.32;
   uhat_true <<  -0.2832,  0.7516,  -1.1212,  -1.7426,  0.8049,   2.6128,
                 -1.5087,  2.2801,  -3.4519,  -1.7194,  1.2993,  -0.4861;
-  compute_uhat(uhat, feat, beta);
+  smurff::linop::compute_uhat(uhat, feat, beta);
   for (int i = 0; i < uhat.rows(); i++) {
     for (int j = 0; j < uhat.cols(); j++) {
       REQUIRE( uhat(i,j) == Approx(uhat_true(i,j)) );
@@ -218,7 +218,7 @@ TEST_CASE( "linop/solve_blockcg_dense", "BlockCG solver for dense (3rhs separate
             1.69333333, -0.12709677, -1.94666667,  0.49483871,
             0.66      , -0.04064516, -0.78      ,  0.65225806;
 
-  solve_blockcg(X, sf, 0.5, B, 1e-6);
+  smurff::linop::solve_blockcg(X, sf, 0.5, B, 1e-6);
   for (int i = 0; i < X.rows(); i++) {
     for (int j = 0; j < X.cols(); j++) {
       REQUIRE( X(i,j) == Approx(X_true(i,j)) );
@@ -278,7 +278,7 @@ TEST_CASE( "linop/A_mul_At_omp", "A_mul_At with OpenMP" ) {
   Eigen::MatrixXd A(2, 42);
   Eigen::MatrixXd AAt(2, 2);
   bmrandn(A);
-  A_mul_At_omp(AAt, A);
+  smurff::linop::A_mul_At_omp(AAt, A);
   Eigen::MatrixXd AAt_true(2, 2);
   AAt_true.triangularView<Eigen::Lower>() = A * A.transpose();
 
@@ -292,7 +292,7 @@ TEST_CASE( "linop/A_mul_At_combo", "A_mul_At with OpenMP (returning matrix)" ) {
   Eigen::MatrixXd A(2, 42);
   Eigen::MatrixXd AAt_true(2, 2);
   bmrandn(A);
-  Eigen::MatrixXd AAt = A_mul_At_combo(A);
+  Eigen::MatrixXd AAt = smurff::linop::A_mul_At_combo(A);
   AAt_true = A * A.transpose();
 
   REQUIRE( AAt.rows() == 2);
@@ -313,7 +313,7 @@ TEST_CASE( "linop/A_mul_B_omp", "Fast parallel A_mul_B for small A") {
        1.0,  0.91;
   B << 0.52, 0.19, 0.25, -0.73, -2.81,
       -0.15, 0.31,-0.40,  0.91, -0.08;
-  A_mul_B_omp(0, C, 1.0, A, B);
+  smurff::linop::A_mul_B_omp(0, C, 1.0, A, B);
   Ctr = A * B;
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
@@ -334,7 +334,7 @@ TEST_CASE( "linop/A_mul_B_omp/speed", "Speed of A_mul_B_omp") {
     }
   }
   Xtr = A * B;
-  A_mul_B_omp(0, X, 1.0, A, B);
+  smurff::linop::A_mul_B_omp(0, X, 1.0, A, B);
   REQUIRE( (X - Xtr).norm() == Approx(0.0) );
 }
 
@@ -350,7 +350,7 @@ TEST_CASE( "linop/A_mul_B_add", "Fast parallel A_mul_B with adding") {
   C << 0.21, 0.70, 0.53, -0.18, -2.14,
       -0.35,-0.82,-0.27,  0.15, -0.10;
   Ctr = C;
-  A_mul_B_omp(1.0, C, 1.0, A, B);
+  smurff::linop::A_mul_B_omp(1.0, C, 1.0, A, B);
   Ctr += A * B;
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
@@ -365,7 +365,7 @@ TEST_CASE( "linop/At_mul_Bt/SparseFeat", "At_mul_Bt of single col for SparseFeat
        -0.16, -0.62,  1.19,  1.12,  0.11,  0.61;
   Y_true << -4.16, 0.41;
 
-  At_mul_Bt(Y, sf, 1, B);
+  smurff::linop::At_mul_Bt(Y, sf, 1, B);
   REQUIRE( Y(0) == Approx(Y_true(0)) );
   REQUIRE( Y(1) == Approx(Y_true(1)) );
 }
@@ -382,7 +382,7 @@ TEST_CASE( "linop/At_mul_Bt/SparseDoubleFeat", "At_mul_Bt of single col for Spar
        -0.16, -0.62,  1.19,  1.12,  0.11,  0.61;
   Y_true << 0.9942,  1.8285;
 
-  At_mul_Bt(Y, sf, 1, B);
+  smurff::linop::At_mul_Bt(Y, sf, 1, B);
   REQUIRE( Y(0) == Approx(Y_true(0)) );
   REQUIRE( Y(1) == Approx(Y_true(1)) );
 }
@@ -399,7 +399,7 @@ TEST_CASE( "linop/add_Acol_mul_bt/SparseFeat", "add_Acol_mul_bt for SparseFeat")
   Z_added << -4.39, -7.05, -5.2 , -0.52, -1.45, -1.42,
               0.25, -0.21,  1.6 ,  1.12,  0.11,  0.61;
 
-  add_Acol_mul_bt(Z, sf, 1, b);
+  smurff::linop::add_Acol_mul_bt(Z, sf, 1, b);
   REQUIRE( (Z - Z_added).norm() == Approx(0.0) );
 }
 
@@ -418,7 +418,7 @@ TEST_CASE( "linop/add_Acol_mul_bt/SparseDoubleFeat", "add_Acol_mul_bt for Sparse
   Z_added << -2.726 ,  0.5212, -5.9904, -0.52  , -1.45  , -1.42,
               0.086 , -0.9562,  1.6779,  1.12  ,  0.11  ,  0.61;
 
-  add_Acol_mul_bt(Z, sf, 1, b);
+  smurff::linop::add_Acol_mul_bt(Z, sf, 1, b);
   REQUIRE( (Z - Z_added).norm() == Approx(0.0) );
 }
 
@@ -430,8 +430,8 @@ TEST_CASE( "linop/At_mul_A_blas", "A'A with BLAS is correct") {
         0.7,  2.9,
        -1.3,  1.5;
   AtAtr = A.transpose() * A;
-  At_mul_A_blas(A, AtA.data());
-  makeSymmetric(AtA);
+  smurff::linop::At_mul_A_blas(A, AtA.data());
+  smurff::linop::makeSymmetric(AtA);
   REQUIRE( (AtA - AtAtr).norm() == Approx(0.0) );
 }
 
@@ -443,8 +443,8 @@ TEST_CASE( "linop/A_mul_At_blas", "AA' with BLAS is correct") {
         0.7,  2.9,
        -1.3,  1.5;
   AAtr = A * A.transpose();
-  A_mul_At_blas(A, AA.data());
-  makeSymmetric(AA);
+  smurff::linop::A_mul_At_blas(A, AA.data());
+  smurff::linop::makeSymmetric(AA);
   REQUIRE( (AA - AAtr).norm() == Approx(0.0) );
 }
 
@@ -461,7 +461,7 @@ TEST_CASE( "linop/A_mul_B_blas", "A_mul_B_blas is correct") {
   C << 0.21, 0.70, 0.53, -0.18, -2.14,
       -0.35,-0.82,-0.27,  0.15, -0.10,
       +2.34,-0.81,-0.47,  0.31, -0.14;
-  A_mul_B_blas(C, A, B);
+  smurff::linop::A_mul_B_blas(C, A, B);
   Ctr = A * B;
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
@@ -479,7 +479,7 @@ TEST_CASE( "linop/At_mul_B_blas", "At_mul_B_blas is correct") {
       -0.35,-0.82,-0.27,  0.15, -0.10,
       +2.34,-0.81,-0.47,  0.31, -0.14;
   Ctr = C;
-  At_mul_B_blas(C, A, B);
+  smurff::linop::At_mul_B_blas(C, A, B);
   Ctr = A.transpose() * B;
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
@@ -500,7 +500,7 @@ TEST_CASE( "linop/A_mul_Bt_blas", "A_mul_Bt_blas is correct") {
   C << 0.21, 0.70, 0.53, -0.18, -2.14,
       -0.35,-0.82,-0.27,  0.15, -0.10,
       +2.34,-0.81,-0.47,  0.31, -0.14;
-  A_mul_Bt_blas(C, A, B);
+  smurff::linop::A_mul_Bt_blas(C, A, B);
   Ctr = A * B.transpose();
   REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
