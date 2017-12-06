@@ -21,7 +21,7 @@ public:
    // read-only during sampling
    Eigen::MatrixXd Zkeep;
    Eigen::ArrayXXd alpha, log_alpha;
-   Eigen::MatrixXd r, log_r;
+   Eigen::ArrayXXd r, log_r;
 
    //-- hyper params
    const double prior_beta = 1; //for r

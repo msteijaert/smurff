@@ -24,12 +24,13 @@ void SpikeAndSlabPrior::init()
 
    //-- prior params
    alpha = ArrayXXd::Ones(K,nview);
-   //FIXME!
-   log_alpha = ArrayXXd::Ones(K,nview);
    Zkeep = MatrixXd::Constant(K, nview, D);
-   r = MatrixXd::Constant(K,nview,.5);
-   //FIXME!
-   log_r = MatrixXd::Constant(K,nview,.5);
+   r = ArrayXXd::Constant(K,nview,.5);
+
+   // derived prior parameters
+   log_alpha = alpha.log();
+   log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
+
 }
 
 void SpikeAndSlabPrior::update_prior()
@@ -49,11 +50,11 @@ void SpikeAndSlabPrior::update_prior()
        alpha.col(v) = tmpz.binaryExpr(ww, [](double a, double b)->double {
                return rgamma(a, 1/b) + 1e-7;
        });
-
-       log_alpha.col(v) = alpha.col(v).log();
-       log_r.col(v) = - r.col(v).array().log() + (VectorXd::Ones(K) - r.col(v)).array().log();
-
    }
+
+   log_alpha = alpha.log();
+   log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
+
 
    Zkeep = Zc.array();
    Zcol.reset();
