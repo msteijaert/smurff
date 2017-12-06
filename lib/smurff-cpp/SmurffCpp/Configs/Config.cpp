@@ -18,6 +18,8 @@ PriorTypes smurff::stringToPriorType(std::string name)
       return PriorTypes::macauone;
    else if(name == PRIOR_NAME_SPIKE_AND_SLAB)
       return PriorTypes::spikeandslab;
+   else if(name == PRIOR_NAME_NORMALONE)
+      return PriorTypes::normalone;
    else if(name == PRIOR_NAME_NORMAL)
       return PriorTypes::normal;
    else if(name == PRIOR_NAME_MPI)
@@ -40,6 +42,8 @@ std::string smurff::priorTypeToString(PriorTypes type)
          return PRIOR_NAME_SPIKE_AND_SLAB;
       case PriorTypes::normal:
          return PRIOR_NAME_NORMAL;
+      case PriorTypes::normalone:
+         return PRIOR_NAME_NORMALONE;
       case PriorTypes::mpi:
          return PRIOR_NAME_MPI;
       default:

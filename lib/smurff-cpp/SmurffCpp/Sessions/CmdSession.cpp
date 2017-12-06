@@ -115,8 +115,8 @@ void CmdSession::setFromArgs(int argc, char** argv)
     struct argp_option options[] =
     {
         {0,0,0,0,"Priors and side Info:",1},
-        {"row-prior",	     ROW_PRIOR     , "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
-        {"col-prior",	     COL_PRIOR	, "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
+        {"row-prior",	     ROW_PRIOR     , "PRIOR", 0, "One of <normal|normalone||spikeandslab|macau|macauone>"},
+        {"col-prior",	     COL_PRIOR	, "PRIOR", 0, "One of <normal|normalone|spikeandslab|macau|macauone>"},
         {"row-features",     ROW_FEATURES	, "FILE",  0, "side info for rows"},
         {"col-features",     COL_FEATURES	, "FILE",  0, "side info for cols"},
         {"row-model",        FNAME_ROW_MODEL	, "FILE",  0, "initialization matrix for row model"},

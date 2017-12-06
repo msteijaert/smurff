@@ -12,6 +12,7 @@
 #define PRIOR_NAME_MACAU_ONE "macauone"
 #define PRIOR_NAME_SPIKE_AND_SLAB "spikeandslab"
 #define PRIOR_NAME_NORMAL "normal"
+#define PRIOR_NAME_NORMALONE "normalone"
 #define PRIOR_NAME_MPI "mpi"
 
 #define CENTER_MODE_STR_NONE "none"
@@ -32,6 +33,7 @@ enum class PriorTypes
    macauone,
    spikeandslab,
    normal,
+   normalone,
    mpi
 };
 
