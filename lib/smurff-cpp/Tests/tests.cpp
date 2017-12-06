@@ -8,7 +8,6 @@
 #include <vector>
 
 #include <SmurffCpp/Model.h>
-#include <SmurffCpp/sparsetensor.h>
 #include <SmurffCpp/result.h>
 
 #include <SmurffCpp/Utils/TruncNorm.h>

@@ -77,10 +77,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/Session.h"
                         "../Sessions/CmdSession.h"
                         "../Sessions/PythonSession.h"
-                        "../Sessions/SessionFactory.h"
-
-                        "../sparsetensor.h"
-                        "../TensorUtilsOld.h")
+                        "../Sessions/SessionFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -142,10 +139,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Sessions/Session.cpp"
                         "../Sessions/CmdSession.cpp"
                         "../Sessions/PythonSession.cpp"
-                        "../Sessions/SessionFactory.cpp"
-
-                        "../sparsetensor.cpp"
-                        "../TensorUtilsOld.cpp")
+                        "../Sessions/SessionFactory.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT
