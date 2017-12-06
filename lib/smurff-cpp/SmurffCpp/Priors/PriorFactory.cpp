@@ -7,6 +7,8 @@
 #include <SmurffCpp/Priors/NormalPrior.h>
 #include <SmurffCpp/Priors/SpikeAndSlabPrior.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 using namespace Eigen;
 
@@ -116,7 +118,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    }
    else
    {
-      throw std::runtime_error("Unknown prior with side info: " + priorTypeToString(prior_type));
+      THROWERROR("Unknown prior with side info: " + priorTypeToString(prior_type));
    }
 }
 
@@ -125,7 +127,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<std::shared_ptr<MatrixConfig> >& vsideinfo)
 {
    if(vsideinfo.size() != 1)
-      throw std::runtime_error("Only one feature matrix is allowed");
+      THROWERROR("Only one feature matrix is allowed");
 
    std::shared_ptr<MatrixConfig> sideinfoConfig = vsideinfo.at(0);
 
@@ -162,7 +164,7 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
       case PriorTypes::macauone:
          return create_macau_prior(session, mode, prior_type, vsideinfo);
       default:
-         throw std::runtime_error("SideInfo only with macau(one) prior");
+         THROWERROR("SideInfo only with macau(one) prior");
       }
    }
    else
@@ -175,7 +177,7 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
       case PriorTypes::spikeandslab:
          return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
       default:
-         throw std::runtime_error("Unknown prior without side info: " + priorTypeToString(prior_type));
+         THROWERROR("Unknown prior without side info: " + priorTypeToString(prior_type));
       }
    }
 }
@@ -205,6 +207,6 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
          return ::create_prior(session, mode, session->config.col_prior_type, col_sideinfo);
       }
       default:
-         throw std::runtime_error("Unknown prior mode");
+         THROWERROR("Unknown prior mode");
    }
 }

@@ -4,6 +4,7 @@
 #include <set>
 
 #include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 
@@ -26,7 +27,7 @@ NoiseTypes smurff::stringToNoiseType(std::string name)
    else if(name == NOISE_NAME_UNUSED)
       return NoiseTypes::unused;
    else
-      throw std::runtime_error("Invalid noise type " + name);
+      THROWERROR("Invalid noise type " + name);
 }
 
 std::string smurff::noiseTypeToString(NoiseTypes type)
@@ -44,7 +45,7 @@ std::string smurff::noiseTypeToString(NoiseTypes type)
       case NoiseTypes::unused:
          return NOISE_NAME_UNUSED;
       default:
-         throw std::runtime_error("Invalid noise type");
+         THROWERROR("Invalid noise type");
    }
 }
 

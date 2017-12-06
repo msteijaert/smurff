@@ -206,7 +206,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   const int nrhs  = B.rows();
   double tolsq = tol*tol;
 
-  if (nfeat != K.cols()) {throw std::runtime_error("B.cols() must equal K.cols()");}
+  if (nfeat != K.cols()) {THROWERROR("B.cols() must equal K.cols()");}
 
   Eigen::VectorXd norms(nrhs), inorms(nrhs); 
   norms.setZero();
@@ -443,7 +443,7 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
     case 38: return AtA_mul_Bx<38>(out, A, reg, B, tmp);
     case 39: return AtA_mul_Bx<39>(out, A, reg, B, tmp);
     case 40: return AtA_mul_Bx<40>(out, A, reg, B, tmp);
-    default: throw std::runtime_error("BlockCG only available for up to 40 RHSs.");
+    default: THROWERROR("BlockCG only available for up to 40 RHSs.");
   }
 }
 

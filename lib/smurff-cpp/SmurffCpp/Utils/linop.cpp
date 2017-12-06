@@ -5,6 +5,8 @@
 //#define EIGEN_USE_BLAS
 #include <Eigen/Dense>
 
+#include <SmurffCpp/Utils/Error.h>
+
 #include "chol.h"
 #include "linop.h"
 #include "omp_util.h"
@@ -24,32 +26,33 @@ extern "C" void dsymm_(char *side, char *uplo, int *m, int *n, double *alpha, do
 */
 
 // out = bcsr * b (for vectors)
-void A_mul_B(Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b) {
-  if (csr.nrow != out.size()) {throw std::runtime_error("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {throw std::runtime_error("csr.ncol must equal b.size()");}
+void A_mul_B(Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b) 
+{
+  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
+  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
   bcsr_A_mul_B( out.data(), & csr, b.data() );
 }
 
 // OUT' = bcsr * B' (for matrices)
 void A_mul_Bt(Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B) {
-  if (csr.nrow != out.cols()) {throw std::runtime_error("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {throw std::runtime_error("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {throw std::runtime_error("out.rows() must equal B.rows()");}
+  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
+  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
+  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
   bcsr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
 }
 
 // out = bcsr * b (for vectors)
 void A_mul_B(Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b) {
-  if (csr.nrow != out.size()) {throw std::runtime_error("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {throw std::runtime_error("csr.ncol must equal b.size()");}
+  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
+  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
   csr_A_mul_B( out.data(), & csr, b.data() );
 }
 
 // OUT' = bcsr * B' (for matrices)
 void A_mul_Bt(Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B) {
-  if (csr.nrow != out.cols()) {throw std::runtime_error("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {throw std::runtime_error("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {throw std::runtime_error("out.rows() must equal B.rows()");}
+  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
+  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
+  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
   csr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
 }
 
@@ -83,10 +86,10 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B)
 
 void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
   if (out.cols() != A.cols()) {
-    throw std::runtime_error("At_mul_A(SparseFeat): out.cols() must equal A.cols()");
+   THROWERROR("At_mul_A(SparseFeat): out.cols() must equal A.cols()");
   }
   if (out.cols() != out.rows()) {
-    throw std::runtime_error("At_mul_A(SparseFeat): out must be square matrix.)");
+   THROWERROR("At_mul_A(SparseFeat): out must be square matrix.)");
   }
 
   out.setZero();
@@ -121,10 +124,10 @@ void At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
 
 void At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
   if (out.cols() != A.cols()) {
-    throw std::runtime_error("At_mul_A(SparseDoubleFeat): out.cols() must equal A.cols()");
+   THROWERROR("At_mul_A(SparseDoubleFeat): out.cols() must equal A.cols()");
   }
   if (out.cols() != out.rows()) {
-    throw std::runtime_error("At_mul_A(SparseDoubleFeat): out must be square matrix.)");
+   THROWERROR("At_mul_A(SparseDoubleFeat): out must be square matrix.)");
   }
   out.setZero();
   const int nfeat = A.M.ncol;
@@ -173,9 +176,9 @@ void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt) {
 }
 
 void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  if (Y.rows() != A.rows()) {throw std::runtime_error("A.rows() must equal Y.rows()");}
-  if (Y.cols() != B.cols()) {throw std::runtime_error("B.cols() must equal Y.cols()");}
-  if (A.cols() != B.rows()) {throw std::runtime_error("B.rows() must equal A.cols()");}
+  if (Y.rows() != A.rows()) {THROWERROR("A.rows() must equal Y.rows()");}
+  if (Y.cols() != B.cols()) {THROWERROR("B.cols() must equal Y.cols()");}
+  if (A.cols() != B.rows()) {THROWERROR("B.rows() must equal A.cols()");}
   int m = A.rows();
   int n = B.cols();
   int k = A.cols();
@@ -187,9 +190,9 @@ void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B)
 }
 
 void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  if (Y.rows() != A.cols()) {throw std::runtime_error("A.rows() must equal Y.rows()");}
-  if (Y.cols() != B.cols()) {throw std::runtime_error("B.cols() must equal Y.cols()");}
-  if (A.rows() != B.rows()) {throw std::runtime_error("B.rows() must equal A.cols()");}
+  if (Y.rows() != A.cols()) {THROWERROR("A.rows() must equal Y.rows()");}
+  if (Y.cols() != B.cols()) {THROWERROR("B.cols() must equal Y.cols()");}
+  if (A.rows() != B.rows()) {THROWERROR("B.rows() must equal A.cols()");}
   int m = A.cols();
   int n = B.cols();
   int k = A.rows();
@@ -201,9 +204,9 @@ void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B
 }
 
 void A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  if (Y.rows() != A.rows()) {throw std::runtime_error("A.rows() must equal Y.rows()");}
-  if (Y.cols() != B.rows()) {throw std::runtime_error("B.rows() must equal Y.cols()");}
-  if (A.cols() != B.cols()) {throw std::runtime_error("B.cols() must equal A.cols()");}
+  if (Y.rows() != A.rows()) {THROWERROR("A.rows() must equal Y.rows()");}
+  if (Y.cols() != B.rows()) {THROWERROR("B.rows() must equal Y.cols()");}
+  if (A.cols() != B.cols()) {THROWERROR("B.cols() must equal A.cols()");}
   int m = A.rows();
   int n = B.rows();
   int k = A.cols();
@@ -312,7 +315,7 @@ void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   const int k = A.cols();
   double* x = A.data();
   if (A.rows() != out.rows()) {
-    throw std::runtime_error("A.rows() must equal out.rows()");
+   THROWERROR("A.rows() must equal out.rows()");
   }
 
   std::vector<MatrixXd> Ys;
@@ -356,7 +359,7 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
   assert(A.rows() == B.rows());
   assert(A.cols() == B.cols());
   if (A.rows() != out.rows()) {
-    throw std::runtime_error("A.rows() must equal out.rows()");
+   THROWERROR("A.rows() must equal out.rows()");
   }
   std::vector<MatrixXd> Ys;
   Ys.resize(thread_limit(), MatrixXd(n, n));

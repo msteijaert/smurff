@@ -18,6 +18,8 @@
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace std;
 using namespace Eigen;
 
@@ -27,7 +29,7 @@ namespace smurff {
 void Result::set(std::shared_ptr<TensorConfig> Y)
 {
    if(Y->isDense())
-      throw std::runtime_error("test data should be sparse");
+      THROWERROR("test data should be sparse");
 
    std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
    std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();

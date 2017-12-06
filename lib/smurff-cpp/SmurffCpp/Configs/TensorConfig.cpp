@@ -2,6 +2,8 @@
 
 #include <numeric>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 TensorConfig::TensorConfig ( bool isDense
@@ -39,13 +41,13 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
    , m_nnz(std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<std::uint64_t>()))
 {
    if (dims.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (values.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size cannot be zero");
 
    if (values.size() != m_nnz)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
    m_columns = std::make_shared<std::vector<std::uint32_t> >();
@@ -96,13 +98,13 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    , m_values(values)
 {
    if (m_dims->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (m_values->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size cannot be zero");
 
    if (m_values->size() != m_nnz)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
 
    m_columns = std::make_shared<std::vector<std::uint32_t> >();
    m_columns->reserve(m_dims->size() * m_nnz);
@@ -144,7 +146,7 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
    , m_nnz(values.size())
 {
    if (columns.size() != values.size() * dims.size())
-      throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
    m_columns = std::make_shared<std::vector<std::uint32_t> >(columns);
@@ -182,7 +184,7 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    , m_values(values)
 {
    if (columns->size() != values->size() * dims->size())
-      throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
 }
 
 //
@@ -202,10 +204,10 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
    , m_nnz(columns.size() / dims.size())
 {
    if (dims.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (columns.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'columns' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size cannot be zero");
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
    m_columns = std::make_shared<std::vector<std::uint32_t> >(columns);
@@ -239,10 +241,10 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    , m_columns(columns)
 {
    if (dims->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (columns->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'columns' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size cannot be zero");
 
    m_values = std::make_shared<std::vector<double> >(m_nnz, 1);
 }

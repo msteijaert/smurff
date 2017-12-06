@@ -289,7 +289,7 @@ template<class FType>
 void MacauOnePrior<FType>::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                                           double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
  //TODO
- throw std::runtime_error("Not implemented!");
+ THROWERROR("Not implemented!");
 }
 */
 
@@ -299,7 +299,7 @@ template<class FType>
 void MacauOnePrior<FType>::sample_latents(ProbitNoise& noiseModel, TensorData & data,
                                           std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent)
 {
-  throw std::runtime_error("Unimplemented: sample_latents");
+  THROWERROR("Unimplemented: sample_latents");
 }
 */
 
@@ -319,7 +319,7 @@ void MacauOnePrior<FType>::sample_latents(double noisePrecision, TensorData & da
 
   if (U->rows() != num_latent)
   {
-    throw std::runtime_error("U->rows() must be equal to num_latent.");
+    THROWERROR("U->rows() must be equal to num_latent.");
   }
 
   Eigen::VectorXi & row_ptr = sparseMode->row_ptr;

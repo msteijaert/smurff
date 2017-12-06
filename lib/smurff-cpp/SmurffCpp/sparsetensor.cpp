@@ -8,6 +8,8 @@
 
 #include <Priors/ILatentPrior.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace Eigen;
 
 //from macau bpmfutils
@@ -30,12 +32,12 @@ inline void sparseFromIJV(Eigen::SparseMatrix<double> &X, Eigen::MatrixXi &idx, 
 {
    if (idx.rows() != values.size()) 
    {
-     throw std::runtime_error("sparseFromIJV: idx.rows() must equal values.size().");
+      THROWERROR("sparseFromIJV: idx.rows() must equal values.size().");
    }
 
    if (idx.cols() != 2) 
    {
-     throw std::runtime_error("sparseFromIJV: idx.cols() must be equal to 2.");
+      THROWERROR("sparseFromIJV: idx.cols() must be equal to 2.");
    }
 
    typedef Eigen::Triplet<double> T;
@@ -87,9 +89,11 @@ void MatrixData::setTest(int* rows, int* cols, double* values, int nnz, int nrow
 
 void MatrixData::setTrain(int* columns, int nmodes, double* values, int nnz, int* d) 
 {
-  if (nmodes != 2) {
-    throw std::runtime_error("MatrixData: tensor training input not supported.");
+  if (nmodes != 2) 
+  {
+   THROWERROR("MatrixData: tensor training input not supported.");
   }
+
   auto idx  = toMatrix(columns, nnz, nmodes);
   auto vals = toVector(values, nnz);
 
@@ -104,8 +108,9 @@ void MatrixData::setTrain(int* columns, int nmodes, double* values, int nnz, int
     
 void MatrixData::setTest(int* columns, int nmodes, double* values, int nnz, int* d) 
 {
-  if (nmodes != 2) {
-    throw std::runtime_error("MatrixData: tensor training input not supported.");
+  if (nmodes != 2) 
+  {
+   THROWERROR("MatrixData: tensor training input not supported.");
   }
   auto idx  = toMatrix(columns, nnz, nmodes);
   auto vals = toVector(values, nnz);

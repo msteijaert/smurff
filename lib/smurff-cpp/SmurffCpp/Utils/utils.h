@@ -16,6 +16,8 @@
 
 #include "omp_util.h"
 
+#include <SmurffCpp/Utils/Error.h>
+
 template<typename T>
 class thread_vector
 {
@@ -179,16 +181,16 @@ inline bool file_exists(const std::string fileName)
 }
 
 inline void die(std::string message) {
-    throw std::runtime_error(std::string("[ERROR]: ") + message +  "\n");
+   THROWERROR(std::string("[ERROR]: ") + message +  "\n");
 }
 
 inline void not_implemented(std::string message) {
-    throw std::runtime_error(std::string("[Not implemented]: '") + message +  "'\n");
+   THROWERROR(std::string("[Not implemented]: '") + message +  "'\n");
 }
 
 inline void die_unless_file_exists(std::string fname) {
     if ( fname.size() && ! file_exists(fname) ) {
-        throw std::runtime_error(std::string("[ERROR]\nFile '") + fname +  "' not found.\n");
+      THROWERROR(std::string("[ERROR]\nFile '") + fname +  "' not found.\n");
     }
 }
 
