@@ -11,5 +11,6 @@ namespace smurff
       std::ostream& info(std::ostream& os, std::string indent) override;
       int nrow() const;
       int ncol() const;
+      PVec<> pos(int mode, int n, int idx);
    };
 }
