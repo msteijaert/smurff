@@ -8,7 +8,7 @@ FixedGaussianNoise::FixedGaussianNoise(double a)
 
 }
 
-double FixedGaussianNoise::getAlpha()
+double FixedGaussianNoise::getAlpha(double pred, double val)
 {
    return alpha;
 }

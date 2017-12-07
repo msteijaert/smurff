@@ -8,7 +8,7 @@ Noiseless::Noiseless()
 
 }
 
-double Noiseless::getAlpha()
+double Noiseless::getAlpha(double pred, double val)
 {
    return 1.;
 }

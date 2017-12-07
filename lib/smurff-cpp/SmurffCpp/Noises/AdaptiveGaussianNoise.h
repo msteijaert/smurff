@@ -28,8 +28,8 @@ namespace smurff {
 
    public:
       void init(const Data* data) override;
-      void update(const Data* data, const SubModel& model) override;
-      double getAlpha() override;
+      void update(const SubModel& model) override;
+      double getAlpha(double pred, double val) override;
 
       std::ostream &info(std::ostream &os, std::string indent) override;
       std::string getStatus() override;

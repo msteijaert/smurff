@@ -21,7 +21,7 @@ namespace smurff {
       FixedGaussianNoise(double a = 1.);
 
    public:
-      double getAlpha() override;
+      double getAlpha(double pred, double val) override;
 
       std::ostream& info(std::ostream& os, std::string indent)  override;
       std::string getStatus() override;

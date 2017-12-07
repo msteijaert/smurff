@@ -10,7 +10,7 @@ UnusedNoise::UnusedNoise()
 {
 }
 
-double UnusedNoise::getAlpha()
+double UnusedNoise::getAlpha(double pred, double val)
 {
    assert(false);
    return NAN;
