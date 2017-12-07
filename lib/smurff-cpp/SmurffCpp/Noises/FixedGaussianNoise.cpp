@@ -8,7 +8,7 @@ FixedGaussianNoise::FixedGaussianNoise(double a)
 
 }
 
-double FixedGaussianNoise::getAlpha(double pred, double val)
+double FixedGaussianNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val)
 {
    return alpha;
 }

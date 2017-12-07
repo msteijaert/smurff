@@ -31,7 +31,7 @@ namespace smurff
           for(int r = 0; r<Y.rows(); ++r) 
           {
               PVec<> pos = this->pos(mode, d, r);
-              double alpha = this->noise()->getAlpha(model.predict(pos), Y(r));
+              double alpha = this->noise()->getAlpha(model, pos, Y(r));
               rr.noalias() += (Vf.col(r) * Y(r)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
           }
           MM.noalias() += VV[mode]; // MM = MM + VV[m] * alpha

@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+#include <SmurffCpp/Utils/PVec.hpp>
+
 namespace smurff {
 
    class Data;
@@ -35,6 +37,6 @@ namespace smurff {
       virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
       virtual std::string getStatus()  = 0;
 
-      virtual double getAlpha(double pred, double val) = 0;
+      virtual double getAlpha(const SubModel& model, const PVec<> &pos, double val) = 0;
    };
 }

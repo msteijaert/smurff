@@ -10,7 +10,7 @@ UnusedNoise::UnusedNoise()
 {
 }
 
-double UnusedNoise::getAlpha(double pred, double val)
+double UnusedNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val)
 {
    assert(false);
    return NAN;

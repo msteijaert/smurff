@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include <SmurffCpp/Utils/TruncNorm.h>
+#include <SmurffCpp/Model.h>
 
 using namespace smurff;
 
@@ -13,10 +14,11 @@ ProbitNoise::ProbitNoise()
 
 }
 
-double ProbitNoise::getAlpha(double pred, double val11)
+double ProbitNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val11)
 {
     assert(val11 >= -1.0 && val11 <= 1.0);
-    double pred01 = 0.5 * (pred + 1.0);   
+    double pred11 = model.predict(pos);
+    double pred01 = 0.5 * (pred11 + 1.0);   
     return rand_truncnorm(pred01 * val11, 1.0, 0.0);
 }
 

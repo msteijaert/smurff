@@ -113,7 +113,7 @@ void TensorData::get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::Vec
       }
       
       //!!FIXME
-      const double alpha = this->noise()->getAlpha(sview->getValues()[j], sview->getValues()[j]);
+      const double alpha = 1.0;
       MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each V)
       rr.noalias() += col * sview->getValues()[j] * alpha; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
    }

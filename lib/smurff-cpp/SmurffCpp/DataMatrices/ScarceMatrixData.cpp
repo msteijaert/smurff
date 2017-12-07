@@ -76,13 +76,9 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
                {
                    auto val = Y.valuePtr()[i];
                    auto idx = Y.innerIndexPtr()[i];
-
-                   // FIXME!
-                   int pos0 = n;
-                   int pos1 = idx;
-                   if (mode == 0) std::swap(pos0, pos1);
                    const auto &col = Vfloc.col(idx);
-                   double alpha = noise()->getAlpha(model.predict({pos0, pos1}), val);
+                   auto pos = this->pos(mode, n, idx);
+                   double alpha = noise()->getAlpha(model, pos, val);
                    my_rr.noalias() += col * val * alpha;
                    my_MM.triangularView<Eigen::Lower>() += col * col.transpose() * alpha;
                }
@@ -104,13 +100,9 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
       
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) 
       {
-          // FIXME!
-          int pos0 = it.row();
-          int pos1 = it.col();
-          if (mode == 0) std::swap(pos0, pos1);
-
           const auto &col = Vf.col(it.row());
-          double alpha = noise()->getAlpha(model.predict({pos0, pos1}), it.value());
+          auto pos = this->pos(mode, n, it.row());
+          double alpha = noise()->getAlpha(model, pos, it.value());
           my_rr.noalias() += col * it.value() * alpha;
           my_MM.triangularView<Eigen::Lower>() += col * col.transpose() * alpha;
       }

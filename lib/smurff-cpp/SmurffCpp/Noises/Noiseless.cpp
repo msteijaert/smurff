@@ -8,7 +8,7 @@ Noiseless::Noiseless()
 
 }
 
-double Noiseless::getAlpha(double pred, double val)
+double Noiseless::getAlpha(const SubModel& model, const PVec<> &pos, double val)
 {
    return 1.;
 }

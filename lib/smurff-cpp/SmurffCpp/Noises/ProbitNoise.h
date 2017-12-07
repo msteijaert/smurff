@@ -18,7 +18,7 @@ namespace smurff {
       ProbitNoise();
 
    public:
-      double getAlpha(double pred, double val) override;
+      double getAlpha(const SubModel& model, const PVec<> &pos, double val) override;
 
       std::ostream& info(std::ostream& os, std::string indent) override;
       std::string getStatus() override;

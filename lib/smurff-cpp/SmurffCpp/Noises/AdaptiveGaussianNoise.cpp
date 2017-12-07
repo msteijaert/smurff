@@ -40,7 +40,7 @@ void AdaptiveGaussianNoise::update(const SubModel& model)
    }
 }
 
-double AdaptiveGaussianNoise::getAlpha(double pred, double val)
+double AdaptiveGaussianNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val)
 {
    return alpha;
 }
