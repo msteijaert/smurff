@@ -1,11 +1,27 @@
 #include "SparseMatrixData.h"
 
 using namespace smurff;
+using namespace Eigen;
 
-SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
-   : FullMatrixData<Eigen::SparseMatrix<double>>(Y)
+SparseMatrixData::SparseMatrixData(SparseMatrix<double> Y)
+   : FullMatrixData<SparseMatrix<double>>(Y)
 {
    this->name = "SparseMatrixData [fully known]";
+}
+
+void SparseMatrixData::get_pnm(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM) 
+{
+    const auto& Y = this->Y(mode);
+    auto Vf = *model.CVbegin(mode);
+
+    for (SparseMatrix<double>::InnerIterator it(Y, d); it; ++it) 
+    {
+        const auto &col = Vf.col(it.row());
+        auto pos = this->pos(mode, d, it.row());
+        double alpha = this->noise()->getAlpha(model, pos, it.value());
+        rr.noalias() += col * (it.value() * alpha); // rr = rr + (V[m] * y[d]) * alpha
+        MM.noalias() += col * (col.transpose() * alpha); // rr = rr + (V[m] * y[d]) * alpha
+    }
 }
 
 double SparseMatrixData::train_rmse(const SubModel& model) const
@@ -22,7 +38,7 @@ double SparseMatrixData::var_total() const
    for(int c = 0; c < Y().cols(); ++c)
    {
       int r = 0;
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
+      for (SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
          for(; r < it.row(); r++) //handle implicit zeroes
             se += square(cwise_mean);
@@ -53,7 +69,7 @@ double SparseMatrixData::sumsq(const SubModel& model) const
    for(int c = 0; c < Y().cols(); ++c)
    {
       int r = 0;
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
+      for (SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
          for(; r < it.row(); r++) //handle implicit zeroes
             sumsq += square(model.predict({r, c}));

@@ -5,16 +5,17 @@
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
 using namespace smurff;
+using namespace Eigen;
 
-ScarceMatrixData::ScarceMatrixData(Eigen::SparseMatrix<double> Y)
-   : MatrixDataTempl<Eigen::SparseMatrix<double> >(Y)
+ScarceMatrixData::ScarceMatrixData(SparseMatrix<double> Y)
+   : MatrixDataTempl<SparseMatrix<double> >(Y)
 {
    name = "ScarceMatrixData [with NAs]";
 }
 
 void ScarceMatrixData::init_pre()
 {
-   MatrixDataTempl<Eigen::SparseMatrix<double> >::init_pre();
+   MatrixDataTempl<SparseMatrix<double> >::init_pre();
 
    // check no rows, nor cols withouth data
    for(std::uint64_t mode = 0; mode < nmode(); ++mode)
@@ -36,13 +37,13 @@ double ScarceMatrixData::train_rmse(const SubModel& model) const
 
 std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
 {
-    MatrixDataTempl<Eigen::SparseMatrix<double> >::info(os, indent);
+    MatrixDataTempl<SparseMatrix<double> >::info(os, indent);
     if (num_empty[0]) os << indent << "  Warning: " << num_empty[0] << " empty rows\n";
     if (num_empty[1]) os << indent << "  Warning: " << num_empty[1] << " empty cols\n";
     return os;
 }
 
-void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n, VectorXd& rr, MatrixXd& MM)
 {
    COUNTER("get_pnm");
    auto &Y = this->Y(mode);
@@ -60,8 +61,8 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
        auto from = Y.outerIndexPtr()[n];
        auto to = Y.outerIndexPtr()[n+1];
 
-       thread_vector<Eigen::VectorXd> rrs(Eigen::VectorXd::Zero(num_latent));
-       thread_vector<Eigen::MatrixXd> MMs(Eigen::MatrixXd::Zero(num_latent, num_latent));
+       thread_vector<VectorXd> rrs(VectorXd::Zero(num_latent));
+       thread_vector<MatrixXd> MMs(MatrixXd::Zero(num_latent, num_latent));
 
        for(int j = from; j < to; j += task_size) 
        {
@@ -79,12 +80,12 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
                    const auto &col = Vfloc.col(idx);
                    auto pos = this->pos(mode, n, idx);
                    double alpha = noise()->getAlpha(model, pos, val);
-                   my_rr.noalias() += col * val * alpha;
-                   my_MM.triangularView<Eigen::Lower>() += col * col.transpose() * alpha;
+                   my_rr.noalias() += col * (val * alpha);
+                   my_MM.triangularView<Lower>() += col * col.transpose() * alpha;
                }
 
                // make MM complete
-               my_MM.triangularView<Eigen::Upper>() = my_MM.transpose();
+               my_MM.triangularView<Upper>() = my_MM.transpose();
            }
        }
        #pragma omp taskwait
@@ -95,20 +96,20 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
    } 
    else 
    {
-      Eigen::VectorXd my_rr = Eigen::VectorXd::Zero(num_latent);
-      Eigen::MatrixXd my_MM = Eigen::MatrixXd::Zero(num_latent, num_latent);
+      VectorXd my_rr = VectorXd::Zero(num_latent);
+      MatrixXd my_MM = MatrixXd::Zero(num_latent, num_latent);
       
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) 
+      for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) 
       {
           const auto &col = Vf.col(it.row());
           auto pos = this->pos(mode, n, it.row());
           double alpha = noise()->getAlpha(model, pos, it.value());
-          my_rr.noalias() += col * it.value() * alpha;
-          my_MM.triangularView<Eigen::Lower>() += col * col.transpose() * alpha;
+          my_rr.noalias() += col * (it.value() * alpha);
+          my_MM.triangularView<Lower>() += col * col.transpose() * alpha;
       }
 
       // make MM complete
-      my_MM.triangularView<Eigen::Upper>() = my_MM.transpose();
+      my_MM.triangularView<Upper>() = my_MM.transpose();
 
       // add to global
       rr += my_rr;
@@ -134,7 +135,7 @@ double ScarceMatrixData::var_total() const
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
    for (int k = 0; k < Y().outerSize(); ++k)
    {
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
+      for (SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
       {
          se += square(it.value() - cwise_mean);
       }
@@ -157,7 +158,7 @@ double ScarceMatrixData::sumsq(const SubModel& model) const
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
    for (int j = 0; j < Y().outerSize(); j++) 
    {
-      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
+      for (SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
       {
          sumsq += square(model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())})- it.value());
       }

@@ -10,7 +10,7 @@ namespace smurff
    template<class YType>
    class FullMatrixData : public MatrixDataTempl<YType>
    {
-   private:
+   protected:
       Eigen::MatrixXd VV[2]; // sum of v * vT, where v is column of V
 
    public:
@@ -21,22 +21,6 @@ namespace smurff
       }
 
    public:
-      //d is an index of column in U matrix
-      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
-      {
-          Eigen::VectorXd Y = this->Y(mode).col(d);
-          assert(Y.rows() == this->Y(mode).rows());
-          auto Vf = *model.CVbegin(mode);
-
-          for(int r = 0; r<Y.rows(); ++r) 
-          {
-              PVec<> pos = this->pos(mode, d, r);
-              double alpha = this->noise()->getAlpha(model, pos, Y(r));
-              rr.noalias() += (Vf.col(r) * Y(r)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
-          }
-          MM.noalias() += VV[mode]; // MM = MM + VV[m] * alpha
-      }
-
       //purpose of update_pnm is to cache VV matrix
       void update_pnm(const SubModel& model, uint32_t mode) override
       {

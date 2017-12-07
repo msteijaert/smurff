@@ -8,6 +8,7 @@ namespace smurff
    {
    public:
       DenseMatrixData(Eigen::MatrixXd Y);
+      void get_pnm(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
 
    public:
       double train_rmse(const SubModel& model) const override;

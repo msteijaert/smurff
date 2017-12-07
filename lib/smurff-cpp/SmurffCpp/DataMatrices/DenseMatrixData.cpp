@@ -1,11 +1,28 @@
 #include "DenseMatrixData.h"
 
 using namespace smurff;
+using namespace Eigen;
 
-DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)
-   : FullMatrixData<Eigen::MatrixXd>(Y)
+DenseMatrixData::DenseMatrixData(MatrixXd Y)
+   : FullMatrixData<MatrixXd>(Y)
 {
     this->name = "DenseMatrixData [fully known]";
+}
+
+//d is an index of column in U matrix
+void DenseMatrixData::get_pnm(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM)
+{
+    auto &Y = this->Y(mode).col(d);
+    auto Vf = *model.CVbegin(mode);
+
+    for(int r = 0; r<Y.rows(); ++r) 
+    {
+        const auto &col = Vf.col(r);
+        PVec<> pos = this->pos(mode, d, r);
+        double alpha = this->noise()->getAlpha(model, pos, Y(r));
+        rr.noalias() += col * (Y(r) * alpha); // rr = rr + (V[m] * y[d]) * alpha
+        MM.noalias() += col* (col.transpose() * alpha); // rr = rr + (V[m] * y[d]) * alpha
+    }
 }
 
 double DenseMatrixData::train_rmse(const SubModel& model) const
