@@ -7,7 +7,7 @@
 
 //matrix classes
 #include <SmurffCpp/DataMatrices/SparseMatrixData.h>
-#include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
+#include <SmurffCpp/DataMatrices/ScarceMatrixData.h>
 #include <SmurffCpp/DataMatrices/DenseMatrixData.h>
 #include <SmurffCpp/DataMatrices/MatricesData.h>
 
@@ -34,12 +34,6 @@ std::shared_ptr<MatrixData> create_matrix_data(std::shared_ptr<const MatrixConfi
       if (!matrixConfig->isScarce())
       {
          std::shared_ptr<MatrixData> local_data_ptr(new SparseMatrixData(Ytrain));
-         local_data_ptr->setNoiseModel(noise);
-         return local_data_ptr;
-      }
-      else if (matrix_utils::is_explicit_binary(Ytrain))
-      {
-         std::shared_ptr<MatrixData> local_data_ptr(new ScarceBinaryMatrixData(Ytrain));
          local_data_ptr->setNoiseModel(noise);
          return local_data_ptr;
       }

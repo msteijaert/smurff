@@ -25,7 +25,7 @@
 #include <SmurffCpp/Noises/NoiseFactory.h>
 
 #include <SmurffCpp/DataMatrices/Data.h>
-#include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
+#include <SmurffCpp/DataMatrices/ScarceMatrixData.h>
 #include <SmurffCpp/DataMatrices/FullMatrixData.hpp>
 #include <SmurffCpp/DataMatrices/SparseMatrixData.h>
 #include <SmurffCpp/DataMatrices/DenseMatrixData.h>
