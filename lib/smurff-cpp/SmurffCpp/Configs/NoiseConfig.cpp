@@ -49,10 +49,7 @@ std::string smurff::noiseTypeToString(NoiseTypes type)
    }
 }
 
-bool NoiseConfig::validate(bool throw_error) const 
+bool NoiseConfig::validate() const 
 {
-   // AGE: here was a code that validated name field
-   // but we dont need it now because we use enums and parsing functions that throw error
-
    return true;
 }

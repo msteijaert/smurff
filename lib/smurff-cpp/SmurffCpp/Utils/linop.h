@@ -9,6 +9,8 @@
 #include <SmurffCpp/SparseFeat.h>
 #include <SmurffCpp/SparseDoubleFeat.h>
 
+namespace smurff { namespace linop {
+
 template<typename T>
 void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess);
 template<typename T>
@@ -26,6 +28,15 @@ template<typename T>
 void compute_uhat(Eigen::MatrixXd & uhat, T & feat, Eigen::MatrixXd & beta);
 template<typename T>
 void AtA_mul_B(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
+template<> 
+void AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
+template<>
+void AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
+template<>
+void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 // compile-time optimized versions (N - number of RHSs)
 template<typename T>
@@ -575,3 +586,5 @@ inline void A_mul_B_omp(
   out.block(0, col, N, out.cols() - col) = alpha * out.block(0, col, N, out.cols() - col) + beta * A * B.block(0, col, N, out.cols() - col);
 }
 */
+
+}}

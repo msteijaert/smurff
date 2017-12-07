@@ -26,8 +26,6 @@ namespace smurff
    class NoiseConfig
    {
    public:
-      int cccc;
-      
       // for fixed gaussian noise
       double precision  = 5.0;
    
@@ -42,16 +40,10 @@ namespace smurff
       NoiseConfig(NoiseTypes nt = NoiseTypes::noiseless) 
          : m_noise_type(nt)
       {
-         static int c = 0;
-         c++;
-         cccc = c;
       }
 
-      //NoiseConfig(double p) : name("fixed"), precision(p) {}
-      //NoiseConfig(double i, double m) : name("adaptive"), sn_init(i), sn_max(m) {}
-
    public:
-      bool validate(bool = true) const;
+      bool validate() const;
 
    public:
       NoiseTypes getNoiseType() const

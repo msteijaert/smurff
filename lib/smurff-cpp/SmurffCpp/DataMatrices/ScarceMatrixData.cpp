@@ -160,7 +160,7 @@ double ScarceMatrixData::sumsq(const SubModel& model) const
    {
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
       {
-         sumsq += square(model.predict({(int)it.row(), (int)it.col()})- it.value());
+         sumsq += square(model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())})- it.value());
       }
    }
 

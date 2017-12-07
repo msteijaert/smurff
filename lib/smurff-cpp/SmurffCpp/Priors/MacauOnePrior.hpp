@@ -56,14 +56,14 @@ public:
    {
       // side information
       Features = Fmat;
-      F_colsq = col_square_sum(*Features);
+      F_colsq = smurff::linop::col_square_sum(*Features);
    }
 
    void update_prior() override
    {
       sample_mu_lambda(U());
       sample_beta(U());
-      compute_uhat(Uhat, *Features, beta);
+      smurff::linop::compute_uhat(Uhat, *Features, beta);
       sample_lambda_beta();
    }
     
@@ -108,7 +108,7 @@ public:
          {
             Eigen::VectorXd zx(dcount), delta_beta(dcount), randvals(dcount);
             // zx = Z[dstart : dstart + dcount, :] * F[:, f]
-            At_mul_Bt(zx, *Features, f, Z);
+            smurff::linop::At_mul_Bt(zx, *Features, f, Z);
             // TODO: check if sampling randvals for whole [nfeat x dcount] matrix works faster
             bmrandn_single( randvals );
 
@@ -124,7 +124,7 @@ public:
                beta(dx, f)     = beta_new;
             }
             // Z[dstart : dstart + dcount, :] += F[:, f] * delta_beta'
-            add_Acol_mul_bt(Z, *Features, f, delta_beta);
+            smurff::linop::add_Acol_mul_bt(Z, *Features, f, delta_beta);
          }
       }
    }
