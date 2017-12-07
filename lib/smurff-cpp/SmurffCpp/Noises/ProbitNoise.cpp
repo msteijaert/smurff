@@ -13,9 +13,11 @@ ProbitNoise::ProbitNoise()
 
 }
 
-double ProbitNoise::getAlpha(double pred, double val)
+double ProbitNoise::getAlpha(double pred, double val11)
 {
-    return rand_truncnorm(pred * val, 1.0, 0.0);
+    assert(val11 >= -1.0 && val11 <= 1.0);
+    double pred01 = 0.5 * (pred + 1.0);   
+    return rand_truncnorm(pred01 * val11, 1.0, 0.0);
 }
 
 std::ostream& ProbitNoise::info(std::ostream& os, std::string indent)

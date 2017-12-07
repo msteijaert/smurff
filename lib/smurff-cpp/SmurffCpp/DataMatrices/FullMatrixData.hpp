@@ -24,17 +24,15 @@ namespace smurff
       //d is an index of column in U matrix
       void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override
       {
-         auto& Y = this->Y(mode);
+          Eigen::VectorXd Y = this->Y(mode).col(d);
+          assert(Y.rows() == this->Y(mode).rows());
           auto Vf = *model.CVbegin(mode);
-          for(int r = 0; r<Y.rows(); ++r)
+
+          for(int r = 0; r<Y.rows(); ++r) 
           {
-              // FIXME!
-              int pos0 = r;
-              int pos1 = d;
-              if (mode == 0) std::swap(pos0, pos1);
-              // FIXME!!!!
-              const double alpha = this->noise()->getAlpha(model.predict({r,d}),0.0);
-              rr.noalias() += (Vf.col(r) * Y.col(d)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
+              PVec<> pos = this->pos(mode, d, r);
+              double alpha = this->noise()->getAlpha(model.predict(pos), Y(r));
+              rr.noalias() += (Vf.col(r) * Y(r)) * alpha; // rr = rr + (V[m] * y[d]) * alpha
           }
           MM.noalias() += VV[mode]; // MM = MM + VV[m] * alpha
       }

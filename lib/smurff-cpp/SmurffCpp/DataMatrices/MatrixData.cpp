@@ -24,3 +24,13 @@ int MatrixData::ncol() const
 {
    return dim(1);
 }
+
+
+// return position of value at position 'n' in mode `mode'
+// and at posisiton 'm' in the other mode
+PVec<> MatrixData::pos(int mode, int n, int m)
+{
+    if (mode == 0) return PVec<>({n,m});
+    assert(mode == 1);
+    return PVec<>({m,n});
+}

@@ -82,8 +82,9 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
                    int pos1 = idx;
                    if (mode == 0) std::swap(pos0, pos1);
                    const auto &col = Vfloc.col(idx);
-                   my_rr.noalias() += col * val * noise()->getAlpha(model.predict({pos0, pos1}), val);
-                   my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
+                   double alpha = noise()->getAlpha(model.predict({pos0, pos1}), val);
+                   my_rr.noalias() += col * val * alpha;
+                   my_MM.triangularView<Eigen::Lower>() += col * col.transpose() * alpha;
                }
 
                // make MM complete
@@ -109,8 +110,9 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
           if (mode == 0) std::swap(pos0, pos1);
 
           const auto &col = Vf.col(it.row());
-          my_rr.noalias() += col * it.value() * noise()->getAlpha(model.predict({pos0, pos1}), it.value());
-          my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
+          double alpha = noise()->getAlpha(model.predict({pos0, pos1}), it.value());
+          my_rr.noalias() += col * it.value() * alpha;
+          my_MM.triangularView<Eigen::Lower>() += col * col.transpose() * alpha;
       }
 
       // make MM complete
