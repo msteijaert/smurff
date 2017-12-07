@@ -290,6 +290,8 @@ add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 add_subdirectory (../Smurff/cmake utils/Smurff)
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
 
+add_subdirectory (../SmurffWin/cmake utils/SmurffWin)
+
 # tests
 
 add_subdirectory (../Tests/cmake tests/Tests)
