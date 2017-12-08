@@ -1,5 +1,5 @@
 //need to add a define on windows to have math constants like M_SQRT1_2
-#ifdef WINDOWS
+#ifdef _WINDOWS
 #define _USE_MATH_DEFINES
 #endif
 
