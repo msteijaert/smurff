@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef _WINDOWS
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
 #include <memory>
 #include <assert.h>
 #include <string.h>
@@ -30,7 +36,7 @@ inline void free_bcsr(struct BinaryCSR* bcsr) {
    free(bcsr->cols);
  }
  
- static inline void new_bcsr(struct BinaryCSR* __restrict__ A, long nnz, int nrow, int ncol, int* rows, int* cols) {
+ static inline void new_bcsr(struct BinaryCSR* RESTRICT A, long nnz, int nrow, int ncol, int* rows, int* cols) {
    assert(A);
    //struct BinaryCSR *A = (struct BinaryCSR*)malloc(sizeof(struct BinaryCSR));
    A->nnz  = nnz;
@@ -88,7 +94,7 @@ inline void free_csr(struct CSR* csr) {
  }
  
  static inline void new_csr(
-     struct CSR* __restrict__ A,
+     struct CSR* RESTRICT A,
      long nnz,
      int nrow,
      int ncol,
