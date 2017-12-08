@@ -124,7 +124,7 @@ inline void At_mul_Bt(Eigen::VectorXd & Y, SparseDoubleFeat & X, const int col, 
 }
 
 inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) {
-    smurff::not_implemented(__PRETTY_FUNCTION__);
+   THROWERROR_NOTIMPL();
 }
 
 // computes Z += A[:,col] * b', where a and b are vectors
@@ -159,7 +159,7 @@ inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseDoubleFeat & A, const int
 //
 // computes Z += A[:,col] * b', where a and b are vectors
 inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int col, Eigen::VectorXd & b) {
-   smurff::not_implemented(__PRETTY_FUNCTION__);
+   THROWERROR_NOTIMPL();
 }
 
 ///////////////////////////////////

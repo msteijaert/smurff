@@ -1,5 +1,7 @@
 #include "CmdSession.h"
 
+#ifdef ARGP_FOUND
+
 #include <string>
 #include <memory>
 #include <cstdlib>
@@ -162,3 +164,5 @@ void CmdSession::setFromArgs(int argc, char** argv)
 
     setFromConfig(cfg);
 }
+
+#endif

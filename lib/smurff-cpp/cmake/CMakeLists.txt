@@ -76,6 +76,8 @@ if (MSVC OR MSVC_IDE OR MSVC_VERSION OR MSVC60 OR MSVC70 OR MSVC71 OR MSVC80 OR 
    #hide some irritating c++ unsafe function warnings
    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+   
+   add_definitions(-D_WINDOWS)
 
    set (CMAKE_EXE_LINKER_FLAGS "/SAFESEH:NO")
 
