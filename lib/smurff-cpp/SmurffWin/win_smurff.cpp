@@ -264,17 +264,25 @@ bool parse_options(int argc, char* argv[], Config& config)
 
 int main(int argc, char** argv) 
 {
-   Config config;
-   if(!parse_options(argc, argv, config))
-      return -1;
+   try
+   {
+      Config config;
+      if(!parse_options(argc, argv, config))
+         return -1;
 
-   std::shared_ptr<smurff::ISession> session = SessionFactory::create_cmd_session(config);
-   
-   { COUNTER("main"); session->run(); }
-   
-   #ifdef PROFILING
-   perf_data.print();
-   #endif
+      std::shared_ptr<smurff::ISession> session = SessionFactory::create_cmd_session(config);
+      
+      { COUNTER("main"); session->run(); }
+      
+      #ifdef PROFILING
+      perf_data.print();
+      #endif
 
+   }
+   catch (std::runtime_error& e)
+   {
+      std::cout << e.what() << std::endl;
+   }
+      
    return 0;
 }
