@@ -50,7 +50,6 @@ void TensorData::init_pre()
 double TensorData::sum() const
 {
    double esum = 0.0;
-   double mean_value = 0; // what should be mean value?
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
@@ -78,7 +77,7 @@ std::uint64_t TensorData::nnz() const
 
 std::uint64_t TensorData::nna() const
 {
-   return 0;
+   return size() - this->nnz();
 }
 
 PVec<> TensorData::dim() const
@@ -91,8 +90,7 @@ PVec<> TensorData::dim() const
 
 double TensorData::train_rmse(const SubModel& model) const
 {
-   //there was no implementation of train_rmse for tensors in macau
-   throw std::runtime_error("not implemented");
+   return sqrt(sumsq(model) / this->nnz());
 }
 
 //d is an index of column in U matrix
@@ -153,8 +151,8 @@ double TensorData::sumsq(const SubModel& model) const
 
 double TensorData::var_total() const
 {
+   double cwise_mean = this->sum() / this->nnz();
    double se = 0.0;
-   double mean_value = 0; // what should be mean value?
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
@@ -163,11 +161,11 @@ double TensorData::var_total() const
    {
       for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
       {
-         se += square(sview->getValues()[j] - mean_value);
+         se += square(sview->getValues()[j] - cwise_mean);
       }
    }
 
-   double var = se / sview->getValues().size();
+   double var = se / this->nnz();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0
@@ -175,9 +173,4 @@ double TensorData::var_total() const
    }
 
    return var;
-}
-
-std::ostream& TensorData::info(std::ostream& os, std::string indent)
-{
-   throw std::runtime_error("not implemented");
 }

@@ -36,12 +36,12 @@ TEST_CASE("tensor_io/read_sparse_float64_bin | tensor_io/write_sparse_float64_bi
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2, 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> tensorConfigValues = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), NoiseConfig()));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), NoiseConfig(), false));
 
    std::stringstream tensorStream;
    tensor_io::write_sparse_float64_bin(tensorStream, tensorConfig);
 
-   std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_sparse_float64_bin(tensorStream);
+   std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_sparse_float64_bin(tensorStream, false);
    MatrixConfig actualMatrixConfig = tensor_utils::tensor_to_matrix(*actualTensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(*actualTensorConfig);
@@ -67,12 +67,12 @@ TEST_CASE("tensor_io/read_sparse_binary_bin | tensor_io/write_sparse_binary_bin"
 {
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2, 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), NoiseConfig()));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), NoiseConfig(), false));
 
    std::stringstream tensorStream;
    tensor_io::write_sparse_binary_bin(tensorStream, tensorConfig);
 
-   std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_sparse_binary_bin(tensorStream);
+   std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_sparse_binary_bin(tensorStream, false);
    MatrixConfig actualMatrixConfig = tensor_utils::tensor_to_matrix(*actualTensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(*actualTensorConfig);
@@ -121,12 +121,12 @@ TEST_CASE("tensor_io/read_sparse_float64_tns | tensor_io/write_sparse_float64_tn
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2, 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> tensorConfigValues = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), NoiseConfig()));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), NoiseConfig(), false));
 
    std::stringstream tensorStream;
    tensor_io::write_sparse_float64_tns(tensorStream, tensorConfig);
 
-   std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_sparse_float64_tns(tensorStream);
+   std::shared_ptr<TensorConfig> actualTensorConfig = tensor_io::read_sparse_float64_tns(tensorStream, false);
    MatrixConfig actualMatrixConfig = tensor_utils::tensor_to_matrix(*actualTensorConfig);
 
    Eigen::SparseMatrix<double> actualMatrix0 = tensor_utils::sparse_to_eigen(*actualTensorConfig);

@@ -31,16 +31,7 @@ void ScarceMatrixData::init_pre()
 
 double ScarceMatrixData::train_rmse(const SubModel& model) const 
 {
-   double se = 0.;
-   #pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c = 0; c < Y().cols();++c) 
-   {
-       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it) 
-       {
-           se += square(it.value() - predict({(int)it.row(), (int)it.col()}, model));
-       }
-   }
-   return sqrt( se / Y().nonZeros() );
+   return sqrt(sumsq(model) / this->nnz());
 }
 
 std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
@@ -133,5 +124,45 @@ void ScarceMatrixData::update_pnm(const SubModel &, std::uint32_t mode)
 
 std::uint64_t ScarceMatrixData::nna() const
 {
-   return size() - nnz(); //nrows * ncols - nnz
+   return size() - this->nnz(); //nrows * ncols - nnz
+}
+
+double ScarceMatrixData::var_total() const
+{
+   double cwise_mean = this->sum() / this->nnz();
+   double se = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   for (int k = 0; k < Y().outerSize(); ++k)
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
+      {
+         se += square(it.value() - cwise_mean);
+      }
+   }
+
+   double var = se / this->nnz();
+   if (var <= 0.0 || std::isnan(var))
+   {
+      // if var cannot be computed using 1.0
+      var = 1.0;
+   }
+
+   return var;
+}
+
+double ScarceMatrixData::sumsq(const SubModel& model) const
+{
+   double sumsq = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   for (int j = 0; j < Y().outerSize(); j++) 
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
+      {
+         sumsq += square(model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())})- it.value());
+      }
+   }
+
+   return sumsq;
 }

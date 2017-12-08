@@ -46,9 +46,6 @@ public:
 public:
    double sumsq(const SubModel& model) const override;
    double var_total() const override;
-
-public:
-   std::ostream& info(std::ostream& os, std::string indent) override;
 };
 
 }

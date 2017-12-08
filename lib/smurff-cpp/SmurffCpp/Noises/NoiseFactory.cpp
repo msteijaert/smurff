@@ -6,6 +6,8 @@
 #include <SmurffCpp/Noises/Noiseless.h>
 #include <SmurffCpp/Noises/UnusedNoise.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 std::shared_ptr<INoiseModel> NoiseFactory::create_noise_model(const NoiseConfig& config)
@@ -23,6 +25,6 @@ std::shared_ptr<INoiseModel> NoiseFactory::create_noise_model(const NoiseConfig&
       case NoiseTypes::unused:
          return std::shared_ptr<INoiseModel>(new UnusedNoise());
       default:
-         throw std::runtime_error("Unknown noise model type");
+         THROWERROR("Unknown noise model type");
    }
 }

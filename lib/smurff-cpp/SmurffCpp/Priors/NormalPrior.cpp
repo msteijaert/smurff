@@ -11,6 +11,7 @@
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace Eigen;
 using namespace smurff;
@@ -87,12 +88,12 @@ void NormalPrior::sample_latent(int n)
 
    Eigen::LLT<MatrixXd> chol;
    {
-       COUNTER("cholesky");
-       chol = MM.llt(); // compute the Cholesky decomposition X = L * U
-       if(chol.info() != Eigen::Success)
-       {
-           throw std::runtime_error("Cholesky Decomposition failed!");
-       }
+      COUNTER("cholesky");
+      chol = MM.llt(); // compute the Cholesky decomposition X = L * U
+      if(chol.info() != Eigen::Success)
+      {
+         THROWERROR("Cholesky Decomposition failed!");
+      }
    }
 
    chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b
@@ -152,6 +153,6 @@ void BPMFPrior::sample_latents(ProbitNoise& noiseModel, TensorData & data,
                               ) 
 {
   // TODO
-  throw std::runtime_error("Unimplemented: sample_latents");
+  THROWERROR("Unimplemented: sample_latents");
 }
 */

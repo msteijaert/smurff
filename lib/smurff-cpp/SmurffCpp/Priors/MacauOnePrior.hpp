@@ -80,7 +80,7 @@ public:
    {
       // side information
       Features = Fmat;
-      F_colsq = col_square_sum(*Features);
+      F_colsq = smurff::linop::col_square_sum(*Features);
    }
 
    void sample_latent(int i) override
@@ -142,7 +142,7 @@ public:
    {
       sample_mu_lambda(U());
       sample_beta(U());
-      compute_uhat(Uhat, *Features, beta);
+      smurff::linop::compute_uhat(Uhat, *Features, beta);
       sample_lambda_beta();
    }
 
@@ -181,7 +181,7 @@ public:
          {
             Eigen::VectorXd zx(dcount), delta_beta(dcount), randvals(dcount);
             // zx = Z[dstart : dstart + dcount, :] * F[:, f]
-            At_mul_Bt(zx, *Features, f, Z);
+            smurff::linop::At_mul_Bt(zx, *Features, f, Z);
             // TODO: check if sampling randvals for whole [nfeat x dcount] matrix works faster
             bmrandn_single( randvals );
 
@@ -197,7 +197,7 @@ public:
                beta(dx, f)     = beta_new;
             }
             // Z[dstart : dstart + dcount, :] += F[:, f] * delta_beta'
-            add_Acol_mul_bt(Z, *Features, f, delta_beta);
+            smurff::linop::add_Acol_mul_bt(Z, *Features, f, delta_beta);
          }
       }
    }
@@ -289,7 +289,7 @@ template<class FType>
 void MacauOnePrior<FType>::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
                                           double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
  //TODO
- throw std::runtime_error("Not implemented!");
+ THROWERROR("Not implemented!");
 }
 */
 
@@ -299,7 +299,7 @@ template<class FType>
 void MacauOnePrior<FType>::sample_latents(ProbitNoise& noiseModel, TensorData & data,
                                           std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent)
 {
-  throw std::runtime_error("Unimplemented: sample_latents");
+  THROWERROR("Unimplemented: sample_latents");
 }
 */
 
@@ -319,7 +319,7 @@ void MacauOnePrior<FType>::sample_latents(double noisePrecision, TensorData & da
 
   if (U->rows() != num_latent)
   {
-    throw std::runtime_error("U->rows() must be equal to num_latent.");
+    THROWERROR("U->rows() must be equal to num_latent.");
   }
 
   Eigen::VectorXi & row_ptr = sparseMode->row_ptr;

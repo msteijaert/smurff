@@ -4,10 +4,12 @@
 #include <set>
 #include <unsupported/Eigen/SparseExtra>
 
+#include <SmurffCpp/Utils/Error.h>
+
 Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig& matrixConfig)
 {
    if(!matrixConfig.isDense())
-      throw std::runtime_error("matrix config should be dense");
+      THROWERROR("matrix config should be dense");
 
    std::vector<double> Yvalues = matrixConfig.getValues(); //eigen map can not take const values pointer. have to make copy
    return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), matrixConfig.getNRow(), matrixConfig.getNCol());
@@ -23,7 +25,7 @@ template<>
 Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
 {
    if(matrixConfig.isDense())
-      throw std::runtime_error("matrix config should be sparse");
+      THROWERROR("matrix config should be sparse");
 
    Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
    std::shared_ptr<std::vector<std::uint32_t> > rowsPtr = matrixConfig.getRowsPtr();
@@ -37,7 +39,7 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::
       std::uint32_t col = colsPtr->operator[](i);
       assert(row >= 0 && row < matrixConfig.getNRow());
       assert(col >= 0 && col < matrixConfig.getNCol());
-      double val = matrixConfig.isBinary() ? 1.0 : valuesPtr->operator[](i);
+      double val = valuesPtr->operator[](i);
       eigenTriplets.push_back(Eigen::Triplet<double>(row, col, val));
    }
 
@@ -75,7 +77,7 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
    const std::vector<std::uint32_t>& columns = mc.getColumns();
 
    if(rows.size() != cols.size() || rows.size() != values.size())
-      throw "Invalid sizes";
+      THROWERROR("Invalid sizes");
 
    os << "rows: " << std::endl;
    for(std::uint64_t i = 0; i < rows.size(); i++)
@@ -112,6 +114,20 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
    os << X << std::endl;
 
    return os;
+}
+
+bool smurff::matrix_utils::is_explicit_binary(const Eigen::SparseMatrix<double>& M)
+{
+   auto *values = M.valuePtr();
+   for(int i = 0; i < M.nonZeros(); ++i) 
+   {
+      if (values[i] != 1.0 && values[i] != 0.0)
+         return false;
+   }
+
+   std::cout << "Detected binary matrix\n";
+
+   return true;
 }
 
 bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision)

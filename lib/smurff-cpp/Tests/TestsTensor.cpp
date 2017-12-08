@@ -9,7 +9,6 @@
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/TensorUtils.h>
-#include <SmurffCpp/sparsetensor.h>
 #include <SmurffCpp/Configs/TensorConfig.h>
 #include <SmurffCpp/DataTensors/SparseMode.h>
 #include <SmurffCpp/DataTensors/TensorData.h>
@@ -30,7 +29,7 @@ TEST_CASE("test sparse view new 1")
       {
          0,  3,  1,  4,  2,  5,
       };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
 
    Eigen::MatrixXd actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
 
@@ -88,7 +87,7 @@ TEST_CASE("test sparse view new 2")
       {
          0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
       };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
 
    TensorData td(tensorConfig);
    /*

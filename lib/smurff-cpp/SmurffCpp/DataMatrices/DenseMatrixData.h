@@ -11,5 +11,10 @@ namespace smurff
 
    public:
       double train_rmse(const SubModel& model) const override;
+
+   public:
+      double var_total() const override;
+      
+      double sumsq(const SubModel& model) const override;
    };
 }

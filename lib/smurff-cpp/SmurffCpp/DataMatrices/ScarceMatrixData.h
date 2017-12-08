@@ -23,5 +23,10 @@ namespace smurff
       void update_pnm(const SubModel& model, std::uint32_t mode) override;
 
       std::uint64_t nna() const override;
+
+   public:
+      double var_total() const override;
+      
+      double sumsq(const SubModel& model) const override;
    };
 }

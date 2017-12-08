@@ -15,6 +15,24 @@ def write_dense_float64_col_major(filename, Y):
         np.array(Y.shape[1]).astype(np.int64).tofile(f)
         f.write(Y.astype(np.float64).tobytes(order='F'))
 
+def write_dense_float64_col_major_matrix_as_tensor(filename, Y):
+    with open(filename, 'wb') as f:
+        np.array(len(Y.shape)).astype(np.int64).tofile(f)
+        np.array(Y.shape[0]).astype(np.int64).tofile(f)
+        np.array(Y.shape[1]).astype(np.int64).tofile(f)
+        f.write(Y.astype(np.float64).tobytes(order='F'))
+
+def write_sparse_float64_matrix_as_tensor(filename, Y):
+    with open(filename, 'w') as f:
+        Y = Y.tocoo(copy = False)
+        np.array(len(Y.shape)).astype(np.uint64).tofile(f)
+        np.array(Y.shape[0]).astype(np.uint64).tofile(f)
+        np.array(Y.shape[1]).astype(np.uint64).tofile(f)
+        np.array(Y.nnz).astype(np.uint64).tofile(f)
+        (Y.row + 1).astype(np.uint32, copy=False).tofile(f)
+        (Y.col + 1).astype(np.uint32, copy=False).tofile(f)
+        Y.data.astype(np.float64, copy=False).tofile(f)
+
 #parser = argparse.ArgumentParser(description='SMURFF tests')
 #parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
 #parser.add_argument('--data', metavar='DIR', dest='datadir', nargs=1, help='Data dir', default='data')
@@ -52,7 +70,7 @@ def sparsify(A, density):
         J = J.reshape(A.size)
 
     size = V.size
-    num = int(size * density) 
+    num = int(size * density)
     idx = np.random.choice(size, num, replace=False)
 
     return sparse.coo_matrix((V[idx], (I[idx], J[idx])), shape = A.shape)
@@ -82,6 +100,12 @@ def write_matrix(filename, A):
 
     sio.mmwrite(filename, A)
 
+def write_tensor(filename, A):
+    if sparse.issparse(A):
+        write_sparse_float64_matrix_as_tensor(filename + ".sdt", A)
+    else:
+        write_dense_float64_col_major_matrix_as_tensor(filename + ".ddt", A)
+
 def write_feat(base, features):
     for (indx,F) in enumerate(features):
         write_matrix("feat_%d_%d" % (base, indx), F)
@@ -89,12 +113,14 @@ def write_feat(base, features):
 def write_test_data(dirname, test):
     os.chdir(dirname)
     write_matrix("test", test)
+    write_tensor("test", test)
     os.chdir("..")
 
 def write_train_data(dirname, train, features = ([],[])):
     os.makedirs(dirname)
     os.chdir(dirname)
     write_matrix("train", train)
+    write_tensor("train", train)
     for (indx,feat) in enumerate(features):
         write_feat(indx, feat)
     os.chdir("..")
@@ -128,7 +154,7 @@ def gen_test_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, c
 def gen_train_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, center = "none"):
     if (func == "ones" and center != "none"):
         return
-    
+
     shape_str = "_".join(map(str,shape))
     dirname = "%s_%s_%d_%d_%d_%d_%s" % (func, shape_str, K, int(density * 100), row_split, col_split, center)
 
@@ -182,8 +208,7 @@ if __name__ == "__main__":
     shape = [2000,100]
     #shape = [40,30]
     num_latent = 4
-    # for density in (1, .2):
-    for density in (1,):
+    for density in (1, .2):
         for func in ("normal", "ones"):
             # CALL GEN MATRIX ONLY ONCE
             m = gen_matrix(shape,num_latent,func)

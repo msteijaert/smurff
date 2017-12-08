@@ -91,18 +91,7 @@ namespace smurff { namespace matrix_utils {
 
    Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
 
-   template <typename Matrix>
-   inline bool is_binary(const Matrix &M)
-   {
-      auto *values = M.valuePtr();
-      for(int i=0; i<M.nonZeros(); ++i) {
-         if (values[i] != 1.0 && values[i] != 0.0) return false;
-      }
-
-      std::cout << "Detected binary matrix\n";
-
-      return true;
-   }
+   bool is_explicit_binary(const Eigen::SparseMatrix<double>& M);
 
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 

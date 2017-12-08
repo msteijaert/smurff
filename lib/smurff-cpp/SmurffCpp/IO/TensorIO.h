@@ -19,15 +19,15 @@ namespace smurff { namespace tensor_io
       ddt
    };
 
-   std::shared_ptr<TensorConfig> read_tensor(const std::string& filename);
+   std::shared_ptr<TensorConfig> read_tensor(const std::string& filename, bool isScarce);
 
    std::shared_ptr<TensorConfig> read_dense_float64_bin(std::istream& in);
    std::shared_ptr<TensorConfig> read_dense_float64_csv(std::istream& in);
 
-   std::shared_ptr<TensorConfig> read_sparse_float64_bin(std::istream& in);
-   std::shared_ptr<TensorConfig> read_sparse_float64_tns(std::istream& in);
+   std::shared_ptr<TensorConfig> read_sparse_float64_bin(std::istream& in, bool isScarce);
+   std::shared_ptr<TensorConfig> read_sparse_float64_tns(std::istream& in, bool isScarce);
 
-   std::shared_ptr<TensorConfig> read_sparse_binary_bin(std::istream& in);
+   std::shared_ptr<TensorConfig> read_sparse_binary_bin(std::istream& in, bool isScarce);
 
    // ===
 

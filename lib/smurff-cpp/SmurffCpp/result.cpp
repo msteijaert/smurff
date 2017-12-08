@@ -18,6 +18,8 @@
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace std;
 using namespace Eigen;
 
@@ -27,7 +29,7 @@ namespace smurff {
 void Result::set(std::shared_ptr<TensorConfig> Y)
 {
    if(Y->isDense())
-      throw std::runtime_error("test data should be sparse");
+      THROWERROR("test data should be sparse");
 
    std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
    std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();
@@ -35,12 +37,10 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
    std::vector<int> coords(Y->getNModes());
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
-      double val = Y->isBinary() ? 1.0 : valuesPtr->operator[](i);
-
       for(std::uint64_t m = 0; m < Y->getNModes(); m++)
          coords[m] = static_cast<int>(columnsPtr->operator[](Y->getNNZ() * m + i));
 
-      m_predictions.push_back({smurff::PVec<>(coords), val});
+      m_predictions.push_back({smurff::PVec<>(coords), valuesPtr->operator[](i)});
    }
 
    m_dims = Y->getDims();

@@ -4,6 +4,8 @@
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 BaseSession::BaseSession()
@@ -66,5 +68,5 @@ std::vector<ResultItem> BaseSession::getResult()
 
 MatrixConfig BaseSession::getSample(int mode)
 {
-   throw std::runtime_error("getSample is unimplemented");
+   THROWERROR("getSample is unimplemented");
 }

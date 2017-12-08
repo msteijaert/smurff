@@ -57,7 +57,7 @@ public:
       if (use_FtF)
       {
          FtF.resize(Features->cols(), Features->cols());
-         At_mul_A(FtF, *Features);
+         smurff::linop::At_mul_A(FtF, *Features);
       }
 
       Uhat.resize(this->num_latent(), Features->rows());
@@ -71,12 +71,12 @@ public:
    {
       // residual (Uhat is later overwritten):
       Uhat.noalias() = *U() - Uhat;
-      Eigen::MatrixXd BBt = A_mul_At_combo(beta);
+      Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
 
       // sampling Gaussian
       std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
       sample_beta();
-      compute_uhat(Uhat, *Features, beta);
+      smurff::linop::compute_uhat(Uhat, *Features, beta);
       lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
    }
 
@@ -110,7 +110,7 @@ public:
       // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
       Eigen::MatrixXd tmp = (*U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
-      Ft_y = A_mul_B(tmp, *Features);
+      Ft_y = smurff::linop::A_mul_B(tmp, *Features);
       Eigen::MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 
       #pragma omp parallel for schedule(static)
@@ -216,7 +216,7 @@ private:
       Eigen::MatrixXd Ft_y;
       this->compute_Ft_y_omp(Ft_y);
 
-      solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
+      smurff::linop::solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
    }
 
 public:
@@ -225,7 +225,7 @@ public:
    {
       const int D = beta.rows();
       Eigen::MatrixXd BB(D, D);
-      A_mul_At_combo(BB, beta);
+      smurff::linop::A_mul_At_combo(BB, beta);
       double nux = nu + beta.rows() * beta.cols();
       double mux = mu * nux / (nu + mu * (BB.selfadjointView<Eigen::Lower>() * Lambda_u).trace() );
       double b   = nux / 2;

@@ -22,7 +22,7 @@ TEST_CASE("tensor_utils::slice : error handling")
       {
                   0, 1, 2, 3, 4, 5,    0, 1, 2, 3, 4, 5,    0, 1, 2, 3, 4, 5,    0, 1, 2, 3, 4, 5,    0, 1, 2, 3, 4, 5,    0, 1, 2, 3, 4, 5,    0, 1, 2, 3, 4, 5,    0, 1, 2, 3, 4, 5
       };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
 
    // Error handling when both fixed dims values are the same
    REQUIRE_THROWS(tensor_utils::slice(tensorConfig, { 0, 0 }, {{ 1, 0 }, { 2, 1 }}));
@@ -56,7 +56,7 @@ TEST_CASE("tensor_utils::slice : 3D tensor")
       {
                   0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
       };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
 
    // 1st and 2nd dimension slice. Matrix with 2 rows and 3 cols
    {
@@ -170,7 +170,7 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
       {
                   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7,    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 7, 7
       };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig());
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
 
    // 1st and 2nd dimension slice. Matrix with 4 rows and 3 cols
    {
