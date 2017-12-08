@@ -10,23 +10,6 @@ FILE (GLOB SOURCE_FILES "../win_smurff.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
-#FIND BOOST
-set (Boost_USE_STATIC_LIBS ON)
-set (Boost_USE_MULTITHREADED ON)
-
-set (BOOST_COMPONENTS system 
-                      program_options)
-
-FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
-
-if(Boost_FOUND)
-message("Found Boost_VERSION: ${Boost_VERSION}")
-message("Found Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-message("Found Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
-else()
-message("Boost library is not found")
-endif()
-
 #SETUP OUTPUT
 add_executable (${PROJECT} ${HEADER_FILES} ${SOURCE_FILES})
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Utils")
