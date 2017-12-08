@@ -36,3 +36,9 @@ void generic_io::write_data_config(const std::string& filename, std::shared_ptr<
 {
    tensorConfig->write(std::make_shared<DataWriter>(filename));
 }
+
+bool generic_io::file_exists(const std::string& filepath)
+{
+   std::ifstream infile(filepath.c_str());
+   return infile.good();
+}

@@ -6,6 +6,6 @@ namespace smurff
    template<>
    void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg()
    {
-      not_implemented("Dense Matrix requires direct method");
+      THROWERROR_NOTIMPL_MSG("Dense Matrix requires direct method");
    }
 }
