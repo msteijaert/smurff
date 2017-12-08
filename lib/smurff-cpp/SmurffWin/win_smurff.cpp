@@ -111,13 +111,18 @@ void set_noise_model_win(Config& config, std::string noiseName, std::string opta
    nc.setNoiseType(smurff::stringToNoiseType(noiseName));
    if (nc.getNoiseType() == NoiseTypes::adaptive)
    {
-      char *token, *str = strdup(optarg.c_str());
+      std::stringstream lineStream(optarg);
+      std::string token;
+      std::vector<std::string> tokens;
 
-      if(str && (token = strsep(&str, ",")))
-         nc.sn_init = strtod(token, NULL);
+      while (std::getline(lineStream, token, ','))
+         tokens.push_back(token);
 
-      if(str && (token = strsep(&str, ",")))
-         nc.sn_max = strtod(token, NULL);
+      if(tokens.size() != 2)
+         THROWERROR("invalid number of options for adaptive noise");
+
+      nc.sn_init = strtod(tokens[0].c_str(), NULL);
+      nc.sn_max = strtod(tokens[1].c_str(), NULL);
    }
    else if (nc.getNoiseType() == NoiseTypes::fixed)
    {
