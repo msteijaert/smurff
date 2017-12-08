@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include "TensorUtils.h"
 
 #include <SmurffCpp/Utils/Error.h>
