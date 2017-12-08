@@ -19,7 +19,7 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef MatrixConfig* prepare_sparse(X):
+cdef MatrixConfig* prepare_sparse(X, isScarce):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
     X = X.tocoo(copy = False)
@@ -48,7 +48,7 @@ cdef MatrixConfig* prepare_sparse(X):
     cdef shared_ptr[vector[uint32_t]] cols_vector_shared_ptr = shared_ptr[vector[uint32_t]](cols_vector_ptr)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
 
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig())
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), isScarce)
     return matrix_config_ptr
 
 class ResultItem:
@@ -106,21 +106,21 @@ def smurff(Y,
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    config.m_train = shared_ptr[TensorConfig](prepare_sparse(Y))
+    config.m_train = shared_ptr[TensorConfig](prepare_sparse(Y, True))
     config.m_train.get().setNoiseConfig(nc)
 
-    config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest))
+    config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest, True))
     config.m_test.get().setNoiseConfig(nc)
 
     cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
-        rf_matrix_config.reset(prepare_sparse(rf))
+        rf_matrix_config.reset(prepare_sparse(rf, False))
         rf_matrix_config.get().setNoiseConfig(nc)
         config.m_row_features.push_back(rf_matrix_config)
 
     cdef shared_ptr[MatrixConfig] cf_matrix_config
     for cf in col_features:
-        cf_matrix_config.reset(prepare_sparse(cf))
+        cf_matrix_config.reset(prepare_sparse(cf, False))
         cf_matrix_config.get().setNoiseConfig(nc)
         config.m_col_features.push_back(cf_matrix_config)
 
