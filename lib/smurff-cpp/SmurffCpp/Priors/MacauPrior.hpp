@@ -211,13 +211,7 @@ private:
    }
 
    // BlockCG solver
-   void sample_beta_cg()
-   {
-      Eigen::MatrixXd Ft_y;
-      this->compute_Ft_y_omp(Ft_y);
-
-      smurff::linop::solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
-   }
+   void sample_beta_cg();
 
 public:
 
@@ -239,6 +233,15 @@ public:
       return rgamma(gamma_post.first, gamma_post.second);
    }
 };
+
+template<class FType>
+void MacauPrior<FType>::sample_beta_cg()
+{
+   Eigen::MatrixXd Ft_y;
+   this->compute_Ft_y_omp(Ft_y);
+
+   smurff::linop::solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
+}
 
 // specialization for dense matrices --> always direct method
 template<>

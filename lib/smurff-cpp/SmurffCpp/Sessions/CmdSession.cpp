@@ -1,5 +1,7 @@
 #include "CmdSession.h"
 
+#ifdef ARGP_FOUND
+
 #include <string>
 #include <memory>
 #include <cstdlib>
@@ -12,6 +14,8 @@
 // https://stackoverflow.com/questions/19043109/gcc-4-8-1-combining-c-code-with-c11-code
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <argp.h>
+
 #include <argp.h>
 
 using namespace Eigen;
@@ -46,6 +50,9 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    {
       nc.precision = strtod(optarg.c_str(), NULL);
    }
+
+   if(!config.m_train)
+      THROWERROR("train data is not provided");
 
    // set global noise model
    if (config.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
@@ -129,7 +136,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {"burnin",	     BURNIN	, "NUM",   0, "200  number of samples to discard"},
         {"nsamples",	     NSAMPLES	, "NUM",   0, "800  number of samples to collect"},
         {"num-latent",	     NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
-        {"restore-prefix",   RESTORE_PREFIX	, "PATH",   0, "prefix for file to initialize stae"},
+        {"restore-prefix",   RESTORE_PREFIX	, "PATH",   0, "prefix for file to initialize state"},
         {"restore-suffix",   RESTORE_SUFFIX	, "EXT",   0, "suffix for initialization files (.csv or .ddm)"},
         {"init-model",       INIT_MODEL	, "NAME",   0, "One of <random|zero>"},
         {"save-prefix",      SAVE_PREFIX	, "PATH",   0, "prefix for result files"},
@@ -143,7 +150,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {"seed",             SEED, "NUM",  0, "random number generator seed"},
         {0,0,0,0,"Noise model:",4},
         {"precision",	     PRECISION	, "NUM",   0, "5.0  precision of observations"},
-        {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adavtive precision of observations"},
+        {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adaptive precision of observations"},
         {0,0,0,0,"For the macau prior:",5},
         {"lambda-beta",	     LAMBDA_BETA	, "NUM",   0, "10.0  initial value of lambda beta"},
         {"tol",              TOL        , "NUM",   0, "1e-6  tolerance for CG"},
@@ -154,7 +161,10 @@ void CmdSession::setFromArgs(int argc, char** argv)
 
     Config cfg;
     struct argp argp = { options, parse_opts, 0, doc };
-    argp_parse (&argp, argc, argv, 0, 0, &cfg);
+    if(argp_parse (&argp, argc, argv, 0, 0, &cfg) != 0)
+      THROWERROR("Failed to parse command line arguments");
 
     setFromConfig(cfg);
 }
+
+#endif

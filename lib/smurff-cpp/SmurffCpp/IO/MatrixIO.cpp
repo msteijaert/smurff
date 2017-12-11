@@ -10,6 +10,8 @@
 #include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Utils/Error.h>
 
+#include <SmurffCpp/IO/GenericIO.h>
+
 using namespace smurff;
 
 #define EXTENSION_SDM ".sdm" //sparse double matrix (binary file)
@@ -81,7 +83,7 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
 {
    MatrixType matrixType = ExtensionToMatrixType(filename);
 
-   die_unless_file_exists(filename);
+   THROWERROR_FILE_NOT_EXIST(filename);
 
    switch (matrixType)
    {
@@ -524,7 +526,7 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd&
 {
    matrix_io::MatrixType matrixType = ExtensionToMatrixType(filename);
 
-   die_unless_file_exists(filename);
+   THROWERROR_FILE_NOT_EXIST(filename);
 
    switch (matrixType)
    {
@@ -561,7 +563,7 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMat
 {
    matrix_io::MatrixType matrixType = ExtensionToMatrixType(filename);
 
-   die_unless_file_exists(filename);
+   THROWERROR_FILE_NOT_EXIST(filename);
 
    switch (matrixType)
    {

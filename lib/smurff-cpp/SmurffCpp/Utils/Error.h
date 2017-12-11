@@ -8,16 +8,29 @@
 
 #define THROWERROR_BASE(msg, ssvar, except_type) { \
    std::stringstream ssvar; \
-   ssvar << "line: " << __LINE__ << " file: " << __FILE__ << " function: " << __FUNCTION__ << std::endl << (msg); \
-   throw except_type(ssvar.str()); }
+   ssvar << "line: " << __LINE__ << " file: " << __FILE__ << " function: " << __func__ << std::endl << (msg); \
+   throw except_type(ssvar.str());}
+
+#define THROWERROR_BASE_COND(msg, ssvar, except_type, eval_cond) { \
+   if(!eval_cond) { \
+   std::stringstream ssvar; \
+   ssvar << "line: " << __LINE__ << " file: " << __FILE__ << " function: " << __func__ << std::endl << (msg); \
+   throw except_type(ssvar.str()); }}
+
 
 #define THROWERROR(msg) THROWERROR_BASE(msg, CONCAT_VAR(ss, __LINE__), std::runtime_error)
 
 #define THROWERROR_SPEC(except_type, msg) THROWERROR_BASE(msg, CONCAT_VAR(ss, __LINE__), except_type)
 
-namespace smurff
-{
-   void not_implemented(std::string message);
 
-   void die_unless_file_exists(std::string fname);
-}
+#define THROWERROR_COND(msg, eval_cond) THROWERROR_BASE_COND(msg, CONCAT_VAR(ss, __LINE__), std::runtime_error, eval_cond)
+
+#define THROWERROR_SPEC_COND(except_type, msg, eval_cond) THROWERROR_BASE_COND(msg, CONCAT_VAR(ss, __LINE__), except_type, eval_cond)
+
+
+#define THROWERROR_NOTIMPL() THROWERROR_BASE(std::string("Function is not implemented:"), CONCAT_VAR(ss, __LINE__), std::runtime_error)
+
+#define THROWERROR_NOTIMPL_MSG(msg) THROWERROR_BASE((std::string("Function is not implemented:") + msg), CONCAT_VAR(ss, __LINE__), std::runtime_error)
+
+
+#define THROWERROR_FILE_NOT_EXIST(file) THROWERROR_BASE_COND((std::string("File '") + file + std::string("' not found")), CONCAT_VAR(ss, __LINE__), std::runtime_error, smurff::generic_io::file_exists(file))
