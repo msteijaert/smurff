@@ -129,7 +129,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../DataMatrices/SparseMatrixData.cpp"
                         "../DataMatrices/MatrixDataFactory.cpp"
                         "../DataMatrices/DataCreator.cpp"
-                        
+
                         "../DataTensors/TensorData.cpp"
                         "../DataTensors/SparseMode.cpp"
                         "../DataTensors/TensorDataFactory.cpp"
@@ -153,6 +153,9 @@ include_directories(${ARGP_INCLUDE_PATH})
 
 #INSTALL
 install (TARGETS ${PROJECT} ARCHIVE DESTINATION lib)
+install (FILES ../ResultItem.h DESTINATION include/SmurffCpp)
+install (FILES ../Utils/Error.h DESTINATION include/SmurffCpp/Utils)
+install (FILES ../Utils/PVec.hpp DESTINATION include/SmurffCpp/Utils)
 install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)

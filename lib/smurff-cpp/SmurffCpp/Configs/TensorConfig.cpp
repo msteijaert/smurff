@@ -2,6 +2,8 @@
 
 #include <numeric>
 
+#include <SmurffCpp/IO/IDataWriter.h>
+#include <SmurffCpp/DataMatrices/IDataCreator.h>
 #include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
