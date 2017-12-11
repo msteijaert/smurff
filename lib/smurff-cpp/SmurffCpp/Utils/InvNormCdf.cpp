@@ -53,6 +53,7 @@
 
 
 #include <cmath>
+#include <limits>
 
 /* sqrt(2pi) */
 static double s2pi = 2.50662827463100050242E0;
@@ -177,12 +178,11 @@ double inv_norm_cdf(double y0)
   double x, y, z, y2, x0, x1;
   int code;
 
-  if (y0 <= 0.0) {
-    return -1.0 / 0.0;
-  }
-  if (y0 >= 1.0) {
-    return 1.0 / 0.0;
-  }
+  if (y0 <= 0.0) 
+    return -std::numeric_limits<double>::infinity();
+  if (y0 >= 1.0) 
+    return std::numeric_limits<double>::infinity();
+
   code = 1;
   y = y0;
   if (y > (1.0 - 0.13533528323661269189)) {	/* 0.135... = exp(-2) */
