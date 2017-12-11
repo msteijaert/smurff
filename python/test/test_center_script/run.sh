@@ -8,6 +8,7 @@ do
     do
         outdir="out_${d}_${m}"
         rm -rf $outdir
+        test $1 = '--clean' && continue
         mkdir $outdir
         cd $outdir
         ../../center.py --mode=$m ../input/train_${d}.mtx ../input/test.mtx
