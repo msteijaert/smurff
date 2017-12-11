@@ -9,6 +9,8 @@
 
 #include <Eigen/Dense>
 
+#include "ThreadVector.hpp"
+
 #include "utils.h"
 #include "omp_util.h"
 
@@ -16,7 +18,7 @@ using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
 
-static thread_vector<std::mt19937> bmrngs;
+static smurff::thread_vector<std::mt19937> bmrngs;
 
 double smurff::randn0()
 {

@@ -25,6 +25,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Utils/omp_util.h"
                         "../Utils/utils.h"
                         "../Utils/Error.h"
+                        "../ThreadVector.hpp"
 
                         "../IO/ini.h"
                         "../IO/INIReader.h"

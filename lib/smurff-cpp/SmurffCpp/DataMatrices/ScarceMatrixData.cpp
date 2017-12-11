@@ -4,6 +4,8 @@
 #include <SmurffCpp/VMatrixExprIterator.hpp>
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
+#include <SmurffCpp/Utils/ThreadVector.hpp>
+
 using namespace smurff;
 
 ScarceMatrixData::ScarceMatrixData(Eigen::SparseMatrix<double> Y)
