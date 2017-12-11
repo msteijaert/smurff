@@ -109,11 +109,11 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       {
          auto &t = m_predictions[k];
          t.pred_1sample = model->predict(t.coords); //dot product of i'th columns in each U matrix
-         se_1sample += square(t.val - t.pred_1sample);
+         se_1sample += std::pow(t.val - t.pred_1sample, 2);
       }
 
       burnin_iter++;
-      rmse_1sample = sqrt(se_1sample / NNZ);
+      rmse_1sample = std::sqrt(se_1sample / NNZ);
 
       if (classify)
       {
@@ -131,22 +131,22 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       {
          auto &t = m_predictions[k];
          const double pred = model->predict(t.coords); //dot product of i'th columns in each U matrix
-         se_1sample += square(t.val - pred);
+         se_1sample += std::pow(t.val - pred, 2);
 
          double delta = pred - t.pred_avg;
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
          t.var += delta * (pred - pred_avg);
 
          const double inorm = 1.0 / sample_iter;
-         t.stds = sqrt(t.var * inorm);
+         t.stds = std::sqrt(t.var * inorm);
          t.pred_avg = pred_avg;
          t.pred_1sample = pred;
-         se_avg += square(t.val - pred_avg);
+         se_avg += std::pow(t.val - pred_avg, 2);
       }
 
       sample_iter++;
-      rmse_1sample = sqrt(se_1sample / NNZ);
-      rmse_avg = sqrt(se_avg / NNZ);
+      rmse_1sample = std::sqrt(se_1sample / NNZ);
+      rmse_avg = std::sqrt(se_avg / NNZ);
 
       if (classify)
       {

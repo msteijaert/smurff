@@ -46,7 +46,7 @@ void smurff::bmrandn(double* x, long n)
            w = x1 * x1 + x2 * x2;
          } while ( w >= 1.0 );
    
-         w = sqrt( (-2.0 * log( w ) ) / w );
+         w = std::sqrt( (-2.0 * std::log( w ) ) / w );
          x[i] = x1 * w;
 
          if (i + 1 < n) 
@@ -77,7 +77,7 @@ double smurff::bmrandn_single()
       w = x1 * x1 + x2 * x2;
    } while ( w >= 1.0 );
 
-   w = sqrt( (-2.0 * log( w ) ) / w );
+   w = std::sqrt( (-2.0 * std::log( w ) ) / w );
    return x1 * w;
 }
 
@@ -98,7 +98,7 @@ void smurff::bmrandn_single(double* x, long n)
          w = x1 * x1 + x2 * x2;
       } while ( w >= 1.0 );
  
-      w = sqrt( (-2.0 * log( w ) ) / w );
+      w = std::sqrt( (-2.0 * std::log( w ) ) / w );
       x[i] = x1 * w;
 
       if (i + 1 < n) 
@@ -177,7 +177,7 @@ MatrixXd WishartUnit(int m, int df)
    for ( int i = 0; i < m; i++ ) 
    {
       std::gamma_distribution<> gam(0.5*(df - i));
-      c(i,i) = sqrt(2.0 * gam(rng));
+      c(i,i) = std::sqrt(2.0 * gam(rng));
       VectorXd r = smurff::nrandn(m-i-1);
       c.block(i,i+1,1,m-i-1) = r.transpose();
    }

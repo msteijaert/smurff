@@ -230,7 +230,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     {
       sumsq += B(rhs, feat) * B(rhs, feat);
     }
-    norms(rhs)  = sqrt(sumsq);
+    norms(rhs)  = std::sqrt(sumsq);
     inorms(rhs) = 1.0 / norms(rhs);
   }
   Eigen::MatrixXd R(nrhs, nfeat);

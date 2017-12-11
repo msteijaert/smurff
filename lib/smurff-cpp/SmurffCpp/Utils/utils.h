@@ -72,23 +72,6 @@ inline double tick() {
     return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
-inline double clamp(double x, double min, double max) {
-  return x < min ? min : (x > max ? max : x);
-}
-
-inline std::pair<double, double> getMinMax(const Eigen::SparseMatrix<double> &mat) {
-    double min = INFINITY;
-    double max = -INFINITY;
-    for (int k = 0; k < mat.outerSize(); ++k) {
-        for (Eigen::SparseMatrix<double>::InnerIterator it(mat,k); it; ++it) {
-            double v = it.value();
-            if (v < min) min = v;
-            if (v > max) max = v;
-        }
-    }
-    return std::make_pair(min, max);
-}
-
 inline void split_work_mpi(int num_latent, int num_nodes, int* work) {
    double avg_work = num_latent / (double) num_nodes;
    int work_unit;
@@ -109,75 +92,4 @@ inline void split_work_mpi(int num_latent, int num_nodes, int* work) {
       work_left -= take;
       i = (i + 1) % num_nodes;
    }
-}
-
-inline double square(double x) { return x * x; }
-
-inline void row_mean_var(Eigen::VectorXd & mean, Eigen::VectorXd & var, const Eigen::MatrixXd X) {
-  const int N = X.cols();
-  const int D = X.rows();
-
-  mean.resize(D);
-  var.resize(D);
-  mean.setZero();
-  var.setZero();
-
-  #pragma omp parallel
-  {
-    Eigen::VectorXd tmp(D);
-    tmp.setZero();
-    #pragma omp for schedule(static)
-    for (int i = 0; i < N; i++) 
-    {
-      for (int d = 0; d < D; d++) 
-      {
-        tmp(d) += X(d, i);
-      }
-    }
-    #pragma omp critical
-    {
-      mean += tmp;
-    }
-  }
-  // computing mean
-  mean /= N;
-
-  #pragma omp parallel
-  {
-    Eigen::VectorXd tmp(D);
-    tmp.setZero();
-    #pragma omp for schedule(static)
-    for (int i = 0; i < N; i++) 
-    {
-      for (int d = 0; d < D; d++) 
-      {
-        tmp(d) += square(X(d, i) - mean(d));
-      }
-    }
-    #pragma omp critical
-    {
-      var += tmp;
-    }
-  }
-  var /= N;
-}
-
-inline std::string to_string_with_precision(const double a_value, const int n = 6)
-{
-    std::ostringstream out;
-    out << std::setprecision(n) << a_value;
-    return out.str();
-}
-
-template<typename T>
-std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
-    out << "[";
-    size_t last = v.size() - 1;
-    for(size_t i = 0; i < v.size(); ++i) {
-        out << v[i];
-        if (i != last)
-            out << ", ";
-    }
-    out << "]";
-    return out;
 }

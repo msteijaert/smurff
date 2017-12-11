@@ -186,8 +186,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   
   REQUIRE(t.pred_avg == Approx(1.0 * 1.0 + 0.0 * 0.0));
   REQUIRE(t.var == Approx(0.0));
-  REQUIRE(p->rmse_1sample == Approx(sqrt(square(4.5 - (1.0 * 1.0 + 0.0 * 0.0)) / 1 )));
-  REQUIRE(p->rmse_avg ==     Approx(sqrt(square(4.5 - (1.0 * 1.0 + 0.0 * 0.0) / 1) / 1 )));
+  REQUIRE(p->rmse_1sample == Approx(std::sqrt(std::pow(4.5 - (1.0 * 1.0 + 0.0 * 0.0), 2) / 1 )));
+  REQUIRE(p->rmse_avg ==     Approx(std::sqrt(std::pow(4.5 - (1.0 * 1.0 + 0.0 * 0.0) / 1, 2) / 1 )));
 
   //// second iteration
   *model->U(0) << 2.0, 0.0;
@@ -197,8 +197,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   
   REQUIRE(t.pred_avg == Approx(((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)) / 2));
   REQUIRE(t.var == Approx(0.5));
-  REQUIRE(p->rmse_1sample == Approx(sqrt(square(4.5 - (2.0 * 1.0 + 0.0 * 0.0)) / 1 )));
-  REQUIRE(p->rmse_avg == Approx(sqrt(square(4.5 - ((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)) / 2) / 1)));
+  REQUIRE(p->rmse_1sample == Approx(std::sqrt(std::pow(4.5 - (2.0 * 1.0 + 0.0 * 0.0), 2) / 1 )));
+  REQUIRE(p->rmse_avg == Approx(std::sqrt(std::pow(4.5 - ((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)) / 2, 2) / 1)));
 
   //// third iteration
   
@@ -209,21 +209,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
 
   REQUIRE(t.pred_avg == Approx(((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)+ (2.0 * 3.0 + 0.0 * 0.0)) / 3));
   REQUIRE(t.var == Approx(14.0)); // accumulated variance
-  REQUIRE(p->rmse_1sample == Approx(sqrt(square(4.5 - (2.0 * 3.0 + 0.0 * 0.0)) / 1 )));
-  REQUIRE(p->rmse_avg == Approx(sqrt(square(4.5 - ((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0) + (2.0 * 3.0 + 0.0 * 0.0)) / 3) / 1)));
-}
-
-TEST_CASE( "utils/row_mean_var", "Test if row_mean_var is correct") {
-  Eigen::VectorXd mean(3), var(3), mean_tr(3), var_tr(3);
-  Eigen::MatrixXd C(3, 5);
-  C << 0.21, 0.70, 0.53, -0.18, -2.14,
-      -0.35,-0.82,-0.27,  0.15, -0.10,
-      +2.34,-0.81,-0.47,  0.31, -0.14;
-  row_mean_var(mean, var, C);
-  mean_tr = C.rowwise().mean();
-  var_tr  = (C.colwise() - mean).cwiseAbs2().rowwise().mean();
-  REQUIRE( (mean - mean_tr).norm() == Approx(0.0) );
-  REQUIRE( (var  - var_tr).norm()  == Approx(0.0) );
+  REQUIRE(p->rmse_1sample == Approx(std::sqrt(std::pow(4.5 - (2.0 * 3.0 + 0.0 * 0.0), 2) / 1 )));
+  REQUIRE(p->rmse_avg == Approx(std::sqrt(std::pow(4.5 - ((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0) + (2.0 * 3.0 + 0.0 * 0.0)) / 3, 2) / 1)));
 }
 
 TEST_CASE("utils/auc","AUC ROC") {

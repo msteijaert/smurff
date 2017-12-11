@@ -94,7 +94,7 @@ double MatricesData::train_rmse(const SubModel& model) const
 
    assert(N>0);
 
-   return sqrt(sum / N);
+   return std::sqrt(sum / N);
 }
 
 void MatricesData::update(const SubModel &model)

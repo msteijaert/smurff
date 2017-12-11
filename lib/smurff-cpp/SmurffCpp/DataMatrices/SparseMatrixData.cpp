@@ -10,7 +10,7 @@ SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
 
 double SparseMatrixData::train_rmse(const SubModel& model) const
 {
-   return sqrt(sumsq(model) / this->size());
+   return std::sqrt(sumsq(model) / this->size());
 }
 
 double SparseMatrixData::var_total() const
@@ -25,14 +25,14 @@ double SparseMatrixData::var_total() const
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
          for(; r < it.row(); r++) //handle implicit zeroes
-            se += square(cwise_mean);
+            se += std::pow(cwise_mean, 2);
 
-         se += square(it.value() - cwise_mean);
+         se += std::pow(it.value() - cwise_mean, 2);
          r++;
       }
 
       for(; r < Y().rows(); r++) //handle implicit zeroes
-         se += square(cwise_mean);
+         se += std::pow(cwise_mean, 2);
    }
 
    double var = se / this->size();
@@ -56,14 +56,14 @@ double SparseMatrixData::sumsq(const SubModel& model) const
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
          for(; r < it.row(); r++) //handle implicit zeroes
-            sumsq += square(model.predict({r, c}));
+            sumsq += std::pow(model.predict({r, c}), 2);
 
-         sumsq += square(model.predict({r, c}) - it.value());
+         sumsq += std::pow(model.predict({r, c}) - it.value(), 2);
          r++;
       }
 
       for(; r < Y().rows(); r++) //handle implicit zeroes
-         sumsq += square(model.predict({r, c}));
+         sumsq += std::pow(model.predict({r, c}), 2);
    }
 
    return sumsq;
