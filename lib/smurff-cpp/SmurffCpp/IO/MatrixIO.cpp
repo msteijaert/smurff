@@ -7,7 +7,6 @@
 
 #include <unsupported/Eigen/SparseExtra>
 
-#include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/IO/GenericIO.h>

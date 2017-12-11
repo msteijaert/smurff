@@ -23,7 +23,6 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Utils/counters.h"
                         "../Utils/linop.h"
                         "../Utils/omp_util.h"
-                        "../Utils/utils.h"
                         "../Utils/Error.h"
                         "../ThreadVector.hpp"
 

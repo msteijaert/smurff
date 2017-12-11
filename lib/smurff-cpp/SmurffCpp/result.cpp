@@ -10,7 +10,6 @@
 
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/ConstVMatrixIterator.hpp>
-#include <SmurffCpp/Utils/utils.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>

@@ -3,7 +3,6 @@
 #include <memory>
 
 #include <SmurffCpp/ResultItem.h>
-#include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Configs/MatrixConfig.h>
 #include <SmurffCpp/DataTensors/SparseMode.h>
 

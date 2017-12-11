@@ -11,7 +11,6 @@
 
 #include "ThreadVector.hpp"
 
-#include "utils.h"
 #include "omp_util.h"
 
 using namespace std;

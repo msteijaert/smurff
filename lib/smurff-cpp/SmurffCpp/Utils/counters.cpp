@@ -13,7 +13,6 @@
 #include <sstream>
 #include <unistd.h>
 
-#include "utils.h"
 #include "counters.h"
 
 Counter::Counter(std::string name)
