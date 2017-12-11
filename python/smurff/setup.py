@@ -30,7 +30,8 @@ ext_modules = [
         sources = SOURCES,
         include_dirs = INCLUDE_DIRS,
         libraries = LIBRARIES,
-        extra_compile_args = ['-std=c++11'],
+        extra_compile_args = ['-std=c++11', '-fopenmp'],
+        extra_link_args=['-lgomp'],
         language = "c++")
 ]
 
