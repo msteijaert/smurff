@@ -7,6 +7,8 @@
 #include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Utils/Error.h>
 
+#include <SmurffCpp/IO/GenericIO.h>
+
 using namespace smurff;
 
 #define EXTENSION_SDT ".sdt" //sparse double tensor (binary file)
@@ -71,7 +73,7 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
 {
    TensorType tensorType = ExtensionToTensorType(filename);
    
-   die_unless_file_exists(filename);
+   THROWERROR_FILE_NOT_EXIST(filename);
 
    switch (tensorType)
    {

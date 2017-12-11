@@ -93,7 +93,6 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Utils/counters.cpp"
                         "../Utils/linop.cpp"
                         "../Utils/omp_util.cpp"
-                        "../Utils/Error.cpp"
 
                         "../IO/ini.c"
                         "../IO/INIReader.cpp"
