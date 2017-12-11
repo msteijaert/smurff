@@ -16,6 +16,8 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <argp.h>
 
+#include <argp.h>
+
 using namespace Eigen;
 
 using namespace generic_io;

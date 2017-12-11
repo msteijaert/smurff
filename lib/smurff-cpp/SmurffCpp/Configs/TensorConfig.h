@@ -7,12 +7,11 @@
 
 #include <SmurffCpp/Configs/NoiseConfig.h>
 
-#include <SmurffCpp/IO/IDataWriter.h>
-#include <SmurffCpp/DataMatrices/IDataCreator.h>
-
 namespace smurff
 {
    class Data;
+   class IDataWriter;
+   class IDataCreator;
 
    class TensorConfig : public std::enable_shared_from_this<TensorConfig>
    {
@@ -33,33 +32,33 @@ namespace smurff
 
    protected:
       TensorConfig(bool isDense, bool isBinary, bool isScarce,
-                   std::uint64_t nmodes, std::uint64_t nnz, 
+                   std::uint64_t nmodes, std::uint64_t nnz,
                    const NoiseConfig& noiseConfig);
 
    //
    // Dense double tensor constructors
    //
    public:
-      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<double> values, 
+      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<double> values,
                    const NoiseConfig& noiseConfig);
 
-      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&& values, 
+      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<double>&& values,
                    const NoiseConfig& noiseConfig);
 
-      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<double> > values, 
+      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<double> > values,
                    const NoiseConfig& noiseConfig);
 
    //
    // Sparse double tensor constructors
    //
    public:
-      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const std::vector<double>& values, 
+      TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns, const std::vector<double>& values,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
-      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, std::vector<double>&& values, 
+      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, std::vector<double>&& values,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
-      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values, 
+      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
    //
@@ -69,10 +68,10 @@ namespace smurff
       TensorConfig(const std::vector<std::uint64_t>& dims, const std::vector<std::uint32_t>& columns,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
-      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns, 
+      TensorConfig(std::vector<std::uint64_t>&& dims, std::vector<std::uint32_t>&& columns,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
-      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns, 
+      TensorConfig(std::shared_ptr<std::vector<std::uint64_t> > dims, std::shared_ptr<std::vector<std::uint32_t> > columns,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
    public:

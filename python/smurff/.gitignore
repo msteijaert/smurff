@@ -1,1 +1,3 @@
-macau.cpp
+build
+*.cpp
+*.so
