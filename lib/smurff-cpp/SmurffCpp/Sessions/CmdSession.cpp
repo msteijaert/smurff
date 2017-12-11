@@ -112,8 +112,11 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
     return 0;
 }
 
+#endif
+
 void CmdSession::setFromArgs(int argc, char** argv)
 {
+    #ifdef ARGP_FOUND
     // Program documentation.
     char doc[] = "SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff";
 
@@ -163,6 +166,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
       THROWERROR("Failed to parse command line arguments");
 
     setFromConfig(cfg);
+    #else
+    THROWERROR("argp library is not available");
+    #endif
 }
-
-#endif
