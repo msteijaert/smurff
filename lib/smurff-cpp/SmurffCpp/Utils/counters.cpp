@@ -3,10 +3,11 @@
  * All rights reserved.
  */
 
+#include <chrono>
+
 #ifdef PROFILING
 
 #include <mutex>
-#include <chrono>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -65,3 +66,8 @@ void TotalsCounter::print() {
 }
 
 #endif // PROFILING
+
+double tick() 
+{
+   return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+}

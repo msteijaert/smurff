@@ -7,6 +7,7 @@
 #include <SmurffCpp/Utils/omp_util.h>
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/counters.h>
 
 #include <SmurffCpp/DataMatrices/DataCreator.h>
 #include <SmurffCpp/Priors/PriorFactory.h>

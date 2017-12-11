@@ -15,6 +15,7 @@
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Utils/counters.h>
 
 #include <SmurffCpp/Configs/MatrixConfig.h>
 
