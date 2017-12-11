@@ -18,6 +18,13 @@ std::shared_ptr<ISession> SessionFactory::create_cmd_session(int argc, char** ar
    return session;
 }
 
+std::shared_ptr<ISession> SessionFactory::create_cmd_session(Config& cfg)
+{
+   std::shared_ptr<CmdSession> session(new CmdSession());
+   session->setFromConfig(cfg);
+   return session;
+}
+
 //create python session
 //parses args outside of c++ code (in python code)
 //this is why config is passed directly from python to setFromConfig (to validate, save, set config)

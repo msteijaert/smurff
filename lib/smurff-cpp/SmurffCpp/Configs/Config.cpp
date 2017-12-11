@@ -3,6 +3,7 @@
 #include <set>
 #include <iostream>
 
+#include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/INIReader.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 
@@ -23,7 +24,7 @@ PriorTypes smurff::stringToPriorType(std::string name)
    else if(name == PRIOR_NAME_MPI)
       return PriorTypes::mpi;
    else
-      throw std::runtime_error("Invalid prior type");
+      THROWERROR("Invalid prior type");
 }
 
 std::string smurff::priorTypeToString(PriorTypes type)
@@ -43,7 +44,7 @@ std::string smurff::priorTypeToString(PriorTypes type)
       case PriorTypes::mpi:
          return PRIOR_NAME_MPI;
       default:
-         throw std::runtime_error("Invalid prior type");
+         THROWERROR("Invalid prior type");
    }
 }
 
@@ -54,7 +55,7 @@ ModelInitTypes smurff::stringToModelInitType(std::string name)
    else if (name == MODEL_INIT_NAME_ZERO)
       return ModelInitTypes::zero;
    else
-      throw std::runtime_error("Invalid model init type " + name);
+      THROWERROR("Invalid model init type " + name);
 }
 
 std::string smurff::modelInitTypeToString(ModelInitTypes type)
@@ -66,90 +67,85 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
       case ModelInitTypes::zero:
          return MODEL_INIT_NAME_ZERO;
       default:
-         throw std::runtime_error("Invalid model init type");
+         THROWERROR("Invalid model init type");
    }
 }
 
 bool Config::validate(bool throw_error) const
 {
-   if (!train.getRows().size())
-      die("Missing train matrix");
+   if (!m_train->getNNZ())
+      THROWERROR("Missing train data");
 
-   if (test.getNRow() > 0 && train.getNRow() > 0 && test.getNRow() != train.getNRow())
-      die("Train and test matrix should have the same number of rows");
+   if (!m_test->getNNZ())
+      THROWERROR("Missing test data");
 
-   if (test.getNCol() > 0 && train.getNCol() > 0 && test.getNCol() != train.getNCol())
-      die("Train and test matrix should have the same number of cols");
+   if (m_test->getDims() != m_train->getDims())
+      THROWERROR("Train and test data should have the same dimensions");
 
-   for (const auto &c: col_features) 
+   for (const auto r: m_row_features)
    {
-       if (train.getNCol() != c.getNCol()) 
-       {
-           die("Column features and train should have the same number of cols");
-       }
+      if (m_train->getDims()[0] != r->getNRow())
+         THROWERROR("Row features and train data should have the same number of rows");
    }
 
-   for (const auto &c: row_features) 
+   for (const auto c: m_col_features)
    {
-       if (train.getNRow() != c.getNRow()) 
-       {
-           die("Row features and train should have the same number of rows");
-       }
+      if (m_train->getDims()[1] != c->getNCol())
+         THROWERROR("Column features and train data should have the same number of cols");
    }
 
-   if (col_prior_type == PriorTypes::macau && col_features.size() != 1) 
-   {
-       die("Exactly one set of col-features needed when using macau prior.");
-   }
+   if (col_prior_type == PriorTypes::macau && m_col_features.size() != 1)
+      THROWERROR("Exactly one set of col-features needed when using macau prior.");
 
-   if (row_prior_type == PriorTypes::macau && row_features.size() != 1) 
-   {
-       die("Exactly one set of row-features needed when using macau prior.");
-   }
+   if (row_prior_type == PriorTypes::macau && m_row_features.size() != 1)
+      THROWERROR("Exactly one set of row-features needed when using macau prior.");
 
-   if (col_prior_type == PriorTypes::macauone && (col_features.size() != 1 || col_features.at(0).isDense())) 
-   {
-       die("Exactly one set of sparse col-features needed when using macauone prior.");
-   }
+   if (col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense()))
+      THROWERROR("Exactly one set of sparse col-features needed when using macauone prior.");
 
-   if (row_prior_type == PriorTypes::macauone && (row_features.size() != 1 || row_features.at(0).isDense())) 
-   {
-       die("Exactly one set of sparse row-features needed when using macauone prior.");
-   }
+   if (row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense()))
+      THROWERROR("Exactly one set of sparse row-features needed when using macauone prior.");
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
-   if (save_suffixes.find(save_suffix) == save_suffixes.end()) 
-      die("Unknown output suffix: " + save_suffix);
+   if (save_suffixes.find(save_suffix) == save_suffixes.end())
+      THROWERROR("Unknown output suffix: " + save_suffix);
 
-   train.getNoiseConfig().validate();
+   m_train->getNoiseConfig().validate();
 
    return true;
 }
 
 void Config::save(std::string fname) const
 {
-   if (!save_freq) 
+   if (!save_freq)
       return;
 
    std::ofstream os(fname);
 
-   os << "# train = "; train.info(os); os << std::endl;
-   os << "# test = "; test.info(os); os << std::endl;
+   os << "# train = ";
+   m_train->info(os);
+   os << std::endl;
+
+   os << "# test = ";
+   m_test->info(os);
+   os << std::endl;
 
    os << "# features" << std::endl;
 
-   auto print_features = [&os](std::string name, const std::vector<MatrixConfig> &vec) -> void {
+   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<MatrixConfig> > &vec) -> void
+   {
       os << "[" << name << "]\n";
-      for (unsigned i=0; i<vec.size(); ++i) {
+      for (size_t i = 0; i < vec.size(); ++i)
+      {
          os << "# " << i << " ";
-         vec.at(i).info(os);
+         vec.at(i)->info(os);
          os << std::endl;
       }
    };
 
-   print_features("row_features", row_features);
-   print_features("col_features", col_features);
+   print_features("row_features", m_row_features);
+   print_features("col_features", m_col_features);
 
    os << "# priors" << std::endl;
    os << "row_prior = " << priorTypeToString(row_prior_type) << std::endl;
@@ -177,21 +173,21 @@ void Config::save(std::string fname) const
    os << "direct = " << direct << std::endl;
 
    os << "# noise model" << std::endl;
-   os << "noise_model = " << smurff::noiseTypeToString(train.getNoiseConfig().getNoiseType()) << std::endl;
-   os << "precision = " << train.getNoiseConfig().precision << std::endl;
-   os << "sn_init = " << train.getNoiseConfig().sn_init << std::endl;
-   os << "sn_max = " << train.getNoiseConfig().sn_max << std::endl;
+   os << "noise_model = " << smurff::noiseTypeToString(m_train->getNoiseConfig().getNoiseType()) << std::endl;
+   os << "precision = " << m_train->getNoiseConfig().precision << std::endl;
+   os << "sn_init = " << m_train->getNoiseConfig().sn_init << std::endl;
+   os << "sn_max = " << m_train->getNoiseConfig().sn_max << std::endl;
 
    os << "# binary classification" << std::endl;
    os << "classify = " << classify << std::endl;
    os << "threshold = " << threshold << std::endl;
 }
 
-void Config::restore(std::string fname) 
+void Config::restore(std::string fname)
 {
    INIReader reader(fname);
 
-   if (reader.ParseError() < 0) 
+   if (reader.ParseError() < 0)
    {
       std::cout << "Can't load '" << fname << "'\n";
    }
@@ -227,7 +223,7 @@ void Config::restore(std::string fname)
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
-   train.setNoiseConfig(noise);
+   m_train->setNoiseConfig(noise);
 
    //-- binary classification
    classify = reader.GetBoolean("", "classify",  false);

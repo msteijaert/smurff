@@ -15,6 +15,7 @@ FILE (GLOB SOURCE_FILES "../tests.cpp"
      	  	   	         "../TestsPVec.cpp"
                         "../TestsTensor.cpp"
                         "../TestsMatrixUtils.cpp"
+                        "../TestsLinop.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 

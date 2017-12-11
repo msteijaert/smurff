@@ -2,7 +2,7 @@
 
 using namespace smurff;
 
-int MatrixData::nmode() const
+std::uint64_t MatrixData::nmode() const
 {
    return 2;
 }

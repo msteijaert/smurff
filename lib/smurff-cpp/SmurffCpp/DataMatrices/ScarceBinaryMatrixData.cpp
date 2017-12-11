@@ -2,6 +2,9 @@
 
 #include <SmurffCpp/Utils/TruncNorm.h>
 
+#include <SmurffCpp/VMatrixExprIterator.hpp>
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
+
 using namespace smurff;
 
 ScarceBinaryMatrixData::ScarceBinaryMatrixData(Eigen::SparseMatrix<double>& Y)
@@ -10,13 +13,15 @@ ScarceBinaryMatrixData::ScarceBinaryMatrixData(Eigen::SparseMatrix<double>& Y)
    name = "ScarceBinaryMatrixData [containing 0,1,NA]";
 }
 
-void ScarceBinaryMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void ScarceBinaryMatrixData::get_pnm(const SubModel& model, uint32_t mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
+   auto Vf = *model.CVbegin(mode);
    // todo : check noise == probit noise
    auto u = model.U(mode).col(n);
+   
    for (Eigen::SparseMatrix<double>::InnerIterator it(Y(mode), n); it; ++it)
    {
-      const auto &col = model.V(mode).col(it.row());
+      const auto &col = Vf.col(it.row());
       MM.noalias() += col * col.transpose();
       double y = 2 * it.value() - 1;
       auto z = y * rand_truncnorm(y * col.dot(u), 1.0, 0.0);
@@ -24,11 +29,12 @@ void ScarceBinaryMatrixData::get_pnm(const SubModel& model, int mode, int n, Eig
    }
 }
 
-void ScarceBinaryMatrixData::update_pnm(const SubModel& model,int mode)
+void ScarceBinaryMatrixData::update_pnm(const SubModel& model, uint32_t mode)
 {
+   //can not cache VV because of scarceness
 }
 
-int ScarceBinaryMatrixData::nna() const
+std::uint64_t ScarceBinaryMatrixData::nna() const
 {
-   return size() - nnz();
+   return size() - nnz(); //nrows * ncols - nnz
 }

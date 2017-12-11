@@ -5,26 +5,34 @@ project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../Version.h"
                         "../Model.h"
-                        "../VectorView.hpp"
                         "../result.h"
                         "../SparseFeat.h"
                         "../SparseDoubleFeat.h"
+                        "../VMatrixIterator.hpp"
+                        "../ConstVMatrixIterator.hpp"
+                        "../VMatrixExprIterator.hpp"
+                        "../ConstVMatrixExprIterator.hpp"
 
                         "../Utils/TruncNorm.h"
                         "../Utils/InvNormCdf.h"
                         "../Utils/Distribution.h"
                         "../Utils/MatrixUtils.h"
+                        "../Utils/TensorUtils.h"
                         "../Utils/PVec.hpp"
                         "../Utils/chol.h"
                         "../Utils/counters.h"
                         "../Utils/linop.h"
                         "../Utils/omp_util.h"
                         "../Utils/utils.h"
+                        "../Utils/Error.h"
 
                         "../IO/ini.h"
                         "../IO/INIReader.h"
+                        "../IO/GenericIO.h"
                         "../IO/MatrixIO.h"
                         "../IO/TensorIO.h"
+                        "../IO/IDataWriter.h"
+                        "../IO/DataWriter.h"
 
                         "../Configs/Config.h"
                         "../Configs/MatrixConfig.h"
@@ -57,15 +65,19 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../DataMatrices/ScarceMatrixData.h"
                         "../DataMatrices/SparseMatrixData.h"
                         "../DataMatrices/MatrixDataFactory.h"
+                        "../DataMatrices/IDataCreator.h"
+                        "../DataMatrices/DataCreator.h"
+
+                        "../DataTensors/TensorData.h"
+                        "../DataTensors/SparseMode.h"
+                        "../DataTensors/TensorDataFactory.h"
 
                         "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
                         "../Sessions/CmdSession.h"
                         "../Sessions/PythonSession.h"
-                        "../Sessions/SessionFactory.h"
-
-                        "../sparsetensor.h")
+                        "../Sessions/SessionFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -76,6 +88,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Utils/InvNormCdf.cpp"
                         "../Utils/Distribution.cpp"
                         "../Utils/MatrixUtils.cpp"
+                        "../Utils/TensorUtils.cpp"
                         "../Utils/chol.cpp"
                         "../Utils/counters.cpp"
                         "../Utils/linop.cpp"
@@ -83,8 +96,10 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 
                         "../IO/ini.c"
                         "../IO/INIReader.cpp"
+                        "../IO/GenericIO.cpp"
                         "../IO/MatrixIO.cpp"
                         "../IO/TensorIO.cpp"
+                        "../IO/DataWriter.cpp"
 
                         "../Configs/Config.cpp"
                         "../Configs/MatrixConfig.cpp"
@@ -109,19 +124,21 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../DataMatrices/DenseMatrixData.cpp"
                         "../DataMatrices/MatricesData.cpp"
                         "../DataMatrices/MatrixData.cpp"
-                        "../DataMatrices/MatrixDataTempl.cpp"
                         "../DataMatrices/ScarceBinaryMatrixData.cpp"
                         "../DataMatrices/ScarceMatrixData.cpp"
                         "../DataMatrices/SparseMatrixData.cpp"
                         "../DataMatrices/MatrixDataFactory.cpp"
+                        "../DataMatrices/DataCreator.cpp"
+                        
+                        "../DataTensors/TensorData.cpp"
+                        "../DataTensors/SparseMode.cpp"
+                        "../DataTensors/TensorDataFactory.cpp"
 
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
                         "../Sessions/CmdSession.cpp"
                         "../Sessions/PythonSession.cpp"
-                        "../Sessions/SessionFactory.cpp"
-
-                        "../sparsetensor.cpp")
+                        "../Sessions/SessionFactory.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT

@@ -1,5 +1,7 @@
 #include "CmdSession.h"
 
+#ifdef ARGP_FOUND
+
 #include <string>
 #include <memory>
 #include <cstdlib>
@@ -10,12 +12,14 @@
 
 // !!! DO NOT CHANGE ORDER OF INCLUDES (<algorithm>, <argp.h>)!!!
 // https://stackoverflow.com/questions/19043109/gcc-4-8-1-combining-c-code-with-c11-code
+#include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <argp.h>
 
 using namespace Eigen;
 
 using namespace smurff;
+using namespace generic_io;
 using namespace matrix_io;
 
 enum OPT_ENUM
@@ -26,61 +30,65 @@ enum OPT_ENUM
    INIT_MODEL, CENTER, STATUS_FILE
 };
 
+void set_noise_model(Config& config, std::string noiseName, std::string optarg)
+{
+   NoiseConfig nc;
+   nc.setNoiseType(smurff::stringToNoiseType(noiseName));
+   if (nc.getNoiseType() == NoiseTypes::adaptive)
+   {
+      char *token, *str = strdup(optarg.c_str());
+
+      if(str && (token = strsep(&str, ",")))
+         nc.sn_init = strtod(token, NULL);
+
+      if(str && (token = strsep(&str, ",")))
+         nc.sn_max = strtod(token, NULL);
+   }
+   else if (nc.getNoiseType() == NoiseTypes::fixed)
+   {
+      nc.precision = strtod(optarg.c_str(), NULL);
+   }
+
+   if(!config.m_train)
+      THROWERROR("train data is not provided");
+
+   // set global noise model
+   if (config.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+   config.m_train->setNoiseConfig(nc);
+
+   //set for row/col feautres
+   for(auto m: config.m_row_features)
+      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         m->setNoiseConfig(nc);
+
+   for(auto m: config.m_col_features)
+      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         m->setNoiseConfig(nc);
+}
+
 static int parse_opts(int key, char *optarg, struct argp_state *state)
 {
    Config &c = *(Config *)(state->input);
-
-   auto set_noise_model = [&c](std::string noiseName, std::string optarg)
-   {
-      NoiseConfig nc;
-      nc.setNoiseType(smurff::stringToNoiseType(noiseName));
-      if (nc.getNoiseType() == NoiseTypes::adaptive)
-      {
-         char *token, *str = strdup(optarg.c_str());
-
-         if(str && (token = strsep(&str, ",")))
-            nc.sn_init = strtod(token, NULL);
-
-         if(str && (token = strsep(&str, ",")))
-            nc.sn_max = strtod(token, NULL);
-      }
-      else if (nc.getNoiseType() == NoiseTypes::fixed)
-      {
-         nc.precision = strtod(optarg.c_str(), NULL);
-      }
-
-      // set global noise model
-      if (c.train.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-         c.train.setNoiseConfig(nc);
-
-      //set for row/col feautres
-      for(auto& m: c.row_features)
-         if (m.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-            m.setNoiseConfig(nc);
-
-      for(auto& m: c.col_features)
-         if (m.getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-            m.setNoiseConfig(nc);
-   };
 
    switch (key)
    {
       case ROW_PRIOR:       c.row_prior_type          = stringToPriorType(optarg); break;
       case COL_PRIOR:       c.col_prior_type          = stringToPriorType(optarg); break;
 
-      case ROW_FEATURES:    c.row_features.push_back(read_matrix(optarg)); break;
-      case COL_FEATURES:    c.col_features.push_back(read_matrix(optarg)); break;
+      case ROW_FEATURES:    c.m_row_features.push_back(read_matrix(optarg, false)); break;
+      case COL_FEATURES:    c.m_col_features.push_back(read_matrix(optarg, false)); break;
+      
       case CENTER:          break;
-
-      case FNAME_TRAIN:     c.train              = read_matrix(optarg); break;
+      
+      case FNAME_TRAIN:     c.m_train              = read_data_config(optarg, true); break;
       case LAMBDA_BETA:     c.lambda_beta        = strtod(optarg, NULL); break;
       case BURNIN:          c.burnin             = strtol(optarg, NULL, 10); break;
       case TOL:             c.tol                = atof(optarg); break;
       case DIRECT:          c.direct             = true; break;
-      case FNAME_TEST:      c.test               = read_matrix(optarg); break;
+      case FNAME_TEST:      c.m_test               = read_data_config(optarg, true); break;
       case NUM_LATENT:      c.num_latent         = strtol(optarg, NULL, 10); break;
       case NSAMPLES:        c.nsamples           = strtol(optarg, NULL, 10); break;
-       case SEED:           c.random_seed_set = true;
+      case SEED:            c.random_seed_set = true;
                             c.random_seed = strtol(optarg, NULL, 10);
                             break;
       case RESTORE_PREFIX:  c.restore_prefix      = std::string(optarg); break;
@@ -89,8 +97,8 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
       case SAVE_SUFFIX:     c.save_suffix      = std::string(optarg); break;
       case SAVE_FREQ:       c.save_freq        = strtol(optarg, NULL, 10); break;
 
-      case PRECISION:       set_noise_model(NOISE_NAME_FIXED, optarg); break;
-      case ADAPTIVE:        set_noise_model(NOISE_NAME_ADAPTIVE, optarg); break;
+      case PRECISION:       set_noise_model(c, NOISE_NAME_FIXED, optarg); break;
+      case ADAPTIVE:        set_noise_model(c, NOISE_NAME_ADAPTIVE, optarg); break;
 
       case THRESHOLD:       c.threshold          = strtod(optarg, 0); c.classify = true; break;
       case INIT_MODEL:      c.model_init_type = stringToModelInitType(optarg); break;
@@ -126,7 +134,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {"burnin",	     BURNIN	, "NUM",   0, "200  number of samples to discard"},
         {"nsamples",	     NSAMPLES	, "NUM",   0, "800  number of samples to collect"},
         {"num-latent",	     NUM_LATENT	, "NUM",   0, "96  number of latent dimensions"},
-        {"restore-prefix",   RESTORE_PREFIX	, "PATH",   0, "prefix for file to initialize stae"},
+        {"restore-prefix",   RESTORE_PREFIX	, "PATH",   0, "prefix for file to initialize state"},
         {"restore-suffix",   RESTORE_SUFFIX	, "EXT",   0, "suffix for initialization files (.csv or .ddm)"},
         {"init-model",       INIT_MODEL	, "NAME",   0, "One of <random|zero>"},
         {"save-prefix",      SAVE_PREFIX	, "PATH",   0, "prefix for result files"},
@@ -140,7 +148,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {"seed",             SEED, "NUM",  0, "random number generator seed"},
         {0,0,0,0,"Noise model:",4},
         {"precision",	     PRECISION	, "NUM",   0, "5.0  precision of observations"},
-        {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adavtive precision of observations"},
+        {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adaptive precision of observations"},
         {0,0,0,0,"For the macau prior:",5},
         {"lambda-beta",	     LAMBDA_BETA	, "NUM",   0, "10.0  initial value of lambda beta"},
         {"tol",              TOL        , "NUM",   0, "1e-6  tolerance for CG"},
@@ -151,7 +159,10 @@ void CmdSession::setFromArgs(int argc, char** argv)
 
     Config cfg;
     struct argp argp = { options, parse_opts, 0, doc };
-    argp_parse (&argp, argc, argv, 0, 0, &cfg);
+    if(argp_parse (&argp, argc, argv, 0, 0, &cfg) != 0)
+      THROWERROR("Failed to parse command line arguments");
 
     setFromConfig(cfg);
 }
+
+#endif

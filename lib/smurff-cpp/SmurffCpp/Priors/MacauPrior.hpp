@@ -40,7 +40,7 @@ private:
       : NormalPrior(){}
 
 public:
-   MacauPrior(std::shared_ptr<BaseSession> session, int mode)
+   MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalPrior(session, mode, "MacauPrior")
    {
 
@@ -57,7 +57,7 @@ public:
       if (use_FtF)
       {
          FtF.resize(Features->cols(), Features->cols());
-         At_mul_A(FtF, *Features);
+         smurff::linop::At_mul_A(FtF, *Features);
       }
 
       Uhat.resize(this->num_latent(), Features->rows());
@@ -71,12 +71,12 @@ public:
    {
       // residual (Uhat is later overwritten):
       Uhat.noalias() = *U() - Uhat;
-      Eigen::MatrixXd BBt = A_mul_At_combo(beta);
+      Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
 
       // sampling Gaussian
       std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
       sample_beta();
-      compute_uhat(Uhat, *Features, beta);
+      smurff::linop::compute_uhat(Uhat, *Features, beta);
       lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
    }
 
@@ -110,7 +110,7 @@ public:
       // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
       Eigen::MatrixXd tmp = (*U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
-      Ft_y = A_mul_B(tmp, *Features);
+      Ft_y = smurff::linop::A_mul_B(tmp, *Features);
       Eigen::MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 
       #pragma omp parallel for schedule(static)
@@ -211,13 +211,7 @@ private:
    }
 
    // BlockCG solver
-   void sample_beta_cg()
-   {
-      Eigen::MatrixXd Ft_y;
-      this->compute_Ft_y_omp(Ft_y);
-
-      solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
-   }
+   void sample_beta_cg();
 
 public:
 
@@ -225,7 +219,7 @@ public:
    {
       const int D = beta.rows();
       Eigen::MatrixXd BB(D, D);
-      A_mul_At_combo(BB, beta);
+      smurff::linop::A_mul_At_combo(BB, beta);
       double nux = nu + beta.rows() * beta.cols();
       double mux = mu * nux / (nu + mu * (BB.selfadjointView<Eigen::Lower>() * Lambda_u).trace() );
       double b   = nux / 2;
@@ -239,6 +233,15 @@ public:
       return rgamma(gamma_post.first, gamma_post.second);
    }
 };
+
+template<class FType>
+void MacauPrior<FType>::sample_beta_cg()
+{
+   Eigen::MatrixXd Ft_y;
+   this->compute_Ft_y_omp(Ft_y);
+
+   smurff::linop::solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
+}
 
 // specialization for dense matrices --> always direct method
 template<>
@@ -268,26 +271,5 @@ template<class FType>
 void MacauPrior<FType>::sample_latents(ProbitNoise& noiseModel, TensorData & data,
                                std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
   // TODO:
-}
-*/
-
-//macau Tensor method
-/*
-template<class FType>
-void MacauPrior<FType>::sample_latents(double noisePrecision,
-                                       TensorData & data,
-                                       std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples,
-                                       int mode,
-                                       const int num_latent) {
-  auto& sparseMode = (*data.Y)[mode];
-  auto& U = samples[mode];
-  const int N = U->cols();
-  VectorView<Eigen::MatrixXd> view(samples, mode);
-
-  #pragma omp parallel for schedule(dynamic, 2)
-  for (int n = 0; n < N; n++) {
-    Eigen::VectorXd mu2 = mu + Uhat.col(n);
-    sample_latent_tensor(U, n, sparseMode, view, data.mean_value, noisePrecision, mu2, Lambda);
-  }
 }
 */

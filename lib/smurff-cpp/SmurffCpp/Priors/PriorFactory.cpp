@@ -7,19 +7,34 @@
 #include <SmurffCpp/Priors/NormalPrior.h>
 #include <SmurffCpp/Priors/SpikeAndSlabPrior.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 using namespace Eigen;
 
 //create macau prior features
 
-std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(const MatrixConfig& sideinfoConfig, int mode)
+std::shared_ptr<Eigen::MatrixXd> side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
-   std::uint64_t nrow = sideinfoConfig.getNRow();
-   std::uint64_t ncol = sideinfoConfig.getNCol();
-   std::uint64_t nnz = sideinfoConfig.getNNZ();
+   Eigen::MatrixXd sideinfo = matrix_utils::dense_to_eigen(*sideinfoConfig);
+   
+   // Temporary solution #2
+   // macau expects the rows of the matrix to be equal to the mode size, 
+   // if the mode == 1 (col_features) we need to swap the rows and columns
+   if (mode == 1) 
+      sideinfo.transposeInPlace();
 
-   std::shared_ptr<std::vector<std::uint32_t> > rows = sideinfoConfig.getRowsPtr();
-   std::shared_ptr<std::vector<std::uint32_t> > cols = sideinfoConfig.getColsPtr();
+   return std::shared_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(sideinfo));
+}
+
+std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
+{
+   std::uint64_t nrow = sideinfoConfig->getNRow();
+   std::uint64_t ncol = sideinfoConfig->getNCol();
+   std::uint64_t nnz = sideinfoConfig->getNNZ();
+
+   std::shared_ptr<std::vector<std::uint32_t> > rows = sideinfoConfig->getRowsPtr();
+   std::shared_ptr<std::vector<std::uint32_t> > cols = sideinfoConfig->getColsPtr();
 
    // Temporary solution. As soon as SparseFeat works with vectors instead of pointers,
    // we will remove these extra memory allocation and manipulation
@@ -43,28 +58,15 @@ std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(const Mat
    return std::shared_ptr<SparseFeat>(new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr));
 }
 
-std::shared_ptr<Eigen::MatrixXd> side_info_config_to_dense_features(const MatrixConfig& sideinfoConfig, int mode)
+std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
-   Eigen::MatrixXd sideinfo = matrix_utils::dense_to_eigen(sideinfoConfig);
-   
-   // Temporary solution #2
-   // macau expects the rows of the matrix to be equal to the mode size, 
-   // if the mode == 1 (col_features) we need to swap the rows and columns
-   if (mode == 1) 
-      sideinfo.transposeInPlace();
+   std::uint64_t nrow = sideinfoConfig->getNRow();
+   std::uint64_t ncol = sideinfoConfig->getNCol();
+   std::uint64_t nnz = sideinfoConfig->getNNZ();
 
-   return std::shared_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(sideinfo));
-}
-
-std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(const MatrixConfig& sideinfoConfig, int mode)
-{
-   std::uint64_t nrow = sideinfoConfig.getNRow();
-   std::uint64_t ncol = sideinfoConfig.getNCol();
-   std::uint64_t nnz = sideinfoConfig.getNNZ();
-
-   std::shared_ptr<std::vector<std::uint32_t> > rows = sideinfoConfig.getRowsPtr();
-   std::shared_ptr<std::vector<std::uint32_t> > cols = sideinfoConfig.getColsPtr();
-   std::shared_ptr<std::vector<double> > values = sideinfoConfig.getValuesPtr();
+   std::shared_ptr<std::vector<std::uint32_t> > rows = sideinfoConfig->getRowsPtr();
+   std::shared_ptr<std::vector<std::uint32_t> > cols = sideinfoConfig->getColsPtr();
+   std::shared_ptr<std::vector<double> > values = sideinfoConfig->getValuesPtr();
 
    // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
    // we will remove these extra memory allocation and manipulation
@@ -116,25 +118,25 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    }
    else
    {
-      throw std::runtime_error("Unknown prior with side info: " + priorTypeToString(prior_type));
+      THROWERROR("Unknown prior with side info: " + priorTypeToString(prior_type));
    }
 }
 
 //mode - 0 (row), 1 (col)
 //vsideinfo - vector of side feature configs (row or col)
-std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& vsideinfo)
+std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<std::shared_ptr<MatrixConfig> >& vsideinfo)
 {
    if(vsideinfo.size() != 1)
-      throw std::runtime_error("Only one feature matrix is allowed");
+      THROWERROR("Only one feature matrix is allowed");
 
-   const MatrixConfig& sideinfoConfig = vsideinfo.at(0);
+   std::shared_ptr<MatrixConfig> sideinfoConfig = vsideinfo.at(0);
 
-   if (sideinfoConfig.isBinary())
+   if (sideinfoConfig->isBinary())
    {
       std::shared_ptr<SparseFeat> sideinfo = side_info_config_to_sparse_binary_features(sideinfoConfig, mode);
       return create_macau_prior(session, prior_type, sideinfo);
    }
-   else if (sideinfoConfig.isDense())
+   else if (sideinfoConfig->isDense())
    {
       std::shared_ptr<Eigen::MatrixXd> sideinfo = side_info_config_to_dense_features(sideinfoConfig, mode);
       return create_macau_prior(session, prior_type, sideinfo);
@@ -150,7 +152,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 
 //mode - 0 (row), 1 (col)
 //vsideinfo - vector of side feature configs (row or col)
-std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<MatrixConfig>& vsideinfo)
+std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<std::shared_ptr<MatrixConfig> >& vsideinfo)
 {
    // row prior with side information
    // side information can only be applied to macau and macauone priors
@@ -162,7 +164,7 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
       case PriorTypes::macauone:
          return create_macau_prior(session, mode, prior_type, vsideinfo);
       default:
-         throw std::runtime_error("SideInfo only with macau(one) prior");
+         THROWERROR("SideInfo only with macau(one) prior");
       }
    }
    else
@@ -175,7 +177,7 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
       case PriorTypes::spikeandslab:
          return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
       default:
-         throw std::runtime_error("Unknown prior without side info: " + priorTypeToString(prior_type));
+         THROWERROR("Unknown prior without side info: " + priorTypeToString(prior_type));
       }
    }
 }
@@ -187,24 +189,24 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
       case 0:
       {
          //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
-         std::vector<MatrixConfig> row_sideinfo;
+         std::vector<std::shared_ptr<MatrixConfig> > row_sideinfo;
 
          if (session->config.row_prior_type == PriorTypes::macau || session->config.row_prior_type == PriorTypes::macauone)
-            row_sideinfo = session->config.row_features;
+            row_sideinfo = session->config.m_row_features;
 
          return ::create_prior(session, mode, session->config.row_prior_type, row_sideinfo);
       }
       case 1:
       {
          //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
-         std::vector<MatrixConfig> col_sideinfo;
+         std::vector<std::shared_ptr<MatrixConfig> > col_sideinfo;
 
          if (session->config.col_prior_type == PriorTypes::macau || session->config.col_prior_type == PriorTypes::macauone)
-            col_sideinfo = session->config.col_features;
+            col_sideinfo = session->config.m_col_features;
 
          return ::create_prior(session, mode, session->config.col_prior_type, col_sideinfo);
       }
       default:
-         throw std::runtime_error("Unknown prior mode");
+         THROWERROR("Unknown prior mode");
    }
 }

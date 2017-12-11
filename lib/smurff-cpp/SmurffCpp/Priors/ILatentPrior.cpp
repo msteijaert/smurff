@@ -4,7 +4,7 @@
 using namespace smurff;
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(std::shared_ptr<BaseSession> session, int mode, std::string name)
+ILatentPrior::ILatentPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name)
    : m_session(session), m_mode(mode), m_name(name)
 {
 
@@ -46,9 +46,30 @@ std::shared_ptr<MatrixXd> ILatentPrior::U()
    return model()->U(m_mode);
 }
 
-std::shared_ptr<MatrixXd> ILatentPrior::V()
+std::shared_ptr<const MatrixXd> ILatentPrior::U() const
 {
-   return model()->V(m_mode);
+   return model()->U(m_mode);
+}
+
+//return V matrices in the model opposite to mode
+VMatrixIterator<Eigen::MatrixXd> ILatentPrior::Vbegin()
+{
+   return model()->Vbegin(m_mode);
+}
+
+VMatrixIterator<Eigen::MatrixXd> ILatentPrior::Vend()
+{
+   return model()->Vend();
+}
+
+ConstVMatrixIterator<Eigen::MatrixXd> ILatentPrior::CVbegin() const
+{
+   return model()->CVbegin(m_mode);
+}
+
+ConstVMatrixIterator<Eigen::MatrixXd> ILatentPrior::CVend() const
+{
+   return model()->CVend();
 }
 
 int ILatentPrior::num_latent() const
@@ -71,8 +92,6 @@ bool ILatentPrior::run_slave()
 {
    return false;
 }
-
-//update_pnm is smth new and there is no equvalent in old code
 
 void ILatentPrior::sample_latents()
 {

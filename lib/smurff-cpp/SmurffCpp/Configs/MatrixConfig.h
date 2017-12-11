@@ -9,6 +9,8 @@
 
 namespace smurff
 {
+   class Data;
+
    class MatrixConfig : public TensorConfig
    {
    private:
@@ -37,15 +39,15 @@ namespace smurff
    public:
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    const std::vector<std::uint32_t>& rows, const std::vector<std::uint32_t>& cols, const std::vector<double>& values,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    std::vector<std::uint32_t>&& rows, std::vector<std::uint32_t>&& cols, std::vector<double>&& values,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    std::shared_ptr<std::vector<std::uint32_t> > rows, std::shared_ptr<std::vector<std::uint32_t> > cols, std::shared_ptr<std::vector<double> > values,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
    //
    // Sparse binary matrix constructors
@@ -53,31 +55,47 @@ namespace smurff
    public:
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    const std::vector<std::uint32_t>& rows, const std::vector<std::uint32_t>& cols,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    std::vector<std::uint32_t>&& rows, std::vector<std::uint32_t>&& cols,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    std::shared_ptr<std::vector<std::uint32_t> > rows, std::shared_ptr<std::vector<std::uint32_t> > cols,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
    //
-   // Constructors for constructing matrix as a tensor
+   // Constructors for constructing sparse matrix as a tensor
    //
    public:
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    const std::vector<std::uint32_t>& columns, const std::vector<double>& values,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    std::vector<std::uint32_t>&& columns, std::vector<double>&& values,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
                    std::shared_ptr<std::vector<std::uint32_t> > columns, std::shared_ptr<std::vector<double> > values,
-                   const NoiseConfig& noiseConfig);
+                   const NoiseConfig& noiseConfig, bool isScarce);
+
+   //
+   // Constructors for constructing sparse binary matrix as a tensor
+   //
+   public:
+      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
+                   const std::vector<std::uint32_t>& columns, 
+                   const NoiseConfig& noiseConfig, bool isScarce);
+      
+      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, 
+                   std::vector<std::uint32_t>&& columns, 
+                   const NoiseConfig& noiseConfig, bool isScarce);
+
+      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
+                   std::shared_ptr<std::vector<std::uint32_t> > columns, 
+                   const NoiseConfig& noiseConfig, bool isScarce);
 
    public:
       MatrixConfig();
@@ -91,5 +109,11 @@ namespace smurff
 
       std::shared_ptr<std::vector<std::uint32_t> > getRowsPtr() const;
       std::shared_ptr<std::vector<std::uint32_t> > getColsPtr() const;
+
+   public:
+      std::shared_ptr<Data> create(std::shared_ptr<IDataCreator> creator) const override;
+
+   public:
+      void write(std::shared_ptr<IDataWriter> writer) const override;
    };
 }

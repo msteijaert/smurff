@@ -2,10 +2,13 @@
 
 #include <numeric>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 TensorConfig::TensorConfig ( bool isDense
                            , bool isBinary
+                           , bool isScarce
                            , std::uint64_t nmodes
                            , std::uint64_t nnz
                            , const NoiseConfig& noiseConfig
@@ -13,6 +16,7 @@ TensorConfig::TensorConfig ( bool isDense
    : m_noiseConfig(noiseConfig)
    , m_isDense(isDense)
    , m_isBinary(isBinary)
+   , m_isScarce(isScarce)
    , m_nmodes(nmodes)
    , m_nnz(nnz)
    , m_dims(std::make_shared<std::vector<std::uint64_t> >())
@@ -32,17 +36,18 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
    : m_noiseConfig(noiseConfig)
    , m_isDense(true)
    , m_isBinary(false)
+   , m_isScarce(false)
    , m_nmodes(dims.size())
    , m_nnz(std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<std::uint64_t>()))
 {
    if (dims.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (values.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size cannot be zero");
 
    if (values.size() != m_nnz)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
    m_columns = std::make_shared<std::vector<std::uint32_t> >();
@@ -86,19 +91,20 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    : m_noiseConfig(noiseConfig)
    , m_isDense(true)
    , m_isBinary(false)
+   , m_isScarce(false)
    , m_nmodes(dims->size())
    , m_nnz(std::accumulate(dims->begin(), dims->end(), 1, std::multiplies<std::uint64_t>()))
    , m_dims(dims)
    , m_values(values)
 {
    if (m_dims->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (m_values->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size cannot be zero");
 
    if (m_values->size() != m_nnz)
-      throw std::length_error("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
+      THROWERROR("Cannot create TensorConfig instance: 'values' size and 'nnz' must be the same");
 
    m_columns = std::make_shared<std::vector<std::uint32_t> >();
    m_columns->reserve(m_dims->size() * m_nnz);
@@ -130,15 +136,17 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
                           , const std::vector<std::uint32_t>& columns
                           , const std::vector<double>& values
                           , const NoiseConfig& noiseConfig
+                          , bool isScarce
                           )
    : m_noiseConfig(noiseConfig)
    , m_isDense(false)
    , m_isBinary(false)
+   , m_isScarce(isScarce)
    , m_nmodes(dims.size())
    , m_nnz(values.size())
 {
    if (columns.size() != values.size() * dims.size())
-      throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
    m_columns = std::make_shared<std::vector<std::uint32_t> >(columns);
@@ -149,11 +157,12 @@ TensorConfig::TensorConfig( std::vector<std::uint64_t>&& dims
                           , std::vector<std::uint32_t>&& columns
                           , std::vector<double>&& values
                           , const NoiseConfig& noiseConfig
+                          , bool isScarce
                           )
    : TensorConfig( std::make_shared<std::vector<std::uint64_t> >(std::move(dims))
                  , std::make_shared<std::vector<std::uint32_t> >(std::move(columns))
                  , std::make_shared<std::vector<double> >(std::move(values))
-                 , noiseConfig
+                 , noiseConfig, isScarce
                  )
 {
 }
@@ -162,10 +171,12 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
                           , std::shared_ptr<std::vector<std::uint32_t> > columns
                           , std::shared_ptr<std::vector<double> > values
                           , const NoiseConfig& noiseConfig
+                          , bool isScarce
                           )
    : m_noiseConfig(noiseConfig)
    , m_isDense(false)
    , m_isBinary(false)
+   , m_isScarce(isScarce)
    , m_nmodes(dims->size())
    , m_nnz(values->size())
    , m_dims(dims)
@@ -173,7 +184,7 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
    , m_values(values)
 {
    if (columns->size() != values->size() * dims->size())
-      throw std::runtime_error("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size should be the same as size of 'values' times size of 'dims'");
 }
 
 //
@@ -183,18 +194,20 @@ TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
 TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
                           , const std::vector<std::uint32_t>& columns
                           , const NoiseConfig& noiseConfig
+                          , bool isScarce
                           )
    : m_noiseConfig(noiseConfig)
    , m_isDense(false)
    , m_isBinary(true)
+   , m_isScarce(isScarce)
    , m_nmodes(dims.size())
    , m_nnz(columns.size() / dims.size())
 {
    if (dims.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (columns.size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'columns' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size cannot be zero");
 
    m_dims = std::make_shared<std::vector<std::uint64_t> >(dims);
    m_columns = std::make_shared<std::vector<std::uint32_t> >(columns);
@@ -204,10 +217,11 @@ TensorConfig::TensorConfig( const std::vector<std::uint64_t>& dims
 TensorConfig::TensorConfig( std::vector<std::uint64_t>&& dims
                           , std::vector<std::uint32_t>&& columns
                           , const NoiseConfig& noiseConfig
+                          , bool isScarce
                           )
    : TensorConfig( std::make_shared<std::vector<std::uint64_t> >(std::move(dims))
                  , std::make_shared<std::vector<std::uint32_t> >(std::move(columns))
-                 , noiseConfig
+                 , noiseConfig, isScarce
                  )
 {
 }
@@ -215,20 +229,22 @@ TensorConfig::TensorConfig( std::vector<std::uint64_t>&& dims
 TensorConfig::TensorConfig( std::shared_ptr<std::vector<std::uint64_t> > dims
                           , std::shared_ptr<std::vector<std::uint32_t> > columns
                           , const NoiseConfig& noiseConfig
+                          , bool isScarce
                           )
    : m_noiseConfig(noiseConfig)
    , m_isDense(false)
    , m_isBinary(true)
+   , m_isScarce(isScarce)
    , m_nmodes(dims->size())
    , m_nnz(columns->size() / dims->size())
    , m_dims(dims)
    , m_columns(columns)
 {
    if (dims->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'dims' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'dims' size cannot be zero");
 
    if (columns->size() == 0)
-      throw std::length_error("Cannot create TensorConfig instance: 'columns' size cannot be zero");
+      THROWERROR("Cannot create TensorConfig instance: 'columns' size cannot be zero");
 
    m_values = std::make_shared<std::vector<double> >(m_nnz, 1);
 }
@@ -249,6 +265,11 @@ bool TensorConfig::isDense() const
 bool TensorConfig::isBinary() const
 {
    return m_isBinary;
+}
+
+bool TensorConfig::isScarce() const
+{
+   return m_isScarce;
 }
 
 std::uint64_t TensorConfig::getNNZ() const
@@ -314,4 +335,14 @@ std::ostream& TensorConfig::info(std::ostream& os) const
          os << " x " << m_dims->operator[](i);
    }
    return os;
+}
+
+std::shared_ptr<Data> TensorConfig::create(std::shared_ptr<IDataCreator> creator) const
+{
+   return creator->create(shared_from_this());
+}
+
+void TensorConfig::write(std::shared_ptr<IDataWriter> writer) const
+{
+   writer->write(shared_from_this());
 }

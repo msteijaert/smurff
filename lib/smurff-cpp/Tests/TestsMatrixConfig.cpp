@@ -63,7 +63,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vecto
    std::vector<std::uint32_t> actualMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
    std::vector<std::uint32_t> actualMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> actualMatrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig());
+   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig(), false);
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
@@ -86,7 +86,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std:
    std::vector<std::uint32_t> actualMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
    std::vector<std::uint32_t> actualMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> actualMatrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   MatrixConfig actualMatrixConfig(3, 4, std::move(actualMatrixConfigRows), std::move(actualMatrixConfigCols), std::move(actualMatrixConfigValues), NoiseConfig());
+   MatrixConfig actualMatrixConfig(3, 4, std::move(actualMatrixConfigRows), std::move(actualMatrixConfigCols), std::move(actualMatrixConfigValues), NoiseConfig(), false);
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
@@ -115,7 +115,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
       std::make_shared<std::vector<std::uint32_t> >(std::initializer_list<std::uint32_t>({ 0, 1, 2, 3, 0, 1, 2, 3}));
    std::shared_ptr<std::vector<double> > actualMatrixConfigValues =
       std::make_shared<std::vector<double> >(std::initializer_list<double>({ 1, 2, 3, 4, 9, 10, 11, 12 }));
-   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig());
+   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, actualMatrixConfigValues, NoiseConfig(), false);
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::SparseMatrix<double> expectedMatrix(3, 4);
@@ -149,7 +149,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vecto
 
    std::vector<std::uint32_t> actualMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
    std::vector<std::uint32_t> actualMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
+   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig(), false);
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
@@ -171,7 +171,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std:
 
    std::vector<std::uint32_t> actualMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
    std::vector<std::uint32_t> actualMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   MatrixConfig actualMatrixConfig(3, 4, std::move(actualMatrixConfigRows), std::move(actualMatrixConfigCols), NoiseConfig());
+   MatrixConfig actualMatrixConfig(3, 4, std::move(actualMatrixConfigRows), std::move(actualMatrixConfigCols), NoiseConfig(), false);
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    REQUIRE(actualMatrixConfigRows.data() == NULL);
@@ -197,7 +197,7 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
       std::make_shared<std::vector<std::uint32_t> >(std::initializer_list<uint32_t>({ 0, 0, 0, 0, 2, 2, 2, 2 }));
    std::shared_ptr<std::vector<std::uint32_t> > actualMatrixConfigCols =
       std::make_shared<std::vector<std::uint32_t> >(std::initializer_list<uint32_t>({ 0, 1, 2, 3, 0, 1, 2, 3 }));
-   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig());
+   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigRows, actualMatrixConfigCols, NoiseConfig(), false);
    Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
@@ -213,8 +213,8 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, const std::vecto
    };
    std::vector<double> actualMatrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
 
-   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigColumns, actualMatrixConfigValues, NoiseConfig());
-   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
+   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigColumns, actualMatrixConfigValues, NoiseConfig(), false);
+   Eigen::MatrixXd actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3; expectedMatrix(0, 3) = 4;
@@ -232,8 +232,8 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::vector<std:
    };
    std::vector<double> actualMatrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
 
-   MatrixConfig actualMatrixConfig(3, 4, std::move(actualMatrixConfigColumns), std::move(actualMatrixConfigValues), NoiseConfig());
-   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
+   MatrixConfig actualMatrixConfig(3, 4, std::move(actualMatrixConfigColumns), std::move(actualMatrixConfigValues), NoiseConfig(), false);
+   Eigen::MatrixXd actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3; expectedMatrix(0, 3) = 4;
@@ -258,8 +258,8 @@ TEST_CASE("MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, std::shared_ptr<
       std::make_shared<std::vector<double> >(
          std::initializer_list<double>{ 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 }
       );
-   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigColumns, actualMatrixConfigValues, NoiseConfig());
-   Eigen::MatrixXd actualMatrix = matrix_utils::dense_to_eigen(actualMatrixConfig);
+   MatrixConfig actualMatrixConfig(3, 4, actualMatrixConfigColumns, actualMatrixConfigValues, NoiseConfig(), false);
+   Eigen::MatrixXd actualMatrix = matrix_utils::sparse_to_eigen(actualMatrixConfig);
 
    Eigen::MatrixXd expectedMatrix(3, 4);
    expectedMatrix(0, 0) = 1; expectedMatrix(0, 1) = 2; expectedMatrix(0, 2) = 3; expectedMatrix(0, 3) = 4;

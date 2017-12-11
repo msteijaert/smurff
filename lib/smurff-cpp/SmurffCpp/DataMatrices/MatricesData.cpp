@@ -11,7 +11,7 @@ MatricesData::MatricesData()
 void MatricesData::init_pre()
 {
    mode_dim.resize(nmode());
-   for(int n = 0; n<nmode(); ++n)
+   for(std::uint64_t n = 0; n < nmode(); ++n)
    {
        std::vector<int> S(blocks.size());
        int max_pos = -1;
@@ -105,7 +105,7 @@ void MatricesData::update(const SubModel &model)
    }
 }
 
-void MatricesData::get_pnm(const SubModel& model, int mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void MatricesData::get_pnm(const SubModel& model, uint32_t mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    int count = 0;
    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
@@ -115,10 +115,10 @@ void MatricesData::get_pnm(const SubModel& model, int mode, int pos, Eigen::Vect
    assert(count>0);
 }
 
-void MatricesData::update_pnm(const SubModel& model, int m)
+void MatricesData::update_pnm(const SubModel& model, uint32_t mode)
 {
    for(auto &b : blocks) {
-      b.data()->update_pnm(b.submodel(model), m);
+      b.data()->update_pnm(b.submodel(model), mode);
   }
 }
 
@@ -149,12 +149,12 @@ std::ostream& MatricesData::status(std::ostream& os, std::string indent) const
    return os;
 }
 
-int MatricesData::nnz() const
+std::uint64_t MatricesData::nnz() const
 {
    return accumulate(0, &MatrixData::nnz);
 }
 
-int MatricesData::nna() const
+std::uint64_t MatricesData::nna() const
 {
    return accumulate(0, &MatrixData::nna);
 }

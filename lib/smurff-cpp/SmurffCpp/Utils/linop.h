@@ -9,6 +9,8 @@
 #include <SmurffCpp/SparseFeat.h>
 #include <SmurffCpp/SparseDoubleFeat.h>
 
+namespace smurff { namespace linop {
+
 template<typename T>
 void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess);
 template<typename T>
@@ -26,6 +28,15 @@ template<typename T>
 void compute_uhat(Eigen::MatrixXd & uhat, T & feat, Eigen::MatrixXd & beta);
 template<typename T>
 void AtA_mul_B(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
+template<> 
+void AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
+template<>
+void AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+
+template<>
+void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 // compile-time optimized versions (N - number of RHSs)
 template<typename T>
@@ -113,7 +124,7 @@ inline void At_mul_Bt(Eigen::VectorXd & Y, SparseDoubleFeat & X, const int col, 
 }
 
 inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) {
-    not_implemented(__PRETTY_FUNCTION__);
+   THROWERROR_NOTIMPL();
 }
 
 // computes Z += A[:,col] * b', where a and b are vectors
@@ -148,7 +159,7 @@ inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseDoubleFeat & A, const int
 //
 // computes Z += A[:,col] * b', where a and b are vectors
 inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int col, Eigen::VectorXd & b) {
-    not_implemented(__PRETTY_FUNCTION__);
+   THROWERROR_NOTIMPL();
 }
 
 ///////////////////////////////////
@@ -206,7 +217,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   const int nrhs  = B.rows();
   double tolsq = tol*tol;
 
-  if (nfeat != K.cols()) {throw std::runtime_error("B.cols() must equal K.cols()");}
+  if (nfeat != K.cols()) {THROWERROR("B.cols() must equal K.cols()");}
 
   Eigen::VectorXd norms(nrhs), inorms(nrhs); 
   norms.setZero();
@@ -443,7 +454,7 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
     case 38: return AtA_mul_Bx<38>(out, A, reg, B, tmp);
     case 39: return AtA_mul_Bx<39>(out, A, reg, B, tmp);
     case 40: return AtA_mul_Bx<40>(out, A, reg, B, tmp);
-    default: throw std::runtime_error("BlockCG only available for up to 40 RHSs.");
+    default: THROWERROR("BlockCG only available for up to 40 RHSs.");
   }
 }
 
@@ -575,3 +586,5 @@ inline void A_mul_B_omp(
   out.block(0, col, N, out.cols() - col) = alpha * out.block(0, col, N, out.cols() - col) + beta * A * B.block(0, col, N, out.cols() - col);
 }
 */
+
+}}

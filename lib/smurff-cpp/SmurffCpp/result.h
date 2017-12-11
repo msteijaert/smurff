@@ -2,8 +2,10 @@
 
 #include <memory>
 
+#include <SmurffCpp/ResultItem.h>
 #include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Configs/MatrixConfig.h>
+#include <SmurffCpp/DataTensors/SparseMode.h>
 
 namespace smurff {
 
@@ -44,28 +46,14 @@ double calc_auc(const std::vector<Item> &predictions, double threshold)
 
 struct Result
 {
-   //-- test set
-   struct Item
-   {
-      std::uint32_t row;
-      std::uint32_t col;
-
-      double val;
-      double pred_1sample;
-      double pred_avg;
-      double var;
-      double stds;
-   };
-
    //sparse representation of test matrix
-   std::vector<Item> predictions;
+   std::vector<ResultItem> m_predictions;
 
-   //number of rows and columns in test matrix
-   std::uint64_t m_nrows;
-   std::uint64_t m_ncols;
+   //dimensions of Ytest
+   std::vector<std::uint64_t> m_dims;
 
    //Y - test sparse matrix
-   void set(const MatrixConfig& Y);
+   void set(std::shared_ptr<TensorConfig> Y);
 
    //-- prediction metrics
    void update(std::shared_ptr<const Model> model, bool burnin);

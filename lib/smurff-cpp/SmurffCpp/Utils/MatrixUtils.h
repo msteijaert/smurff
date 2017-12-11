@@ -1,8 +1,6 @@
 #pragma once
 
-#include <array>
 #include <limits>
-#include <unordered_map>
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
@@ -81,22 +79,11 @@ namespace smurff { namespace matrix_utils {
    template<>
    Eigen::SparseMatrix<double> sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig);
 
-   // Conversion of TensorConfig to sparse eigen matrix
-
-   template<>
-   Eigen::SparseMatrix<double> sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig);
-
-   template<>
-   Eigen::SparseMatrix<double> sparse_to_eigen<smurff::TensorConfig>(smurff::TensorConfig& tensorConfig);
-
    // Conversion of dense data to dense eigen matrix - do we need it? (sparse eigen matrix can be converted to dense eigen matrix with = operator)
 
-   template<typename Matrix>
-   Eigen::MatrixXd dense_to_eigen(Matrix &Y)
-   {
-      std::vector<double> Yvalues = Y.getValues();
-      return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), Y.getNRow(), Y.getNCol());
-   }
+   Eigen::MatrixXd dense_to_eigen(const smurff::MatrixConfig& matrixConfig);
+
+   Eigen::MatrixXd dense_to_eigen(smurff::MatrixConfig& matrixConfig);
 
    // Conversion of libfastsparse matrices to dense eigen matrix - do we need it?
 
@@ -104,30 +91,9 @@ namespace smurff { namespace matrix_utils {
 
    Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
 
-   // Conversion of tensor config to matrix config
-
-   smurff::MatrixConfig tensor_to_matrix(const smurff::TensorConfig& tensorConfig);
-
-   template <typename Matrix>
-   inline bool is_binary(const Matrix &M)
-   {
-      auto *values = M.valuePtr();
-      for(int i=0; i<M.nonZeros(); ++i) {
-         if (values[i] != 1.0 && values[i] != 0.0) return false;
-      }
-
-      std::cout << "Detected binary matrix\n";
-
-      return true;
-   }
+   bool is_explicit_binary(const Eigen::SparseMatrix<double>& M);
 
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
-   std::ostream& operator << (std::ostream& os, const TensorConfig& tc);
 
    bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision = std::numeric_limits<double>::epsilon());
-   Eigen::MatrixXd slice( const TensorConfig& tensorConfig
-                        , const std::array<std::uint64_t, 2>& fixedDims
-                        , const std::unordered_map<std::uint64_t, std::uint32_t>& dimCoords
-                        );
-
 }}

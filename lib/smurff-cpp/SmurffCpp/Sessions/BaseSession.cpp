@@ -4,6 +4,8 @@
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 BaseSession::BaseSession()
@@ -59,32 +61,12 @@ void BaseSession::restore(std::string prefix, std::string suffix)
       p->restore(prefix, suffix);
 }
 
-MatrixConfig BaseSession::getResult()
+std::vector<ResultItem> BaseSession::getResult()
 {
-   std::vector<std::uint32_t> resultRows;
-   std::vector<std::uint32_t> resultCols;
-   std::vector<double> resultVals;
-   resultRows.reserve(m_pred->predictions.size());
-   resultCols.reserve(m_pred->predictions.size());
-   resultVals.reserve(m_pred->predictions.size());
-
-   for (const Result::Item& i : m_pred->predictions)
-   {
-      resultRows.push_back(i.row);
-      resultCols.push_back(i.col);
-      resultVals.push_back(i.val);
-   }
-
-   return MatrixConfig( m_pred->m_nrows
-                      , m_pred->m_ncols
-                      , std::move(resultRows)
-                      , std::move(resultCols)
-                      , std::move(resultVals)
-                      , NoiseConfig()
-                      );
+   return m_pred->m_predictions;
 }
 
 MatrixConfig BaseSession::getSample(int mode)
 {
-   throw std::runtime_error("getSample is unimplemented");
+   THROWERROR("getSample is unimplemented");
 }

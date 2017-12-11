@@ -41,15 +41,11 @@ namespace smurff
    public:
       virtual double sum() const = 0;
 
-   //#### prediction functions ####
-   public:
-      virtual double predict(const PVec<>& pos, const SubModel& model) const;
-
    //#### dimention functions ####
    public:
-      virtual int nmode() const = 0; // number of dimensions
-      virtual int nnz() const = 0; // number of non zero elements
-      virtual int nna() const = 0; // number of NA elements
+      virtual std::uint64_t nmode() const = 0; // number of dimensions
+      virtual std::uint64_t nnz() const = 0; // number of non zero elements
+      virtual std::uint64_t nna() const = 0; // number of NA elements
       virtual PVec<> dim() const = 0; // dimension vector
 
    public:
@@ -70,8 +66,8 @@ namespace smurff
 
    public:
       virtual double train_rmse(const SubModel& model) const = 0;
-      virtual void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
-      virtual void update_pnm(const SubModel& model, int mode) = 0;
+      virtual void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
+      virtual void update_pnm(const SubModel& model, uint32_t mode) = 0;
 
    public:
       virtual double sumsq(const SubModel& model) const = 0;

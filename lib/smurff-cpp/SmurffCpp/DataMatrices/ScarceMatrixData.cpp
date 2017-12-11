@@ -1,6 +1,9 @@
 #include "ScarceMatrixData.h"
 #include "Utils/counters.h"
 
+#include <SmurffCpp/VMatrixExprIterator.hpp>
+#include <SmurffCpp/ConstVMatrixExprIterator.hpp>
+
 using namespace smurff;
 
 ScarceMatrixData::ScarceMatrixData(Eigen::SparseMatrix<double> Y)
@@ -14,7 +17,7 @@ void ScarceMatrixData::init_pre()
    MatrixDataTempl<Eigen::SparseMatrix<double> >::init_pre();
 
    // check no rows, nor cols withouth data
-   for(int mode = 0; mode < nmode(); ++mode)
+   for(std::uint64_t mode = 0; mode < nmode(); ++mode)
    {
       auto& m = this->Y(mode);
       auto& count = num_empty[mode];
@@ -28,16 +31,7 @@ void ScarceMatrixData::init_pre()
 
 double ScarceMatrixData::train_rmse(const SubModel& model) const 
 {
-   double se = 0.;
-   #pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c = 0; c < Y().cols();++c) 
-   {
-       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it) 
-       {
-           se += square(it.value() - predict({(int)it.row(), (int)it.col()}, model));
-       }
-   }
-   return sqrt( se / Y().nonZeros() );
+   return sqrt(sumsq(model) / this->nnz());
 }
 
 std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
@@ -48,43 +42,48 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
     return os;
 }
 
-void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    COUNTER("get_pnm");
    auto &Y = this->Y(mode);
 
    const int num_latent = model.nlatent();
-   const auto &Vf = model.V(mode);
+   auto Vf = *model.CVbegin(mode);
    const int local_nnz = Y.col(n).nonZeros();
    const int total_nnz = Y.nonZeros();
    const double alpha = noise()->getAlpha();
 
    bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
-   if (in_parallel) {
+   if (in_parallel) 
+   {
        const int task_size = ceil(local_nnz / 100.0);
+       
        auto from = Y.outerIndexPtr()[n];
        auto to = Y.outerIndexPtr()[n+1];
+
        thread_vector<Eigen::VectorXd> rrs(Eigen::VectorXd::Zero(num_latent));
        thread_vector<Eigen::MatrixXd> MMs(Eigen::MatrixXd::Zero(num_latent, num_latent));
-       for(int j=from; j<to; j+=task_size) 
+
+       for(int j = from; j < to; j += task_size) 
        {
-           #pragma omp task shared(model,Y,Vf,rrs,MMs)
+           #pragma omp task shared(model, Y, Vf, rrs, MMs)
            {
                auto &my_rr = rrs.local();
                auto &my_MM = MMs.local();
 
-               for(int i=j; i<std::min(j+task_size,to); ++i)
+               auto Vfloc = *model.CVbegin(mode); // why not use Vf?
+
+               for(int i = j; i < std::min(j + task_size, to); ++i)
                {
                    auto val = Y.valuePtr()[i];
                    auto idx = Y.innerIndexPtr()[i];
-                   const auto &col = model.V(mode).col(idx);
+                   const auto &col = Vfloc.col(idx);
                    my_rr.noalias() += col * val;
                    my_MM.triangularView<Eigen::Lower>() += col * col.transpose();
                }
 
                // make MM complete
                my_MM.triangularView<Eigen::Upper>() = my_MM.transpose();
-
            }
        }
        #pragma omp taskwait
@@ -118,11 +117,52 @@ void ScarceMatrixData::get_pnm(const SubModel& model, int mode, int n, Eigen::Ve
    }
 }
 
-void ScarceMatrixData::update_pnm(const SubModel &,int)
+void ScarceMatrixData::update_pnm(const SubModel &, std::uint32_t mode)
 {
+   //can not cache VV because of scarceness
 }
 
-int ScarceMatrixData::nna() const
+std::uint64_t ScarceMatrixData::nna() const
 {
-   return size() - nnz();
+   return size() - this->nnz(); //nrows * ncols - nnz
+}
+
+double ScarceMatrixData::var_total() const
+{
+   double cwise_mean = this->sum() / this->nnz();
+   double se = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   for (int k = 0; k < Y().outerSize(); ++k)
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
+      {
+         se += square(it.value() - cwise_mean);
+      }
+   }
+
+   double var = se / this->nnz();
+   if (var <= 0.0 || std::isnan(var))
+   {
+      // if var cannot be computed using 1.0
+      var = 1.0;
+   }
+
+   return var;
+}
+
+double ScarceMatrixData::sumsq(const SubModel& model) const
+{
+   double sumsq = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   for (int j = 0; j < Y().outerSize(); j++) 
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
+      {
+         sumsq += square(model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())})- it.value());
+      }
+   }
+
+   return sumsq;
 }

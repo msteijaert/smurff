@@ -24,8 +24,8 @@ namespace smurff
 
       // update noise and precision/mean
       void update(const SubModel& model) override;
-      void get_pnm(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
-      void update_pnm(const SubModel& model, int mode) override;
+      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
+      void update_pnm(const SubModel& model, uint32_t mode) override;
 
       //-- print info
       std::ostream& info(std::ostream& os, std::string indent) override;
@@ -39,8 +39,8 @@ namespace smurff
             [func](T s, const Block &b) -> T { return  s + (b.data().get()->*func)(); });
       }
 
-      int    nnz() const override;
-      int    nna() const override;
+      std::uint64_t    nnz() const override;
+      std::uint64_t    nna() const override;
       double sum() const override;
       PVec<>   dim() const override;
 

@@ -24,13 +24,6 @@ void Data::update(const SubModel& model)
    noise()->update(this, model);
 }
 
-//#### prediction functions ####
-
-double Data::predict(const PVec<>& pos, const SubModel& model) const
-{
-   return model.dot(pos);
-}
-
 //#### dimention functions ####
 
 int Data::size() const

@@ -37,29 +37,29 @@ namespace smurff { namespace matrix_io
       ddm
    };
 
-   MatrixConfig read_matrix(const std::string& filename);
+   std::shared_ptr<MatrixConfig> read_matrix(const std::string& filename, bool isScarce);
 
-   MatrixConfig read_dense_float64_bin(std::istream& in);
-   MatrixConfig read_dense_float64_csv(std::istream& in);
+   std::shared_ptr<MatrixConfig> read_dense_float64_bin(std::istream& in);
+   std::shared_ptr<MatrixConfig> read_dense_float64_csv(std::istream& in);
 
-   MatrixConfig read_sparse_float64_bin(std::istream& in);
+   std::shared_ptr<MatrixConfig> read_sparse_float64_bin(std::istream& in, bool isScarce);
 
-   MatrixConfig read_sparse_binary_bin(std::istream& in);
+   std::shared_ptr<MatrixConfig> read_sparse_binary_bin(std::istream& in, bool isScarce);
 
-   MatrixConfig read_matrix_market(std::istream& in);
+   std::shared_ptr<MatrixConfig> read_matrix_market(std::istream& in, bool isScarce);
 
    // ===
 
-   void write_matrix(const std::string& filename, const MatrixConfig& matrixConfig);
+   void write_matrix(const std::string& filename, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_dense_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig);
-   void write_dense_float64_csv(std::ostream& out, const MatrixConfig& matrixConfig);
+   void write_dense_float64_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
+   void write_dense_float64_csv(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_sparse_float64_bin(std::ostream& out, const MatrixConfig& matrixConfig);
+   void write_sparse_float64_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_sparse_binary_bin(std::ostream& out, const MatrixConfig& matrixConfig);
+   void write_sparse_binary_bin(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
-   void write_matrix_market(std::ostream& out, const MatrixConfig& matrixConfig);
+   void write_matrix_market(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
    namespace eigen{
       void read_matrix(const std::string& filename, Eigen::VectorXd& V);

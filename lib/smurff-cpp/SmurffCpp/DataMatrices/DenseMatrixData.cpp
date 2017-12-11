@@ -10,14 +10,37 @@ DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)
 
 double DenseMatrixData::train_rmse(const SubModel& model) const
 {
-   double se = 0.;
-   #pragma omp parallel for schedule(guided) reduction(+:se)
-   for(int c = 0; c < Y().cols(); ++c) 
+   return sqrt(sumsq(model) / this->size());
+}
+
+double DenseMatrixData::var_total() const
+{
+   double cwise_mean = this->sum() / this->size();
+   double se = (Y().array() - cwise_mean).square().sum();
+   
+   double var = se / this->size();
+   if (var <= 0.0 || std::isnan(var))
    {
-      for(int m = 0; m < Y().rows(); ++m) 
+      // if var cannot be computed using 1.0
+      var = 1.0;
+   }
+
+   return var;
+}
+
+// for the adaptive gaussian noise
+double DenseMatrixData::sumsq(const SubModel& model) const
+{
+   double sumsq = 0.0;
+
+   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   for (int j = 0; j < this->ncol(); j++) 
+   {
+      for (int i = 0; i < this->nrow(); i++) 
       {
-         se += square(Y()(m,c) - predict({m,c}, model));
+         sumsq += square(model.predict({i,j}) - this->Y()(i,j));
       }
    }
-   return sqrt( se / Y().rows() / Y().cols() );
+
+   return sumsq;
 }

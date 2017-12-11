@@ -61,10 +61,10 @@ class Test:
 
     def valid(self):
         opts = self.opts
-        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1: 
+        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1:
             return False
 
-        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) != 1: 
+        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) != 1:
             return False
 
         if opts["row_prior"].startswith("macau") and len(opts["col_features"]) != 0:
@@ -73,11 +73,11 @@ class Test:
         if opts["col_prior"].startswith("macau") and len(opts["row_features"]) != 0:
             return False
 
-        if (not opts["col_prior"].startswith("macau")) and opts["direct"]: 
+        if (not opts["col_prior"].startswith("macau")) and opts["direct"]:
             return False
 
         return True
-        
+
 
     def update(self, upd):
         self.opts.update(upd.copy())
@@ -99,9 +99,9 @@ class Test:
         --save-prefix=results --save-freq=-1 --seed=1234\
         """
 
-        for feat in args["row_features"]: 
+        for feat in args["row_features"]:
             fmt_cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
-        for feat in args["col_features"]: 
+        for feat in args["col_features"]:
             fmt_cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
 
         if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
@@ -233,9 +233,8 @@ def chembl_tests(defaults):
 
     return chembl_tests
 
-
-def synthetic_tests(defaults):
-    suite = TestSuite("synthetic")
+def synthetic_matrix_tests(defaults):
+    suite = TestSuite("synthetic_matrix")
 
     priors = [ "normal", "macau", "spikeandslab" ]
     datadirs = glob("%s/synthetic/ones*" % args.datadir)
@@ -263,8 +262,39 @@ def synthetic_tests(defaults):
     print(suite)
 
     return suite
-        
-  
+
+
+def synthetic_tensor_tests(defaults):
+    suite = TestSuite("synthetic_tensor")
+
+    priors = [ "normal", "macau", "spikeandslab" ]
+    datadirs = glob("%s/synthetic/ones*" % args.datadir)
+    datadirs += glob("%s/synthetic/normal*" % args.datadir)
+
+    # each datadir == 1 test
+    for d in datadirs:
+        test = suite.add_test(defaults)
+        test.update_one("datasubdir", os.path.join("synthetic", os.path.basename(d)))
+        train_file = os.path.basename(list(glob('%s/train.*dt' % d))[0])
+        test_file  = "test.sdt"
+        test.update({ 'train' : train_file, 'test' : test_file, })
+        test.update_one("row_features", [])
+        test.update_one("col_features", [])
+        for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
+        for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
+
+    suite.add_options("row_prior", priors)
+    suite.add_options("col_prior", priors)
+    suite.add_centering_options()
+    suite.add_noise_options()
+
+    suite.filter_tests()
+
+    print(suite)
+
+    return suite
+
+
 def movielens_tests(defaults):
     suite = TestSuite("movielens")
     suite.add_test(defaults)
@@ -275,12 +305,13 @@ def movielens_tests(defaults):
     print(suite)
     return suite
 
- 
+
 
 def all_tests(args):
 
     all_tests = chembl_tests(defaults)
-    all_tests.add_testsuite(synthetic_tests(defaults))
+    all_tests.add_testsuite(synthetic_matrix_tests(defaults))
+    all_tests.add_testsuite(synthetic_tensor_tests(defaults))
 
     return all_tests
 

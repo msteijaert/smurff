@@ -3,7 +3,10 @@
 #include <stdexcept>
 
 //#define EIGEN_USE_BLAS
+
 #include <Eigen/Dense>
+
+#include <SmurffCpp/Utils/Error.h>
 
 #include "chol.h"
 #include "linop.h"
@@ -24,39 +27,43 @@ extern "C" void dsymm_(char *side, char *uplo, int *m, int *n, double *alpha, do
 */
 
 // out = bcsr * b (for vectors)
-void A_mul_B(Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b) {
-  if (csr.nrow != out.size()) {throw std::runtime_error("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {throw std::runtime_error("csr.ncol must equal b.size()");}
+void smurff::linop::A_mul_B(Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b) 
+{
+  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
+  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
   bcsr_A_mul_B( out.data(), & csr, b.data() );
 }
 
 // OUT' = bcsr * B' (for matrices)
-void A_mul_Bt(Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B) {
-  if (csr.nrow != out.cols()) {throw std::runtime_error("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {throw std::runtime_error("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {throw std::runtime_error("out.rows() must equal B.rows()");}
+void smurff::linop::A_mul_Bt(Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B) 
+{
+  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
+  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
+  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
   bcsr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
 }
 
 // out = bcsr * b (for vectors)
-void A_mul_B(Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b) {
-  if (csr.nrow != out.size()) {throw std::runtime_error("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {throw std::runtime_error("csr.ncol must equal b.size()");}
+void smurff::linop::A_mul_B(Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b) 
+{
+  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
+  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
   csr_A_mul_B( out.data(), & csr, b.data() );
 }
 
 // OUT' = bcsr * B' (for matrices)
-void A_mul_Bt(Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B) {
-  if (csr.nrow != out.cols()) {throw std::runtime_error("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {throw std::runtime_error("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {throw std::runtime_error("out.rows() must equal B.rows()");}
+void smurff::linop::A_mul_Bt(Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B) 
+{
+  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
+  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
+  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
   csr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
 }
 
 //method is identical
 
 //X = A * B
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B) 
+Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B) 
 {
    Eigen::MatrixXd out(A.rows(), B.cols());
    A_mul_B_blas(out, A, B);
@@ -65,7 +72,7 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B)
 
 //method is identical
  
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B) 
+Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, SparseFeat & B) 
 {
    Eigen::MatrixXd out(A.rows(), B.cols());
    A_mul_Bt(out, B.Mt, A);
@@ -74,19 +81,19 @@ Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B)
 
 //method is identical
  
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) 
+Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) 
 {
    Eigen::MatrixXd out(A.rows(), B.cols());
    A_mul_Bt(out, B.Mt, A);
    return out;
 }
 
-void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
+void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
   if (out.cols() != A.cols()) {
-    throw std::runtime_error("At_mul_A(SparseFeat): out.cols() must equal A.cols()");
+   THROWERROR("At_mul_A(SparseFeat): out.cols() must equal A.cols()");
   }
   if (out.cols() != out.rows()) {
-    throw std::runtime_error("At_mul_A(SparseFeat): out must be square matrix.)");
+   THROWERROR("At_mul_A(SparseFeat): out must be square matrix.)");
   }
 
   out.setZero();
@@ -114,17 +121,17 @@ void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
   }
 }
 
-void At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
+void smurff::linop::At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   // TODO: use blas
   out.triangularView<Eigen::Lower>() = A.transpose() * A;
 }
 
-void At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
+void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
   if (out.cols() != A.cols()) {
-    throw std::runtime_error("At_mul_A(SparseDoubleFeat): out.cols() must equal A.cols()");
+   THROWERROR("At_mul_A(SparseDoubleFeat): out.cols() must equal A.cols()");
   }
   if (out.cols() != out.rows()) {
-    throw std::runtime_error("At_mul_A(SparseDoubleFeat): out must be square matrix.)");
+   THROWERROR("At_mul_A(SparseDoubleFeat): out must be square matrix.)");
   }
   out.setZero();
   const int nfeat = A.M.ncol;
@@ -150,7 +157,7 @@ void At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
   }
 }
 
-void At_mul_A_blas(Eigen::MatrixXd & A, double* AtA) {
+void smurff::linop::At_mul_A_blas(Eigen::MatrixXd & A, double* AtA) {
   char lower  = 'L';
   char trans  = 'T';
   int  m      = A.cols();
@@ -161,7 +168,7 @@ void At_mul_A_blas(Eigen::MatrixXd & A, double* AtA) {
          &n, &zero, AtA, &m);
 }
 
-void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt) {
+void smurff::linop::A_mul_At_blas(Eigen::MatrixXd & A, double* AAt) {
   char lower  = 'L';
   char trans  = 'N';
   int  m      = A.cols();
@@ -172,10 +179,10 @@ void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt) {
          &n, &zero, AAt, &n);
 }
 
-void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  if (Y.rows() != A.rows()) {throw std::runtime_error("A.rows() must equal Y.rows()");}
-  if (Y.cols() != B.cols()) {throw std::runtime_error("B.cols() must equal Y.cols()");}
-  if (A.cols() != B.rows()) {throw std::runtime_error("B.rows() must equal A.cols()");}
+void smurff::linop::A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
+  if (Y.rows() != A.rows()) {THROWERROR("A.rows() must equal Y.rows()");}
+  if (Y.cols() != B.cols()) {THROWERROR("B.cols() must equal Y.cols()");}
+  if (A.cols() != B.rows()) {THROWERROR("B.rows() must equal A.cols()");}
   int m = A.rows();
   int n = B.cols();
   int k = A.cols();
@@ -186,10 +193,10 @@ void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B)
   dgemm_(&transA, &transB, &m, &n, &k, &alpha, A.data(), &m, B.data(), &k, &beta, Y.data(), &m);
 }
 
-void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  if (Y.rows() != A.cols()) {throw std::runtime_error("A.rows() must equal Y.rows()");}
-  if (Y.cols() != B.cols()) {throw std::runtime_error("B.cols() must equal Y.cols()");}
-  if (A.rows() != B.rows()) {throw std::runtime_error("B.rows() must equal A.cols()");}
+void smurff::linop::At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
+  if (Y.rows() != A.cols()) {THROWERROR("A.rows() must equal Y.rows()");}
+  if (Y.cols() != B.cols()) {THROWERROR("B.cols() must equal Y.cols()");}
+  if (A.rows() != B.rows()) {THROWERROR("B.rows() must equal A.cols()");}
   int m = A.cols();
   int n = B.cols();
   int k = A.rows();
@@ -200,10 +207,10 @@ void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B
   dgemm_(&transA, &transB, &m, &n, &k, &alpha, A.data(), &k, B.data(), &k, &beta, Y.data(), &m);
 }
 
-void A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  if (Y.rows() != A.rows()) {throw std::runtime_error("A.rows() must equal Y.rows()");}
-  if (Y.cols() != B.rows()) {throw std::runtime_error("B.rows() must equal Y.cols()");}
-  if (A.cols() != B.cols()) {throw std::runtime_error("B.cols() must equal A.cols()");}
+void smurff::linop::A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
+  if (Y.rows() != A.rows()) {THROWERROR("A.rows() must equal Y.rows()");}
+  if (Y.cols() != B.rows()) {THROWERROR("B.rows() must equal Y.cols()");}
+  if (A.cols() != B.cols()) {THROWERROR("B.cols() must equal A.cols()");}
   int m = A.rows();
   int n = B.rows();
   int k = A.cols();
@@ -214,15 +221,16 @@ void A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B
   dgemm_(&transA, &transB, &m, &n, &k, &alpha, A.data(), &m, B.data(), &n, &beta, Y.data(), &m);
 }
 /*
-void Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
+void smurff::linop::Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
   cblas_dsymm(CblasColMajor, CblasLeft, CblasLower, Y.rows(), Y.cols(), alpha, A.data(), A.rows(), B.data(), B.rows(), beta, Y.data(), Y.rows());
 }
 
-void Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
+void smurff::linop::Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
   cblas_dsymm(CblasColMajor, CblasRight, CblasLower, Y.rows(), Y.cols(), alpha, A.data(), A.rows(), B.data(), B.rows(), beta, Y.data(), Y.rows());
 }*/
 
-template<> void AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
+template<> 
+void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
   // solution update:
   A_mul_Bt(tmp, A.M, B);
   // move KP += reg * P here with nowait from previous loop
@@ -241,7 +249,7 @@ template<> void AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eig
 }
 
 template<>
-void AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
+void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
   // solution update:
   A_mul_Bt(tmp, A.M, B);
   // move KP += reg * P here with nowait from previous loop
@@ -259,7 +267,7 @@ void AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::M
 }
 
 template<>
-void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
+void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
   // solution update:
   A_mul_Bt_blas(tmp, B, A);
   // move KP += reg * P here with nowait from previous loop
@@ -277,7 +285,7 @@ void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::Ma
   }
 }
 
-void makeSymmetric(Eigen::MatrixXd & A) {
+void smurff::linop::makeSymmetric(Eigen::MatrixXd & A) {
   A = A.selfadjointView<Eigen::Lower>();
 }
 
@@ -285,7 +293,7 @@ void makeSymmetric(Eigen::MatrixXd & A) {
  * A is [n x k] matrix
  * returns [n x n] matrix A * A'
  */
-Eigen::MatrixXd A_mul_At_combo(Eigen::MatrixXd & A) {
+Eigen::MatrixXd smurff::linop::A_mul_At_combo(Eigen::MatrixXd & A) {
   MatrixXd AAt(A.rows(), A.rows());
   A_mul_At_combo(AAt, A);
   AAt = AAt.selfadjointView<Eigen::Lower>();
@@ -298,7 +306,7 @@ Eigen::MatrixXd A_mul_At_combo(Eigen::MatrixXd & A) {
  *  computes out = A * A'
  *  (storing only lower triangular part)
  */
-void A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
+void smurff::linop::A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   if (out.rows() >= 128) {
     // using blas for larger matrices
     A_mul_At_blas(A, out.data());
@@ -307,12 +315,12 @@ void A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   }
 }
 
-void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
+void smurff::linop::A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   const int n = A.rows();
   const int k = A.cols();
   double* x = A.data();
   if (A.rows() != out.rows()) {
-    throw std::runtime_error("A.rows() must equal out.rows()");
+   THROWERROR("A.rows() must equal out.rows()");
   }
 
   std::vector<MatrixXd> Ys;
@@ -348,7 +356,7 @@ void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   }
 }
 
-void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
+void smurff::linop::A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
   const int n = A.rows();
   const int k = A.cols();
   double* x  = A.data();
@@ -356,7 +364,7 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
   assert(A.rows() == B.rows());
   assert(A.cols() == B.cols());
   if (A.rows() != out.rows()) {
-    throw std::runtime_error("A.rows() must equal out.rows()");
+   THROWERROR("A.rows() must equal out.rows()");
   }
   std::vector<MatrixXd> Ys;
   Ys.resize(thread_limit(), MatrixXd(n, n));
@@ -397,7 +405,7 @@ void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixX
   }
 }
 
-Eigen::VectorXd col_square_sum(SparseFeat & A) {
+Eigen::VectorXd smurff::linop::col_square_sum(SparseFeat & A) {
   const int ncol = A.cols();
   VectorXd out(ncol);
   #pragma omp parallel for schedule(static)
@@ -408,7 +416,7 @@ Eigen::VectorXd col_square_sum(SparseFeat & A) {
   return out;
 }
 
-Eigen::VectorXd col_square_sum(SparseDoubleFeat & A) {
+Eigen::VectorXd smurff::linop::col_square_sum(SparseDoubleFeat & A) {
   const int ncol = A.cols();
   const int* row_ptr = A.Mt.row_ptr;
   const double* vals = A.Mt.vals;
@@ -429,7 +437,7 @@ Eigen::VectorXd col_square_sum(SparseDoubleFeat & A) {
   return out;
 }
 
-Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A) {
+Eigen::VectorXd smurff::linop::col_square_sum(Eigen::MatrixXd & A) {
   const int ncol = A.cols();
   VectorXd out(ncol);
   #pragma omp parallel for schedule(static)
