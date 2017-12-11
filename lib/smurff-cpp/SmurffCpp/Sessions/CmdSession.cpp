@@ -18,9 +18,14 @@
 
 using namespace Eigen;
 
-using namespace smurff;
 using namespace generic_io;
 using namespace matrix_io;
+
+#endif
+
+using namespace smurff;
+
+#ifdef ARGP_FOUND
 
 enum OPT_ENUM
 {
