@@ -1,3 +1,5 @@
+#include <iomanip>
+
 #include "AdaptiveGaussianNoise.h"
 
 #include <SmurffCpp/Utils/Distribution.h>

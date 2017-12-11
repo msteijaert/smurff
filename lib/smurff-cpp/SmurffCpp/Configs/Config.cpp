@@ -2,6 +2,7 @@
 
 #include <set>
 #include <iostream>
+#include <fstream>
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/INIReader.h>
