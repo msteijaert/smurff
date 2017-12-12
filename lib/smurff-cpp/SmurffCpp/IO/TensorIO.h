@@ -19,6 +19,8 @@ namespace smurff { namespace tensor_io
       ddt
    };
 
+   TensorType ExtensionToTensorType(const std::string& fname);
+
    std::shared_ptr<TensorConfig> read_tensor(const std::string& filename, bool isScarce);
 
    std::shared_ptr<TensorConfig> read_dense_float64_bin(std::istream& in);

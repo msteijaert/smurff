@@ -26,7 +26,7 @@ using namespace smurff;
 #define MM_FLD_REAL     "REAL"
 #define MM_SYM_GENERAL  "GENERAL"
 
-matrix_io::MatrixType ExtensionToMatrixType(const std::string& fname)
+matrix_io::MatrixType matrix_io::ExtensionToMatrixType(const std::string& fname)
 {
    std::string extension = fname.substr(fname.find_last_of("."));
    if (extension == EXTENSION_SDM)
