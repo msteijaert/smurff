@@ -54,6 +54,90 @@ wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
 Debug/smurff --train chembl-IC50-346targets.mm
 ```
 
+## Source installation on Windows using Visual Studio and cmake
+
+### Install boost
+
+Download latest version of boost from http://www.boost.org/
+
+Start Visual Studio command prompt and execute the following commands.
+```
+bootstrap.bat
+b2 toolset=msvc-14.0 address-model=64 --build-type=complete stage
+```
+
+If you have Visual Studio different from 2015 - select proper toolset.
+
+Configure environment variables as in example:
+```
+BOOST_INCLUDEDIR=E:\boost_1_65_0
+BOOST_LIBRARYDIR=E:\boost_1_65_0\stage\lib
+```
+
+### Install eigen3
+
+Execute the following commands from command prompt:
+```
+git clone https://github.com/RLovelett/eigen.git
+cd eigen
+mkdir build
+cd build
+cmake ../ -G "Visual Studio 14 2015 Win64"
+```
+If you have Visual Studio different from 2015 - select proper generator.
+
+Build INSTALL target in Visual Studio in Release configuration.
+
+Configure environment variables as in example:
+```
+EIGEN3_INCLUDE_DIR=C:\Program Files\Eigen3\include\eigen3
+```
+
+### Install MinGW-64
+
+Download installer at http://www.msys2.org/
+
+Configure msys2 exactly as described in the guide
+
+Install corresponding packages with packman
+
+```
+pacman
+gcc
+gcc-fortran
+make
+autoconf
+automake
+```
+
+Add path to MinGW-64 binaries to PATH variable like:
+```
+C:\msys64\usr\bin
+```
+
+### Install OpenBlas
+Open MinGW-64 command prompt
+
+Execute the following commands:
+
+git clone https://github.com/xianyi/OpenBLAS.git
+cd OpenBLAS
+make
+make PREFIX=/e/openblas_install_64 install
+
+Select installation prefix as you want
+
+Set environment variables as in the example:
+```
+BLAS_INCLUDES=E:\openblas_install_64\include
+BLAS_LIBRARIES=E:\openblas_install_64\lib\libopenblas.dll.a
+```
+
+Add path to OpenBlas binaries as in the example:
+```
+E:\openblas_install_64\bin
+```
+
 ## Installation using Conda
 ```bash
 conda install -c vanderaa smurff 
