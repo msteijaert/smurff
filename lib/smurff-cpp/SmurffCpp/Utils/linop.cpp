@@ -361,11 +361,15 @@ void smurff::linop::A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A,
   const int k = A.cols();
   double* x  = A.data();
   double* x2 = B.data();
-  assert(A.rows() == B.rows());
-  assert(A.cols() == B.cols());
-  if (A.rows() != out.rows()) {
+
+  THROWERROR_ASSERT(A.rows() == B.rows());
+  THROWERROR_ASSERT(A.cols() == B.cols());
+
+  if (A.rows() != out.rows()) 
+  {
    THROWERROR("A.rows() must equal out.rows()");
   }
+
   std::vector<MatrixXd> Ys;
   Ys.resize(thread_limit(), MatrixXd(n, n));
   int actual_threads = -1;

@@ -12,7 +12,7 @@
    throw except_type(ssvar.str());}
 
 #define THROWERROR_BASE_COND(msg, ssvar, except_type, eval_cond) { \
-   if(!eval_cond) { \
+   if(!(eval_cond)) { \
    std::stringstream ssvar; \
    ssvar << "line: " << __LINE__ << " file: " << __FILE__ << " function: " << __func__ << std::endl << (msg); \
    throw except_type(ssvar.str()); }}
@@ -34,3 +34,8 @@
 
 
 #define THROWERROR_FILE_NOT_EXIST(file) THROWERROR_BASE_COND((std::string("File '") + file + std::string("' not found")), CONCAT_VAR(ss, __LINE__), std::runtime_error, smurff::generic_io::file_exists(file))
+
+
+#define THROWERROR_ASSERT(cond) THROWERROR_COND("assert: ", cond)
+
+#define THROWERROR_ASSERT_MSG(cond, msg) THROWERROR_COND((std::string("assert: ")  + msg), cond)

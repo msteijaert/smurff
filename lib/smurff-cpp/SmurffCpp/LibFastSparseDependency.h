@@ -7,8 +7,9 @@
 #endif
 
 #include <memory>
-#include <assert.h>
 #include <string.h>
+
+#include <SmurffCpp/Utils/Error.h>
 
 inline long read_long(FILE* fh) {
    long value;
@@ -30,14 +31,18 @@ struct BinaryCSR
   int* cols;
 };
 
-inline void free_bcsr(struct BinaryCSR* bcsr) {
-   assert(bcsr);
+inline void free_bcsr(struct BinaryCSR* bcsr) 
+{
+   THROWERROR_ASSERT(bcsr != 0);
+
    free(bcsr->row_ptr);
    free(bcsr->cols);
  }
  
- static inline void new_bcsr(struct BinaryCSR* RESTRICT A, long nnz, int nrow, int ncol, int* rows, int* cols) {
-   assert(A);
+ static inline void new_bcsr(struct BinaryCSR* RESTRICT A, long nnz, int nrow, int ncol, int* rows, int* cols) 
+ {
+   THROWERROR_ASSERT(A != 0);
+
    //struct BinaryCSR *A = (struct BinaryCSR*)malloc(sizeof(struct BinaryCSR));
    A->nnz  = nnz;
    A->nrow = nrow;
@@ -86,8 +91,10 @@ struct CSR
   double* vals;
 };
 
-inline void free_csr(struct CSR* csr) {
-   assert(csr);
+inline void free_csr(struct CSR* csr) 
+{
+   THROWERROR_ASSERT(csr != 0);
+
    free(csr->row_ptr);
    free(csr->cols);
    free(csr->vals);
@@ -102,7 +109,8 @@ inline void free_csr(struct CSR* csr) {
      int* cols,
      double* vals)
  {
-   assert(A);
+   THROWERROR_ASSERT(A != 0);
+
    A->nnz  = nnz;
    A->nrow = nrow;
    A->ncol = ncol;

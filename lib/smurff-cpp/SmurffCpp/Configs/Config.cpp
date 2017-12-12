@@ -25,7 +25,9 @@ PriorTypes smurff::stringToPriorType(std::string name)
    else if(name == PRIOR_NAME_MPI)
       return PriorTypes::mpi;
    else
+   {
       THROWERROR("Invalid prior type");
+   }
 }
 
 std::string smurff::priorTypeToString(PriorTypes type)
@@ -45,7 +47,9 @@ std::string smurff::priorTypeToString(PriorTypes type)
       case PriorTypes::mpi:
          return PRIOR_NAME_MPI;
       default:
+      {
          THROWERROR("Invalid prior type");
+      }
    }
 }
 
@@ -56,7 +60,9 @@ ModelInitTypes smurff::stringToModelInitType(std::string name)
    else if (name == MODEL_INIT_NAME_ZERO)
       return ModelInitTypes::zero;
    else
+   {
       THROWERROR("Invalid model init type " + name);
+   }
 }
 
 std::string smurff::modelInitTypeToString(ModelInitTypes type)
@@ -68,49 +74,71 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
       case ModelInitTypes::zero:
          return MODEL_INIT_NAME_ZERO;
       default:
+      {
          THROWERROR("Invalid model init type");
+      }
    }
 }
 
 bool Config::validate(bool throw_error) const
 {
    if (!m_train->getNNZ())
+   {
       THROWERROR("Missing train data");
+   }
 
    if (!m_test->getNNZ())
+   {
       THROWERROR("Missing test data");
+   }
 
    if (m_test->getDims() != m_train->getDims())
+   {
       THROWERROR("Train and test data should have the same dimensions");
+   }
 
    for (const auto r: m_row_features)
    {
       if (m_train->getDims()[0] != r->getNRow())
+      {
          THROWERROR("Row features and train data should have the same number of rows");
+      }
    }
 
    for (const auto c: m_col_features)
    {
       if (m_train->getDims()[1] != c->getNCol())
+      {
          THROWERROR("Column features and train data should have the same number of cols");
+      }
    }
 
    if (col_prior_type == PriorTypes::macau && m_col_features.size() != 1)
+   {
       THROWERROR("Exactly one set of col-features needed when using macau prior.");
+   }
 
    if (row_prior_type == PriorTypes::macau && m_row_features.size() != 1)
+   {
       THROWERROR("Exactly one set of row-features needed when using macau prior.");
+   }
 
    if (col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense()))
+   {
       THROWERROR("Exactly one set of sparse col-features needed when using macauone prior.");
+   }
 
    if (row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense()))
+   {
       THROWERROR("Exactly one set of sparse row-features needed when using macauone prior.");
+   }
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
    if (save_suffixes.find(save_suffix) == save_suffixes.end())
+   {
       THROWERROR("Unknown output suffix: " + save_suffix);
+   }
 
    m_train->getNoiseConfig().validate();
 

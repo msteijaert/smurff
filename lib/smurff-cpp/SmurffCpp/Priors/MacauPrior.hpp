@@ -6,8 +6,10 @@
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/IO/MatrixIO.h>
+
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/Priors/NormalPrior.h>
 #include <SmurffCpp/SparseDoubleFeat.h>
@@ -52,7 +54,7 @@ public:
    {
       NormalPrior::init();
 
-      assert((Features->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
+      THROWERROR_ASSERT_MSG(Features->rows() == num_cols(), "Number of rows in train must be equal to number of rows in features");
 
       if (use_FtF)
       {

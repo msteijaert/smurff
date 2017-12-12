@@ -26,7 +26,9 @@ NoiseTypes smurff::stringToNoiseType(std::string name)
    else if(name == NOISE_NAME_UNUSED)
       return NoiseTypes::unused;
    else
+   {
       THROWERROR("Invalid noise type " + name);
+   }
 }
 
 std::string smurff::noiseTypeToString(NoiseTypes type)
@@ -44,7 +46,9 @@ std::string smurff::noiseTypeToString(NoiseTypes type)
       case NoiseTypes::unused:
          return NOISE_NAME_UNUSED;
       default:
+      {
          THROWERROR("Invalid noise type");
+      }
    }
 }
 

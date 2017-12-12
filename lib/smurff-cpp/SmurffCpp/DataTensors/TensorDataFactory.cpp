@@ -14,7 +14,9 @@ std::shared_ptr<Data> TensorDataFactory::create_tensor_data(std::shared_ptr<cons
    if (row_features.empty() && col_features.empty())
    {
       if(!config->isScarce())
+      {
          THROWERROR("Tensor config should be scarse");
+      }
 
       std::shared_ptr<TensorData> tensorData = std::make_shared<TensorData>(*config);
       std::shared_ptr<INoiseModel> noise = NoiseFactory::create_noise_model(config->getNoiseConfig());

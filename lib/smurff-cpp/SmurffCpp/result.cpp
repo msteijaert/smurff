@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cassert>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -28,7 +27,9 @@ namespace smurff {
 void Result::set(std::shared_ptr<TensorConfig> Y)
 {
    if(Y->isDense())
+   {
       THROWERROR("test data should be sparse");
+   }
 
    std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
    std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();

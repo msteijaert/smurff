@@ -9,6 +9,8 @@
 
 #include <SmurffCpp/LibFastSparseDependency.h>
 
+#include <SmurffCpp/Utils/Error.h>
+
 namespace smurff { namespace matrix_utils {
 
    struct sparse_vec_iterator
@@ -38,9 +40,9 @@ namespace smurff { namespace matrix_utils {
       int pos;
 
       bool operator!=(const sparse_vec_iterator &other) const {
-         assert(rows == other.rows);
-         assert(cols == other.cols);
-         assert(vals == other.vals);
+         THROWERROR_ASSERT(rows == other.rows);
+         THROWERROR_ASSERT(cols == other.cols);
+         THROWERROR_ASSERT(vals == other.vals);
          return pos != other.pos;
       }
 

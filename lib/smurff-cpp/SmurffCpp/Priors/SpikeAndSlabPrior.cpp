@@ -1,5 +1,7 @@
 #include "SpikeAndSlabPrior.h"
+
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 using namespace Eigen;
@@ -15,7 +17,8 @@ void SpikeAndSlabPrior::init()
    const int K = num_latent();
    const int D = num_cols();
    const int nview = data()->nview(m_mode);
-   assert(D > 0);
+   
+   THROWERROR_ASSERT(D > 0);
 
    Zcol.init(MatrixXd::Zero(K,nview));
    W2col.init(MatrixXd::Zero(K,nview));

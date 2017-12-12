@@ -71,9 +71,13 @@ std::string MatrixTypeToExtension(matrix_io::MatrixType matrixType)
    case matrix_io::MatrixType::ddm:
       return EXTENSION_DDM;
    case matrix_io::MatrixType::none:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    default:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    }
    return std::string();
 }
@@ -112,9 +116,13 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
          return matrix_io::read_dense_float64_bin(fileStream);
       }
    case matrix_io::MatrixType::none:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    default:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    }
 }
 
@@ -174,10 +182,14 @@ std::shared_ptr<MatrixConfig> matrix_io::read_dense_float64_csv(std::istream& in
    }
 
    if(row != nrow)
+   {
       THROWERROR("invalid number of rows");
+   }
 
    if(col != ncol)
+   {
       THROWERROR("invalid number of columns");
+   }
 
    return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(values), smurff::NoiseConfig());
 }
@@ -203,9 +215,20 @@ std::shared_ptr<MatrixConfig> matrix_io::read_sparse_float64_bin(std::istream& i
    std::vector<double> values(nnz);
    in.read(reinterpret_cast<char*>(values.data()), values.size() * sizeof(double));
 
-   assert(values.size() == nnz);
-   assert(rows.size() == nnz);
-   assert(cols.size() == nnz);
+   if(values.size() != nnz)
+   {
+      THROWERROR("Invalid number of values");
+   }
+
+   if(rows.size() != nnz)
+   {
+      THROWERROR("Invalid number of rows");
+   }
+
+   if(cols.size() != nnz)
+   {
+      THROWERROR("Invalid number of columns");
+   }
 
    return std::make_shared<smurff::MatrixConfig>(nrow, ncol, std::move(rows), std::move(cols), std::move(values), smurff::NoiseConfig(), isScarce);
 }
@@ -278,11 +301,15 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
 
    // Check field type
    if (field != MM_FLD_REAL)
+   {
       THROWERROR("Invalid MatrixMarket field type: only 'real' field type is supported");
+   }
 
    // Check symmetry type
    if (symmetry != MM_SYM_GENERAL)
+   {
       THROWERROR("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
+   }
 
    // Skip comments and empty lines
    while (in.peek() == '%' || in.peek() == '\n')
@@ -297,7 +324,9 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
       in >> nrows >> ncols >> nnz;
 
       if (in.fail())
+      {
          THROWERROR("Could not get 'rows', 'cols', 'nnz' values for coordinate matrix format");
+      }
 
       std::vector<std::uint32_t> rows(nnz);
       std::vector<std::uint32_t> cols(nnz);
@@ -314,7 +343,9 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
          in >> row >> col >> val;
 
          if (in.fail())
+         {
             THROWERROR("Could not parse an entry line for coordinate matrix format");
+         }
 
          rows[i] = row - 1;
          cols[i] = col - 1;
@@ -330,7 +361,9 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
       in >> nrows >> ncols;
 
       if (in.fail())
+      {
          THROWERROR("Could not get 'rows', 'cols' values for array matrix format");
+      }
 
       std::vector<double> vals(nrows * ncols);
       for (double& val : vals)
@@ -340,7 +373,9 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
 
          in >> val;
          if (in.fail())
+         {
             THROWERROR("Could not parse an entry line for array matrix format");
+         }
       }
 
       return std::make_shared<smurff::MatrixConfig>(nrows, ncols, std::move(vals), NoiseConfig());
@@ -391,9 +426,13 @@ void matrix_io::write_matrix(const std::string& filename, std::shared_ptr<const 
       }
       break;
    case matrix_io::MatrixType::none:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    default:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    }
 }
 
@@ -420,7 +459,9 @@ void matrix_io::write_dense_float64_csv(std::ostream& out, std::shared_ptr<const
    const std::vector<double>& values = matrixConfig->getValues();
 
    if(values.size() != nrow * ncol)
+   {
       THROWERROR("invalid number of values");
+   }
 
    //write values
    for(std::uint64_t i = 0; i < nrow; i++)
@@ -530,9 +571,13 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd&
    switch (matrixType)
    {
    case matrix_io::MatrixType::sdm:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::sbm:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
@@ -552,9 +597,13 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd&
       }
       break;
    case matrix_io::MatrixType::none:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    default:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    }
 }
 
@@ -585,13 +634,21 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMat
       }
       break;
    case matrix_io::MatrixType::csv:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::ddm:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::none:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    default:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    }
 }
 
@@ -646,10 +703,14 @@ void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd&
    }
 
    if(row != nrow)
+   {
       THROWERROR("invalid number of rows");
+   }
 
    if(col != ncol)
+   {
       THROWERROR("invalid number of columns");
+   }
 }
 
 void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
@@ -679,7 +740,11 @@ void matrix_io::eigen::read_sparse_float64_bin(std::istream& in, Eigen::SparseMa
 
    X.resize(nrow, ncol);
    X.setFromTriplets(triplets.begin(), triplets.end());
-   assert(X.nonZeros() == (int)nnz);
+
+   if(X.nonZeros() != (int)nnz)
+   {
+      THROWERROR("Invalid number of values");
+   }
 }
 
 void matrix_io::eigen::read_sparse_binary_bin(std::istream& in, Eigen::SparseMatrix<double>& X)
@@ -755,25 +820,33 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
 
    // Check field type
    if (field != MM_FLD_REAL)
+   {
       THROWERROR("Invalid MatrixMarket field type: only 'real' field type is supported");
+   }
 
    // Check symmetry type
    if (symmetry != MM_SYM_GENERAL)
+   {
       THROWERROR("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
+   }
 
    // Skip comments and empty lines
    while (in.peek() == '%' || in.peek() == '\n')
       in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
    if (format != MM_FMT_ARRAY)
+   {
       THROWERROR("Cannot read a sparse matrix as Eigen::MatrixXd");
+   }
 
    std::uint64_t nrows;
    std::uint64_t ncols;
    in >> nrows >> ncols;
 
    if (in.fail())
+   {
       THROWERROR("Could not get 'rows', 'cols' values for array matrix format");
+   }
 
    X.resize(nrows, ncols);
 
@@ -787,7 +860,9 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
          double val;
          in >> val;
          if (in.fail())
+         {
             THROWERROR("Could not parse an entry line for array matrix format");
+         }
 
          X(row, col) = val;
       }
@@ -841,18 +916,24 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
 
    // Check field type
    if (field != MM_FLD_REAL)
+   {
       THROWERROR("Invalid MatrixMarket field type: only 'real' field type is supported");
+   }
 
    // Check symmetry type
    if (symmetry != MM_SYM_GENERAL)
+   {
       THROWERROR("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
+   }
 
    // Skip comments and empty lines
    while (in.peek() == '%' || in.peek() == '\n')
       in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
    if (format != MM_FMT_COORD)
+   {
       THROWERROR("Cannot read a dense matrix as Eigen::SparseMatrix<double>");
+   }
 
    std::uint64_t nrows;
    std::uint64_t ncols;
@@ -860,7 +941,9 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
    in >> nrows >> ncols >> nnz;
 
    if (in.fail())
+   {
       THROWERROR("Could not get 'rows', 'cols', 'nnz' values for coordinate matrix format");
+   }
 
    X.resize(nrows, ncols);
 
@@ -878,7 +961,9 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
       in >> row >> col >> val;
 
       if (in.fail())
+      {
          THROWERROR("Could not parse an entry line for coordinate matrix format");
+      }
 
       triplets.push_back(Eigen::Triplet<double>(row - 1, col - 1, val));
    }
@@ -894,9 +979,13 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
    switch (matrixType)
    {
    case matrix_io::MatrixType::sdm:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::sbm:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
@@ -916,9 +1005,13 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
       }
       break;
    case matrix_io::MatrixType::none:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    default:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    }
 }
 
@@ -946,13 +1039,21 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Sp
       }
       break;
    case matrix_io::MatrixType::csv:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::ddm:
-      THROWERROR("Invalid matrix type");
+      {
+         THROWERROR("Invalid matrix type");
+      }
    case matrix_io::MatrixType::none:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    default:
-      THROWERROR("Unknown matrix type");
+      {
+         THROWERROR("Unknown matrix type");
+      }
    }
 }
 

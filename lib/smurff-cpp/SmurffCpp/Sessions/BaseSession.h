@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <assert.h>
 
 #include <SmurffCpp/Sessions/ISession.h>
+#include <SmurffCpp/Utils/Error.h>
 
 namespace smurff {
 
@@ -42,7 +42,8 @@ public:
 public:
    std::shared_ptr<Data> data() const
    {
-      assert(data_ptr);
+      THROWERROR_ASSERT(data_ptr != 0);
+
       return data_ptr;
    }
 

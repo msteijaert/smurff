@@ -1,8 +1,10 @@
 #include <mpi.h>
-#include <assert.h>
+
+#include "MPISession.h"
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
-#include "MPISession.h"
+
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 
@@ -27,7 +29,7 @@ void MPISession::run()
       for(auto &p : m_priors) 
          work_done |= p->run_slave();
          
-      assert(work_done);
+      THROWERROR_ASSERT(work_done);
    }
 }
 
