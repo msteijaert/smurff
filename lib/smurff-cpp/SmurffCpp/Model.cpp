@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cassert>
 #include <fstream>
 #include <string>
 #include <algorithm>
@@ -54,7 +53,9 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
          sample->setZero();
          break;
       default:
-         THROWERROR("Invalid model init type");
+         {
+            THROWERROR("Invalid model init type");
+         }
       }
 
       m_samples.push_back(sample);

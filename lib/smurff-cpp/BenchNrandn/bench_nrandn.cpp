@@ -1,5 +1,7 @@
+#include <iostream>
+
 #include <SmurffCpp/Utils/Distribution.h>
-#include <SmurffCpp/Utils/utils.h>
+#include <SmurffCpp/Utils/counters.h>
 
 using namespace std;
 using namespace Eigen;

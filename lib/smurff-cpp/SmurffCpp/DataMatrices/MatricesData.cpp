@@ -1,5 +1,7 @@
 #include "MatricesData.h"
 
+#include <SmurffCpp/Utils/Error.h>
+
 using namespace smurff;
 
 MatricesData::MatricesData()
@@ -19,8 +21,11 @@ void MatricesData::init_pre()
        {
            int pos  = blk.pos(n); // get coordinate of underlying matrix
            int size = blk.dim(n); // get dimension size of underlying matrix
-           assert(size > 0);
-           assert(S.at(pos) == 0 || S.at(pos) == size);
+
+           THROWERROR_ASSERT(size > 0);
+           
+           THROWERROR_ASSERT(S.at(pos) == 0 || S.at(pos) == size);
+           
            S.at(pos) = size;
            max_pos = std::max(max_pos, pos);
        }
@@ -68,13 +73,12 @@ std::shared_ptr<MatrixData> MatricesData::add(const PVec<>& p, std::shared_ptr<M
 
 double MatricesData::sumsq(const SubModel& model) const
 {
-   assert(false);
-   return NAN;
+   THROWERROR_NOTIMPL();
 }
 
 double MatricesData::var_total() const
 {
-   return NAN;
+   THROWERROR_NOTIMPL();
 }
 
 double MatricesData::train_rmse(const SubModel& model) const
@@ -92,9 +96,9 @@ double MatricesData::train_rmse(const SubModel& model) const
        count++;
    }
 
-   assert(N>0);
+   THROWERROR_ASSERT(N > 0);
 
-   return sqrt(sum / N);
+   return std::sqrt(sum / N);
 }
 
 void MatricesData::update(const SubModel &model)
@@ -112,7 +116,8 @@ void MatricesData::get_pnm(const SubModel& model, uint32_t mode, int pos, Eigen:
        b.data()->get_pnm(b.submodel(model), mode, pos - b.start(mode), rr, MM);
        count++;
    });
-   assert(count>0);
+
+   THROWERROR_ASSERT(count > 0);
 }
 
 void MatricesData::update_pnm(const SubModel& model, uint32_t mode)
@@ -248,11 +253,14 @@ int MatricesData::nview(int mode) const
 
 int MatricesData::view(int mode, int pos) const
 {
-   assert(pos < MatrixData::dim(mode));
+   THROWERROR_ASSERT(pos < MatrixData::dim(mode));
+
    const auto &v = mode_dim.at(mode);
-   for(int i=0; i<nview(mode); ++i) if (pos < v.at(i + 1)) return i;
-   assert(false);
-   return -1;
+   for(int i=0; i<nview(mode); ++i) 
+      if (pos < v.at(i + 1)) 
+         return i;
+
+   THROWERROR_ASSERT(false);
 }
 
 int MatricesData::view_size(int mode, int v) const {

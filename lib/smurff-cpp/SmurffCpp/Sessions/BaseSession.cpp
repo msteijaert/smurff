@@ -68,5 +68,5 @@ std::vector<ResultItem> BaseSession::getResult()
 
 MatrixConfig BaseSession::getSample(int mode)
 {
-   THROWERROR("getSample is unimplemented");
+   THROWERROR_NOTIMPL_MSG("getSample is unimplemented");
 }

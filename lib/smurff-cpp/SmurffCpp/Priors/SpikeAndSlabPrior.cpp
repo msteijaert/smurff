@@ -1,5 +1,7 @@
 #include "SpikeAndSlabPrior.h"
+
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 using namespace Eigen;
@@ -15,7 +17,8 @@ void SpikeAndSlabPrior::init()
    const int K = num_latent();
    const int D = num_cols();
    const int nview = data()->nview(m_mode);
-   assert(D > 0);
+   
+   THROWERROR_ASSERT(D > 0);
 
    Zcol.init(MatrixXd::Zero(K,nview));
    W2col.init(MatrixXd::Zero(K,nview));
@@ -68,12 +71,12 @@ void SpikeAndSlabPrior::sample_latent(int d)
    for(int k=0;k<K;++k) {
       double lambda = XX(k,k) + alpha(k,v);
       double mu = (1/lambda) * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
-      double z1 = log_r(k) -  0.5 * (lambda * mu * mu - log(lambda) + log_alpha(k));
+      double z1 = log_r(k) -  0.5 * (lambda * mu * mu - std::log(lambda) + log_alpha(k));
       double z = 1 / (1 + exp(z1));
       double p = rand_unif(0,1);
       if (Zkeep(k,v) > 0 && p < z) {
          Zcol.local()(k,v)++;
-         double var = randn() / sqrt(lambda);
+         double var = randn() / std::sqrt(lambda);
          Wcol(k) = mu + var;
       } else {
          Wcol(k) = .0;

@@ -39,10 +39,14 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    : TensorConfig(true, false, false, 2, nrow * ncol, noiseConfig)
 {
    if (nrow == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'nrow' cannot be zero.");
+   }
 
    if (ncol == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'ncol' cannot be zero.");
+   }
 
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);
@@ -74,13 +78,19 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    : TensorConfig(false, false, isScarce, 2, values.size(), noiseConfig)
 {
    if (nrow == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'nrow' cannot be zero.");
+   }
 
    if (ncol == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'ncol' cannot be zero.");
+   }
 
    if (rows.size() != cols.size() || rows.size() != values.size())
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'rows', 'cols' and 'values' should all be the same size.");
+   }
 
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);
@@ -124,13 +134,19 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    : TensorConfig(false, false, isScarce, 2, values->size(), noiseConfig)
 {
    if (nrow == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'nrow' cannot be zero.");
+   }
 
    if (ncol == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'ncol' cannot be zero.");
+   }
 
    if (rows->size() != cols->size() || rows->size() != values->size())
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'rows', 'cols' and 'values' should all be the same size.");
+   }
 
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);
@@ -161,13 +177,19 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    : TensorConfig(false, true, isScarce, 2, rows.size(), noiseConfig)
 {
    if (nrow == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'nrow' cannot be zero.");
+   }
 
    if (ncol == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'ncol' cannot be zero.");
+   }
 
    if (rows.size() != cols.size())
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'rows' and 'cols' should all be the same size.");
+   }
 
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);
@@ -208,13 +230,19 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
    : TensorConfig(false, true, isScarce, 2, rows->size(), noiseConfig)
 {
    if (nrow == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'nrow' cannot be zero.");
+   }
 
    if (ncol == 0)
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'ncol' cannot be zero.");
+   }
 
    if (rows->size() != cols->size())
+   {
       THROWERROR("Cannot create MatrixConfig instance: 'rows' and 'cols' should all be the same size.");
+   }
 
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);

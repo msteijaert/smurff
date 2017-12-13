@@ -21,7 +21,7 @@ double rand_truncnorm_rej(double low_cut) {
   double u, v, xbar;
   while (true) {
     u = smurff::rand_unif();
-    xbar = sqrt(low_cut*low_cut - 2 * log(1 - u));
+    xbar = std::sqrt(low_cut*low_cut - 2 * std::log(1 - u));
     v = smurff::rand_unif();
     if (v <= xbar / low_cut) {
       return xbar;

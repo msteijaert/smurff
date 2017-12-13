@@ -57,7 +57,9 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    }
 
    if(!config.m_train)
+   {
       THROWERROR("train data is not provided");
+   }
 
    // set global noise model
    if (config.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
@@ -170,7 +172,9 @@ void CmdSession::setFromArgs(int argc, char** argv)
     Config cfg;
     struct argp argp = { options, parse_opts, 0, doc };
     if(argp_parse (&argp, argc, argv, 0, 0, &cfg) != 0)
+    {
       THROWERROR("Failed to parse command line arguments");
+    }
 
     setFromConfig(cfg);
     #else

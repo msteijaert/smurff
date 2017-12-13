@@ -5,7 +5,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Utils/PVec.hpp>
 
 #include <SmurffCpp/Configs/Config.h>

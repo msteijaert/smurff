@@ -5,6 +5,8 @@
 #include <SmurffCpp/VMatrixExprIterator.hpp>
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
+#include <SmurffCpp/Utils/ThreadVector.hpp>
+
 namespace smurff
 {
    template<class YType>
@@ -37,7 +39,7 @@ namespace smurff
       {
          auto Vf = *model.CVbegin(mode);
          const int nl = model.nlatent();
-         thread_vector<Eigen::MatrixXd> VVs(Eigen::MatrixXd::Zero(nl, nl));
+         smurff::thread_vector<Eigen::MatrixXd> VVs(Eigen::MatrixXd::Zero(nl, nl));
 
          //for each column v of Vf - calculate v * vT and add to VVs
          #pragma omp parallel for schedule(dynamic, 8) shared(VVs)

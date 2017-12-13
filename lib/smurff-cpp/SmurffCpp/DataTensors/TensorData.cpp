@@ -90,7 +90,7 @@ PVec<> TensorData::dim() const
 
 double TensorData::train_rmse(const SubModel& model) const
 {
-   return sqrt(sumsq(model) / this->nnz());
+   return std::sqrt(sumsq(model) / this->nnz());
 }
 
 //d is an index of column in U matrix
@@ -142,7 +142,7 @@ double TensorData::sumsq(const SubModel& model) const
             coords[m + 1] = static_cast<int>(sview->getIndices()(j, m));
 
          double pred = model.predict(smurff::PVec<>(coords));
-         sumsq += square(pred - sview->getValues()[j]);
+         sumsq += std::pow(pred - sview->getValues()[j], 2);
       }
    }
 
@@ -161,7 +161,7 @@ double TensorData::var_total() const
    {
       for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
       {
-         se += square(sview->getValues()[j] - cwise_mean);
+         se += std::pow(sview->getValues()[j] - cwise_mean, 2);
       }
    }
 

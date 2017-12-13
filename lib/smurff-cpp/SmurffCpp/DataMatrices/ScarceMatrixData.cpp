@@ -4,6 +4,8 @@
 #include <SmurffCpp/VMatrixExprIterator.hpp>
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
+#include <SmurffCpp/Utils/ThreadVector.hpp>
+
 using namespace smurff;
 
 ScarceMatrixData::ScarceMatrixData(Eigen::SparseMatrix<double> Y)
@@ -31,7 +33,7 @@ void ScarceMatrixData::init_pre()
 
 double ScarceMatrixData::train_rmse(const SubModel& model) const 
 {
-   return sqrt(sumsq(model) / this->nnz());
+   return std::sqrt(sumsq(model) / this->nnz());
 }
 
 std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
@@ -137,7 +139,7 @@ double ScarceMatrixData::var_total() const
    {
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
       {
-         se += square(it.value() - cwise_mean);
+         se += std::pow(it.value() - cwise_mean, 2);
       }
    }
 
@@ -160,7 +162,7 @@ double ScarceMatrixData::sumsq(const SubModel& model) const
    {
       for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 
       {
-         sumsq += square(model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())})- it.value());
+         sumsq += std::pow(model.predict({static_cast<int>(it.row()), static_cast<int>(it.col())})- it.value(), 2);
       }
    }
 

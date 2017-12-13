@@ -7,6 +7,8 @@
 #include <SmurffCpp/Utils/omp_util.h>
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/counters.h>
+#include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/DataMatrices/DataCreator.h>
 #include <SmurffCpp/Priors/PriorFactory.h>
@@ -114,7 +116,7 @@ void Session::run()
 
 void Session::step()
 {
-   assert(is_init);
+   THROWERROR_ASSERT(is_init);
 
    if (config.verbose && iter == config.burnin)
    {

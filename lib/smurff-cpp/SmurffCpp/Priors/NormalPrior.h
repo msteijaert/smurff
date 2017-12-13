@@ -6,6 +6,7 @@
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/ThreadVector.hpp>
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
 
@@ -49,8 +50,8 @@ public:
 
 private:
    // for effiency, we keep + update Ucol and UUcol by every thread
-   thread_vector<Eigen::VectorXd> Ucol;
-   thread_vector<Eigen::MatrixXd> UUcol;
+   smurff::thread_vector<Eigen::VectorXd> Ucol;
+   smurff::thread_vector<Eigen::MatrixXd> UUcol;
 
 private:
   void initUU();

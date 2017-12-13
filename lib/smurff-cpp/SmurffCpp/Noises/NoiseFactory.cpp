@@ -25,6 +25,8 @@ std::shared_ptr<INoiseModel> NoiseFactory::create_noise_model(const NoiseConfig&
       case NoiseTypes::unused:
          return std::shared_ptr<INoiseModel>(new UnusedNoise());
       default:
+      {
          THROWERROR("Unknown noise model type");
+      }
    }
 }

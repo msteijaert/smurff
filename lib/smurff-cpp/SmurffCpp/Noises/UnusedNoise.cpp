@@ -1,7 +1,6 @@
 #include "UnusedNoise.h"
 
-#include <assert.h>
-#include <cmath>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 
@@ -12,8 +11,7 @@ UnusedNoise::UnusedNoise()
 
 double UnusedNoise::getAlpha()
 {
-   assert(false);
-   return NAN;
+   THROWERROR_NOTIMPL();
 }
 
 std::ostream& UnusedNoise::info(std::ostream& os, std::string indent)

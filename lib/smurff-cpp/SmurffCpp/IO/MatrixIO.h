@@ -37,6 +37,8 @@ namespace smurff { namespace matrix_io
       ddm
    };
 
+   MatrixType ExtensionToMatrixType(const std::string& fname);
+
    std::shared_ptr<MatrixConfig> read_matrix(const std::string& filename, bool isScarce);
 
    std::shared_ptr<MatrixConfig> read_dense_float64_bin(std::istream& in);

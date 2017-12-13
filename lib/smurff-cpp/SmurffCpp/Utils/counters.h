@@ -59,3 +59,5 @@ inline void perf_data_print() {
 inline void perf_data_print() {}
 
 #endif //BPMF_PROFILING
+
+double tick();
