@@ -10,10 +10,9 @@ UnusedNoise::UnusedNoise()
 {
 }
 
-double UnusedNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val)
+void UnusedNoise::getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
    assert(false);
-   return NAN;
 }
 
 std::ostream& UnusedNoise::info(std::ostream& os, std::string indent)

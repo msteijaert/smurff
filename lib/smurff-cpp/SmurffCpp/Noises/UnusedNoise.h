@@ -17,7 +17,7 @@ protected:
    UnusedNoise();
 
 public:
-   double getAlpha(const SubModel& model, const PVec<> &pos, double val) override;
+   void getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
 
    std::ostream& info(std::ostream& os, std::string indent) override;
    std::string getStatus() override;

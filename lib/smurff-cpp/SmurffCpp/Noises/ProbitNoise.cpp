@@ -8,13 +8,7 @@
 
 using namespace smurff;
 
-ProbitNoise::ProbitNoise()
-   : INoiseModel()
-{
-
-}
-
-double ProbitNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val11)
+double ProbitNoise::sample(const SubModel& model, const PVec<> &pos, double val11)
 {
     assert(val11 >= -1.0 && val11 <= 1.0);
     double pred11 = model.predict(pos);

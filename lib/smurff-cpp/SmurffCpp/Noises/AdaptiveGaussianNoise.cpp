@@ -6,7 +6,7 @@
 using namespace smurff;
 
 AdaptiveGaussianNoise::AdaptiveGaussianNoise(double sinit, double smax)
-: INoiseModel(), sn_max(smax), sn_init(sinit)
+: sn_max(smax), sn_init(sinit)
 {
 
 }
@@ -38,11 +38,6 @@ void AdaptiveGaussianNoise::update(const SubModel& model)
    {
       alpha = alpha_max;
    }
-}
-
-double AdaptiveGaussianNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val)
-{
-   return alpha;
 }
 
 std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)

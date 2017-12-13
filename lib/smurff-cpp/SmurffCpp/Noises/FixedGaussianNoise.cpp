@@ -3,14 +3,9 @@
 using namespace smurff;
 
 FixedGaussianNoise::FixedGaussianNoise(double a)
-   : INoiseModel(), alpha(a)
+   : GaussianNoise(), alpha(a)
 {
 
-}
-
-double FixedGaussianNoise::getAlpha(const SubModel& model, const PVec<> &pos, double val)
-{
-   return alpha;
 }
 
 std::ostream& FixedGaussianNoise::info(std::ostream& os, std::string indent)

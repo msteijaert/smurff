@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+#include <Eigen/Core>
+
 #include <SmurffCpp/Utils/PVec.hpp>
 
 namespace smurff {
@@ -37,6 +39,6 @@ namespace smurff {
       virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
       virtual std::string getStatus()  = 0;
 
-      virtual double getAlpha(const SubModel& model, const PVec<> &pos, double val) = 0;
+      virtual void getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
    };
 }
