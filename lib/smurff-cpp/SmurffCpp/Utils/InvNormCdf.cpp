@@ -22,11 +22,11 @@
  *
  *
  * For small arguments 0 < y < exp(-2), the program computes
- * z = sqrt( -2.0 * log(y) );  then the approximation is
- * x = z - log(z)/z  - (1/z) P(1/z) / Q(1/z).
+ * z = std::sqrt( -2.0 * std::log(y) );  then the approximation is
+ * x = z - std::log(z)/z  - (1/z) P(1/z) / Q(1/z).
  * There are two rational functions P/Q, one for 0 < y < exp(-32)
  * and the other for y up to exp(-2).  For larger arguments,
- * w = y - 0.5, and  x/sqrt(2pi) = w + w**3 R(w**2)/S(w**2)).
+ * w = y - 0.5, and  x/std::sqrt(2pi) = w + w**3 R(w**2)/S(w**2)).
  *
  *
  * ACCURACY:
@@ -54,7 +54,7 @@
 
 #include <cmath>
 
-/* sqrt(2pi) */
+/* std::sqrt(2pi) */
 static double s2pi = 2.50662827463100050242E0;
 
 /* approximation for 0 <= |y - 0.5| <= 3/8 */
@@ -78,7 +78,7 @@ static double Q0[8] = {
     -1.18331621121330003142E0,
 };
 
-/* Approximation for interval z = sqrt(-2 log y ) between 2 and 8
+/* Approximation for interval z = std::sqrt(-2 log y ) between 2 and 8
  * i.e., y between exp(-2) = .135 and exp(-32) = 1.27e-14.
  */
 static double P1[9] = {
@@ -105,7 +105,7 @@ static double Q1[8] = {
     -9.33259480895457427372E-4,
 };
 
-/* Approximation for interval z = sqrt(-2 log y ) between 8 and 64
+/* Approximation for interval z = std::sqrt(-2 log y ) between 8 and 64
  * i.e., y between exp(-32) = 1.27e-14 and exp(-2048) = 3.67e-890.
  */
 
@@ -198,8 +198,8 @@ double inv_norm_cdf(double y0)
     return (x);
   }
 
-  x = sqrt(-2.0 * log(y));
-  x0 = x - log(x) / x;
+  x = std::sqrt(-2.0 * std::log(y));
+  x0 = x - std::log(x) / x;
 
   z = 1.0 / x;
   if (x < 8.0)		/* y > exp(-32) = 1.2664165549e-14 */

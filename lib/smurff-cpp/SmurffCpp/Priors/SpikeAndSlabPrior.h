@@ -6,6 +6,7 @@
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/ThreadVector.hpp>
 
 #include <SmurffCpp/Priors/NormalOnePrior.h>
 
@@ -16,7 +17,7 @@ class SpikeAndSlabPrior : public NormalOnePrior
 {
 public:
    // updated by every thread
-   thread_vector<Eigen::MatrixXd> Zcol, W2col;
+   smurff::thread_vector<Eigen::MatrixXd> Zcol, W2col;
 
    // read-only during sampling
    Eigen::MatrixXd Zkeep;

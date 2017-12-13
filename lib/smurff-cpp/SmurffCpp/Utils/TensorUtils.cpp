@@ -7,10 +7,14 @@
 Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig& tensorConfig)
 {
    if(!tensorConfig.isDense())
+   {
       THROWERROR("tensor config should be dense");
+   }
 
    if(tensorConfig.getNModes() != 2)
+   {
       THROWERROR("Invalid number of dimensions. Tensor can not be converted to matrix.");
+   }
 
    std::vector<double> Yvalues = tensorConfig.getValues(); //eigen map can not take const values pointer. have to make copy
    return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
@@ -26,10 +30,14 @@ template<>
 Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig)
 {
    if(tensorConfig.isDense())
+   {
       THROWERROR("tensor config should be sparse");
+   }
 
    if(tensorConfig.getNModes() != 2)
+   {
       THROWERROR("Invalid number of dimensions. Tensor can not be converted to matrix.");
+   }
 
    std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = tensorConfig.getColumnsPtr();
    std::shared_ptr<std::vector<double> > valuesPtr = tensorConfig.getValuesPtr();
@@ -59,7 +67,9 @@ Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<smurff::Tensor
 smurff::MatrixConfig smurff::tensor_utils::tensor_to_matrix(const smurff::TensorConfig& tensorConfig)
 {
    if(tensorConfig.getNModes() != 2)
+   {
       THROWERROR("Invalid number of dimentions. Tensor can not be converted to matrix.");
+   }
 
    if(tensorConfig.isDense())
    {
@@ -123,25 +133,39 @@ Eigen::MatrixXd smurff::tensor_utils::slice( const TensorConfig& tensorConfig
                                            , const std::unordered_map<std::uint64_t, std::uint32_t>& dimCoords)
 {
    if (fixedDims[0] == fixedDims[1])
+   {
       THROWERROR("fixedDims should contain 2 unique dimension numbers");
+   }
 
    for (const std::uint64_t& fd : fixedDims)
+   {
       if (fd > tensorConfig.getNModes() - 1)
+      {
          THROWERROR("fixedDims should contain only valid for tensorConfig dimension numbers");
+      }
+   }
 
    if (dimCoords.size() != (tensorConfig.getNModes() -  2))
+   {
       THROWERROR("dimsCoords.size() should be the same as tensorConfig.getNModes() - 2");
+   }
 
    for (const std::unordered_map<std::uint64_t, std::uint32_t>::value_type& dc : dimCoords)
    {
       if (dc.first == fixedDims[0] || dc.first == fixedDims[1])
+      {
          THROWERROR("dimCoords and fixedDims should not intersect");
+      }
 
       if (dc.first >= tensorConfig.getNModes())
+      {
          THROWERROR("dimCoords should contain only valid for tensorConfig dimension numbers");
+      }
 
       if (dc.second >= tensorConfig.getDims()[dc.first])
+      {
          THROWERROR("dimCoords should contain valid coord values for corresponding dimensions");
+      }
    }
 
    std::unordered_map<std::uint64_t, std::vector<std::uint32_t>::const_iterator> dimColumns;

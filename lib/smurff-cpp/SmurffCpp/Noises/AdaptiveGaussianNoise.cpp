@@ -1,3 +1,5 @@
+#include <iomanip>
+
 #include "AdaptiveGaussianNoise.h"
 
 #include <SmurffCpp/Utils/Distribution.h>
@@ -48,7 +50,9 @@ std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)
 
 std::string AdaptiveGaussianNoise::getStatus()
 {
-   return std::string("Prec: ") + to_string_with_precision(alpha, 2);
+   std::stringstream ss;
+   ss << "Prec: " << std::setprecision(2) << alpha;
+   return ss.str();
 }
 
 void AdaptiveGaussianNoise::setSNInit(double a)

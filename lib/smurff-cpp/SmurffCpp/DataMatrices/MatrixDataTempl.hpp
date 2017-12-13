@@ -4,6 +4,8 @@
 
 #include "MatrixData.h"
 
+#include <SmurffCpp/Utils/Error.h>
+
 namespace smurff
 {
    template<typename YType>
@@ -23,7 +25,7 @@ namespace smurff
 
       void init_pre() override
       {
-         assert(nrow() > 0 && ncol() > 0);
+         THROWERROR_ASSERT(nrow() > 0 && ncol() > 0);
       }
 
       PVec<> dim() const override 

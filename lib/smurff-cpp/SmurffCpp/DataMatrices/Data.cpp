@@ -1,5 +1,6 @@
 #include "Data.h"
-#include "SmurffCpp/IO/MatrixIO.h"
+#include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 
@@ -57,7 +58,8 @@ int Data::view_size(int m, int v) const
 
 std::shared_ptr<INoiseModel> Data::noise() const
 {
-   assert(noise_ptr);
+   THROWERROR_ASSERT(noise_ptr != 0);
+   
    return noise_ptr;
 }
 

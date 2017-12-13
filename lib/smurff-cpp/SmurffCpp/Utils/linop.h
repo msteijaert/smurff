@@ -3,8 +3,8 @@
 #include <Eigen/Dense>
 
 #include <SmurffCpp/Utils/chol.h>
-#include <SmurffCpp/Utils/utils.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/SparseFeat.h>
 #include <SmurffCpp/SparseDoubleFeat.h>
@@ -230,7 +230,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     {
       sumsq += B(rhs, feat) * B(rhs, feat);
     }
-    norms(rhs)  = sqrt(sumsq);
+    norms(rhs)  = std::sqrt(sumsq);
     inorms(rhs) = 1.0 / norms(rhs);
   }
   Eigen::MatrixXd R(nrhs, nfeat);
@@ -337,10 +337,10 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
 
 template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B) {
-  assert(N == out.rows());
-  assert(N == B.rows());
-  assert(A.ncol == B.cols());
-  assert(A.nrow == out.cols());
+   THROWERROR_ASSERT(N == out.rows());
+   THROWERROR_ASSERT(N == B.rows());
+   THROWERROR_ASSERT(A.ncol == B.cols());
+   THROWERROR_ASSERT(A.nrow == out.cols());
 
   int* row_ptr   = A.row_ptr;
   int* cols      = A.cols;
@@ -370,10 +370,10 @@ void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B) {
 
 template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B) {
-  assert(N == out.rows());
-  assert(N == B.rows());
-  assert(A.ncol == B.cols());
-  assert(A.nrow == out.cols());
+   THROWERROR_ASSERT(N == out.rows());
+   THROWERROR_ASSERT(N == B.rows());
+   THROWERROR_ASSERT(A.ncol == B.cols());
+   THROWERROR_ASSERT(A.nrow == out.cols());
 
   int* row_ptr   = A.row_ptr;
   int* cols      = A.cols;
@@ -454,7 +454,10 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
     case 38: return AtA_mul_Bx<38>(out, A, reg, B, tmp);
     case 39: return AtA_mul_Bx<39>(out, A, reg, B, tmp);
     case 40: return AtA_mul_Bx<40>(out, A, reg, B, tmp);
-    default: THROWERROR("BlockCG only available for up to 40 RHSs.");
+    default: 
+    {
+       THROWERROR("BlockCG only available for up to 40 RHSs.");
+    }
   }
 }
 
@@ -469,11 +472,11 @@ inline void AtA_mul_B_switch(
 
 template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & inner) {
-  assert(N == out.rows());
-  assert(N == B.rows());
-  assert(A.cols() == B.cols());
-  assert(A.cols() == out.cols());
-  assert(A.rows() == inner.cols());
+   THROWERROR_ASSERT(N == out.rows());
+   THROWERROR_ASSERT(N == B.rows());
+   THROWERROR_ASSERT(A.cols() == B.cols());
+   THROWERROR_ASSERT(A.cols() == out.cols());
+   THROWERROR_ASSERT(A.rows() == inner.cols());
 
   A_mul_Bx<N>(inner, A.M,  B);
 
@@ -506,11 +509,11 @@ void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::Matrix
 
 template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & inner) {
-  assert(N == out.rows());
-  assert(N == B.rows());
-  assert(A.cols() == B.cols());
-  assert(A.cols() == out.cols());
-  assert(A.rows() == inner.cols());
+   THROWERROR_ASSERT(N == out.rows());
+   THROWERROR_ASSERT(N == B.rows());
+   THROWERROR_ASSERT(A.cols() == B.cols());
+   THROWERROR_ASSERT(A.cols() == out.cols());
+   THROWERROR_ASSERT(A.rows() == inner.cols());
 
   A_mul_Bx<N>(inner, A.M,  B);
 
@@ -551,7 +554,8 @@ inline void A_mul_B_omp(
     Eigen::MatrixXd & A,
     Eigen::MatrixXd & B)
 {
-  assert(out.cols() == B.cols());
+   THROWERROR_ASSERT(out.cols() == B.cols());
+
   const int nblocks = (int)ceil(out.cols() / 64.0);
   const int nrow = out.rows();
   const int ncol = out.cols();
@@ -573,7 +577,8 @@ inline void A_mul_B_omp(
     Eigen::Matrix<double, N, N> & A,
     Eigen::MatrixXd & B)
 {
-  assert(out.cols() == B.cols());
+  THROWERROR_ASSERT(out.cols() == B.cols());
+  
   const int nblocks = out.cols() / 64;
   #pragma omp parallel for schedule(dynamic, 8)
   for (int block = 0; block < nblocks; block++) 

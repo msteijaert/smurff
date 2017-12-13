@@ -1,7 +1,6 @@
 #include "UnusedNoise.h"
 
-#include <assert.h>
-#include <cmath>
+#include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
 
@@ -12,7 +11,7 @@ UnusedNoise::UnusedNoise()
 
 void UnusedNoise::getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
-   assert(false);
+   THROWERROR_NOTIMPL();
 }
 
 std::ostream& UnusedNoise::info(std::ostream& os, std::string indent)

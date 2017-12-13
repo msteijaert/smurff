@@ -6,8 +6,10 @@
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/IO/MatrixIO.h>
+
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/Priors/NormalPrior.h>
 #include <SmurffCpp/SparseDoubleFeat.h>
@@ -52,7 +54,7 @@ public:
    {
       NormalPrior::init();
 
-      assert((Features->rows() == num_cols()) && "Number of rows in train must be equal to number of rows in features");
+      THROWERROR_ASSERT_MSG(Features->rows() == num_cols(), "Number of rows in train must be equal to number of rows in features");
 
       if (use_FtF)
       {
@@ -107,7 +109,7 @@ public:
    {
       const int num_feat = beta.cols();
 
-      // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + sqrt(lambda_beta) * Normal(0, Lambda^-1)
+      // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(lambda_beta) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
       Eigen::MatrixXd tmp = (*U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
       Ft_y = smurff::linop::A_mul_B(tmp, *Features);
@@ -118,7 +120,7 @@ public:
       {
          for (int d = 0; d < num_latent(); d++)
          {
-            Ft_y(d, f) += sqrt(lambda_beta) * tmp2(d, f);
+            Ft_y(d, f) += std::sqrt(lambda_beta) * tmp2(d, f);
          }
       }
    }

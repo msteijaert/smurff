@@ -19,8 +19,10 @@ SparseMode::SparseMode()
 // mode_size - size of dimention to fix
 SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, std::uint64_t mode, std::uint64_t mode_size) 
 {
-   if ((size_t)idx.rows() != vals.size()) 
+   if ((size_t)idx.rows() != vals.size())
+   {
       THROWERROR("Number of rows in 'idx' should equal number of values in 'vals'");
+   }
 
    m_row_ptr.resize(mode_size + 1); // mode_size + 1 because this vector will hold commulative sum of number of elements
    m_values.resize(vals.size()); // resize values vector
@@ -36,7 +38,10 @@ SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, 
    for (std::uint64_t i = 0; i < nnz; i++) 
    {
       if (rows(i) >= mode_size) //index in column should be within dimension size
+      {
          THROWERROR("'idx' value is larger than 'mode_size'");
+      }
+
       m_row_ptr[rows(i)]++; //count item with specific index
    }
 

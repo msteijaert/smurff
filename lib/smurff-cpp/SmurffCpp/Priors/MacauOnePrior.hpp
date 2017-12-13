@@ -118,7 +118,7 @@ public:
                double A_df     = lambda_beta(dx) + Lambda(dx,dx) * F_colsq(f);
                double B_df     = Lambda(dx,dx) * (zx(d) + beta(dx,f) * F_colsq(f));
                double A_inv    = 1.0 / A_df;
-               double beta_new = B_df * A_inv + sqrt(A_inv) * randvals(d);
+               double beta_new = B_df * A_inv + std::sqrt(A_inv) * randvals(d);
                delta_beta(d)   = beta(dx,f) - beta_new;
 
                beta(dx, f)     = beta_new;
@@ -167,7 +167,7 @@ public:
          {
             for (int d = 0; d < D; d++)
             {
-               tmp(d) += square(beta(d, f));
+               tmp(d) += std::pow(beta(d, f), 2);
             }
          }
          #pragma omp critical
@@ -301,7 +301,7 @@ void MacauOnePrior<FType>::sample_latents(double noisePrecision, TensorData & da
       double uid_var = 1.0 / Qi(d);
 
       // sampling new u_id ~ Norm(Lid / Qid, 1/Qid)
-      (*U)(d, i) = Lid * uid_var + sqrt(uid_var) * rnorms(d);
+      (*U)(d, i) = Lid * uid_var + std::sqrt(uid_var) * rnorms(d);
 
       // updating Yhat
       double uid_delta = (*U)(d, i) - uid_old;

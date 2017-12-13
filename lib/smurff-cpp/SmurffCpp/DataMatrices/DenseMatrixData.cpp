@@ -27,7 +27,7 @@ void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, V
 
 double DenseMatrixData::train_rmse(const SubModel& model) const
 {
-   return sqrt(sumsq(model) / this->size());
+   return std::sqrt(sumsq(model) / this->size());
 }
 
 double DenseMatrixData::var_total() const
@@ -55,7 +55,7 @@ double DenseMatrixData::sumsq(const SubModel& model) const
    {
       for (int i = 0; i < this->nrow(); i++) 
       {
-         sumsq += square(model.predict({i,j}) - this->Y()(i,j));
+         sumsq += std::pow(model.predict({i,j}) - this->Y()(i,j), 2);
       }
    }
 

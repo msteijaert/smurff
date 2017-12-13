@@ -1,7 +1,6 @@
 #include "ProbitNoise.h"
 
-#include <assert.h>
-#include <cmath>
+#include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/Utils/TruncNorm.h>
 #include <SmurffCpp/Model.h>

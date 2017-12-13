@@ -23,10 +23,14 @@ namespace smurff
          : m_size(size)
       {
          if (m_size == 0)
+         {
             THROWERROR_SPEC(std::length_error, "Cannot initialize PVec with zero length");
+         }
 
          if (m_size > MaxSize)
+         {
             THROWERROR_SPEC(std::length_error, "Cannot initialize PVec with size greater than MaxSize");
+         }
 
          std::fill(m_v.begin(), m_v.end(), 0);
       }
@@ -36,10 +40,14 @@ namespace smurff
          m_size = std::distance(l.begin(), l.end());
 
          if (m_size == 0)
+         {
             THROWERROR_SPEC(std::length_error, "Cannot initialize PVec with zero length");
+         }
 
          if (m_size > MaxSize)
+         {
             THROWERROR_SPEC(std::length_error, "Cannot initialize PVec with size greater than MaxSize");
+         }
 
          std::copy(l.begin(), l.end(), m_v.begin()); // m_v already has correct size
       }
@@ -51,10 +59,14 @@ namespace smurff
          m_size = std::distance(v.begin(), v.end());
 
          if (m_size == 0)
+         {
             THROWERROR_SPEC(std::length_error, "Cannot initialize PVec with zero length");
+         }
 
          if (m_size > MaxSize)
+         {
             THROWERROR_SPEC(std::length_error, "Initializer size is greater than MaxSize");
+         }
 
          std::copy(v.begin(), v.end(), m_v.begin()); // m_v already has correct size
       }
@@ -113,7 +125,9 @@ namespace smurff
       PVec operator+(const PVec& other) const
       {
          if (m_size != other.m_size)
+         {
             THROWERROR_SPEC(std::length_error, "Both PVec intances must have the same size");
+         }
 
          PVec ret(*this);
          std::transform(m_v.begin(), m_v.begin() + m_size, other.m_v.begin(), ret.m_v.begin(), std::plus<int>());
@@ -123,7 +137,9 @@ namespace smurff
       PVec operator-(const PVec& other) const
       {
          if (m_size != other.m_size)
+         {
             THROWERROR_SPEC(std::length_error, "Both PVec intances must have the same size");
+         }
 
          PVec ret(*this);
          std::transform(m_v.begin(), m_v.begin() + m_size, other.m_v.begin(), ret.m_v.begin(), std::minus<int>());
@@ -147,10 +163,14 @@ namespace smurff
       bool in(const PVec& start, const PVec& end) const
       {
          if (m_size != start.m_size)
+         {
             THROWERROR_SPEC(std::length_error, "All PVec intances must have the same size");
+         }
 
          if (m_size != end.m_size)
+         {
             THROWERROR_SPEC(std::length_error, "All PVec intances must have the same size");
+         }
 
          for (size_t i = 0; i < m_size; ++i)
          {

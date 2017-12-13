@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 // _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
 #if defined(_OPENMP)

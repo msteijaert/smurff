@@ -9,6 +9,7 @@
 #include <SmurffCpp/Noises/INoiseModel.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/ThreadVector.hpp>
 
 #include <SmurffCpp/Model.h>
 
@@ -24,8 +25,8 @@ public:
    uint32_t m_mode;
    std::string m_name = "xxxx";
 
-   thread_vector<Eigen::VectorXd> rrs;
-   thread_vector<Eigen::MatrixXd> MMs;
+   smurff::thread_vector<Eigen::VectorXd> rrs;
+   smurff::thread_vector<Eigen::MatrixXd> MMs;
 
 protected:
    ILatentPrior(){}

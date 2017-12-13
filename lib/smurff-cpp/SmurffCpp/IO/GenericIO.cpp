@@ -15,6 +15,11 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
 {
    try
    {
+      if(matrix_io::ExtensionToMatrixType(filename) == matrix_io::MatrixType::csv)
+      {
+         THROWERROR("csv input is not allowed for matrix data");
+      }
+
       //read will throw exception if file extension is not correct
       return matrix_io::read_matrix(filename, isScarce);
    }
@@ -22,6 +27,11 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
    {
       try
       {
+         if(tensor_io::ExtensionToTensorType(filename) == tensor_io::TensorType::csv)
+         {
+            THROWERROR("csv input is not allowed for tensor data");
+         }
+
          //read will throw exception if file extension is not correct
          return tensor_io::read_tensor(filename, isScarce);
       }

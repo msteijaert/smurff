@@ -128,7 +128,9 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<std::shared_ptr<MatrixConfig> >& vsideinfo)
 {
    if(vsideinfo.size() != 1)
+   {
       THROWERROR("Only one feature matrix is allowed");
+   }
 
    std::shared_ptr<MatrixConfig> sideinfoConfig = vsideinfo.at(0);
 
@@ -165,7 +167,9 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
       case PriorTypes::macauone:
          return create_macau_prior(session, mode, prior_type, vsideinfo);
       default:
-         THROWERROR("SideInfo only with macau(one) prior");
+         {
+            THROWERROR("SideInfo only with macau(one) prior");
+         }
       }
    }
    else
@@ -180,7 +184,9 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
       case PriorTypes::spikeandslab:
          return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
       default:
-         THROWERROR("Unknown prior without side info: " + priorTypeToString(prior_type));
+         {
+            THROWERROR("Unknown prior without side info: " + priorTypeToString(prior_type));
+         }
       }
    }
 }
@@ -210,6 +216,8 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
          return ::create_prior(session, mode, session->config.col_prior_type, col_sideinfo);
       }
       default:
+      {
          THROWERROR("Unknown prior mode");
+      }
    }
 }

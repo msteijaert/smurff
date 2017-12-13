@@ -9,7 +9,9 @@
 Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig& matrixConfig)
 {
    if(!matrixConfig.isDense())
+   {
       THROWERROR("matrix config should be dense");
+   }
 
    std::vector<double> Yvalues = matrixConfig.getValues(); //eigen map can not take const values pointer. have to make copy
    return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), matrixConfig.getNRow(), matrixConfig.getNCol());
@@ -25,7 +27,9 @@ template<>
 Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
 {
    if(matrixConfig.isDense())
+   {
       THROWERROR("matrix config should be sparse");
+   }
 
    Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
    std::shared_ptr<std::vector<std::uint32_t> > rowsPtr = matrixConfig.getRowsPtr();
@@ -37,15 +41,21 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::
    {
       std::uint32_t row = rowsPtr->operator[](i);
       std::uint32_t col = colsPtr->operator[](i);
-      assert(row >= 0 && row < matrixConfig.getNRow());
-      assert(col >= 0 && col < matrixConfig.getNCol());
+
+      THROWERROR_ASSERT(row >= 0 && row < matrixConfig.getNRow());
+
+      THROWERROR_ASSERT(col >= 0 && col < matrixConfig.getNCol());
+
       double val = valuesPtr->operator[](i);
       eigenTriplets.push_back(Eigen::Triplet<double>(row, col, val));
    }
 
-   assert(eigenTriplets.size() == matrixConfig.getNNZ());
+   THROWERROR_ASSERT(eigenTriplets.size() == matrixConfig.getNNZ());
+
    out.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
-   assert(out.nonZeros() == (int)matrixConfig.getNNZ());
+
+   THROWERROR_ASSERT(out.nonZeros() == (int)matrixConfig.getNNZ());
+   
    return out;
 }
 
@@ -77,7 +87,9 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
    const std::vector<std::uint32_t>& columns = mc.getColumns();
 
    if(rows.size() != cols.size() || rows.size() != values.size())
+   {
       THROWERROR("Invalid sizes");
+   }
 
    os << "rows: " << std::endl;
    for(std::uint64_t i = 0; i < rows.size(); i++)
