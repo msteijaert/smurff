@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <SmurffCpp/Sessions/BaseSession.h>
-#include <SmurffCpp/Sessions/CmdSessionBoost.h>
+#include <SmurffCpp/Sessions/CmdSession.h>
 #include <SmurffCpp/Sessions/PythonSession.h>
 
 using namespace smurff;
@@ -13,7 +13,7 @@ using namespace smurff;
 //parses args with setFromArgs, then internally calls setFromConfig (to validate, save, set config)
 std::shared_ptr<ISession> SessionFactory::create_cmd_session(int argc, char** argv)
 {
-   std::shared_ptr<CmdSessionBoost> session(new CmdSessionBoost());
+   std::shared_ptr<CmdSession> session(new CmdSession());
    session->setFromArgs(argc, argv);
    return session;
 }

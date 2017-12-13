@@ -2,13 +2,13 @@
 
 #include <memory>
 
-#include <SmurffCpp/Sessions/CmdSessionBoost.h>
+#include <SmurffCpp/Sessions/CmdSession.h>
 
 namespace smurff {
 
 class SessionFactory;
 
-class MPISession : public CmdSessionBoost
+class MPISession : public CmdSession
 {
    friend class SessionFactory;
 

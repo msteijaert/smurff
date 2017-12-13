@@ -6,12 +6,12 @@ namespace smurff {
    
    class SessionFactory;
    
-   class CmdSessionBoost :  public Session
+   class CmdSession :  public Session
    {
       friend class SessionFactory;
    
    protected:
-      CmdSessionBoost() {}
+      CmdSession() {}
    
    public:
       void setFromArgs(int argc, char** argv);

@@ -75,7 +75,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
-                        "../Sessions/CmdSessionBoost.h"
+                        "../Sessions/CmdSession.h"
                         "../Sessions/PythonSession.h"
                         "../Sessions/SessionFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
@@ -136,7 +136,7 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
-                        "../Sessions/CmdSessionBoost.cpp"
+                        "../Sessions/CmdSession.cpp"
                         "../Sessions/PythonSession.cpp"
                         "../Sessions/SessionFactory.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})

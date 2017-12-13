@@ -4,7 +4,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "CmdSessionBoost.h"
+#include "CmdSession.h"
 
 #include <SmurffCpp/Sessions/SessionFactory.h>
 #include <SmurffCpp/Configs/Config.h>
@@ -271,7 +271,7 @@ bool parse_options(int argc, char* argv[], Config& config)
    }
 }
 
-void CmdSessionBoost::setFromArgs(int argc, char** argv)
+void CmdSession::setFromArgs(int argc, char** argv)
 {
    Config config;
    if(!parse_options(argc, argv, config))
