@@ -29,6 +29,7 @@ addons:
 #      - libopenblas-dev
       - libblas-dev
       - liblapack-dev
+      - libboost-all-dev
 #      - libeigen3-dev # too old :(
 #      - cmake3
 #      - cmake3-data
