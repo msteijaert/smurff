@@ -227,7 +227,7 @@ configure_pthreads()
 configure_mpi()
 configure_openmp()
 configure_eigen()
-configure_argp()
+configure_boost()
 endif()
 
 set(ALGEBRA_LIB_FOUND OFF)
@@ -296,7 +296,7 @@ add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 # utils
 
 if(MSVC)
-add_subdirectory (../SmurffWin/cmake utils/SmurffWin)
+add_subdirectory (../Smurff/cmake utils/Smurff)
 else()
 add_subdirectory (../Smurff/cmake utils/Smurff)
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)

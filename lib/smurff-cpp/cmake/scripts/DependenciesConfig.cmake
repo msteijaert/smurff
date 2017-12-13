@@ -18,14 +18,6 @@ macro(configure_pthreads)
     endif()
 endmacro(configure_pthreads)
 
-macro(configure_argp)
-
-   find_package(Argp)
-   message(STATUS "Argp libs:" ${ARGP_LIBRARIES} )
-   message(STATUS "Argp includes:" ${ARGP_INCLUDE_PATH} )
-   add_definitions(-DARGP_FOUND)
-endmacro(configure_argp)
-
 macro(configure_mpi)
   message ("Dependency check for mpi...")
 
