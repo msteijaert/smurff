@@ -155,6 +155,24 @@ Add path to OpenBLAS binaries as in the example:
 E:\openblas_install_64\bin
 ```
 
+### Install Smurff
+
+Execute the following commands from command prompt:
+
+```
+git clone https://github.com/ExaScience/smurff.git
+cd smurff\lib\smurff-cpp\cmake
+mkdir build
+cd build
+cmake ../ -G "Visual Studio 14 2015 Win64" -DENABLE_OPENBLAS=ON -DENABLE_VERBOSE_COMPILER_LOG=ON
+```
+
+If you have Visual Studio different from 2015 - select proper generator.
+
+Build INSTALL target in Visual Studio in Release configuration.
+
+This will build all projects and install them in Program Files by default.
+
 ## Installation using Conda
 ```bash
 conda install -c vanderaa smurff 
