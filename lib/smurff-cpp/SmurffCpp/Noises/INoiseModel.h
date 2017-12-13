@@ -39,6 +39,7 @@ namespace smurff {
       virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
       virtual std::string getStatus()  = 0;
 
-      virtual void getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
+      virtual void getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM);
+      virtual double sample(const SubModel& model, const PVec<> &pos, double val);
    };
 }

@@ -15,6 +15,8 @@
 
 namespace smurff
 {
+   class SampledNoise;
+
    class Data
    {
       //AGE: Only MatricesData should call init methods, center methods etc
@@ -66,7 +68,7 @@ namespace smurff
 
    public:
       virtual double train_rmse(const SubModel& model) const = 0;
-      virtual void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
+      virtual void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const = 0;
       virtual void update_pnm(const SubModel& model, uint32_t mode) = 0;
 
    public:

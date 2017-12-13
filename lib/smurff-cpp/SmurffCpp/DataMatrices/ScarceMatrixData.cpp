@@ -43,54 +43,53 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
     return os;
 }
 
-void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n, VectorXd& rr, MatrixXd& MM)
+void ScarceMatrixData::getMuLambda(const SubModel& model, std::uint32_t mode, int n, VectorXd& rr, MatrixXd& MM) const
 {
-   COUNTER("get_pnm");
-   auto &Y = this->Y(mode);
+   COUNTER("getMuLambda");
 
+   auto &Y = this->Y(mode);
    const int num_latent = model.nlatent();
-   auto Vf = *model.CVbegin(mode);
    const int local_nnz = Y.col(n).nonZeros();
    const int total_nnz = Y.nonZeros();
+   auto from = Y.outerIndexPtr()[n];
+   auto to = Y.outerIndexPtr()[n+1];
+
+   auto getMuLambdaBasic = [&model, this, mode, n](int from, int to, VectorXd& rr, MatrixXd& MM) -> void
+   {
+       auto &Y = this->Y(mode);
+       auto Vf = *model.CVbegin(mode);
+       for(int i = from; i < to; ++i)
+       {
+           auto val = Y.valuePtr()[i];
+           auto idx = Y.innerIndexPtr()[i];
+           const auto &col = Vf.col(idx);
+           auto pos = this->pos(mode, n, idx);
+           double noisy_val = noise()->sample(model, pos, val);
+           rr.noalias() += col * noisy_val;
+           MM.triangularView<Lower>() += col * col.transpose();
+       }
+
+       // make MM complete
+       MM.triangularView<Upper>() = MM.transpose();
+    };
+
+   
 
    bool in_parallel = (local_nnz >10000) || ((double)local_nnz > (double)total_nnz / 100.);
    if (in_parallel) 
    {
        const int task_size = ceil(local_nnz / 100.0);
-       
-       auto from = Y.outerIndexPtr()[n];
-       auto to = Y.outerIndexPtr()[n+1];
-
        thread_vector<VectorXd> rrs(VectorXd::Zero(num_latent));
        thread_vector<MatrixXd> MMs(MatrixXd::Zero(num_latent, num_latent));
 
        for(int j = from; j < to; j += task_size) 
        {
            #pragma omp task shared(model, Y, Vf, rrs, MMs)
-           {
-               auto &my_rr = rrs.local();
-               auto &my_MM = MMs.local();
-
-               auto Vfloc = *model.CVbegin(mode); // why not use Vf?
-
-               for(int i = j; i < std::min(j + task_size, to); ++i)
-               {
-                   auto val = Y.valuePtr()[i];
-                   auto idx = Y.innerIndexPtr()[i];
-                   const auto &col = Vfloc.col(idx);
-                   auto pos = this->pos(mode, n, idx);
-                   double alpha = noise()->getAlpha(model, pos, val);
-                   my_rr.noalias() += col * (val * alpha);
-                   my_MM.triangularView<Lower>() += col * col.transpose() * alpha;
-               }
-
-               // make MM complete
-               my_MM.triangularView<Upper>() = my_MM.transpose();
-           }
+           getMuLambdaBasic(j, std::min(j + task_size, to), rrs.local(), MMs.local());
        }
        #pragma omp taskwait
        
-       // accumulate + add noise
+       // accumulate 
        MM += MMs.combine();
        rr += rrs.combine();
    } 
@@ -98,18 +97,8 @@ void ScarceMatrixData::get_pnm(const SubModel& model, std::uint32_t mode, int n,
    {
       VectorXd my_rr = VectorXd::Zero(num_latent);
       MatrixXd my_MM = MatrixXd::Zero(num_latent, num_latent);
-      
-      for (SparseMatrix<double>::InnerIterator it(Y, n); it; ++it) 
-      {
-          const auto &col = Vf.col(it.row());
-          auto pos = this->pos(mode, n, it.row());
-          double alpha = noise()->getAlpha(model, pos, it.value());
-          my_rr.noalias() += col * (it.value() * alpha);
-          my_MM.triangularView<Lower>() += col * col.transpose() * alpha;
-      }
 
-      // make MM complete
-      my_MM.triangularView<Upper>() = my_MM.transpose();
+      getMuLambdaBasic(from, to, my_rr, my_MM);
 
       // add to global
       rr += my_rr;

@@ -7,8 +7,8 @@ using namespace smurff;
 
 void GaussianNoise::getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
 {
-    data().getMuLambda(model, mode, d, rr, MM);
-
+    INoiseModel::getMuLambda(model, mode, d, rr, MM);
+    
     rr *= alpha;
     MM *= alpha;
 }

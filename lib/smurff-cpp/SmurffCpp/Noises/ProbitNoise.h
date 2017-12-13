@@ -3,14 +3,14 @@
 #include <string>
 #include <iostream>
 
-#include "SampledNoise.h"
+#include "INoiseModel.h"
 
 namespace smurff {
 
    class NoiseFactory;
 
    // Gaussian noise that adapts to the data
-   class ProbitNoise : public SampledNoise
+   class ProbitNoise : public INoiseModel
    {
       friend class NoiseFactory;
       

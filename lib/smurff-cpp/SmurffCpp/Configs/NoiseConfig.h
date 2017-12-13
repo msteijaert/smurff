@@ -5,7 +5,6 @@
 #define NOISE_NAME_FIXED "fixed"
 #define NOISE_NAME_ADAPTIVE "adaptive"
 #define NOISE_NAME_PROBIT "probit"
-#define NOISE_NAME_NOISELESS "noiseless"
 #define NOISE_NAME_UNUSED "unused"
 
 namespace smurff
@@ -15,7 +14,7 @@ namespace smurff
       fixed,
       adaptive,
       probit,
-      noiseless,
+      unset,
       unused,
    };
 
@@ -37,7 +36,7 @@ namespace smurff
       NoiseTypes m_noise_type;
 
    public:
-      NoiseConfig(NoiseTypes nt = NoiseTypes::noiseless) 
+      NoiseConfig(NoiseTypes nt = NoiseTypes::unset) 
          : m_noise_type(nt)
       {
       }

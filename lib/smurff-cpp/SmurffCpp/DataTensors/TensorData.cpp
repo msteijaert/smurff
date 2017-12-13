@@ -97,7 +97,7 @@ double TensorData::train_rmse(const SubModel& model) const
 //this function selects d'th hyperplane from mode`th SparseMode
 //it does j multiplications
 //where each multiplication is a cwiseProduct of columns from each V matrix
-void TensorData::get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const
 {
    std::shared_ptr<SparseMode> sview = Y(mode); //get tensor rotation for mode
    
@@ -111,11 +111,11 @@ void TensorData::get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::Vec
          ++V; //inc iterator prior to access since we are starting from m = 1
          col.noalias() = col.cwiseProduct((*V).col(sview->getIndices()(j, m))); //multiply by m'th column from V
       }
-      
-      //!!FIXME
-      const double alpha = 1.0;
-      MM.triangularView<Eigen::Lower>() += alpha * col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each V)
-      rr.noalias() += col * sview->getValues()[j] * alpha; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
+      MM.triangularView<Eigen::Lower>() += col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each V)
+      //FIXME!!
+      //double noisy_val = noise()->sample(model, pos, sview->getValues()[j]);
+      double noisy_val = sview->getValues()[j];
+      rr.noalias() += col * noisy_val; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
    }
 }
 

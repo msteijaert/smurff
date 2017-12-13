@@ -9,7 +9,7 @@ SparseMatrixData::SparseMatrixData(SparseMatrix<double> Y)
    this->name = "SparseMatrixData [fully known]";
 }
 
-void SparseMatrixData::get_pnm(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM) 
+void SparseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM) const
 {
     const auto& Y = this->Y(mode);
     auto Vf = *model.CVbegin(mode);
@@ -18,9 +18,9 @@ void SparseMatrixData::get_pnm(const SubModel& model, uint32_t mode, int d, Vect
     {
         const auto &col = Vf.col(it.row());
         auto pos = this->pos(mode, d, it.row());
-        double alpha = this->noise()->getAlpha(model, pos, it.value());
-        rr.noalias() += col * (it.value() * alpha); // rr = rr + (V[m] * y[d]) * alpha
-        MM.noalias() += col * (col.transpose() * alpha); // rr = rr + (V[m] * y[d]) * alpha
+        double noisy_val = this->noise()->sample(model, pos, it.value());
+        rr.noalias() += col * noisy_val; // rr = rr + (V[m] * y[d]) * alpha
+        MM.noalias() += col * col.transpose();
     }
 }
 

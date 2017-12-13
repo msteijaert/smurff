@@ -8,6 +8,12 @@
 
 using namespace smurff;
 
+ProbitNoise::ProbitNoise()
+   : INoiseModel()
+{
+
+}
+
 double ProbitNoise::sample(const SubModel& model, const PVec<> &pos, double val11)
 {
     assert(val11 >= -1.0 && val11 <= 1.0);

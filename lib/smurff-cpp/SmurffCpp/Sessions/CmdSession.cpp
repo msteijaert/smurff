@@ -55,16 +55,16 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
       THROWERROR("train data is not provided");
 
    // set global noise model
-   if (config.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+   if (config.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
    config.m_train->setNoiseConfig(nc);
 
    //set for row/col feautres
    for(auto m: config.m_row_features)
-      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
          m->setNoiseConfig(nc);
 
    for(auto m: config.m_col_features)
-      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
          m->setNoiseConfig(nc);
 }
 

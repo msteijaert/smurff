@@ -105,11 +105,11 @@ void MatricesData::update(const SubModel &model)
    }
 }
 
-void MatricesData::get_pnm(const SubModel& model, uint32_t mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+void MatricesData::getMuLambda(const SubModel& model, uint32_t mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const
 {
    int count = 0;
    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
-       b.data()->get_pnm(b.submodel(model), mode, pos - b.start(mode), rr, MM);
+       b.data()->getMuLambda(b.submodel(model), mode, pos - b.start(mode), rr, MM);
        count++;
    });
    assert(count>0);

@@ -10,7 +10,7 @@ DenseMatrixData::DenseMatrixData(MatrixXd Y)
 }
 
 //d is an index of column in U matrix
-void DenseMatrixData::get_pnm(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM)
+void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM) const
 {
     auto &Y = this->Y(mode).col(d);
     auto Vf = *model.CVbegin(mode);
@@ -19,9 +19,9 @@ void DenseMatrixData::get_pnm(const SubModel& model, uint32_t mode, int d, Vecto
     {
         const auto &col = Vf.col(r);
         PVec<> pos = this->pos(mode, d, r);
-        double alpha = this->noise()->getAlpha(model, pos, Y(r));
-        rr.noalias() += col * (Y(r) * alpha); // rr = rr + (V[m] * y[d]) * alpha
-        MM.noalias() += col* (col.transpose() * alpha); // rr = rr + (V[m] * y[d]) * alpha
+        double noisy_val = noise()->sample(model, pos, Y(r));
+        rr.noalias() += col * noisy_val; // rr = rr + (V[m] * y[d]) * alpha
+        MM.noalias() += col * col.transpose(); // rr = rr + (V[m] * y[d]) * alpha
     }
 }
 
