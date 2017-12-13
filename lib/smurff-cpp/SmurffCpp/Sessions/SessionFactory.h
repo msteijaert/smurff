@@ -11,7 +11,6 @@ namespace smurff {
    {
    public:
       static std::shared_ptr<ISession> create_cmd_session(int argc, char** argv);
-      static std::shared_ptr<ISession> create_cmd_session(Config& cfg);
 
       static std::shared_ptr<ISession> create_py_session(Config& cfg);
    };

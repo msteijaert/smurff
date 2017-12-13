@@ -4,6 +4,8 @@
 
 #include <boost/program_options.hpp>
 
+#include "CmdSessionBoost.h"
+
 #include <SmurffCpp/Sessions/SessionFactory.h>
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Utils/counters.h>
@@ -234,7 +236,7 @@ bool parse_options(int argc, char* argv[], Config& config)
 {
    try
    {
-      boost::program_options::options_description desc =  get_desc();
+      boost::program_options::options_description desc = get_desc();
 
       boost::program_options::variables_map vm;
       store(parse_command_line(argc, argv, desc), vm);
@@ -257,32 +259,23 @@ bool parse_options(int argc, char* argv[], Config& config)
    }
    catch (const boost::program_options::error &ex)
    {
+      std::cerr << "Failed to parse command line arguments: " << std::endl;
+      std::cerr << ex.what() << std::endl;
+      return false;
+   }
+   catch (std::runtime_error& ex)
+   {
+      std::cerr << "Failed to parse command line arguments: " << std::endl;
       std::cerr << ex.what() << std::endl;
       return false;
    }
 }
 
-int main(int argc, char** argv) 
+void CmdSessionBoost::setFromArgs(int argc, char** argv)
 {
-   try
-   {
-      Config config;
-      if(!parse_options(argc, argv, config))
-         return -1;
+   Config config;
+   if(!parse_options(argc, argv, config))
+      exit(0); //need a way to figure out how to handle help and version
 
-      std::shared_ptr<smurff::ISession> session = SessionFactory::create_cmd_session(config);
-      
-      { COUNTER("main"); session->run(); }
-      
-      #ifdef PROFILING
-      perf_data.print();
-      #endif
-
-   }
-   catch (std::runtime_error& e)
-   {
-      std::cout << e.what() << std::endl;
-   }
-      
-   return 0;
+   setFromConfig(config);
 }
