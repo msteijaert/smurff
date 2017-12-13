@@ -15,8 +15,14 @@ Macau method is able to perform **matrix** and **tensor** factorization while in
 For examples see [documentation](http://macau.readthedocs.io/en/latest/source/examples.html).
 
 # Installation
-Currently there is only C++ version of smurff available. Python one is comming soon.
 
+## Python wrapper installation on Ubuntu
+
+1. Build C++ SMURFF library using [Source installation on Ubuntu using cmake](#source-installation-on-ubuntu-using-cmake)
+2. Go to SMURFF build directory that contains CMake generated Makefile and run `sudo make install`. By invoking this command you install SMURFF static library and headers to `/usr/local/`
+3. Go to [python/smurff](https://github.com/ExaScience/smurff/tree/master/python/smurff) directory
+4. Run `python setup.py build install`
+5. Go to [python/smurff/examples](https://github.com/ExaScience/smurff/tree/master/python/smurff/examples) directory and run `python smurff-mm.py` to verify that SMUFF Python module was installed correctly
 
 ## Source installation on Ubuntu using cmake
 
