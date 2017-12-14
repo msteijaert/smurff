@@ -20,9 +20,10 @@ void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, V
         const auto &col = Vf.col(r);
         PVec<> pos = this->pos(mode, d, r);
         double noisy_val = noise()->sample(model, pos, Y(r));
-        rr.noalias() += col * noisy_val; // rr = rr + (V[m] * y[d]) * alpha
-        MM.noalias() += col * col.transpose(); // rr = rr + (V[m] * y[d]) * alpha
+        rr.noalias() += col * noisy_val; // rr = rr + (V[m] * noisy_y[d]) 
     }
+
+    MM.noalias() += VV[mode]; // MM = MM + VV[m]
 }
 
 double DenseMatrixData::train_rmse(const SubModel& model) const
