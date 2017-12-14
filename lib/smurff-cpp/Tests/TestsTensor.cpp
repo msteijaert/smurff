@@ -29,7 +29,7 @@ TEST_CASE("test sparse view new 1")
       {
          0,  3,  1,  4,  2,  5,
       };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(NoiseTypes::fixed), false);
 
    Eigen::MatrixXd actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
 
@@ -87,7 +87,7 @@ TEST_CASE("test sparse view new 2")
       {
          0,  3,  1,  4,  2,  5,     6,  9,  7, 10,  8, 11,    12, 15, 13, 16, 14, 17,    18, 21, 19, 22, 20, 23
       };
-   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
+   TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(NoiseTypes::fixed), false);
 
    TensorData td(tensorConfig);
    /*

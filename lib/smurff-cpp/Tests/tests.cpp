@@ -88,12 +88,12 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   std::shared_ptr<Result> p(new Result());
   std::shared_ptr<Model> model(new Model());
   
-  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, NoiseConfig(), false));
+  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, NoiseConfig(NoiseTypes::fixed), false));
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(*S)));
   
   p->set(S);
 
-  NoiseConfig ncfg;
+  NoiseConfig ncfg(NoiseTypes::fixed);
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 
   data->init();
@@ -174,7 +174,7 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
 
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
 
-  NoiseConfig ncfg;
+  NoiseConfig ncfg(NoiseTypes::fixed);
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 
   data->init();
@@ -187,7 +187,7 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
 
   std::shared_ptr<Data> data(new DenseMatrixData(Y));
 
-  NoiseConfig ncfg;
+  NoiseConfig ncfg(NoiseTypes::fixed);
   data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
 
   data->init();
