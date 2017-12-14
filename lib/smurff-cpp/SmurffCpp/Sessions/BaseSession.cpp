@@ -63,7 +63,7 @@ void BaseSession::restore(std::string prefix, std::string suffix)
 
 std::vector<ResultItem> BaseSession::getResult()
 {
-   return m_pred->m_predictions;
+   return *(m_pred->m_predictions);
 }
 
 MatrixConfig BaseSession::getSample(int mode)

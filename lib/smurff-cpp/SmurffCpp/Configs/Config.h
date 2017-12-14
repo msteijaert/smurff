@@ -48,7 +48,7 @@ ModelInitTypes stringToModelInitType(std::string name);
 
 std::string modelInitTypeToString(ModelInitTypes type);
 
-struct Config 
+struct Config
 {
     //-- train and test
     std::shared_ptr<TensorConfig> m_train;
@@ -113,7 +113,7 @@ public:
     }
 
 public:
-    bool validate(bool = true) const;
+    bool validate() const;
     void save(std::string) const;
     void restore(std::string);
 };
