@@ -5,6 +5,8 @@
 
 using namespace smurff;
 
+static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
+
 TEST_CASE( "SparseFeat/At_mul_A_bcsr", "[At_mul_A] for BinaryCSR" ) 
 {
    int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };

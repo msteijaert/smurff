@@ -9,11 +9,13 @@
 
 using namespace smurff;
 
+static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
+
 TEST_CASE("tensor_io/read_dense_float64_bin | tensor_io/write_dense_float64_bin")
 {
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<double> tensorConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigValues), NoiseConfig(NoiseTypes::fixed)));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigValues), fixed_ncfg));
 
    std::stringstream matrixConfigStream;
    tensor_io::write_dense_float64_bin(matrixConfigStream, tensorConfig);
@@ -36,7 +38,7 @@ TEST_CASE("tensor_io/read_sparse_float64_bin | tensor_io/write_sparse_float64_bi
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2, 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> tensorConfigValues = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), NoiseConfig(NoiseTypes::fixed), false));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), fixed_ncfg, false));
 
    std::stringstream tensorStream;
    tensor_io::write_sparse_float64_bin(tensorStream, tensorConfig);
@@ -67,7 +69,7 @@ TEST_CASE("tensor_io/read_sparse_binary_bin | tensor_io/write_sparse_binary_bin"
 {
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2, 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), NoiseConfig(NoiseTypes::fixed), false));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), fixed_ncfg, false));
 
    std::stringstream tensorStream;
    tensor_io::write_sparse_binary_bin(tensorStream, tensorConfig);
@@ -98,7 +100,7 @@ TEST_CASE("tensor_io/read_dense_float64_csv | tensor_io/write_dense_float64_csv"
 {
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<double> tensorConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigValues), NoiseConfig(NoiseTypes::fixed)));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigValues), fixed_ncfg));
 
    std::stringstream matrixConfigStream;
    tensor_io::write_dense_float64_csv(matrixConfigStream, tensorConfig);
@@ -121,7 +123,7 @@ TEST_CASE("tensor_io/read_sparse_float64_tns | tensor_io/write_sparse_float64_tn
    std::vector<std::uint64_t> tensorConfigDims = { 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns = { 0, 0, 0, 0, 2, 2, 2, 2, 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> tensorConfigValues = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), NoiseConfig(NoiseTypes::fixed), false));
+   std::shared_ptr<TensorConfig> tensorConfig(new TensorConfig(std::move(tensorConfigDims), std::move(tensorConfigColumns), std::move(tensorConfigValues), fixed_ncfg, false));
 
    std::stringstream tensorStream;
    tensor_io::write_sparse_float64_tns(tensorStream, tensorConfig);
