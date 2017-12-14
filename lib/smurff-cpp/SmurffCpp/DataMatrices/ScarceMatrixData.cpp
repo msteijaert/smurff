@@ -86,7 +86,7 @@ void ScarceMatrixData::getMuLambda(const SubModel& model, std::uint32_t mode, in
 
        for(int j = from; j < to; j += task_size) 
        {
-           #pragma omp task shared(model, Y, Vf, rrs, MMs)
+           #pragma omp task shared(model, Y, rrs, MMs)
            getMuLambdaBasic(j, std::min(j + task_size, to), rrs.local(), MMs.local());
        }
        #pragma omp taskwait
