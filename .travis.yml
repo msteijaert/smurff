@@ -30,6 +30,7 @@ addons:
       - libblas-dev
       - liblapack-dev
       - libboost-all-dev
+      - libopenmpi-dev
 #      - libeigen3-dev # too old :(
 #      - cmake3
 #      - cmake3-data
