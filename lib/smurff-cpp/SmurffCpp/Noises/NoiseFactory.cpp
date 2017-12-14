@@ -18,7 +18,7 @@ std::shared_ptr<INoiseModel> NoiseFactory::create_noise_model(const NoiseConfig&
       case NoiseTypes::adaptive:
          return std::shared_ptr<INoiseModel>(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
       case NoiseTypes::probit:
-         return std::shared_ptr<INoiseModel>(new ProbitNoise());
+         return std::shared_ptr<INoiseModel>(new ProbitNoise(config.threshold));
       case NoiseTypes::unused:
          return std::shared_ptr<INoiseModel>(new UnusedNoise());
       default:

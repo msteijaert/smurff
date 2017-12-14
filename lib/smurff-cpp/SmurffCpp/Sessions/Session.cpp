@@ -38,16 +38,6 @@ void Session::setFromConfig(const Config& cfg)
 
    data_ptr = config.m_train->create(std::make_shared<DataCreator>(this_session));
 
-   // check if data is ScarceBinary
-   /*
-   if (0)
-      if (!config.classify) {
-            config.classify = true;
-            config.threshold = 0.5;
-            config.train.noise.name = "probit";
-      }
-   */
-
    // initialize priors
 
    this->addPrior(PriorFactory::create_prior(this_session, 0));

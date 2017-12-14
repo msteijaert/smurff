@@ -32,6 +32,9 @@ namespace smurff
       double sn_init    = 1.0;
       double sn_max     = 10.0;
 
+      // for probit
+      double threshold  = 0.0;
+
    private:
       NoiseTypes m_noise_type;
 

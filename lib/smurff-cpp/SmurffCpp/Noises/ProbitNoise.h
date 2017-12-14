@@ -14,8 +14,11 @@ namespace smurff {
    {
       friend class NoiseFactory;
       
+   private:
+      double threshold;
+      
    protected:
-      ProbitNoise();
+      ProbitNoise(double threshold = 0.0);
 
    public:
       double sample(const SubModel& model, const PVec<> &pos, double val) override;
