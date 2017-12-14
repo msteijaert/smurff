@@ -27,7 +27,7 @@ using namespace matrix_io;
 enum OPT_ENUM
 {
    ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
-   BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
+   BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, PROBIT, LAMBDA_BETA, TOL, DIRECT,
    RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET, VERSION, SEED,
    INIT_MODEL, CENTER, STATUS_FILE
 };
@@ -49,6 +49,10 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    else if (nc.getNoiseType() == NoiseTypes::fixed)
    {
       nc.precision = strtod(optarg.c_str(), NULL);
+   }
+   else if (nc.getNoiseType() == NoiseTypes::probit)
+   {
+      nc.threshold = strtod(optarg.c_str(), NULL);
    }
 
    if(!config.m_train)
@@ -103,6 +107,7 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
 
       case PRECISION:       set_noise_model(c, NOISE_NAME_FIXED, optarg); break;
       case ADAPTIVE:        set_noise_model(c, NOISE_NAME_ADAPTIVE, optarg); break;
+      case PROBIT:          set_noise_model(c, NOISE_NAME_PROBIT, optarg); break;
 
       case THRESHOLD:       c.threshold          = strtod(optarg, 0); c.classify = true; break;
       case INIT_MODEL:      c.model_init_type = stringToModelInitType(optarg); break;
@@ -153,6 +158,7 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {0,0,0,0,"Noise model:",4},
         {"precision",	     PRECISION	, "NUM",   0, "5.0  precision of observations"},
         {"adaptive",	     ADAPTIVE	, "NUM,NUM",   0, "1.0,10.0  adaptive precision of observations"},
+        {"probit",	     PROBIT	, "THRESHOLD",   0, "0.0  probit noise model with given threshold"},
         {0,0,0,0,"For the macau prior:",5},
         {"lambda-beta",	     LAMBDA_BETA	, "NUM",   0, "10.0  initial value of lambda beta"},
         {"tol",              TOL        , "NUM",   0, "1e-6  tolerance for CG"},
