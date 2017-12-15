@@ -46,7 +46,7 @@ double calc_auc(const std::vector<Item> &predictions, double threshold)
 struct Result
 {
    //sparse representation of test matrix
-   std::vector<ResultItem> m_predictions;
+   std::shared_ptr<std::vector<ResultItem> > m_predictions;
 
    //dimensions of Ytest
    std::vector<std::uint64_t> m_dims;

@@ -81,7 +81,7 @@ TEST_CASE( "latentprior/sample_lambda_beta", "sampling lambda beta from gamma di
   REQUIRE( lambda_beta > 0 );
 }
 
-TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated") 
+TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated")
 {
   std::vector<std::uint32_t> rows = {0};
   std::vector<std::uint32_t> cols = {0};
@@ -92,7 +92,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   
   std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, fixed_ncfg, false));
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(*S)));
-  
+
   p->set(S);
 
   data->setNoiseModel(NoiseFactory::create_noise_model(fixed_ncfg));
@@ -100,14 +100,14 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   data->init();
   model->init(2, PVec<>({1, 1}), ModelInitTypes::zero); //latent dimention has size 2
 
-  auto &t = p->m_predictions.at(0);
+  auto &t = p->m_predictions->at(0);
 
   // first iteration
   *model->U(0) << 1.0, 0.0;
   *model->U(1) << 1.0, 0.0;
 
   p->update(model, false);
-  
+
   REQUIRE(t.pred_avg == Approx(1.0 * 1.0 + 0.0 * 0.0));
   REQUIRE(t.var == Approx(0.0));
   REQUIRE(p->rmse_1sample == Approx(std::sqrt(std::pow(4.5 - (1.0 * 1.0 + 0.0 * 0.0), 2) / 1 )));
@@ -118,17 +118,17 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   *model->U(1) << 1.0, 0.0;
 
   p->update(model, false);
-  
+
   REQUIRE(t.pred_avg == Approx(((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)) / 2));
   REQUIRE(t.var == Approx(0.5));
   REQUIRE(p->rmse_1sample == Approx(std::sqrt(std::pow(4.5 - (2.0 * 1.0 + 0.0 * 0.0), 2) / 1 )));
   REQUIRE(p->rmse_avg == Approx(std::sqrt(std::pow(4.5 - ((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)) / 2, 2) / 1)));
 
   //// third iteration
-  
+
   *model->U(0) << 2.0, 0.0;
   *model->U(1) << 3.0, 0.0;
-  
+
   p->update(model, false);
 
   REQUIRE(t.pred_avg == Approx(((1.0 * 1.0 + 0.0 * 0.0) + (2.0 * 1.0 + 0.0 * 0.0)+ (2.0 * 3.0 + 0.0 * 0.0)) / 3));
