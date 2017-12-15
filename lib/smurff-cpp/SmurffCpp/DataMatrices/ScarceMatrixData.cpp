@@ -60,13 +60,15 @@ void ScarceMatrixData::getMuLambda(const SubModel& model, std::uint32_t mode, in
    {
        auto &Y = this->Y(mode);
        auto Vf = *model.CVbegin(mode);
+       auto &ns = *noise();
+
        for(int i = from; i < to; ++i)
        {
            auto val = Y.valuePtr()[i];
            auto idx = Y.innerIndexPtr()[i];
            const auto &col = Vf.col(idx);
            auto pos = this->pos(mode, n, idx);
-           double noisy_val = noise()->sample(model, pos, val);
+           double noisy_val = ns.sample(model, pos, val);
            rr.noalias() += col * noisy_val;
            MM.triangularView<Lower>() += col * col.transpose();
        }
