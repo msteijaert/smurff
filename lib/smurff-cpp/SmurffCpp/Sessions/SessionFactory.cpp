@@ -4,19 +4,9 @@
 #include <vector>
 
 #include <SmurffCpp/Sessions/BaseSession.h>
-#include <SmurffCpp/Sessions/CmdSession.h>
 #include <SmurffCpp/Sessions/PythonSession.h>
 
 using namespace smurff;
-
-//create cmd session
-//parses args with setFromArgs, then internally calls setFromConfig (to validate, save, set config)
-std::shared_ptr<ISession> SessionFactory::create_cmd_session(int argc, char** argv)
-{
-   std::shared_ptr<CmdSession> session(new CmdSession());
-   session->setFromArgs(argc, argv);
-   return session;
-}
 
 //create python session
 //parses args outside of c++ code (in python code)

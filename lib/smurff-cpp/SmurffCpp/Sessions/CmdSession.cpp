@@ -6,7 +6,6 @@
 
 #include "CmdSession.h"
 
-#include <SmurffCpp/Sessions/SessionFactory.h>
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Version.h>
@@ -197,8 +196,8 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if(vm.count(THRESHOLD_NAME))
    {
-      config.threshold = vm[THRESHOLD_NAME].as<double>(); 
-      config.classify = true;  
+      config.threshold = vm[THRESHOLD_NAME].as<double>();
+      config.classify = true;
    }
 
    if(vm.count(VERBOSE_NAME))
@@ -209,7 +208,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if(vm.count(STATUS_NAME))
       config.csv_status = vm[STATUS_NAME].as<std::string>();
-      
+
    if(vm.count(SEED_NAME))
    {
       config.random_seed_set = true;
@@ -223,7 +222,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       set_noise_model_win(config, NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>());
 
    if(vm.count(LAMBDA_BETA_NAME))
-      config.lambda_beta = vm[LAMBDA_BETA_NAME].as<double>(); 
+      config.lambda_beta = vm[LAMBDA_BETA_NAME].as<double>();
 
    if(vm.count(TOL_NAME))
       config.tol = vm[TOL_NAME].as<double>();
@@ -278,4 +277,13 @@ void CmdSession::setFromArgs(int argc, char** argv)
       exit(0); //need a way to figure out how to handle help and version
 
    setFromConfig(config);
+}
+
+//create cmd session
+//parses args with setFromArgs, then internally calls setFromConfig (to validate, save, set config)
+std::shared_ptr<ISession> smurff::create_cmd_session(int argc, char** argv)
+{
+   std::shared_ptr<CmdSession> session(new CmdSession());
+   session->setFromArgs(argc, argv);
+   return session;
 }
