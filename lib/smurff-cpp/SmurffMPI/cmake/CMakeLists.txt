@@ -6,11 +6,13 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../MPISession.h"
-                        "../MPIMacauPrior.hpp")
+                        "../MPIMacauPrior.hpp"
+                        "../../SmurffCpp/Sessions/CmdSession.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../mpi_smurff.cpp"
                         "../MPISession.cpp"
+                        "../../SmurffCpp/Sessions/CmdSession.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
