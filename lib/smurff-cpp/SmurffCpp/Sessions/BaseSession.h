@@ -12,13 +12,10 @@ namespace smurff {
 class ILatentPrior;
 class Data;
 class Model;
-class SessionFactory;
 struct Result;
 
 class BaseSession : public ISession
 {
-   friend class SessionFactory;
-
 protected:
    std::shared_ptr<Model> m_model;
    std::shared_ptr<Result> m_pred;

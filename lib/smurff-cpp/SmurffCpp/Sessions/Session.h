@@ -8,13 +8,8 @@
 
 namespace smurff {
 
-class SessionFactory;
-
 class Session : public BaseSession, public std::enable_shared_from_this<Session>
 {
-   //only session factory should call setFromConfig
-   friend class SessionFactory;
-
 public:
    Config config;
    int iter = -1; //index of step iteration
@@ -25,7 +20,7 @@ protected:
       name = "Session";
    }
 
-protected:
+public:
    void setFromConfig(const Config& cfg);
 
    // execution of the sampler

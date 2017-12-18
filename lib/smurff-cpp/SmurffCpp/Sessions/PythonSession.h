@@ -4,16 +4,12 @@
 
 namespace smurff {
 
-class SessionFactory;
-
 class PythonSession : public Session
 {
-   friend class SessionFactory;
-
 private:
    static bool keepRunning;
 
-protected:
+public:
    PythonSession()
    {
       name = "PythonSession";
@@ -26,5 +22,7 @@ protected:
 private:
    static void intHandler(int);
 };
+
+std::shared_ptr<ISession> create_py_session(Config& cfg);
 
 }
