@@ -17,9 +17,6 @@
 #define COL_PRIOR_NAME "col-prior"
 #define ROW_FEATURES_NAME "row-features"
 #define COL_FEATURES_NAME "col-features"
-//#define ROW_MODEL_NAME "row-model"
-//#define COL_MODEL_NAME "col-model"
-//#define CENTER_NAME "center"
 #define TEST_NAME "test"
 #define TRAIN_NAME "train"
 #define BURNIN_NAME "burnin"
@@ -57,9 +54,6 @@ boost::program_options::options_description get_desc()
      (COL_PRIOR_NAME, boost::program_options::value<std::string>()->default_value(PRIOR_NAME_DEFAULT), "One of <normal|spikeandslab|macau|macauone>")
      (ROW_FEATURES_NAME, boost::program_options::value<std::vector<std::string> >(), "side info for rows")
      (COL_FEATURES_NAME, boost::program_options::value<std::vector<std::string> >(), "side info for cols");
-     //(ROW_MODEL_NAME, boost::program_options::value<std::string>(), "initialization matrix for row model")
-     //(COL_MODEL_NAME, boost::program_options::value<std::string>(), "initialization matrix for col model")
-     //(CENTER_NAME, boost::program_options::value<std::string>(), "center <global|rows|cols|none>");
 
    boost::program_options::options_description train_test_desc("Test and train matrices");
    train_test_desc.add_options()
@@ -163,11 +157,11 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       for (auto& cf : vm[COL_FEATURES_NAME].as<std::vector<std::string> >())
          config.m_col_features.push_back(matrix_io::read_matrix(cf, false));
 
-   if (vm.count(TRAIN_NAME))
-      config.m_train = generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true);
-
    if (vm.count(TEST_NAME))
       config.m_test = generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true);
+
+   if (vm.count(TRAIN_NAME))
+      config.m_train = generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true);
 
    if (vm.count(BURNIN_NAME))
       config.burnin = vm[BURNIN_NAME].as<int>();
