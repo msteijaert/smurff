@@ -12,6 +12,30 @@ from SessionFactory cimport SessionFactory
 cimport numpy as np
 import  numpy as np
 import  scipy as sp
+import numbers
+
+def make_train_test(Y, ntest):
+    """Splits a sparse matrix Y into a train and a test matrix.
+       Y      scipy sparse matrix (coo_matrix, csr_matrix or csc_matrix)
+       ntest  either a float below 1.0 or integer.
+              if float, then indicates the ratio of test cells
+              if integer, then indicates the number of test cells
+       returns Ytrain, Ytest (type coo_matrix)
+    """
+    if type(Y) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+        raise TypeError("Unsupported Y type: %s" + type(Y))
+    if not isinstance(ntest, numbers.Real) or ntest < 0:
+        raise TypeError("ntest has to be a non-negative number (number or ratio of test samples).")
+    Y = Y.tocoo(copy = False)
+    if ntest < 1:
+        ntest = Y.nnz * ntest
+    ntest = int(round(ntest))
+    rperm = np.random.permutation(Y.nnz)
+    train = rperm[ntest:]
+    test  = rperm[0:ntest]
+    Ytrain = sp.sparse.coo_matrix( (Y.data[train], (Y.row[train], Y.col[train])), shape=Y.shape )
+    Ytest  = sp.sparse.coo_matrix( (Y.data[test],  (Y.row[test],  Y.col[test])),  shape=Y.shape )
+    return Ytrain, Ytest
 
 def remove_nan(Y):
     if not np.any(np.isnan(Y.data)):
@@ -125,10 +149,10 @@ def smurff(Y,
         config.m_col_features.push_back(cf_matrix_config)
 
     if row_prior:
-        config.row_prior_type = stringToPriorType(row_prior)
+        config.row_prior_type = stringToPriorType(row_prior.encode('utf8'))
 
     if col_prior:
-        config.col_prior_type = stringToPriorType(col_prior)
+        config.col_prior_type = stringToPriorType(col_prior.encode('utf8'))
 
     config.lambda_beta = lambda_beta
     config.num_latent  = num_latent
