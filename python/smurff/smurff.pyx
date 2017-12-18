@@ -67,7 +67,7 @@ class ResultItem:
         return str(self)
 
 def smurff(Y,
-           Ytest,
+           Ytest          = None,
            row_features   = [],
            col_features   = [],
            row_prior      = None,
@@ -109,8 +109,9 @@ def smurff(Y,
     config.m_train = shared_ptr[TensorConfig](prepare_sparse(Y, True))
     config.m_train.get().setNoiseConfig(nc)
 
-    config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest, True))
-    config.m_test.get().setNoiseConfig(nc)
+    if Ytest is not None:
+        config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest, True))
+        config.m_test.get().setNoiseConfig(nc)
 
     cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
