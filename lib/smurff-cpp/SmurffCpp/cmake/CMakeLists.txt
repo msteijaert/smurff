@@ -75,8 +75,9 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
-
-                        "../Sessions/PythonSession.h")
+                        
+                        "../Sessions/PythonSession.h"
+                        "../Sessions/SessionFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../Version.cpp"
@@ -135,7 +136,8 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
-                        "../Sessions/PythonSession.cpp")
+                        "../Sessions/PythonSession.cpp"
+                        "../Sessions/SessionFactory.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 #SETUP OUTPUT
@@ -157,4 +159,5 @@ install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../Sessions/ISession.h DESTINATION include/SmurffCpp/Sessions)
