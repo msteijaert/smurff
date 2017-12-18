@@ -55,8 +55,8 @@ boost::program_options::options_description get_desc()
    priors_desc.add_options()
      (ROW_PRIOR_NAME, boost::program_options::value<std::string>()->default_value(PRIOR_NAME_DEFAULT), "One of <normal|spikeandslab|macau|macauone>")
      (COL_PRIOR_NAME, boost::program_options::value<std::string>()->default_value(PRIOR_NAME_DEFAULT), "One of <normal|spikeandslab|macau|macauone>")
-     (ROW_FEATURES_NAME, boost::program_options::value<std::string>(), "side info for rows")
-     (COL_FEATURES_NAME, boost::program_options::value<std::string>(), "side info for cols");
+     (ROW_FEATURES_NAME, boost::program_options::value<std::vector<std::string> >(), "side info for rows")
+     (COL_FEATURES_NAME, boost::program_options::value<std::vector<std::string> >(), "side info for cols");
      //(ROW_MODEL_NAME, boost::program_options::value<std::string>(), "initialization matrix for row model")
      //(COL_MODEL_NAME, boost::program_options::value<std::string>(), "initialization matrix for col model")
      //(CENTER_NAME, boost::program_options::value<std::string>(), "center <global|rows|cols|none>");
@@ -156,10 +156,12 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       config.col_prior_type = stringToPriorType(vm[COL_PRIOR_NAME].as<std::string>());
 
    if (vm.count(ROW_FEATURES_NAME))
-      config.m_row_features.push_back(matrix_io::read_matrix(vm[ROW_FEATURES_NAME].as<std::string>(), false));
+      for (auto& rf : vm[ROW_FEATURES_NAME].as<std::vector<std::string> >())
+         config.m_row_features.push_back(matrix_io::read_matrix(rf, false));
 
    if (vm.count(COL_FEATURES_NAME))
-      config.m_col_features.push_back(matrix_io::read_matrix(vm[COL_FEATURES_NAME].as<std::string>(), false));
+      for (auto& cf : vm[COL_FEATURES_NAME].as<std::vector<std::string> >())
+         config.m_col_features.push_back(matrix_io::read_matrix(cf, false));
 
    if (vm.count(TRAIN_NAME))
       config.m_train = generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true);
