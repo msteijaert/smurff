@@ -1,4 +1,5 @@
 from libcpp.vector cimport vector
+from libcpp.memory cimport shared_ptr
 
 from MatrixConfig cimport MatrixConfig
 from ResultItem cimport ResultItem
@@ -8,5 +9,5 @@ cdef extern from "<SmurffCpp/Sessions/ISession.h>" namespace "smurff":
         void run()
         void step()
         void init()
-        vector[ResultItem] getResult()
+        shared_ptr[vector[ResultItem]] getResult()
         MatrixConfig getSample(int mode)
