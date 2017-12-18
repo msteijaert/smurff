@@ -124,19 +124,19 @@ void set_noise_model_win(Config& config, std::string noiseName, std::string opta
       nc.precision = strtod(optarg.c_str(), NULL);
    }
 
-   if(!config.m_train)
+   if(!config.getTrain())
       THROWERROR("train data is not provided");
 
    // set global noise model
-   if (config.m_train->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-      config.m_train->setNoiseConfig(nc);
+   if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+      config.getTrain()->setNoiseConfig(nc);
 
    //set for row/col feautres
-   for(auto m: config.m_row_features)
+   for(auto m: config.getRowFeatures())
       if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
          m->setNoiseConfig(nc);
 
-   for(auto m: config.m_col_features)
+   for(auto m: config.getColFeatures())
       if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
          m->setNoiseConfig(nc);
 }
@@ -144,71 +144,71 @@ void set_noise_model_win(Config& config, std::string noiseName, std::string opta
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
    if (vm.count(ROW_PRIOR_NAME))
-      config.row_prior_type = stringToPriorType(vm[ROW_PRIOR_NAME].as<std::string>());
+      config.setRowPriorType(stringToPriorType(vm[ROW_PRIOR_NAME].as<std::string>()));
 
    if (vm.count(COL_PRIOR_NAME))
-      config.col_prior_type = stringToPriorType(vm[COL_PRIOR_NAME].as<std::string>());
+      config.setColPriorType(stringToPriorType(vm[COL_PRIOR_NAME].as<std::string>()));
 
    if (vm.count(ROW_FEATURES_NAME))
       for (auto& rf : vm[ROW_FEATURES_NAME].as<std::vector<std::string> >())
-         config.m_row_features.push_back(matrix_io::read_matrix(rf, false));
+         config.getRowFeatures().push_back(matrix_io::read_matrix(rf, false));
 
    if (vm.count(COL_FEATURES_NAME))
       for (auto& cf : vm[COL_FEATURES_NAME].as<std::vector<std::string> >())
-         config.m_col_features.push_back(matrix_io::read_matrix(cf, false));
+         config.getColFeatures().push_back(matrix_io::read_matrix(cf, false));
 
    if (vm.count(TEST_NAME))
-      config.m_test = generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true);
+      config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
 
    if (vm.count(TRAIN_NAME))
-      config.m_train = generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true);
+      config.setTrain(generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true));
 
    if (vm.count(BURNIN_NAME))
-      config.burnin = vm[BURNIN_NAME].as<int>();
+      config.setBurnin(vm[BURNIN_NAME].as<int>());
 
    if (vm.count(NSAMPLES_NAME))
-      config.nsamples = vm[NSAMPLES_NAME].as<int>();
+      config.setNSamples(vm[NSAMPLES_NAME].as<int>());
 
    if(vm.count(NUM_LATENT_NAME))
-      config.num_latent = vm[NUM_LATENT_NAME].as<int>();
+      config.setNumLatent(vm[NUM_LATENT_NAME].as<int>());
 
    if(vm.count(RESTORE_PREFIX_NAME))
-      config.restore_prefix = vm[RESTORE_PREFIX_NAME].as<std::string>();
+      config.setRestorePrefix(vm[RESTORE_PREFIX_NAME].as<std::string>());
 
    if(vm.count(RESTORE_SUFFIX_NAME))
-      config.restore_suffix = vm[RESTORE_SUFFIX_NAME].as<std::string>();
+      config.setRestoreSuffix(vm[RESTORE_SUFFIX_NAME].as<std::string>());
 
    if(vm.count(INIT_MODEL_NAME))
-      config.model_init_type = stringToModelInitType(vm[INIT_MODEL_NAME].as<std::string>());
+      config.setModelInitType(stringToModelInitType(vm[INIT_MODEL_NAME].as<std::string>()));
 
    if(vm.count(SAVE_PREFIX_NAME))
       config.setSavePrefix(vm[SAVE_PREFIX_NAME].as<std::string>());
 
    if(vm.count(SAVE_SUFFIX_NAME))
-      config.save_suffix = vm[SAVE_SUFFIX_NAME].as<std::string>();
+      config.setSaveSuffix(vm[SAVE_SUFFIX_NAME].as<std::string>());
 
    if(vm.count(SAVE_FREQ_NAME))
-      config.save_freq = vm[SAVE_FREQ_NAME].as<int>();
+      config.setSaveFreq(vm[SAVE_FREQ_NAME].as<int>());
 
    if(vm.count(THRESHOLD_NAME))
    {
-      config.threshold = vm[THRESHOLD_NAME].as<double>();
-      config.classify = true;
+      config.setThreshold(vm[THRESHOLD_NAME].as<double>());
+      config.setClassify(true);
    }
 
    if(vm.count(VERBOSE_NAME))
-      config.verbose = vm[VERBOSE_NAME].as<int>();
+      config.setVerbose(vm[VERBOSE_NAME].as<int>());
 
    if(vm.count(QUIET_NAME))
-      config.verbose = 0;
+      config.setVerbose(0);
 
    if(vm.count(STATUS_NAME))
-      config.csv_status = vm[STATUS_NAME].as<std::string>();
+      config.setCsvStatus(vm[STATUS_NAME].as<std::string>());
 
    if(vm.count(SEED_NAME))
    {
-      config.random_seed_set = true;
-      config.random_seed = vm[SEED_NAME].as<int>();
+      config.setRandomSeedSet(true);
+      config.setRandomSeed(vm[SEED_NAME].as<int>());
    }
 
    if(vm.count(PRECISION_NAME))
@@ -218,13 +218,13 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       set_noise_model_win(config, NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>());
 
    if(vm.count(LAMBDA_BETA_NAME))
-      config.lambda_beta = vm[LAMBDA_BETA_NAME].as<double>();
+      config.setLambdaBeta(vm[LAMBDA_BETA_NAME].as<double>());
 
    if(vm.count(TOL_NAME))
-      config.tol = vm[TOL_NAME].as<double>();
+      config.setTol(vm[TOL_NAME].as<double>());
 
    if(vm.count(DIRECT_NAME))
-      config.direct = true;
+      config.setDirect(true);
 }
 
 bool parse_options(int argc, char* argv[], Config& config)

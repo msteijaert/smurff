@@ -113,31 +113,31 @@ bool Config::validate(bool throw_error) const
       }
    }
 
-   if (col_prior_type == PriorTypes::macau && m_col_features.size() != 1)
+   if (m_col_prior_type == PriorTypes::macau && m_col_features.size() != 1)
    {
       THROWERROR("Exactly one set of col-features needed when using macau prior.");
    }
 
-   if (row_prior_type == PriorTypes::macau && m_row_features.size() != 1)
+   if (m_row_prior_type == PriorTypes::macau && m_row_features.size() != 1)
    {
       THROWERROR("Exactly one set of row-features needed when using macau prior.");
    }
 
-   if (col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense()))
+   if (m_col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense()))
    {
       THROWERROR("Exactly one set of sparse col-features needed when using macauone prior.");
    }
 
-   if (row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense()))
+   if (m_row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense()))
    {
       THROWERROR("Exactly one set of sparse row-features needed when using macauone prior.");
    }
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
-   if (save_suffixes.find(save_suffix) == save_suffixes.end())
+   if (save_suffixes.find(m_save_suffix) == save_suffixes.end())
    {
-      THROWERROR("Unknown output suffix: " + save_suffix);
+      THROWERROR("Unknown output suffix: " + m_save_suffix);
    }
 
    m_train->getNoiseConfig().validate();
@@ -147,7 +147,7 @@ bool Config::validate(bool throw_error) const
 
 void Config::save(std::string fname) const
 {
-   if (!save_freq)
+   if (!m_save_freq)
       return;
 
    std::ofstream os(fname);
@@ -177,29 +177,29 @@ void Config::save(std::string fname) const
    print_features("col_features", m_col_features);
 
    os << "# priors" << std::endl;
-   os << "row_prior = " << priorTypeToString(row_prior_type) << std::endl;
-   os << "col_prior = " << priorTypeToString(col_prior_type) << std::endl;
+   os << "row_prior = " << priorTypeToString(m_row_prior_type) << std::endl;
+   os << "col_prior = " << priorTypeToString(m_col_prior_type) << std::endl;
 
    os << "# restore" << std::endl;
-   os << "restore_prefix = " << restore_prefix << std::endl;
-   os << "restore_suffix = " << restore_suffix << std::endl;
-   os << "init_model = " << modelInitTypeToString(model_init_type) << std::endl;
+   os << "restore_prefix = " << m_restore_prefix << std::endl;
+   os << "restore_suffix = " << m_restore_suffix << std::endl;
+   os << "init_model = " << modelInitTypeToString(m_model_init_type) << std::endl;
 
    os << "# save" << std::endl;
-   os << "save_prefix = " << save_prefix << std::endl;
-   os << "save_suffix = " << save_suffix << std::endl;
-   os << "save_freq = " << save_freq << std::endl;
+   os << "save_prefix = " << m_save_prefix << std::endl;
+   os << "save_suffix = " << m_save_suffix << std::endl;
+   os << "save_freq = " << m_save_freq << std::endl;
 
    os << "# general" << std::endl;
-   os << "verbose = " << verbose << std::endl;
-   os << "burnin = " << burnin << std::endl;
-   os << "nsamples = " << nsamples << std::endl;
-   os << "num_latent = " << num_latent << std::endl;
+   os << "verbose = " << m_verbose << std::endl;
+   os << "burnin = " << m_burnin << std::endl;
+   os << "nsamples = " << m_nsamples << std::endl;
+   os << "num_latent = " << m_num_latent << std::endl;
 
    os << "# for macau priors" << std::endl;
-   os << "lambda_beta = " << lambda_beta << std::endl;
-   os << "tol = " << tol << std::endl;
-   os << "direct = " << direct << std::endl;
+   os << "lambda_beta = " << m_lambda_beta << std::endl;
+   os << "tol = " << m_tol << std::endl;
+   os << "direct = " << m_direct << std::endl;
 
    os << "# noise model" << std::endl;
    os << "noise_model = " << smurff::noiseTypeToString(m_train->getNoiseConfig().getNoiseType()) << std::endl;
@@ -208,8 +208,8 @@ void Config::save(std::string fname) const
    os << "sn_max = " << m_train->getNoiseConfig().sn_max << std::endl;
 
    os << "# binary classification" << std::endl;
-   os << "classify = " << classify << std::endl;
-   os << "threshold = " << threshold << std::endl;
+   os << "classify = " << m_classify << std::endl;
+   os << "threshold = " << m_threshold << std::endl;
 }
 
 void Config::restore(std::string fname)
@@ -222,29 +222,29 @@ void Config::restore(std::string fname)
    }
 
    // -- priors
-   row_prior_type = stringToPriorType(reader.Get("", "row_prior",  PRIOR_NAME_DEFAULT));
-   col_prior_type = stringToPriorType(reader.Get("", "col_prior",  PRIOR_NAME_DEFAULT));
+   m_row_prior_type = stringToPriorType(reader.Get("", "row_prior",  PRIOR_NAME_DEFAULT));
+   m_col_prior_type = stringToPriorType(reader.Get("", "col_prior",  PRIOR_NAME_DEFAULT));
 
    //-- restore
-   restore_prefix = reader.Get("", "restore_prefix",  "");
-   restore_suffix = reader.Get("", "restore_suffix",  ".csv");
-   model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
+   m_restore_prefix = reader.Get("", "restore_prefix",  "");
+   m_restore_suffix = reader.Get("", "restore_suffix",  ".csv");
+   m_model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
 
    //-- save
-   save_prefix = reader.Get("", "save_prefix",  "save");
-   save_suffix = reader.Get("", "save_suffix",  ".csv");
-   save_freq = reader.GetInteger("", "save_freq",  0); // never
+   m_save_prefix = reader.Get("", "save_prefix",  "save");
+   m_save_suffix = reader.Get("", "save_suffix",  ".csv");
+   m_save_freq = reader.GetInteger("", "save_freq",  0); // never
 
    //-- general
-   verbose = reader.GetBoolean("", "verbose",  false);
-   burnin = reader.GetInteger("", "burnin",  200);
-   nsamples = reader.GetInteger("", "nsamples",  800);
-   num_latent = reader.GetInteger("", "num_latent",  96);
+   m_verbose = reader.GetBoolean("", "verbose",  false);
+   m_burnin = reader.GetInteger("", "burnin",  200);
+   m_nsamples = reader.GetInteger("", "nsamples",  800);
+   m_num_latent = reader.GetInteger("", "num_latent",  96);
 
    //-- for macau priors
-   lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
-   tol = reader.GetReal("", "tol",  1e-6);
-   direct = reader.GetBoolean("", "direct",  false);
+   m_lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
+   m_tol = reader.GetReal("", "tol",  1e-6);
+   m_direct = reader.GetBoolean("", "direct",  false);
 
    //-- noise model
    NoiseConfig noise;
@@ -255,7 +255,7 @@ void Config::restore(std::string fname)
    m_train->setNoiseConfig(noise);
 
    //-- binary classification
-   classify = reader.GetBoolean("", "classify",  false);
-   threshold = reader.GetReal("", "threshold",  .0);
+   m_classify = reader.GetBoolean("", "classify",  false);
+   m_threshold = reader.GetReal("", "threshold",  .0);
 };
 
