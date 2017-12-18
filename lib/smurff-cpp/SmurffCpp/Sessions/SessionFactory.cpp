@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-#include <SmurffCpp/Sessions/BaseSession.h>
 #include <SmurffCpp/Sessions/PythonSession.h>
 
 using namespace smurff;
