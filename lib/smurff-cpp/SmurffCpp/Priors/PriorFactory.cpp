@@ -101,9 +101,9 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    {
       std::shared_ptr<MacauPrior<SideInfo>> prior(new MacauPrior<SideInfo>(session, -1));
       
-      prior->addSideInfo(side_info, session->config.direct);
-      prior->setLambdaBeta(session->config.lambda_beta);
-      prior->setTol(session->config.tol);
+      prior->addSideInfo(side_info, session->config.getDirect());
+      prior->setLambdaBeta(session->config.getLambdaBeta());
+      prior->setTol(session->config.getTol());
 
       return prior;
    }
@@ -111,8 +111,8 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    {
       std::shared_ptr<MacauOnePrior<SideInfo>> prior(new MacauOnePrior<SideInfo>(session, -1));
       
-      prior->addSideInfo(side_info, session->config.direct);
-      prior->setLambdaBeta(session->config.lambda_beta);
+      prior->addSideInfo(side_info, session->config.getDirect());
+      prior->setLambdaBeta(session->config.getLambdaBeta());
 
       return prior;
    }
@@ -197,20 +197,20 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
          //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
          std::vector<std::shared_ptr<MatrixConfig> > row_sideinfo;
 
-         if (session->config.row_prior_type == PriorTypes::macau || session->config.row_prior_type == PriorTypes::macauone)
-            row_sideinfo = session->config.m_row_features;
+         if (session->config.getRowPriorType() == PriorTypes::macau || session->config.getRowPriorType() == PriorTypes::macauone)
+            row_sideinfo = session->config.getRowFeatures();
 
-         return ::create_prior(session, mode, session->config.row_prior_type, row_sideinfo);
+         return ::create_prior(session, mode, session->config.getRowPriorType(), row_sideinfo);
       }
       case 1:
       {
          //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
          std::vector<std::shared_ptr<MatrixConfig> > col_sideinfo;
 
-         if (session->config.col_prior_type == PriorTypes::macau || session->config.col_prior_type == PriorTypes::macauone)
-            col_sideinfo = session->config.m_col_features;
+         if (session->config.getColPriorType() == PriorTypes::macau || session->config.getColPriorType() == PriorTypes::macauone)
+            col_sideinfo = session->config.getColFeatures();
 
-         return ::create_prior(session, mode, session->config.col_prior_type, col_sideinfo);
+         return ::create_prior(session, mode, session->config.getColPriorType(), col_sideinfo);
       }
       default:
       {

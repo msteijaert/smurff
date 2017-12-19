@@ -75,6 +75,8 @@ if (MSVC OR MSVC_IDE OR MSVC_VERSION OR MSVC60 OR MSVC70 OR MSVC71 OR MSVC80 OR 
 
    #hide some irritating c++ unsafe function warnings
    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+   
    add_definitions(-D_WINDOWS)
 
    set (CMAKE_EXE_LINKER_FLAGS "/SAFESEH:NO")
@@ -216,12 +218,17 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/scripts
 
 include(scripts/DependenciesConfig.cmake)
 
+if(MSVC)
+configure_openmp()
+configure_eigen()
+configure_boost()
+else()
 configure_pthreads()
 configure_mpi()
 configure_openmp()
 configure_eigen()
-
-configure_argp()
+configure_boost()
+endif()
 
 set(ALGEBRA_LIB_FOUND OFF)
 
@@ -288,8 +295,13 @@ add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 
 # utils
 
+if(MSVC)
+add_subdirectory (../Smurff/cmake utils/Smurff)
+else()
 add_subdirectory (../Smurff/cmake utils/Smurff)
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
+endif()
+
 
 # tests
 
