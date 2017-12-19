@@ -67,7 +67,7 @@ class ResultItem:
         return str(self)
 
 def smurff(Y,
-           Ytest,
+           Ytest          = None,
            row_features   = [],
            col_features   = [],
            row_prior      = None,
@@ -109,8 +109,9 @@ def smurff(Y,
     config.m_train = shared_ptr[TensorConfig](prepare_sparse(Y, True))
     config.m_train.get().setNoiseConfig(nc)
 
-    config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest, True))
-    config.m_test.get().setNoiseConfig(nc)
+    if Ytest is not None:
+        config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest, True))
+        config.m_test.get().setNoiseConfig(nc)
 
     cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
@@ -177,21 +178,23 @@ def smurff(Y,
         session.get().step()
 
     # Create Python list of ResultItem from C++ vector of ResultItem
-    cpp_result_items = session.get().getResult()
+    cpp_result_items_ptr = session.get().getResult()
     py_result_items = []
-    for i in range(cpp_result_items.size()):
-        cpp_result_item_ptr = &(cpp_result_items[i])
-        py_result_item_coords = []
-        for coord_index in range(cpp_result_item_ptr.coords.size()):
-            coord = cpp_result_item_ptr.coords[coord_index]
-            py_result_item_coords.append(coord)
-        py_result_item = ResultItem( tuple(py_result_item_coords)
-                                   , cpp_result_item_ptr.val
-                                   , cpp_result_item_ptr.pred_1sample
-                                   , cpp_result_item_ptr.pred_avg
-                                   , cpp_result_item_ptr.var
-                                   , cpp_result_item_ptr.stds
-                                   )
-        py_result_items.append(py_result_item)
+
+    if cpp_result_items_ptr:
+        for i in range(cpp_result_items_ptr.get().size()):
+            cpp_result_item_ptr = &(cpp_result_items_ptr.get().at(i))
+            py_result_item_coords = []
+            for coord_index in range(cpp_result_item_ptr.coords.size()):
+                coord = cpp_result_item_ptr.coords[coord_index]
+                py_result_item_coords.append(coord)
+            py_result_item = ResultItem( tuple(py_result_item_coords)
+                                    , cpp_result_item_ptr.val
+                                    , cpp_result_item_ptr.pred_1sample
+                                    , cpp_result_item_ptr.pred_avg
+                                    , cpp_result_item_ptr.var
+                                    , cpp_result_item_ptr.stds
+                                    )
+            py_result_items.append(py_result_item)
 
     return py_result_items
