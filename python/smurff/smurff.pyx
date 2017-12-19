@@ -106,74 +106,74 @@ def smurff(Y,
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    config.m_train = shared_ptr[TensorConfig](prepare_sparse(Y, True))
-    config.m_train.get().setNoiseConfig(nc)
+    config.setTrain(shared_ptr[TensorConfig](prepare_sparse(Y, True)))
+    config.getTrain().get().setNoiseConfig(nc)
 
-    config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest, True))
-    config.m_test.get().setNoiseConfig(nc)
+    config.setTest(shared_ptr[TensorConfig](prepare_sparse(Ytest, True)))
+    config.getTest().get().setNoiseConfig(nc)
 
     cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
         rf_matrix_config.reset(prepare_sparse(rf, False))
         rf_matrix_config.get().setNoiseConfig(nc)
-        config.m_row_features.push_back(rf_matrix_config)
+        config.getRowFeatures().push_back(rf_matrix_config)
 
     cdef shared_ptr[MatrixConfig] cf_matrix_config
     for cf in col_features:
         cf_matrix_config.reset(prepare_sparse(cf, False))
         cf_matrix_config.get().setNoiseConfig(nc)
-        config.m_col_features.push_back(cf_matrix_config)
+        config.getColFeatures().push_back(cf_matrix_config)
 
     if row_prior:
-        config.row_prior_type = stringToPriorType(row_prior)
+        config.setRowPriorType(stringToPriorType(row_prior))
 
     if col_prior:
-        config.col_prior_type = stringToPriorType(col_prior)
+        config.setColPriorType(stringToPriorType(col_prior))
 
-    config.lambda_beta = lambda_beta
-    config.num_latent  = num_latent
-    config.burnin      = burnin
-    config.nsamples    = nsamples
-    config.tol         = tol
-    config.direct      = direct
+    config.setLambdaBeta(lambda_beta)
+    config.setNumLatent(num_latent)
+    config.setBurnin(burnin)
+    config.setNSamples(nsamples)
+    config.setTol(tol)
+    config.setDirect(direct)
 
     if seed:
-        config.random_seed_set = True
-        config.random_seed = seed
+        config.setRandomSeedSet(True)
+        config.setRandomSeed(seed)
 
     if threshold:
-        config.threshold = threshold
-        config.classify = True
+        config.setThreshold(threshold)
+        config.setClassify(True)
 
-    config.verbose = verbose
+    config.setVerbose(verbose)
     if quite:
-        config.verbose = False
+        config.setVerbose(False)
 
     if init_model:
-        config.model_init_type = stringToModelInitType(init_model)
+        config.setModelInitType(stringToModelInitType(init_model))
 
     if save_prefix:
         config.setSavePrefix(save_prefix)
 
     if save_suffix:
-        config.save_suffix = save_suffix
+        config.setSaveSuffix(save_suffix)
 
     if save_freq:
-        config.save_freq = save_freq
+        config.setSaveFreq(save_freq)
 
     if restore_prefix:
-        config.restore_prefix = restore_prefix
+        config.setRestorePrefix(restore_prefix)
 
     if restore_suffix:
-        config.restore_suffix = restore_suffix
+        config.setRestoreSuffix(restore_suffix)
 
     if csv_status:
-        config.csv_status = csv_status
+        config.setCsvStatus(csv_status)
 
     # Create and run session
     cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
     session.get().init()
-    for i in range(config.nsamples + config.burnin):
+    for i in range(config.getNSamples() + config.getBurnin()):
         session.get().step()
 
     # Create Python list of ResultItem from C++ vector of ResultItem
