@@ -28,7 +28,6 @@ urls = [
             ),
         ]
 
-
 for url, expected_sha, output in urls:
     if os.path.isfile(output):
         actual_sha = sha256(open(output, "rb").read()).hexdigest()
@@ -39,13 +38,62 @@ for url, expected_sha, output in urls:
     urllib.request.urlretrieve(url, output)
 
 ic50 = sio.mmread("chembl-IC50-346targets.mm")
+feat = sio.mmread("chembl-IC50-compound-feat.mm")
 
-# 0,1 binary for probit
-ic50_01 = ic50.copy()
-ic50_01.data = (ic50_01.data >= 6) * 1.
-sio.mmwrite(open("chembl-IC50-346targets-01.mm", "wb"), ic50_01)
+def make_01():
+    # 0,1 binary for probit
+    ic50_01 = ic50.copy()
+    ic50_01.data = (ic50_01.data >= 6) * 1.
+    sio.mmwrite(open("chembl-IC50-346targets-01.mm", "wb"), ic50_01)
 
-# -1,+1
-ic50_11 = ic50.copy()
-ic50_11.data = ((ic50.data >= 6) * 2.) - 1.
-sio.mmwrite(open("chembl-IC50-346targets-11.mm", "wb"), ic50_11)
+def make_11():
+    # -1,+1
+    ic50_11 = ic50.copy()
+    ic50_11.data = ((ic50.data >= 6) * 2.) - 1.
+    sio.mmwrite(open("chembl-IC50-346targets-11.mm", "wb"), ic50_11)
+
+def make_100compounds():
+    ic50_100c = ic50.tocsr()[0:100,:]
+    sio.mmwrite(open("chembl-IC50-346targets-100compounds.mm", "wb"), ic50_100c)
+
+def make_feat():
+    # dense features
+    feat_100 = feat.tocsr()[0:100,:]
+    sio.mmwrite(open("chembl-IC50-100compounds-feat.mm", "wb"), feat_100)
+
+def make_feat_dense():
+    feat_dense = feat.tocsr()[0,100,:].todense()
+    sio.mmwrite(open("chembl-IC50-100compounds-feat-dense.mm", "wb"), feat_dense)
+
+generated_files = [
+        ( "88fc96af2c9c41f37a31687ed26a80381bf8d30ad41eea5bc2a71cd7d7f05138",
+            "chembl-IC50-100compounds-feat-dense.mm",
+            make_feat_dense,
+            ),
+        ( "d29bd2e7bc3ababaf0c4116a59235222a4ab10aa1ee15644fd71966ab1003f66",
+            "chembl-IC50-100compounds-feat.mm",
+            make_feat,
+            ),
+        ( "3114693bab82bdf7ac4b58fde0007bc2291f2c52e0de0c0a7f0e1a332010bdfe",
+            "chembl-IC50-346targets-01.mm",
+            make_01,
+            ),
+        ( "66cc294bdb13f8d6900cfd467b75f15c09e4808c93f2f8e7aeb55e37956c4df6",
+            "chembl-IC50-346targets-100compounds.mm",
+            make_100compounds,
+            ),
+        ( "2aa07a0e0aed3a1cb0bf17fed9aabcdefbd57ed0897908e9be50aa58fc082515",
+            "chembl-IC50-346targets-11.mm",
+            make_11,
+            ),
+        ]
+
+for expected_sha, output, func in generated_files:
+    if os.path.isfile(output):
+        actual_sha = sha256(open(output, "rb").read()).hexdigest()
+        if (expected_sha == actual_sha):
+            continue
+
+    print("make %s" % output)
+    func()
+
