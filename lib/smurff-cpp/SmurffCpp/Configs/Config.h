@@ -48,7 +48,7 @@ ModelInitTypes stringToModelInitType(std::string name);
 
 std::string modelInitTypeToString(ModelInitTypes type);
 
-struct Config 
+struct Config
 {
 private:
    //-- train and test
@@ -127,7 +127,7 @@ public:
    }
 
 public:
-   bool validate(bool = true) const;
+   bool validate() const;
    void save(std::string) const;
    void restore(std::string);
 

@@ -80,19 +80,19 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
    }
 }
 
-bool Config::validate(bool throw_error) const
+bool Config::validate() const
 {
-   if (!m_train->getNNZ())
+   if (!m_train || !m_train->getNNZ())
    {
       THROWERROR("Missing train data");
    }
 
-   if (!m_test->getNNZ())
+   if (m_test && !m_test->getNNZ())
    {
       THROWERROR("Missing test data");
    }
 
-   if (m_test->getDims() != m_train->getDims())
+   if (m_test && m_test->getDims() != m_train->getDims())
    {
       THROWERROR("Train and test data should have the same dimensions");
    }

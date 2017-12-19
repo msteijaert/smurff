@@ -71,7 +71,7 @@ public:
    void restore(std::string prefix, std::string suffix);
 
 public:
-   std::vector<ResultItem> getResult() override;
+   std::shared_ptr<std::vector<ResultItem> > getResult() override;
    MatrixConfig getSample(int dim) override;
 };
 

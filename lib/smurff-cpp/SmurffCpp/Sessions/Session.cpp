@@ -21,7 +21,7 @@ void Session::setFromConfig(const Config& cfg)
 {
    // assign config
 
-   cfg.validate(true);
+   cfg.validate();
    cfg.save(cfg.getSavePrefix() + ".ini");
    config = cfg;
 
@@ -32,7 +32,8 @@ void Session::setFromConfig(const Config& cfg)
    if (config.getClassify())
       m_pred->setThreshold(config.getThreshold());
 
-   m_pred->set(config.getTest());
+   if (config.getTest()))
+      m_pred->set(config.getTest());
 
    // initialize data
 
