@@ -12,6 +12,53 @@ from SessionFactory cimport SessionFactory
 cimport numpy as np
 import  numpy as np
 import  scipy as sp
+import pandas as pd
+import numbers
+
+def make_train_test(Y, ntest):
+    """Splits a sparse matrix Y into a train and a test matrix.
+       Y      scipy sparse matrix (coo_matrix, csr_matrix or csc_matrix)
+       ntest  either a float below 1.0 or integer.
+              if float, then indicates the ratio of test cells
+              if integer, then indicates the number of test cells
+       returns Ytrain, Ytest (type coo_matrix)
+    """
+    if type(Y) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+        raise TypeError("Unsupported Y type: %s" + type(Y))
+    if not isinstance(ntest, numbers.Real) or ntest < 0:
+        raise TypeError("ntest has to be a non-negative number (number or ratio of test samples).")
+    Y = Y.tocoo(copy = False)
+    if ntest < 1:
+        ntest = Y.nnz * ntest
+    ntest = int(round(ntest))
+    rperm = np.random.permutation(Y.nnz)
+    train = rperm[ntest:]
+    test  = rperm[0:ntest]
+    Ytrain = sp.sparse.coo_matrix( (Y.data[train], (Y.row[train], Y.col[train])), shape=Y.shape )
+    Ytest  = sp.sparse.coo_matrix( (Y.data[test],  (Y.row[test],  Y.col[test])),  shape=Y.shape )
+    return Ytrain, Ytest
+
+def make_train_test_df(Y, ntest):
+    """Splits rows of dataframe Y into a train and a test dataframe.
+       Y      pandas dataframe
+       ntest  either a float below 1.0 or integer.
+              if float, then indicates the ratio of test cells
+              if integer, then indicates the number of test cells
+       returns Ytrain, Ytest (type coo_matrix)
+    """
+    if type(Y) != pd.core.frame.DataFrame:
+        raise TypeError("Y should be DataFrame.")
+    if not isinstance(ntest, numbers.Real) or ntest < 0:
+        raise TypeError("ntest has to be a non-negative number (number or ratio of test samples).")
+
+    ## randomly spliting train-test
+    if ntest < 1:
+        ntest = Y.shape[0] * ntest
+    ntest  = int(round(ntest))
+    rperm  = np.random.permutation(Y.shape[0])
+    train  = rperm[ntest:]
+    test   = rperm[0:ntest]
+    return Y.iloc[train], Y.iloc[test]
 
 def remove_nan(Y):
     if not np.any(np.isnan(Y.data)):
@@ -22,8 +69,10 @@ def remove_nan(Y):
 cdef MatrixConfig* prepare_sparse(X, isScarce):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
+
     X = X.tocoo(copy = False)
     X = remove_nan(X)
+
     cdef np.ndarray[uint32_t] irows = X.row.astype(np.uint32, copy=False)
     cdef np.ndarray[uint32_t] icols = X.col.astype(np.uint32, copy=False)
     cdef np.ndarray[double] vals = X.data.astype(np.double, copy=False)
@@ -50,6 +99,22 @@ cdef MatrixConfig* prepare_sparse(X, isScarce):
 
     cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), isScarce)
     return matrix_config_ptr
+
+cdef MatrixConfig* prepare_dense(X):
+    cdef np.ndarray[np.double_t] vals = X.flatten(order='F')
+    cdef double* vals_begin = &vals[0]
+    cdef double* vals_end = vals_begin + vals.shape[0]
+    cdef vector[double]* vals_vector_ptr = new vector[double]()
+    vals_vector_ptr.assign(vals_begin, vals_end)
+    cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, NoiseConfig())
+    return matrix_config_ptr
+
+cdef MatrixConfig* prepare_sideinfo(in_matrix):
+    if type(in_matrix) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+        return prepare_sparse(in_matrix, False)
+    else:
+        return prepare_dense(in_matrix)
 
 class ResultItem:
     def __init__(self, coords, val, pred_1sample, pred_avg, var, stds):
@@ -115,21 +180,21 @@ def smurff(Y,
 
     cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
-        rf_matrix_config.reset(prepare_sparse(rf, False))
+        rf_matrix_config.reset(prepare_sideinfo(rf))
         rf_matrix_config.get().setNoiseConfig(nc)
         config.m_row_features.push_back(rf_matrix_config)
 
     cdef shared_ptr[MatrixConfig] cf_matrix_config
     for cf in col_features:
-        cf_matrix_config.reset(prepare_sparse(cf, False))
+        cf_matrix_config.reset(prepare_sideinfo(cf))
         cf_matrix_config.get().setNoiseConfig(nc)
         config.m_col_features.push_back(cf_matrix_config)
 
     if row_prior:
-        config.row_prior_type = stringToPriorType(row_prior)
+        config.row_prior_type = stringToPriorType(row_prior.encode('utf8'))
 
     if col_prior:
-        config.col_prior_type = stringToPriorType(col_prior)
+        config.col_prior_type = stringToPriorType(col_prior.encode('utf8'))
 
     config.lambda_beta = lambda_beta
     config.num_latent  = num_latent

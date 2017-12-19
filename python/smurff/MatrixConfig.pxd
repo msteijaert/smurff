@@ -9,6 +9,13 @@ from NoiseConfig cimport NoiseConfig
 cdef extern from "<SmurffCpp/Configs/MatrixConfig.h>" namespace "smurff":
     cdef cppclass MatrixConfig(TensorConfig):
         #
+        # Dense double matrix constructos
+        #
+        MatrixConfig(uint64_t nrow, uint64_t ncol,
+                     shared_ptr[vector[double]] values,
+                     const NoiseConfig& noiseConfig) except +
+
+        #
         # Sparse double matrix constructors
         #
         MatrixConfig(uint64_t nrow, uint64_t ncol,
