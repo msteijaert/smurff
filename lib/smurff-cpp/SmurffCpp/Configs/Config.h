@@ -113,7 +113,6 @@ public:
       m_save_freq = 0; // never
 
       m_random_seed_set = false;
-      m_random_seed;
       m_verbose = 1;
       m_csv_status = "";
       m_burnin = 200;
@@ -125,7 +124,6 @@ public:
       m_direct = false;
 
       m_classify = false;
-      m_threshold;
    }
 
 public:
