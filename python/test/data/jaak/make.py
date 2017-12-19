@@ -56,21 +56,23 @@ def make_100compounds():
     ic50_100c = ic50.tocsr()[0:100,:]
     sio.mmwrite(open("chembl-IC50-346targets-100compounds.mm", "wb"), ic50_100c)
 
-def make_feat():
-    # dense features
+def feat_100():
     feat_100 = feat.tocsr()[0:100,:]
-    sio.mmwrite(open("chembl-IC50-100compounds-feat.mm", "wb"), feat_100)
+    feat_100 = feat_100[:,feat_100.getnnz(0)>0]
+    return feat_100
+
+def make_feat():
+    sio.mmwrite(open("chembl-IC50-100compounds-feat.mm", "wb"), feat_100())
 
 def make_feat_dense():
-    feat_dense = feat.tocsr()[0,100,:].todense()
-    sio.mmwrite(open("chembl-IC50-100compounds-feat-dense.mm", "wb"), feat_dense)
+    sio.mmwrite(open("chembl-IC50-100compounds-feat-dense.mm", "wb"), feat_100().todense())
 
 generated_files = [
-        ( "88fc96af2c9c41f37a31687ed26a80381bf8d30ad41eea5bc2a71cd7d7f05138",
+        ( "7c3a1a381a2017a463f201100ee5b257b7ee01819f41f5737f4a817411beaef7",
             "chembl-IC50-100compounds-feat-dense.mm",
             make_feat_dense,
             ),
-        ( "d29bd2e7bc3ababaf0c4116a59235222a4ab10aa1ee15644fd71966ab1003f66",
+        ( "30253d120e06f0ab9e766185ca2991fff3a500c6c51064ed94034c057d676842",
             "chembl-IC50-100compounds-feat.mm",
             make_feat,
             ),
@@ -96,4 +98,8 @@ for expected_sha, output, func in generated_files:
 
     print("make %s" % output)
     func()
+
+    actual_sha = sha256(open(output, "rb").read()).hexdigest()
+    assert (expected_sha == actual_sha)
+
 
