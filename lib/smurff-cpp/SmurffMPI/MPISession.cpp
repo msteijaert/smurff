@@ -10,7 +10,7 @@ using namespace smurff;
 
 MPISession::MPISession()
 {
-   name = "MPISession"; 
+   name = "MPISession";
 
    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -18,17 +18,17 @@ MPISession::MPISession()
 
 void MPISession::run()
 {
-   if (world_rank == 0) 
+   if (world_rank == 0)
    {
       Session::run();
-   } 
-   else 
+   }
+   else
    {
       bool work_done = false;
 
-      for(auto &p : m_priors) 
+      for(auto &p : m_priors)
          work_done |= p->run_slave();
-         
+
       THROWERROR_ASSERT(work_done);
    }
 }
