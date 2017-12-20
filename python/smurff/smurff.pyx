@@ -314,7 +314,8 @@ def smurff(Y,
     # Create and run session
     cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
     session.get().init()
-    for i in range(config.getNSamples() + config.getBurnin()):
+    cdef size_t iterations_count = <size_t>(config.getNSamples() + config.getBurnin())
+    for i in range(iterations_count):
         session.get().step()
 
     # Create Python list of ResultItem from C++ vector of ResultItem
