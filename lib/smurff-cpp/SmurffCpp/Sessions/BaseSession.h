@@ -73,6 +73,7 @@ public:
 public:
    std::shared_ptr<std::vector<ResultItem> > getResult() override;
    MatrixConfig getSample(int dim) override;
+   double getRmseAvg() override;
 };
 
 }
