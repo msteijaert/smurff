@@ -11,3 +11,4 @@ cdef extern from "<SmurffCpp/Sessions/ISession.h>" namespace "smurff":
         void init()
         shared_ptr[vector[ResultItem]] getResult()
         MatrixConfig getSample(int mode)
+        double getRmseAvg()
