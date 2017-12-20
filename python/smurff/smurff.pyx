@@ -123,10 +123,39 @@ cdef MatrixConfig* prepare_sideinfo(in_matrix):
         return prepare_dense_matrix(in_matrix)
 
 cdef TensorConfig* prepare_dense_tensor(tensor):
+    if type(tensor) not in DENSE_TENSOR_TYPES:
+        error_msg = "Unsupported dense tensor data type: {}".format(tensor)
+        raise ValueError(error_msg)
     raise NotImplementedError()
 
-cdef TensorConfig* prepare_sparse_tensor(tensor):
-    raise NotImplementedError()
+cdef TensorConfig* prepare_sparse_tensor(tensor, isScarce):
+    if type(tensor) not in SPARSE_TENSOR_TYPES:
+        error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
+        raise ValueError(error_msg)
+
+    cdef vector[uint64_t] cpp_dims_vector
+    cdef vector[uint32_t] cpp_columns_vector
+    cdef vector[double] cpp_values_vector
+
+    if type(tensor) == pd.DataFrame:
+        idx_column_names = list(filter(lambda c: tensor[c].dtype==np.int64 or tensor[c].dtype==np.int32, tensor.columns))
+        val_column_names = list(filter(lambda c: tensor[c].dtype==np.float32 or tensor[c].dtype==np.float64, tensor.columns))
+
+        if len(val_column_names) != 1:
+            error_msg = "tensor has {} float columns but must have exactly 1 value column.".format(len(val_column_names))
+            raise ValueError(error_msg)
+
+        idx = [i for c in idx_column_names for i in np.array(tensor[c], dtype=np.int32)]
+        val = np.array(tensor[val_column_names[0]],dtype=np.float64)
+
+        cpp_dims_vector = [tensor[c].max() + 1 for c in idx_column_names]
+        cpp_columns_vector = idx
+        cpp_values_vector = val
+
+        return new TensorConfig(make_shared[vector[uint64_t]](cpp_dims_vector), make_shared[vector[uint32_t]](cpp_columns_vector), make_shared[vector[double]](cpp_values_vector), NoiseConfig(), isScarce)
+    else:
+        error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
+        raise ValueError(error_msg)
 
 cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test):
     # Check train data type
@@ -152,8 +181,10 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
             (type(test) not in DENSE_MATRIX_TYPES and type(test) not in SPARSE_MATRIX_TYPES)):
             error_msg = "Train and test data must be the same type: {} != {}".format(type(train), type(test))
             raise ValueError(error_msg)
-        if train.shape != test.shape:
+        if (type(train) in DENSE_MATRIX_TYPES or type(train) in SPARSE_MATRIX_TYPES) and train.shape != test.shape:
             raise ValueError("Train and test data must be the same shape: {} != {}".format(train.shape, test.shape))
+        if type(train) in SPARSE_TENSOR_TYPES and train.ndim != test.ndim:
+            raise ValueError("Train and test data must have the same number of dimensions: {} != {}".format(train.ndim, test.ndim))
 
     cdef TensorConfig* train_config
     cdef TensorConfig* test_config
@@ -166,7 +197,7 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
     elif type(train) in DENSE_TENSOR_TYPES and len(train.shape) > 2:
         train_config = prepare_dense_tensor(train)
     elif type(train) in SPARSE_TENSOR_TYPES:
-        train_config = prepare_sparse_tensor(train)
+        train_config = prepare_sparse_tensor(train, True)
     else:
         error_msg = "Unsupported train data type: {}".format(type(train))
         raise ValueError(error_msg)
@@ -180,12 +211,18 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
         elif type(test) in DENSE_TENSOR_TYPES and len(test.shape) > 2:
             test_config = prepare_dense_tensor(test)
         elif type(test) in SPARSE_TENSOR_TYPES:
-            test_config = prepare_sparse_tensor(test)
+            test_config = prepare_sparse_tensor(test, True)
         else:
             error_msg = "Unsupported test data type: {}".format(type(test))
             raise ValueError(error_msg)
 
     if test is not None:
+        # Adjust train and test dims. Make sense only for sparse tensors
+        # It does not have any effect in other case
+        for i in range(train_config.getDimsPtr().get().size()):
+            max_dim = max(train_config.getDimsPtr().get().at(i), test_config.getDimsPtr().get().at(i))
+            train_config.getDimsPtr().get()[0][i] = max_dim
+            test_config.getDimsPtr().get()[0][i] = max_dim
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig](test_config)
     else:
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
