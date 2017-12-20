@@ -203,7 +203,6 @@ bool Config::validate() const
 
 void Config::save(std::string fname) const
 {
-   /*
    if (!m_save_freq)
       return;
 
@@ -219,23 +218,33 @@ void Config::save(std::string fname) const
 
    os << "# features" << std::endl;
 
-   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<TensorConfig> > &vec) -> void
+   auto print_features = [&os](const std::vector<std::vector<std::shared_ptr<MatrixConfig> > > &vec) -> void
    {
-      os << "[" << name << "]\n";
-      for (size_t i = 0; i < vec.size(); ++i)
+      os << "num_features = " << vec.size() << std::endl;
+
+      for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
       {
-         os << "# " << i << " ";
-         vec.at(i)->info(os);
-         os << std::endl;
+         os << "[" << "features" << sIndex << "]\n";
+
+         auto& fset = vec.at(sIndex);
+
+         for(std::size_t fIndex = 0; fIndex < fset.size(); fIndex++)
+         {
+            os << "# " << fIndex << " ";
+            fset.at(fIndex)->info(os);
+            os << std::endl;
+         }
       }
    };
 
-   print_features("row_features", m_row_features);
-   print_features("col_features", m_col_features);
+   print_features(m_features);
 
    os << "# priors" << std::endl;
-   os << "row_prior = " << priorTypeToString(m_row_prior_type) << std::endl;
-   os << "col_prior = " << priorTypeToString(m_col_prior_type) << std::endl;
+   os << "num_priors = " << m_prior_types.size() << std::endl;
+   for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
+   {
+      os << "prior" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
+   }
 
    os << "# restore" << std::endl;
    os << "restore_prefix = " << m_restore_prefix << std::endl;
@@ -267,12 +276,10 @@ void Config::save(std::string fname) const
    os << "# binary classification" << std::endl;
    os << "classify = " << m_classify << std::endl;
    os << "threshold = " << m_threshold << std::endl;
-   */
 }
 
 void Config::restore(std::string fname)
 {
-   /*
    INIReader reader(fname);
 
    if (reader.ParseError() < 0)
@@ -281,8 +288,14 @@ void Config::restore(std::string fname)
    }
 
    // -- priors
-   m_row_prior_type = stringToPriorType(reader.Get("", "row_prior",  PRIOR_NAME_DEFAULT));
-   m_col_prior_type = stringToPriorType(reader.Get("", "col_prior",  PRIOR_NAME_DEFAULT));
+   size_t num_priors = reader.GetInteger("", "num_priors", 0);
+   for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
+   {
+      std::stringstream ss;
+      ss << "prior" << pIndex;
+      std::string pName = reader.Get("", ss.str(),  PRIOR_NAME_DEFAULT);
+      m_prior_types.push_back(stringToPriorType(pName));
+   }
 
    //-- restore
    m_restore_prefix = reader.Get("", "restore_prefix",  "");
@@ -316,6 +329,5 @@ void Config::restore(std::string fname)
    //-- binary classification
    m_classify = reader.GetBoolean("", "classify",  false);
    m_threshold = reader.GetReal("", "threshold",  .0);
-   */
 }
 
