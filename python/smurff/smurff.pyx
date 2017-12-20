@@ -242,6 +242,11 @@ class ResultItem:
     def __repr__(self):
         return str(self)
 
+class Result:
+    def __init__(self, predictions, rmse):
+        self.predictions = predictions
+        self.rmse = rmse
+
 def smurff(Y,
            Ytest          = None,
            row_features   = [],
@@ -375,4 +380,4 @@ def smurff(Y,
                                        )
             py_result_items.append(py_result_item)
 
-    return py_result_items
+    return Result(py_result_items, session.get().getRmseAvg())
