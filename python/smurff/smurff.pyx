@@ -15,6 +15,12 @@ import  scipy as sp
 import pandas as pd
 import numbers
 
+DENSE_MATRIX_TYPES  = [np.ndarray]
+SPARSE_MATRIX_TYPES = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
+
+DENSE_TENSOR_TYPES  = [np.ndarray]
+SPARSE_TENSOR_TYPES = [pd.DataFrame]
+
 def make_train_test(Y, ntest):
     """Splits a sparse matrix Y into a train and a test matrix.
        Y      scipy sparse matrix (coo_matrix, csr_matrix or csc_matrix)
@@ -123,27 +129,27 @@ cdef TensorConfig* prepare_sparse_tensor(tensor):
     raise NotImplementedError()
 
 cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test):
-    dense_matrix_types  = [np.ndarray]
-    sparse_matrix_types = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
-
-    dense_tensor_types  = [np.ndarray]
-    sparse_tensor_types = [pd.DataFrame]
-
     # Check train data type
-    if type(train) not in dense_matrix_types and type(train) not in sparse_matrix_types:
+    if (type(train) not in DENSE_MATRIX_TYPES and
+        type(train) not in SPARSE_MATRIX_TYPES and
+        type(train) not in DENSE_TENSOR_TYPES and
+        type(train) not in SPARSE_TENSOR_TYPES):
         error_msg = "Unsupported train data type: {}".format(type(train))
         raise ValueError(error_msg)
 
     # Check test data type
     if test is not None:
-        if type(test) not in dense_matrix_types and type(test) not in sparse_matrix_types:
+        if (type(test) not in DENSE_MATRIX_TYPES and
+            type(test) not in SPARSE_MATRIX_TYPES and
+            type(test) not in DENSE_TENSOR_TYPES and
+            type(test) not in SPARSE_TENSOR_TYPES):
             error_msg = "Unsupported test data type: {}".format(type(test))
             raise ValueError(error_msg)
 
     # Check train and test data for mismatch
     if test is not None:
-        if ((type(train) in dense_matrix_types or type(train) in sparse_matrix_types) and
-            (type(test) not in dense_matrix_types and type(test) not in sparse_matrix_types)):
+        if ((type(train) in DENSE_MATRIX_TYPES or type(train) in SPARSE_MATRIX_TYPES) and
+            (type(test) not in DENSE_MATRIX_TYPES and type(test) not in SPARSE_MATRIX_TYPES)):
             error_msg = "Train and test data must be the same type: {} != {}".format(type(train), type(test))
             raise ValueError(error_msg)
         if train.shape != test.shape:
@@ -153,13 +159,13 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
     cdef TensorConfig* test_config
 
     # Prepare train data
-    if type(train) in dense_matrix_types and len(train.shape) == 2:
+    if type(train) in DENSE_MATRIX_TYPES and len(train.shape) == 2:
         train_config = prepare_dense_matrix(train)
-    elif type(train) in sparse_matrix_types:
+    elif type(train) in SPARSE_MATRIX_TYPES:
         train_config = prepare_sparse_matrix(train, True)
-    elif type(train) in dense_tensor_types and len(train.shape) > 2:
+    elif type(train) in DENSE_TENSOR_TYPES and len(train.shape) > 2:
         train_config = prepare_dense_tensor(train)
-    elif type(train) in sparse_tensor_types:
+    elif type(train) in SPARSE_TENSOR_TYPES:
         train_config = prepare_sparse_tensor(train)
     else:
         error_msg = "Unsupported train data type: {}".format(type(train))
@@ -167,13 +173,13 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
 
     # Prepare test data
     if test is not None:
-        if type(test) in dense_matrix_types and len(test.shape) == 2:
+        if type(test) in DENSE_MATRIX_TYPES and len(test.shape) == 2:
             test_config = prepare_dense_matrix(test)
-        elif type(test) in sparse_matrix_types:
+        elif type(test) in SPARSE_MATRIX_TYPES:
             test_config = prepare_sparse_matrix(test, True)
-        elif type(test) in dense_tensor_types and len(test.shape) > 2:
+        elif type(test) in DENSE_TENSOR_TYPES and len(test.shape) > 2:
             test_config = prepare_dense_tensor(test)
-        elif type(test) in sparse_tensor_types:
+        elif type(test) in SPARSE_TENSOR_TYPES:
             test_config = prepare_sparse_tensor(test)
         else:
             error_msg = "Unsupported test data type: {}".format(type(test))
