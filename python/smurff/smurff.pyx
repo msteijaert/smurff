@@ -66,7 +66,7 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef MatrixConfig* prepare_sparse(X, isScarce):
+cdef MatrixConfig* prepare_sparse_matrix(X, isScarce):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
 
@@ -100,7 +100,7 @@ cdef MatrixConfig* prepare_sparse(X, isScarce):
     cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), isScarce)
     return matrix_config_ptr
 
-cdef MatrixConfig* prepare_dense(X):
+cdef MatrixConfig* prepare_dense_matrix(X):
     cdef np.ndarray[np.double_t] vals = X.flatten(order='F')
     cdef double* vals_begin = &vals[0]
     cdef double* vals_end = vals_begin + vals.shape[0]
@@ -112,9 +112,77 @@ cdef MatrixConfig* prepare_dense(X):
 
 cdef MatrixConfig* prepare_sideinfo(in_matrix):
     if type(in_matrix) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
-        return prepare_sparse(in_matrix, False)
+        return prepare_sparse_matrix(in_matrix, False)
     else:
-        return prepare_dense(in_matrix)
+        return prepare_dense_matrix(in_matrix)
+
+cdef TensorConfig* prepare_dense_tensor(tensor):
+    raise NotImplementedError()
+
+cdef TensorConfig* prepare_sparse_tensor(tensor):
+    raise NotImplementedError()
+
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test):
+    dense_matrix_types  = [np.ndarray]
+    sparse_matrix_types = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
+
+    dense_tensor_types  = [np.ndarray]
+    sparse_tensor_types = [pd.DataFrame]
+
+    # Check train data type
+    if type(train) not in dense_matrix_types and type(train) not in sparse_matrix_types:
+        error_msg = "Unsupported train data type: {}".format(type(train))
+        raise ValueError(error_msg)
+
+    # Check test data type
+    if test is not None:
+        if type(test) not in dense_matrix_types and type(test) not in sparse_matrix_types:
+            error_msg = "Unsupported test data type: {}".format(type(test))
+            raise ValueError(error_msg)
+
+    # Check train and test data for mismatch
+    if test is not None:
+        if ((type(train) in dense_matrix_types or type(train) in sparse_matrix_types) and
+            (type(test) not in dense_matrix_types and type(test) not in sparse_matrix_types)):
+            error_msg = "Train and test data must be the same type: {} != {}".format(type(train), type(test))
+            raise ValueError(error_msg)
+        if train.shape != test.shape:
+            raise ValueError("Train and test data must be the same shape: {} != {}".format(train.shape, test.shape))
+
+    cdef TensorConfig* train_config
+    cdef TensorConfig* test_config
+
+    # Prepare train data
+    if type(train) in dense_matrix_types and len(train.shape) == 2:
+        train_config = prepare_dense_matrix(train)
+    elif type(train) in sparse_matrix_types:
+        train_config = prepare_sparse_matrix(train, True)
+    elif type(train) in dense_tensor_types and len(train.shape) > 2:
+        train_config = prepare_dense_tensor(train)
+    elif type(train) in sparse_tensor_types:
+        train_config = prepare_sparse_tensor(train)
+    else:
+        error_msg = "Unsupported train data type: {}".format(type(train))
+        raise ValueError(error_msg)
+
+    # Prepare test data
+    if test is not None:
+        if type(test) in dense_matrix_types and len(test.shape) == 2:
+            test_config = prepare_dense_matrix(test)
+        elif type(test) in sparse_matrix_types:
+            test_config = prepare_sparse_matrix(test, True)
+        elif type(test) in dense_tensor_types and len(test.shape) > 2:
+            test_config = prepare_dense_tensor(test)
+        elif type(test) in sparse_tensor_types:
+            test_config = prepare_sparse_tensor(test)
+        else:
+            error_msg = "Unsupported test data type: {}".format(type(test))
+            raise ValueError(error_msg)
+
+    if test is not None:
+        return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig](test_config)
+    else:
+        return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
 
 class ResultItem:
     def __init__(self, coords, val, pred_1sample, pred_avg, var, stds):
@@ -171,12 +239,13 @@ def smurff(Y,
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    config.setTrain(shared_ptr[TensorConfig](prepare_sparse(Y, True)))
-    config.getTrain().get().setNoiseConfig(nc)
+    train, test = prepare_data(Y, Ytest)
+    train.get().setNoiseConfig(nc)
 
+    config.setTrain(train)
     if Ytest is not None:
-        config.setTest(shared_ptr[TensorConfig](prepare_sparse(Ytest, True)))
-        config.getTest().get().setNoiseConfig(nc)
+        test.get().setNoiseConfig(nc)
+        config.setTest(test)
 
     cdef shared_ptr[MatrixConfig] rf_matrix_config
     for rf in row_features:
