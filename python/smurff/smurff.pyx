@@ -13,7 +13,9 @@ cimport numpy as np
 import  numpy as np
 import  scipy as sp
 import pandas as pd
+import scipy.sparse
 import numbers
+
 
 DENSE_MATRIX_TYPES  = [np.ndarray]
 SPARSE_MATRIX_TYPES = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
