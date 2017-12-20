@@ -71,9 +71,9 @@ class TestSmurff(unittest.TestCase):
     #     with self.assertRaises(ValueError):
     #         macau.macau(Y, verbose = False, side = [None, None, None])
 
-    # def test_bpmf_emptytest(self):
-    #     X = scipy.sparse.rand(15, 10, 0.2)
-    #     macau.bpmf(X, Ytest = 0, num_latent = 10, burnin=10, nsamples=15, verbose=False)
+    def test_bpmf_emptytest(self):
+        X = scipy.sparse.rand(15, 10, 0.2)
+        smurff.smurff(X, num_latent = 10, burnin=10, nsamples=15, verbose=False)
 
     # def test_bpmf_emptytest_probit(self):
     #     X = scipy.sparse.rand(15, 10, 0.2)
