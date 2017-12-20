@@ -13,10 +13,8 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 
 #define HELP_NAME "help"
-#define ROW_PRIOR_NAME "row-prior"
-#define COL_PRIOR_NAME "col-prior"
-#define ROW_FEATURES_NAME "row-features"
-#define COL_FEATURES_NAME "col-features"
+#define PRIOR_NAME "prior"
+#define FEATURES_NAME "features"
 #define TEST_NAME "test"
 #define TRAIN_NAME "train"
 #define BURNIN_NAME "burnin"
@@ -50,10 +48,8 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description priors_desc("Priors and side Info");
    priors_desc.add_options()
-     (ROW_PRIOR_NAME, boost::program_options::value<std::string>()->default_value(PRIOR_NAME_DEFAULT), "One of <normal|spikeandslab|macau|macauone>")
-     (COL_PRIOR_NAME, boost::program_options::value<std::string>()->default_value(PRIOR_NAME_DEFAULT), "One of <normal|spikeandslab|macau|macauone>")
-     (ROW_FEATURES_NAME, boost::program_options::value<std::vector<std::string> >(), "side info for rows")
-     (COL_FEATURES_NAME, boost::program_options::value<std::vector<std::string> >(), "side info for cols");
+     (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "One of <normal|spikeandslab|macau|macauone>")
+     (FEATURES_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "Side info for each dimention");
 
    boost::program_options::options_description train_test_desc("Test and train matrices");
    train_test_desc.add_options()
@@ -100,7 +96,7 @@ boost::program_options::options_description get_desc()
    return desc;
 }
 
-void set_noise_model_win(Config& config, std::string noiseName, std::string optarg)
+void set_noise_model(Config& config, std::string noiseName, std::string optarg)
 {
    NoiseConfig nc;
    nc.setNoiseType(smurff::stringToNoiseType(noiseName));
@@ -131,31 +127,43 @@ void set_noise_model_win(Config& config, std::string noiseName, std::string opta
    if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
       config.getTrain()->setNoiseConfig(nc);
 
-   //set for row/col feautres
-   for(auto m: config.getRowFeatures())
-      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-         m->setNoiseConfig(nc);
-
-   for(auto m: config.getColFeatures())
-      if (m->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-         m->setNoiseConfig(nc);
+   //set for feautres
+   for(auto& featureSet : config.getFeatures())
+   {
+      for(auto features : featureSet)
+      {
+         if (features->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+            features->setNoiseConfig(nc);
+      }
+   }
 }
 
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
-   if (vm.count(ROW_PRIOR_NAME))
-      config.setRowPriorType(stringToPriorType(vm[ROW_PRIOR_NAME].as<std::string>()));
+   if (vm.count(PRIOR_NAME))
+      for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
+         config.getPriorTypes().push_back(stringToPriorType(pr));
 
-   if (vm.count(COL_PRIOR_NAME))
-      config.setColPriorType(stringToPriorType(vm[COL_PRIOR_NAME].as<std::string>()));
+   if (vm.count(FEATURES_NAME))
+   {
+      for (auto featString : vm[FEATURES_NAME].as<std::vector<std::string> >())
+      {
+         config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
+         auto& dimFeatures = config.getFeatures().back();
 
-   if (vm.count(ROW_FEATURES_NAME))
-      for (auto& rf : vm[ROW_FEATURES_NAME].as<std::vector<std::string> >())
-         config.getRowFeatures().push_back(matrix_io::read_matrix(rf, false));
+         std::stringstream lineStream(featString);
+         std::string token;
+         
+         while (std::getline(lineStream, token, ','))
+         {
+            //add ability to skip features for specific dimention
+            if(token == "none")
+               continue;
 
-   if (vm.count(COL_FEATURES_NAME))
-      for (auto& cf : vm[COL_FEATURES_NAME].as<std::vector<std::string> >())
-         config.getColFeatures().push_back(matrix_io::read_matrix(cf, false));
+            dimFeatures.push_back(matrix_io::read_matrix(token, false));
+         }
+      }
+   }
 
    if (vm.count(TEST_NAME))
       config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
@@ -212,10 +220,10 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    }
 
    if(vm.count(PRECISION_NAME))
-      set_noise_model_win(config, NOISE_NAME_FIXED, vm[PRECISION_NAME].as<std::string>());
+      set_noise_model(config, NOISE_NAME_FIXED, vm[PRECISION_NAME].as<std::string>());
 
    if(vm.count(ADAPTIVE_NAME))
-      set_noise_model_win(config, NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>());
+      set_noise_model(config, NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>());
 
    if(vm.count(LAMBDA_BETA_NAME))
       config.setLambdaBeta(vm[LAMBDA_BETA_NAME].as<double>());

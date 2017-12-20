@@ -51,9 +51,9 @@ void Session::setFromConfig(const Config& cfg)
 
    // initialize priors
 
-   this->addPrior(PriorFactory::create_prior(this_session, 0));
-
-   this->addPrior(PriorFactory::create_prior(this_session, 1));
+   std::shared_ptr<IPriorFactory> priorFactory = this->create_prior_factory();
+   for(std::size_t i = 0; i < config.getPriorTypes().size(); i++)
+      this->addPrior(priorFactory->create_prior(this_session, i));
 }
 
 void Session::init()
@@ -256,4 +256,9 @@ void Session::printStatus(double elapsedi)
                   m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
       fclose(f);
    }
+}
+
+std::shared_ptr<IPriorFactory> Session::create_prior_factory() const
+{
+   return std::make_shared<PriorFactory>();
 }

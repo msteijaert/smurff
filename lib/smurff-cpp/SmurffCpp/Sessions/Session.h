@@ -5,6 +5,7 @@
 
 #include "BaseSession.h"
 #include <SmurffCpp/Configs/Config.h>
+#include <SmurffCpp/Priors/IPriorFactory.h>
 
 namespace smurff {
 
@@ -45,6 +46,9 @@ private:
    //save iteration
    void save(int isample);
    void printStatus(double elapsedi);
+
+public:
+   virtual std::shared_ptr<IPriorFactory> create_prior_factory() const;
 };
 
 }
