@@ -203,8 +203,7 @@ def gen_train_and_write(m, shape, K,func,density, row_split = 1, col_split = 1, 
 
     write_train_data(dirname, m, (row_feat, col_feat))
 
-
-if __name__ == "__main__":
+def gen_matrix_tests():
     shape = [2000,100]
     #shape = [40,30]
     num_latent = 4
@@ -218,3 +217,46 @@ if __name__ == "__main__":
                         gen_train_and_write(m,shape,num_latent,func,density, row_split, col_split, center)
                     # SPARSIFY SHOULD BE CALLED ONLY ONCE
                     gen_test_and_write(m,shape,num_latent,func,density, row_split, col_split, ("none", "global", "row", "col"))
+
+def gen_and_write_train_tensor(shape, dirname):
+    train_tensor = np.random.normal(size=shape)
+    os.makedirs(dirname)
+    os.chdir(dirname)
+    filename = "train.ddt"
+    with open(filename, 'wb') as f:
+        np.array(len(train_tensor.shape)).astype(np.int64).tofile(f)
+        np.array(train_tensor.shape).astype(np.int64).tofile(f)
+        f.write(train_tensor.astype(np.float64).tobytes(order='F'))
+    os.chdir("..")
+    return train_tensor
+
+def gen_and_write_test_tensor(train_tensor, density, dirname):
+    val = train_tensor.reshape(train_tensor.size)
+    num = int(val.size * density)
+    idx = np.random.choice(val.size, num, replace=False)
+
+    os.chdir(dirname)
+    filename = "test.sdt"
+    with open(filename, 'wb') as f:
+        np.array(len(train_tensor.shape)).astype(np.uint64).tofile(f)
+        np.array(train_tensor.shape).astype(np.uint64).tofile(f)
+        np.array(idx.size).astype(np.uint64).tofile(f)
+        for i in range(len(train_tensor.shape)):
+            indices = np.indices(train_tensor.shape)[i].reshape(train_tensor.size)
+            (indices[idx] + 1).astype(np.uint32, copy=False).tofile(f)
+        val[idx].astype(np.float64, copy=False).tofile(f)
+    os.chdir("..")
+
+def gen_tensor_tests():
+    shape = [200, 50, 10]
+    shape_str = "_".join(map(str, shape))
+
+    for density in (1, .2):
+        dirname = "normal_%s_%d" % (shape_str, int(density * 100))
+        print("%s..." % dirname)
+        train_tensor = gen_and_write_train_tensor(shape, dirname)
+        gen_and_write_test_tensor(train_tensor, density, dirname)
+
+if __name__ == "__main__":
+    #gen_matrix_tests()
+    gen_tensor_tests()
