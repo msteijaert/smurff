@@ -122,6 +122,51 @@ class TestSmurff(unittest.TestCase):
 
         results = smurff.smurff(Y, Ytest = Ytest, num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
 
+    def test_bpmf_matrix_2d_tensor(self):
+        np.random.seed(1234)
+
+        # Generate train matrix rows, cols and vals
+        train_shape = (5, 5)
+        train_rows = np.random.randint(0, 5, 7)
+        train_cols = np.random.randint(0, 4, 7)
+        train_vals = np.random.randn(7)
+
+        # Generate test matrix rows, cols and vals
+        test_shape = (5, 5)
+        test_rows = np.random.randint(0, 5, 5)
+        test_cols = np.random.randint(0, 4, 5)
+        test_vals = np.random.randn(5)
+
+        # Create train and test sparse matrices
+        train_sparse_matrix = scipy.sparse.coo_matrix((train_vals, (train_rows, train_cols)), train_shape)
+        test_sparse_matrix = scipy.sparse.coo_matrix((test_vals, (test_rows, test_cols)), test_shape)
+
+        # Force NNZ recalculation to remove duplicate coordinates because of random generation
+        train_sparse_matrix.count_nonzero()
+        test_sparse_matrix.count_nonzero()
+
+        # Create train and test sparse tensors
+        train_sparse_tensor = pd.DataFrame({
+            '0': train_sparse_matrix.row,
+            '1': train_sparse_matrix.col,
+            'v': train_sparse_matrix.data
+        })
+        test_sparse_tensor = pd.DataFrame({
+            '0': test_sparse_matrix.row,
+            '1': test_sparse_matrix.col,
+            'v': test_sparse_matrix.data
+        })
+
+        # Run SMURFF
+        sparse_matrix_results = smurff.smurff(train_sparse_matrix, test_sparse_matrix, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+        sparse_tensor_results = smurff.smurff(train_sparse_tensor, test_sparse_tensor, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+
+        # Transfrom SMURFF results to list of tuples of coords and values
+        sparse_matrix_results_tuples = [(p.coords, p.val) for p in sparse_matrix_results.predictions]
+        sparse_tensor_results_tuples = [(p.coords, p.val) for p in sparse_tensor_results.predictions]
+
+        self.assertEqual(sparse_matrix_results_tuples, sparse_tensor_results_tuples)
+
     # def test_bpmf_tensor2(self):
     #     A = np.random.randn(15, 2)
     #     B = np.random.randn(20, 2)
