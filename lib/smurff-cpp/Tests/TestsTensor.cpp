@@ -90,7 +90,7 @@ TEST_CASE("test sparse view new 2")
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, NoiseConfig(), false);
 
    TensorData td(tensorConfig);
-   /*
+   
    std::cout << "Tensor Data test" << std::endl;
   
    for(uint64_t mode = 0; mode < td.nmode(); mode++)
@@ -110,18 +110,25 @@ TEST_CASE("test sparse view new 2")
 
          for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each value in a plane
          {
-            for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
+            //for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
+            //{
+            //   std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
+            //}
+
+            PVec<> pos = sview->pos(n, j);
+            //PVec<> pos = td.pos(mode, n, j); // the other option is to call tensor data pos
+            for (std::uint64_t m = 0; m < pos.size(); m++) //go through each coordinate of a value
             {
-               std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
+               std::cout << pos[m] << ", "; //print coordinate
             }
-            
+
             std::cout << sview->getValues()[j] << std::endl; //print value
-         }
+         }  
       }
 
       std::cout << std::endl;
    }
-   */
+   
 }
 
 //smurff
