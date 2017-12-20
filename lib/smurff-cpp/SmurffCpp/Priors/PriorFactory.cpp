@@ -158,20 +158,7 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
 {
    // row prior with side information
    // side information can only be applied to macau and macauone priors
-   if (vsideinfo.size())
-   {
-      switch(prior_type)
-      {
-      case PriorTypes::macau:
-      case PriorTypes::macauone:
-         return create_macau_prior(session, mode, prior_type, vsideinfo);
-      default:
-         {
-            THROWERROR("SideInfo only with macau(one) prior");
-         }
-      }
-   }
-   else
+   if (vsideinfo.empty())
    {
       switch(prior_type)
       {
@@ -186,35 +173,36 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
          }
       }
    }
+   else
+   {
+      switch(prior_type)
+      {
+      case PriorTypes::macau:
+      case PriorTypes::macauone:
+         return create_macau_prior(session, mode, prior_type, vsideinfo);
+      default:
+         {
+            THROWERROR("SideInfo only with macau(one) prior");
+         }
+      }
+   }
 }
 
 std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
 {
-   switch(mode)
+   PriorTypes pt = session->config.getPriorTypes().at(mode);
+
+   //sideinfo is selected if prior is macau or macauone
+   std::vector<std::shared_ptr<MatrixConfig> > sideinfo;
+   if(pt == PriorTypes::macau || pt == PriorTypes::macauone)
    {
-      case 0:
+      if(mode > 1)
       {
-         //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
-         std::vector<std::shared_ptr<MatrixConfig> > row_sideinfo;
-
-         if (session->config.getRowPriorType() == PriorTypes::macau || session->config.getRowPriorType() == PriorTypes::macauone)
-            row_sideinfo = session->config.getRowFeatures();
-
-         return ::create_prior(session, mode, session->config.getRowPriorType(), row_sideinfo);
+         THROWERROR("Macau and MacauOne priors are not supported for TensorData");
       }
-      case 1:
-      {
-         //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
-         std::vector<std::shared_ptr<MatrixConfig> > col_sideinfo;
 
-         if (session->config.getColPriorType() == PriorTypes::macau || session->config.getColPriorType() == PriorTypes::macauone)
-            col_sideinfo = session->config.getColFeatures();
-
-         return ::create_prior(session, mode, session->config.getColPriorType(), col_sideinfo);
-      }
-      default:
-      {
-         THROWERROR("Unknown prior mode");
-      }
+      sideinfo = session->config.getFeatures().at(mode);
    }
+
+   return ::create_prior(session, mode, pt, sideinfo);
 }

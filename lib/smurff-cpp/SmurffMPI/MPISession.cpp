@@ -1,6 +1,7 @@
 #include <mpi.h>
 
 #include "MPISession.h"
+#include "MPIPriorFactory.h"
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
 
@@ -31,6 +32,11 @@ void MPISession::run()
 
       THROWERROR_ASSERT(work_done);
    }
+}
+
+std::shared_ptr<IPriorFactory> MPISession::create_prior_factory() const
+{
+   return std::make_shared<MPIPriorFactory>();
 }
 
 //create mpi session

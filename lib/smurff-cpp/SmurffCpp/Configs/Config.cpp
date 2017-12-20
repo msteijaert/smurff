@@ -97,40 +97,96 @@ bool Config::validate() const
       THROWERROR("Train and test data should have the same dimensions");
    }
 
-   for (const auto r: m_row_features)
+   if(m_prior_types.size() != m_train->getNModes())
    {
-      if (m_train->getDims()[0] != r->getNRow())
+      THROWERROR("Number of priors should equal to number of dimensions in train data");
+   }
+
+   if(!m_features.empty())
+   {
+      if(m_features.size() > 2)
       {
-         THROWERROR("Row features and train data should have the same number of rows");
+         //it is advised to check macau and macauone priors implementation
+         //as well as code in PriorFactory that creates macau priors
+         
+         //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+         //however TensorDataFactory will do an additional check throwing an exception
+         THROWERROR("Features are not supported for TensorData");
+      }
+
+      //for simplicity we store empty vector if features are not specified for dimension
+      //this way we can either have empty m_features or size should equal to getNModes
+      if(m_features.size() != m_train->getNModes())
+      {
+         THROWERROR("Number of feature sets should equal to number of dimensions in train data");
       }
    }
 
-   for (const auto c: m_col_features)
+   for(std::size_t i = 0; i < m_features.size(); i++) //go through each dimension
    {
-      if (m_train->getDims()[1] != c->getNCol())
+      const auto& featureSet = m_features[i]; //features for specific dimension
+      for(auto& ft : featureSet)
       {
-         THROWERROR("Column features and train data should have the same number of cols");
+         if(i > 1)
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
+            
+            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+            //however TensorDataFactory will do an additional check throwing an exception
+            THROWERROR("Features are not supported for TensorData");
+         }
+
+         //AGE: not sure how strict should be the check. which adjacent dimensions do we need to check?
+         if (m_train->getDims()[i] != ft->getDims()[i]) //compare sizes in specific dimension
+         {
+            std::stringstream ss;
+            ss << "Features and train data should have the same number of records in dimension " << i;
+            THROWERROR(ss.str());
+         }
       }
    }
 
-   if (m_col_prior_type == PriorTypes::macau && m_col_features.size() != 1)
+   for(std::size_t i = 0; i < m_prior_types.size(); i++)
    {
-      THROWERROR("Exactly one set of col-features needed when using macau prior.");
-   }
+      PriorTypes pt = m_prior_types[i];
+      const auto& featureSet = m_features[i];
+      if(pt == PriorTypes::macau)
+      {
+         if(i > 1)
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
+            
+            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+            //however PriorFactory will do an additional check
+            THROWERROR("Macau and MacauOne priors are not supported for TensorData");
+         }
 
-   if (m_row_prior_type == PriorTypes::macau && m_row_features.size() != 1)
-   {
-      THROWERROR("Exactly one set of row-features needed when using macau prior.");
-   }
+         if(featureSet.size() != 1)
+         {
+            std::stringstream ss;
+            ss << "Exactly one set of features needed when using macau prior in dimension " << i;
+            THROWERROR(ss.str());
+         }
+      }
 
-   if (m_col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense()))
-   {
-      THROWERROR("Exactly one set of sparse col-features needed when using macauone prior.");
-   }
+      if(pt == PriorTypes::macauone)
+      {
+         if(i > 1)
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
+            THROWERROR("Macau and MacauOne priors are not supported for TensorData");
+         }
 
-   if (m_row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense()))
-   {
-      THROWERROR("Exactly one set of sparse row-features needed when using macauone prior.");
+         if(featureSet.size() != 1 || featureSet.at(0)->isDense())
+         {
+            std::stringstream ss;
+            ss << "Exactly one set of sparse col-features needed when using macauone prior in dimension " << i;
+            THROWERROR(ss.str());
+         }
+      }
    }
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
@@ -147,6 +203,7 @@ bool Config::validate() const
 
 void Config::save(std::string fname) const
 {
+   /*
    if (!m_save_freq)
       return;
 
@@ -162,7 +219,7 @@ void Config::save(std::string fname) const
 
    os << "# features" << std::endl;
 
-   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<MatrixConfig> > &vec) -> void
+   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<TensorConfig> > &vec) -> void
    {
       os << "[" << name << "]\n";
       for (size_t i = 0; i < vec.size(); ++i)
@@ -210,10 +267,12 @@ void Config::save(std::string fname) const
    os << "# binary classification" << std::endl;
    os << "classify = " << m_classify << std::endl;
    os << "threshold = " << m_threshold << std::endl;
+   */
 }
 
 void Config::restore(std::string fname)
 {
+   /*
    INIReader reader(fname);
 
    if (reader.ParseError() < 0)
@@ -257,5 +316,6 @@ void Config::restore(std::string fname)
    //-- binary classification
    m_classify = reader.GetBoolean("", "classify",  false);
    m_threshold = reader.GetReal("", "threshold",  .0);
-};
+   */
+}
 
