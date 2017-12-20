@@ -61,6 +61,7 @@ class Test:
 
     def valid(self):
         opts = self.opts
+
         if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1:
             return False
 
@@ -294,6 +295,36 @@ def synthetic_tensor_tests(defaults):
 
     return suite
 
+def synthetic_multidim_tensor_tests(defaults):
+    suite = TestSuite("synthetic_multidim_tensor")
+
+    priors = [ "normal", "spikeandslab" ]
+    datadirs = glob("%s/synthetic/normal*" % args.datadir)
+
+    # each datadir == 1 test
+    for d in datadirs:
+        test = suite.add_test(defaults)
+        test.update_one("datasubdir", os.path.join("synthetic", os.path.basename(d)))
+        train_file = os.path.basename(list(glob('%s/train.*dt' % d))[0])
+        test_file  = "test.sdt"
+        test.update({ 'train' : train_file, 'test' : test_file, })
+        test.update_one("direct",False)
+        #test.update_one("row_features", [])
+        #test.update_one("col_features", [])
+        #for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
+        #for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
+
+    suite.add_options("row_prior", priors)
+    suite.add_options("col_prior", priors)
+    suite.add_options("center", ["none"])
+    #suite.add_centering_options()
+    #suite.add_noise_options()
+
+    suite.filter_tests()
+
+    print(suite)
+
+    return suite
 
 def movielens_tests(defaults):
     suite = TestSuite("movielens")
@@ -310,8 +341,9 @@ def movielens_tests(defaults):
 def all_tests(args):
 
     all_tests = chembl_tests(defaults)
-    all_tests.add_testsuite(synthetic_matrix_tests(defaults))
-    all_tests.add_testsuite(synthetic_tensor_tests(defaults))
+    #all_tests.add_testsuite(synthetic_matrix_tests(defaults))
+    #all_tests.add_testsuite(synthetic_tensor_tests(defaults))
+    all_tests.add_testsuite(synthetic_multidim_tensor_tests(defaults))
 
     return all_tests
 
