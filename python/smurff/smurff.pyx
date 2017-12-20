@@ -266,10 +266,10 @@ def smurff(Y,
         config.getColFeatures().push_back(cf_matrix_config)
 
     if row_prior:
-      config.setRowPriorType(stringToPriorType(row_prior.encode('utf8')))
+      config.setRowPriorType(stringToPriorType(row_prior))
 
     if col_prior:
-      config.setColPriorType(stringToPriorType(col_prior.encode('utf8')))
+      config.setColPriorType(stringToPriorType(col_prior))
 
     config.setLambdaBeta(lambda_beta)
     config.setNumLatent(num_latent)
