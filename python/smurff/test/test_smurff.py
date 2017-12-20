@@ -10,7 +10,7 @@ class TestSmurff(unittest.TestCase):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
         results = smurff.smurff(Y, Ytest = Ytest, num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
-        self.assertEqual(Ytest.nnz, len(results))
+        self.assertEqual(Ytest.nnz, len(results.predictions))
 
     def test_bpmf_numerictest(self):
         X = scipy.sparse.rand(15, 10, 0.2)
@@ -25,7 +25,7 @@ class TestSmurff(unittest.TestCase):
         side2   = scipy.sparse.coo_matrix( np.random.rand(3, 20) )
 
         results = smurff.smurff(Y, Ytest = Ytest, row_prior = 'macau', row_features = [side1], col_prior = 'macau', col_features = [side2], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
-        self.assertEqual(Ytest.nnz, len(results))
+        self.assertEqual(Ytest.nnz, len(results.predictions))
 
     def test_macau_side_bin(self):
         X = scipy.sparse.rand(15, 10, 0.2)
@@ -64,7 +64,7 @@ class TestSmurff(unittest.TestCase):
         side2   = scipy.sparse.coo_matrix( np.random.rand(3, 20) )
 
         results = smurff.smurff(Y, Ytest = Ytest, row_prior='macauone', row_features=[side1], col_prior='macauone', col_features=[side2], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
-        self.assertEqual(Ytest.nnz, len(results))
+        self.assertEqual(Ytest.nnz, len(results.predictions))
 
     # def test_too_many_sides(self):
     #     Y = scipy.sparse.rand(10, 20, 0.2)
