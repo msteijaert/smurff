@@ -2,7 +2,7 @@ from libc.stdint cimport *
 from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 
-from Config cimport Config, stringToPriorType, stringToModelInitType
+from Config cimport Config, PriorTypes, stringToPriorType, stringToModelInitType
 from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
@@ -257,10 +257,7 @@ class Result:
 def smurff(Y,
            Ytest          = None,
            data_shape     = None,
-           row_features   = [],
-           col_features   = [],
-           row_prior      = None,
-           col_prior      = None,
+           side           = [],
            lambda_beta    = 5.0,
            num_latent     = 10,
            precision      = 1.0,
@@ -303,23 +300,13 @@ def smurff(Y,
         test.get().setNoiseConfig(nc)
         config.setTest(test)
 
-    cdef shared_ptr[MatrixConfig] rf_matrix_config
-    for rf in row_features:
-        rf_matrix_config.reset(prepare_sideinfo(rf))
-        rf_matrix_config.get().setNoiseConfig(nc)
-        config.getRowFeatures().push_back(rf_matrix_config)
-
-    cdef shared_ptr[MatrixConfig] cf_matrix_config
-    for cf in col_features:
-        cf_matrix_config.reset(prepare_sideinfo(cf))
-        cf_matrix_config.get().setNoiseConfig(nc)
-        config.getColFeatures().push_back(cf_matrix_config)
-
-    if row_prior:
-      config.setRowPriorType(stringToPriorType(row_prior))
-
-    if col_prior:
-      config.setColPriorType(stringToPriorType(col_prior))
+    cdef vector[shared_ptr[MatrixConfig]] cpp_prior_features_list
+    for prior_type_str, prior_features_list in side:
+        config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
+        cpp_prior_features_list.clear()
+        for prior_features in prior_features_list:
+            cpp_prior_features_list.push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_features)))
+        config.getFeatures().push_back(cpp_prior_features_list)
 
     config.setLambdaBeta(lambda_beta)
     config.setNumLatent(num_latent)

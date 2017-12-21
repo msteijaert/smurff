@@ -25,12 +25,10 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setTest(shared_ptr[TensorConfig] value)
 
         #-- features
-        vector[shared_ptr[MatrixConfig]]& getRowFeatures()
-        vector[shared_ptr[MatrixConfig]]& getColFeatures()
+        vector[vector[shared_ptr[MatrixConfig]]]& getFeatures()
 
         #-- priors
-        void setRowPriorType(PriorTypes value)
-        void setColPriorType(PriorTypes value)
+        vector[PriorTypes]& getPriorTypes()
 
         #-- restore
         void setRestorePrefix(string value)
