@@ -17,7 +17,7 @@ import scipy.sparse
 import numbers
 
 
-DENSE_MATRIX_TYPES  = [np.ndarray]
+DENSE_MATRIX_TYPES  = [np.ndarray, np.matrix]
 SPARSE_MATRIX_TYPES = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
 
 DENSE_TENSOR_TYPES  = [np.ndarray]
@@ -109,7 +109,7 @@ cdef MatrixConfig* prepare_sparse_matrix(X, is_scarse):
     return matrix_config_ptr
 
 cdef MatrixConfig* prepare_dense_matrix(X):
-    cdef np.ndarray[np.double_t] vals = X.flatten(order='F')
+    cdef np.ndarray[np.double_t] vals = np.squeeze(np.asarray(X.flatten(order='F')))
     cdef double* vals_begin = &vals[0]
     cdef double* vals_end = vals_begin + vals.shape[0]
     cdef vector[double]* vals_vector_ptr = new vector[double]()
