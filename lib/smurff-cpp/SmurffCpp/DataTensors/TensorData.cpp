@@ -175,6 +175,16 @@ double TensorData::var_total() const
    return var;
 }
 
+std::pair<PVec<>, double> TensorData::item(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const
+{
+   if(mode >= m_Y->size())
+   {
+      THROWERROR("Invalid mode");
+   }
+
+   return m_Y->at(mode)->item(hyperplane, item);
+}
+
 PVec<> TensorData::pos(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const
 {
    if(mode >= m_Y->size())

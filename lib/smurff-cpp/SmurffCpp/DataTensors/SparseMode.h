@@ -42,13 +42,17 @@ public:
 
    std::uint64_t getMode() const;
 
-   std::uint64_t beginPlane(std::uint64_t n) const;
+   std::uint64_t beginPlane(std::uint64_t hyperplane) const;
 
-   std::uint64_t endPlane(std::uint64_t n) const;
+   std::uint64_t endPlane(std::uint64_t hyperplane) const;
+
+   std::uint64_t nItemsOnPlane(std::uint64_t hyperplane) const;
 
    const MatrixXui32& getIndices() const;
 
 public:
+   std::pair<PVec<>, double> item(std::uint64_t hyperplane, std::uint64_t item) const;
+   
    PVec<> pos(std::uint64_t hyperplane, std::uint64_t item) const;
 };
 
