@@ -74,7 +74,7 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef MatrixConfig* prepare_sparse_matrix(X, isScarce):
+cdef MatrixConfig* prepare_sparse_matrix(X, is_scarse):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
 
@@ -105,7 +105,7 @@ cdef MatrixConfig* prepare_sparse_matrix(X, isScarce):
     cdef shared_ptr[vector[uint32_t]] cols_vector_shared_ptr = shared_ptr[vector[uint32_t]](cols_vector_ptr)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
 
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), isScarce)
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), is_scarse)
     return matrix_config_ptr
 
 cdef MatrixConfig* prepare_dense_matrix(X):
@@ -130,7 +130,7 @@ cdef TensorConfig* prepare_dense_tensor(tensor):
         raise ValueError(error_msg)
     raise NotImplementedError()
 
-cdef TensorConfig* prepare_sparse_tensor(tensor, isScarce):
+cdef TensorConfig* prepare_sparse_tensor(tensor, shape, is_scarse):
     if type(tensor) not in SPARSE_TENSOR_TYPES:
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
@@ -150,16 +150,20 @@ cdef TensorConfig* prepare_sparse_tensor(tensor, isScarce):
         idx = [i for c in idx_column_names for i in np.array(tensor[c], dtype=np.int32)]
         val = np.array(tensor[val_column_names[0]],dtype=np.float64)
 
-        cpp_dims_vector = [tensor[c].max() + 1 for c in idx_column_names]
+        if shape is not None:
+            cpp_dims_vector = shape
+        else:
+            cpp_dims_vector = [tensor[c].max() + 1 for c in idx_column_names]
+
         cpp_columns_vector = idx
         cpp_values_vector = val
 
-        return new TensorConfig(make_shared[vector[uint64_t]](cpp_dims_vector), make_shared[vector[uint32_t]](cpp_columns_vector), make_shared[vector[double]](cpp_values_vector), NoiseConfig(), isScarce)
+        return new TensorConfig(make_shared[vector[uint64_t]](cpp_dims_vector), make_shared[vector[uint32_t]](cpp_columns_vector), make_shared[vector[double]](cpp_values_vector), NoiseConfig(), is_scarse)
     else:
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
 
-cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test):
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape):
     # Check train data type
     if (type(train) not in DENSE_MATRIX_TYPES and
         type(train) not in SPARSE_MATRIX_TYPES and
@@ -199,7 +203,7 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
     elif type(train) in DENSE_TENSOR_TYPES and len(train.shape) > 2:
         train_config = prepare_dense_tensor(train)
     elif type(train) in SPARSE_TENSOR_TYPES:
-        train_config = prepare_sparse_tensor(train, True)
+        train_config = prepare_sparse_tensor(train, shape, True)
     else:
         error_msg = "Unsupported train data type: {}".format(type(train))
         raise ValueError(error_msg)
@@ -213,18 +217,19 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
         elif type(test) in DENSE_TENSOR_TYPES and len(test.shape) > 2:
             test_config = prepare_dense_tensor(test)
         elif type(test) in SPARSE_TENSOR_TYPES:
-            test_config = prepare_sparse_tensor(test, True)
+            test_config = prepare_sparse_tensor(test, shape, True)
         else:
             error_msg = "Unsupported test data type: {}".format(type(test))
             raise ValueError(error_msg)
 
     if test is not None:
-        # Adjust train and test dims. Make sense only for sparse tensors
+        # Adjust train and test dims. Makes sense only for sparse tensors
         # It does not have any effect in other case
-        for i in range(train_config.getDimsPtr().get().size()):
-            max_dim = max(train_config.getDimsPtr().get().at(i), test_config.getDimsPtr().get().at(i))
-            train_config.getDimsPtr().get()[0][i] = max_dim
-            test_config.getDimsPtr().get()[0][i] = max_dim
+        if shape is None:
+            for i in range(train_config.getDimsPtr().get().size()):
+                max_dim = max(train_config.getDimsPtr().get().at(i), test_config.getDimsPtr().get().at(i))
+                train_config.getDimsPtr().get()[0][i] = max_dim
+                test_config.getDimsPtr().get()[0][i] = max_dim
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig](test_config)
     else:
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
@@ -251,6 +256,7 @@ class Result:
 
 def smurff(Y,
            Ytest          = None,
+           data_shape     = None,
            row_features   = [],
            col_features   = [],
            row_prior      = None,
@@ -289,7 +295,7 @@ def smurff(Y,
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    train, test = prepare_data(Y, Ytest)
+    train, test = prepare_data(Y, Ytest, data_shape)
     train.get().setNoiseConfig(nc)
 
     config.setTrain(train)
