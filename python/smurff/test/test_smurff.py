@@ -123,7 +123,7 @@ class TestSmurff(unittest.TestCase):
 
         results = smurff.smurff(Y, Ytest = Ytest, num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
 
-    def test_bpmf_matrix_2d_tensor(self):
+    def test_bpmf_sparse_matrix_sparse_2d_tensor(self):
         np.random.seed(1234)
 
         # Generate train matrix rows, cols and vals
