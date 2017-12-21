@@ -7,6 +7,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
+#include <SmurffCpp/Utils/PVec.hpp>
+
 namespace smurff {
 
 typedef Eigen::Matrix<std::uint32_t, Eigen::Dynamic, Eigen::Dynamic > MatrixXui32;
@@ -45,6 +47,9 @@ public:
    std::uint64_t endPlane(std::uint64_t n) const;
 
    const MatrixXui32& getIndices() const;
+
+public:
+   PVec<> pos(std::uint64_t hyperplane, std::uint64_t item) const;
 };
 
 }

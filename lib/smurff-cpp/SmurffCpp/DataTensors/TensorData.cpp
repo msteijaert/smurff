@@ -174,3 +174,13 @@ double TensorData::var_total() const
 
    return var;
 }
+
+PVec<> TensorData::pos(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const
+{
+   if(mode >= m_Y->size())
+   {
+      THROWERROR("Invalid mode");
+   }
+
+   return m_Y->at(mode)->pos(hyperplane, item);
+}

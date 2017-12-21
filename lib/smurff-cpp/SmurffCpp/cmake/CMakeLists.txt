@@ -53,6 +53,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Priors/SpikeAndSlabPrior.h"
                         "../Priors/MacauPrior.hpp"
                         "../Priors/MacauOnePrior.hpp"
+                        "../Priors/IPriorFactory.h"
                         "../Priors/PriorFactory.h"
 
                         "../DataMatrices/Data.h"

@@ -7,11 +7,13 @@ project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../MPISession.h"
                         "../MPIMacauPrior.hpp"
+                        "../MPIPriorFactory.h"
                         "../../SmurffCpp/Sessions/CmdSession.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
 
 FILE (GLOB SOURCE_FILES "../mpi_smurff.cpp"
                         "../MPISession.cpp"
+                        "../MPIPriorFactory.cpp"
                         "../../SmurffCpp/Sessions/CmdSession.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})

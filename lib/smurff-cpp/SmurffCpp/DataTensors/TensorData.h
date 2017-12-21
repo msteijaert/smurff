@@ -11,6 +11,7 @@
 #include "SparseMode.h"
 #include <SmurffCpp/Configs/TensorConfig.h>
 #include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/Utils/PVec.hpp>
 
 namespace smurff {
 
@@ -46,6 +47,9 @@ public:
 public:
    double sumsq(const SubModel& model) const override;
    double var_total() const override;
+
+public:
+   PVec<> pos(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const;
 };
 
 }

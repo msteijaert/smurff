@@ -56,12 +56,10 @@ private:
    std::shared_ptr<TensorConfig> m_test;
 
    //-- features
-   std::vector<std::shared_ptr<MatrixConfig> > m_row_features;
-   std::vector<std::shared_ptr<MatrixConfig> > m_col_features;
+   std::vector<std::vector<std::shared_ptr<MatrixConfig> > > m_features; //set of feature matrices for each prior
 
    // -- priors
-   PriorTypes m_row_prior_type;
-   PriorTypes m_col_prior_type;
+   std::vector<PriorTypes> m_prior_types;
 
    //-- restore
    std::string m_restore_prefix;
@@ -99,9 +97,6 @@ public:
       //these are default values for config
       //technically - all defaults are specified in CmdSession parser
       //these values are only needed if Config is going to be created outside of parser
-
-      m_row_prior_type = PriorTypes::default_prior;
-      m_col_prior_type = PriorTypes::default_prior;
 
       m_restore_prefix = "";
       m_restore_suffix = ".csv";
@@ -152,34 +147,14 @@ public:
       m_test = value;
    }
 
-   std::vector<std::shared_ptr<MatrixConfig> >& getRowFeatures()
+   std::vector<std::vector<std::shared_ptr<MatrixConfig> > >& getFeatures()
    {
-      return m_row_features;
+      return m_features;
    }
 
-   std::vector<std::shared_ptr<MatrixConfig> >& getColFeatures()
+   std::vector<PriorTypes>& getPriorTypes()
    {
-      return m_col_features;
-   }
-
-   PriorTypes getRowPriorType() const
-   {
-      return m_row_prior_type;
-   }
-
-   void setRowPriorType(PriorTypes value)
-   {
-      m_row_prior_type = value;
-   }
-
-   PriorTypes getColPriorType() const
-   {
-      return m_col_prior_type;
-   }
-
-   void setColPriorType(PriorTypes value)
-   {
-      m_col_prior_type = value;
+      return m_prior_types;
    }
 
    std::string getRestorePrefix() const
