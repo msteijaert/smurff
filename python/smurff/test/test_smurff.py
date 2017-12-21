@@ -172,6 +172,47 @@ class TestSmurff(unittest.TestCase):
             tensor_pred_1sample = sparse_tensor_results_dict[coords]
             self.assertAlmostEqual(matrix_pred_1sample, tensor_pred_1sample)
 
+    def test_bpmf_dense_matrix_sparse_2d_tensor(self):
+        np.random.seed(1234)
+
+        # Generate train dense matrix
+        train_shape = (5 ,5)
+        train_sparse_matrix = scipy.sparse.random(5, 5, density=1.0)
+        train_dense_matrix = train_sparse_matrix.todense()
+
+        # Generate test sparse matrix
+        test_shape = (5, 5)
+        test_rows = np.random.randint(0, 5, 5)
+        test_cols = np.random.randint(0, 4, 5)
+        test_vals = np.random.randn(5)
+        test_sparse_matrix = scipy.sparse.coo_matrix((test_vals, (test_rows, test_cols)), test_shape)
+
+        # Create train and test sparse tensors
+        train_sparse_tensor = pd.DataFrame({
+            '0': train_sparse_matrix.row,
+            '1': train_sparse_matrix.col,
+            'v': train_sparse_matrix.data
+        })
+        test_sparse_tensor = pd.DataFrame({
+            '0': test_sparse_matrix.row,
+            '1': test_sparse_matrix.col,
+            'v': test_sparse_matrix.data
+        })
+
+        # Run SMURFF
+        sparse_matrix_results = smurff.smurff(train_dense_matrix, test_sparse_matrix, data_shape=train_shape, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+        sparse_tensor_results = smurff.smurff(train_sparse_tensor, test_sparse_tensor, data_shape=train_shape, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+
+        # Transfrom SMURFF results to dictionary of coords and predicted values
+        sparse_matrix_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_results.predictions)
+        sparse_tensor_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_tensor_results.predictions)
+
+        self.assertEqual(len(sparse_matrix_results_dict), len(sparse_tensor_results_dict))
+        self.assertEqual(sparse_tensor_results_dict.keys(), sparse_tensor_results_dict.keys())
+        for coords, matrix_pred_1sample in sparse_matrix_results_dict.items():
+            tensor_pred_1sample = sparse_tensor_results_dict[coords]
+            self.assertAlmostEqual(matrix_pred_1sample, tensor_pred_1sample)
+
     # def test_bpmf_tensor2(self):
     #     A = np.random.randn(15, 2)
     #     B = np.random.randn(20, 2)
