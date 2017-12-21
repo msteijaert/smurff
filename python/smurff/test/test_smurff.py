@@ -4,6 +4,7 @@ import pandas as pd
 import scipy.sparse
 import smurff
 import itertools
+import collections
 
 class TestSmurff(unittest.TestCase):
     def test_bpmf(self):
@@ -158,14 +159,18 @@ class TestSmurff(unittest.TestCase):
         })
 
         # Run SMURFF
-        sparse_matrix_results = smurff.smurff(train_sparse_matrix, test_sparse_matrix, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
-        sparse_tensor_results = smurff.smurff(train_sparse_tensor, test_sparse_tensor, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+        sparse_matrix_results = smurff.smurff(train_sparse_matrix, test_sparse_matrix, data_shape=train_shape, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+        sparse_tensor_results = smurff.smurff(train_sparse_tensor, test_sparse_tensor, data_shape=train_shape, num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
 
-        # Transfrom SMURFF results to list of tuples of coords and values
-        sparse_matrix_results_tuples = [(p.coords, p.val) for p in sparse_matrix_results.predictions]
-        sparse_tensor_results_tuples = [(p.coords, p.val) for p in sparse_tensor_results.predictions]
+        # Transfrom SMURFF results to dictionary of coords and predicted values
+        sparse_matrix_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_results.predictions)
+        sparse_tensor_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_tensor_results.predictions)
 
-        self.assertEqual(sparse_matrix_results_tuples, sparse_tensor_results_tuples)
+        self.assertEqual(len(sparse_matrix_results_dict), len(sparse_tensor_results_dict))
+        self.assertEqual(sparse_tensor_results_dict.keys(), sparse_tensor_results_dict.keys())
+        for coords, matrix_pred_1sample in sparse_matrix_results_dict.items():
+            tensor_pred_1sample = sparse_tensor_results_dict[coords]
+            self.assertAlmostEqual(matrix_pred_1sample, tensor_pred_1sample)
 
     # def test_bpmf_tensor2(self):
     #     A = np.random.randn(15, 2)
