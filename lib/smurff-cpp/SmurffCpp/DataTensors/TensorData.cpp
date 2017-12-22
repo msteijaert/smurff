@@ -130,20 +130,14 @@ double TensorData::sumsq(const SubModel& model) const
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
-   std::vector<int> coords(this->nmode());
-
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
-   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   for(std::uint64_t h = 0; h < sview->getNPlanes(); h++) //go through each hyperplane
    {
-      coords[0] = n;
-
-      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      for(std::uint64_t n = 0; n < sview->nItemsOnPlane(h); n++) //go through each item in the hyperplane
       {
-         for(std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of the item
-            coords[m + 1] = static_cast<int>(sview->getIndices()(j, m));
-
-         double pred = model.predict(smurff::PVec<>(coords));
-         sumsq += std::pow(pred - sview->getValues()[j], 2);
+         auto item = sview->item(h, n);
+         double pred = model.predict(item.first);
+         sumsq += std::pow(pred - item.second, 2);
       }
    }
 
@@ -158,11 +152,12 @@ double TensorData::var_total() const
    std::shared_ptr<SparseMode> sview = Y(0);
 
    #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
-   for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
+   for(std::uint64_t h = 0; h < sview->getNPlanes(); h++) //go through each hyperplane
    {
-      for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
+      for(std::uint64_t n = 0; n < sview->nItemsOnPlane(h); n++) //go through each item in the hyperplane
       {
-         se += std::pow(sview->getValues()[j] - cwise_mean, 2);
+         auto item = sview->item(h, n);
+         se += std::pow(item.second - cwise_mean, 2);
       }
    }
 

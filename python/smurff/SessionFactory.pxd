@@ -5,4 +5,4 @@ from ISession cimport ISession
 cdef extern from "<SmurffCpp/Sessions/SessionFactory.h>" namespace "smurff":
     cdef cppclass SessionFactory:
         @staticmethod
-        shared_ptr[ISession] create_py_session(Config& cfg)
+        shared_ptr[ISession] create_py_session(Config& cfg) except +

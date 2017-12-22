@@ -106,24 +106,24 @@ bool Config::validate() const
       THROWERROR("Number of priors should equal to number of dimensions in train data");
    }
 
-   if(!m_features.empty())
+   for (std::size_t i = 2; i < m_features.size(); i++)
    {
-      if(m_features.size() > 2)
+      if (!m_features.at(i).empty())
       {
          //it is advised to check macau and macauone priors implementation
          //as well as code in PriorFactory that creates macau priors
-         
+
          //this check does not directly check that input data is Tensor (it only checks number of dimensions)
          //however TensorDataFactory will do an additional check throwing an exception
          THROWERROR("Features are not supported for TensorData");
       }
+   }
 
-      //for simplicity we store empty vector if features are not specified for dimension
-      //this way we can either have empty m_features or size should equal to getNModes
-      if(m_features.size() != m_train->getNModes())
-      {
-         THROWERROR("Number of feature sets should equal to number of dimensions in train data");
-      }
+   //for simplicity we store empty vector if features are not specified for dimension
+   //this way we can that size equals to getNModes
+   if(m_features.size() != m_train->getNModes())
+   {
+      THROWERROR("Number of feature sets should equal to number of dimensions in train data");
    }
 
    for(std::size_t i = 0; i < m_features.size(); i++) //go through each dimension
@@ -135,7 +135,7 @@ bool Config::validate() const
          {
             //it is advised to check macau and macauone priors implementation
             //as well as code in PriorFactory that creates macau priors
-            
+
             //this check does not directly check that input data is Tensor (it only checks number of dimensions)
             //however TensorDataFactory will do an additional check throwing an exception
             THROWERROR("Features are not supported for TensorData");
@@ -161,7 +161,7 @@ bool Config::validate() const
          {
             //it is advised to check macau and macauone priors implementation
             //as well as code in PriorFactory that creates macau priors
-            
+
             //this check does not directly check that input data is Tensor (it only checks number of dimensions)
             //however PriorFactory will do an additional check
             THROWERROR("Macau and MacauOne priors are not supported for TensorData");
