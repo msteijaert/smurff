@@ -67,10 +67,10 @@ class TestSmurff(unittest.TestCase):
         results = smurff.smurff(Y, Ytest = Ytest, side=[('macauone', [side1]), ('macauone', [side2])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
 
-    # def test_too_many_sides(self):
-    #     Y = scipy.sparse.rand(10, 20, 0.2)
-    #     with self.assertRaises(ValueError):
-    #         macau.macau(Y, verbose = False, side = [None, None, None])
+    def test_too_many_sides(self):
+        Y = scipy.sparse.rand(10, 20, 0.2)
+        with self.assertRaises(RuntimeError):
+            smurff.smurff(Y, verbose = False, side = [('normal', []), ('normal', []), ('normal', [])])
 
     def test_bpmf_emptytest(self):
         X = scipy.sparse.rand(15, 10, 0.2)
@@ -250,59 +250,57 @@ class TestSmurff(unittest.TestCase):
                                     side=[('normal', []), ('normal', [])],
                                     num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
 
-    # def test_macau_tensor(self):
-    #     A = np.random.randn(15, 2)
-    #     B = np.random.randn(3, 2)
-    #     C = np.random.randn(2, 2)
+    @unittest.skip
+    def test_macau_tensor(self):
+        A = np.random.randn(15, 2)
+        B = np.random.randn(3, 2)
+        C = np.random.randn(2, 2)
 
-    #     idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
-    #     df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
-    #     df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
-    #     Ytrain, Ytest = macau.make_train_test_df(df, 0.2)
+        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
+        df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
+        df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
+        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-    #     Acoo = scipy.sparse.coo_matrix(A)
+        Acoo = scipy.sparse.coo_matrix(A)
 
-    #     results = macau.macau(Y = Ytrain, Ytest = Ytest, side=[Acoo, None, None], num_latent = 4,
-    #                          verbose = False, burnin = 20, nsamples = 20,
-    #                          univariate = False, precision = 50)
+        results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('macau', [Acoo]), ('normal', []), ('normal', [])],
+                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20,
+                                precision = 50)
 
-    #     self.assertTrue( (results.prediction.columns[0:3] == ["A", "B", "C"]).all() )
-    #     self.assertTrue(results.rmse_test < 0.5,
-    #                     msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse_test)
+        self.assertTrue(results.rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
-    # def test_macau_tensor_univariate(self):
-    #     A = np.random.randn(30, 2)
-    #     B = np.random.randn(4, 2)
-    #     C = np.random.randn(2, 2)
+    @unittest.skip
+    def test_macau_tensor_univariate(self):
+        A = np.random.randn(30, 2)
+        B = np.random.randn(4, 2)
+        C = np.random.randn(2, 2)
 
-    #     idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
-    #     df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
-    #     df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
-    #     Ytrain, Ytest = macau.make_train_test_df(df, 0.2)
+        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
+        df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
+        df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
+        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-    #     Acoo = scipy.sparse.coo_matrix(A)
+        Acoo = scipy.sparse.coo_matrix(A)
 
-    #     results = macau.macau(Y = Ytrain, Ytest = Ytest, side=[Acoo, None, None], num_latent = 4,
-    #                          verbose = False, burnin = 20, nsamples = 20,
-    #                          univariate = True, precision = 50)
-    #     self.assertTrue(results.rmse_test < 0.5,
-    #                     msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse_test)
+        results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('macauone', [Acoo]), ('normal', []), ('normal', [])],
+                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
+        self.assertTrue(results.rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
-    # def test_macau_tensor_empty(self):
-    #     A = np.random.randn(30, 2)
-    #     B = np.random.randn(4, 2)
-    #     C = np.random.randn(2, 2)
+    def test_macau_tensor_empty(self):
+        A = np.random.randn(30, 2)
+        B = np.random.randn(4, 2)
+        C = np.random.randn(2, 2)
 
-    #     idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
-    #     df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
-    #     df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
+        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
+        df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
+        df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
 
-    #     Acoo = scipy.sparse.coo_matrix(A)
-    #     r0 = macau.macau(df, Ytest = 0, num_latent = 2, burnin=5, nsamples=5, precision=1.0, verbose=False)
-    #     r1 = macau.macau(df, Ytest = None, num_latent = 2, burnin=5, nsamples=5, precision=1.0, verbose=False)
+        Acoo = scipy.sparse.coo_matrix(A)
+        r0 = smurff.smurff(df, side=[('normal', []), ('normal', []), ('normal', [])], num_latent = 2, burnin=5, nsamples=5, precision=1.0, verbose=False)
 
-    #     self.assertTrue( np.isnan(r0.rmse_test) )
-    #     self.assertTrue( np.isnan(r1.rmse_test) )
+        self.assertTrue( np.isnan(r0.rmse) )
 
 
 if __name__ == '__main__':
