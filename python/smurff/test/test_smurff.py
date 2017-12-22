@@ -213,44 +213,42 @@ class TestSmurff(unittest.TestCase):
             tensor_pred_1sample = sparse_tensor_results_dict[coords]
             self.assertAlmostEqual(matrix_pred_1sample, tensor_pred_1sample)
 
-    # def test_bpmf_tensor2(self):
-    #     A = np.random.randn(15, 2)
-    #     B = np.random.randn(20, 2)
-    #     C = np.random.randn(3, 2)
+    def test_bpmf_tensor2(self):
+        A = np.random.randn(15, 2)
+        B = np.random.randn(20, 2)
+        C = np.random.randn(3, 2)
 
-    #     idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
-    #     df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
-    #     df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
-    #     Ytrain, Ytest = macau.make_train_test_df(df, 0.2)
+        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
+        df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
+        df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
+        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-    #     results = macau.bpmf(Y = Ytrain, Ytest = Ytest, num_latent = 4,
-    #                          verbose = False, burnin = 20, nsamples = 20,
-    #                          univariate = False, precision = 50)
-    #     self.assertTrue(results.rmse_test < 0.5,
-    #                     msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse_test)
+        results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('normal', []), ('normal', []), ('normal', [])],
+                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
+        self.assertTrue(results.rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
-    # def test_bpmf_tensor3(self):
-    #     A = np.random.randn(15, 2)
-    #     B = np.random.randn(20, 2)
-    #     C = np.random.randn(1, 2)
+    def test_bpmf_tensor3(self):
+        A = np.random.randn(15, 2)
+        B = np.random.randn(20, 2)
+        C = np.random.randn(1, 2)
 
-    #     idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
-    #     df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
-    #     df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
-    #     Ytrain, Ytest = macau.make_train_test_df(df, 0.2)
+        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
+        df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
+        df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
+        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-    #     results = macau.bpmf(Y = Ytrain, Ytest = Ytest, num_latent = 4,
-    #                          verbose = False, burnin = 20, nsamples = 20,
-    #                          univariate = False, precision = 50)
-    #     self.assertTrue(results.rmse_test < 0.5,
-    #                     msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse_test)
+        results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('normal', []), ('normal', []), ('normal', [])],
+                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
+        self.assertTrue(results.rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
-    #     Ytrain_sp = scipy.sparse.coo_matrix( (Ytrain.value, (Ytrain.A, Ytrain.B) ) )
-    #     Ytest_sp  = scipy.sparse.coo_matrix( (Ytest.value,  (Ytest.A, Ytest.B) ) )
+        Ytrain_sp = scipy.sparse.coo_matrix( (Ytrain.value, (Ytrain.A, Ytrain.B) ) )
+        Ytest_sp  = scipy.sparse.coo_matrix( (Ytest.value,  (Ytest.A, Ytest.B) ) )
 
-    #     results_mat = macau.bpmf(Y = Ytrain_sp, Ytest = Ytest_sp, num_latent = 4,
-    #                          verbose = False, burnin = 20, nsamples = 20,
-    #                          univariate = False, precision = 50)
+        results_mat = smurff.smurff(Y = Ytrain_sp, Ytest = Ytest_sp,
+                                    side=[('normal', []), ('normal', [])],
+                                    num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
 
     # def test_macau_tensor(self):
     #     A = np.random.randn(15, 2)
