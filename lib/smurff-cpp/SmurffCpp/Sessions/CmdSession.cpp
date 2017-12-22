@@ -78,8 +78,8 @@ boost::program_options::options_description get_desc()
    boost::program_options::options_description noise_desc("Noise model");
    noise_desc.add_options()
       (PRECISION_NAME, boost::program_options::value<std::string>()->default_value("5.0"), "precision of observations")
-      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value("1.0,10.0"), "adaptive precision of observations");
-      (PROBIT, boost::program_options::value<std::string>()->default_value("0.0"), "probit noise model with given threshold");
+      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value("1.0,10.0"), "adaptive precision of observations")
+      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value("0.0"), "probit noise model with given threshold");
 
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
@@ -130,7 +130,7 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
       THROWERROR("train data is not provided");
 
    // set global noise model
-   if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+   if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
       config.getTrain()->setNoiseConfig(nc);
 
    //set for feautres
@@ -138,7 +138,7 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    {
       for(auto features : featureSet)
       {
-         if (features->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         if (features->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
             features->setNoiseConfig(nc);
       }
    }
