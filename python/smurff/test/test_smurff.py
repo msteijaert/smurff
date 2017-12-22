@@ -106,7 +106,6 @@ class TestSmurff(unittest.TestCase):
 
         self.assertTrue(np.allclose(A1, A2))
 
-    @unittest.skip
     def test_bpmf_tensor(self):
         np.random.seed(1234)
         Y = pd.DataFrame({
@@ -124,7 +123,6 @@ class TestSmurff(unittest.TestCase):
 
         results = smurff.smurff(Y, Ytest = Ytest, side=[('normal', []), ('normal', []), ('normal', [])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
 
-    @unittest.skip
     def test_bpmf_sparse_matrix_sparse_2d_tensor(self):
         np.random.seed(1234)
 
@@ -174,7 +172,6 @@ class TestSmurff(unittest.TestCase):
             tensor_pred_1sample = sparse_tensor_results_dict[coords]
             self.assertAlmostEqual(matrix_pred_1sample, tensor_pred_1sample)
 
-    @unittest.skip
     def test_bpmf_dense_matrix_sparse_2d_tensor(self):
         np.random.seed(1234)
 
