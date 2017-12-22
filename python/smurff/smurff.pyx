@@ -2,7 +2,7 @@ from libc.stdint cimport *
 from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 
-from Config cimport Config, stringToPriorType, stringToModelInitType
+from Config cimport Config, PriorTypes, stringToPriorType, stringToModelInitType
 from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
@@ -12,6 +12,61 @@ from SessionFactory cimport SessionFactory
 cimport numpy as np
 import  numpy as np
 import  scipy as sp
+import pandas as pd
+import scipy.sparse
+import numbers
+
+
+DENSE_MATRIX_TYPES  = [np.ndarray, np.matrix]
+SPARSE_MATRIX_TYPES = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
+
+DENSE_TENSOR_TYPES  = [np.ndarray]
+SPARSE_TENSOR_TYPES = [pd.DataFrame]
+
+def make_train_test(Y, ntest):
+    """Splits a sparse matrix Y into a train and a test matrix.
+       Y      scipy sparse matrix (coo_matrix, csr_matrix or csc_matrix)
+       ntest  either a float below 1.0 or integer.
+              if float, then indicates the ratio of test cells
+              if integer, then indicates the number of test cells
+       returns Ytrain, Ytest (type coo_matrix)
+    """
+    if type(Y) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+        raise TypeError("Unsupported Y type: %s" + type(Y))
+    if not isinstance(ntest, numbers.Real) or ntest < 0:
+        raise TypeError("ntest has to be a non-negative number (number or ratio of test samples).")
+    Y = Y.tocoo(copy = False)
+    if ntest < 1:
+        ntest = Y.nnz * ntest
+    ntest = int(round(ntest))
+    rperm = np.random.permutation(Y.nnz)
+    train = rperm[ntest:]
+    test  = rperm[0:ntest]
+    Ytrain = sp.sparse.coo_matrix( (Y.data[train], (Y.row[train], Y.col[train])), shape=Y.shape )
+    Ytest  = sp.sparse.coo_matrix( (Y.data[test],  (Y.row[test],  Y.col[test])),  shape=Y.shape )
+    return Ytrain, Ytest
+
+def make_train_test_df(Y, ntest):
+    """Splits rows of dataframe Y into a train and a test dataframe.
+       Y      pandas dataframe
+       ntest  either a float below 1.0 or integer.
+              if float, then indicates the ratio of test cells
+              if integer, then indicates the number of test cells
+       returns Ytrain, Ytest (type coo_matrix)
+    """
+    if type(Y) != pd.core.frame.DataFrame:
+        raise TypeError("Y should be DataFrame.")
+    if not isinstance(ntest, numbers.Real) or ntest < 0:
+        raise TypeError("ntest has to be a non-negative number (number or ratio of test samples).")
+
+    ## randomly spliting train-test
+    if ntest < 1:
+        ntest = Y.shape[0] * ntest
+    ntest  = int(round(ntest))
+    rperm  = np.random.permutation(Y.shape[0])
+    train  = rperm[ntest:]
+    test   = rperm[0:ntest]
+    return Y.iloc[train], Y.iloc[test]
 
 def remove_nan(Y):
     if not np.any(np.isnan(Y.data)):
@@ -19,11 +74,13 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef MatrixConfig* prepare_sparse(X, isScarce):
+cdef MatrixConfig* prepare_sparse_matrix(X, is_scarse):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
+
     X = X.tocoo(copy = False)
     X = remove_nan(X)
+
     cdef np.ndarray[uint32_t] irows = X.row.astype(np.uint32, copy=False)
     cdef np.ndarray[uint32_t] icols = X.col.astype(np.uint32, copy=False)
     cdef np.ndarray[double] vals = X.data.astype(np.double, copy=False)
@@ -48,8 +105,134 @@ cdef MatrixConfig* prepare_sparse(X, isScarce):
     cdef shared_ptr[vector[uint32_t]] cols_vector_shared_ptr = shared_ptr[vector[uint32_t]](cols_vector_ptr)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
 
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), isScarce)
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), is_scarse)
     return matrix_config_ptr
+
+cdef MatrixConfig* prepare_dense_matrix(X):
+    cdef np.ndarray[np.double_t] vals = np.squeeze(np.asarray(X.flatten(order='F')))
+    cdef double* vals_begin = &vals[0]
+    cdef double* vals_end = vals_begin + vals.shape[0]
+    cdef vector[double]* vals_vector_ptr = new vector[double]()
+    vals_vector_ptr.assign(vals_begin, vals_end)
+    cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, NoiseConfig())
+    return matrix_config_ptr
+
+cdef MatrixConfig* prepare_sideinfo(in_matrix):
+    if type(in_matrix) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+        return prepare_sparse_matrix(in_matrix, False)
+    else:
+        return prepare_dense_matrix(in_matrix)
+
+cdef TensorConfig* prepare_dense_tensor(tensor):
+    if type(tensor) not in DENSE_TENSOR_TYPES:
+        error_msg = "Unsupported dense tensor data type: {}".format(tensor)
+        raise ValueError(error_msg)
+    raise NotImplementedError()
+
+cdef TensorConfig* prepare_sparse_tensor(tensor, shape, is_scarse):
+    if type(tensor) not in SPARSE_TENSOR_TYPES:
+        error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
+        raise ValueError(error_msg)
+
+    cdef vector[uint64_t] cpp_dims_vector
+    cdef vector[uint32_t] cpp_columns_vector
+    cdef vector[double] cpp_values_vector
+
+    if type(tensor) == pd.DataFrame:
+        idx_column_names = list(filter(lambda c: tensor[c].dtype==np.int64 or tensor[c].dtype==np.int32, tensor.columns))
+        val_column_names = list(filter(lambda c: tensor[c].dtype==np.float32 or tensor[c].dtype==np.float64, tensor.columns))
+
+        if len(val_column_names) != 1:
+            error_msg = "tensor has {} float columns but must have exactly 1 value column.".format(len(val_column_names))
+            raise ValueError(error_msg)
+
+        idx = [i for c in idx_column_names for i in np.array(tensor[c], dtype=np.int32)]
+        val = np.array(tensor[val_column_names[0]],dtype=np.float64)
+
+        if shape is not None:
+            cpp_dims_vector = shape
+        else:
+            cpp_dims_vector = [tensor[c].max() + 1 for c in idx_column_names]
+
+        cpp_columns_vector = idx
+        cpp_values_vector = val
+
+        return new TensorConfig(make_shared[vector[uint64_t]](cpp_dims_vector), make_shared[vector[uint32_t]](cpp_columns_vector), make_shared[vector[double]](cpp_values_vector), NoiseConfig(), is_scarse)
+    else:
+        error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
+        raise ValueError(error_msg)
+
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape):
+    # Check train data type
+    if (type(train) not in DENSE_MATRIX_TYPES and
+        type(train) not in SPARSE_MATRIX_TYPES and
+        type(train) not in DENSE_TENSOR_TYPES and
+        type(train) not in SPARSE_TENSOR_TYPES):
+        error_msg = "Unsupported train data type: {}".format(type(train))
+        raise ValueError(error_msg)
+
+    # Check test data type
+    if test is not None:
+        if (type(test) not in DENSE_MATRIX_TYPES and
+            type(test) not in SPARSE_MATRIX_TYPES and
+            type(test) not in DENSE_TENSOR_TYPES and
+            type(test) not in SPARSE_TENSOR_TYPES):
+            error_msg = "Unsupported test data type: {}".format(type(test))
+            raise ValueError(error_msg)
+
+    # Check train and test data for mismatch
+    if test is not None:
+        if ((type(train) in DENSE_MATRIX_TYPES or type(train) in SPARSE_MATRIX_TYPES) and
+            (type(test) not in DENSE_MATRIX_TYPES and type(test) not in SPARSE_MATRIX_TYPES)):
+            error_msg = "Train and test data must be the same type: {} != {}".format(type(train), type(test))
+            raise ValueError(error_msg)
+        if (type(train) in DENSE_MATRIX_TYPES or type(train) in SPARSE_MATRIX_TYPES) and train.shape != test.shape:
+            raise ValueError("Train and test data must be the same shape: {} != {}".format(train.shape, test.shape))
+        if type(train) in SPARSE_TENSOR_TYPES and train.ndim != test.ndim:
+            raise ValueError("Train and test data must have the same number of dimensions: {} != {}".format(train.ndim, test.ndim))
+
+    cdef TensorConfig* train_config
+    cdef TensorConfig* test_config
+
+    # Prepare train data
+    if type(train) in DENSE_MATRIX_TYPES and len(train.shape) == 2:
+        train_config = prepare_dense_matrix(train)
+    elif type(train) in SPARSE_MATRIX_TYPES:
+        train_config = prepare_sparse_matrix(train, True)
+    elif type(train) in DENSE_TENSOR_TYPES and len(train.shape) > 2:
+        train_config = prepare_dense_tensor(train)
+    elif type(train) in SPARSE_TENSOR_TYPES:
+        train_config = prepare_sparse_tensor(train, shape, True)
+    else:
+        error_msg = "Unsupported train data type: {}".format(type(train))
+        raise ValueError(error_msg)
+
+    # Prepare test data
+    if test is not None:
+        if type(test) in DENSE_MATRIX_TYPES and len(test.shape) == 2:
+            test_config = prepare_dense_matrix(test)
+        elif type(test) in SPARSE_MATRIX_TYPES:
+            test_config = prepare_sparse_matrix(test, True)
+        elif type(test) in DENSE_TENSOR_TYPES and len(test.shape) > 2:
+            test_config = prepare_dense_tensor(test)
+        elif type(test) in SPARSE_TENSOR_TYPES:
+            test_config = prepare_sparse_tensor(test, shape, True)
+        else:
+            error_msg = "Unsupported test data type: {}".format(type(test))
+            raise ValueError(error_msg)
+
+    if test is not None:
+        # Adjust train and test dims. Makes sense only for sparse tensors
+        # It does not have any effect in other case
+        if shape is None:
+            for i in range(train_config.getDimsPtr().get().size()):
+                max_dim = max(train_config.getDimsPtr().get().at(i), test_config.getDimsPtr().get().at(i))
+                train_config.getDimsPtr().get()[0][i] = max_dim
+                test_config.getDimsPtr().get()[0][i] = max_dim
+        return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig](test_config)
+    else:
+        return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
 
 class ResultItem:
     def __init__(self, coords, val, pred_1sample, pred_avg, var, stds):
@@ -66,12 +249,15 @@ class ResultItem:
     def __repr__(self):
         return str(self)
 
+class Result:
+    def __init__(self, predictions, rmse):
+        self.predictions = predictions
+        self.rmse = rmse
+
 def smurff(Y,
            Ytest          = None,
-           row_features   = [],
-           col_features   = [],
-           row_prior      = None,
-           col_prior      = None,
+           data_shape     = None,
+           side           = [],
            lambda_beta    = 5.0,
            num_latent     = 10,
            precision      = 1.0,
@@ -106,75 +292,67 @@ def smurff(Y,
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    config.m_train = shared_ptr[TensorConfig](prepare_sparse(Y, True))
-    config.m_train.get().setNoiseConfig(nc)
+    train, test = prepare_data(Y, Ytest, data_shape)
+    train.get().setNoiseConfig(nc)
 
+    config.setTrain(train)
     if Ytest is not None:
-        config.m_test = shared_ptr[TensorConfig](prepare_sparse(Ytest, True))
-        config.m_test.get().setNoiseConfig(nc)
+        test.get().setNoiseConfig(nc)
+        config.setTest(test)
 
-    cdef shared_ptr[MatrixConfig] rf_matrix_config
-    for rf in row_features:
-        rf_matrix_config.reset(prepare_sparse(rf, False))
-        rf_matrix_config.get().setNoiseConfig(nc)
-        config.m_row_features.push_back(rf_matrix_config)
+    cdef vector[shared_ptr[MatrixConfig]] cpp_prior_features_list
+    for prior_type_str, prior_features_list in side:
+        config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
+        cpp_prior_features_list.clear()
+        for prior_features in prior_features_list:
+            cpp_prior_features_list.push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_features)))
+        config.getFeatures().push_back(cpp_prior_features_list)
 
-    cdef shared_ptr[MatrixConfig] cf_matrix_config
-    for cf in col_features:
-        cf_matrix_config.reset(prepare_sparse(cf, False))
-        cf_matrix_config.get().setNoiseConfig(nc)
-        config.m_col_features.push_back(cf_matrix_config)
-
-    if row_prior:
-        config.row_prior_type = stringToPriorType(row_prior)
-
-    if col_prior:
-        config.col_prior_type = stringToPriorType(col_prior)
-
-    config.lambda_beta = lambda_beta
-    config.num_latent  = num_latent
-    config.burnin      = burnin
-    config.nsamples    = nsamples
-    config.tol         = tol
-    config.direct      = direct
+    config.setLambdaBeta(lambda_beta)
+    config.setNumLatent(num_latent)
+    config.setBurnin(burnin)
+    config.setNSamples(nsamples)
+    config.setTol(tol)
+    config.setDirect(direct)
 
     if seed:
-        config.random_seed_set = True
-        config.random_seed = seed
+        config.setRandomSeedSet(True)
+        config.setRandomSeed(seed)
 
     if threshold:
-        config.threshold = threshold
-        config.classify = True
+        config.setThreshold(threshold)
+        config.setClassify(True)
 
-    config.verbose = verbose
+    config.setVerbose(verbose)
     if quite:
-        config.verbose = False
+        config.setVerbose(False)
 
     if init_model:
-        config.model_init_type = stringToModelInitType(init_model)
+        config.setModelInitType(stringToModelInitType(init_model))
 
     if save_prefix:
         config.setSavePrefix(save_prefix)
 
     if save_suffix:
-        config.save_suffix = save_suffix
+        config.setSaveSuffix(save_suffix)
 
     if save_freq:
-        config.save_freq = save_freq
+        config.setSaveFreq(save_freq)
 
     if restore_prefix:
-        config.restore_prefix = restore_prefix
+        config.setRestorePrefix(restore_prefix)
 
     if restore_suffix:
-        config.restore_suffix = restore_suffix
+        config.setRestoreSuffix(restore_suffix)
 
     if csv_status:
-        config.csv_status = csv_status
+        config.setCsvStatus(csv_status)
 
     # Create and run session
     cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
     session.get().init()
-    for i in range(config.nsamples + config.burnin):
+    cdef size_t iterations_count = <size_t>(config.getNSamples() + config.getBurnin())
+    for i in range(iterations_count):
         session.get().step()
 
     # Create Python list of ResultItem from C++ vector of ResultItem
@@ -189,12 +367,12 @@ def smurff(Y,
                 coord = cpp_result_item_ptr.coords[coord_index]
                 py_result_item_coords.append(coord)
             py_result_item = ResultItem( tuple(py_result_item_coords)
-                                    , cpp_result_item_ptr.val
-                                    , cpp_result_item_ptr.pred_1sample
-                                    , cpp_result_item_ptr.pred_avg
-                                    , cpp_result_item_ptr.var
-                                    , cpp_result_item_ptr.stds
-                                    )
+                                       , cpp_result_item_ptr.val
+                                       , cpp_result_item_ptr.pred_1sample
+                                       , cpp_result_item_ptr.pred_avg
+                                       , cpp_result_item_ptr.var
+                                       , cpp_result_item_ptr.stds
+                                       )
             py_result_items.append(py_result_item)
 
-    return py_result_items
+    return Result(py_result_items, session.get().getRmseAvg())

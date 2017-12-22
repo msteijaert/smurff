@@ -92,9 +92,10 @@ TEST_CASE("test sparse view new 2")
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, fixed_ncfg, false);
 
    TensorData td(tensorConfig);
-   /*
+   
    std::cout << "Tensor Data test" << std::endl;
   
+   // go through each dimension
    for(uint64_t mode = 0; mode < td.nmode(); mode++)
    {
       std::shared_ptr<SparseMode> sview = td.Y(mode);
@@ -106,24 +107,22 @@ TEST_CASE("test sparse view new 2")
       std::cout << "ncoords: " << sview->getNCoords() << std::endl;
       std::cout << "mode: " << sview->getMode() << std::endl;
       
-      for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) // go through each hyper plane in the dimension
+      // go through each hyperplane in the dimension
+      for(std::uint64_t h = 0; h < sview->getNPlanes(); h++)
       {
          std::cout << "-----" << std::endl;
 
-         for (std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each value in a plane
+         // go through each item
+         for(std::uint64_t n = 0; n < sview->nItemsOnPlane(h); n++)
          {
-            for (std::uint64_t m = 0; m < sview->getNCoords(); m++) //go through each coordinate of a value
-            {
-               std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
-            }
-            
-            std::cout << sview->getValues()[j] << std::endl; //print value
+            auto item = sview->item(h, n);
+            std::cout << item.first << item.second << std::endl; //print item
          }
       }
 
       std::cout << std::endl;
    }
-   */
+   
 }
 
 //smurff

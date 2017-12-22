@@ -101,47 +101,103 @@ bool Config::validate() const
       THROWERROR("Train and test data should have the same dimensions");
    }
 
-   for (const auto r: m_row_features)
+   if(m_prior_types.size() != m_train->getNModes())
    {
-      if (m_train->getDims()[0] != r->getNRow())
+      THROWERROR("Number of priors should equal to number of dimensions in train data");
+   }
+
+   if(!m_features.empty())
+   {
+      if(m_features.size() > 2)
       {
-         THROWERROR("Row features and train data should have the same number of rows");
+         //it is advised to check macau and macauone priors implementation
+         //as well as code in PriorFactory that creates macau priors
+         
+         //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+         //however TensorDataFactory will do an additional check throwing an exception
+         THROWERROR("Features are not supported for TensorData");
+      }
+
+      //for simplicity we store empty vector if features are not specified for dimension
+      //this way we can either have empty m_features or size should equal to getNModes
+      if(m_features.size() != m_train->getNModes())
+      {
+         THROWERROR("Number of feature sets should equal to number of dimensions in train data");
       }
    }
 
-   for (const auto c: m_col_features)
+   for(std::size_t i = 0; i < m_features.size(); i++) //go through each dimension
    {
-      if (m_train->getDims()[1] != c->getNCol())
+      const auto& featureSet = m_features[i]; //features for specific dimension
+      for(auto& ft : featureSet)
       {
-         THROWERROR("Column features and train data should have the same number of cols");
+         if(i > 1)
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
+            
+            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+            //however TensorDataFactory will do an additional check throwing an exception
+            THROWERROR("Features are not supported for TensorData");
+         }
+
+         //AGE: not sure how strict should be the check. which adjacent dimensions do we need to check?
+         if (m_train->getDims()[i] != ft->getDims()[i]) //compare sizes in specific dimension
+         {
+            std::stringstream ss;
+            ss << "Features and train data should have the same number of records in dimension " << i;
+            THROWERROR(ss.str());
+         }
       }
    }
 
-   if (col_prior_type == PriorTypes::macau && m_col_features.size() != 1)
+   for(std::size_t i = 0; i < m_prior_types.size(); i++)
    {
-      THROWERROR("Exactly one set of col-features needed when using macau prior.");
-   }
+      PriorTypes pt = m_prior_types[i];
+      const auto& featureSet = m_features[i];
+      if(pt == PriorTypes::macau)
+      {
+         if(i > 1)
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
+            
+            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+            //however PriorFactory will do an additional check
+            THROWERROR("Macau and MacauOne priors are not supported for TensorData");
+         }
 
-   if (row_prior_type == PriorTypes::macau && m_row_features.size() != 1)
-   {
-      THROWERROR("Exactly one set of row-features needed when using macau prior.");
-   }
+         if(featureSet.size() != 1)
+         {
+            std::stringstream ss;
+            ss << "Exactly one set of features needed when using macau prior in dimension " << i;
+            THROWERROR(ss.str());
+         }
+      }
 
-   if (col_prior_type == PriorTypes::macauone && (m_col_features.size() != 1 || m_col_features.at(0)->isDense()))
-   {
-      THROWERROR("Exactly one set of sparse col-features needed when using macauone prior.");
-   }
+      if(pt == PriorTypes::macauone)
+      {
+         if(i > 1)
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
+            THROWERROR("Macau and MacauOne priors are not supported for TensorData");
+         }
 
-   if (row_prior_type == PriorTypes::macauone && (m_row_features.size() != 1 || m_row_features.at(0)->isDense()))
-   {
-      THROWERROR("Exactly one set of sparse row-features needed when using macauone prior.");
+         if(featureSet.size() != 1 || featureSet.at(0)->isDense())
+         {
+            std::stringstream ss;
+            ss << "Exactly one set of sparse col-features needed when using macauone prior in dimension " << i;
+            THROWERROR(ss.str());
+         }
+      }
    }
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
-   if (save_suffixes.find(save_suffix) == save_suffixes.end())
+   if (save_suffixes.find(m_save_suffix) == save_suffixes.end())
    {
-      THROWERROR("Unknown output suffix: " + save_suffix);
+      THROWERROR("Unknown output suffix: " + m_save_suffix);
    }
 
    m_train->getNoiseConfig().validate();
@@ -151,7 +207,7 @@ bool Config::validate() const
 
 void Config::save(std::string fname) const
 {
-   if (!save_freq)
+   if (!m_save_freq)
       return;
 
    std::ofstream os(fname);
@@ -166,44 +222,54 @@ void Config::save(std::string fname) const
 
    os << "# features" << std::endl;
 
-   auto print_features = [&os](std::string name, const std::vector<std::shared_ptr<MatrixConfig> > &vec) -> void
+   auto print_features = [&os](const std::vector<std::vector<std::shared_ptr<MatrixConfig> > > &vec) -> void
    {
-      os << "[" << name << "]\n";
-      for (size_t i = 0; i < vec.size(); ++i)
+      os << "num_features = " << vec.size() << std::endl;
+
+      for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
       {
-         os << "# " << i << " ";
-         vec.at(i)->info(os);
-         os << std::endl;
+         os << "[" << "features" << sIndex << "]\n";
+
+         auto& fset = vec.at(sIndex);
+
+         for(std::size_t fIndex = 0; fIndex < fset.size(); fIndex++)
+         {
+            os << "# " << fIndex << " ";
+            fset.at(fIndex)->info(os);
+            os << std::endl;
+         }
       }
    };
 
-   print_features("row_features", m_row_features);
-   print_features("col_features", m_col_features);
+   print_features(m_features);
 
    os << "# priors" << std::endl;
-   os << "row_prior = " << priorTypeToString(row_prior_type) << std::endl;
-   os << "col_prior = " << priorTypeToString(col_prior_type) << std::endl;
+   os << "num_priors = " << m_prior_types.size() << std::endl;
+   for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
+   {
+      os << "prior" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
+   }
 
    os << "# restore" << std::endl;
-   os << "restore_prefix = " << restore_prefix << std::endl;
-   os << "restore_suffix = " << restore_suffix << std::endl;
-   os << "init_model = " << modelInitTypeToString(model_init_type) << std::endl;
+   os << "restore_prefix = " << m_restore_prefix << std::endl;
+   os << "restore_suffix = " << m_restore_suffix << std::endl;
+   os << "init_model = " << modelInitTypeToString(m_model_init_type) << std::endl;
 
    os << "# save" << std::endl;
-   os << "save_prefix = " << save_prefix << std::endl;
-   os << "save_suffix = " << save_suffix << std::endl;
-   os << "save_freq = " << save_freq << std::endl;
+   os << "save_prefix = " << m_save_prefix << std::endl;
+   os << "save_suffix = " << m_save_suffix << std::endl;
+   os << "save_freq = " << m_save_freq << std::endl;
 
    os << "# general" << std::endl;
-   os << "verbose = " << verbose << std::endl;
-   os << "burnin = " << burnin << std::endl;
-   os << "nsamples = " << nsamples << std::endl;
-   os << "num_latent = " << num_latent << std::endl;
+   os << "verbose = " << m_verbose << std::endl;
+   os << "burnin = " << m_burnin << std::endl;
+   os << "nsamples = " << m_nsamples << std::endl;
+   os << "num_latent = " << m_num_latent << std::endl;
 
    os << "# for macau priors" << std::endl;
-   os << "lambda_beta = " << lambda_beta << std::endl;
-   os << "tol = " << tol << std::endl;
-   os << "direct = " << direct << std::endl;
+   os << "lambda_beta = " << m_lambda_beta << std::endl;
+   os << "tol = " << m_tol << std::endl;
+   os << "direct = " << m_direct << std::endl;
 
    os << "# noise model" << std::endl;
    os << "noise_model = " << smurff::noiseTypeToString(m_train->getNoiseConfig().getNoiseType()) << std::endl;
@@ -212,8 +278,8 @@ void Config::save(std::string fname) const
    os << "sn_max = " << m_train->getNoiseConfig().sn_max << std::endl;
 
    os << "# binary classification" << std::endl;
-   os << "classify = " << classify << std::endl;
-   os << "threshold = " << threshold << std::endl;
+   os << "classify = " << m_classify << std::endl;
+   os << "threshold = " << m_threshold << std::endl;
 }
 
 void Config::restore(std::string fname)
@@ -226,29 +292,35 @@ void Config::restore(std::string fname)
    }
 
    // -- priors
-   row_prior_type = stringToPriorType(reader.Get("", "row_prior",  PRIOR_NAME_DEFAULT));
-   col_prior_type = stringToPriorType(reader.Get("", "col_prior",  PRIOR_NAME_DEFAULT));
+   size_t num_priors = reader.GetInteger("", "num_priors", 0);
+   for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
+   {
+      std::stringstream ss;
+      ss << "prior" << pIndex;
+      std::string pName = reader.Get("", ss.str(),  PRIOR_NAME_DEFAULT);
+      m_prior_types.push_back(stringToPriorType(pName));
+   }
 
    //-- restore
-   restore_prefix = reader.Get("", "restore_prefix",  "");
-   restore_suffix = reader.Get("", "restore_suffix",  ".csv");
-   model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
+   m_restore_prefix = reader.Get("", "restore_prefix",  "");
+   m_restore_suffix = reader.Get("", "restore_suffix",  ".csv");
+   m_model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
 
    //-- save
-   save_prefix = reader.Get("", "save_prefix",  "save");
-   save_suffix = reader.Get("", "save_suffix",  ".csv");
-   save_freq = reader.GetInteger("", "save_freq",  0); // never
+   m_save_prefix = reader.Get("", "save_prefix",  "save");
+   m_save_suffix = reader.Get("", "save_suffix",  ".csv");
+   m_save_freq = reader.GetInteger("", "save_freq",  0); // never
 
    //-- general
-   verbose = reader.GetBoolean("", "verbose",  false);
-   burnin = reader.GetInteger("", "burnin",  200);
-   nsamples = reader.GetInteger("", "nsamples",  800);
-   num_latent = reader.GetInteger("", "num_latent",  96);
+   m_verbose = reader.GetBoolean("", "verbose",  false);
+   m_burnin = reader.GetInteger("", "burnin",  200);
+   m_nsamples = reader.GetInteger("", "nsamples",  800);
+   m_num_latent = reader.GetInteger("", "num_latent",  96);
 
    //-- for macau priors
-   lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
-   tol = reader.GetReal("", "tol",  1e-6);
-   direct = reader.GetBoolean("", "direct",  false);
+   m_lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
+   m_tol = reader.GetReal("", "tol",  1e-6);
+   m_direct = reader.GetBoolean("", "direct",  false);
 
    //-- noise model
    NoiseConfig noise;
@@ -259,7 +331,7 @@ void Config::restore(std::string fname)
    m_train->setNoiseConfig(noise);
 
    //-- binary classification
-   classify = reader.GetBoolean("", "classify",  false);
-   threshold = reader.GetReal("", "threshold",  .0);
-};
+   m_classify = reader.GetBoolean("", "classify",  false);
+   m_threshold = reader.GetReal("", "threshold",  .0);
+}
 

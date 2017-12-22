@@ -29,21 +29,21 @@ void Session::setFromConfig(const Config& cfg)
 
    // initialize pred
 
-   if (config.classify)
-      m_pred->setThreshold(config.threshold);
+   if (config.getClassify())
+      m_pred->setThreshold(config.getThreshold());
 
-   if (config.m_test)
-      m_pred->set(config.m_test);
+   if (config.getTest())
+      m_pred->set(config.getTest());
 
    // initialize data
 
-   data_ptr = config.m_train->create(std::make_shared<DataCreator>(this_session));
+   data_ptr = config.getTrain()->create(std::make_shared<DataCreator>(this_session));
 
    // initialize priors
 
-   this->addPrior(PriorFactory::create_prior(this_session, 0));
-
-   this->addPrior(PriorFactory::create_prior(this_session, 1));
+   std::shared_ptr<IPriorFactory> priorFactory = this->create_prior_factory();
+   for(std::size_t i = 0; i < config.getPriorTypes().size(); i++)
+      this->addPrior(priorFactory->create_prior(this_session, i));
 }
 
 void Session::init()
@@ -52,8 +52,8 @@ void Session::init()
    threads_init();
 
    //init random generator
-   if(config.random_seed_set)
-      init_bmrng(config.random_seed);
+   if(config.getRandomSeedSet())
+      init_bmrng(config.getRandomSeed());
    else
       init_bmrng();
 
@@ -61,34 +61,34 @@ void Session::init()
    data()->init();
 
    //initialize model (samples)
-   m_model->init(config.num_latent, data()->dim(), config.model_init_type);
+   m_model->init(config.getNumLatent(), data()->dim(), config.getModelInitType());
 
    //initialize priors (?)
    for( auto &p : m_priors)
       p->init();
 
    //write header to status file
-   if (config.csv_status.size())
+   if (config.getCsvStatus().size())
    {
-      auto f = fopen(config.csv_status.c_str(), "w");
+      auto f = fopen(config.getCsvStatus().c_str(), "w");
       fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
       fclose(f);
    }
 
    //write info to console
-   if (config.verbose)
+   if (config.getVerbose())
       info(std::cout, "");
 
    //restore session (model, priors)
-   if (config.restore_prefix.size())
+   if (config.getRestorePrefix().size())
    {
-      if (config.verbose)
-         printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.restore_prefix.c_str(), config.save_suffix.c_str());
-      restore(config.restore_prefix, config.restore_suffix);
+      if (config.getVerbose())
+         printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.getRestorePrefix().c_str(), config.getSaveSuffix().c_str());
+      restore(config.getRestorePrefix(), config.getRestoreSuffix());
    }
 
    //print session status to console
-   if (config.verbose)
+   if (config.getVerbose())
    {
       printStatus(0);
       printf(" ====== Sampling (burning phase) ====== \n");
@@ -101,7 +101,7 @@ void Session::init()
 void Session::run()
 {
    init();
-   while (iter < config.burnin + config.nsamples)
+   while (iter < config.getBurnin() + config.getNSamples())
       step();
 }
 
@@ -109,7 +109,7 @@ void Session::step()
 {
    THROWERROR_ASSERT(is_init);
 
-   if (config.verbose && iter == config.burnin)
+   if (config.getVerbose() && iter == config.getBurnin())
    {
       printf(" ====== Burn-in complete, averaging samples ====== \n");
    }
@@ -119,10 +119,10 @@ void Session::step()
    auto endi = tick();
 
    //WARNING: update is an expensive operation because of sort (when calculating AUC)
-   m_pred->update(m_model, iter < config.burnin);
+   m_pred->update(m_model, iter < config.getBurnin());
 
    printStatus(endi - starti);
-   save(iter - config.burnin + 1);
+   save(iter - config.getBurnin() + 1);
    iter++;
 }
 
@@ -130,27 +130,27 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 {
    BaseSession::info(os, indent);
    os << indent << "  Version: " << smurff::SMURFF_VERSION << "\n" ;
-   os << indent << "  Iterations: " << config.burnin << " burnin + " << config.nsamples << " samples\n";
+   os << indent << "  Iterations: " << config.getBurnin() << " burnin + " << config.getNSamples() << " samples\n";
 
-   if (config.save_freq != 0)
+   if (config.getSaveFreq() != 0)
    {
-      if (config.save_freq > 0) {
-          os << indent << "  Save model: every " << config.save_freq << " iteration\n";
+      if (config.getSaveFreq() > 0) {
+          os << indent << "  Save model: every " << config.getSaveFreq() << " iteration\n";
       } else {
           os << indent << "  Save model after last iteration\n";
       }
       os << indent << "  Save prefix: " << config.getSavePrefix() << "\n";
-      os << indent << "  Save suffix: " << config.save_suffix << "\n";
+      os << indent << "  Save suffix: " << config.getSaveSuffix() << "\n";
    }
    else
    {
       os << indent << "  Save model: never\n";
    }
 
-   if (config.restore_prefix.size())
+   if (config.getRestorePrefix().size())
    {
-      os << indent << "  Restore prefix: " << config.restore_prefix << "\n";
-      os << indent << "  Restore suffix: " << config.restore_suffix << "\n";
+      os << indent << "  Restore prefix: " << config.getRestorePrefix() << "\n";
+      os << indent << "  Restore suffix: " << config.getRestoreSuffix() << "\n";
    }
 
    os << indent << "}\n";
@@ -159,28 +159,28 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
 void Session::save(int isample)
 {
-   if (!config.save_freq || isample < 0) //do not save if (never save) mode is selected or if burnin
+   if (!config.getSaveFreq() || isample < 0) //do not save if (never save) mode is selected or if burnin
       return;
 
    //save_freq > 0: check modulo
-   if (config.save_freq > 0 && ((isample + 1) % config.save_freq) != 0) //do not save if not a save iteration
+   if (config.getSaveFreq() > 0 && ((isample + 1) % config.getSaveFreq()) != 0) //do not save if not a save iteration
       return;
 
    //save_freq < 0: save last iter
-   if (config.save_freq < 0 && isample < config.nsamples) //do not save if (final model) mode is selected and not a final iteration
+   if (config.getSaveFreq() < 0 && isample < config.getNSamples()) //do not save if (final model) mode is selected and not a final iteration
       return;
 
    std::string fprefix = config.getSavePrefix() + "-sample-" + std::to_string(isample);
 
-   if (config.verbose)
-      printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.save_suffix.c_str());
+   if (config.getVerbose())
+      printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.getSaveSuffix().c_str());
 
-   BaseSession::save(fprefix, config.save_suffix);
+   BaseSession::save(fprefix, config.getSaveSuffix());
 }
 
 void Session::printStatus(double elapsedi)
 {
-   if(!config.verbose)
+   if(!config.getVerbose())
       return;
 
    double snorm0 = m_model->U(0)->norm();
@@ -197,27 +197,27 @@ void Session::printStatus(double elapsedi)
       i = 0;
       from = 0;
    }
-   else if (iter < config.burnin)
+   else if (iter < config.getBurnin())
    {
       phase = "Burnin";
       i = iter + 1;
-      from = config.burnin;
+      from = config.getBurnin();
    }
    else
    {
       phase = "Sample";
-      i = iter - config.burnin + 1;
-      from = config.nsamples;
+      i = iter - config.getBurnin() + 1;
+      from = config.getNSamples();
    }
 
    printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
 
-   if (config.classify)
+   if (config.getClassify())
       printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
 
    printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
 
-   if (config.verbose > 1)
+   if (config.getVerbose() > 1)
    {
       double train_rmse = data()->train_rmse(m_model);
       printf("  RMSE train: %.4f\n", train_rmse);
@@ -232,18 +232,23 @@ void Session::printStatus(double elapsedi)
       data()->status(std::cout, "    ");
    }
 
-   if (config.verbose > 2)
+   if (config.getVerbose() > 2)
    {
       printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
    }
 
-   if (config.csv_status.size())
+   if (config.getCsvStatus().size())
    {
       double train_rmse = data()->train_rmse(m_model);
-      auto f = fopen(config.csv_status.c_str(), "a");
+      auto f = fopen(config.getCsvStatus().c_str(), "a");
       fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
                   phase.c_str(), i, from,
                   m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
       fclose(f);
    }
+}
+
+std::shared_ptr<IPriorFactory> Session::create_prior_factory() const
+{
+   return std::make_shared<PriorFactory>();
 }

@@ -46,7 +46,7 @@ setup(
     long_description = 'Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and smurff. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. smurff method provides also the ability to incorporate high-dimensional side information to the factorization.',
     author = "Tom Vander Aa",
     author_email = "Tom.VanderAa@imec.be",
-    ext_modules = cythonize(ext_modules),
+    ext_modules = cythonize(ext_modules, compiler_directives={'c_string_type': 'str', 'c_string_encoding': 'default'}),
     classifiers = CLASSIFIERS,
     keywords = "bayesian factorization machine-learning high-dimensional side-information",
     install_requires = ['numpy', 'scipy', 'pandas']

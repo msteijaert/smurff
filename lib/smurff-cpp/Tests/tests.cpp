@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <limits>
 
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
@@ -225,7 +226,7 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
 */
 
 TEST_CASE("inv_norm_cdf/inv_norm_cdf", "Inverse normal CDF") {
-	REQUIRE( inv_norm_cdf(0.0)  == -1.0 / 0.0 );
+	REQUIRE( inv_norm_cdf(0.0)  == -std::numeric_limits<double>::infinity());
 	REQUIRE( inv_norm_cdf(0.5)  == Approx(0) );
 	REQUIRE( inv_norm_cdf(0.9)  == Approx(1.2815515655446004) );
 	REQUIRE( inv_norm_cdf(0.01) == Approx(-2.3263478740408408) );

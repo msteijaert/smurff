@@ -54,6 +54,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Priors/SpikeAndSlabPrior.h"
                         "../Priors/MacauPrior.hpp"
                         "../Priors/MacauOnePrior.hpp"
+                        "../Priors/IPriorFactory.h"
                         "../Priors/PriorFactory.h"
 
                         "../DataMatrices/Data.h"
@@ -75,7 +76,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
-                        "../Sessions/CmdSession.h"
+                        
                         "../Sessions/PythonSession.h"
                         "../Sessions/SessionFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
@@ -137,7 +138,6 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 
                         "../Sessions/BaseSession.cpp"
                         "../Sessions/Session.cpp"
-                        "../Sessions/CmdSession.cpp"
                         "../Sessions/PythonSession.cpp"
                         "../Sessions/SessionFactory.cpp")
 source_group ("Source Files" FILES ${SOURCE_FILES})
@@ -150,7 +150,7 @@ set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 include_directories(../)
 include_directories(../..)
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${ARGP_INCLUDE_PATH})
+include_directories(${Boost_INCLUDE_DIRS})
 
 #INSTALL
 install (TARGETS ${PROJECT} ARCHIVE DESTINATION lib)

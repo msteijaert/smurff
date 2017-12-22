@@ -18,45 +18,49 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
 
     cdef cppclass Config:
         #-- train and test
-        shared_ptr[TensorConfig] m_train
-        shared_ptr[TensorConfig] m_test
+        shared_ptr[TensorConfig] getTrain()
+        void setTrain(shared_ptr[TensorConfig] value)
+
+        shared_ptr[TensorConfig] getTest()
+        void setTest(shared_ptr[TensorConfig] value)
 
         #-- features
-        vector[shared_ptr[MatrixConfig]] m_row_features
-        vector[shared_ptr[MatrixConfig]] m_col_features
+        vector[vector[shared_ptr[MatrixConfig]]]& getFeatures()
 
         #-- priors
-        PriorTypes row_prior_type
-        PriorTypes col_prior_type
+        vector[PriorTypes]& getPriorTypes()
 
         #-- restore
-        string restore_prefix
-        string restore_suffix
+        void setRestorePrefix(string value)
+        void setRestoreSuffix(string value)
 
         #-- init model
-        ModelInitTypes model_init_type
+        void setModelInitType(ModelInitTypes value)
 
         #-- save
-        string getSavePrefix()
         void setSavePrefix(string value)
-
-        string save_suffix
-        int save_freq
+        void setSaveSuffix(string value)
+        void setSaveFreq(int value)
 
         #-- general
-        bool random_seed_set
-        int random_seed
-        int verbose
-        string csv_status
-        int burnin
-        int nsamples
-        int num_latent
+        void setRandomSeedSet(bool value)
+        void setRandomSeed(int value)
+        void setVerbose(int value)
+        void setCsvStatus(string value)
+
+        int getBurnin()
+        void setBurnin(int value)
+
+        int getNSamples()
+        void setNSamples(int value)
+
+        void setNumLatent(int value)
 
         #-- for macau priors
-        double lambda_beta
-        double tol
-        bool direct
+        void setLambdaBeta(double value)
+        void setTol(double value)
+        void setDirect(bool value)
 
         #-- binary classification
-        bool classify
-        double threshold;
+        void setClassify(bool value)
+        void setThreshold(double value)

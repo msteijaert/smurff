@@ -18,14 +18,6 @@ macro(configure_pthreads)
     endif()
 endmacro(configure_pthreads)
 
-macro(configure_argp)
-
-   find_package(Argp)
-   message(STATUS "Argp libs:" ${ARGP_LIBRARIES} )
-   message(STATUS "Argp includes:" ${ARGP_INCLUDE_PATH} )
-   add_definitions(-DARGP_FOUND)
-endmacro(configure_argp)
-
 macro(configure_mpi)
   message ("Dependency check for mpi...")
 
@@ -77,19 +69,53 @@ endmacro(configure_lapack)
 
 macro(configure_openblas)
   message ("Dependency check for openblas...")
+  
+  if(MSVC)
+  set(BLAS_LIBRARIES  $ENV{BLAS_LIBRARIES})
+  set(BLAS_INCLUDES $ENV{BLAS_INCLUDES})
+  set(BLAS_FOUND ON)
+  else()
   set(BLA_VENDOR "OpenBLAS")
   find_package( BLAS REQUIRED )
+  endif()
+  
   message(STATUS BLAS: ${BLAS_LIBRARIES} )
  
 endmacro(configure_openblas)
 
 macro(configure_eigen)
   message ("Dependency check for eigen...")
+  
+  if(MSVC)
+  SET(EIGEN3_INCLUDE_DIR $ENV{EIGEN3_INCLUDE_DIR})
+  else()
   find_package(Eigen3 REQUIRED)
+  endif()
+  
   message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
+
   add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endmacro(configure_eigen)
 
+macro(configure_boost)
+  message ("Dependency check for boost...")
+  
+  set (Boost_USE_STATIC_LIBS ON)
+  set (Boost_USE_MULTITHREADED ON)
 
+  set (BOOST_COMPONENTS system 
+                        program_options)
+
+  FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
+
+  if(Boost_FOUND)
+  message("Found Boost_VERSION: ${Boost_VERSION}")
+  message("Found Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+  message("Found Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
+  else()
+  message("Boost library is not found")
+  endif()
+
+endmacro(configure_boost)
 
 

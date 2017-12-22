@@ -102,9 +102,9 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    {
       std::shared_ptr<MacauPrior<SideInfo>> prior(new MacauPrior<SideInfo>(session, -1));
       
-      prior->addSideInfo(side_info, session->config.direct);
-      prior->setLambdaBeta(session->config.lambda_beta);
-      prior->setTol(session->config.tol);
+      prior->addSideInfo(side_info, session->config.getDirect());
+      prior->setLambdaBeta(session->config.getLambdaBeta());
+      prior->setTol(session->config.getTol());
 
       return prior;
    }
@@ -112,8 +112,8 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    {
       std::shared_ptr<MacauOnePrior<SideInfo>> prior(new MacauOnePrior<SideInfo>(session, -1));
       
-      prior->addSideInfo(side_info, session->config.direct);
-      prior->setLambdaBeta(session->config.lambda_beta);
+      prior->addSideInfo(side_info, session->config.getDirect());
+      prior->setLambdaBeta(session->config.getLambdaBeta());
 
       return prior;
    }
@@ -159,7 +159,22 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
 {
    // row prior with side information
    // side information can only be applied to macau and macauone priors
-   if (vsideinfo.size())
+   if (vsideinfo.empty())
+   {
+      switch(prior_type)
+      {
+      case PriorTypes::normal:
+      case PriorTypes::default_prior:
+         return std::shared_ptr<NormalPrior>(new NormalPrior(session, -1));
+      case PriorTypes::spikeandslab:
+         return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
+      default:
+         {
+            THROWERROR("Unknown prior without side info: " + priorTypeToString(prior_type));
+         }
+      }
+   }
+   else
    {
       switch(prior_type)
       {
@@ -172,52 +187,23 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
          }
       }
    }
-   else
-   {
-      switch(prior_type)
-      {
-      case PriorTypes::normal:
-      case PriorTypes::default_prior:
-         return std::shared_ptr<NormalPrior>(new NormalPrior(session, -1));
-      case PriorTypes::normalone:
-         return std::shared_ptr<NormalOnePrior>(new NormalOnePrior(session, -1));
-      case PriorTypes::spikeandslab:
-         return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
-      default:
-         {
-            THROWERROR("Unknown prior without side info: " + priorTypeToString(prior_type));
-         }
-      }
-   }
 }
 
 std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
 {
-   switch(mode)
+   PriorTypes pt = session->config.getPriorTypes().at(mode);
+
+   //sideinfo is selected if prior is macau or macauone
+   std::vector<std::shared_ptr<MatrixConfig> > sideinfo;
+   if(pt == PriorTypes::macau || pt == PriorTypes::macauone)
    {
-      case 0:
+      if(mode > 1)
       {
-         //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
-         std::vector<std::shared_ptr<MatrixConfig> > row_sideinfo;
-
-         if (session->config.row_prior_type == PriorTypes::macau || session->config.row_prior_type == PriorTypes::macauone)
-            row_sideinfo = session->config.m_row_features;
-
-         return ::create_prior(session, mode, session->config.row_prior_type, row_sideinfo);
+         THROWERROR("Macau and MacauOne priors are not supported for TensorData");
       }
-      case 1:
-      {
-         //row_sideinfo and col_sideinfo are selected if prior is macau or macauone
-         std::vector<std::shared_ptr<MatrixConfig> > col_sideinfo;
 
-         if (session->config.col_prior_type == PriorTypes::macau || session->config.col_prior_type == PriorTypes::macauone)
-            col_sideinfo = session->config.m_col_features;
-
-         return ::create_prior(session, mode, session->config.col_prior_type, col_sideinfo);
-      }
-      default:
-      {
-         THROWERROR("Unknown prior mode");
-      }
+      sideinfo = session->config.getFeatures().at(mode);
    }
+
+   return ::create_prior(session, mode, pt, sideinfo);
 }

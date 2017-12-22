@@ -66,6 +66,11 @@ std::shared_ptr<std::vector<ResultItem> > BaseSession::getResult()
    return m_pred->m_predictions;
 }
 
+double BaseSession::getRmseAvg()
+{
+   return m_pred->rmse_avg;
+}
+
 MatrixConfig BaseSession::getSample(int mode)
 {
    THROWERROR_NOTIMPL_MSG("getSample is unimplemented");

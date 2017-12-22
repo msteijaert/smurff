@@ -107,17 +107,73 @@ std::uint64_t SparseMode::getMode() const
    return m_mode;
 }
 
-std::uint64_t SparseMode::beginPlane(std::uint64_t n) const
+std::uint64_t SparseMode::beginPlane(std::uint64_t hyperplane) const
 {
-   return m_row_ptr[n];
+   return m_row_ptr[hyperplane];
 }
 
-std::uint64_t SparseMode::endPlane(std::uint64_t n) const
+std::uint64_t SparseMode::endPlane(std::uint64_t hyperplane) const
 {
-   return m_row_ptr[n + 1];
+   return m_row_ptr[hyperplane + 1];
+}
+
+std::uint64_t SparseMode::nItemsOnPlane(std::uint64_t hyperplane) const
+{
+   return endPlane(hyperplane) - beginPlane(hyperplane);
 }
 
 const MatrixXui32& SparseMode::getIndices() const
 {
    return m_indices;
+}
+
+std::pair<PVec<>, double> SparseMode::item(std::uint64_t hyperplane, std::uint64_t item) const
+{
+   std::vector<int> coords(this->getNCoords() + 1); //number of coordinates in sview + 1 dimension that is fixed
+
+   coords[m_mode] = hyperplane; //fixed mode coordinate of current sview is initialized with index of hyperplane
+
+   std::uint64_t nItems = this->nItemsOnPlane(hyperplane); //calculate number of items in hyperplane
+
+   if(item >= nItems)
+   {
+      THROWERROR("Wrong item index");
+   }
+
+   std::uint64_t itemIndex = this->beginPlane(hyperplane) + item; //select item in hyperplane
+
+   std::uint64_t m = 0;
+   for(std::uint64_t ci = 0; ci < coords.size(); ci++) //go through each coordinate of the item
+   {
+      //if this is not a fixed coordinate
+      if(ci != m_mode)
+         coords[ci] = static_cast<int>(this->getIndices()(itemIndex, m++)); //get item coordinate
+   }
+
+   return std::make_pair(coords, this->getValues()[itemIndex]);
+}
+
+PVec<> SparseMode::pos(std::uint64_t hyperplane, std::uint64_t item) const
+{
+   std::vector<int> coords(this->getNCoords() + 1); //number of coordinates in sview + 1 dimension that is fixed
+
+   coords[m_mode] = hyperplane; //fixed mode coordinate of current sview is initialized with index of hyperplane
+
+   std::uint64_t planeStart = this->beginPlane(hyperplane); //get start of a block in indices matrix that corresponds to selected hyperplane
+   std::uint64_t planeEnd = this->endPlane(hyperplane); //get end of a block in indices matrix that corresponds to selected hyperplane
+
+   if(item < planeStart || item >= planeEnd)
+   {
+      THROWERROR("Wrong item index");
+   }
+
+   std::uint64_t m = 0;
+   for(std::uint64_t ci = 0; ci < coords.size(); ci++) //go through each coordinate of the item
+   {
+      //if this is not a fixed coordinate
+      if(ci != m_mode)
+         coords[ci] = static_cast<int>(this->getIndices()(item, m++)); //get item coordinate
+   }
+
+   return coords;
 }
