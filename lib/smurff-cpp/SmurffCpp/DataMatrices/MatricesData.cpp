@@ -78,7 +78,7 @@ double MatricesData::sumsq(const SubModel& model) const
 
 double MatricesData::var_total() const
 {
-   THROWERROR_NOTIMPL();
+   return NAN;
 }
 
 double MatricesData::train_rmse(const SubModel& model) const
