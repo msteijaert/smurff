@@ -166,6 +166,8 @@ std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int
       case PriorTypes::normal:
       case PriorTypes::default_prior:
          return std::shared_ptr<NormalPrior>(new NormalPrior(session, -1));
+      case PriorTypes::normalone:
+         return std::shared_ptr<NormalOnePrior>(new NormalOnePrior(session, -1));
       case PriorTypes::spikeandslab:
          return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
       default:

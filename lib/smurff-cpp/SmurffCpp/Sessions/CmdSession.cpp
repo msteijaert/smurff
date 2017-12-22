@@ -49,7 +49,7 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description priors_desc("Priors and side Info");
    priors_desc.add_options()
-     (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "One of <normal|spikeandslab|macau|macauone>")
+     (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "One of <normal|normalone|spikeandslab|macau|macauone>")
      (FEATURES_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "Side info for each dimention");
 
    boost::program_options::options_description train_test_desc("Test and train matrices");
