@@ -47,7 +47,6 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Noises/INoiseModel.h"
                         "../Noises/NoiseFactory.h"
 
-                        "../Priors/GlobalPrior.h"
                         "../Priors/ILatentPrior.h"
                         "../Priors/NormalPrior.h"
                         "../Priors/NormalOnePrior.h"
@@ -76,7 +75,7 @@ FILE (GLOB HEADER_FILES "../Version.h"
                         "../Sessions/ISession.h"
                         "../Sessions/BaseSession.h"
                         "../Sessions/Session.h"
-                        
+
                         "../Sessions/PythonSession.h"
                         "../Sessions/SessionFactory.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
@@ -115,7 +114,6 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         "../Noises/UnusedNoise.cpp"
                         "../Noises/NoiseFactory.cpp"
 
-                        "../Priors/GlobalPrior.cpp"
                         "../Priors/ILatentPrior.cpp"
                         "../Priors/NormalPrior.cpp"
                         "../Priors/NormalOnePrior.cpp"
