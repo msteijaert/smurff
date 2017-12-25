@@ -15,8 +15,6 @@
 
 namespace smurff
 {
-   class SampledNoise;
-
    class Data
    {
       //AGE: Only MatricesData should call init methods, center methods etc

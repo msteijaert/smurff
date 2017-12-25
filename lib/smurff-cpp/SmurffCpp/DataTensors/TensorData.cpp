@@ -112,7 +112,7 @@ void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen:
          col.noalias() = col.cwiseProduct((*V).col(sview->getIndices()(j, m))); //multiply by m'th column from V
       }
       MM.triangularView<Eigen::Lower>() += col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each V)
-      //FIXME!!
+      
       auto pos = sview->pos(d, j);
       double noisy_val = noise()->sample(model, pos, sview->getValues()[j]);
       rr.noalias() += col * noisy_val; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
