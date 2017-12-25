@@ -102,16 +102,32 @@ bool Config::validate() const
       THROWERROR("Number of priors should equal to number of dimensions in train data");
    }
 
-   for (std::size_t i = 2; i < m_features.size(); i++)
+   if (m_train->getNModes() > 2)
    {
-      if (!m_features.at(i).empty())
+      for (std::size_t i = 0; i < m_features.size(); i++)
       {
-         //it is advised to check macau and macauone priors implementation
-         //as well as code in PriorFactory that creates macau priors
+         if (!m_features.at(i).empty())
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
 
-         //this check does not directly check that input data is Tensor (it only checks number of dimensions)
-         //however TensorDataFactory will do an additional check throwing an exception
-         THROWERROR("Features are not supported for TensorData");
+            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+            //however TensorDataFactory will do an additional check throwing an exception
+            THROWERROR("Features are not supported for TensorData");
+         }
+      }
+
+      for (std::size_t i = 0; i < m_prior_types.size(); i++)
+      {
+         if (m_prior_types[i] == PriorTypes::macau || m_prior_types[i] == PriorTypes::macauone)
+         {
+            //it is advised to check macau and macauone priors implementation
+            //as well as code in PriorFactory that creates macau priors
+
+            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+            //however TensorDataFactory will do an additional check throwing an exception
+            THROWERROR("Features are not supported for TensorData");
+         }
       }
    }
 
@@ -127,16 +143,6 @@ bool Config::validate() const
       const auto& featureSet = m_features[i]; //features for specific dimension
       for(auto& ft : featureSet)
       {
-         if(i > 1)
-         {
-            //it is advised to check macau and macauone priors implementation
-            //as well as code in PriorFactory that creates macau priors
-
-            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
-            //however TensorDataFactory will do an additional check throwing an exception
-            THROWERROR("Features are not supported for TensorData");
-         }
-
          //AGE: not sure how strict should be the check. which adjacent dimensions do we need to check?
          if (m_train->getDims()[i] != ft->getDims()[i]) //compare sizes in specific dimension
          {
@@ -153,16 +159,6 @@ bool Config::validate() const
       const auto& featureSet = m_features[i];
       if(pt == PriorTypes::macau)
       {
-         if(i > 1)
-         {
-            //it is advised to check macau and macauone priors implementation
-            //as well as code in PriorFactory that creates macau priors
-
-            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
-            //however PriorFactory will do an additional check
-            THROWERROR("Macau and MacauOne priors are not supported for TensorData");
-         }
-
          if(featureSet.size() != 1)
          {
             std::stringstream ss;
@@ -173,13 +169,6 @@ bool Config::validate() const
 
       if(pt == PriorTypes::macauone)
       {
-         if(i > 1)
-         {
-            //it is advised to check macau and macauone priors implementation
-            //as well as code in PriorFactory that creates macau priors
-            THROWERROR("Macau and MacauOne priors are not supported for TensorData");
-         }
-
          if(featureSet.size() != 1 || featureSet.at(0)->isDense())
          {
             std::stringstream ss;

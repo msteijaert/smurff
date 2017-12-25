@@ -17,11 +17,11 @@ using namespace Eigen;
 std::shared_ptr<Eigen::MatrixXd> side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    Eigen::MatrixXd sideinfo = matrix_utils::dense_to_eigen(*sideinfoConfig);
-   
+
    // Temporary solution #2
-   // macau expects the rows of the matrix to be equal to the mode size, 
+   // macau expects the rows of the matrix to be equal to the mode size,
    // if the mode == 1 (col_features) we need to swap the rows and columns
-   if (mode == 1) 
+   if (mode == 1)
       sideinfo.transposeInPlace();
 
    return std::shared_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(sideinfo));
@@ -47,9 +47,9 @@ std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(std::shar
    }
 
    // Temporary solution #2
-   // macau expects the rows of the matrix to be equal to the mode size, 
+   // macau expects the rows of the matrix to be equal to the mode size,
    // if the mode == 1 (col_features) we need to swap the rows and columns
-   if (mode == 1) 
+   if (mode == 1)
    {
        std::swap(nrow, ncol);
        std::swap(rowsRawPtr, colsRawPtr);
@@ -83,7 +83,7 @@ std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(std::share
    // Temporary solution #2
    // macau expects the rows of the matrix to be equal to the mode
    // size, if the mode == 1 (col_features) we need to swap the rows and columns
-   if (mode == 1) 
+   if (mode == 1)
    {
        std::swap(nrow, ncol);
        std::swap(rowsRawPtr, colsRawPtr);
@@ -100,7 +100,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
    {
       std::shared_ptr<MacauPrior<SideInfo>> prior(new MacauPrior<SideInfo>(session, -1));
-      
+
       prior->addSideInfo(side_info, session->config.getDirect());
       prior->setLambdaBeta(session->config.getLambdaBeta());
       prior->setTol(session->config.getTol());
@@ -110,7 +110,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
    else if(prior_type == PriorTypes::macauone)
    {
       std::shared_ptr<MacauOnePrior<SideInfo>> prior(new MacauOnePrior<SideInfo>(session, -1));
-      
+
       prior->addSideInfo(side_info, session->config.getDirect());
       prior->setLambdaBeta(session->config.getLambdaBeta());
 
@@ -196,11 +196,6 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
    std::vector<std::shared_ptr<MatrixConfig> > sideinfo;
    if(pt == PriorTypes::macau || pt == PriorTypes::macauone)
    {
-      if(mode > 1)
-      {
-         THROWERROR("Macau and MacauOne priors are not supported for TensorData");
-      }
-
       sideinfo = session->config.getFeatures().at(mode);
    }
 
