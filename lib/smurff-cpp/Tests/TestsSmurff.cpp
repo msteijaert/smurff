@@ -7,7 +7,7 @@
 
 using namespace smurff;
 
-TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234", "[!hide]")
 {
    std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
    std::shared_ptr<MatrixConfig> trainMatrixConfig =
@@ -68,7 +68,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    }
 }
 
-TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234", "[!hide]")
 {
    std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
    std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 1, 2, 3, 0, 1, 2, 3 };
@@ -131,7 +131,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    }
 }
 
-TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234", "[!hide]")
 {
    std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
    std::shared_ptr<MatrixConfig> trainMatrixConfig =
@@ -200,7 +200,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    }
 }
 
-TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234", "[!hide]")
 {
    std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
    std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 1, 2, 3, 0, 1, 2, 3 };
