@@ -599,7 +599,7 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()));
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
 }
 
@@ -659,6 +659,6 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()));
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
 }
