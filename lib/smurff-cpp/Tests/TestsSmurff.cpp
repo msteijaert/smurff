@@ -5,6 +5,10 @@
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Sessions/SessionFactory.h>
 
+// https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
+// By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
+#define APPROX_EPSILON std::numeric_limits<float>::epsilon()*100
+
 using namespace smurff;
 
 std::shared_ptr<MatrixConfig> getTrainDenseMatrixConfig()
@@ -29,7 +33,7 @@ std::shared_ptr<MatrixConfig> getTrainSparseMatrixConfig()
    std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> trainMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
    std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols), std::move(trainMatrixConfigVals), NoiseConfig(), false);
+      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols), std::move(trainMatrixConfigVals), NoiseConfig(), true);
    return trainMatrixConfig;
 }
 
@@ -52,7 +56,7 @@ std::shared_ptr<MatrixConfig> getTestSparseMatrixConfig()
    std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
    std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
+      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), true);
    return testMatrixConfig;
 }
 
@@ -94,10 +98,10 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
       const ResultItem& expectedResultItem = expectedResultItems[i];
       REQUIRE(actualResultItem.coords == expectedResultItem.coords);
       REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
+      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample).epsilon(APPROX_EPSILON));
+      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg).epsilon(APPROX_EPSILON));
+      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var).epsilon(APPROX_EPSILON));
+      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds).epsilon(APPROX_EPSILON));
    }
 }
 
@@ -151,7 +155,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
          { { 2, 3 }, 12, 10.8882167080340153, 12.0825997901525266, 58.3087165680419020, 1.0908592060898872 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
@@ -205,7 +209,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
          { { 2, 3 }, 12, 11.0020815144410644, 12.1070524500051224, 57.7075853863754986, 1.0852215553571283 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
@@ -261,7 +265,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
          { { 2, 3 }, 12, 11.2319412121555118, 12.1926220674740815, 35.9673203004125952, 0.8567537247694809 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
@@ -317,7 +321,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
          { { 2, 3 }, 12, 11.2829665833916017, 11.9359655639288071, 47.3940838789614460, 0.9834765892543950 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
@@ -371,7 +375,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
          { { 2, 3 }, 12, 14.1363055179274415, 12.2984752409140778, 41.4906604164368460, 0.9201892043292059 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
@@ -426,7 +430,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
          { { 2, 3 }, 12, 11.4598392903238953, 12.1971530948012337, 32.5296713249058911, 0.8147826970213754 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
@@ -480,7 +484,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
          { { 2, 3 }, 12, 10.8882167080340597, 12.0825997901525319, 58.3087165680387400, 1.0908592060898576 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
@@ -535,6 +539,6 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
          { { 2, 3 }, 12, 10.8696565965651395, 11.9768249192672869, 54.3060790060203473, 1.0527522627159138 }
       };
 
-   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
