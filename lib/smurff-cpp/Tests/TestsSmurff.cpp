@@ -7,6 +7,66 @@
 
 using namespace smurff;
 
+std::shared_ptr<MatrixConfig> getTrainDenseMatrixConfig()
+{
+   std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
+   std::shared_ptr<MatrixConfig> trainMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigVals), NoiseConfig());
+   return trainMatrixConfig;
+}
+
+std::shared_ptr<MatrixConfig> getTrainSparseMatrixConfig()
+{
+   std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
+   std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> trainMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<MatrixConfig> trainMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigCols), std::move(trainMatrixConfigRows), std::move(trainMatrixConfigVals), NoiseConfig(), false);
+   return trainMatrixConfig;
+}
+
+std::shared_ptr<MatrixConfig> getTestSparseMatrixConfig()
+{
+   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
+   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<MatrixConfig> testMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
+   return testMatrixConfig;
+}
+
+std::shared_ptr<MatrixConfig> getRowFeaturesDenseMatrixConfig()
+{
+   std::vector<double> rowFeaturesDenseMatrixConfigVals = { 1, 2, 3 };
+   std::shared_ptr<MatrixConfig> rowFeaturesDenseMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 1, std::move(rowFeaturesDenseMatrixConfigVals), NoiseConfig());
+   return rowFeaturesDenseMatrixConfig;
+}
+
+std::shared_ptr<MatrixConfig> getColFeaturesDenseMatrixConfig()
+{
+   std::vector<double> colFeaturesDenseMatrixConfigVals = { 1, 2, 3, 4 };
+   std::shared_ptr<MatrixConfig> colFeaturesDenseMatrixConfig =
+      std::make_shared<MatrixConfig>(1, 4, std::move(colFeaturesDenseMatrixConfigVals), NoiseConfig());
+   return colFeaturesDenseMatrixConfig;
+}
+
+void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, const std::vector<ResultItem>& expectedResultItems)
+{
+   REQUIRE(actualResultItems.size() == expectedResultItems.size());
+   for (std::vector<ResultItem>::size_type i = 0; i < actualResultItems.size(); i++)
+   {
+      const ResultItem& actualResultItem = actualResultItems[i];
+      const ResultItem& expectedResultItem = expectedResultItems[i];
+      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
+      REQUIRE(actualResultItem.val == expectedResultItem.val);
+      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
+      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
+      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
+      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
+   }
+}
+
 //
 //      train: dense matrix
 //       test: sparse matrix
@@ -20,19 +80,12 @@ using namespace smurff;
 //
 TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
-   std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
-   std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigVals), NoiseConfig());
-
-   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
 
    Config config;
-   config.setTrain(trainMatrixConfig);
-   config.setTest(testMatrixConfig);
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
    config.getPriorTypes().push_back(PriorTypes::normal);
    config.getPriorTypes().push_back(PriorTypes::normal);
    config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
@@ -64,19 +117,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
          { { 2, 3 }, 12, 10.8882167080340153, 12.0825997901525266, 58.3087165680419020, 1.0908592060898872 }
       };
 
-   REQUIRE(actualResults->size() == expectedResults.size());
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
-   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
-   {
-      const ResultItem& actualResultItem = actualResults->operator[](i);
-      const ResultItem& expectedResultItem = expectedResults[i];
-      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
-      REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
-   }
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
 //
@@ -92,21 +134,12 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
 //
 TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
-   std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> trainMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigCols), std::move(trainMatrixConfigRows), std::move(trainMatrixConfigVals), NoiseConfig(), false);
-
-   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
 
    Config config;
-   config.setTrain(trainMatrixConfig);
-   config.setTest(testMatrixConfig);
+   config.setTrain(trainSparseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
    config.getPriorTypes().push_back(PriorTypes::normal);
    config.getPriorTypes().push_back(PriorTypes::normal);
    config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
@@ -138,19 +171,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
          { { 2, 3 }, 12, 11.0020815144410644, 12.1070524500051224, 57.7075853863754986, 1.0852215553571283 }
       };
 
-   REQUIRE(actualResults->size() == expectedResults.size());
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
-   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
-   {
-      const ResultItem& actualResultItem = actualResults->operator[](i);
-      const ResultItem& expectedResultItem = expectedResults[i];
-      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
-      REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
-   }
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
 //
@@ -166,31 +188,18 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
 //
 TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
-   std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
-   std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigVals), NoiseConfig());
-
-   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
-
-   std::vector<double> denseRowFeaturesMatrixConfigVals = { 1, 2, 3 };
-   std::shared_ptr<MatrixConfig> denseRowFeaturesMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 1, std::move(denseRowFeaturesMatrixConfigVals), NoiseConfig());
-
-   std::vector<double> denseColFeaturesMatrixConfigVals = { 1, 2, 3, 4 };
-   std::shared_ptr<MatrixConfig> denseColFeaturesMatrixConfig =
-      std::make_shared<MatrixConfig>(1, 4, std::move(denseColFeaturesMatrixConfigVals), NoiseConfig());
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowFeaturesDenseMatrixConfig = getRowFeaturesDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> colFeaturesDenseMatrixConfig = getColFeaturesDenseMatrixConfig();
 
    Config config;
-   config.setTrain(trainMatrixConfig);
-   config.setTest(testMatrixConfig);
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
    config.getPriorTypes().push_back(PriorTypes::normal);
    config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getFeatures().push_back({ denseRowFeaturesMatrixConfig });
-   config.getFeatures().push_back({ denseColFeaturesMatrixConfig });
+   config.getFeatures().push_back({ rowFeaturesDenseMatrixConfig });
+   config.getFeatures().push_back({ colFeaturesDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -218,19 +227,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
          { { 2, 3 }, 12, 11.2319412121555118, 12.1926220674740815, 35.9673203004125952, 0.8567537247694809 }
       };
 
-   REQUIRE(actualResults->size() == expectedResults.size());
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
-   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
-   {
-      const ResultItem& actualResultItem = actualResults->operator[](i);
-      const ResultItem& expectedResultItem = expectedResults[i];
-      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
-      REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
-   }
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
 //
@@ -246,33 +244,18 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
 //
 TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
-   std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> trainMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigCols), std::move(trainMatrixConfigRows), std::move(trainMatrixConfigVals), NoiseConfig(), false);
-
-   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
-
-   std::vector<double> denseRowFeaturesMatrixConfigVals = { 1, 2, 3 };
-   std::shared_ptr<MatrixConfig> denseRowFeaturesMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 1, std::move(denseRowFeaturesMatrixConfigVals), NoiseConfig());
-
-   std::vector<double> denseColFeaturesMatrixConfigVals = { 1, 2, 3, 4 };
-   std::shared_ptr<MatrixConfig> denseColFeaturesMatrixConfig =
-      std::make_shared<MatrixConfig>(1, 4, std::move(denseColFeaturesMatrixConfigVals), NoiseConfig());
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowFeaturesDenseMatrixConfig = getRowFeaturesDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> colFeaturesDenseMatrixConfig = getColFeaturesDenseMatrixConfig();
 
    Config config;
-   config.setTrain(trainMatrixConfig);
-   config.setTest(testMatrixConfig);
+   config.setTrain(trainSparseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
    config.getPriorTypes().push_back(PriorTypes::normal);
    config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getFeatures().push_back({ denseRowFeaturesMatrixConfig });
-   config.getFeatures().push_back({ denseColFeaturesMatrixConfig });
+   config.getFeatures().push_back({ rowFeaturesDenseMatrixConfig });
+   config.getFeatures().push_back({ colFeaturesDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -300,19 +283,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
          { { 2, 3 }, 12, 11.2829665833916017, 11.9359655639288071, 47.3940838789614460, 0.9834765892543950 }
       };
 
-   REQUIRE(actualResults->size() == expectedResults.size());
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
-   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
-   {
-      const ResultItem& actualResultItem = actualResults->operator[](i);
-      const ResultItem& expectedResultItem = expectedResults[i];
-      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
-      REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
-   }
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
 //
@@ -328,19 +300,12 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
 //
 TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spikeandslab normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
-   std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
-   std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigVals), NoiseConfig());
-
-   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
 
    Config config;
-   config.setTrain(trainMatrixConfig);
-   config.setTest(testMatrixConfig);
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
    config.getPriorTypes().push_back(PriorTypes::spikeandslab);
    config.getPriorTypes().push_back(PriorTypes::normal);
    config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
@@ -372,19 +337,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
          { { 2, 3 }, 12, 14.1363055179274415, 12.2984752409140778, 41.4906604164368460, 0.9201892043292059 }
       };
 
-   REQUIRE(actualResults->size() == expectedResults.size());
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
-   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
-   {
-      const ResultItem& actualResultItem = actualResults->operator[](i);
-      const ResultItem& expectedResultItem = expectedResults[i];
-      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
-      REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
-   }
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
 //
@@ -400,26 +354,16 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
 //
 TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spikeandslab normal --features dense_row_features none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
-   std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
-   std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigVals), NoiseConfig());
-
-   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
-   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
-   std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
-
-   std::vector<double> denseRowFeaturesMatrixConfigVals = { 1, 2, 3 };
-   std::shared_ptr<MatrixConfig> denseRowFeaturesMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 1, std::move(denseRowFeaturesMatrixConfigVals), NoiseConfig());
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowFeaturesDenseMatrixConfig = getRowFeaturesDenseMatrixConfig();
 
    Config config;
-   config.setTrain(trainMatrixConfig);
-   config.setTest(testMatrixConfig);
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
    config.getPriorTypes().push_back(PriorTypes::spikeandslab);
    config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getFeatures().push_back({ denseRowFeaturesMatrixConfig });
+   config.getFeatures().push_back({ rowFeaturesDenseMatrixConfig });
    config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -448,17 +392,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
          { { 2, 3 }, 12, 11.4598392903238953, 12.1971530948012337, 32.5296713249058911, 0.8147826970213754 }
       };
 
-   REQUIRE(actualResults->size() == expectedResults.size());
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
-   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
-   {
-      const ResultItem& actualResultItem = actualResults->operator[](i);
-      const ResultItem& expectedResultItem = expectedResults[i];
-      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
-      REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
-   }
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
