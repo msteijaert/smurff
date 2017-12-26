@@ -7,6 +7,17 @@
 
 using namespace smurff;
 
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: normal normal
+//   features: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
 TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
    std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
@@ -39,7 +50,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results from master commit ce08b46ac61a783a7958720ec9e1760780eeb170
+   // Pre-calculated results with single-threaded Debug master ce08b46ac61a783a7958720ec9e1760780eeb170
    double expectedRmseAvg = 0.4148777232391693;
    std::vector<ResultItem> expectedResults =
       {
@@ -68,6 +79,17 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    }
 }
 
+//
+//      train: sparse matrix
+//       test: sparse matrix
+//     priors: normal normal
+//   features: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
 TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
    std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
@@ -102,7 +124,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results from master commit ce08b46ac61a783a7958720ec9e1760780eeb170
+   // Pre-calculated results with single-threaded Debug master ce08b46ac61a783a7958720ec9e1760780eeb170
    double expectedRmseAvg = 0.4651976649366950;
    std::vector<ResultItem> expectedResults =
       {
@@ -131,6 +153,17 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    }
 }
 
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: normal normal
+//   features: dense_features dense_features
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
 TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
    std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
@@ -171,7 +204,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results from master commit ce08b46ac61a783a7958720ec9e1760780eeb170
+   // Pre-calculated results with single-threaded Debug master ce08b46ac61a783a7958720ec9e1760780eeb170
    double expectedRmseAvg = 0.4923359705805635;
    std::vector<ResultItem> expectedResults =
       {
@@ -200,6 +233,17 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    }
 }
 
+//
+//      train: sparse matrix
+//       test: sparse matrix
+//     priors: normal normal
+//   features: dense_features dense_features
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
 TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normal normal --features <dense_row_features> <dense_col_features> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
 {
    std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
@@ -242,7 +286,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results from master commit ce08b46ac61a783a7958720ec9e1760780eeb170
+   // Pre-calculated results with single-threaded Debug master ce08b46ac61a783a7958720ec9e1760780eeb170
    double expectedRmseAvg = 0.4563100827505874;
    std::vector<ResultItem> expectedResults =
       {
