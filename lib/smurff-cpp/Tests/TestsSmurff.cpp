@@ -314,3 +314,151 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
       REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
    }
 }
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: spikeandslab normal
+//   features: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spikeandslab normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
+   std::shared_ptr<MatrixConfig> trainMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigVals), NoiseConfig());
+
+   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
+   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<MatrixConfig> testMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
+
+   Config config;
+   config.setTrain(trainMatrixConfig);
+   config.setTest(testMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
+   config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master ce08b46ac61a783a7958720ec9e1760780eeb170
+   double expectedRmseAvg = 0.6206681329233389;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  2.2163520632118265,  1.9816048194880975,  8.3860512644964107, 0.4136954234180861 },
+         { { 0, 1 },  2,  2.3906588067293937,  2.2802560118438056, 11.3278673278835811, 0.4808128179189643 },
+         { { 0, 2 },  3,  2.8775907307172859,  2.5633705554310948, 16.6061313351497866, 0.5821517323626657 },
+         { { 0, 3 },  4,  3.5095516143926275,  2.9356547633773604, 20.8406592945208118, 0.6521652991682402 },
+         { { 2, 0 },  9,  8.9273597722179225,  8.3556267846542660, 33.6499437364078204, 0.8286938793311894 },
+         { { 2, 1 }, 10,  9.6294589720400019,  9.6085963375869454, 40.2492467273388002, 0.9063184862492425 },
+         { { 2, 2 }, 11, 11.5907973993468563, 10.7575895951788176, 44.7432284092971955, 0.9555768469326893 },
+         { { 2, 3 }, 12, 14.1363055179274415, 12.2984752409140778, 41.4906604164368460, 0.9201892043292059 }
+      };
+
+   REQUIRE(actualResults->size() == expectedResults.size());
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
+   {
+      const ResultItem& actualResultItem = actualResults->operator[](i);
+      const ResultItem& expectedResultItem = expectedResults[i];
+      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
+      REQUIRE(actualResultItem.val == expectedResultItem.val);
+      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
+      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
+      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
+      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
+   }
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: spikeandslab normal
+//   features: dense_features none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spikeandslab normal --features dense_row_features none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::vector<double> trainMatrixConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
+   std::shared_ptr<MatrixConfig> trainMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigVals), NoiseConfig());
+
+   std::vector<std::uint32_t> testMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2};
+   std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<MatrixConfig> testMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
+
+   std::vector<double> denseRowFeaturesMatrixConfigVals = { 1, 2, 3 };
+   std::shared_ptr<MatrixConfig> denseRowFeaturesMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 1, std::move(denseRowFeaturesMatrixConfigVals), NoiseConfig());
+
+   Config config;
+   config.setTrain(trainMatrixConfig);
+   config.setTest(testMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getFeatures().push_back({ denseRowFeaturesMatrixConfig });
+   config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master ce08b46ac61a783a7958720ec9e1760780eeb170
+   double expectedRmseAvg = 0.5988320428930997;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  2.1737472697789544,  2.1326695136378913,  9.0707339729104497, 0.4302522746660560 },
+         { { 0, 1 },  2,  2.8748962739977384,  2.5234536310788340,  9.5445975972433263, 0.4413476023115910 },
+         { { 0, 2 },  3,  3.1564722791558459,  2.8226989925935135, 12.0817925194030078, 0.4965553285118696 },
+         { { 0, 3 },  4,  3.1490842622856450,  3.1196855189022488, 15.6021167629049504, 0.5642787840967740 },
+         { { 2, 0 },  9,  7.9104883498311311,  8.3287292399052095, 40.0700707279277282, 0.9042989248406264 },
+         { { 2, 1 }, 10, 10.4620411943034313,  9.8860621122426480, 31.5998605105781785, 0.8030536174258722 },
+         { { 2, 2 }, 11, 11.4867250383556900, 11.0548611199080451, 36.6189180603447610, 0.8644795303385632 },
+         { { 2, 3 }, 12, 11.4598392903238953, 12.1971530948012337, 32.5296713249058911, 0.8147826970213754 }
+      };
+
+   REQUIRE(actualResults->size() == expectedResults.size());
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
+   {
+      const ResultItem& actualResultItem = actualResults->operator[](i);
+      const ResultItem& expectedResultItem = expectedResults[i];
+      REQUIRE(actualResultItem.coords == expectedResultItem.coords);
+      REQUIRE(actualResultItem.val == expectedResultItem.val);
+      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample));
+      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg));
+      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var));
+      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds));
+   }
+}
