@@ -15,14 +15,35 @@ std::shared_ptr<MatrixConfig> getTrainDenseMatrixConfig()
    return trainMatrixConfig;
 }
 
+std::shared_ptr<TensorConfig> getTrainDenseTensor2dConfig()
+{
+   std::vector<double> trainTensorConfigVals = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
+   std::shared_ptr<TensorConfig> trainTensorConfig =
+      std::make_shared<TensorConfig>(std::initializer_list<uint64_t>({ 3, 4 }), std::move(trainTensorConfigVals), NoiseConfig());
+   return trainTensorConfig;
+}
+
 std::shared_ptr<MatrixConfig> getTrainSparseMatrixConfig()
 {
-   std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 0, 0, 0, 2, 2, 2, 2};
-   std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> trainMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
    std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigCols), std::move(trainMatrixConfigRows), std::move(trainMatrixConfigVals), NoiseConfig(), false);
+      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols), std::move(trainMatrixConfigVals), NoiseConfig(), false);
    return trainMatrixConfig;
+}
+
+std::shared_ptr<TensorConfig> getTrainSparseTensor2dConfig()
+{
+   std::vector<std::uint32_t> trainTensorConfigCols =
+      {
+         0, 0, 0, 0, 2, 2, 2, 2,
+         0, 1, 2, 3, 0, 1, 2, 3
+      };
+   std::vector<double> trainTensorConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<TensorConfig> trainTensorConfig =
+      std::make_shared<TensorConfig>(std::initializer_list<uint64_t>({ 3, 4 }), std::move(trainTensorConfigCols), std::move(trainTensorConfigVals), NoiseConfig(), true);
+   return trainTensorConfig;
 }
 
 std::shared_ptr<MatrixConfig> getTestSparseMatrixConfig()
@@ -33,6 +54,19 @@ std::shared_ptr<MatrixConfig> getTestSparseMatrixConfig()
    std::shared_ptr<MatrixConfig> testMatrixConfig =
       std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
    return testMatrixConfig;
+}
+
+std::shared_ptr<TensorConfig> getTestSparseTensor2dConfig()
+{
+   std::vector<std::uint32_t> testTensorConfigCols =
+      {
+         0, 0, 0, 0, 2, 2, 2, 2,
+         0, 1, 2, 3, 0, 1, 2, 3
+      };
+   std::vector<double> testTensorConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<TensorConfig> testTensorConfig =
+      std::make_shared<TensorConfig>(std::initializer_list<uint64_t>({ 3, 4 }), std::move(testTensorConfigCols), std::move(testTensorConfigVals), NoiseConfig(), true);
+   return testTensorConfig;
 }
 
 std::shared_ptr<MatrixConfig> getRowFeaturesDenseMatrixConfig()
@@ -390,6 +424,60 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
          { { 2, 1 }, 10, 10.4620411943034313,  9.8860621122426480, 31.5998605105781785, 0.8030536174258722 },
          { { 2, 2 }, 11, 11.4867250383556900, 11.0548611199080451, 36.6189180603447610, 0.8644795303385632 },
          { { 2, 3 }, 12, 11.4598392903238953, 12.1971530948012337, 32.5296713249058911, 0.8147826970213754 }
+      };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: sparse 2D-tensor (matrix)
+//       test: sparse 2D-tensor (matrix)
+//     priors: normal normal
+//   features: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_sparse_tensor> --test <test_sparse_tensor> --prior normal normal --features none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+
+   Config config;
+   config.setTrain(trainSparseTensorConfig);
+   config.setTest(testSparseTensorConfig);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
+   config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master ce08b46ac61a783a7958720ec9e1760780eeb170
+   double expectedRmseAvg = 0.4323854663303525;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  1.8541410944574841,  1.7767970217065547, 19.6988847520554238, 0.6340489383039738 },
+         { { 0, 1 },  2,  3.2665045876208256,  2.2199148669997726, 20.9991128860445428, 0.6546398431236756 },
+         { { 0, 2 },  3,  2.9603957155794047,  2.7068860487677879, 27.5289354824938073, 0.7495432007875279 },
+         { { 0, 3 },  4,  3.8432554038064999,  3.2382031823632884, 24.6239205123522140, 0.7088927916462434 },
+         { { 2, 0 },  9,  9.7079896960556766,  8.8272086786817141, 71.8317171716461758, 1.2107656303621475 },
+         { { 2, 1 }, 10,  8.4116500121248148,  9.6397015671928123, 53.7651171828327819, 1.0474957228769801 },
+         { { 2, 2 }, 11, 11.6675678529136988, 11.1319935784364024, 57.0847109463449840, 1.0793489245586045 },
+         { { 2, 3 }, 12, 10.8696565965651395, 11.9768249192672869, 54.3060790060203473, 1.0527522627159138 }
       };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg));
