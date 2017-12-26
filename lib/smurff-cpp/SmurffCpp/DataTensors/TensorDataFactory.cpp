@@ -18,7 +18,8 @@ std::shared_ptr<Data> TensorDataFactory::create_tensor_data(std::shared_ptr<cons
       }
    }
 
-   if(!config->isScarce())
+   // Checking whether dense tensor is scarse makes no sense
+   if(!config->isDense() && !config->isScarce())
    {
       THROWERROR("Tensor config should be scarse");
    }
