@@ -33,7 +33,7 @@ std::shared_ptr<MatrixConfig> getTrainSparseMatrixConfig()
    std::vector<std::uint32_t> trainMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> trainMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
    std::shared_ptr<MatrixConfig> trainMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols), std::move(trainMatrixConfigVals), NoiseConfig(), true);
+      std::make_shared<MatrixConfig>(3, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols), std::move(trainMatrixConfigVals), NoiseConfig(), false);
    return trainMatrixConfig;
 }
 
@@ -56,7 +56,7 @@ std::shared_ptr<MatrixConfig> getTestSparseMatrixConfig()
    std::vector<std::uint32_t> testMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
    std::vector<double> testMatrixConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
    std::shared_ptr<MatrixConfig> testMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), true);
+      std::make_shared<MatrixConfig>(3, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), NoiseConfig(), false);
    return testMatrixConfig;
 }
 
