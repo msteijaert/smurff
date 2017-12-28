@@ -18,13 +18,13 @@ using namespace smurff;
 static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 
 TEST_CASE("test sparse view new 1")
-{  
+{
    std::vector<std::uint64_t> tensorConfigDims = {2, 3};
    std::vector<std::uint32_t> tensorConfigColumns =
       {
-         // 1D 
+         // 1D
          0,  1,  0,  1,  0,  1,
-         // 2D 
+         // 2D
          0,  0,  1,  1,  2,  2,
       };
    std::vector<double> tensorConfigValues =
@@ -40,7 +40,7 @@ TEST_CASE("test sparse view new 1")
    TensorData td(tensorConfig);
    /*
    std::cout << "Tensor Data test" << std::endl;
-  
+
    for(uint64_t mode = 0; mode < td.nmode(); mode++)
    {
       std::shared_ptr<SparseMode> sview = td.Y(mode);
@@ -51,7 +51,7 @@ TEST_CASE("test sparse view new 1")
       std::cout << "nnz: " << sview->getNNZ() << std::endl;
       std::cout << "ncoords: " << sview->getNCoords() << std::endl;
       std::cout << "mode: " << sview->getMode() << std::endl;
-      
+
       for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) // go through each hyper plane in the dimention
       {
          std::cout << "-----" << std::endl;
@@ -62,7 +62,7 @@ TEST_CASE("test sparse view new 1")
             {
                std::cout << sview->getIndices()(j, m) << ", "; //print coordinate
             }
-            
+
             std::cout << sview->getValues()[j] << std::endl; //print value
          }
       }
@@ -73,16 +73,16 @@ TEST_CASE("test sparse view new 1")
 }
 
 TEST_CASE("test sparse view new 2")
-{  
+{
    std::vector<std::uint64_t> tensorConfigDims = { 2, 3, 4 };
    std::vector<std::uint32_t> tensorConfigColumns =
       {
          //  1-st xy plane             //2-nd xy plane           //3-rd xy plane            //4-rd xy plane
-         // 1D 
+         // 1D
          0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,     0,  1,  0,  1,  0,  1,
-         // 2D 
+         // 2D
          0,  0,  1,  1,  2,  2,     0,  0,  1,  1,  2,  2,     0,  0,  1,  1,  2,  2,     0,  0,  1,  1,  2,  2,
-         // 3D 
+         // 3D
          0,  0,  0,  0,  0,  0,     1,  1,  1,  1,  1,  1,     2,  2,  2,  2,  2,  2,     3,  3,  3,  3,  3,  3,
       };
    std::vector<double> tensorConfigValues =
@@ -92,9 +92,9 @@ TEST_CASE("test sparse view new 2")
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, fixed_ncfg, false);
 
    TensorData td(tensorConfig);
-   
+   /*
    std::cout << "Tensor Data test" << std::endl;
-  
+
    // go through each dimension
    for(uint64_t mode = 0; mode < td.nmode(); mode++)
    {
@@ -106,7 +106,7 @@ TEST_CASE("test sparse view new 2")
       std::cout << "nnz: " << sview->getNNZ() << std::endl;
       std::cout << "ncoords: " << sview->getNCoords() << std::endl;
       std::cout << "mode: " << sview->getMode() << std::endl;
-      
+
       // go through each hyperplane in the dimension
       for(std::uint64_t h = 0; h < sview->getNPlanes(); h++)
       {
@@ -122,12 +122,12 @@ TEST_CASE("test sparse view new 2")
 
       std::cout << std::endl;
    }
-   
+   */
 }
 
 //smurff
 
-/* 
+/*
 TEST_CASE("bpmfutils/eval_rmse_tensor", "Testing eval_rmse_tensor") {
   Eigen::MatrixXi C(5, 3);
   C << 0, 1, 0,

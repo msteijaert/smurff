@@ -3,6 +3,7 @@
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/IO/IDataWriter.h>
 #include <SmurffCpp/DataMatrices/IDataCreator.h>
+#include <SmurffCpp/DataMatrices/MatrixData.h>
 #include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;

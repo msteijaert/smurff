@@ -12,9 +12,9 @@ namespace smurff
    public:
       void init_pre() override;
       void init_post() override;
-      
+
       // add data
-      std::shared_ptr<MatrixData> add(const PVec<>& p, std::shared_ptr<MatrixData> data);
+      std::shared_ptr<Data> add(const PVec<>& p, std::shared_ptr<Data> data);
 
       // helper functions for noise
       // but
@@ -45,11 +45,11 @@ namespace smurff
       PVec<>   dim() const override;
 
    private:
-      struct Block 
+      struct Block
       {
           friend class MatricesData;
           // c'tor
-          Block(PVec<> p, std::shared_ptr<MatrixData> m);
+          Block(PVec<> p, std::shared_ptr<Data> m);
 
           // handy position functions
           const PVec<> start() const;
@@ -62,7 +62,7 @@ namespace smurff
           int dim(int mode) const;
           int pos(int mode) const;
 
-          std::shared_ptr<MatrixData> data() const;
+          std::shared_ptr<Data> data() const;
 
           bool in(const PVec<> &p) const;
           bool in(int mode, int p) const;
@@ -71,7 +71,7 @@ namespace smurff
 
         private:
           PVec<> _pos, _start;
-          std::shared_ptr<MatrixData> m_matrix;
+          std::shared_ptr<Data> m_matrix;
       };
       std::vector<Block> blocks;
 
