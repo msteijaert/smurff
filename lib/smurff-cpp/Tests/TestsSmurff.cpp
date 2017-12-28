@@ -582,6 +582,124 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
 //
 //      train: dense matrix
 //       test: sparse matrix
+//     priors: macau spikeandslab
+//   features: row_side_info_dense_matrix none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior macau spikeandslab --aux-data <row_side_info_dense_matrix> none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
+   config.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master cb4f760b393156874cc13e667766ba474b6d9f04
+   double expectedRmseAvg = 0.6108536509895077;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  2.5394685023275261,  2.1106493024808803, 10.0594587677124103, 0.4530949976462883 },
+         { { 0, 1 },  2,  2.8887691509836682,  2.4118121581629892, 11.1346807934963437, 0.4766952732519399 },
+         { { 0, 2 },  3,  3.5988165476608422,  2.8227946029316002, 18.3419058677625451, 0.6118207331777621 },
+         { { 0, 3 },  4,  3.8288779343603396,  3.1468597709624366, 23.0274563422839158, 0.6855275987281906 },
+         { { 2, 0 },  9,  8.3263276207569845,  8.3282151327266867, 30.9939811315534861, 0.7953176894641291 },
+         { { 2, 1 }, 10,  9.4716033491971316,  9.5479432780141931, 38.5637960501877757, 0.8871393610488711 },
+         { { 2, 2 }, 11, 11.7996839084090599, 11.1108211696531125, 41.8295891938965951, 0.9239399794303341 },
+         { { 2, 3 }, 12, 12.5540017811410838, 12.3934778445095350, 44.8153069497794192, 0.9563462244479801 }
+      };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: spikeandslab macau
+//   features: none col_side_info_dense_matrix
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spikeandslab macau --aux-data none <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(colSideInfoDenseMatrixConfig);
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master cb4f760b393156874cc13e667766ba474b6d9f04
+   double expectedRmseAvg = 0.6038171746157998;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  1.8917871627427933,  2.1764598069992958, 13.4033445734592966, 0.5230082641376828 },
+         { { 0, 1 },  2,  2.3070418049497268,  2.5478982744531611, 15.8618599295301763, 0.5689564369380743 },
+         { { 0, 2 },  3,  2.6170060311861678,  2.8084954473914578, 15.7760945570635016, 0.5674161730242268 },
+         { { 0, 3 },  4,  3.6238090769414040,  3.1989061111012949, 22.0702244659406119, 0.6711279641043648 },
+         { { 2, 0 },  9,  7.5073992851600391,  8.3784331745926934, 46.8258922848342181, 0.9775635297987211 },
+         { { 2, 1 }, 10,  9.1553026357377334,  9.8122851050747162, 35.9470768688528395, 0.8565125881445397 },
+         { { 2, 2 }, 11, 10.3853697681834483, 10.8689626342813597, 36.0454007498897226, 0.8576831719621979 },
+         { { 2, 3 }, 12, 14.3807835308189951, 12.3396068937987398, 40.9719961049140551, 0.9144195895837821 }
+      };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
 //     priors: macau macau
 //   features: row_side_info_dense_matrix col_side_info_dense_matrix
 // num-latent: 4
