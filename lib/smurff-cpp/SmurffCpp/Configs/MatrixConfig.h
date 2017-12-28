@@ -86,15 +86,15 @@ namespace smurff
    //
    public:
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
-                   const std::vector<std::uint32_t>& columns, 
-                   const NoiseConfig& noiseConfig, bool isScarce);
-      
-      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol, 
-                   std::vector<std::uint32_t>&& columns, 
+                   const std::vector<std::uint32_t>& columns,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
       MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
-                   std::shared_ptr<std::vector<std::uint32_t> > columns, 
+                   std::vector<std::uint32_t>&& columns,
+                   const NoiseConfig& noiseConfig, bool isScarce);
+
+      MatrixConfig(std::uint64_t nrow, std::uint64_t ncol,
+                   std::shared_ptr<std::vector<std::uint32_t> > columns,
                    const NoiseConfig& noiseConfig, bool isScarce);
 
    public:

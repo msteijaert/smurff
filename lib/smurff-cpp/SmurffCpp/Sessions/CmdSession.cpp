@@ -14,7 +14,8 @@
 
 #define HELP_NAME "help"
 #define PRIOR_NAME "prior"
-#define FEATURES_NAME "features"
+#define SIDE_INFO_NAME "side-info"
+#define AUX_DATA_NAME "aux-data"
 #define TEST_NAME "test"
 #define TRAIN_NAME "train"
 #define BURNIN_NAME "burnin"
@@ -49,7 +50,8 @@ boost::program_options::options_description get_desc()
    boost::program_options::options_description priors_desc("Priors and side Info");
    priors_desc.add_options()
      (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "One of <normal|spikeandslab|macau|macauone>")
-     (FEATURES_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "Side info for each dimention");
+     (SIDE_INFO_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "Side info for each dimention")
+     (AUX_DATA_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(),"Aux data for each dimention");
 
    boost::program_options::options_description train_test_desc("Test and train matrices");
    train_test_desc.add_options()
@@ -127,13 +129,20 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
       config.getTrain()->setNoiseConfig(nc);
 
-   //set for feautres
-   for(auto& featureSet : config.getFeatures())
+   //set for side info
+   for(auto& sideInfo : config.getSideInfo())
    {
-      for(auto features : featureSet)
+      if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         sideInfo->setNoiseConfig(nc);
+   }
+
+   // set for aux data
+   for(auto& auxDataSet : config.getAuxData())
+   {
+      for(auto auxData : auxDataSet)
       {
-         if (features->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
-            features->setNoiseConfig(nc);
+         if (auxData->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+            auxData->setNoiseConfig(nc);
       }
    }
 }
@@ -144,23 +153,34 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
          config.getPriorTypes().push_back(stringToPriorType(pr));
 
-   if (vm.count(FEATURES_NAME))
+   if (vm.count(SIDE_INFO_NAME))
    {
-      for (auto featString : vm[FEATURES_NAME].as<std::vector<std::string> >())
+      for (auto sideInfo : vm[SIDE_INFO_NAME].as<std::vector<std::string> >())
       {
-         config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
-         auto& dimFeatures = config.getFeatures().back();
+         if (sideInfo == "none")
+            config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+         else
+            config.getSideInfo().push_back(matrix_io::read_matrix(sideInfo, false));
+      }
+   }
 
-         std::stringstream lineStream(featString);
+   if (vm.count(AUX_DATA_NAME))
+   {
+      for (auto auxDataString : vm[AUX_DATA_NAME].as<std::vector<std::string> >())
+      {
+         config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+         auto& dimAuxData = config.getAuxData().back();
+
+         std::stringstream lineStream(auxDataString);
          std::string token;
-         
+
          while (std::getline(lineStream, token, ','))
          {
             //add ability to skip features for specific dimention
             if(token == "none")
                continue;
 
-            dimFeatures.push_back(matrix_io::read_matrix(token, false));
+            dimAuxData.push_back(matrix_io::read_matrix(token, false));
          }
       }
    }

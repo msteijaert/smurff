@@ -17,13 +17,6 @@ using namespace Eigen;
 std::shared_ptr<Eigen::MatrixXd> side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    Eigen::MatrixXd sideinfo = matrix_utils::dense_to_eigen(*sideinfoConfig);
-
-   // Temporary solution #2
-   // macau expects the rows of the matrix to be equal to the mode size,
-   // if the mode == 1 (col_features) we need to swap the rows and columns
-   if (mode == 1)
-      sideinfo.transposeInPlace();
-
    return std::shared_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(sideinfo));
 }
 
@@ -44,15 +37,6 @@ std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(std::shar
    {
       rowsRawPtr[i] = rows->operator[](i);
       colsRawPtr[i] = cols->operator[](i);
-   }
-
-   // Temporary solution #2
-   // macau expects the rows of the matrix to be equal to the mode size,
-   // if the mode == 1 (col_features) we need to swap the rows and columns
-   if (mode == 1)
-   {
-       std::swap(nrow, ncol);
-       std::swap(rowsRawPtr, colsRawPtr);
    }
 
    return std::shared_ptr<SparseFeat>(new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr));
@@ -78,15 +62,6 @@ std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(std::share
       rowsRawPtr[i] = rows->operator[](i);
       colsRawPtr[i] = cols->operator[](i);
       valuesRawPtr[i] = values->operator[](i);
-   }
-
-   // Temporary solution #2
-   // macau expects the rows of the matrix to be equal to the mode
-   // size, if the mode == 1 (col_features) we need to swap the rows and columns
-   if (mode == 1)
-   {
-       std::swap(nrow, ncol);
-       std::swap(rowsRawPtr, colsRawPtr);
    }
 
    return std::shared_ptr<SparseDoubleFeat>(new SparseDoubleFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr));
@@ -124,14 +99,12 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 
 //mode - 0 (row), 1 (col)
 //vsideinfo - vector of side feature configs (row or col)
-std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<std::shared_ptr<MatrixConfig> >& vsideinfo)
+std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MatrixConfig>& sideinfoConfig)
 {
-   if(vsideinfo.size() != 1)
+   if(!sideinfoConfig)
    {
       THROWERROR("Only one feature matrix is allowed");
    }
-
-   std::shared_ptr<MatrixConfig> sideinfoConfig = vsideinfo.at(0);
 
    if (sideinfoConfig->isBinary())
    {
@@ -152,52 +125,23 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 
 //-------
 
-//mode - 0 (row), 1 (col)
-//vsideinfo - vector of side feature configs (row or col)
-std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::vector<std::shared_ptr<MatrixConfig> >& vsideinfo)
-{
-   // row prior with side information
-   // side information can only be applied to macau and macauone priors
-   if (vsideinfo.empty())
-   {
-      switch(prior_type)
-      {
-      case PriorTypes::normal:
-      case PriorTypes::default_prior:
-         return std::shared_ptr<NormalPrior>(new NormalPrior(session, -1));
-      case PriorTypes::spikeandslab:
-         return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
-      default:
-         {
-            THROWERROR("Unknown prior without side info: " + priorTypeToString(prior_type));
-         }
-      }
-   }
-   else
-   {
-      switch(prior_type)
-      {
-      case PriorTypes::macau:
-      case PriorTypes::macauone:
-         return create_macau_prior(session, mode, prior_type, vsideinfo);
-      default:
-         {
-            THROWERROR("SideInfo only with macau(one) prior");
-         }
-      }
-   }
-}
-
 std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
 {
-   PriorTypes pt = session->config.getPriorTypes().at(mode);
+   PriorTypes priorType = session->config.getPriorTypes().at(mode);
 
-   //sideinfo is selected if prior is macau or macauone
-   std::vector<std::shared_ptr<MatrixConfig> > sideinfo;
-   if(pt == PriorTypes::macau || pt == PriorTypes::macauone)
+   switch(priorType)
    {
-      sideinfo = session->config.getFeatures().at(mode);
+   case PriorTypes::normal:
+   case PriorTypes::default_prior:
+      return std::shared_ptr<NormalPrior>(new NormalPrior(session, -1));
+   case PriorTypes::spikeandslab:
+      return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
+   case PriorTypes::macau:
+   case PriorTypes::macauone:
+      return create_macau_prior(session, mode, priorType, session->config.getSideInfo().at(mode));
+   default:
+      {
+         THROWERROR("Unknown prior: " + priorTypeToString(priorType));
+      }
    }
-
-   return ::create_prior(session, mode, pt, sideinfo);
 }

@@ -55,8 +55,11 @@ private:
    std::shared_ptr<TensorConfig> m_train;
    std::shared_ptr<TensorConfig> m_test;
 
-   //-- features
-   std::vector<std::vector<std::shared_ptr<MatrixConfig> > > m_features; //set of feature matrices for each prior
+   //-- sideinfo
+   std::vector<std::shared_ptr<MatrixConfig> > m_sideInfo; //set of side info matrices for macau and macauone priors
+
+   //-- aux data
+   std::vector<std::vector<std::shared_ptr<TensorConfig> > > m_auxData; //set of aux data matrices for normal and spikeandslab priors
 
    // -- priors
    std::vector<PriorTypes> m_prior_types;
@@ -141,15 +144,20 @@ public:
    {
       return m_test;
    }
-   
+
    void setTest(std::shared_ptr<TensorConfig> value)
    {
       m_test = value;
    }
 
-   std::vector<std::vector<std::shared_ptr<MatrixConfig> > >& getFeatures()
+   std::vector<std::shared_ptr<MatrixConfig> >& getSideInfo()
    {
-      return m_features;
+      return m_sideInfo;
+   }
+
+   std::vector<std::vector<std::shared_ptr<TensorConfig> > >& getAuxData()
+   {
+      return m_auxData;
    }
 
    std::vector<PriorTypes>& getPriorTypes()
@@ -216,7 +224,7 @@ public:
    {
       m_save_freq = value;
    }
-     
+
    bool getRandomSeedSet() const
    {
       return m_random_seed_set;
@@ -231,7 +239,7 @@ public:
    {
       return m_random_seed;
    }
-   
+
    void setRandomSeed(int value)
    {
       m_random_seed = value;
@@ -266,7 +274,7 @@ public:
    {
       m_burnin = value;
    }
-   
+
    int getNSamples() const
    {
       return m_nsamples;
@@ -276,7 +284,7 @@ public:
    {
       m_nsamples = value;
    }
-   
+
    int getNumLatent() const
    {
       return m_num_latent;
@@ -286,7 +294,7 @@ public:
    {
       m_num_latent = value;
    }
-   
+
    double getLambdaBeta() const
    {
       return m_lambda_beta;
@@ -316,7 +324,7 @@ public:
    {
       m_direct = value;
    }
-   
+
    bool getClassify() const
    {
       return m_classify;
@@ -331,7 +339,7 @@ public:
    {
       return m_threshold;
    }
-   
+
    void setThreshold(double value)
    {
       m_threshold = value;

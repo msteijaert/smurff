@@ -104,50 +104,57 @@ bool Config::validate() const
 
    if (m_train->getNModes() > 2)
    {
-      for (std::size_t i = 0; i < m_features.size(); i++)
+      for (auto& sideInfo : m_sideInfo)
       {
-         if (!m_features.at(i).empty())
+         if (!sideInfo)
          {
             //it is advised to check macau and macauone priors implementation
             //as well as code in PriorFactory that creates macau priors
 
             //this check does not directly check that input data is Tensor (it only checks number of dimensions)
             //however TensorDataFactory will do an additional check throwing an exception
-            THROWERROR("Features are not supported for TensorData");
+            THROWERROR("Side info is not supported for TensorData");
          }
       }
 
-      for (std::size_t i = 0; i < m_prior_types.size(); i++)
+      for (auto& auxData : m_auxData)
       {
-         if (m_prior_types[i] == PriorTypes::macau || m_prior_types[i] == PriorTypes::macauone)
+         if (!auxData.empty())
          {
             //it is advised to check macau and macauone priors implementation
             //as well as code in PriorFactory that creates macau priors
 
             //this check does not directly check that input data is Tensor (it only checks number of dimensions)
             //however TensorDataFactory will do an additional check throwing an exception
-            THROWERROR("Features are not supported for TensorData");
+            THROWERROR("Aux data is not supported for TensorData");
          }
       }
    }
 
-   //for simplicity we store empty vector if features are not specified for dimension
-   //this way we can that size equals to getNModes
-   if(m_features.size() != m_train->getNModes())
+   //for simplicity we store empty shared_ptr if side info is not specified for dimension
+   //this way we can whether that size equals to getNModes
+   if (m_sideInfo.size() != m_train->getNModes())
    {
-      THROWERROR("Number of feature sets should equal to number of dimensions in train data");
+      THROWERROR("Number of side info should equal to number of dimensions in train data");
    }
 
-   for(std::size_t i = 0; i < m_features.size(); i++) //go through each dimension
+   //for simplicity we store empty vector if aux data is not specified for dimension
+   //this way we can whether that size equals to getNModes
+   if (m_auxData.size() != m_train->getNModes())
    {
-      const auto& featureSet = m_features[i]; //features for specific dimension
-      for(auto& ft : featureSet)
+      THROWERROR("Number of aux data should equal to number of dimensions in train data");
+   }
+
+   for (std::size_t i = 0; i < m_auxData.size(); i++) //go through each dimension
+   {
+      const auto& auxDataSet = m_auxData[i];
+      for(auto& ad : auxDataSet)
       {
          //AGE: not sure how strict should be the check. which adjacent dimensions do we need to check?
-         if (m_train->getDims()[i] != ft->getDims()[i]) //compare sizes in specific dimension
+         if (m_train->getDims()[i] != ad->getDims()[i]) //compare sizes in specific dimension
          {
             std::stringstream ss;
-            ss << "Features and train data should have the same number of records in dimension " << i;
+            ss << "Aux data and train data should have the same number of records in dimension " << i;
             THROWERROR(ss.str());
          }
       }
@@ -156,23 +163,23 @@ bool Config::validate() const
    for(std::size_t i = 0; i < m_prior_types.size(); i++)
    {
       PriorTypes pt = m_prior_types[i];
-      const auto& featureSet = m_features[i];
+      const auto& sideInfo = m_sideInfo[i];
       if(pt == PriorTypes::macau)
       {
-         if(featureSet.size() != 1)
+         if(!sideInfo)
          {
             std::stringstream ss;
-            ss << "Exactly one set of features needed when using macau prior in dimension " << i;
+            ss << "Exactly one set of side info needed when using macau prior in dimension " << i;
             THROWERROR(ss.str());
          }
       }
 
       if(pt == PriorTypes::macauone)
       {
-         if(featureSet.size() != 1 || featureSet.at(0)->isDense())
+         if(!sideInfo || sideInfo->isDense())
          {
             std::stringstream ss;
-            ss << "Exactly one set of sparse col-features needed when using macauone prior in dimension " << i;
+            ss << "Exactly one set of sparse col-side-info needed when using macauone prior in dimension " << i;
             THROWERROR(ss.str());
          }
       }
@@ -205,6 +212,7 @@ void Config::save(std::string fname) const
    m_test->info(os);
    os << std::endl;
 
+   /*
    os << "# features" << std::endl;
 
    auto print_features = [&os](const std::vector<std::vector<std::shared_ptr<MatrixConfig> > > &vec) -> void
@@ -227,6 +235,7 @@ void Config::save(std::string fname) const
    };
 
    print_features(m_features);
+   */
 
    os << "# priors" << std::endl;
    os << "num_priors = " << m_prior_types.size() << std::endl;

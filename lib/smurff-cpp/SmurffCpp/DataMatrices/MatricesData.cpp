@@ -23,9 +23,9 @@ void MatricesData::init_pre()
            int size = blk.dim(n); // get dimension size of underlying matrix
 
            THROWERROR_ASSERT(size > 0);
-           
+
            THROWERROR_ASSERT(S.at(pos) == 0 || S.at(pos) == size);
-           
+
            S.at(pos) = size;
            max_pos = std::max(max_pos, pos);
        }
@@ -65,7 +65,7 @@ void MatricesData::init_post()
    }
 }
 
-std::shared_ptr<MatrixData> MatricesData::add(const PVec<>& p, std::shared_ptr<MatrixData> data)
+std::shared_ptr<Data> MatricesData::add(const PVec<>& p, std::shared_ptr<Data> data)
 {
    blocks.push_back(Block(p, data));
    return blocks.back().data();
@@ -174,7 +174,7 @@ PVec<> MatricesData::dim() const
    return total_dim;
 }
 
-MatricesData::Block::Block(PVec<> p, std::shared_ptr<MatrixData> m)
+MatricesData::Block::Block(PVec<> p, std::shared_ptr<Data> m)
    : _pos(p)
    , _start(2)
    , m_matrix(m)
@@ -221,7 +221,7 @@ int MatricesData::Block::pos(int mode) const
    return pos().at(mode);
 }
 
-std::shared_ptr<MatrixData> MatricesData::Block::data() const
+std::shared_ptr<Data> MatricesData::Block::data() const
 {
    return m_matrix;
 }
@@ -256,8 +256,8 @@ int MatricesData::view(int mode, int pos) const
    THROWERROR_ASSERT(pos < MatrixData::dim(mode));
 
    const auto &v = mode_dim.at(mode);
-   for(int i=0; i<nview(mode); ++i) 
-      if (pos < v.at(i + 1)) 
+   for(int i=0; i<nview(mode); ++i)
+      if (pos < v.at(i + 1))
          return i;
 
    THROWERROR_ASSERT(false);
