@@ -89,6 +89,21 @@ std::shared_ptr<MatrixConfig> getColAuxDataDenseMatrixConfig()
    return colAuxDataDenseMatrixConfig;
 }
 
+std::shared_ptr<MatrixConfig> getRowSideInfoDenseMatrixConfig()
+{
+   std::vector<double> rowSideInfoDenseMatrixConfigVals = { 1, 2, 3 };
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig =
+      std::make_shared<MatrixConfig>(3, 1, std::move(rowSideInfoDenseMatrixConfigVals), NoiseConfig());
+   return rowSideInfoDenseMatrixConfig;
+}
+
+std::shared_ptr<MatrixConfig> getColSideInfoDenseMatrixConfig()
+{
+   std::vector<double> colSideInfoDenseMatrixConfigVals = { 1, 2, 3, 4 };
+   std::shared_ptr<MatrixConfig> colSideInfoDenseMatrixConfig =
+      std::make_shared<MatrixConfig>(4, 1, std::move(colSideInfoDenseMatrixConfigVals), NoiseConfig());
+   return colSideInfoDenseMatrixConfig;
+}
 void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, const std::vector<ResultItem>& expectedResultItems)
 {
    REQUIRE(actualResultItems.size() == expectedResultItems.size());
@@ -444,6 +459,301 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: macau normal
+//   features: row_side_info_dense_matrix none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior macau normal --aux-data <row_side_info_dense_matrix> none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
+   double expectedRmseAvg = 0.4750318111505571;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  2.0464640198420820,  1.9894562393697965, 23.6233972231544698, 0.6943415207312001 },
+         { { 0, 1 },  2,  3.2479927889480007,  2.4590359719868258, 17.4029166371974569, 0.5959543304855145 },
+         { { 0, 2 },  3,  1.7725387884690189,  2.8351244944211986, 22.9495558918148177, 0.6843670678126066 },
+         { { 0, 3 },  4,  3.4958447660084913,  3.4341569197438275, 36.4475301480830538, 0.8624541413195521 },
+         { { 2, 0 },  9,  9.9340660945704471,  8.5591220340344076, 40.3514262207299907, 0.9074681781200992 },
+         { { 2, 1 }, 10, 10.8979072875323642,  9.8490284864301163, 38.7100563866488301, 0.8888200890776126 },
+         { { 2, 2 }, 11, 11.1369612134891405, 10.8499510614749202, 43.9036985653110605, 0.9465695158157451 },
+         { { 2, 3 }, 12, 11.1962160233287449, 12.1687048104957807, 43.3460065068271732, 0.9405383446145885 }
+      };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: normal macau
+//   features: none col_side_info_dense_matrix
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal macau --aux-data none <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(colSideInfoDenseMatrixConfig);
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
+   double expectedRmseAvg = 0.4718098763797450;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  1.0820348433927434,  1.5472804209576903, 20.8608023063782184, 0.6524803899841290 },
+         { { 0, 1 },  2,  0.3166712583778596,  2.1333761538453335, 16.3624510120241062, 0.5778646655350725 },
+         { { 0, 2 },  3,  1.0603021549892615,  2.8733290918267516, 25.4269079717275375, 0.7203585837754204 },
+         { { 0, 3 },  4,  2.5504752513933715,  3.2898942631944492, 31.3572371358028334, 0.7999647586090179 },
+         { { 2, 0 },  9,  8.0408589214887130,  8.2293859290722349, 33.0687300507163400, 0.8215059597174897 },
+         { { 2, 1 }, 10,  9.3224538002828741,  9.5500735894746462, 37.9596195177687434, 0.8801625489689534 },
+         { { 2, 2 }, 11, 11.3041689884507228, 10.9005077280747074, 29.8433963169746406, 0.7804158535217323 },
+         { { 2, 3 }, 12, 12.4123961375339604, 12.3702123825900792, 35.1656958861189466, 0.8471524437679556 }
+      };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: macau macau
+//   features: row_side_info_dense_matrix col_side_info_dense_matrix
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normal macau --aux-data <> <row_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
+   config.getSideInfo().push_back(colSideInfoDenseMatrixConfig);
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
+   double expectedRmseAvg = 0.4708518779880723;
+   std::vector<ResultItem> expectedResults =
+      {
+         { { 0, 0 },  1,  1.4794984840337011,  1.8861567571268687, 16.8315853716267192, 0.5860902168421652 },
+         { { 0, 1 },  2,  1.9238389757936527,  2.3660798029924592, 24.1127382604767959, 0.7014960436049543 },
+         { { 0, 2 },  3,  2.6525907467696785,  3.0182516516593556, 17.3395572540116660, 0.5948684857916018 },
+         { { 0, 3 },  4,  2.3347199168976327,  3.3950221781858656, 25.8724434707805955, 0.7266423125748278 },
+         { { 2, 0 },  9,  9.1445832621889203,  8.4359697406668772, 35.8143272493136635, 0.8549296098165597 },
+         { { 2, 1 }, 10,  8.2618857232595868,  9.7028140848276383, 34.1171376828241861, 0.8344268188259554 },
+         { { 2, 2 }, 11, 11.7472313145468465, 11.0687832494420135, 38.6236106578563891, 0.8878270958926354 },
+         { { 2, 3 }, 12, 13.5936527934716551, 12.2771492070695043, 52.0797001541472326, 1.0309466637775329 }
+      };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: macau normal
+//   features: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior macau normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   REQUIRE_THROWS(SessionFactory::create_py_session(config));
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: macau normal
+//   features: col_side_info_dense_matrix none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior macau normal --aux-data <col_side_info_dense_matrix> none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getSideInfo().push_back(colSideInfoDenseMatrixConfig);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   REQUIRE_THROWS(session->run());
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: macau macau
+//   features: col_side_info_dense_matrix row_side_info_dense_matrix
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior macau normal --aux-data <col_side_info_dense_matrix> <row_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getSideInfo().push_back(colSideInfoDenseMatrixConfig);
+   config.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+   config.setDirect(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   REQUIRE_THROWS(session->run());
 }
 
 //
@@ -1076,32 +1386,3 @@ TEST_CASE(
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
 }
-
-/*
-TEST_CASE("asdfsfasdf")
-{
-   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
-   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-
-   Config config;
-   config.setTrain(trainDenseMatrixConfig);
-   config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getFeatures().push_back(std::vector<std::shared_ptr<MatrixConfig> >());
-   config.getFeatures().push_back({ getColFeaturesDenseMatrixConfig() });
-   config.setNumLatent(4);
-   config.setBurnin(50);
-   config.setNSamples(50);
-   config.setVerbose(false);
-   config.setRandomSeed(1234);
-   config.setRandomSeedSet(true);
-   config.setDirect(true);
-
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
-   session->run();
-
-   double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
-}
-*/
