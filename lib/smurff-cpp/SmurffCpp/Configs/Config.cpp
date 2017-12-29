@@ -145,6 +145,17 @@ bool Config::validate() const
       THROWERROR("Number of aux data should equal to number of dimensions in train data");
    }
 
+   for (std::size_t i = 0; i < m_sideInfo.size(); i++)
+   {
+      const std::shared_ptr<MatrixConfig>& sideInfo = m_sideInfo[i];
+      if (sideInfo && sideInfo->getDims()[0] != m_train->getDims()[i])
+      {
+         std::stringstream ss;
+         ss << "Side info should have the same number of rows as size of dimension " << i << " in train data";
+         THROWERROR(ss.str());
+      }
+   }
+
    for (std::size_t i = 0; i < m_auxData.size(); i++) //go through each dimension
    {
       const auto& auxDataSet = m_auxData[i];
