@@ -106,7 +106,7 @@ bool Config::validate() const
    {
       for (auto& sideInfo : m_sideInfo)
       {
-         if (!sideInfo)
+         if (sideInfo)
          {
             //it is advised to check macau and macauone priors implementation
             //as well as code in PriorFactory that creates macau priors
