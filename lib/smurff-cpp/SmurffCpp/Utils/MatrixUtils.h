@@ -93,8 +93,6 @@ namespace smurff { namespace matrix_utils {
 
    Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
 
-   bool is_explicit_binary(const Eigen::SparseMatrix<double>& M);
-
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 
    bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision = std::numeric_limits<double>::epsilon());
