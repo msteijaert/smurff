@@ -57,14 +57,9 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const MatrixConfig> mc
 
 std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const TensorConfig> tc) const
 {
-   for(std::size_t i = 0; i < m_session->config.getPriorTypes().size(); i++)
+   for (const auto& auxDataSet : m_session->config.getAuxData())
    {
-      if (m_session->config.getSideInfo().at(i))
-      {
-         THROWERROR("Tensor config does not support side info");
-      }
-
-      if (!m_session->config.getAuxData().at(i).empty())
+      if (!auxDataSet.empty())
       {
          THROWERROR("Tensor config does not support aux data");
       }
