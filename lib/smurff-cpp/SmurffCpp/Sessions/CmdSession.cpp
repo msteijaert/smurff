@@ -39,6 +39,8 @@
 #define TOL_NAME "tol"
 #define DIRECT_NAME "direct"
 
+#define NONE_TOKEN "none"
+
 using namespace smurff;
 
 boost::program_options::options_description get_desc()
@@ -157,7 +159,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    {
       for (auto sideInfo : vm[SIDE_INFO_NAME].as<std::vector<std::string> >())
       {
-         if (sideInfo == "none")
+         if (sideInfo == NONE_TOKEN)
             config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
          else
             config.getSideInfo().push_back(matrix_io::read_matrix(sideInfo, false));
@@ -177,7 +179,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
          while (std::getline(lineStream, token, ','))
          {
             //add ability to skip features for specific dimention
-            if(token == "none")
+            if(token == NONE_TOKEN)
                continue;
 
             dimAuxData.push_back(matrix_io::read_matrix(token, false));
