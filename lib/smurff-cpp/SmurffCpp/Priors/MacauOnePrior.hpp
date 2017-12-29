@@ -40,7 +40,13 @@ public:
 
    const Eigen::SparseMatrix<double>& SparseY() const
    {
-      return std::dynamic_pointer_cast<ScarceMatrixData>(data())->Y(m_mode);
+      std::shared_ptr<ScarceMatrixData> sdata = std::dynamic_pointer_cast<ScarceMatrixData>(data());
+      if(!sdata)
+      {
+         THROWERROR("Dynamic cast failed in MacauOnePrior");
+      }
+
+      return sdata->Y(m_mode);
    }
 
 private:
@@ -100,7 +106,11 @@ public:
        for (Eigen::SparseMatrix<double>::InnerIterator it(SparseY(), i); it; ++it, idx++)
        {
          Qi.noalias() += alpha * Vs.col(it.row()).cwiseAbs2();
-         Yhat(idx)     = model()->predict({(int)it.col(), (int)it.row()});
+
+         if(m_mode == 0)
+            Yhat(idx)     = model()->predict({(int)it.col(), (int)it.row()});
+         else
+            Yhat(idx)     = model()->predict({(int)it.row(), (int)it.col()});
        }
 
        Eigen::VectorXd rnorms(num_latent());
