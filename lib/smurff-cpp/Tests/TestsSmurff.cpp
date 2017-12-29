@@ -104,6 +104,7 @@ std::shared_ptr<MatrixConfig> getColSideInfoDenseMatrixConfig()
       std::make_shared<MatrixConfig>(4, 1, std::move(colSideInfoDenseMatrixConfigVals), NoiseConfig());
    return colSideInfoDenseMatrixConfig;
 }
+
 void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, const std::vector<ResultItem>& expectedResultItems)
 {
    REQUIRE(actualResultItems.size() == expectedResultItems.size());
@@ -1501,4 +1502,40 @@ TEST_CASE(
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: dense 2D-tensor
+//       test: sparse 2D-tensor
+//     priors: macau normal
+//   aux-data: row_dense_side_info none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior macau normal --side-info row_dense_side_info none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseTensorConfig);
+   config.setTest(testSparseTensorConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   REQUIRE_THROWS(SessionFactory::create_py_session(config));
 }
