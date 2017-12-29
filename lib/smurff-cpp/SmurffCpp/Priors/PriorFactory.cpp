@@ -103,7 +103,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 {
    if(!sideinfoConfig)
    {
-      THROWERROR("Only one feature matrix is allowed");
+      THROWERROR("Side info should always present for macau prior");
    }
 
    if (sideinfoConfig->isBinary())
