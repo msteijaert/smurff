@@ -223,30 +223,44 @@ void Config::save(std::string fname) const
    m_test->info(os);
    os << std::endl;
 
-   /*
-   os << "# features" << std::endl;
-
-   auto print_features = [&os](const std::vector<std::vector<std::shared_ptr<MatrixConfig> > > &vec) -> void
+   os << "# side_info" << std::endl;
+   auto print_side_info = [&os](const std::vector<std::shared_ptr<MatrixConfig> >& vec) -> void
    {
-      os << "num_features = " << vec.size() << std::endl;
+      os << "num_side_info = " << vec.size() << std::endl;
 
       for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
       {
-         os << "[" << "features" << sIndex << "]\n";
-
-         auto& fset = vec.at(sIndex);
-
-         for(std::size_t fIndex = 0; fIndex < fset.size(); fIndex++)
+         os << "[" << "side_info" << sIndex << "]\n";
+         const auto& sideInfo = vec.at(sIndex);
+         if (sideInfo)
          {
-            os << "# " << fIndex << " ";
-            fset.at(fIndex)->info(os);
+            sideInfo->info(os);
             os << std::endl;
          }
       }
    };
+   print_side_info(m_sideInfo);
 
-   print_features(m_features);
-   */
+   os << "# aux_data" << std::endl;
+   auto print_aux_data = [&os](const std::vector<std::vector<std::shared_ptr<TensorConfig> > > &vec) -> void
+   {
+      os << "num_aux_data = " << vec.size() << std::endl;
+
+      for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
+      {
+         os << "[" << "aux_data" << sIndex << "]\n";
+
+         auto& auxDataSet = vec.at(sIndex);
+
+         for(std::size_t adIndex = 0; adIndex < auxDataSet.size(); adIndex++)
+         {
+            os << "# " << adIndex << " ";
+            auxDataSet.at(adIndex)->info(os);
+            os << std::endl;
+         }
+      }
+   };
+   print_aux_data(m_auxData);
 
    os << "# priors" << std::endl;
    os << "num_priors = " << m_prior_types.size() << std::endl;
