@@ -196,6 +196,38 @@ bool Config::validate() const
       }
    }
 
+   for(std::size_t i = 0; i < m_prior_types.size(); i++)
+   {
+      PriorTypes pt = m_prior_types[i];
+      switch (pt)
+      {
+         case PriorTypes::normal:
+         case PriorTypes::spikeandslab:
+         case PriorTypes::default_prior:
+            if (m_sideInfo[i])
+            {
+               std::stringstream ss;
+               ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have side info";
+               THROWERROR(ss.str());
+            }
+            break;
+         case PriorTypes::macau:
+         case PriorTypes::macauone:
+            if (!m_auxData[i].empty())
+            {
+               std::stringstream ss;
+               ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have aux data";
+            }
+            break;
+         default:
+            {
+               THROWERROR("Unknown prior");
+            }
+            break;
+      }
+   }
+
+
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
    if (save_suffixes.find(m_save_suffix) == save_suffixes.end())
