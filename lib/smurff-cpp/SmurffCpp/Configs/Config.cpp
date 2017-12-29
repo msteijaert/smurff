@@ -110,7 +110,7 @@ bool Config::validate() const
    {
       for (auto& sideInfo : m_sideInfo)
       {
-         if (!sideInfo)
+         if (sideInfo)
          {
             //it is advised to check macau and macauone priors implementation
             //as well as code in PriorFactory that creates macau priors
@@ -149,6 +149,17 @@ bool Config::validate() const
       THROWERROR("Number of aux data should equal to number of dimensions in train data");
    }
 
+   for (std::size_t i = 0; i < m_sideInfo.size(); i++)
+   {
+      const std::shared_ptr<MatrixConfig>& sideInfo = m_sideInfo[i];
+      if (sideInfo && sideInfo->getDims()[0] != m_train->getDims()[i])
+      {
+         std::stringstream ss;
+         ss << "Side info should have the same number of rows as size of dimension " << i << " in train data";
+         THROWERROR(ss.str());
+      }
+   }
+
    for (std::size_t i = 0; i < m_auxData.size(); i++) //go through each dimension
    {
       const auto& auxDataSet = m_auxData[i];
@@ -173,7 +184,7 @@ bool Config::validate() const
          if(!sideInfo)
          {
             std::stringstream ss;
-            ss << "Exactly one set of side info needed when using macau prior in dimension " << i;
+            ss << "Side info is always needed when using macau prior in dimension " << i;
             THROWERROR(ss.str());
          }
       }
@@ -183,11 +194,43 @@ bool Config::validate() const
          if(!sideInfo || sideInfo->isDense())
          {
             std::stringstream ss;
-            ss << "Exactly one set of sparse col-side-info needed when using macauone prior in dimension " << i;
+            ss << "Sparse side info is always needed when using macauone prior in dimension " << i;
             THROWERROR(ss.str());
          }
       }
    }
+
+   for(std::size_t i = 0; i < m_prior_types.size(); i++)
+   {
+      PriorTypes pt = m_prior_types[i];
+      switch (pt)
+      {
+         case PriorTypes::normal:
+         case PriorTypes::spikeandslab:
+         case PriorTypes::default_prior:
+            if (m_sideInfo[i])
+            {
+               std::stringstream ss;
+               ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have side info";
+               THROWERROR(ss.str());
+            }
+            break;
+         case PriorTypes::macau:
+         case PriorTypes::macauone:
+            if (!m_auxData[i].empty())
+            {
+               std::stringstream ss;
+               ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have aux data";
+            }
+            break;
+         default:
+            {
+               THROWERROR("Unknown prior");
+            }
+            break;
+      }
+   }
+
 
    std::set<std::string> save_suffixes = { ".csv", ".ddm" };
 
@@ -216,30 +259,44 @@ void Config::save(std::string fname) const
    m_test->info(os);
    os << std::endl;
 
-   /*
-   os << "# features" << std::endl;
-
-   auto print_features = [&os](const std::vector<std::vector<std::shared_ptr<MatrixConfig> > > &vec) -> void
+   os << "# side_info" << std::endl;
+   auto print_side_info = [&os](const std::vector<std::shared_ptr<MatrixConfig> >& vec) -> void
    {
-      os << "num_features = " << vec.size() << std::endl;
+      os << "num_side_info = " << vec.size() << std::endl;
 
       for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
       {
-         os << "[" << "features" << sIndex << "]\n";
-
-         auto& fset = vec.at(sIndex);
-
-         for(std::size_t fIndex = 0; fIndex < fset.size(); fIndex++)
+         os << "[" << "side_info" << sIndex << "]\n";
+         const auto& sideInfo = vec.at(sIndex);
+         if (sideInfo)
          {
-            os << "# " << fIndex << " ";
-            fset.at(fIndex)->info(os);
+            sideInfo->info(os);
             os << std::endl;
          }
       }
    };
+   print_side_info(m_sideInfo);
 
-   print_features(m_features);
-   */
+   os << "# aux_data" << std::endl;
+   auto print_aux_data = [&os](const std::vector<std::vector<std::shared_ptr<TensorConfig> > > &vec) -> void
+   {
+      os << "num_aux_data = " << vec.size() << std::endl;
+
+      for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
+      {
+         os << "[" << "aux_data" << sIndex << "]\n";
+
+         auto& auxDataSet = vec.at(sIndex);
+
+         for(std::size_t adIndex = 0; adIndex < auxDataSet.size(); adIndex++)
+         {
+            os << "# " << adIndex << " ";
+            auxDataSet.at(adIndex)->info(os);
+            os << std::endl;
+         }
+      }
+   };
+   print_aux_data(m_auxData);
 
    os << "# priors" << std::endl;
    os << "num_priors = " << m_prior_types.size() << std::endl;

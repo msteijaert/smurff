@@ -830,8 +830,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
-   REQUIRE_THROWS(session->run());
+   REQUIRE_THROWS(SessionFactory::create_py_session(config));
 }
 
 //
@@ -870,8 +869,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
-   REQUIRE_THROWS(session->run());
+   REQUIRE_THROWS(SessionFactory::create_py_session(config));
 }
 
 //
