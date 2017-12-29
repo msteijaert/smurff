@@ -27,6 +27,15 @@ std::shared_ptr<TensorConfig> getTrainDenseTensor2dConfig()
    return trainTensorConfig;
 }
 
+std::shared_ptr<TensorConfig> getTrainDenseTensor3dConfig()
+{
+   std::vector<double> trainTensorConfigVals = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+   std::shared_ptr<TensorConfig> trainTensorConfig =
+      std::make_shared<TensorConfig>(std::initializer_list<uint64_t>({ 2, 3, 4 }), std::move(trainTensorConfigVals), NoiseConfig());
+   return trainTensorConfig;
+}
+
+
 std::shared_ptr<MatrixConfig> getTrainSparseMatrixConfig()
 {
    std::vector<std::uint32_t> trainMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
@@ -70,6 +79,20 @@ std::shared_ptr<TensorConfig> getTestSparseTensor2dConfig()
    std::vector<double> testTensorConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
    std::shared_ptr<TensorConfig> testTensorConfig =
       std::make_shared<TensorConfig>(std::initializer_list<uint64_t>({ 3, 4 }), std::move(testTensorConfigCols), std::move(testTensorConfigVals), NoiseConfig(), true);
+   return testTensorConfig;
+}
+
+std::shared_ptr<TensorConfig> getTestSparseTensor3dConfig()
+{
+   std::vector<std::uint32_t> testTensorConfigCols =
+      {
+         0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 2, 2, 2, 2,
+         0, 1, 2, 3, 0, 1, 2, 3
+      };
+   std::vector<double> testTensorConfigVals = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<TensorConfig> testTensorConfig =
+      std::make_shared<TensorConfig>(std::initializer_list<uint64_t>({ 2, 3, 4 }), std::move(testTensorConfigCols), std::move(testTensorConfigVals), NoiseConfig(), true);
    return testTensorConfig;
 }
 
@@ -1519,6 +1542,42 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
 {
    std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseTensorConfig);
+   config.setTest(testSparseTensorConfig);
+   config.getPriorTypes().push_back(PriorTypes::macau);
+   config.getPriorTypes().push_back(PriorTypes::normal);
+   config.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   REQUIRE_THROWS(SessionFactory::create_py_session(config));
+}
+
+//
+//      train: dense 3D-tensor
+//       test: sparse 3D-tensor
+//     priors: macau normal
+//   aux-data: row_dense_side_info none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prior macau normal --side-info row_dense_side_info none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor3dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor3dConfig();
    std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
 
    Config config;
