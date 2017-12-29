@@ -180,7 +180,7 @@ bool Config::validate() const
          if(!sideInfo)
          {
             std::stringstream ss;
-            ss << "Exactly one set of side info needed when using macau prior in dimension " << i;
+            ss << "Side info is always needed when using macau prior in dimension " << i;
             THROWERROR(ss.str());
          }
       }
@@ -190,7 +190,7 @@ bool Config::validate() const
          if(!sideInfo || sideInfo->isDense())
          {
             std::stringstream ss;
-            ss << "Exactly one set of sparse col-side-info needed when using macauone prior in dimension " << i;
+            ss << "Sparse side info is always needed when using macauone prior in dimension " << i;
             THROWERROR(ss.str());
          }
       }
