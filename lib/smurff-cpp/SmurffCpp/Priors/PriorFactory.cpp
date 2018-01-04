@@ -69,27 +69,28 @@ std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(std::share
 
 //-------
 
+template<class MacauPrior>
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, std::shared_ptr<typename MacauPrior::SideInfo> side_info)
+{
+    std::shared_ptr<MacauPrior> prior(new MacauPrior(session, -1));
+
+    prior->addSideInfo(side_info, session->config.getDirect());
+    prior->setLambdaBeta(session->config.getLambdaBeta());
+    prior->setTol(session->config.getTol());
+
+    return prior;
+}
+
 template<class SideInfo>
-std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info)
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info)
 {
    if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
    {
-      std::shared_ptr<MacauPrior<SideInfo>> prior(new MacauPrior<SideInfo>(session, -1));
-
-      prior->addSideInfo(side_info, session->config.getDirect());
-      prior->setLambdaBeta(session->config.getLambdaBeta());
-      prior->setTol(session->config.getTol());
-
-      return prior;
+      return create_macau_prior<MacauPrior<SideInfo>>(session, side_info);
    }
    else if(prior_type == PriorTypes::macauone)
    {
-      std::shared_ptr<MacauOnePrior<SideInfo>> prior(new MacauOnePrior<SideInfo>(session, -1));
-
-      prior->addSideInfo(side_info, session->config.getDirect());
-      prior->setLambdaBeta(session->config.getLambdaBeta());
-
-      return prior;
+      return create_macau_prior<MacauOnePrior<SideInfo>>(session, side_info);
    }
    else
    {
@@ -99,7 +100,7 @@ std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> sessio
 
 //mode - 0 (row), 1 (col)
 //vsideinfo - vector of side feature configs (row or col)
-std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MatrixConfig>& sideinfoConfig)
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MatrixConfig>& sideinfoConfig)
 {
    if(!sideinfoConfig)
    {

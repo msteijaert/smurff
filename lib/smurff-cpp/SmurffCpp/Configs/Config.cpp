@@ -22,8 +22,6 @@ PriorTypes smurff::stringToPriorType(std::string name)
       return PriorTypes::spikeandslab;
    else if(name == PRIOR_NAME_NORMAL)
       return PriorTypes::normal;
-   else if(name == PRIOR_NAME_MPI)
-      return PriorTypes::mpi;
    else
    {
       THROWERROR("Invalid prior type");
@@ -44,8 +42,6 @@ std::string smurff::priorTypeToString(PriorTypes type)
          return PRIOR_NAME_SPIKE_AND_SLAB;
       case PriorTypes::normal:
          return PRIOR_NAME_NORMAL;
-      case PriorTypes::mpi:
-         return PRIOR_NAME_MPI;
       default:
       {
          THROWERROR("Invalid prior type");

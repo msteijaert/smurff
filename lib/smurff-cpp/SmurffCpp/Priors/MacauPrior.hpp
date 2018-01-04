@@ -26,6 +26,8 @@ template<class FType>
 class MacauPrior : public NormalPrior
 {
 public:
+   typedef FType SideInfo;
+
    Eigen::MatrixXd Uhat;
    std::shared_ptr<FType> Features;  // side information
    Eigen::MatrixXd FtF;       // F'F

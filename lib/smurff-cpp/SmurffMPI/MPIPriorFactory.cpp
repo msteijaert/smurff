@@ -9,9 +9,8 @@ std::shared_ptr<ILatentPrior> MPIPriorFactory::create_prior(std::shared_ptr<Sess
 {
    PriorTypes pt = session->config.getPriorTypes().at(mode);
 
-   if(pt == PriorTypes::mpi)
+   if(pt == PriorTypes::macau)
    {
-      THROWERROR_NOTIMPL();
    }
    else
    {
