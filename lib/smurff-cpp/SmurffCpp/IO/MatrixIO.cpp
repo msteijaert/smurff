@@ -5,6 +5,7 @@
 #include <sstream>
 #include <cctype>
 #include <algorithm>
+#include <array>
 
 #include <unsupported/Eigen/SparseExtra>
 

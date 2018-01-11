@@ -20,6 +20,8 @@ template<class FType>
 class MacauOnePrior : public NormalOnePrior
 {
 public:
+   typedef FType SideInfo;
+
    Eigen::MatrixXd Uhat;
 
    std::shared_ptr<FType> Features;  // side information
@@ -184,6 +186,10 @@ public:
    void setLambdaBeta(double lb)
    {
        lb0 = lb;
+   }
+
+   void setTol(double)
+   {
    }
 
    void save(std::string prefix, std::string suffix) override

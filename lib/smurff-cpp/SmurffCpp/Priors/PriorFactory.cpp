@@ -2,8 +2,6 @@
 
 #include <Eigen/Core>
 
-#include <SmurffCpp/Priors/MacauOnePrior.hpp>
-#include <SmurffCpp/Priors/MacauPrior.hpp>
 #include <SmurffCpp/Priors/NormalPrior.h>
 #include <SmurffCpp/Priors/NormalOnePrior.h>
 #include <SmurffCpp/Priors/SpikeAndSlabPrior.h>
@@ -15,13 +13,13 @@ using namespace Eigen;
 
 //create macau prior features
 
-std::shared_ptr<Eigen::MatrixXd> side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
+std::shared_ptr<Eigen::MatrixXd> PriorFactory::side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    Eigen::MatrixXd sideinfo = matrix_utils::dense_to_eigen(*sideinfoConfig);
    return std::shared_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(sideinfo));
 }
 
-std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
+std::shared_ptr<SparseFeat> PriorFactory::side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    std::uint64_t nrow = sideinfoConfig->getNRow();
    std::uint64_t ncol = sideinfoConfig->getNCol();
@@ -43,7 +41,7 @@ std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(std::shar
    return std::shared_ptr<SparseFeat>(new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr));
 }
 
-std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
+std::shared_ptr<SparseDoubleFeat> PriorFactory::side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    std::uint64_t nrow = sideinfoConfig->getNRow();
    std::uint64_t ncol = sideinfoConfig->getNCol();
@@ -70,62 +68,6 @@ std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(std::share
 
 //-------
 
-template<class SideInfo>
-std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info)
-{
-   if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
-   {
-      std::shared_ptr<MacauPrior<SideInfo>> prior(new MacauPrior<SideInfo>(session, -1));
-
-      prior->addSideInfo(side_info, session->config.getDirect());
-      prior->setLambdaBeta(session->config.getLambdaBeta());
-      prior->setTol(session->config.getTol());
-
-      return prior;
-   }
-   else if(prior_type == PriorTypes::macauone)
-   {
-      std::shared_ptr<MacauOnePrior<SideInfo>> prior(new MacauOnePrior<SideInfo>(session, -1));
-
-      prior->addSideInfo(side_info, session->config.getDirect());
-      prior->setLambdaBeta(session->config.getLambdaBeta());
-
-      return prior;
-   }
-   else
-   {
-      THROWERROR("Unknown prior with side info: " + priorTypeToString(prior_type));
-   }
-}
-
-//mode - 0 (row), 1 (col)
-//vsideinfo - vector of side feature configs (row or col)
-std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MatrixConfig>& sideinfoConfig)
-{
-   if(!sideinfoConfig)
-   {
-      THROWERROR("Side info should always present for macau prior");
-   }
-
-   if (sideinfoConfig->isBinary())
-   {
-      std::shared_ptr<SparseFeat> sideinfo = side_info_config_to_sparse_binary_features(sideinfoConfig, mode);
-      return create_macau_prior(session, prior_type, sideinfo);
-   }
-   else if (sideinfoConfig->isDense())
-   {
-      std::shared_ptr<Eigen::MatrixXd> sideinfo = side_info_config_to_dense_features(sideinfoConfig, mode);
-      return create_macau_prior(session, prior_type, sideinfo);
-   }
-   else
-   {
-      std::shared_ptr<SparseDoubleFeat> sideinfo = side_info_config_to_sparse_features(sideinfoConfig, mode);
-      return create_macau_prior(session, prior_type, sideinfo);
-   }
-}
-
-//-------
-
 std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
 {
    PriorTypes priorType = session->config.getPriorTypes().at(mode);
@@ -141,7 +83,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
       return std::shared_ptr<NormalOnePrior>(new NormalOnePrior(session, -1));
    case PriorTypes::macau:
    case PriorTypes::macauone:
-      return create_macau_prior(session, mode, priorType, session->config.getSideInfo().at(mode));
+      return create_macau_prior<PriorFactory>(session, mode, priorType, session->config.getSideInfo().at(mode));
    default:
       {
          THROWERROR("Unknown prior: " + priorTypeToString(priorType));

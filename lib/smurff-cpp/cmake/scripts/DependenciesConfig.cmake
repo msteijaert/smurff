@@ -86,7 +86,7 @@ endmacro(configure_openblas)
 macro(configure_eigen)
   message ("Dependency check for eigen...")
   
-  if(MSVC)
+  if(DEFINED ENV{EIGEN3_INCLUDE_DIR})
   SET(EIGEN3_INCLUDE_DIR $ENV{EIGEN3_INCLUDE_DIR})
   else()
   find_package(Eigen3 REQUIRED)
