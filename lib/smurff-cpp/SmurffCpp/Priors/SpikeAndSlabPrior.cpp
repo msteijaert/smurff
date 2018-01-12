@@ -29,12 +29,19 @@ void SpikeAndSlabPrior::init()
    r = MatrixXd::Constant(K,nview,.5);
 }
 
+#if 0
+#define SHOW(m)
+#else
+#define SHOW(m) std::cout << #m << ":\n" << m << std::endl;
+#endif
+
 void SpikeAndSlabPrior::update_prior()
 {
    const int nview = data()->nview(m_mode);
    
    auto Zc = Zcol.combine();
    auto W2c = W2col.combine();
+   SHOW(W2c);
 
    // update hyper params (per view)
    for(int v=0; v<nview; ++v) {
@@ -73,14 +80,31 @@ void SpikeAndSlabPrior::sample_latent(int d)
       double mu = (1/lambda) * (yX(k) - Wcol.transpose() * XX.col(k) + Wcol(k) * XX(k,k));
       double z1 = log_r(k) -  0.5 * (lambda * mu * mu - std::log(lambda) + log_alpha(k));
       double z = 1 / (1 + exp(z1));
+      if (d == 0 && k == 0) {
+        SHOW(log_alpha(k));
+        SHOW(log_r(k))
+        SHOW(mu);
+        SHOW(lambda);
+        SHOW(z);
+      }
+      
+      double var = randn() / std::sqrt(lambda);
       double p = rand_unif(0,1);
       if (Zkeep(k,v) > 0 && p < z) {
          Zcol.local()(k,v)++;
-         double var = randn() / std::sqrt(lambda);
          Wcol(k) = mu + var;
       } else {
          Wcol(k) = .0;
       }
+   }
+
+
+   if (d == 0) {
+       SHOW(m_mode);
+       SHOW(d);
+       SHOW(XX);
+       SHOW(yX);
+       SHOW(Wcol);
    }
 
    W->col(d) = Wcol;
