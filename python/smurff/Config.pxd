@@ -24,8 +24,11 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         shared_ptr[TensorConfig] getTest()
         void setTest(shared_ptr[TensorConfig] value)
 
-        #-- features
-        vector[vector[shared_ptr[MatrixConfig]]]& getFeatures()
+        #-- sideinfo
+        vector[shared_ptr[MatrixConfig]]& getSideInfo()
+
+        #-- aux data
+        vector[vector[shared_ptr[TensorConfig]]]& getAuxData()
 
         #-- priors
         vector[PriorTypes]& getPriorTypes()

@@ -10,22 +10,46 @@ class TestSmurff(unittest.TestCase):
     def test_bpmf(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
-        results = smurff.smurff(Y, Ytest = Ytest, side=[('normal', []), ('normal', [])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
+        results = smurff.smurff(Y,
+                                Ytest=Ytest,
+                                priors=['normal', 'normal'],
+                                side_info=[None, None],
+                                aux_data=[[], []],
+                                num_latent=4,
+                                verbose=False,
+                                burnin=50,
+                                nsamples=50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
 
     def test_bpmf_numerictest(self):
         X = scipy.sparse.rand(15, 10, 0.2)
         Xt = 0.3
         X, Xt = smurff.make_train_test(X, Xt)
-        smurff.smurff(X, Xt, side=[('normal', []), ('normal', [])], num_latent = 10, burnin=10, nsamples=15, verbose = False)
+        smurff.smurff(X,
+                      Xt,
+                      priors=['normal', 'normal'],
+                      side_info=[None, None],
+                      aux_data=[[], []],
+                      num_latent=10,
+                      burnin=10,
+                      nsamples=15,
+                      verbose=False)
 
     def test_macau(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
         side1   = scipy.sparse.coo_matrix( np.random.rand(10, 2) )
-        side2   = scipy.sparse.coo_matrix( np.random.rand(3, 20) )
+        side2   = scipy.sparse.coo_matrix( np.random.rand(20, 3) )
 
-        results = smurff.smurff(Y, Ytest = Ytest, side=[('macau', [side1]), ('macau', [side2])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
+        results = smurff.smurff(Y,
+                                Ytest=Ytest,
+                                priors=['macau', 'macau'],
+                                side_info=[side1, side2],
+                                aux_data=[None, None],
+                                num_latent=4,
+                                verbose=False,
+                                burnin=50,
+                                nsamples=50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
 
     def test_macau_side_bin(self):
@@ -33,13 +57,29 @@ class TestSmurff(unittest.TestCase):
         Xt = scipy.sparse.rand(15, 10, 0.1)
         F = scipy.sparse.rand(15, 2, 0.5)
         F.data[:] = 1
-        smurff.smurff(X, Xt, side=[('macau', [F]), ('normal', [])], num_latent = 5, burnin=10, nsamples=5, verbose = False)
+        smurff.smurff(X,
+                      Xt,
+                      priors=['macau', 'normal'],
+                      side_info=[F, None],
+                      aux_data=[None, []],
+                      num_latent=5,
+                      burnin=10,
+                      nsamples=5,
+                      verbose=False)
 
     def test_macau_dense(self):
         Y  = scipy.sparse.rand(15, 10, 0.2)
         Yt = scipy.sparse.rand(15, 10, 0.1)
         F  = np.random.randn(15, 2)
-        smurff.smurff(Y, Yt, side=[('macau', [F]), ('normal', [])], num_latent = 5, burnin=10, nsamples=5, verbose = False)
+        smurff.smurff(Y,
+                      Yt,
+                      priors=['macau', 'normal'],
+                      side_info=[F, None],
+                      aux_data=[None, []],
+                      num_latent=5,
+                      burnin=10,
+                      nsamples=5,
+                      verbose=False)
 
     # def test_macau_dense_probit(self):
     #     A = np.random.randn(25, 2)
@@ -62,19 +102,38 @@ class TestSmurff(unittest.TestCase):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
         side1   = scipy.sparse.coo_matrix( np.random.rand(10, 2) )
-        side2   = scipy.sparse.coo_matrix( np.random.rand(3, 20) )
+        side2   = scipy.sparse.coo_matrix( np.random.rand(20, 3) )
 
-        results = smurff.smurff(Y, Ytest = Ytest, side=[('macauone', [side1]), ('macauone', [side2])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
+        results = smurff.smurff(Y,
+                                Ytest=Ytest,
+                                priors=['macauone', 'macauone'],
+                                side_info=[side1, side2],
+                                aux_data=[None, None],
+                                num_latent=4,
+                                verbose=False,
+                                burnin=50,
+                                nsamples=50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
 
     def test_too_many_sides(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
         with self.assertRaises(RuntimeError):
-            smurff.smurff(Y, verbose = False, side = [('normal', []), ('normal', []), ('normal', [])])
+            smurff.smurff(Y,
+                          priors=['normal', 'normal', 'normal'],
+                          side_info=[None, None, None],
+                          aux_data=[[], [], []],
+                          verbose = False)
 
     def test_bpmf_emptytest(self):
         X = scipy.sparse.rand(15, 10, 0.2)
-        smurff.smurff(X, side=[('normal', []), ('normal', [])], num_latent = 10, burnin=10, nsamples=15, verbose=False)
+        smurff.smurff(X,
+                      priors=['normal', 'normal'],
+                      side_info=[None, None],
+                      aux_data=[[], []],
+                      num_latent=10,
+                      burnin=10,
+                      nsamples=15,
+                      verbose=False)
 
     # def test_bpmf_emptytest_probit(self):
     #     X = scipy.sparse.rand(15, 10, 0.2)
@@ -121,7 +180,15 @@ class TestSmurff(unittest.TestCase):
             "value": np.random.randn(5)
         })
 
-        results = smurff.smurff(Y, Ytest = Ytest, side=[('normal', []), ('normal', []), ('normal', [])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50)
+        results = smurff.smurff(Y,
+                                Ytest=Ytest,
+                                priors=['normal', 'normal', 'normal'],
+                                side_info=[None, None, None],
+                                aux_data=[[], [], []],
+                                num_latent=4,
+                                verbose=False,
+                                burnin=50,
+                                nsamples=50)
 
     def test_bpmf_sparse_matrix_sparse_2d_tensor(self):
         np.random.seed(1234)
@@ -159,8 +226,29 @@ class TestSmurff(unittest.TestCase):
         })
 
         # Run SMURFF
-        sparse_matrix_results = smurff.smurff(train_sparse_matrix, test_sparse_matrix, data_shape=train_shape, side=[('normal', []), ('normal', [])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
-        sparse_tensor_results = smurff.smurff(train_sparse_tensor, test_sparse_tensor, data_shape=train_shape, side=[('normal', []), ('normal', [])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+        sparse_matrix_results = smurff.smurff(train_sparse_matrix,
+                                              test_sparse_matrix,
+                                              data_shape=train_shape,
+                                              priors=['normal', 'normal'],
+                                              side_info=[None, None],
+                                              aux_data=[[], []],
+                                              num_latent=4,
+                                              verbose=False,
+                                              burnin=50,
+                                              nsamples=50,
+                                              seed=1234)
+
+        sparse_tensor_results = smurff.smurff(train_sparse_tensor,
+                                              test_sparse_tensor,
+                                              data_shape=train_shape,
+                                              priors=['normal', 'normal'],
+                                              side_info=[None, None],
+                                              aux_data=[[], []],
+                                              num_latent=4,
+                                              verbose=False,
+                                              burnin=50,
+                                              nsamples=50,
+                                              seed=1234)
 
         # Transfrom SMURFF results to dictionary of coords and predicted values
         sparse_matrix_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_results.predictions)
@@ -200,8 +288,29 @@ class TestSmurff(unittest.TestCase):
         })
 
         # Run SMURFF
-        sparse_matrix_results = smurff.smurff(train_dense_matrix, test_sparse_matrix, data_shape=train_shape, side=[('normal', []), ('normal', [])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
-        sparse_tensor_results = smurff.smurff(train_sparse_tensor, test_sparse_tensor, data_shape=train_shape, side=[('normal', []), ('normal', [])], num_latent = 4, verbose = False, burnin = 50, nsamples = 50, seed=1234)
+        sparse_matrix_results = smurff.smurff(train_dense_matrix,
+                                              test_sparse_matrix,
+                                              priors=['normal', 'normal'],
+                                              data_shape=train_shape,
+                                              side_info=[None, None],
+                                              aux_data=[[], []],
+                                              num_latent=4,
+                                              verbose=False,
+                                              burnin=50,
+                                              nsamples=50,
+                                              seed=1234)
+
+        sparse_tensor_results = smurff.smurff(train_sparse_tensor,
+                                              test_sparse_tensor,
+                                              data_shape=train_shape,
+                                              priors=['normal', 'normal'],
+                                              side_info=[None, None],
+                                              aux_data=[[], []],
+                                              num_latent=4,
+                                              verbose=False,
+                                              burnin=50,
+                                              nsamples=50,
+                                              seed=1234)
 
         # Transfrom SMURFF results to dictionary of coords and predicted values
         sparse_matrix_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_results.predictions)
@@ -223,8 +332,17 @@ class TestSmurff(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('normal', []), ('normal', []), ('normal', [])],
-                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
+        results = smurff.smurff(Y=Ytrain,
+                                Ytest=Ytest,
+                                priors=['normal', 'normal', 'normal'],
+                                side_info=[None, None, None],
+                                aux_data=[[], [], []],
+                                num_latent=4,
+                                verbose=False,
+                                burnin=20,
+                                nsamples=20,
+                                precision=50)
+
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
@@ -238,17 +356,33 @@ class TestSmurff(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('normal', []), ('normal', []), ('normal', [])],
-                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
+        results = smurff.smurff(Y=Ytrain,
+                                Ytest=Ytest,
+                                priors=['normal', 'normal', 'normal'],
+                                side_info=[None, None, None],
+                                aux_data=[[], [], []],
+                                num_latent=4,
+                                verbose=False,
+                                burnin=20,
+                                nsamples=20,
+                                precision=50)
+
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
         Ytrain_sp = scipy.sparse.coo_matrix( (Ytrain.value, (Ytrain.A, Ytrain.B) ) )
         Ytest_sp  = scipy.sparse.coo_matrix( (Ytest.value,  (Ytest.A, Ytest.B) ) )
 
-        results_mat = smurff.smurff(Y = Ytrain_sp, Ytest = Ytest_sp,
-                                    side=[('normal', []), ('normal', [])],
-                                    num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
+        results_mat = smurff.smurff(Y=Ytrain_sp,
+                                    Ytest=Ytest_sp,
+                                    priors=['normal', 'normal'],
+                                    side_info=[None, None],
+                                    aux_data=[[], []],
+                                    num_latent=4,
+                                    verbose=False,
+                                    burnin=20,
+                                    nsamples=20,
+                                    precision=50)
 
     @unittest.skip
     def test_macau_tensor(self):
@@ -283,8 +417,17 @@ class TestSmurff(unittest.TestCase):
 
         Acoo = scipy.sparse.coo_matrix(A)
 
-        results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('macauone', [Acoo]), ('normal', []), ('normal', [])],
-                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20, precision = 50)
+        results = smurff.smurff(Y=Ytrain,
+                                Ytest=Ytest,
+                                priors=['macauone', 'normal', 'normal'],
+                                side_info=[Acoo, None, None],
+                                aux_data=[None, [], []],
+                                num_latent=4,
+                                verbose=False,
+                                burnin=20,
+                                nsamples=20,
+                                precision=50)
+
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
@@ -298,7 +441,15 @@ class TestSmurff(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
 
         Acoo = scipy.sparse.coo_matrix(A)
-        r0 = smurff.smurff(df, side=[('normal', []), ('normal', []), ('normal', [])], num_latent = 2, burnin=5, nsamples=5, precision=1.0, verbose=False)
+        r0 = smurff.smurff(df,
+                           priors=['normal', 'normal', 'normal'],
+                           side_info=[None, None, None],
+                           aux_data=[[], [], []],
+                           num_latent=2,
+                           burnin=5,
+                           nsamples=5,
+                           precision=1.0,
+                           verbose=False)
 
         self.assertTrue( np.isnan(r0.rmse) )
 
