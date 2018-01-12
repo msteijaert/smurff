@@ -37,7 +37,7 @@ namespace smurff
       NoiseTypes m_noise_type;
 
    public:
-      NoiseConfig(NoiseTypes nt = NoiseTypes::noiseless) 
+      NoiseConfig(NoiseTypes nt = NoiseTypes::fixed) 
          : m_noise_type(nt)
       {
       }
