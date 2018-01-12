@@ -202,6 +202,7 @@ bool Config::validate() const
       switch (pt)
       {
          case PriorTypes::normal:
+         case PriorTypes::normalone:
          case PriorTypes::spikeandslab:
          case PriorTypes::default_prior:
             if (m_sideInfo[i])
