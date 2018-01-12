@@ -70,7 +70,7 @@ void ScarceMatrixData::getMuLambda(const SubModel& model, std::uint32_t mode, in
            auto pos = this->pos(mode, n, idx);
            double noisy_val = ns.sample(model, pos, val);
            rr.noalias() += col * noisy_val;
-           MM.triangularView<Lower>() += col * col.transpose();
+           MM.triangularView<Lower>() +=  ns.getAlpha() * col * col.transpose();
        }
 
        // make MM complete
