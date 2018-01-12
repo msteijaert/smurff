@@ -15,7 +15,6 @@ void SparseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, 
     auto Vf = *model.CVbegin(mode);
     auto &ns = *noise();
 
-    // FIXME!!! wrong? 
     for (SparseMatrix<double>::InnerIterator it(Y, d); it; ++it) 
     {
         const auto &col = Vf.col(it.row());
@@ -24,7 +23,7 @@ void SparseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, 
         rr.noalias() += col * noisy_val; // rr = rr + (V[m] * y[d]) * alpha
     }
 
-    MM.noalias() += VV[mode]; // MM = MM + VV[m]
+    MM.noalias() += ns.getAlpha() * VV[mode]; // MM = MM + VV[m]
 }
 
 double SparseMatrixData::train_rmse(const SubModel& model) const

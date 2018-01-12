@@ -19,8 +19,6 @@ namespace smurff
    {
       //AGE: Only MatricesData should call init methods, center methods etc
       friend class MatricesData;
-      // Only noise model can call getMuLambda
-      friend class INoiseModel;
 
    public:
       std::string name;
@@ -69,7 +67,6 @@ namespace smurff
    public:
       virtual double train_rmse(const SubModel& model) const = 0;
       virtual void update_pnm(const SubModel& model, uint32_t mode) = 0;
-   private:
       virtual void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const = 0;
 
    public:

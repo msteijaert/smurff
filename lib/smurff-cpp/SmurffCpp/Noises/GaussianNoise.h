@@ -14,7 +14,7 @@ namespace smurff {
       double alpha = NAN;
 
    public:
-      void getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
+      double getAlpha() const override;
    };
 
 }

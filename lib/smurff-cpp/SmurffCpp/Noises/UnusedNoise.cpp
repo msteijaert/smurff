@@ -9,7 +9,12 @@ UnusedNoise::UnusedNoise()
 {
 }
 
-void UnusedNoise::getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+double UnusedNoise::getAlpha() const 
+{
+   THROWERROR_NOTIMPL();
+}
+
+double UnusedNoise::sample(const SubModel& model, const PVec<> &pos, double val)
 {
    THROWERROR_NOTIMPL();
 }

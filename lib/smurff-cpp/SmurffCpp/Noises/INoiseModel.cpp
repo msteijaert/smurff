@@ -4,12 +4,12 @@
 
 using namespace smurff;
 
-void INoiseModel::getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM)
+double INoiseModel::getAlpha() const
 {
-    data().getMuLambda(model, mode, d, rr, MM);
+    return 1.0;
 }
 
 double INoiseModel::sample(const SubModel& model, const PVec<> &pos, double val)
 {
-    return val;
+    return getAlpha() * val;
 }

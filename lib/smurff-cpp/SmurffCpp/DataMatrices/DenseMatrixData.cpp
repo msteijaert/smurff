@@ -24,7 +24,7 @@ void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, V
         rr.noalias() += col * noisy_val; // rr = rr + (V[m] * noisy_y[d]) 
     }
 
-    MM.noalias() += VV[mode]; // MM = MM + VV[m]
+    MM.noalias() += ns.getAlpha() * VV[mode]; // MM = MM + VV[m]
 }
 
 double DenseMatrixData::train_rmse(const SubModel& model) const
