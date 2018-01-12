@@ -27,6 +27,33 @@ void SpikeAndSlabPrior::init()
    alpha = ArrayXXd::Ones(K,nview);
    Zkeep = MatrixXd::Constant(K, nview, D);
    r = MatrixXd::Constant(K,nview,.5);
+
+   //this is some new initialization
+   initUU();
+
+   mu.resize(K);
+   mu.setZero();
+
+   Lambda.resize(K, K);
+   Lambda.setIdentity();
+   Lambda *= 10;
+
+   // parameters of Inv-Whishart distribution
+   WI.resize(K, K);
+   WI.setIdentity();
+   mu0.resize(K);
+   mu0.setZero();
+   b0 = 2;
+   df = K;
+}
+
+void SpikeAndSlabPrior::save(std::string prefix, std::string suffix)
+{
+}
+
+void SpikeAndSlabPrior::restore(std::string prefix, std::string suffix)
+{
+   initUU();
 }
 
 void SpikeAndSlabPrior::update_prior()
@@ -51,6 +78,7 @@ void SpikeAndSlabPrior::update_prior()
    Zkeep = Zc.array();
    Zcol.reset();
    W2col.reset();
+ 
 }
 
 void SpikeAndSlabPrior::sample_latent(int d)
@@ -67,6 +95,10 @@ void SpikeAndSlabPrior::sample_latent(int d)
    MatrixXd XX = MatrixXd::Zero(K, K);
    VectorXd yX = VectorXd::Zero(K);
    data()->get_pnm(model(), m_mode, d, yX, XX);
+
+   // add hyperparams
+   yX.noalias() += Lambda * mu;
+   XX.noalias() += Lambda;
 
    for(int k=0;k<K;++k) {
       double lambda = XX(k,k) + alpha(k,v);
@@ -86,6 +118,9 @@ void SpikeAndSlabPrior::sample_latent(int d)
 
    W->col(d) = Wcol;
    W2col.local().col(v) += Wcol.array().square().matrix();
+
+   Ucol.local().noalias() += Wcol;
+   UUcol.local().noalias() += Wcol * Wcol.transpose();
 }
 
 std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) const
@@ -98,3 +133,14 @@ std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) co
    }
    return os;
 }
+
+
+void SpikeAndSlabPrior::initUU()
+{
+    const int K = num_latent();
+    Ucol.init(VectorXd::Zero(K));
+    UUcol.init(MatrixXd::Zero(K, K));
+    UUcol.local() = *U() * U()->transpose();
+    Ucol.local() = U()->rowwise().sum();
+}
+
