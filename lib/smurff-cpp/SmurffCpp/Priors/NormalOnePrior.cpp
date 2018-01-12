@@ -42,12 +42,6 @@ void NormalOnePrior::update_prior()
     std::tie(mu, Lambda) = CondNormalWishart(num_cols(), getUUsum(), getUsum(), mu0, b0, WI, df);
 }
 
-#if 0
-#define SHOW(m)
-#else
-#define SHOW(m) std::cout << #m << ":\n" << m << std::endl;
-#endif
-
 void NormalOnePrior::sample_latent(int d)
 {
    const int K = num_latent();
@@ -62,14 +56,6 @@ void NormalOnePrior::sample_latent(int d)
    XX.noalias() += Lambda;
 
    for(int k=0;k<K;++k) sample_latent(d, k, XX, yX);
-   
-   if (d == 0) {
-       SHOW(m_mode);
-       SHOW(d);
-       SHOW(XX);
-       SHOW(yX);
-       SHOW(U()->col(d));
-   }
 }
  
 std::pair<double,double> NormalOnePrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)

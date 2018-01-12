@@ -36,13 +36,6 @@ void SpikeAndSlabPrior::init()
 
 }
 
-#if 0
-#define SHOW(m)
-#else
-#define SHOW(m) std::cout << #m << ":\n" << m << std::endl;
-#endif
-
-
 void SpikeAndSlabPrior::update_prior()
 {
    const int K = num_latent();
@@ -50,8 +43,6 @@ void SpikeAndSlabPrior::update_prior()
    
    auto Zc = Zcol.combine();
    auto W2c = W2col.combine();
-
-   SHOW(W2c);
 
    // update hyper params (per view)
    for(int v=0; v<nview; ++v) {
@@ -66,7 +57,6 @@ void SpikeAndSlabPrior::update_prior()
 
    log_alpha = alpha.log();
    log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
-
 
    Zkeep = Zc.array();
    Zcol.reset();
@@ -85,10 +75,6 @@ std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const M
     auto Ucol = U()->col(d);
     double z1 = log_r(k,v) -  0.5 * (lambda * mu * mu - std::log(lambda) + log_alpha(k,v));
     double z = 1 / (1 + exp(z1));
-    if (d == 0 && k == 0) {
-        SHOW(z);
-        SHOW(lambda);
-    }
     double p = rand_unif(0,1);
     if (Zkeep(k,v) > 0 && p < z) {
         Zcol.local()(k,v)++;
