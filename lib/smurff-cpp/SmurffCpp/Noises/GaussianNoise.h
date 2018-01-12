@@ -11,7 +11,7 @@ namespace smurff {
    class GaussianNoise : public INoiseModel
    {
    public:
-      double alpha;
+      double alpha = NAN;
 
       void getMuLambda(const SubModel& model, int mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
    };

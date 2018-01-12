@@ -18,7 +18,6 @@ namespace smurff {
       
    public:
       double var_total = NAN;
-      double alpha = NAN;
       double alpha_max = NAN;
       double sn_max;
       double sn_init;

@@ -13,9 +13,6 @@ namespace smurff {
    class FixedGaussianNoise : public GaussianNoise
    {
       friend class NoiseFactory;
-      
-   public:
-      double alpha;
 
    protected:
       FixedGaussianNoise(double a = 1.);

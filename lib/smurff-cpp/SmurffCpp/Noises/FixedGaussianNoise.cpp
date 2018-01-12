@@ -3,9 +3,9 @@
 using namespace smurff;
 
 FixedGaussianNoise::FixedGaussianNoise(double a)
-   : GaussianNoise(), alpha(a)
+   : GaussianNoise()
 {
-
+    alpha = a;
 }
 
 std::ostream& FixedGaussianNoise::info(std::ostream& os, std::string indent)
