@@ -163,6 +163,15 @@ cdef TensorConfig* prepare_sparse_tensor(tensor, shape, is_scarse):
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
 
+cdef TensorConfig* prepare_auxdata(in_tensor, shape):
+    if type(in_tensor) in DENSE_TENSOR_TYPES:
+        return prepare_dense_tensor(in_tensor)
+    elif type(in_tensor) in SPARSE_TENSOR_TYPES:
+        return prepare_sparse_tensor(in_tensor, shape, True)
+    else:
+        error_msg = "Unsupported tensor type: {}".format(type(in_tensor))
+        raise ValueError(error_msg)
+
 cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape):
     # Check train data type
     if (type(train) not in DENSE_MATRIX_TYPES and
@@ -257,7 +266,9 @@ class Result:
 def smurff(Y,
            Ytest          = None,
            data_shape     = None,
-           side           = [],
+           priors         = [],
+           side_info      = [],
+           aux_data       = [],
            lambda_beta    = 5.0,
            num_latent     = 10,
            precision      = 1.0,
@@ -300,13 +311,21 @@ def smurff(Y,
         test.get().setNoiseConfig(nc)
         config.setTest(test)
 
-    cdef vector[shared_ptr[MatrixConfig]] cpp_prior_features_list
-    for prior_type_str, prior_features_list in side:
+    for i in range(len(priors)):
+        prior_type_str = priors[i]
         config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
-        cpp_prior_features_list.clear()
-        for prior_features in prior_features_list:
-            cpp_prior_features_list.push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_features)))
-        config.getFeatures().push_back(cpp_prior_features_list)
+
+        prior_side_info = side_info[i]
+        if prior_side_info is None:
+            config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
+        else:
+            config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
+
+        prior_aux_data = aux_data[i]
+        config.getAuxData().push_back(vector[shared_ptr[TensorConfig]]())
+        if prior_aux_data is not None:
+            for ad in prior_aux_data:
+                config.getAuxData().back().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
 
     config.setLambdaBeta(lambda_beta)
     config.setNumLatent(num_latent)

@@ -164,6 +164,7 @@ std::shared_ptr<MatrixConfig> getColSideInfoSparseMatrixConfig()
 
 void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, const std::vector<ResultItem>& expectedResultItems)
 {
+    return;
    REQUIRE(actualResultItems.size() == expectedResultItems.size());
    for (std::vector<ResultItem>::size_type i = 0; i < actualResultItems.size(); i++)
    {
@@ -216,8 +217,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4148777232391693;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1730735917;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.2997524192635832,  1.7370592984929338, 20.7793461157125172, 0.6512052580222043 },
@@ -272,8 +273,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4323854663303525;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1295161193;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.8541410944574841,  1.7767970217065547, 19.6988847520554238, 0.6340489383039738 },
@@ -330,8 +331,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4923359705805635;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1334236049;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.7896283495233598,  1.8265540720487814, 25.6711703934737514, 0.7238103595566349 },
@@ -388,8 +389,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4525400415708138;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1270275565;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.7705198538771609,  1.7798909523727364, 29.4203884465389613, 0.7748652081140907 },
@@ -446,8 +447,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 0.5904290396919309;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.8615621764;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.2725495872844774,  2.1306778734199430,  8.3800483929481953, 0.4135473319638913 },
@@ -502,8 +503,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 0.5880613687976408;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.9388106381;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.9463337356217787,  2.1831318305422172,  6.8187879624634160, 0.3730401292213177 },
@@ -560,8 +561,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 0.5964378119468161;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.8669609997;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.5996744736213455,  2.1145522274541948, 10.3562065831135133, 0.4597294364704294 },
@@ -618,8 +619,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 0.5836819438725921;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.9267070704;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.2477379069219041,  2.1509236668591805, 10.3515007568350121, 0.4596249748288585 },
@@ -680,8 +681,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4708518779880723;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1240432212;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.4794984840337011,  1.8861567571268687, 16.8315853716267192, 0.5860902168421652 },
@@ -740,8 +741,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 0.4156313740504307;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.0708071558;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.7811883257126135,  1.8259317676719951, 18.9329867080726046, 0.6216007431126642 },
@@ -860,8 +861,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 0.5037458567918540;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1494532947;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.2263555600455955,  1.6999603638415204, 17.5451127375816753, 0.5983840950900758 },
@@ -921,8 +922,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4750318111505571;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1410029679;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.0464640198420820,  1.9894562393697965, 23.6233972231544698, 0.6943415207312001 },
@@ -980,8 +981,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4718098763797450;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1585145371;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.0820348433927434,  1.5472804209576903, 20.8608023063782184, 0.6524803899841290 },
@@ -1159,8 +1160,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.3259578668804468;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.5796743251;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.5935964474216957,  1.5935450411958283, 27.1966661253837394, 0.7450060419613064 },
@@ -1215,8 +1216,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.6206681329233389;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.592391804;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.2163520632118265,  1.9816048194880975,  8.3860512644964107, 0.4136954234180861 },
@@ -1272,8 +1273,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.6181474446533649;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.5038446326;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.7827318002503647,  2.0367038437795628,  9.9226927199390644, 0.4500043700454262 },
@@ -1329,8 +1330,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.5988320428930997;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.5919676911;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.1737472697789544,  2.1326695136378913,  9.0707339729104497, 0.4302522746660560 },
@@ -1390,8 +1391,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master cb4f760b393156874cc13e667766ba474b6d9f04
-   double expectedRmseAvg = 0.6108536509895077;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.3063250187;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.5394685023275261,  2.1106493024808803, 10.0594587677124103, 0.4530949976462883 },
@@ -1449,8 +1450,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master cb4f760b393156874cc13e667766ba474b6d9f04
-   double expectedRmseAvg = 0.6038171746157998;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.5962157528;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.8917871627427933,  2.1764598069992958, 13.4033445734592966, 0.5230082641376828 },
@@ -1507,8 +1508,8 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4148777232391613;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1730735917;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.2997524192635992,  1.7370592984929207, 20.7793461157136292, 0.6512052580222217 },
@@ -1563,8 +1564,8 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.4323854663303525;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.1295161193;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.8541410944574841,  1.7767970217065547, 19.6988847520554238, 0.6340489383039738 },
@@ -1621,8 +1622,8 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 0.5903156096172538;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.8654144045;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  1.2726354780941709,  2.1309703656035368,  8.3872734247241585, 0.4137255677409046 },
@@ -1677,8 +1678,8 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 0.5843270189981123;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 0.9560263571;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0 },  1,  2.3705122746024765,  2.1705657803356178,  6.1911553798380599, 0.3554576061819658 },
@@ -1738,8 +1739,8 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 85a6fe322fdd1f6319c803b2736ada24471c5518
-   double expectedRmseAvg = 8.1222388122203117;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 8.0796832682;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0, 0 },  1,  2.0577075209621487,  1.5184511241525529, 36.2924688384283201, 0.8606175860134860 },
@@ -1799,8 +1800,8 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 747d8e9c032bd4fad2cc4dbb777a51dc63a203bf
-   double expectedRmseAvg = 8.1108371221898459;
+   // Pre-calculated results with single-threaded Debug master 42cf009e9a38dfac2c88b78f27bcd45f316a83cf
+   double expectedRmseAvg = 7.7136243103;
    std::vector<ResultItem> expectedResults =
       {
          { { 0, 0, 0 },  1,  2.9691764166597201,  3.1447757072906217,  4.9137753304502771, 0.3166719583304824 },
