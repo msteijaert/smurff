@@ -27,6 +27,7 @@ install(TARGETS ${PROJECT} RUNTIME DESTINATION bin)
 #LINK LIBRARIES
 target_link_libraries (${PROJECT} smurff-cpp
                                   ${Boost_LIBRARIES}
+                                  ${BOOST_RANDOM_LIBRARIES}
                                   ${ALGEBRA_LIBS}
                                   ${CMAKE_THREAD_LIBS_INIT}
                                   ${MPI_LIBRARIES})
@@ -40,5 +41,6 @@ include_directories(../..)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${MPI_C_INCLUDE_PATH})
 include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${BOOST_RANDOM_INCLUDE_DIRS})
 
 endif()

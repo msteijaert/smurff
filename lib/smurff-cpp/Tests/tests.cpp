@@ -31,6 +31,10 @@
 #include <SmurffCpp/DataMatrices/SparseMatrixData.h>
 #include <SmurffCpp/DataMatrices/DenseMatrixData.h>
 
+// https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
+// By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
+#define APPROX_EPSILON std::numeric_limits<float>::epsilon()*100
+
 using namespace smurff;
 
 TEST_CASE( "chol/chol_solve_t", "[chol_solve_t]" ) {
@@ -296,4 +300,40 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
        std::cout << "norm M: " << M.norm() << std::endl;
        std::cout << "MatrixXd: " << stop - start << std::endl;
    }
+}
+
+TEST_CASE("randn", "Test random number generation")
+{
+   init_bmrng(1234);
+
+   double rnd = 0.0;
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-1.38981).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.444601).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-1.13281).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.708248).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.369621).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.465294).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.637987).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.510229).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.28734).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(1.22677).epsilon(APPROX_EPSILON));
 }

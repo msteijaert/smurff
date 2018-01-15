@@ -4,7 +4,6 @@
 // http://stackoverflow.com/questions/6142576/sample-from-multivariate-normal-gaussian-distribution-in-c
  
 #include <iostream>
-#include <random>
 #include <chrono>
 
 #include <Eigen/Dense>
@@ -17,7 +16,19 @@ using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
 
-static smurff::thread_vector<std::mt19937> bmrngs;
+#ifdef USE_BOOST_RANDOM
+#include <boost/random.hpp>
+#define MERSENNE_TWISTER boost::random::mt19937
+#define UNIFORM_REAL_DISTRIBUTION boost::random::uniform_real_distribution<double>
+#define GAMMA_DISTRIBUTION boost::random::gamma_distribution<double>
+#else
+#include <random>
+#define MERSENNE_TWISTER std::mt19937
+#define UNIFORM_REAL_DISTRIBUTION std::uniform_real_distribution<double>
+#define GAMMA_DISTRIBUTION std::gamma_distribution<double>
+#endif
+
+static smurff::thread_vector<MERSENNE_TWISTER> bmrngs;
 
 double smurff::randn0()
 {
@@ -33,7 +44,7 @@ void smurff::bmrandn(double* x, long n)
 {
    #pragma omp parallel 
    {
-      std::uniform_real_distribution<double> unif(-1.0, 1.0);
+      UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
       auto& bmrng = bmrngs.local();
       
       #pragma omp for schedule(static)
@@ -67,7 +78,7 @@ void smurff::bmrandn(MatrixXd & X)
 double smurff::bmrandn_single() 
 {
    //TODO: add bmrng as input
-   std::uniform_real_distribution<double> unif(-1.0, 1.0);
+   UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
    auto& bmrng = bmrngs.local();
   
    double x1, x2, w;
@@ -85,7 +96,7 @@ double smurff::bmrandn_single()
 // to be called within OpenMP parallel loop (also from serial code is fine)
 void smurff::bmrandn_single(double* x, long n) 
 {
-   std::uniform_real_distribution<double> unif(-1.0, 1.0);
+   UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
    auto& bmrng = bmrngs.local();
 
    for (long i = 0; i < n; i += 2) 
@@ -128,24 +139,24 @@ void smurff::init_bmrng()
 
 void smurff::init_bmrng(int seed) 
 {
-    std::vector<std::mt19937> v;
+    std::vector<MERSENNE_TWISTER> v;
     for (int i = 0; i < thread_limit(); i++)
     {
-        v.push_back(std::mt19937(seed + i * 1999));
+        v.push_back(MERSENNE_TWISTER(seed + i * 1999));
     }
     bmrngs.init(v);
 }
    
 double smurff::rand_unif() 
 {
-    std::uniform_real_distribution<double> unif(0.0, 1.0);
-    auto& bmrng = bmrngs.local();
-    return unif(bmrng);
+   UNIFORM_REAL_DISTRIBUTION unif(0.0, 1.0);
+   auto& bmrng = bmrngs.local();
+   return unif(bmrng);
 }
  
 double smurff::rand_unif(double low, double high) 
 {
-   std::uniform_real_distribution<double> unif(low, high);
+   UNIFORM_REAL_DISTRIBUTION unif(low, high);
    auto& bmrng = bmrngs.local();
    return unif(bmrng);
 }
@@ -154,7 +165,7 @@ double smurff::rand_unif(double low, double high)
 // with the given shape (k) and scale (theta). See wiki.
 double smurff::rgamma(double shape, double scale) 
 {
-   std::gamma_distribution<double> gamma(shape, scale);
+   GAMMA_DISTRIBUTION gamma(shape, scale);
    return gamma(bmrngs.local());
 }
 
@@ -177,7 +188,7 @@ MatrixXd WishartUnit(int m, int df)
 
    for ( int i = 0; i < m; i++ ) 
    {
-      std::gamma_distribution<> gam(0.5*(df - i));
+      GAMMA_DISTRIBUTION gam(0.5*(df - i));
       c(i,i) = std::sqrt(2.0 * gam(rng));
       VectorXd r = smurff::nrandn(m-i-1);
       c.block(i,i+1,1,m-i-1) = r.transpose();
