@@ -135,7 +135,6 @@ public:
 
    void sample_mu_lambda(std::shared_ptr<const Eigen::MatrixXd> U)
    {
-      Eigen::MatrixXd Lambda(num_latent(), num_latent());
       Eigen::MatrixXd WI(num_latent(), num_latent());
       WI.setIdentity();
       int N = U->cols();
