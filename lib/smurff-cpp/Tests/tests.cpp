@@ -304,6 +304,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
 
 TEST_CASE("randn", "Test random number generation")
 {
+   #ifdef USE_BOOST_RANDOM
    init_bmrng(1234);
 
    double rnd = 0.0;
@@ -336,4 +337,39 @@ TEST_CASE("randn", "Test random number generation")
 
    rnd = smurff::randn();
    REQUIRE(rnd == Approx(1.22677).epsilon(APPROX_EPSILON));
+   #else
+   init_bmrng(1234);
+   
+   double rnd = 0.0;
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.00989496).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.557211).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.511044).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.321061).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.59018).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.0465393).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.824126).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.315523).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-2.20691).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.190217).epsilon(APPROX_EPSILON));
+   
+   #endif
 }
