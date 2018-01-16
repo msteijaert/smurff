@@ -17,6 +17,8 @@ OPTION(ENABLE_PROFILING "Enable performance counters" OFF)
 OPTION(ENABLE_VERBOSE_COMPILER_LOG "Enable verbose compilation log" OFF)
 OPTION(ENABLE_VERBOSE_LINKER_LOG "Enable verbose linker log" OFF)
 
+OPTION(ENABLE_BOOST_RANDOM "Enable usage of Boost random library" OFF)
+
 # INIT CMAKE
 
 message("Initializing cmake ...")
