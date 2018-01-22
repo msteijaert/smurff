@@ -303,6 +303,8 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
 
 TEST_CASE("randn", "Test random number generation")
 {
+   #ifdef USE_BOOST_RANDOM
+   std::cout << "Running boost" << std::endl;
    init_bmrng(1234);
 
    double rnd = 0.0;
@@ -335,4 +337,115 @@ TEST_CASE("randn", "Test random number generation")
 
    rnd = smurff::randn();
    REQUIRE(rnd == Approx(1.22677).epsilon(APPROX_EPSILON));
+   #else
+   std::cout << "Running std" << std::endl;
+   init_bmrng(1234);
+   
+   double rnd = 0.0;
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.00989496).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.557211).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.511044).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.321061).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.59018).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.0465393).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-0.824126).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.315523).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(-2.20691).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::randn();
+   REQUIRE(rnd == Approx(0.190217).epsilon(APPROX_EPSILON));
+   
+   #endif
+}
+
+TEST_CASE("rgamma", "Test random number generation")
+{
+   #ifdef USE_BOOST_RANDOM
+   std::cout << "Running boost" << std::endl;
+   init_bmrng(1234);
+
+   double rnd = 0.0;
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(0.425197).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(1.37697).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(1.9463).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(3.40572).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(1.15154).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(1.89408).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(3.07757).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(2.95121).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(3.02804).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(3.94182).epsilon(APPROX_EPSILON));
+   
+   #else
+   std::cout << "Running std" << std::endl;
+   init_bmrng(1234);
+   
+   double rnd = 0.0;
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(4.96088).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(2.35473).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(2.40984).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(1.08649).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(1.19907).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(0.27702).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(0.956223).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(5.37583).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(0.030197).epsilon(APPROX_EPSILON));
+
+   rnd = smurff::rgamma(1, 2);
+   REQUIRE(rnd == Approx(0.0270837).epsilon(APPROX_EPSILON));
+   
+   #endif
 }
