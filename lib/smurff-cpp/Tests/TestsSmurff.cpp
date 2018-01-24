@@ -458,7 +458,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
          { { 2, 0 },  9,  7.8465878506610220,  7.8041719994764351, 6.1164797060457978, 0.3533073965400586 },
          { { 2, 1 }, 10,  9.0328791615100101,  9.1037849996616913, 5.4171358633100422, 0.3324963054362806 },
          { { 2, 2 }, 11, 10.0437398457884743, 10.2318746139433880, 7.0604885364587995, 0.3795939972982627 },
-         { { 2, 3 }, 12, 11.7972966321084609, 11.3707594884843122, 6.7487546237857519, 0.3711195039333142 }         
+         { { 2, 3 }, 12, 11.7972966321084609, 11.3707594884843122, 6.7487546237857519, 0.3711195039333142 }
       };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
@@ -780,7 +780,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   
+
    std::shared_ptr<MatrixConfig> rowSideInfoSparseMatrixConfig = getRowSideInfoSparseMatrixConfig();
    std::shared_ptr<MatrixConfig> colSideInfoSparseMatrixConfig = getColSideInfoSparseMatrixConfig();
 
@@ -834,7 +834,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
 {
    std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   
+
    std::shared_ptr<MatrixConfig> rowSideInfoSparseMatrixConfig = getRowSideInfoSparseMatrixConfig();
    std::shared_ptr<MatrixConfig> colSideInfoSparseMatrixConfig = getColSideInfoSparseMatrixConfig();
 
@@ -862,17 +862,17 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
    // Pre-calculated results with single-threaded Debug master 6b6491b79751aaa469f9471e727b6630a7aa8a82
-   double expectedRmseAvg = 0.2027054188867624;
+   double expectedRmseAvg = 0.1437412780171048;
    std::vector<ResultItem> expectedResults =
       {
-         { { 0, 0 },  1,  0.9639174341181921,  1.2317596487287492,  7.7106000641420964, 0.3966852467416601 },
-         { { 0, 1 },  2,  2.5805242464004752,  2.4669183689726486,  6.6768267102887311, 0.3691365189164155 },
-         { { 0, 2 },  3,  3.1560571529040651,  2.8583286873871834,  6.9641772677396965, 0.3769961096464594 },
-         { { 0, 3 },  4,  3.9223536347421297,  3.9438195555115598,  7.9437054111357108, 0.4026368549474244 },
-         { { 2, 0 },  9,  9.0263596058830693,  8.9496918851391580,  7.9779566243929896, 0.4035039545210711 },
-         { { 2, 1 }, 10, 10.6457291445484366,  9.8259162651422329,  7.0884292063270955, 0.3803443446895032 },
-         { { 2, 2 }, 11, 11.0594432547836128, 10.9954242667937745, 12.2630351172463801, 0.5002659520704428 },
-         { { 2, 3 }, 12, 12.5056687188817293, 12.0301098496824235,  9.0539012876442300, 0.4298528767685623 }        
+         { { 0, 0 },  1,  1.5994233584212105,  1.2082777130122822,  9.1122427967864432, 0.4312355953651407 },
+         { { 0, 1 },  2,  2.7391899373968345,  1.9721509664301815, 10.8161031540169219, 0.4698263499012905 },
+         { { 0, 2 },  3,  3.1086945075131154,  2.9461241559187918, 13.4370907414993859, 0.5236662502617987 },
+         { { 0, 3 },  4,  3.4835307318736746,  3.7524160905113986, 13.6423313623373712, 0.5276503821300493 },
+         { { 2, 0 },  9,  8.9743798728810624,  8.7791832021170908,  8.4175521767641879, 0.4144716867502972 },
+         { { 2, 1 }, 10,  9.3626920196659853,  9.9813509533439717,  9.8230173644717489, 0.4477384751527129 },
+         { { 2, 2 }, 11, 10.5257134611302927, 10.9247619058603505, 11.8522252393569882, 0.4918151560718512 },
+         { { 2, 3 }, 12, 11.5380291714346619, 12.0465644805425303, 11.0422830417662112, 0.4747132978315289 }
       };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
@@ -1575,7 +1575,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
          { { 2, 0 },  9,  8.6537974191209894,  8.9712013920982052, 10.8917513169211340, 0.4714664771973077 },
          { { 2, 1 }, 10,  9.3762189729340282, 10.0652829796576881, 10.6785174774091107, 0.4668285853612544 },
          { { 2, 2 }, 11, 10.8735318607524842, 10.9166402706028798,  9.0023553544070207, 0.4286275047696324 },
-         { { 2, 3 }, 12, 11.8355586548271798, 11.9894908059706573, 10.6687541492887199, 0.4666151267544766 }         
+         { { 2, 3 }, 12, 11.8355586548271798, 11.9894908059706573, 10.6687541492887199, 0.4666151267544766 }
       };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
