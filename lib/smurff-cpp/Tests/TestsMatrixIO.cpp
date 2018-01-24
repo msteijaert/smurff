@@ -11,6 +11,8 @@
 
 using namespace smurff;
 
+static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
+
 TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .ddm")
 {
    std::string matrixFilename = "matrixConfig.ddm";
@@ -21,7 +23,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .ddm")
    std::shared_ptr<MatrixConfig> matrixConfig(new MatrixConfig(matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             ));
 
    matrix_io::write_matrix(matrixFilename, matrixConfig);
@@ -45,7 +47,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .csv")
    std::shared_ptr<MatrixConfig> matrixConfig(new MatrixConfig(matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             ));
 
    matrix_io::write_matrix(matrixFilename, matrixConfig);
@@ -74,7 +76,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sdm")
                             , std::move(matrixConfigRows)
                             , std::move(matrixConfigCols)
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             , false
                             ));
 
@@ -110,7 +112,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .mtx")
       std::shared_ptr<MatrixConfig> matrixConfig(new MatrixConfig(matrixConfigNRow
                                , matrixConfigNCol
                                , std::move(matrixConfigValues)
-                               , NoiseConfig()
+                               , fixed_ncfg
                                ));
 
       matrix_io::write_matrix(matrixFilename, matrixConfig);
@@ -139,7 +141,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .mtx")
                               , std::move(matrixConfigRows)
                               , std::move(matrixConfigCols)
                               , std::move(matrixConfigValues)
-                              , NoiseConfig()
+                              , fixed_ncfg
                               , false
                               ));
 
@@ -176,7 +178,7 @@ TEST_CASE("matrix_io/read_matrix | matrix_io/write_matrix | .sbm")
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
                             , std::move(matrixConfigCols)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             , false
                             ));
 
@@ -210,7 +212,7 @@ TEST_CASE("matrix_io/read_matrix_market | matrix_io/write_matrix_market | dense"
    std::shared_ptr<MatrixConfig> matrixConfig(new MatrixConfig(matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             ));
 
    std::stringstream matrixStream;
@@ -236,7 +238,7 @@ TEST_CASE("matrix_io/read_matrix_market | matrix_io/write_matrix_market | sparse
                             , std::move(matrixConfigRows)
                             , std::move(matrixConfigCols)
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             , false
                             ));
 
@@ -268,7 +270,7 @@ TEST_CASE("matrix_io/read_dense_float64_bin | matrix_io/write_dense_float64_bin"
    std::shared_ptr<MatrixConfig> matrixConfig(new MatrixConfig(matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             ));
 
    std::stringstream matrixStream;
@@ -290,7 +292,7 @@ TEST_CASE("matrix_io/read_dense_float64_csv | matrix_io/write_dense_float64_csv"
    std::shared_ptr<MatrixConfig> matrixConfig(new MatrixConfig(matrixConfigNRow
                             , matrixConfigNCol
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             ));
 
    std::stringstream matrixConfigStream;
@@ -316,7 +318,7 @@ TEST_CASE("matrix_io/read_sparse_float64_bin | matrix_io/write_sparse_float64_bi
                             , std::move(matrixConfigRows)
                             , std::move(matrixConfigCols)
                             , std::move(matrixConfigValues)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             , false
                             ));
 
@@ -350,7 +352,7 @@ TEST_CASE("matrix_io/read_sparse_binary_bin | matrix_io/write_sparse_binary_bin"
                             , matrixConfigNCol
                             , std::move(matrixConfigRows)
                             , std::move(matrixConfigCols)
-                            , NoiseConfig()
+                            , fixed_ncfg
                             , false
                             ));
 

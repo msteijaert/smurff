@@ -1,5 +1,6 @@
 #include "MatrixIO.h"
 
+#include <array>
 #include <iostream>
 #include <sstream>
 #include <cctype>

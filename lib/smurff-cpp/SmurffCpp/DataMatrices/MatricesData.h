@@ -24,7 +24,7 @@ namespace smurff
 
       // update noise and precision/mean
       void update(const SubModel& model) override;
-      void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) override;
+      void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const override;
       void update_pnm(const SubModel& model, uint32_t mode) override;
 
       //-- print info

@@ -89,7 +89,4 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
       return subFactory.create_macau_prior(session, prior_type, sideinfo);
    }
 }
-
-
-
 }

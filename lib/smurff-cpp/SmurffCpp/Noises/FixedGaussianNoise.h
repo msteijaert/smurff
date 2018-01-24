@@ -3,26 +3,21 @@
 #include <string>
 #include <iostream>
 
-#include "INoiseModel.h"
+#include "GaussianNoise.h"
 
 namespace smurff {
 
    class NoiseFactory;
 
    // Gaussian noise is fixed for the whole run
-   class FixedGaussianNoise : public INoiseModel
+   class FixedGaussianNoise : public GaussianNoise
    {
       friend class NoiseFactory;
-      
-   public:
-      double alpha;
 
    protected:
       FixedGaussianNoise(double a = 1.);
 
    public:
-      double getAlpha() override;
-
       std::ostream& info(std::ostream& os, std::string indent)  override;
       std::string getStatus() override;
 

@@ -35,6 +35,7 @@
 #define SEED_NAME "seed"
 #define PRECISION_NAME "precision"
 #define ADAPTIVE_NAME "adaptive"
+#define PROBIT_NAME "probit"
 #define LAMBDA_BETA_NAME "lambda-beta"
 #define TOL_NAME "tol"
 #define DIRECT_NAME "direct"
@@ -51,7 +52,7 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description priors_desc("Priors and side Info");
    priors_desc.add_options()
-     (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "One of <normal|spikeandslab|macau|macauone>")
+     (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "One of <normal|normalone|spikeandslab|macau|macauone>")
      (SIDE_INFO_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "Side info for each dimention")
      (AUX_DATA_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(),"Aux data for each dimention");
 
@@ -81,7 +82,8 @@ boost::program_options::options_description get_desc()
    boost::program_options::options_description noise_desc("Noise model");
    noise_desc.add_options()
       (PRECISION_NAME, boost::program_options::value<std::string>()->default_value("5.0"), "precision of observations")
-      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value("1.0,10.0"), "adaptive precision of observations");
+      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value("1.0,10.0"), "adaptive precision of observations")
+      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value("0.0"), "probit noise model with given threshold");
 
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
@@ -123,18 +125,22 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    {
       nc.precision = strtod(optarg.c_str(), NULL);
    }
+   else if (nc.getNoiseType() == NoiseTypes::probit)
+   {
+      nc.threshold = strtod(optarg.c_str(), NULL);
+   }
 
    if(!config.getTrain())
       THROWERROR("train data is not provided");
 
    // set global noise model
-   if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+   if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
       config.getTrain()->setNoiseConfig(nc);
 
    //set for side info
    for(auto& sideInfo : config.getSideInfo())
    {
-      if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+      if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
          sideInfo->setNoiseConfig(nc);
    }
 
@@ -143,7 +149,7 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    {
       for(auto auxData : auxDataSet)
       {
-         if (auxData->getNoiseConfig().getNoiseType() == NoiseTypes::noiseless)
+         if (auxData->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
             auxData->setNoiseConfig(nc);
       }
    }
@@ -246,6 +252,9 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if(vm.count(ADAPTIVE_NAME))
       set_noise_model(config, NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>());
+
+   if(vm.count(PROBIT_NAME))
+      set_noise_model(config, NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>());
 
    if(vm.count(LAMBDA_BETA_NAME))
       config.setLambdaBeta(vm[LAMBDA_BETA_NAME].as<double>());

@@ -22,7 +22,7 @@ void Data::init_post()
 
 void Data::update(const SubModel& model)
 {
-   noise()->update(this, model);
+   noise()->update(model);
 }
 
 //#### dimention functions ####

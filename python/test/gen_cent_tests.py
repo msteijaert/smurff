@@ -286,11 +286,26 @@ def movielens_tests(defaults):
     print(suite)
     return suite
 
+    
+  
+def jaak_tests(defaults):
+    suite = TestSuite("Jaak Simm ChEMBL")
+
+    defaults['datasubdir'] = "jaak"
+    defaults['test'] = None
+
+    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets.mm', 'test': 'chembl-IC50-346targets.mm' })
+    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets-binary.mm', 'test': 'chembl-IC50-346targets-binary.mm' })
+
+    print(suite)
+    return suite
+
  
 
 def all_tests(args):
 
-    all_tests = chembl_tests(defaults)
+    #all_tests = chembl_tests(defaults)
+    all_tests = jaak_tests(defaults)
     #all_tests.add_testsuite(synthetic_tests(defaults))
 
     return all_tests

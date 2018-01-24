@@ -20,6 +20,8 @@ PriorTypes smurff::stringToPriorType(std::string name)
       return PriorTypes::macauone;
    else if(name == PRIOR_NAME_SPIKE_AND_SLAB)
       return PriorTypes::spikeandslab;
+   else if(name == PRIOR_NAME_NORMALONE)
+      return PriorTypes::normalone;
    else if(name == PRIOR_NAME_NORMAL)
       return PriorTypes::normal;
    else
@@ -42,6 +44,8 @@ std::string smurff::priorTypeToString(PriorTypes type)
          return PRIOR_NAME_SPIKE_AND_SLAB;
       case PriorTypes::normal:
          return PRIOR_NAME_NORMAL;
+      case PriorTypes::normalone:
+         return PRIOR_NAME_NORMALONE;
       default:
       {
          THROWERROR("Invalid prior type");
@@ -198,6 +202,7 @@ bool Config::validate() const
       switch (pt)
       {
          case PriorTypes::normal:
+         case PriorTypes::normalone:
          case PriorTypes::spikeandslab:
          case PriorTypes::default_prior:
             if (m_sideInfo[i])

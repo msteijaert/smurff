@@ -8,7 +8,7 @@
 using namespace smurff;
 
 AdaptiveGaussianNoise::AdaptiveGaussianNoise(double sinit, double smax)
-: INoiseModel(), sn_max(smax), sn_init(sinit)
+: sn_max(smax), sn_init(sinit)
 {
 
 }
@@ -16,6 +16,8 @@ AdaptiveGaussianNoise::AdaptiveGaussianNoise(double sinit, double smax)
 //  AdaptiveGaussianNoise  ////
 void AdaptiveGaussianNoise::init(const Data* data)
 {
+   INoiseModel::init(data);
+
    var_total = data->var_total();
 
    // Var(noise) = Var(total) / (SN + 1)
@@ -23,14 +25,14 @@ void AdaptiveGaussianNoise::init(const Data* data)
    alpha_max = (sn_max + 1.0) / var_total;
 }
 
-void AdaptiveGaussianNoise::update(const Data* data, const SubModel& model)
+void AdaptiveGaussianNoise::update(const SubModel& model)
 {
-   double sumsq = data->sumsq(model);
+   double sumsq = data().sumsq(model);
 
    // (a0, b0) correspond to a prior of 1 sample of noise with full variance
    double a0 = 0.5;
    double b0 = 0.5 * var_total;
-   double aN = a0 + data->nnz() / 2.0;
+   double aN = a0 + data().nnz() / 2.0;
    double bN = b0 + sumsq / 2.0;
    alpha = rgamma(aN, 1.0 / bN);
 
@@ -38,11 +40,6 @@ void AdaptiveGaussianNoise::update(const Data* data, const SubModel& model)
    {
       alpha = alpha_max;
    }
-}
-
-double AdaptiveGaussianNoise::getAlpha()
-{
-   return alpha;
 }
 
 std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)

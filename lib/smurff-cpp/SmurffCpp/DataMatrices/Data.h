@@ -66,8 +66,8 @@ namespace smurff
 
    public:
       virtual double train_rmse(const SubModel& model) const = 0;
-      virtual void get_pnm(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) = 0;
       virtual void update_pnm(const SubModel& model, uint32_t mode) = 0;
+      virtual void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const = 0;
 
    public:
       virtual double sumsq(const SubModel& model) const = 0;

@@ -26,7 +26,7 @@
 #include <SmurffCpp/Noises/NoiseFactory.h>
 
 #include <SmurffCpp/DataMatrices/Data.h>
-#include <SmurffCpp/DataMatrices/ScarceBinaryMatrixData.h>
+#include <SmurffCpp/DataMatrices/ScarceMatrixData.h>
 #include <SmurffCpp/DataMatrices/FullMatrixData.hpp>
 #include <SmurffCpp/DataMatrices/SparseMatrixData.h>
 #include <SmurffCpp/DataMatrices/DenseMatrixData.h>
@@ -36,6 +36,8 @@
 #define APPROX_EPSILON std::numeric_limits<float>::epsilon()*100
 
 using namespace smurff;
+
+static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 
 TEST_CASE( "chol/chol_solve_t", "[chol_solve_t]" ) {
   Eigen::MatrixXd m(3,3), rhs(5,3), xopt(5,3);
@@ -92,14 +94,13 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
 
   std::shared_ptr<Result> p(new Result());
   std::shared_ptr<Model> model(new Model());
-
-  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, NoiseConfig(), false));
+  
+  std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, fixed_ncfg, false));
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(*S)));
 
   p->set(S);
 
-  NoiseConfig ncfg;
-  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+  data->setNoiseModel(NoiseFactory::create_noise_model(fixed_ncfg));
 
   data->init();
   model->init(2, PVec<>({1, 1}), ModelInitTypes::zero); //latent dimention has size 2
@@ -179,8 +180,7 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
 
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
 
-  NoiseConfig ncfg;
-  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+  data->setNoiseModel(NoiseFactory::create_noise_model(fixed_ncfg));
 
   data->init();
   REQUIRE(data->var_total() == Approx(0.25));
@@ -192,8 +192,7 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
 
   std::shared_ptr<Data> data(new DenseMatrixData(Y));
 
-  NoiseConfig ncfg;
-  data->setNoiseModel(NoiseFactory::create_noise_model(ncfg));
+  data->setNoiseModel(NoiseFactory::create_noise_model(fixed_ncfg));
 
   data->init();
   REQUIRE(data->var_total() == Approx(1.25));

@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 
 #include <SmurffCpp/Priors/NormalPrior.h>
+#include <SmurffCpp/Priors/NormalOnePrior.h>
 #include <SmurffCpp/Priors/SpikeAndSlabPrior.h>
 
 #include <SmurffCpp/Utils/Error.h>
@@ -78,6 +79,8 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
       return std::shared_ptr<NormalPrior>(new NormalPrior(session, -1));
    case PriorTypes::spikeandslab:
       return std::shared_ptr<SpikeAndSlabPrior>(new SpikeAndSlabPrior(session, -1));
+   case PriorTypes::normalone:
+      return std::shared_ptr<NormalOnePrior>(new NormalOnePrior(session, -1));
    case PriorTypes::macau:
    case PriorTypes::macauone:
       return create_macau_prior<PriorFactory>(session, mode, priorType, session->config.getSideInfo().at(mode));

@@ -281,8 +281,45 @@ if(${ENABLE_PROFILING})
     add_definitions(-DPROFILING)
 endif()
 
+
+# support for running "make test" (or alike)
+
 enable_testing()
+
+# unittests
 add_test( unittests tests )
+
+if(${EXTERNAL_DATA})
+    file(DOWNLOAD  http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm 
+            ${CMAKE_CURRENT_BINARY_DIR}/jsimm-data/chembl-IC50-346targets.mm
+            EXPECTED_HASH SHA256=10c3e1f989a7a415a585a175ed59eeaa33eff66272d47580374f26342cddaa88
+        )
+
+    file(DOWNLOAD http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-compound-feat.mm
+            ${CMAKE_CURRENT_BINARY_DIR}/jsimm-data/chembl-IC50-compound-feat.mm
+            EXPECTED_HASH SHA256=f9fe0d296272ef26872409be6991200dbf4884b0cf6c96af8892abfd2b55e3bc
+        )
+
+    file(DOWNLOAD http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-compounds.csv
+            ${CMAKE_CURRENT_BINARY_DIR}/jsimm-data/chembl-IC50-compounds.csv
+            EXPECTED_HASH SHA256=e8f045a67ee149c6100684e07920036de72583366596eb5748a79be6e3b96f7c
+        )
+
+    file(DOWNLOAD http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-proteins-uniprot.csv
+            ${CMAKE_CURRENT_BINARY_DIR}/jsimm-data/chembl-IC50-proteins-uniprot.csv
+            EXPECTED_HASH SHA256=224b1b44abcab8448b023874f4676af30d64fe651754144f9cbdc67853b76ea8
+        )
+
+    add_test(chembl_bmpf smurff --num-latent=4 --burnin=2 --nsamples=2
+        --train ${CMAKE_CURRENT_BINARY_DIR}/jsimm-data/chembl-IC50-346targets.mm
+        )
+
+    add_test(chembl_macau smurff --num-latent=4 --burnin=2 --nsamples=2
+        --train ${CMAKE_CURRENT_BINARY_DIR}/jsimm-data/chembl-IC50-346targets.mm
+        --row-features ${CMAKE_CURRENT_BINARY_DIR}/jsimm-data/chembl-IC50-compound-feat.mm
+        )
+endif()
+
 
 
 # CONFIGURE TARGETS
