@@ -1,6 +1,6 @@
 package:
   name: matrix_io
-  version: 0.1
+  version: 0.2
 
 source:
   url: https://github.com/ExaScience/smurff/archive/master.zip

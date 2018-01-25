@@ -55,7 +55,8 @@ def write_sparse_binary_matrix(filename, Y):
         (Y.col + 1).astype(np.int32, copy=False).tofile(f)
 
 def my_mmwrite(filename, Y):
-    sio.mmwrite(filename, Y, symmetry='general')
+    with open(filename, 'wb') as f:
+        sio.mmwrite(f, Y, symmetry='general')
 
 ext_map = {
         ".mtx": ( sio.mmread, my_mmwrite ),
