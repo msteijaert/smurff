@@ -12,13 +12,15 @@ requirements:
     - llvm-openmp              # [osx]
     - openblas
     - eigen3
+    - boost 
   run:
     - llvm-openmp              # [osx]
     - openblas
+    - boost 
 
 test:
     commands:
-        $PREFIX/libexec/tests
+        # OMP_NUM_THREADS=1 $PREFIX/libexec/tests
 
 
 about:
