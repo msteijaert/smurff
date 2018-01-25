@@ -10,6 +10,7 @@ import datetime
 
 parser = argparse.ArgumentParser(description='SMURFF tests')
 
+parser.add_argument('--time_cmd',  metavar='CMD', dest='time_cmd',  help='Env dir', default='time --output=time --portability')
 parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
 parser.add_argument('--data', metavar='DIR', dest='datadir', nargs=1, help='Data dir', default='data')
 parser.add_argument('--outdir',  metavar='DIR', dest='outdir', nargs=1, help='Output dir',
@@ -20,17 +21,20 @@ args.outdir = os.path.abspath(args.outdir)
 args.envdir = os.path.abspath(args.envdir)
 args.datadir = os.path.abspath(args.datadir)
 
+center_script = os.path.abspath("./center.py")
+
 args.envs = list(map(os.path.basename,glob("%s/*" % args.envdir)))
 
 defaults = {
+        'smurff'      : "smurff",
         'num_latent'  : 16,
-        'row_prior'   : "normal",
-        'col_prior'   : "normal",
-        'burnin'      : 200,
-        'nsamples'    : 500,
-        'center'      : "global",
-        'row_features': [],
-        'col_features': [],
+        'prior'       : [ "normal", "normal" ],
+        'burnin'      : 20,
+        'nsamples'    : 50,
+        'incenter'    : "global",
+        'precenter'   : "none",
+        'aux-data'    : [ [], [] ],
+        'side-info'   : [ [], [] ],
         'direct'      : True,
         'precision'   : 5.0,
         'adaptive'    : None,
@@ -54,31 +58,30 @@ def cat(fname, s):
     with open(fname, "w") as f:
         f.write(str(s))
 
+def comma_list(l, prefix = "."):
+    if not l:
+        return "none"
+
+    ret = ""
+    for i in l:
+        ret += "prefix" + "/" + l + ","
+    return ret
+
 class Test:
+    gen_count = 0
+
     def __init__(self, base, upd = {}):
         self.opts = base.copy()
         self.update(upd)
 
     def valid(self):
         opts = self.opts
-
-        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1:
-            return False
-
-        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) != 1:
-            return False
-
-        if opts["row_prior"].startswith("macau") and len(opts["col_features"]) != 0:
-            return False
-
-        if opts["col_prior"].startswith("macau") and len(opts["row_features"]) != 0:
-            return False
-
-        if (not opts["col_prior"].startswith("macau")) and opts["direct"]:
-            return False
+        for i in range(2):
+            if opts["prior"][i].startswith("macau") and opts["side-info"][i] == "none": 
+                return False
 
         return True
-
+        
 
     def update(self, upd):
         self.opts.update(upd.copy())
@@ -89,42 +92,38 @@ class Test:
     def append_one(self, name, value):
         self.opts[name].append(value)
 
-    def gen_cmd(self, outdir, env, datadir, makefile = None):
-        args = self.opts
+    def gen_cmd(self, outdir, env, args, makefile = None):
+        num_dim = len(self.opts["prior"])
+        self.opts["env"] = env
 
-        args["fulldatadir"] = os.path.join(datadir, args["datasubdir"])
+        self.opts["fulldatadir"] = os.path.join(args.datadir, self.opts["datasubdir"])
+        self.opts["prior_str"] = " ".join(self.opts["prior"])
 
-        fmt_cmd = """smurff --train={fulldatadir}/{train} --burnin={burnin} \
-        --test={fulldatadir}/{test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
-        --row-prior={row_prior} --col-prior={col_prior} --center={center} --status=stats.csv \
+        center_cmd = center_script + (" --mode={precenter} --train={fulldatadir}/{train} --test={fulldatadir}/{test}".format(**self.opts))
+
+        smurff_cmd = """{smurff} --train={train} --burnin={burnin} \
+        --test={test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
+        --prior={prior_str} --status=stats.csv \
+        --aux-data={aux-data_str} --side-info={side-info_str} \
         --save-prefix=results --save-freq=-1 --seed=1234\
         """
+    
+        for opt in ["aux-data", "side-info" ]:
+            self.opts[opt + "_str"] = ""
+            for i in range(num_dim):
+                feat = self.opts[opt][i]
+                self.opts[opt + "_str"] += comma_list(feat, self.opts["fulldatadir"]) + " "
 
-        for feat in args["row_features"]:
-            fmt_cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
-        for feat in args["col_features"]:
-            fmt_cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
+        if (self.opts["direct"]): smurff_cmd += " --direct"
 
-        if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
+        # noise arguments should come last, after aux-data!
+        if (self.opts["precision"]): smurff_cmd += " --precision={precision}"
+        if (self.opts["adaptive"]): smurff_cmd += " --adaptive={adaptive}"
 
-        # noise arguments should come last, after features!
-        if (args["precision"]): fmt_cmd = fmt_cmd + " --precision={precision}"
-        if (args["adaptive"]): fmt_cmd = fmt_cmd + " --adaptive={adaptive}"
+        smurff_cmd = smurff_cmd.format(**self.opts)
 
-        cmd = fmt_cmd.format(**args)
-
-        fmt_name = "{datasubdir}/{train}/{burnin}/{nsamples}/{num_latent}/{row_prior}/{col_prior}/{center}/"
-        fmt_name += "direct/" if (args["direct"]) else "cgsolve/"
-        if (args["precision"]): fmt_name +=  "fprec{precision}/"
-        if (args["adaptive"]): fmt_name +=  "aprec{adaptive}/"
-        fmt_name += "row"
-        for feat in args["row_features"]: fmt_name += "_%s" % (feat)
-        fmt_name += "/"
-        fmt_name += "col"
-        for feat in args["col_features"]: fmt_name += "_%s" % (feat)
-        fmt_name += "/"
-        name = fmt_name.format(**args)
-        name = name.replace(',', '')
+        name = "%03d" % Test.gen_count
+        Test.gen_count += 1
 
         fulldir = os.path.join(outdir, name)
 
@@ -132,24 +131,30 @@ class Test:
             os.makedirs(fulldir)
         except:
             print("Skipping already existing directory: %s" % fulldir)
-            print(args)
+            print(self.opts)
             return
 
         os.chdir(fulldir)
 
-        cat("args", args)
+        cat("opts", self.opts)
         cat("name", name)
         cat("env", env)
 
         cat("cmd", """
 #!/bin/bash
+
+log_exit_code() {
+    echo $? >exit_code 
+}
+trap "log_exit_code" INT TERM EXIT
+
 cd %s
+exec >stdout 2>stderr
 source activate %s
+%s
 export OMP_NUM_THREADS=1
-/usr/bin/time --output=time --portability \
-%s >stdout 2>stderr
-echo $? >exit_code
-""" % (fulldir, env, cmd))
+%s %s
+""" % (fulldir, env, center_cmd, args.time_cmd, smurff_cmd))
 
         if (makefile):
             makefile.write("run: %s/exit_code\n" % fulldir)
@@ -189,7 +194,8 @@ class TestSuite:
                 self.add_test(t, { arg_name : c })
 
     def add_centering_options(self):
-        return self.add_options("center", ("none", "global", "rows", "cols"))
+        self.add_options("precenter", ("none", "global", "rows", "cols"))
+        self.add_options("incenter", ("none", "global", "rows", "cols"))
 
     def add_noise_options(self):
         tests = self.tests
@@ -203,39 +209,42 @@ def chembl_tests(defaults):
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
             { },
-            { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
-            { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
-            { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
+            { "row_prior": "macau",        "side-info": [ [ "feat_0_0.ddm" ] , [] ] },
+            { "row_prior": "normal",       "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
+            { "col_prior": "spikeandslab", "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
     ])
 
-    chembl_tests_centering.add_centering_options()
+    # chembl_tests_centering.add_centering_options()
 
-    chembl_tests = TestSuite("chembl", chembl_defaults,
-        [
-            { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
-            { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
-            { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
-            { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-            { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-        ])
+    chembl_tests = TestSuite("chembl", chembl_defaults)
+    # chembl_tests = TestSuite("chembl", chembl_defaults,
+    #     [
+    #         { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
+    #         { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
+    #         { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
+    #         { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
+    #         { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
+    #     ])
 
     chembl_tests.add_testsuite(chembl_tests_centering)
-    chembl_tests.add_noise_options()
+    #chembl_tests.add_noise_options()
 
     chembl_tests.add_options('datasubdir',
             [
-                'chembl_58/sample1/cluster1', 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
-                'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
-                'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
+              'chembl_58/sample1/cluster1', # 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
+     #           'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
+     #           'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
             ])
 
+    # chembl_tests.add_options('smurff', ['smurff', 'mpi_smurff'])
 
     print(chembl_tests)
 
     return chembl_tests
 
-def synthetic_matrix_tests(defaults):
-    suite = TestSuite("synthetic_matrix")
+
+def synthetic_tests(defaults):
+    suite = TestSuite("synthetic")
 
     priors = [ "normal", "macau", "spikeandslab" ]
     datadirs = glob("%s/synthetic/ones*" % args.datadir)
@@ -263,69 +272,8 @@ def synthetic_matrix_tests(defaults):
     print(suite)
 
     return suite
-
-
-def synthetic_tensor_tests(defaults):
-    suite = TestSuite("synthetic_tensor")
-
-    priors = [ "normal", "macau", "spikeandslab" ]
-    datadirs = glob("%s/synthetic/ones*" % args.datadir)
-    datadirs += glob("%s/synthetic/normal*" % args.datadir)
-
-    # each datadir == 1 test
-    for d in datadirs:
-        test = suite.add_test(defaults)
-        test.update_one("datasubdir", os.path.join("synthetic", os.path.basename(d)))
-        train_file = os.path.basename(list(glob('%s/train.*dt' % d))[0])
-        test_file  = "test.sdt"
-        test.update({ 'train' : train_file, 'test' : test_file, })
-        test.update_one("row_features", [])
-        test.update_one("col_features", [])
-        for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
-        for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
-
-    suite.add_options("row_prior", priors)
-    suite.add_options("col_prior", priors)
-    suite.add_centering_options()
-    suite.add_noise_options()
-
-    suite.filter_tests()
-
-    print(suite)
-
-    return suite
-
-def synthetic_multidim_tensor_tests(defaults):
-    suite = TestSuite("synthetic_multidim_tensor")
-
-    priors = [ "normal", "spikeandslab" ]
-    datadirs = glob("%s/synthetic/normal*" % args.datadir)
-
-    # each datadir == 1 test
-    for d in datadirs:
-        test = suite.add_test(defaults)
-        test.update_one("datasubdir", os.path.join("synthetic", os.path.basename(d)))
-        train_file = os.path.basename(list(glob('%s/train.*dt' % d))[0])
-        test_file  = "test.sdt"
-        test.update({ 'train' : train_file, 'test' : test_file, })
-        test.update_one("direct",False)
-        #test.update_one("row_features", [])
-        #test.update_one("col_features", [])
-        #for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
-        #for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
-
-    suite.add_options("row_prior", priors)
-    suite.add_options("col_prior", priors)
-    suite.add_options("center", ["none"])
-    #suite.add_centering_options()
-    #suite.add_noise_options()
-
-    suite.filter_tests()
-
-    print(suite)
-
-    return suite
-
+        
+  
 def movielens_tests(defaults):
     suite = TestSuite("movielens")
     suite.add_test(defaults)
@@ -336,14 +284,27 @@ def movielens_tests(defaults):
     print(suite)
     return suite
 
+    
+  
+def jaak_tests(defaults):
+    suite = TestSuite("Jaak Simm ChEMBL")
 
+    defaults['datasubdir'] = "jaak"
+    defaults['test'] = None
+
+    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets.mm', 'test': 'chembl-IC50-346targets.mm' })
+    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets-binary.mm', 'test': 'chembl-IC50-346targets-binary.mm' })
+
+    print(suite)
+    return suite
+
+ 
 
 def all_tests(args):
 
-    all_tests = chembl_tests(defaults)
-    #all_tests.add_testsuite(synthetic_matrix_tests(defaults))
-    #all_tests.add_testsuite(synthetic_tensor_tests(defaults))
-    all_tests.add_testsuite(synthetic_multidim_tensor_tests(defaults))
+    #all_tests = chembl_tests(defaults)
+    all_tests = jaak_tests(defaults)
+    #all_tests.add_testsuite(synthetic_tests(defaults))
 
     return all_tests
 
@@ -355,13 +316,11 @@ print("%d envs" % len(args.envs))
 total_num = 0
 for env in args.envs:
     fullenv = os.path.join(args.envdir, env)
-    fulldir = os.path.join(args.outdir, env)
-    os.makedirs(fulldir)
-    makefile = open(os.path.join(fulldir, "Makefile"), "w")
+    makefile = open(os.path.join(args.outdir, "Makefile"), "w")
 
     for opts in tests:
         total_num += 1
-        opts.gen_cmd(fulldir, fullenv, args.datadir, makefile)
+        opts.gen_cmd(args.outdir, fullenv, args, makefile)
 
     makefile.close()
 
