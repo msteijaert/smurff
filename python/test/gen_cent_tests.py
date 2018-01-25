@@ -10,6 +10,7 @@ import datetime
 
 parser = argparse.ArgumentParser(description='SMURFF tests')
 
+parser.add_argument('--time_cmd',  metavar='CMD', dest='time_cmd',  help='Env dir', default='time --output=time --portability')
 parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
 parser.add_argument('--data', metavar='DIR', dest='datadir', nargs=1, help='Data dir', default='data')
 parser.add_argument('--outdir',  metavar='DIR', dest='outdir', nargs=1, help='Output dir',
@@ -27,14 +28,13 @@ args.envs = list(map(os.path.basename,glob("%s/*" % args.envdir)))
 defaults = {
         'smurff'      : "smurff",
         'num_latent'  : 16,
-        'row_prior'   : "normal",
-        'col_prior'   : "normal",
+        'prior'       : [ "normal", "normal" ],
         'burnin'      : 20,
         'nsamples'    : 50,
         'incenter'    : "global",
         'precenter'   : "none",
-        'row_features': [],
-        'col_features': [],
+        'aux-data'    : [ [], [] ],
+        'side-info'   : [ [], [] ],
         'direct'      : True,
         'precision'   : 5.0,
         'adaptive'    : None,
@@ -58,6 +58,15 @@ def cat(fname, s):
     with open(fname, "w") as f:
         f.write(str(s))
 
+def comma_list(l, prefix = "."):
+    if not l:
+        return "none"
+
+    ret = ""
+    for i in l:
+        ret += "prefix" + "/" + l + ","
+    return ret
+
 class Test:
     gen_count = 0
 
@@ -67,20 +76,9 @@ class Test:
 
     def valid(self):
         opts = self.opts
-        if opts["row_prior"].startswith("macau") and len(opts["row_features"]) != 1: 
-            return False
-
-        if opts["col_prior"].startswith("macau") and len(opts["col_features"]) != 1: 
-            return False
-
-        if opts["row_prior"].startswith("macau") and len(opts["col_features"]) != 0:
-            return False
-
-        if opts["col_prior"].startswith("macau") and len(opts["row_features"]) != 0:
-            return False
-
-        if (not opts["col_prior"].startswith("macau")) and opts["direct"]: 
-            return False
+        for i in range(2):
+            if opts["prior"][i].startswith("macau") and opts["side-info"][i] == "none": 
+                return False
 
         return True
         
@@ -94,34 +92,35 @@ class Test:
     def append_one(self, name, value):
         self.opts[name].append(value)
 
-    def gen_cmd(self, outdir, env, datadir, makefile = None):
-        args = self.opts
-        args["env"] = env
+    def gen_cmd(self, outdir, env, args, makefile = None):
+        num_dim = len(self.opts["prior"])
+        self.opts["env"] = env
 
-        args["fulldatadir"] = os.path.join(datadir, args["datasubdir"])
+        self.opts["fulldatadir"] = os.path.join(args.datadir, self.opts["datasubdir"])
+        self.opts["prior_str"] = " ".join(self.opts["prior"])
 
-        center_cmd = center_script + (" --mode={precenter} --train={fulldatadir}/{train} --test={fulldatadir}/{test}".format(**args))
+        center_cmd = center_script + (" --mode={precenter} --train={fulldatadir}/{train} --test={fulldatadir}/{test}".format(**self.opts))
 
-        fmt_cmd = """{smurff} --train={train} --burnin={burnin} \
+        smurff_cmd = """{smurff} --train={train} --burnin={burnin} \
         --test={test}  --nsamples={nsamples} --verbose=2 --num-latent={num_latent} \
-        --row-prior={row_prior} --col-prior={col_prior} --center={incenter} --status=stats.csv \
+        --prior={prior_str} --status=stats.csv \
+        --aux-data={aux-data_str} --side-info={side-info_str} \
         --save-prefix=results --save-freq=-1 --seed=1234\
         """
+    
+        for opt in ["aux-data", "side-info" ]:
+            self.opts[opt + "_str"] = ""
+            for i in range(num_dim):
+                feat = self.opts[opt][i]
+                self.opts[opt + "_str"] += comma_list(feat, self.opts["fulldatadir"]) + " "
 
-        for feat in args["row_features"]:
-            center_cmd += " --row-features=%s/%s" % (args["fulldatadir"], feat)
-            fmt_cmd += " --row-features=%s" % (feat)
-        for feat in args["col_features"]:
-            center_cmd += " --col-features=%s/%s" % (args["fulldatadir"], feat)
-            fmt_cmd += " --col-features=%s" % (feat)
+        if (self.opts["direct"]): smurff_cmd += " --direct"
 
-        if (args["direct"]): fmt_cmd = fmt_cmd + " --direct"
+        # noise arguments should come last, after aux-data!
+        if (self.opts["precision"]): smurff_cmd += " --precision={precision}"
+        if (self.opts["adaptive"]): smurff_cmd += " --adaptive={adaptive}"
 
-        # noise arguments should come last, after features!
-        if (args["precision"]): fmt_cmd = fmt_cmd + " --precision={precision}"
-        if (args["adaptive"]): fmt_cmd = fmt_cmd + " --adaptive={adaptive}"
-
-        smurff_cmd = fmt_cmd.format(**args)
+        smurff_cmd = smurff_cmd.format(**self.opts)
 
         name = "%03d" % Test.gen_count
         Test.gen_count += 1
@@ -132,12 +131,12 @@ class Test:
             os.makedirs(fulldir)
         except:
             print("Skipping already existing directory: %s" % fulldir)
-            print(args)
+            print(self.opts)
             return
 
         os.chdir(fulldir)
 
-        cat("args", args)
+        cat("opts", self.opts)
         cat("name", name)
         cat("env", env)
 
@@ -154,9 +153,8 @@ exec >stdout 2>stderr
 source activate %s
 %s
 export OMP_NUM_THREADS=1
-/usr/bin/time --output=time --portability \
-%s
-""" % (fulldir, env, center_cmd, smurff_cmd))
+%s %s
+""" % (fulldir, env, center_cmd, args.time_cmd, smurff_cmd))
 
         if (makefile):
             makefile.write("run: %s/exit_code\n" % fulldir)
@@ -211,9 +209,9 @@ def chembl_tests(defaults):
     chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
     [
             { },
-            { "row_prior": "macau",        "row_features": [ "feat_0_0.ddm" ] },
-            { "row_prior": "normal",       "row_features": [ "feat_0_0.ddm" ] },
-            { "col_prior": "spikeandslab", "row_features": [ "feat_0_0.ddm" ] },
+            { "row_prior": "macau",        "side-info": [ [ "feat_0_0.ddm" ] , [] ] },
+            { "row_prior": "normal",       "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
+            { "col_prior": "spikeandslab", "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
     ])
 
     # chembl_tests_centering.add_centering_options()
@@ -322,7 +320,7 @@ for env in args.envs:
 
     for opts in tests:
         total_num += 1
-        opts.gen_cmd(args.outdir, fullenv, args.datadir, makefile)
+        opts.gen_cmd(args.outdir, fullenv, args, makefile)
 
     makefile.close()
 
