@@ -59,7 +59,7 @@ def my_mmwrite(filename, Y):
 
 ext_map = {
         ".mtx": ( sio.mmread, my_mmwrite ),
-        ".mmm": ( sio.mmread, my_mmwrite ),
+        ".mm":  ( sio.mmread, my_mmwrite ),
         ".sbm": ( read_sparse_binary_matrix, write_sparse_binary_matrix ),
         ".sdm": ( read_sparse_float64,       write_sparse_float64 ),
         ".ddm": ( read_dense_float64,        write_dense_float64 ),
