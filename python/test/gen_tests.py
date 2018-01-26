@@ -58,14 +58,21 @@ def cat(fname, s):
     with open(fname, "w") as f:
         f.write(str(s))
 
-def comma_list(l, prefix = "."):
-    if not l:
-        return "none"
+# joins inner list by ,
+# joins outer list by space
+# added predix to every inner item
+def multi_join(l, prefix = ""):
+    print("multi_join: ", l)
+    ret = []
+    for feat in l:
+        print("  feat: ", feat)
+        if not feat:
+            ret.append("none")
+        else: 
+            ret.append(",".join([ os.path.join(prefix, f) for f in feat ]))
+        print("  ret: ", ret)
 
-    ret = ""
-    for i in l:
-        ret += "prefix" + "/" + l + ","
-    return ret
+    return " ".join(ret)
 
 class Test:
     gen_count = 0
@@ -75,10 +82,18 @@ class Test:
         self.update(upd)
 
     def valid(self):
+        print("valid?")
         opts = self.opts
-        for i in range(2):
-            if opts["prior"][i].startswith("macau") and opts["side-info"][i] == "none": 
-                return False
+        for i in range(len(opts["prior"])):
+            print(i)
+            print(opts["prior"][i])
+            print(opts["side-info"][i])
+            print(opts["aux-data"][i])
+            if opts["prior"][i].startswith("macau"): 
+                if not opts["side-info"][i]: return False
+                if opts["aux-data"][i]: return False
+            else:
+                if opts["side-info"][i]: return False
 
         return True
         
@@ -109,10 +124,7 @@ class Test:
         """
     
         for opt in ["aux-data", "side-info" ]:
-            self.opts[opt + "_str"] = ""
-            for i in range(num_dim):
-                feat = self.opts[opt][i]
-                self.opts[opt + "_str"] += comma_list(feat, self.opts["fulldatadir"]) + " "
+            self.opts[opt + "_str"] = multi_join(self.opts[opt], self.opts["fulldatadir"])
 
         if (self.opts["direct"]): smurff_cmd += " --direct"
 
@@ -121,6 +133,7 @@ class Test:
         if (self.opts["adaptive"]): smurff_cmd += " --adaptive={adaptive}"
 
         smurff_cmd = smurff_cmd.format(**self.opts)
+        print("cmd: ", smurff_cmd)
 
         name = "%03d" % Test.gen_count
         Test.gen_count += 1
@@ -143,6 +156,8 @@ class Test:
         cat("cmd", """
 #!/bin/bash
 
+set -e
+
 log_exit_code() {
     echo $? >exit_code 
 }
@@ -156,6 +171,7 @@ export OMP_NUM_THREADS=1
 %s %s
 """ % (fulldir, env, center_cmd, args.time_cmd, smurff_cmd))
 
+        os.chmod("cmd", 0o755)
         if (makefile):
             makefile.write("run: %s/exit_code\n" % fulldir)
             makefile.write("%s/exit_code:\n" % fulldir)
@@ -262,12 +278,10 @@ def synthetic_tests(defaults):
         for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
         for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
 
-    suite.add_options("row_prior", priors)
-    suite.add_options("col_prior", priors)
+    suite.add_options("prior", priors)
     suite.add_centering_options()
     suite.add_noise_options()
 
-    suite.filter_tests()
 
     print(suite)
 
@@ -292,19 +306,58 @@ def jaak_tests(defaults):
     defaults['datasubdir'] = "jaak"
     defaults['test'] = None
 
-    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets.mm', 'test': 'chembl-IC50-346targets.mm' })
-    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets-binary.mm', 'test': 'chembl-IC50-346targets-binary.mm' })
+    # chembl-IC50-100compounds-feat-dense.mm
+    # chembl-IC50-100compounds-feat.mm
+    # chembl-IC50-346targets-01.mm
+    # chembl-IC50-346targets-100compounds.mm
+    # chembl-IC50-346targets-11.mm
+    # chembl-IC50-346targets.mm
+    # chembl-IC50-compound-feat.mm
+
+    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets.mm',    'test': 'chembl-IC50-346targets.mm' })
+    suite.add_test(defaults, { 'train': 'chembl-IC50-346targets-11.mm', 'test': 'chembl-IC50-346targets-11.mm' })
 
     print(suite)
     return suite
 
  
+def builtin_tests(defaults):
+    suite = TestSuite("Hard-coded values from TestsSmurff.cpp")
+
+    defaults['datasubdir'] = "hardcoded"
+    defaults['burnin'] = 50
+    defaults['nsamples'] = 50
+    defaults['num-latent'] = 4
+
+    suite.add_test(defaults, { 'train': 'train.mtx',    'test': 'test.mtx' })
+
+    priors = [ "normal", "macau", "spikeandslab" ]
+    prior_pairs = list( itertools.product(priors, priors) )
+    suite.add_options("prior", prior_pairs)
+    
+    row_features = [ [] , ["feat_0_0.mtx"] ] 
+    col_features = [ [] , ["feat_1_0.mtx"] ]
+    feature_pairs = list( itertools.product(row_features, col_features))
+
+    row_aux = [ [] , ["aux_0_0.mtx"] ] 
+    col_aux = [ [] , ["aux_1_0.mtx"] ]
+    aux_pairs = list( itertools.product(row_aux, col_aux))
+
+    suite.add_options("aux-data", aux_pairs)
+    suite.add_options("side-info", feature_pairs)
+
+    print(suite)
+    return suite
+ 
 
 def all_tests(args):
 
-    #all_tests = chembl_tests(defaults)
-    all_tests = jaak_tests(defaults)
-    #all_tests.add_testsuite(synthetic_tests(defaults))
+    all_tests = builtin_tests(defaults)
+    # all_tests = chembl_tests(defaults)
+    # all_tests.add_testsuite(jaak_tests(defaults))
+    # all_tests.add_testsuite(synthetic_tests(defaults))
+
+    all_tests.filter_tests()
 
     return all_tests
 
