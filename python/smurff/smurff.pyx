@@ -271,7 +271,7 @@ def smurff(Y,
            aux_data       = [],
            lambda_beta    = 5.0,
            num_latent     = 10,
-           precision      = 1.0,
+           precision      = None,
            sn_init        = None,
            sn_max         = None,
            burnin         = 50,
@@ -302,6 +302,12 @@ def smurff(Y,
         nc.setNoiseType(adaptive)
         nc.sn_init = sn_init
         nc.sn_max = sn_max
+
+    if threshold:
+        nc.setNoiseType(probit)
+        nc.threshold = threshold
+        config.setThreshold(threshold)
+        config.setClassify(True)
 
     train, test = prepare_data(Y, Ytest, data_shape)
     train.get().setNoiseConfig(nc)
@@ -337,10 +343,6 @@ def smurff(Y,
     if seed:
         config.setRandomSeedSet(True)
         config.setRandomSeed(seed)
-
-    if threshold:
-        config.setThreshold(threshold)
-        config.setClassify(True)
 
     config.setVerbose(verbose)
     if quite:

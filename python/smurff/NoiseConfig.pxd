@@ -10,6 +10,9 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         double sn_init
         double sn_max
 
+        # for probit
+        double threshold
+
         NoiseConfig() except +
         void setNoiseType(NoiseTypes value)
 
