@@ -117,12 +117,12 @@ namespace smurff
    //#### dimention functions ####
    public:
       virtual int nmode() const = 0; // number of dimensions
-      virtual int nnz() const = 0; // number of non zero elements
-      virtual int nna() const = 0; // number of NA elements
+      virtual std::int64_t nnz() const = 0; // number of non zero elements
+      virtual std::int64_t nna() const = 0; // number of NA elements
       virtual PVec<> dim() const = 0; // dimension vector
 
    public:
-      int size() const; // number of all elements (dimension dot product)
+      std::int64_t size() const; // number of all elements (dimension dot product)
       int dim(int m) const; // size of dimension
 
    //#### view functions ####

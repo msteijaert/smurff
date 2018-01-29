@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <cstdint>
 
 #include "MatrixData.h"
 
@@ -27,7 +28,7 @@ namespace smurff
       }
 
       PVec<>   dim() const override { return PVec<>({ static_cast<int>(Y.rows()), static_cast<int>(Y.cols()) }); }
-      int    nnz() const override { return Y.nonZeros(); }
+      std::int64_t nnz() const override { return Y.nonZeros(); }
       double sum() const override { return Y.sum(); }
 
       double offset_to_mean(const PVec<>& pos) const override

@@ -150,7 +150,7 @@ double Data::predict(const PVec<>& pos, const SubModel& model) const
 
 //#### dimention functions ####
 
-int Data::size() const
+std::int64_t Data::size() const
 {
    return dim().dot();
 }

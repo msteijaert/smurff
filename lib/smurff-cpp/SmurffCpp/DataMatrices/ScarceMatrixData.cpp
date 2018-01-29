@@ -176,7 +176,7 @@ void ScarceMatrixData::update_pnm(const SubModel &,int)
 {
 }
 
-int ScarceMatrixData::nna() const
+std::int64_t ScarceMatrixData::nna() const
 {
    return size() - nnz();
 }
