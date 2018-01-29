@@ -16,6 +16,7 @@ class TestSmurff(unittest.TestCase):
                                 side_info=[None, None],
                                 aux_data=[[], []],
                                 num_latent=4,
+                                precision=1.0,
                                 verbose=False,
                                 burnin=50,
                                 nsamples=50)
@@ -33,6 +34,7 @@ class TestSmurff(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
+                      precision=1.0,
                       verbose=False)
 
     def test_macau(self):
@@ -47,6 +49,7 @@ class TestSmurff(unittest.TestCase):
                                 side_info=[side1, side2],
                                 aux_data=[None, None],
                                 num_latent=4,
+                                precision=1.0,
                                 verbose=False,
                                 burnin=50,
                                 nsamples=50)
@@ -65,6 +68,7 @@ class TestSmurff(unittest.TestCase):
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
+                      precision=1.0,
                       verbose=False)
 
     def test_macau_dense(self):
@@ -79,24 +83,32 @@ class TestSmurff(unittest.TestCase):
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
+                      precision=1.0,
                       verbose=False)
 
-    # def test_macau_dense_probit(self):
-    #     A = np.random.randn(25, 2)
-    #     B = np.random.randn(3, 2)
+    @unittest.skip
+    def test_macau_dense_probit(self):
+        A = np.random.randn(25, 2)
+        B = np.random.randn(3, 2)
 
-    #     idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0])) )
-    #     df  = pd.DataFrame( np.asarray(idx), columns=["A", "B"])
-    #     df["value"] = (np.array([ np.sum(A[i[0], :] * B[i[1], :]) for i in idx ]) > 0.0).astype(np.float64)
-    #     Ytrain, Ytest = macau.make_train_test_df(df, 0.2)
+        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0])) )
+        df  = pd.DataFrame( np.asarray(idx), columns=["A", "B"])
+        df["value"] = (np.array([ np.sum(A[i[0], :] * B[i[1], :]) for i in idx ]) > 0.0).astype(np.float64)
+        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-    #     results = macau.macau(Y = Ytrain, Ytest = Ytest, side=[A, None], num_latent = 4,
-    #                          verbose = False, burnin = 20, nsamples = 20,
-    #                          univariate = False, precision = "probit")
+        results = smurff.smurff(Y=Ytrain,
+                                Ytest=Ytest,
+                                priors=['macau', 'normal'],
+                                side_info=[A, None],
+                                aux_data=[None, []],
+                                num_latent=4,
+                                burnin=20,
+                                nsamples=20,
+                                threshold=0.5,
+                                verbose=False)
 
-    #     self.assertTrue( (results.prediction.columns[0:2] == ["A", "B"]).all() )
-    #     self.assertTrue(results.rmse_test > 0.55,
-    #                     msg="Probit factorization (with dense side) gave AUC below 0.55 (%f)." % results.rmse_test)
+        self.assertTrue(results.rmse > 0.55,
+                        msg="Probit factorization (with dense side) gave AUC below 0.55 (%f)." % results.rmse)
 
     def test_macau_univariate(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
@@ -111,6 +123,7 @@ class TestSmurff(unittest.TestCase):
                                 aux_data=[None, None],
                                 num_latent=4,
                                 verbose=False,
+                                precision=1.0,
                                 burnin=50,
                                 nsamples=50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
@@ -122,6 +135,7 @@ class TestSmurff(unittest.TestCase):
                           priors=['normal', 'normal', 'normal'],
                           side_info=[None, None, None],
                           aux_data=[[], [], []],
+                          precision=1.0,
                           verbose = False)
 
     def test_bpmf_emptytest(self):
@@ -133,13 +147,21 @@ class TestSmurff(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
+                      precision=1.0,
                       verbose=False)
 
-    # def test_bpmf_emptytest_probit(self):
-    #     X = scipy.sparse.rand(15, 10, 0.2)
-    #     X.data = X.data > 0.5
-    #     macau.bpmf(X, Ytest = 0, num_latent = 10, burnin=10, nsamples=15, precision="probit", verbose=False)
-    #     macau.bpmf(X, Ytest = None, num_latent = 10, burnin=10, nsamples=15, precision="probit", verbose=False)
+    def test_bpmf_emptytest_probit(self):
+        X = scipy.sparse.rand(15, 10, 0.2)
+        X.data = X.data > 0.5
+        smurff.smurff(X,
+                      priors=['normal', 'normal'],
+                      side_info=[None, None],
+                      aux_data=[[], []],
+                      num_latent=10,
+                      burnin=10,
+                      nsamples=15,
+                      threshold=0.5,
+                      verbose=False)
 
     def test_make_train_test(self):
         X = scipy.sparse.rand(15, 10, 0.2)
@@ -186,6 +208,7 @@ class TestSmurff(unittest.TestCase):
                                 side_info=[None, None, None],
                                 aux_data=[[], [], []],
                                 num_latent=4,
+                                precision=1.0,
                                 verbose=False,
                                 burnin=50,
                                 nsamples=50)
@@ -233,6 +256,7 @@ class TestSmurff(unittest.TestCase):
                                               side_info=[None, None],
                                               aux_data=[[], []],
                                               num_latent=4,
+                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
@@ -245,6 +269,7 @@ class TestSmurff(unittest.TestCase):
                                               side_info=[None, None],
                                               aux_data=[[], []],
                                               num_latent=4,
+                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
@@ -295,6 +320,7 @@ class TestSmurff(unittest.TestCase):
                                               side_info=[None, None],
                                               aux_data=[[], []],
                                               num_latent=4,
+                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
@@ -307,6 +333,7 @@ class TestSmurff(unittest.TestCase):
                                               side_info=[None, None],
                                               aux_data=[[], []],
                                               num_latent=4,
+                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
