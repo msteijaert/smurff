@@ -1,0 +1,29 @@
+package:
+  name: smurff
+  version: 0.9.2
+
+source:
+  url: https://github.com/ExaScience/smurff/archive/v0.9.2.tar.gz
+
+build:
+    number: 1
+
+requirements:
+  build:
+    - cmake
+    - wget
+    - {{ compiler('cxx') }}    # [not win]
+    - llvm-openmp              # [osx]
+    - openblas
+  run:
+    - llvm-openmp              # [osx]
+    - openblas
+
+test:
+    commands:
+        $PREFIX/libexec/tests
+
+
+about:
+  home: https://github.com/ExaScience/smurff
+  license:  MIT
