@@ -3,10 +3,12 @@ import subprocess
 from setuptools import setup
 from setuptools import Extension
 from Cython.Build import cythonize
+import numpy
+import sysconfig
 
 SOURCES = ["smurff.pyx"]
-INCLUDE_DIRS = []
-LIBRARIES = ["blas", "smurff-cpp"]
+INCLUDE_DIRS = [ numpy.get_include(), sysconfig.get_config_var("INCLUDEDIR") ]
+LIBRARIES = ["smurff-cpp", "openblas"]
 
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
