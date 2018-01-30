@@ -44,12 +44,12 @@ std::shared_ptr<INoiseModel> ILatentPrior::noise()
    return data()->noise();
 }
 
-std::shared_ptr<MatrixXd> ILatentPrior::U()
+MatrixXd &ILatentPrior::U()
 {
    return model()->U(m_mode);
 }
 
-std::shared_ptr<const MatrixXd> ILatentPrior::U() const
+const MatrixXd &ILatentPrior::U() const
 {
    return model()->U(m_mode);
 }
@@ -82,7 +82,7 @@ int ILatentPrior::num_latent() const
 
 int ILatentPrior::num_cols() const
 {
-   return model()->U(m_mode)->cols();
+   return model()->U(m_mode).cols();
 }
 
 std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
@@ -106,12 +106,12 @@ void ILatentPrior::sample_latents()
    thread_vector<MatrixXd> UUcol(MatrixXd::Zero(num_latent(), num_latent()));
 
    #pragma omp parallel for schedule(guided)
-   for(int n = 0; n < U()->cols(); n++)
+   for(int n = 0; n < U().cols(); n++)
    {
        #pragma omp task
        {
            sample_latent(n);
-           const auto& col = U()->col(n);
+           const auto& col = U().col(n);
            Ucol.local().noalias() += col;
            UUcol.local().noalias() += col * col.transpose();
        }
@@ -134,6 +134,6 @@ void ILatentPrior::restore(std::string prefix, std::string suffix)
 
 void ILatentPrior::init_Usum()
 {
-    Usum = U()->rowwise().sum();
-    UUsum = *U() * U()->transpose(); 
+    Usum = U().rowwise().sum();
+    UUsum = U() * U().transpose(); 
 }

@@ -108,8 +108,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   auto &t = p->m_predictions->at(0);
 
   // first iteration
-  *model->U(0) << 1.0, 0.0;
-  *model->U(1) << 1.0, 0.0;
+  model->U(0) << 1.0, 0.0;
+  model->U(1) << 1.0, 0.0;
 
   p->update(model, false);
 
@@ -119,8 +119,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   REQUIRE(p->rmse_avg ==     Approx(std::sqrt(std::pow(4.5 - (1.0 * 1.0 + 0.0 * 0.0) / 1, 2) / 1 )));
 
   //// second iteration
-  *model->U(0) << 2.0, 0.0;
-  *model->U(1) << 1.0, 0.0;
+  model->U(0) << 2.0, 0.0;
+  model->U(1) << 1.0, 0.0;
 
   p->update(model, false);
 
@@ -131,8 +131,8 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
 
   //// third iteration
 
-  *model->U(0) << 2.0, 0.0;
-  *model->U(1) << 3.0, 0.0;
+  model->U(0) << 2.0, 0.0;
+  model->U(1) << 3.0, 0.0;
 
   p->update(model, false);
 

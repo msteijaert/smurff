@@ -72,7 +72,7 @@ std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const M
     aXX += XX;
     std::tie(mu, lambda) = NormalOnePrior::sample_latent(d, k, aXX, yX);
 
-    auto Ucol = U()->col(d);
+    auto Ucol = U().col(d);
     double z1 = log_r(k,v) -  0.5 * (lambda * mu * mu - std::log(lambda) + log_alpha(k,v));
     double z = 1 / (1 + exp(z1));
     double p = rand_unif(0,1);

@@ -82,11 +82,11 @@ public:
 
    //used in update_prior
 
-   void sample_beta(std::shared_ptr<const Eigen::MatrixXd> U)
+   void sample_beta(const Eigen::MatrixXd &U)
    {
       // updating beta and beta_var
       const int nfeat = beta.cols();
-      const int N = U->cols();
+      const int N = U.cols();
       const int blocksize = 4;
 
       Eigen::MatrixXd Z;
@@ -95,14 +95,14 @@ public:
       for (int dstart = 0; dstart < num_latent(); dstart += blocksize)
       {
          const int dcount = std::min(blocksize, num_latent() - dstart);
-         Z.resize(dcount, U->cols());
+         Z.resize(dcount, U.cols());
 
          for (int i = 0; i < N; i++)
          {
             for (int d = 0; d < dcount; d++)
             {
                int dx = d + dstart;
-               Z(d, i) = U->operator()(dx, i) - mu(dx) - Uhat(dx, i);
+               Z(d, i) = U(dx, i) - mu(dx) - Uhat(dx, i);
             }
          }
 
@@ -133,11 +133,11 @@ public:
 
    //used in update_prior
 
-   void sample_mu_lambda(std::shared_ptr<const Eigen::MatrixXd> U)
+   void sample_mu_lambda(const Eigen::MatrixXd &U)
    {
       Eigen::MatrixXd WI(num_latent(), num_latent());
       WI.setIdentity();
-      int N = U->cols();
+      int N = U.cols();
 
       Eigen::MatrixXd Udelta(num_latent(), N);
       #pragma omp parallel for schedule(static)
@@ -145,7 +145,7 @@ public:
       {
          for (int d = 0; d < num_latent(); d++)
          {
-            Udelta(d, i) = U->operator()(d, i) - Uhat(d, i);
+            Udelta(d, i) = U(d, i) - Uhat(d, i);
          }
       }
       std::tie(mu, Lambda) = CondNormalWishart(Udelta, Eigen::VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());

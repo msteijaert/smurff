@@ -92,7 +92,7 @@ void  NormalPrior::sample_latent(int n)
    rr.noalias() += nrandn(num_latent());
    chol.matrixU().solveInPlace(rr); // solve for x: x = U^-1 * y
    
-   U()->col(n).noalias() = rr; // rr is equal to x
+   U().col(n).noalias() = rr; // rr is equal to x
 }
 
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const

@@ -42,15 +42,15 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
 
    for(size_t i = 0; i < dims.size(); ++i)
    {
-      std::shared_ptr<Eigen::MatrixXd> sample(new Eigen::MatrixXd(m_num_latent, dims[i]));
+      Eigen::MatrixXd sample(m_num_latent, dims[i]);
 
       switch(model_init_type)
       {
       case ModelInitTypes::random:
-         bmrandn(*sample);
+         bmrandn(sample);
          break;
       case ModelInitTypes::zero:
-         sample->setZero();
+         sample.setZero();
          break;
       default:
          {
@@ -70,12 +70,12 @@ double Model::predict(const PVec<> &pos) const
    return P.sum();
 }
 
-std::shared_ptr<const Eigen::MatrixXd> Model::U(uint32_t f) const
+const Eigen::MatrixXd &Model::U(uint32_t f) const
 {
    return m_samples.at(f);
 }
 
-std::shared_ptr<Eigen::MatrixXd> Model::U(uint32_t f)
+Eigen::MatrixXd &Model::U(uint32_t f)
 {
    return m_samples.at(f);
 }
@@ -102,7 +102,7 @@ ConstVMatrixIterator<Eigen::MatrixXd> Model::CVend() const
 
 Eigen::MatrixXd::ConstColXpr Model::col(int f, int i) const
 {
-   return U(f)->col(i);
+   return U(f).col(i);
 }
 
 std::uint64_t Model::nmodes() const
@@ -118,7 +118,7 @@ int Model::nlatent() const
 int Model::nsamples() const
 {
    return std::accumulate(m_samples.begin(), m_samples.end(), 0,
-      [](const int &a, const std::shared_ptr<Eigen::MatrixXd> b) { return a + b->cols(); });
+      [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); });
 }
 
 const PVec<>& Model::getDims() const
@@ -137,7 +137,7 @@ void Model::save(std::string prefix, std::string suffix)
    int i = 0;
    for(auto U : m_samples)
    {
-      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
+      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
    }
 }
 
@@ -146,7 +146,7 @@ void Model::restore(std::string prefix, std::string suffix)
    int i = 0;
    for(auto U : m_samples)
    {
-      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
+      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
    }
 }
 
@@ -161,7 +161,7 @@ std::ostream& Model::status(std::ostream &os, std::string indent) const
    Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
    
    for(std::uint64_t d = 0; d < nmodes(); ++d)
-      P *= U(d)->rowwise().norm().array();
+      P *= U(d).rowwise().norm().array();
 
    os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
    return os;
@@ -169,13 +169,13 @@ std::ostream& Model::status(std::ostream &os, std::string indent) const
 
 Eigen::MatrixXd::BlockXpr SubModel::U(int f)
 {
-   return m_model->U(f)->block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
+   return m_model->U(f).block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
 }
 
 Eigen::MatrixXd::ConstBlockXpr SubModel::U(int f) const
 {
-   std::shared_ptr<const Eigen::MatrixXd> u = m_model->U(f); //force const
-   return u->block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
+   const Eigen::MatrixXd &u = m_model->U(f); //force const
+   return u.block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
 }
 
 VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vbegin(std::uint32_t mode)

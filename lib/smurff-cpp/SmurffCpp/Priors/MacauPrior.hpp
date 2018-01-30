@@ -74,7 +74,7 @@ public:
    void update_prior() override
    {
       // residual (Uhat is later overwritten):
-      Uhat.noalias() = *U() - Uhat;
+      Uhat.noalias() = U() - Uhat;
       Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
 
       // sampling Gaussian
@@ -113,7 +113,7 @@ public:
 
       // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(lambda_beta) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
-      Eigen::MatrixXd tmp = (*U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
+      Eigen::MatrixXd tmp = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
       Ft_y = smurff::linop::A_mul_B(tmp, *Features);
       Eigen::MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
 

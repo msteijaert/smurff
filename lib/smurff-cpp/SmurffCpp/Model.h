@@ -30,7 +30,7 @@ class ConstVMatrixIterator;
 class Model : public std::enable_shared_from_this<Model>
 {
 private:
-   std::vector<std::shared_ptr<Eigen::MatrixXd> > m_samples; //vector of U matrices
+   std::vector<Eigen::MatrixXd> m_samples; //vector of U matrices
    int m_num_latent; //size of latent dimention for U matrices
    std::unique_ptr<PVec<> > m_dims; //dimentions of train data
 
@@ -48,9 +48,9 @@ public:
 
 public:
    //return f'th U matrix in the model
-   std::shared_ptr<Eigen::MatrixXd> U(uint32_t f);
+   Eigen::MatrixXd &U(uint32_t f);
 
-   std::shared_ptr<const Eigen::MatrixXd> U(uint32_t f) const;
+   const Eigen::MatrixXd &U(uint32_t f) const;
 
    //return V matrices in the model opposite to mode
    VMatrixIterator<Eigen::MatrixXd> Vbegin(std::uint32_t mode);

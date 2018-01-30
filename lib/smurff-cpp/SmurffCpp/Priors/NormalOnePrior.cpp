@@ -60,7 +60,7 @@ void NormalOnePrior::sample_latent(int d)
  
 std::pair<double,double> NormalOnePrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)
 {
-    auto Ucol = U()->col(d);
+    auto Ucol = U().col(d);
     double lambda = XX(k,k);
     double mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
     Ucol(k) = mu + randn() / sqrt(lambda);

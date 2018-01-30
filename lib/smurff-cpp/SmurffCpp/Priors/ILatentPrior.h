@@ -45,8 +45,8 @@ public:
 
    std::shared_ptr<INoiseModel> noise();
 
-   std::shared_ptr<Eigen::MatrixXd> U();
-   std::shared_ptr<const Eigen::MatrixXd> U() const;
+   Eigen::MatrixXd &U();
+   const Eigen::MatrixXd &U() const;
 
    //return V matrices in the model opposite to mode
    VMatrixIterator<Eigen::MatrixXd> Vbegin();
