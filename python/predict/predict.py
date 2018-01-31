@@ -16,7 +16,7 @@ import csv
 
 parser = argparse.ArgumentParser(description='Predict')
 parser.add_argument('--model-prefix',  metavar='PATH', dest='model_prefix', help='prefix of stored model files', required = True)
-parser.add_argument('--test',          metavar='FILE', dest='test',         help='Sparse matrix file to use for predictions', required = True)
+parser.add_argument('--test',          metavar='FILE', dest='test',         help='Sparse matrix file to use for predictions.')
 parser.add_argument('--pred-prefix',   metavar='PATH', dest='pred_prefix',  help='Output prefix for predictions', default='predict')
 args = parser.parse_args()
 print(args)
@@ -32,7 +32,7 @@ def init_results(test_file):
         results.append(r)
 
     return results
-            
+
 def predict_some(sample_iter, Us, old_results):
     assert(len(Us) == 2)
 
@@ -74,18 +74,30 @@ def find_saved_iters(prefix):
     iterations.sort()
     return iterations
 
-
 def find_Us(prefix, i):
     return [ mio.read_matrix(f) for f in sorted(glob("%s*-%d-U*-latents*" % (prefix, i))) ]
 
 iterations = find_saved_iters(args.model_prefix)
 print("Found %d models" % len(iterations))
 
-results = init_results(args.test)
-print("Found %d test items"  % len(results))
+if args.test:
+    results = init_results(args.test)
+    print("Found %d test items"  % len(results))
 
-for i in iterations:
-    Us = find_Us(args.model_prefix, i)
-    r = predict_some(i, Us, results)
-    write_results("%s-%d-predictions.csv" % ( args.pred_prefix, i ), r)
+    for i in iterations:
+        Us = find_Us(args.model_prefix, i)
+        r = predict_some(i, Us, results)
+        write_results("%s-%d-predictions.csv" % ( args.pred_prefix, i ), r)
+else:
+    models = []
+    for i in iterations:
+        Us = find_Us(args.model_prefix, i)
+        model = np.dot(Us[0].transpose(),Us[1])
+        models.append(model)
+        mio.write_matrix("%s-%d-full-predictions.ddm" % ( args.pred_prefix, i ), model)
+
+    final_pred = np.average(models, axis=0)
+    mio.write_matrix("%s-final-mean.ddm" % ( args.pred_prefix ), final_pred)
+    final_std = np.std(models, axis=0)
+    mio.write_matrix("%s-final-std.ddm" % ( args.pred_prefix ), final_std)
 
