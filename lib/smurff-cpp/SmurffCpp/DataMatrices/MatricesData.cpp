@@ -84,7 +84,7 @@ double MatricesData::var_total() const
 double MatricesData::train_rmse(const SubModel& model) const
 {
    double sum = .0;
-   int N = 0;
+   std::uint64_t N = 0;
    int count = 0;
 
    for(auto &p : blocks)
