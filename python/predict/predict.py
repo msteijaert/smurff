@@ -17,6 +17,7 @@ import csv
 parser = argparse.ArgumentParser(description='Predict')
 parser.add_argument('--model-prefix',  metavar='PATH', dest='model_prefix', help='prefix of stored model files', required = True)
 parser.add_argument('--test',          metavar='FILE', dest='test',         help='Sparse matrix file to use for predictions.')
+parser.add_argument('--full', help='Use the full prediction mode', action='store_true')
 parser.add_argument('--pred-prefix',   metavar='PATH', dest='pred_prefix',  help='Output prefix for predictions', default='predict')
 args = parser.parse_args()
 print(args)
@@ -74,13 +75,18 @@ def find_saved_iters(prefix):
     iterations.sort()
     return iterations
 
+def get_train_mean(mm_file):
+    train = mio.read_matrix(mm_file)
+    (I,J,V) = sparse.find(train)
+    return V.mean()
+
 def find_Us(prefix, i):
     return [ mio.read_matrix(f) for f in sorted(glob("%s*-%d-U*-latents*" % (prefix, i))) ]
 
 iterations = find_saved_iters(args.model_prefix)
 print("Found %d models" % len(iterations))
 
-if args.test:
+if not args.full:
     results = init_results(args.test)
     print("Found %d test items"  % len(results))
 
@@ -90,9 +96,10 @@ if args.test:
         write_results("%s-%d-predictions.csv" % ( args.pred_prefix, i ), r)
 else:
     models = []
+    global_mean = get_train_mean(args.test)
     for i in iterations:
         Us = find_Us(args.model_prefix, i)
-        model = np.dot(Us[0].transpose(),Us[1])
+        model = np.dot(Us[0].transpose(),Us[1]) + global_mean
         models.append(model)
         mio.write_matrix("%s-%d-full-predictions.ddm" % ( args.pred_prefix, i ), model)
 
