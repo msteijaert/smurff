@@ -15,6 +15,7 @@ requirements:
     - {{ compiler('cxx') }}    # [not win]
     - llvm-openmp              # [osx]
     - openblas
+    - eigen
   run:
     - llvm-openmp              # [osx]
     - openblas
