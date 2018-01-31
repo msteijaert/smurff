@@ -23,8 +23,35 @@ Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(smurff::MatrixConfig& matri
    return smurff::matrix_utils::dense_to_eigen(mc);
 }
 
-template<>
-Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(const smurff::MatrixConfig& matrixConfig)
+struct sparse_vec_iterator
+{
+  sparse_vec_iterator(const smurff::MatrixConfig& matrixConfig, int pos)
+     : config(matrixConfig), pos(pos) {}
+
+  const smurff::MatrixConfig& config;
+  int pos;
+
+  bool operator!=(const sparse_vec_iterator &other) const {
+     THROWERROR_ASSERT(&config == &other.config);
+     return pos != other.pos;
+  }
+
+  sparse_vec_iterator &operator++() { pos++; return *this; }
+
+  typedef Eigen::Triplet<double> T;
+  T v;
+
+  T* operator->() {
+     // also convert from 1-base to 0-base
+     uint32_t row = config.getRows()[pos];
+     uint32_t col = config.getCols()[pos];
+     double val = config.getValues()[pos];
+     v = T(row, col, val);
+     return &v;
+  }
+};
+
+Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen(const smurff::MatrixConfig& matrixConfig)
 {
    if(matrixConfig.isDense())
    {
@@ -32,37 +59,15 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<const smurff::
    }
 
    Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
-   std::shared_ptr<std::vector<std::uint32_t> > rowsPtr = matrixConfig.getRowsPtr();
-   std::shared_ptr<std::vector<std::uint32_t> > colsPtr = matrixConfig.getColsPtr();
-   std::shared_ptr<std::vector<double> > valuesPtr = matrixConfig.getValuesPtr();
 
-   std::vector<Eigen::Triplet<double> > eigenTriplets;
-   for (std::uint64_t i = 0; i < matrixConfig.getNNZ(); i++)
-   {
-      std::uint32_t row = rowsPtr->operator[](i);
-      std::uint32_t col = colsPtr->operator[](i);
+   sparse_vec_iterator begin(matrixConfig, 0);
+   sparse_vec_iterator end(matrixConfig, matrixConfig.getNNZ());
 
-      THROWERROR_ASSERT(row >= 0 && row < matrixConfig.getNRow());
-
-      THROWERROR_ASSERT(col >= 0 && col < matrixConfig.getNCol());
-
-      double val = valuesPtr->operator[](i);
-      eigenTriplets.push_back(Eigen::Triplet<double>(row, col, val));
-   }
-
-   THROWERROR_ASSERT(eigenTriplets.size() == matrixConfig.getNNZ());
-
-   out.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
+   out.setFromTriplets(begin, end);
 
    THROWERROR_ASSERT(out.nonZeros() == (int)matrixConfig.getNNZ());
 
    return out;
-}
-
-template<>
-Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen<smurff::MatrixConfig>(smurff::MatrixConfig& matrixConfig)
-{
-   return smurff::matrix_utils::sparse_to_eigen<const smurff::MatrixConfig>(matrixConfig);
 }
 
 Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseBinaryMatrix& in)
