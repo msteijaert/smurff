@@ -182,9 +182,9 @@ namespace smurff
          return true;
       }
 
-      int dot() const
+      std::int64_t dot() const
       {
-         return std::accumulate(m_v.begin(), m_v.begin() + m_size, 1, std::multiplies<int>());
+         return std::accumulate(m_v.begin(), m_v.begin() + m_size, 1LL, std::multiplies<std::int64_t>());
       }
 
       std::ostream& info(std::ostream& os) const

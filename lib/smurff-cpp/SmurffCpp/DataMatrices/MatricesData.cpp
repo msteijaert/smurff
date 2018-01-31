@@ -156,12 +156,12 @@ std::ostream& MatricesData::status(std::ostream& os, std::string indent) const
 
 std::uint64_t MatricesData::nnz() const
 {
-   return accumulate(0, &MatrixData::nnz);
+   return accumulate(0LL, &MatrixData::nnz);
 }
 
 std::uint64_t MatricesData::nna() const
 {
-   return accumulate(0, &MatrixData::nna);
+   return accumulate(0LL, &MatrixData::nna);
 }
 
 double MatricesData::sum() const
