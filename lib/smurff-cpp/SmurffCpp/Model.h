@@ -6,6 +6,7 @@
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/Utils/PVec.hpp>
+#include <SmurffCpp/Utils/ThreadVector.hpp>
 
 #include <SmurffCpp/Configs/Config.h>
 
@@ -33,6 +34,9 @@ private:
    std::vector<Eigen::MatrixXd> m_samples; //vector of U matrices
    int m_num_latent; //size of latent dimention for U matrices
    std::unique_ptr<PVec<> > m_dims; //dimentions of train data
+
+   // to make predictions faster
+   mutable thread_vector<Eigen::ArrayXd> Pcache;
 
 public:
    Model();

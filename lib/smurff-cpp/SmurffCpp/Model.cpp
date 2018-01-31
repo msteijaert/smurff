@@ -60,11 +60,14 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
 
       m_samples.push_back(sample);
    }
+
+   Pcache.init(ArrayXd::Ones(m_num_latent));
 }
 
 double Model::predict(const PVec<> &pos) const
 {
-   Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
+   auto &P = Pcache.local();
+   P.setOnes();
    for(uint32_t d = 0; d < nmodes(); ++d)
       P *= col(d, pos.at(d)).array();
    return P.sum();
