@@ -46,11 +46,6 @@ public:
   virtual std::ostream &status(std::ostream &os, std::string indent) const override;
 
 private:
-   // for effiency, we keep + update Ucol and UUcol by every thread
-   smurff::thread_vector<Eigen::VectorXd> Ucol;
-   smurff::thread_vector<Eigen::MatrixXd> UUcol;
-
-private:
   void initUU();
 };
 }
