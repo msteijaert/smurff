@@ -217,9 +217,12 @@ void Session::printStatus(double elapsedi)
 
    printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
 
+   // avoid computing train_rmse twice
+   double train_rmse = NAN;
+
    if (config.getVerbose() > 1)
    {
-      double train_rmse = data()->train_rmse(m_model);
+      train_rmse = data()->train_rmse(m_model);
       printf("  RMSE train: %.4f\n", train_rmse);
       printf("  Priors:\n");
 
@@ -239,7 +242,7 @@ void Session::printStatus(double elapsedi)
 
    if (config.getCsvStatus().size())
    {
-      double train_rmse = data()->train_rmse(m_model);
+      // train_rmse is printed as NAN, unless verbose > 1
       auto f = fopen(config.getCsvStatus().c_str(), "a");
       fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
                   phase.c_str(), i, from,

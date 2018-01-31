@@ -51,8 +51,8 @@ void ScarceMatrixData::getMuLambda(const SubModel& model, std::uint32_t mode, in
 
    auto &Y = this->Y(mode);
    const int num_latent = model.nlatent();
-   const int local_nnz = Y.col(n).nonZeros();
-   const int total_nnz = Y.nonZeros();
+   const std::int64_t local_nnz = Y.col(n).nonZeros();
+   const std::int64_t total_nnz = Y.nonZeros();
    auto from = Y.outerIndexPtr()[n];
    auto to = Y.outerIndexPtr()[n+1];
 

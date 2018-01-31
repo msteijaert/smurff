@@ -27,7 +27,7 @@ void Data::update(const SubModel& model)
 
 //#### dimention functions ####
 
-int Data::size() const
+std::uint64_t Data::size() const
 {
    return dim().dot();
 }

@@ -84,7 +84,7 @@ double MatricesData::var_total() const
 double MatricesData::train_rmse(const SubModel& model) const
 {
    double sum = .0;
-   int N = 0;
+   std::uint64_t N = 0;
    int count = 0;
 
    for(auto &p : blocks)
@@ -156,12 +156,12 @@ std::ostream& MatricesData::status(std::ostream& os, std::string indent) const
 
 std::uint64_t MatricesData::nnz() const
 {
-   return accumulate(0, &MatrixData::nnz);
+   return accumulate(0LL, &MatrixData::nnz);
 }
 
 std::uint64_t MatricesData::nna() const
 {
-   return accumulate(0, &MatrixData::nna);
+   return accumulate(0LL, &MatrixData::nna);
 }
 
 double MatricesData::sum() const

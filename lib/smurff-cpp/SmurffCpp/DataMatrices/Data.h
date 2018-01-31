@@ -49,7 +49,7 @@ namespace smurff
       virtual PVec<> dim() const = 0; // dimension vector
 
    public:
-      int size() const; // number of all elements (dimension dot product)
+      std::uint64_t size() const; // number of all elements (dimension dot product)
       int dim(int m) const; // size of dimension
 
    //#### view functions ####
