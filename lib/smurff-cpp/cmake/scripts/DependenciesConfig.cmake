@@ -47,7 +47,6 @@ endmacro(configure_openmp)
 
 macro(configure_blas)
   message ("Dependency check for blas...")
-  set(BLA_VENDOR "Generic")
   find_package( BLAS REQUIRED )
   message(STATUS BLAS: ${BLAS_LIBRARIES} )
 
@@ -61,7 +60,6 @@ endmacro(configure_blas)
 
 macro(configure_lapack)
   message ("Dependency check for lapack...")
-  set(BLA_VENDOR "Generic")
   find_package(LAPACK REQUIRED)
   message(STATUS LAPACK: ${LAPACK_LIBRARIES})
 
