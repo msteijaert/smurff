@@ -173,11 +173,11 @@ TEST_CASE("utils/auc","AUC ROC") {
 }
 
 TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is correctly calculated") {
-  int    rows[2] = {0, 1};
-  int    cols[2] = {0, 1};
-  double vals[2] = {1., 2.};
-  SparseDoubleMatrix S = {2,2,2,rows, cols, vals};
+  std::vector<std::uint32_t> rows = {0, 1};
+  std::vector<std::uint32_t> cols = {0, 0};
+  std::vector<double>        vals = {1., 2.};
 
+  const MatrixConfig S(2, 2, rows, cols, vals, fixed_ncfg, false);
   std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(S)));
 
   data->setNoiseModel(NoiseFactory::create_noise_model(fixed_ncfg));
