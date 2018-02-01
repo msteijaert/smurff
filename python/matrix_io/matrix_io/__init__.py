@@ -55,14 +55,33 @@ def write_sparse_binary_matrix(filename, Y):
         (Y.col + 1).astype(np.int32, copy=False).tofile(f)
 
 def my_mmwrite(filename, Y):
-    sio.mmwrite(filename, Y, symmetry='general')
+    with open(filename, 'wb') as f:
+        sio.mmwrite(f, Y, symmetry='general')
+
+
+def read_csv(filename):
+    with open(filename, 'r') as f:
+        nrow = int(f.readline())
+        ncol = int(f.readline())
+        Y = np.loadtxt(f, delimiter=',')
+        assert(Y.shape == (nrow,ncol))
+
+    return Y
+
+def write_csv(filename, Y):
+    with open(filename, 'wb') as f:
+        f.writeline(shape[0])
+        f.writeline(shape[1])
+        np.savetxt(f, delimiter=',')
+
 
 ext_map = {
-        ".mtx": ( sio.mmread, my_mmwrite ),
-        ".mmm": ( sio.mmread, my_mmwrite ),
+        ".mtx": ( sio.mmread,                my_mmwrite ),
+        ".mm":  ( sio.mmread,                my_mmwrite ),
         ".sbm": ( read_sparse_binary_matrix, write_sparse_binary_matrix ),
         ".sdm": ( read_sparse_float64,       write_sparse_float64 ),
         ".ddm": ( read_dense_float64,        write_dense_float64 ),
+        ".csv": ( read_csv,                  write_csv ),
 }
 
 def read_matrix(filename):
