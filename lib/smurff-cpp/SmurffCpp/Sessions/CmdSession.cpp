@@ -2,7 +2,9 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef HAVE_BOOST
 #include <boost/program_options.hpp>
+#endif
 
 #include "CmdSession.h"
 
@@ -44,6 +46,7 @@
 
 using namespace smurff;
 
+#ifdef HAVE_BOOST
 boost::program_options::options_description get_desc()
 {
    boost::program_options::options_description basic_desc("Basic options");
@@ -101,6 +104,7 @@ boost::program_options::options_description get_desc()
 
    return desc;
 }
+#endif
 
 void set_noise_model(Config& config, std::string noiseName, std::string optarg)
 {
@@ -155,6 +159,7 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    }
 }
 
+#ifdef HAVE_BOOST
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
    if (vm.count(PRIOR_NAME))
@@ -265,9 +270,11 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    if(vm.count(DIRECT_NAME))
       config.setDirect(true);
 }
+#endif
 
 bool parse_options(int argc, char* argv[], Config& config)
 {
+#ifdef HAVE_BOOST
    try
    {
       boost::program_options::options_description desc = get_desc();
@@ -303,6 +310,15 @@ bool parse_options(int argc, char* argv[], Config& config)
       std::cerr << ex.what() << std::endl;
       return false;
    }
+#else
+   if (argc != 2) {
+      std::cerr << "Expected single argument - ini file" << std::endl;
+      return false;
+   }
+   config.restore(argv[1]);
+
+   return true;
+#endif
 }
 
 void CmdSession::setFromArgs(int argc, char** argv)

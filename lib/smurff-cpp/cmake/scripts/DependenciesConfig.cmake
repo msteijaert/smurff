@@ -96,52 +96,50 @@ macro(configure_eigen)
 endmacro(configure_eigen)
 
 macro(configure_boost)
-  message ("Dependency check for boost...")
-  
-  set (Boost_USE_STATIC_LIBS ON)
-  set (Boost_USE_MULTITHREADED ON)
+  if(${ENABLE_BOOST})
+      message ("Dependency check for boost...")
+      
+      set (Boost_USE_STATIC_LIBS ON)
+      set (Boost_USE_MULTITHREADED ON)
 
-  # find boost random library - optional
+      # find boost random library - optional
 
-  if(${ENABLE_BOOST_RANDOM})
-    set (BOOST_COMPONENTS random)
+      if(${ENABLE_BOOST_RANDOM})
+        set (BOOST_COMPONENTS random)
 
-    FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS})
+        FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS})
 
-    if(Boost_FOUND)
-    message("Found Boost random library")
-    message("Found Boost_VERSION: ${Boost_VERSION}")
-    message("Found Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-    message("Found Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
+        if(Boost_FOUND)
+            message("Found Boost random library")
+            message("Found Boost_VERSION: ${Boost_VERSION}")
+            message("Found Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+            message("Found Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
 
-    set(BOOST_RANDOM_LIBRARIES ${Boost_LIBRARIES})
-    set(BOOST_RANDOM_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
+            set(BOOST_RANDOM_LIBRARIES ${Boost_LIBRARIES})
+            set(BOOST_RANDOM_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
 
-    add_definitions(-DUSE_BOOST_RANDOM)
-    else()
-    message("Boost random library is not found")
-    endif()
+            add_definitions(-DUSE_BOOST_RANDOM)
+        else()
+            message("Boost random library is not found")
+        endif()
+      endif()
+
+      #find boost program_options library - required
+
+      set (BOOST_COMPONENTS system 
+                            program_options)
+
+      FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
   endif()
-
-  #find boost program_options library - required
-
-  set (BOOST_COMPONENTS system 
-                        program_options)
-
-  FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 
   if(Boost_FOUND)
-  message("Found Boost_VERSION: ${Boost_VERSION}")
-  message("Found Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-  message("Found Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
+      message("Found Boost_VERSION: ${Boost_VERSION}")
+      message("Found Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+      message("Found Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
+      add_definitions(-DHAVE_BOOST)
   else()
-  message("Boost library is not found")
+      message("Boost library is not found")
   endif()
-
-
-
-
-
 endmacro(configure_boost)
 
 
