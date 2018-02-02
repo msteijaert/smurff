@@ -166,9 +166,8 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
    if (vm.count(INI_NAME)) {
       auto ini_file = vm[INI_NAME].as<std::string>();
-      THROWERROR_ASSERT_MSG(config.restore(ini_file),
-              "Could not load ini file '" + ini_file + "'";
-      
+      bool success = config.restore(ini_file);
+      THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
    }
 
    if (vm.count(PRIOR_NAME))
