@@ -6,6 +6,11 @@
 
 #include "MatrixConfig.h"
 
+#define TRAIN_NONE "none"
+#define TEST_NONE "none"
+#define SIDE_INFO_NONE "none"
+#define AUX_DATA_NONE "none"
+
 #define PRIOR_NAME_DEFAULT "default"
 #define PRIOR_NAME_MACAU "macau"
 #define PRIOR_NAME_MACAU_ONE "macauone"

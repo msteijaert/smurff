@@ -104,6 +104,7 @@ namespace smurff
 
    public:
       virtual std::ostream& info(std::ostream& os) const;
+      virtual std::ostream& save(std::ostream& os) const;
 
    public:
       virtual std::shared_ptr<Data> create(std::shared_ptr<IDataCreator> creator) const;
