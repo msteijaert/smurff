@@ -393,7 +393,7 @@ void Config::restore(std::string fname)
    m_save_freq = reader.GetInteger("", "save_freq",  0); // never
 
    //-- general
-   m_verbose = reader.GetBoolean("", "verbose",  false);
+   m_verbose = reader.GetInteger("", "verbose",  false);
    m_burnin = reader.GetInteger("", "burnin",  200);
    m_nsamples = reader.GetInteger("", "nsamples",  800);
    m_num_latent = reader.GetInteger("", "num_latent",  96);
@@ -412,6 +412,7 @@ void Config::restore(std::string fname)
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
+   m_train->setNoiseConfig(noise);
 
    //-- binary classification
    m_classify = reader.GetBoolean("", "classify",  false);
