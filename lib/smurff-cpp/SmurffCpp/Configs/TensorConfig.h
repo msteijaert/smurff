@@ -30,6 +30,9 @@ namespace smurff
       std::shared_ptr<std::vector<std::uint32_t> > m_columns;
       std::shared_ptr<std::vector<double> > m_values;
 
+   private:
+      std::string m_filename = "";
+
    protected:
       TensorConfig(bool isDense, bool isBinary, bool isScarce,
                    std::uint64_t nmodes, std::uint64_t nnz,
@@ -95,6 +98,9 @@ namespace smurff
       std::shared_ptr<std::vector<std::uint64_t> > getDimsPtr() const;
       std::shared_ptr<std::vector<std::uint32_t> > getColumnsPtr() const;
       std::shared_ptr<std::vector<double> > getValuesPtr() const;
+
+      void setFilename(const std::string &f);
+      const std::string &getFilename() const;
 
    public:
       virtual std::ostream& info(std::ostream& os) const;

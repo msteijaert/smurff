@@ -348,6 +348,15 @@ void TensorConfig::setNoiseConfig(const NoiseConfig& value)
    m_noiseConfig = value;
 }
 
+
+void TensorConfig::setFilename(const std::string &f) {
+    m_filename = f;
+}
+    
+const std::string &TensorConfig::getFilename() const {
+    return m_filename;
+}
+
 std::ostream& TensorConfig::info(std::ostream& os) const
 {
    if (!m_dims->size())

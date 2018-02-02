@@ -74,6 +74,8 @@ std::string TensorTypeToExtension(tensor_io::TensorType tensorType)
 
 std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename, bool isScarce)
 {
+   std::shared_ptr<TensorConfig> ret;
+
    TensorType tensorType = ExtensionToTensorType(filename);
    
    THROWERROR_FILE_NOT_EXIST(filename);
@@ -83,27 +85,32 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
    case tensor_io::TensorType::sdt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return tensor_io::read_sparse_float64_bin(fileStream, isScarce);
+         ret = tensor_io::read_sparse_float64_bin(fileStream, isScarce);
+         break;
       }
    case tensor_io::TensorType::sbt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return tensor_io::read_sparse_binary_bin(fileStream, isScarce);
+         ret = tensor_io::read_sparse_binary_bin(fileStream, isScarce);
+         break;
       }
    case tensor_io::TensorType::tns:
       {
          std::ifstream fileStream(filename);
-         return tensor_io::read_sparse_float64_tns(fileStream, isScarce);
+         ret = tensor_io::read_sparse_float64_tns(fileStream, isScarce);
+         break;
       }
    case tensor_io::TensorType::csv:
       {
          std::ifstream fileStream(filename);
-         return tensor_io::read_dense_float64_csv(fileStream);
+         ret = tensor_io::read_dense_float64_csv(fileStream);
+         break;
       }
    case tensor_io::TensorType::ddt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return tensor_io::read_dense_float64_bin(fileStream);
+         ret = tensor_io::read_dense_float64_bin(fileStream);
+         break;
       }
    case tensor_io::TensorType::none:
       {
@@ -114,6 +121,10 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
          THROWERROR("Unknown tensor type");
       }
    }
+
+   ret->setFilename(filename);
+
+   return ret;
 }
 
 std::shared_ptr<TensorConfig> tensor_io::read_dense_float64_bin(std::istream& in)

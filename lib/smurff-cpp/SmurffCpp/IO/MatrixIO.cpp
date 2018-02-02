@@ -86,6 +86,8 @@ std::string MatrixTypeToExtension(matrix_io::MatrixType matrixType)
 
 std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename, bool isScarce)
 {
+   std::shared_ptr<MatrixConfig> ret;
+
    MatrixType matrixType = ExtensionToMatrixType(filename);
 
    THROWERROR_FILE_NOT_EXIST(filename);
@@ -95,27 +97,32 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
    case matrix_io::MatrixType::sdm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return matrix_io::read_sparse_float64_bin(fileStream, isScarce);
+         ret = matrix_io::read_sparse_float64_bin(fileStream, isScarce);
+         break;
       }
    case matrix_io::MatrixType::sbm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return matrix_io::read_sparse_binary_bin(fileStream, isScarce);
+         ret = matrix_io::read_sparse_binary_bin(fileStream, isScarce);
+         break;
       }
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
-         return matrix_io::read_matrix_market(fileStream, isScarce);
+         ret = matrix_io::read_matrix_market(fileStream, isScarce);
+         break;
       }
    case matrix_io::MatrixType::csv:
       {
          std::ifstream fileStream(filename);
-         return matrix_io::read_dense_float64_csv(fileStream);
+         ret = matrix_io::read_dense_float64_csv(fileStream);
+         break;
       }
    case matrix_io::MatrixType::ddm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         return matrix_io::read_dense_float64_bin(fileStream);
+         ret = matrix_io::read_dense_float64_bin(fileStream);
+         break;
       }
    case matrix_io::MatrixType::none:
       {
@@ -126,6 +133,10 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
          THROWERROR("Unknown matrix type");
       }
    }
+
+   ret->setFilename(filename);
+
+   return ret;
 }
 
 std::shared_ptr<MatrixConfig> matrix_io::read_dense_float64_bin(std::istream& in)
