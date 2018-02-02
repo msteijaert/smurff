@@ -16,7 +16,7 @@ public:
 public:
    MPISession();
 
-   void run();
+   void run() override;
 
 public:
    std::shared_ptr<IPriorFactory> create_prior_factory() const override;
