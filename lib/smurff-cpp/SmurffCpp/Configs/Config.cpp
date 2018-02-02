@@ -330,13 +330,14 @@ void Config::save(std::string fname) const
    os << "threshold = " << m_threshold << std::endl;
 }
 
-void Config::restore(std::string fname)
+bool Config::restore(std::string fname)
 {
    INIReader reader(fname);
 
    if (reader.ParseError() < 0)
    {
       std::cout << "Can't load '" << fname << "'\n";
+      return false;
    }
 
    //-- test
@@ -412,10 +413,12 @@ void Config::restore(std::string fname)
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
-   m_train->setNoiseConfig(noise);
+   if (m_train) m_train->setNoiseConfig(noise);
 
    //-- binary classification
    m_classify = reader.GetBoolean("", "classify",  false);
    m_threshold = reader.GetReal("", "threshold",  .0);
+
+   return true;
 }
 

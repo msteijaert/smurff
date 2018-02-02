@@ -164,8 +164,12 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
 #ifdef HAVE_BOOST
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
-   if (vm.count(INI_NAME)) 
-      config.restore(vm[INI_NAME].as<std::string>());
+   if (vm.count(INI_NAME)) {
+      auto ini_file = vm[INI_NAME].as<std::string>();
+      THROWERROR_ASSERT_MSG(config.restore(ini_file),
+              "Could not load ini file '" + ini_file + "'";
+      
+   }
 
    if (vm.count(PRIOR_NAME))
       for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
@@ -326,9 +330,8 @@ bool parse_options(int argc, char* argv[], Config& config)
       std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
       return false;
    }
-   config.restore(argv[1]);
 
-   return true;
+   return config.restore(argv[2]);
 #endif
 }
 

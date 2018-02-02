@@ -133,7 +133,7 @@ public:
 public:
    bool validate() const;
    void save(std::string) const;
-   void restore(std::string);
+   bool restore(std::string);
 
 public:
    std::shared_ptr<TensorConfig> getTrain() const
