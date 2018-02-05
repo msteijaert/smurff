@@ -2,7 +2,9 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef HAVE_BOOST
 #include <boost/program_options.hpp>
+#endif
 
 #include "CmdSession.h"
 
@@ -39,15 +41,18 @@
 #define LAMBDA_BETA_NAME "lambda-beta"
 #define TOL_NAME "tol"
 #define DIRECT_NAME "direct"
+#define INI_NAME "ini"
 
 #define NONE_TOKEN "none"
 
 using namespace smurff;
 
+#ifdef HAVE_BOOST
 boost::program_options::options_description get_desc()
 {
    boost::program_options::options_description basic_desc("Basic options");
    basic_desc.add_options()
+     (VERSION_NAME, "print version info")
      (HELP_NAME, "show help information");
 
    boost::program_options::options_description priors_desc("Priors and side Info");
@@ -63,32 +68,32 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description general_desc("General parameters");
    general_desc.add_options()
-      (BURNIN_NAME, boost::program_options::value<int>()->default_value(200), "number of samples to discard")
-      (NSAMPLES_NAME, boost::program_options::value<int>()->default_value(800), "number of samples to collect")
-      (NUM_LATENT_NAME, boost::program_options::value<int>()->default_value(96), "number of latent dimensions")
-      (RESTORE_PREFIX_NAME, boost::program_options::value<std::string>()->default_value(std::string()), "prefix for file to initialize state")
-      (RESTORE_SUFFIX_NAME, boost::program_options::value<std::string>()->default_value(".csv"), "suffix for initialization files (.csv or .ddm)")
-      (INIT_MODEL_NAME, boost::program_options::value<std::string>()->default_value(MODEL_INIT_NAME_ZERO), "One of <random|zero>")
-      (SAVE_PREFIX_NAME, boost::program_options::value<std::string>()->default_value("save"), "prefix for result files")
-      (SAVE_SUFFIX_NAME, boost::program_options::value<std::string>()->default_value(".csv"), "suffix for result files (.csv or .ddm)")
-      (SAVE_FREQ_NAME, boost::program_options::value<int>()->default_value(0), "save every n iterations (0 == never, -1 == final model)")
+      (INI_NAME, boost::program_options::value<std::string>(), "read options from this .ini file")
+      (BURNIN_NAME, boost::program_options::value<int>(), "number of samples to discard")
+      (NSAMPLES_NAME, boost::program_options::value<int>(), "number of samples to collect")
+      (NUM_LATENT_NAME, boost::program_options::value<int>(), "number of latent dimensions")
+      (RESTORE_PREFIX_NAME, boost::program_options::value<std::string>(), "prefix for file to initialize state")
+      (RESTORE_SUFFIX_NAME, boost::program_options::value<std::string>(), "suffix for initialization files (.csv or .ddm)")
+      (INIT_MODEL_NAME, boost::program_options::value<std::string>(), "One of <random|zero>")
+      (SAVE_PREFIX_NAME, boost::program_options::value<std::string>(), "prefix for result files")
+      (SAVE_SUFFIX_NAME, boost::program_options::value<std::string>(), "suffix for result files (.csv or .ddm)")
+      (SAVE_FREQ_NAME, boost::program_options::value<int>(), "save every n iterations (0 == never, -1 == final model)")
       (THRESHOLD_NAME, boost::program_options::value<double>(), "threshold for binary classification")
-      (VERBOSE_NAME, boost::program_options::value<int>()->default_value(1), "verbose output")
+      (VERBOSE_NAME, boost::program_options::value<int>(), "verbose output")
       (QUIET_NAME, "no output")
-      (VERSION_NAME, "print version info")
-      (STATUS_NAME, boost::program_options::value<std::string>()->default_value(std::string()), "output progress to csv file")
+      (STATUS_NAME, boost::program_options::value<std::string>(), "output progress to csv file")
       (SEED_NAME, boost::program_options::value<int>(), "random number generator seed");
 
    boost::program_options::options_description noise_desc("Noise model");
    noise_desc.add_options()
-      (PRECISION_NAME, boost::program_options::value<std::string>()->default_value("5.0"), "precision of observations")
-      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value("1.0,10.0"), "adaptive precision of observations")
-      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value("0.0"), "probit noise model with given threshold");
+      (PRECISION_NAME, boost::program_options::value<std::string>(), "precision of observations")
+      (ADAPTIVE_NAME, boost::program_options::value<std::string>(), "adaptive precision of observations")
+      (PROBIT_NAME, boost::program_options::value<std::string>(), "probit noise model with given threshold");
 
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
-      (LAMBDA_BETA_NAME, boost::program_options::value<double>()->default_value(10.0), "initial value of lambda beta")
-      (TOL_NAME, boost::program_options::value<double>()->default_value(1e-6), "tolerance for CG")
+      (LAMBDA_BETA_NAME, boost::program_options::value<double>(), "initial value of lambda beta")
+      (TOL_NAME, boost::program_options::value<double>(), "tolerance for CG")
       (DIRECT_NAME, "Use Cholesky decomposition i.o. CG Solver");
 
    boost::program_options::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
@@ -101,6 +106,7 @@ boost::program_options::options_description get_desc()
 
    return desc;
 }
+#endif
 
 void set_noise_model(Config& config, std::string noiseName, std::string optarg)
 {
@@ -155,8 +161,15 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    }
 }
 
+#ifdef HAVE_BOOST
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
+   if (vm.count(INI_NAME)) {
+      auto ini_file = vm[INI_NAME].as<std::string>();
+      bool success = config.restore(ini_file);
+      THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
+   }
+
    if (vm.count(PRIOR_NAME))
       for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
          config.getPriorTypes().push_back(stringToPriorType(pr));
@@ -265,15 +278,23 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    if(vm.count(DIRECT_NAME))
       config.setDirect(true);
 }
+#endif
 
 bool parse_options(int argc, char* argv[], Config& config)
 {
+#ifdef HAVE_BOOST
    try
    {
       boost::program_options::options_description desc = get_desc();
+      boost::program_options::positional_options_description pos_desc;
+      pos_desc.add("smurff.ini", -1);
+
+      boost::program_options::command_line_parser parser{argc, argv};
+      parser.options(desc).positional(pos_desc).allow_unregistered();
+      boost::program_options::parsed_options parsed_options = parser.run();
 
       boost::program_options::variables_map vm;
-      store(parse_command_line(argc, argv, desc), vm);
+      store(parsed_options, vm);
       notify(vm);
 
       if(vm.count(HELP_NAME))
@@ -303,6 +324,14 @@ bool parse_options(int argc, char* argv[], Config& config)
       std::cerr << ex.what() << std::endl;
       return false;
    }
+#else
+   if (argc != 3 || std::string(argv[1]) != "--ini") {
+      std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
+      return false;
+   }
+
+   return config.restore(argv[2]);
+#endif
 }
 
 void CmdSession::setFromArgs(int argc, char** argv)

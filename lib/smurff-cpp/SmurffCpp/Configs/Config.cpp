@@ -7,6 +7,10 @@
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/INIReader.h>
 #include <SmurffCpp/DataMatrices/Data.h>
+#include <SmurffCpp/IO/GenericIO.h>
+#include <SmurffCpp/IO/MatrixIO.h>
+
+
 
 using namespace smurff;
 
@@ -246,60 +250,49 @@ void Config::save(std::string fname) const
    if (!m_save_freq)
       return;
 
+
    std::ofstream os(fname);
 
-   os << "# train = ";
-   m_train->info(os);
-   os << std::endl;
-
-   os << "# test = ";
-   m_test->info(os);
-   os << std::endl;
-
-   os << "# side_info" << std::endl;
-   auto print_side_info = [&os](const std::vector<std::shared_ptr<MatrixConfig> >& vec) -> void
-   {
-      os << "num_side_info = " << vec.size() << std::endl;
-
-      for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
-      {
-         os << "[" << "side_info" << sIndex << "]\n";
-         const auto& sideInfo = vec.at(sIndex);
-         if (sideInfo)
-         {
-            sideInfo->info(os);
-            os << std::endl;
-         }
-      }
+   auto print_tensor_config = [&os](const std::shared_ptr<TensorConfig> &cfg, const std::string name, int idx = -1 ) -> void {
+       os << name;
+       if (idx >= 0) os << "_" << idx;
+       os << " = ";
+       if (cfg) cfg->save(os);
+       else os << "none";
+       os << std::endl;
    };
-   print_side_info(m_sideInfo);
 
-   os << "# aux_data" << std::endl;
-   auto print_aux_data = [&os](const std::vector<std::vector<std::shared_ptr<TensorConfig> > > &vec) -> void
-   {
-      os << "num_aux_data = " << vec.size() << std::endl;
-
-      for(std::size_t sIndex = 0; sIndex < vec.size(); sIndex++)
-      {
-         os << "[" << "aux_data" << sIndex << "]\n";
-
-         auto& auxDataSet = vec.at(sIndex);
-
-         for(std::size_t adIndex = 0; adIndex < auxDataSet.size(); adIndex++)
-         {
-            os << "# " << adIndex << " ";
-            auxDataSet.at(adIndex)->info(os);
-            os << std::endl;
-         }
-      }
+   auto print_tensor_config_vector = [&os](const std::vector<std::shared_ptr<TensorConfig>> &vec, const std::string name, int idx = -1 ) -> void {
+       os << name;
+       if (idx >= 0) os << "_" << idx;
+       os << " = ";
+       if (vec.empty()) os << "none";
+       else for(const auto &cfg : vec) {
+           cfg->save(os);
+           os << ",";
+       }
+       os << std::endl;
    };
-   print_aux_data(m_auxData);
+
 
    os << "# priors" << std::endl;
    os << "num_priors = " << m_prior_types.size() << std::endl;
    for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
    {
-      os << "prior" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
+      os << "prior_" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
+   }
+
+   print_tensor_config(m_train, "train");
+   print_tensor_config(m_test , "test");
+
+   os << "# side_info" << std::endl;
+   for(std::size_t sIndex = 0; sIndex < m_sideInfo.size(); sIndex++)
+       print_tensor_config(m_sideInfo.at(sIndex), "side_info", sIndex);
+
+   os << "# aux_data" << std::endl;
+   for(std::size_t sIndex = 0; sIndex < m_auxData.size(); sIndex++)
+   {
+       print_tensor_config_vector(m_auxData.at(sIndex), "aux_data", sIndex);
    }
 
    os << "# restore" << std::endl;
@@ -317,6 +310,9 @@ void Config::save(std::string fname) const
    os << "burnin = " << m_burnin << std::endl;
    os << "nsamples = " << m_nsamples << std::endl;
    os << "num_latent = " << m_num_latent << std::endl;
+   os << "random_seed_set = " << m_random_seed_set << std::endl;
+   os << "random_seed = " << m_random_seed << std::endl;
+   os << "csv_status = " << m_csv_status << std::endl;
 
    os << "# for macau priors" << std::endl;
    os << "lambda_beta = " << m_lambda_beta << std::endl;
@@ -334,23 +330,57 @@ void Config::save(std::string fname) const
    os << "threshold = " << m_threshold << std::endl;
 }
 
-void Config::restore(std::string fname)
+bool Config::restore(std::string fname)
 {
    INIReader reader(fname);
 
    if (reader.ParseError() < 0)
    {
       std::cout << "Can't load '" << fname << "'\n";
+      return false;
    }
 
-   // -- priors
+   //-- test
+   std::string testFilename = reader.Get("", "test",  TEST_NONE);
+   if (testFilename != TEST_NONE)
+      setTest(generic_io::read_data_config(testFilename, true));
+
+   //-- train
+   std::string trainFilename = reader.Get("", "train",  TRAIN_NONE);
+   if (trainFilename != TRAIN_NONE)
+      setTrain(generic_io::read_data_config(trainFilename, true));
+
    size_t num_priors = reader.GetInteger("", "num_priors", 0);
    for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
    {
       std::stringstream ss;
-      ss << "prior" << pIndex;
+
+      // -- priors
+      ss << "prior_" << pIndex;
       std::string pName = reader.Get("", ss.str(),  PRIOR_NAME_DEFAULT);
       m_prior_types.push_back(stringToPriorType(pName));
+
+      ss << "side_info_" << pIndex;
+      std::string sideInfo = reader.Get("", ss.str(), SIDE_INFO_NONE);
+      if (sideInfo == SIDE_INFO_NONE)
+          m_sideInfo.push_back(std::shared_ptr<MatrixConfig>());
+      else
+          m_sideInfo.push_back(matrix_io::read_matrix(sideInfo, false));
+
+      ss << "aux_data_" << pIndex;
+      std::string auxDataString = reader.Get("", ss.str(), AUX_DATA_NONE);
+      m_auxData.push_back(std::vector<std::shared_ptr<TensorConfig> >());
+      auto& dimAuxData = m_auxData.back();
+
+      std::stringstream lineStream(auxDataString);
+      std::string token;
+
+      while (std::getline(lineStream, token, ','))
+      {
+          if(token == AUX_DATA_NONE) continue;
+          dimAuxData.push_back(matrix_io::read_matrix(token, false));
+      }
+
    }
 
    //-- restore
@@ -364,10 +394,13 @@ void Config::restore(std::string fname)
    m_save_freq = reader.GetInteger("", "save_freq",  0); // never
 
    //-- general
-   m_verbose = reader.GetBoolean("", "verbose",  false);
+   m_verbose = reader.GetInteger("", "verbose",  false);
    m_burnin = reader.GetInteger("", "burnin",  200);
    m_nsamples = reader.GetInteger("", "nsamples",  800);
    m_num_latent = reader.GetInteger("", "num_latent",  96);
+   m_random_seed_set = reader.GetBoolean("", "random_seed_set",  false);
+   m_random_seed = reader.GetInteger("", "random_seed",  -1);
+   m_csv_status = reader.Get("", "csv_status",  "status.csv");
 
    //-- for macau priors
    m_lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
@@ -380,10 +413,12 @@ void Config::restore(std::string fname)
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
-   m_train->setNoiseConfig(noise);
+   if (m_train) m_train->setNoiseConfig(noise);
 
    //-- binary classification
    m_classify = reader.GetBoolean("", "classify",  false);
    m_threshold = reader.GetReal("", "threshold",  .0);
+
+   return true;
 }
 
