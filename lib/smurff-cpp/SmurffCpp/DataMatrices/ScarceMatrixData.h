@@ -19,7 +19,7 @@ namespace smurff
 
       std::ostream& info(std::ostream& os, std::string indent) override;
 
-      virtual void getMuLambda(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const override;
+      void getMuLambda(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const override;
       void update_pnm(const SubModel& model, std::uint32_t mode) override;
 
       std::uint64_t nna() const override;
