@@ -10,7 +10,7 @@ import datetime
 
 parser = argparse.ArgumentParser(description='SMURFF tests')
 
-parser.add_argument('--time_cmd',  metavar='CMD', dest='time_cmd',  help='Env dir', default='time --output=time --portability')
+parser.add_argument('--time_cmd',  metavar='CMD', dest='time_cmd',  help='Env dir', default='time') # time --output=time --portability')
 parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
 parser.add_argument('--data', metavar='DIR', dest='datadir', nargs=1, help='Data dir', default='data')
 parser.add_argument('--outdir',  metavar='DIR', dest='outdir', nargs=1, help='Output dir',
