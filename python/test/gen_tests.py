@@ -27,10 +27,10 @@ args.envs = list(map(os.path.basename,glob("%s/*" % args.envdir)))
 
 defaults = {
         'smurff'      : "smurff",
-        'num_latent'  : 16,
+        'num_latent'  : 4,
         'prior'       : [ "normal", "normal" ],
-        'burnin'      : 20,
-        'nsamples'    : 50,
+        'burnin'      : 2,
+        'nsamples'    : 2,
         'incenter'    : "global",
         'precenter'   : "none",
         'aux-data'    : [ [], [] ],
@@ -62,10 +62,8 @@ def cat(fname, s):
 # joins outer list by space
 # added predix to every inner item
 def multi_join(l, prefix = ""):
-    print("multi_join: ", l)
     ret = []
     for feat in l:
-        print("  feat: ", feat)
         if not feat:
             ret.append("none")
         else: 
@@ -82,13 +80,11 @@ class Test:
         self.update(upd)
 
     def valid(self):
-        print("valid?")
         opts = self.opts
+        print(opts["prior"])
         for i in range(len(opts["prior"])):
             print(i)
-            print(opts["prior"][i])
-            print(opts["side-info"][i])
-            print(opts["aux-data"][i])
+            print(opts["side-info"])
             if opts["prior"][i].startswith("macau"): 
                 if not opts["side-info"][i]: return False
                 if opts["aux-data"][i]: return False
@@ -222,34 +218,26 @@ class TestSuite:
 
 def chembl_tests(defaults):
     chembl_defaults = defaults
-    chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
+    chembl_tests = TestSuite("chembl", chembl_defaults,
     [
             { },
-            { "row_prior": "macau",        "side-info": [ [ "feat_0_0.ddm" ] , [] ] },
-            { "row_prior": "normal",       "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
-            { "col_prior": "spikeandslab", "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
+            { "row_prior": "macau",                   "side-info": [ [ "feat_0_0.ddm" ], [] ] },
+            { "row_prior": "normal",                  "aux-data":  [ [ "feat_0_0.ddm" ], [] ] },
+            { "col_prior": "spikeandslab",            "aux-data":  [ [ "feat_0_0.ddm" ], [] ] },
+            { "row_prior": "macau",                   "side-info": [ [ "feat_0_1.sbm" ], [] ] },
+            { "row_prior": "macau", "direct": False,  "side-info": [ [ "feat_0_1.sbm" ], [] ] },
+            { "row_prior": "macauone",                "side-info": [ [ "feat_0_1.sbm" ], [] ] },
+            { "row_prior": "normal",                  "aux-data":  [ [ "feat_0_1.sbm" ], [] ] },
+            { "col_prior": "spikeandslab",            "aux-data":  [ [ "feat_0_1.sbm" ], [] ] },
     ])
 
-    # chembl_tests_centering.add_centering_options()
-
-    chembl_tests = TestSuite("chembl", chembl_defaults)
-    # chembl_tests = TestSuite("chembl", chembl_defaults,
-    #     [
-    #         { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
-    #         { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
-    #         { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
-    #         { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-    #         { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-    #     ])
-
-    chembl_tests.add_testsuite(chembl_tests_centering)
-    #chembl_tests.add_noise_options()
+    chembl_tests.add_noise_options()
 
     chembl_tests.add_options('datasubdir',
             [
-              'chembl_58/sample1/cluster1', # 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
-     #           'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
-     #           'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
+              'chembl_58/sample1/cluster1', 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
+              'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
+              'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
             ])
 
     # chembl_tests.add_options('smurff', ['smurff', 'mpi_smurff'])
@@ -352,10 +340,11 @@ def builtin_tests(defaults):
 
 def all_tests(args):
 
-    all_tests = builtin_tests(defaults)
-    # all_tests = chembl_tests(defaults)
-    # all_tests.add_testsuite(jaak_tests(defaults))
-    # all_tests.add_testsuite(synthetic_tests(defaults))
+    all_tests  = TestSuite("all_tests")
+    #all_tests.add_testsuite(builtin_tests(defaults))
+    all_tests.add_testsuite(chembl_tests(defaults))
+    #all_tests.add_testsuite(jaak_tests(defaults))
+    #all_tests.add_testsuite(synthetic_tests(defaults))
 
     all_tests.filter_tests()
 
