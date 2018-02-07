@@ -282,15 +282,13 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
 bool parse_options(int argc, char* argv[], Config& config)
 {
-#ifdef HAVE_BOOST
+   #ifdef HAVE_BOOST
    try
    {
       boost::program_options::options_description desc = get_desc();
-      boost::program_options::positional_options_description pos_desc;
-      pos_desc.add("smurff.ini", -1);
+      boost::program_options::command_line_parser parser{ argc, argv };
+      parser.options(desc);
 
-      boost::program_options::command_line_parser parser{argc, argv};
-      parser.options(desc).positional(pos_desc).allow_unregistered();
       boost::program_options::parsed_options parsed_options = parser.run();
 
       boost::program_options::variables_map vm;
@@ -324,14 +322,18 @@ bool parse_options(int argc, char* argv[], Config& config)
       std::cerr << ex.what() << std::endl;
       return false;
    }
-#else
+   #else
    if (argc != 3 || std::string(argv[1]) != "--ini") {
       std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
       return false;
    }
 
-   return config.restore(argv[2]);
-#endif
+   std::string ini_file(argv[2]);
+   bool success = config.restore(ini_file);
+   if (!success)
+      std::cout << "Could not load ini file '" + ini_file + "'" << std::endl;
+   return success;
+   #endif
 }
 
 void CmdSession::setFromArgs(int argc, char** argv)
