@@ -34,9 +34,6 @@ public:
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 
-   void save(std::string prefix, std::string suffix) override {}
-   void restore(std::string prefix, std::string suffix) override {}
-
    std::pair<double,double> sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX) override;
 
    void update_prior() override;

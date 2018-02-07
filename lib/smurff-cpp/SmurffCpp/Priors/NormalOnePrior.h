@@ -34,9 +34,6 @@ public:
    virtual ~NormalOnePrior() {}
    void init() override;
 
-   void save(std::string prefix, std::string suffix) override {}
-   void restore(std::string prefix, std::string suffix) override {}
-
    //mu in NormalPrior does not depend on column index
    //however successors of this class can override this method
    //for example in MacauPrior mu depends on Uhat.col(n)
