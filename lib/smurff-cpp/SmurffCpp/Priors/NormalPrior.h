@@ -43,7 +43,7 @@ public:
   void sample_latent(int n) override;
 
   void update_prior() override;
-  virtual std::ostream &status(std::ostream &os, std::string indent) const override;
+  std::ostream &status(std::ostream &os, std::string indent) const override;
 
 private:
   void initUU();

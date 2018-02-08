@@ -42,15 +42,15 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
 
    for(size_t i = 0; i < dims.size(); ++i)
    {
-      Eigen::MatrixXd sample(m_num_latent, dims[i]);
+      std::shared_ptr<Eigen::MatrixXd> sample(new Eigen::MatrixXd(m_num_latent, dims[i]));
 
       switch(model_init_type)
       {
       case ModelInitTypes::random:
-         bmrandn(sample);
+         bmrandn(*sample);
          break;
       case ModelInitTypes::zero:
-         sample.setZero();
+         sample->setZero();
          break;
       default:
          {
@@ -75,12 +75,12 @@ double Model::predict(const PVec<> &pos) const
 
 const Eigen::MatrixXd &Model::U(uint32_t f) const
 {
-   return m_samples.at(f);
+   return *m_samples.at(f);
 }
 
 Eigen::MatrixXd &Model::U(uint32_t f)
 {
-   return m_samples.at(f);
+   return *m_samples.at(f);
 }
 
 VMatrixIterator<Eigen::MatrixXd> Model::Vbegin(std::uint32_t mode)
@@ -121,7 +121,7 @@ int Model::nlatent() const
 int Model::nsamples() const
 {
    return std::accumulate(m_samples.begin(), m_samples.end(), 0,
-      [](const int &a, const Eigen::MatrixXd &b) { return a + b.cols(); });
+      [](const int &a, const std::shared_ptr<Eigen::MatrixXd> &b) { return a + b->cols(); });
 }
 
 const PVec<>& Model::getDims() const
@@ -140,7 +140,7 @@ void Model::save(std::string prefix, std::string suffix)
    int i = 0;
    for(auto U : m_samples)
    {
-      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
+      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
    }
 }
 
@@ -149,7 +149,7 @@ void Model::restore(std::string prefix, std::string suffix)
    int i = 0;
    for(auto U : m_samples)
    {
-      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, U);
+      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
    }
 }
 

@@ -31,7 +31,7 @@ class ConstVMatrixIterator;
 class Model : public std::enable_shared_from_this<Model>
 {
 private:
-   std::vector<Eigen::MatrixXd> m_samples; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_samples; //vector of U matrices
    int m_num_latent; //size of latent dimention for U matrices
    std::unique_ptr<PVec<> > m_dims; //dimentions of train data
 

@@ -10,7 +10,7 @@ import datetime
 
 parser = argparse.ArgumentParser(description='SMURFF tests')
 
-parser.add_argument('--time_cmd',  metavar='CMD', dest='time_cmd',  help='Env dir', default='time --output=time --portability')
+parser.add_argument('--time_cmd',  metavar='CMD', dest='time_cmd',  help='Env dir', default='time') # time --output=time --portability')
 parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
 parser.add_argument('--data', metavar='DIR', dest='datadir', nargs=1, help='Data dir', default='data')
 parser.add_argument('--outdir',  metavar='DIR', dest='outdir', nargs=1, help='Output dir',
@@ -27,10 +27,10 @@ args.envs = list(map(os.path.basename,glob("%s/*" % args.envdir)))
 
 defaults = {
         'smurff'      : "smurff",
-        'num_latent'  : 16,
+        'num_latent'  : 4,
         'prior'       : [ "normal", "normal" ],
-        'burnin'      : 20,
-        'nsamples'    : 50,
+        'burnin'      : 2,
+        'nsamples'    : 2,
         'incenter'    : "global",
         'precenter'   : "none",
         'aux-data'    : [ [], [] ],
@@ -62,10 +62,8 @@ def cat(fname, s):
 # joins outer list by space
 # added predix to every inner item
 def multi_join(l, prefix = ""):
-    print("multi_join: ", l)
     ret = []
     for feat in l:
-        print("  feat: ", feat)
         if not feat:
             ret.append("none")
         else: 
@@ -82,13 +80,11 @@ class Test:
         self.update(upd)
 
     def valid(self):
-        print("valid?")
         opts = self.opts
+        print(opts["prior"])
         for i in range(len(opts["prior"])):
             print(i)
-            print(opts["prior"][i])
-            print(opts["side-info"][i])
-            print(opts["aux-data"][i])
+            print(opts["side-info"])
             if opts["prior"][i].startswith("macau"): 
                 if not opts["side-info"][i]: return False
                 if opts["aux-data"][i]: return False
@@ -222,34 +218,26 @@ class TestSuite:
 
 def chembl_tests(defaults):
     chembl_defaults = defaults
-    chembl_tests_centering = TestSuite("chembl w/ centering", chembl_defaults,
+    chembl_tests = TestSuite("chembl", chembl_defaults,
     [
             { },
-            { "row_prior": "macau",        "side-info": [ [ "feat_0_0.ddm" ] , [] ] },
-            { "row_prior": "normal",       "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
-            { "col_prior": "spikeandslab", "aux-data":  [ [ "feat_0_0.ddm" ] , [] ] },
+            { "row_prior": "macau",                   "side-info": [ [ "feat_0_0.ddm" ], [] ] },
+            { "row_prior": "normal",                  "aux-data":  [ [ "feat_0_0.ddm" ], [] ] },
+            { "col_prior": "spikeandslab",            "aux-data":  [ [ "feat_0_0.ddm" ], [] ] },
+            { "row_prior": "macau",                   "side-info": [ [ "feat_0_1.sbm" ], [] ] },
+            { "row_prior": "macau", "direct": False,  "side-info": [ [ "feat_0_1.sbm" ], [] ] },
+            { "row_prior": "macauone",                "side-info": [ [ "feat_0_1.sbm" ], [] ] },
+            { "row_prior": "normal",                  "aux-data":  [ [ "feat_0_1.sbm" ], [] ] },
+            { "col_prior": "spikeandslab",            "aux-data":  [ [ "feat_0_1.sbm" ], [] ] },
     ])
 
-    # chembl_tests_centering.add_centering_options()
-
-    chembl_tests = TestSuite("chembl", chembl_defaults)
-    # chembl_tests = TestSuite("chembl", chembl_defaults,
-    #     [
-    #         { "row_prior": "macau",        "row_features": [ "feat_0_1.sbm" ] },
-    #         { "row_prior": "macau", "direct": False,  "row_features": [ "feat_0_1.sbm" ]},
-    #         { "row_prior": "macauone",     "row_features": [ "feat_0_1.sbm" ] },
-    #         { "row_prior": "normal", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-    #         { "col_prior": "spikeandslab", "center": "none", "row_features": [ "feat_0_1.sbm" ] },
-    #     ])
-
-    chembl_tests.add_testsuite(chembl_tests_centering)
-    #chembl_tests.add_noise_options()
+    chembl_tests.add_noise_options()
 
     chembl_tests.add_options('datasubdir',
             [
-              'chembl_58/sample1/cluster1', # 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
-     #           'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
-     #           'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
+              'chembl_58/sample1/cluster1', 'chembl_58/sample1/cluster2', 'chembl_58/sample1/cluster3',
+              'chembl_58/sample2/cluster1', 'chembl_58/sample2/cluster2', 'chembl_58/sample2/cluster3',
+              'chembl_58/sample3/cluster1', 'chembl_58/sample3/cluster2', 'chembl_58/sample3/cluster3',
             ])
 
     # chembl_tests.add_options('smurff', ['smurff', 'mpi_smurff'])
@@ -262,7 +250,6 @@ def chembl_tests(defaults):
 def synthetic_tests(defaults):
     suite = TestSuite("synthetic")
 
-    priors = [ "normal", "macau", "spikeandslab" ]
     datadirs = glob("%s/synthetic/ones*" % args.datadir)
     datadirs += glob("%s/synthetic/normal*" % args.datadir)
 
@@ -278,7 +265,10 @@ def synthetic_tests(defaults):
         for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
         for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
 
-    suite.add_options("prior", priors)
+    priors = [ "normal", "macau", "spikeandslab" ]
+    prior_pairs = list( itertools.product(priors, priors) )
+    suite.add_options("prior", prior_pairs)
+ 
     suite.add_centering_options()
     suite.add_noise_options()
 
@@ -305,14 +295,6 @@ def jaak_tests(defaults):
 
     defaults['datasubdir'] = "jaak"
     defaults['test'] = None
-
-    # chembl-IC50-100compounds-feat-dense.mm
-    # chembl-IC50-100compounds-feat.mm
-    # chembl-IC50-346targets-01.mm
-    # chembl-IC50-346targets-100compounds.mm
-    # chembl-IC50-346targets-11.mm
-    # chembl-IC50-346targets.mm
-    # chembl-IC50-compound-feat.mm
 
     suite.add_test(defaults, { 'train': 'chembl-IC50-346targets.mm',    'test': 'chembl-IC50-346targets.mm' })
     suite.add_test(defaults, { 'train': 'chembl-IC50-346targets-11.mm', 'test': 'chembl-IC50-346targets-11.mm' })
@@ -352,11 +334,11 @@ def builtin_tests(defaults):
 
 def all_tests(args):
 
-    all_tests = jaak_tests(defaults)
-    #all_tests = builtin_tests(defaults)
-    # all_tests = chembl_tests(defaults)
-    # all_tests.add_testsuite(jaak_tests(defaults))
-    # all_tests.add_testsuite(synthetic_tests(defaults))
+    all_tests  = TestSuite("all_tests")
+    all_tests.add_testsuite(builtin_tests(defaults))
+    #all_tests.add_testsuite(chembl_tests(defaults))
+    all_tests.add_testsuite(jaak_tests(defaults))
+    all_tests.add_testsuite(synthetic_tests(defaults))
 
     all_tests.filter_tests()
 
