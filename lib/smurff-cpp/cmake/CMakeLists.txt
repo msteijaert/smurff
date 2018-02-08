@@ -9,7 +9,7 @@ MESSAGE("smurff")
 # OPTIONS
 
 OPTION(ENABLE_BLAS "Enable BLAS library" OFF)
-OPTION(ENABLE_LAPACK "Enable LAPACK library" OFF)
+OPTION(ENABLE_LAPACK "Enable LAPACK library" ON)
 OPTION(ENABLE_OPENBLAS "Enable OPENBLAS library" OFF)
 
 OPTION(ENABLE_PROFILING "Enable performance counters" OFF)
