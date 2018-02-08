@@ -352,7 +352,8 @@ def builtin_tests(defaults):
 
 def all_tests(args):
 
-    all_tests = builtin_tests(defaults)
+    all_tests = jaak_tests(defaults)
+    #all_tests = builtin_tests(defaults)
     # all_tests = chembl_tests(defaults)
     # all_tests.add_testsuite(jaak_tests(defaults))
     # all_tests.add_testsuite(synthetic_tests(defaults))

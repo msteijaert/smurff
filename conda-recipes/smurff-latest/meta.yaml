@@ -10,12 +10,11 @@ requirements:
     - cmake
     - {{ compiler('cxx') }}    # [not win]
     - llvm-openmp              # [osx]
-    - openblas
     - eigen3
     - boost 
+    - numpy
   run:
     - llvm-openmp              # [osx]
-    - openblas
     - boost 
 
 test:
