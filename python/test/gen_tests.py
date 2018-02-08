@@ -250,7 +250,6 @@ def chembl_tests(defaults):
 def synthetic_tests(defaults):
     suite = TestSuite("synthetic")
 
-    priors = [ "normal", "macau", "spikeandslab" ]
     datadirs = glob("%s/synthetic/ones*" % args.datadir)
     datadirs += glob("%s/synthetic/normal*" % args.datadir)
 
@@ -266,7 +265,10 @@ def synthetic_tests(defaults):
         for f in glob('%s/feat_0_*ddm' % d): test.append_one("row_features", os.path.basename(f))
         for f in glob('%s/feat_1_*ddm' % d): test.append_one("col_features", os.path.basename(f))
 
-    suite.add_options("prior", priors)
+    priors = [ "normal", "macau", "spikeandslab" ]
+    prior_pairs = list( itertools.product(priors, priors) )
+    suite.add_options("prior", prior_pairs)
+ 
     suite.add_centering_options()
     suite.add_noise_options()
 
@@ -293,14 +295,6 @@ def jaak_tests(defaults):
 
     defaults['datasubdir'] = "jaak"
     defaults['test'] = None
-
-    # chembl-IC50-100compounds-feat-dense.mm
-    # chembl-IC50-100compounds-feat.mm
-    # chembl-IC50-346targets-01.mm
-    # chembl-IC50-346targets-100compounds.mm
-    # chembl-IC50-346targets-11.mm
-    # chembl-IC50-346targets.mm
-    # chembl-IC50-compound-feat.mm
 
     suite.add_test(defaults, { 'train': 'chembl-IC50-346targets.mm',    'test': 'chembl-IC50-346targets.mm' })
     suite.add_test(defaults, { 'train': 'chembl-IC50-346targets-11.mm', 'test': 'chembl-IC50-346targets-11.mm' })
@@ -341,10 +335,10 @@ def builtin_tests(defaults):
 def all_tests(args):
 
     all_tests  = TestSuite("all_tests")
-    #all_tests.add_testsuite(builtin_tests(defaults))
-    all_tests.add_testsuite(chembl_tests(defaults))
-    #all_tests.add_testsuite(jaak_tests(defaults))
-    #all_tests.add_testsuite(synthetic_tests(defaults))
+    all_tests.add_testsuite(builtin_tests(defaults))
+    #all_tests.add_testsuite(chembl_tests(defaults))
+    all_tests.add_testsuite(jaak_tests(defaults))
+    all_tests.add_testsuite(synthetic_tests(defaults))
 
     all_tests.filter_tests()
 
