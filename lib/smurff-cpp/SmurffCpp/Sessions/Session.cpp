@@ -22,7 +22,6 @@ void Session::setFromConfig(const Config& cfg)
    // assign config
 
    cfg.validate();
-   cfg.save(cfg.getSavePrefix() + ".ini");
    config = cfg;
 
    std::shared_ptr<Session> this_session = shared_from_this();
@@ -100,6 +99,10 @@ void Session::init()
 
 void Session::run()
 {
+   std::string configPath = getOptionsFileName();
+   config.save(configPath);
+   appendToRootFile("options", configPath, true);
+
    init();
    while (iter < config.getBurnin() + config.getNSamples())
       step();
@@ -170,12 +173,13 @@ void Session::save(int isample)
    if (config.getSaveFreq() < 0 && isample < config.getNSamples()) //do not save if (final model) mode is selected and not a final iteration
       return;
 
-   std::string fprefix = config.getSavePrefix() + "-sample-" + std::to_string(isample);
+   std::string fprefix = getSamplePrefix(isample);
 
    if (config.getVerbose())
       printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.getSaveSuffix().c_str());
 
-   BaseSession::save(fprefix, config.getSaveSuffix());
+   std::string stepFile = BaseSession::save(fprefix, config.getSaveSuffix());
+   appendToRootFile("step_" + std::to_string(isample), stepFile, false);
 }
 
 void Session::printStatus(double elapsedi)
@@ -254,4 +258,34 @@ void Session::printStatus(double elapsedi)
 std::shared_ptr<IPriorFactory> Session::create_prior_factory() const
 {
    return std::make_shared<PriorFactory>();
+}
+
+void Session::appendToRootFile(std::string tag, std::string value, bool truncate) const
+{
+   std::string configPath = getRootFileName();
+
+   std::ofstream rootFile;
+
+   if(truncate)
+      rootFile.open(configPath, std::ios::out | std::ios::trunc);
+   else
+      rootFile.open(configPath, std::ios::out | std::ios::app);
+
+   rootFile << tag << " = " << value << std::endl;
+   rootFile.close();
+}
+
+std::string Session::getOptionsFileName() const
+{
+   return config.getSavePrefix() + "-options.ini";
+}
+
+std::string Session::getSamplePrefix(int isample) const
+{
+   return config.getSavePrefix() + "-sample-" + std::to_string(isample);
+}
+
+std::string Session::getRootFileName() const
+{
+   return config.getSavePrefix() + "-root.ini";
 }

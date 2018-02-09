@@ -47,6 +47,15 @@ private:
    void save(int isample);
    void printStatus(double elapsedi);
 
+private:
+   void appendToRootFile(std::string tag, std::string item, bool truncate) const;
+
+   std::string getOptionsFileName() const;
+
+   std::string getSamplePrefix(int isample) const;
+
+   std::string getRootFileName() const;
+
 public:
    virtual std::shared_ptr<IPriorFactory> create_prior_factory() const;
 };

@@ -1,5 +1,7 @@
 #include "BaseSession.h"
 
+#include <fstream>
+
 #include <SmurffCpp/Priors/ILatentPrior.h>
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
@@ -46,12 +48,48 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent)
    return os;
 }
 
-void BaseSession::save(std::string prefix, std::string suffix)
+std::string BaseSession::save(std::string prefix, std::string suffix)
 {
-   m_model->save(prefix, suffix);
-   m_pred->save(prefix);
+   std::vector<std::string> modelPaths;
+   m_model->save(prefix, suffix, modelPaths);
+
+   std::string predPath = m_pred->save(prefix);
+
+   std::vector<std::string> priorPaths;
    for(auto &p : m_priors)
-      p->save(prefix, suffix);
+   {
+      std::string priorPath = p->save(prefix, suffix);
+      priorPaths.push_back(priorPath);
+   }
+
+   std::string stepFilePath = getRootFileName(prefix + "-step.ini");
+
+   std::ofstream stepFile;
+   stepFile.open(stepFilePath);
+
+   stepFile << "#models" << std::endl;
+   stepFile << "num_models = " << modelPaths.size() << std::endl;
+
+   std::int32_t mIndex = 0;
+   for (auto m : modelPaths)
+   {
+      stepFile << "model_" << mIndex++ << " = " << m << std::endl;
+   }
+
+   stepFile << "#priors" << std::endl;
+   stepFile << "num_priors = " << priorPaths.size() << std::endl;
+
+   std::int32_t pIndex = 0;
+   for (auto p : priorPaths)
+   {
+      stepFile << "model_" << pIndex++ << " = " << p << std::endl;
+   }
+
+   stepFile << "#predictions" << std::endl;
+   stepFile << "prediction = " << predPath << std::endl;
+
+   stepFile.close();
+   return stepFilePath;
 }
 
 void BaseSession::restore(std::string prefix, std::string suffix)
@@ -74,4 +112,9 @@ double BaseSession::getRmseAvg()
 MatrixConfig BaseSession::getSample(int mode)
 {
    THROWERROR_NOTIMPL_MSG("getSample is unimplemented");
+}
+
+std::string BaseSession::getRootFileName(std::string prefix) const
+{
+   return prefix + "-step.ini";
 }

@@ -135,21 +135,23 @@ SubModel Model::full()
    return this_model;
 }
 
-void Model::save(std::string prefix, std::string suffix)
+void Model::save(std::string prefix, std::string extension, std::vector<std::string>& paths)
 {
-   int i = 0;
-   for(auto U : m_samples)
+   std::int32_t i = 0;
+   for (auto U : m_samples)
    {
-      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
+      std::string path = getModelFileName(prefix, extension, i++);
+      smurff::matrix_io::eigen::write_matrix(path, *U);
+      paths.push_back(path);
    }
 }
 
-void Model::restore(std::string prefix, std::string suffix)
+void Model::restore(std::string prefix, std::string extension)
 {
    int i = 0;
    for(auto U : m_samples)
    {
-      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
+      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + extension, *U);
    }
 }
 
@@ -169,6 +171,12 @@ std::ostream& Model::status(std::ostream &os, std::string indent) const
    os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
    return os;
 }
+
+std::string Model::getModelFileName(std::string prefix, std::string extension, std::int32_t index) const
+{
+   return prefix + "-U" + std::to_string(index) + "-latents" + extension;
+}
+
 
 Eigen::MatrixXd::BlockXpr SubModel::U(int f)
 {

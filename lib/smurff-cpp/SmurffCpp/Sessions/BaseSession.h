@@ -66,7 +66,7 @@ public:
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);
 
-   void save(std::string prefix, std::string suffix);
+   std::string save(std::string prefix, std::string suffix);
 
    void restore(std::string prefix, std::string suffix);
 
@@ -74,6 +74,9 @@ public:
    std::shared_ptr<std::vector<ResultItem> > getResult() override;
    MatrixConfig getSample(int dim) override;
    double getRmseAvg() override;
+
+private:
+   std::string getRootFileName(std::string prefix) const;
 };
 
 }

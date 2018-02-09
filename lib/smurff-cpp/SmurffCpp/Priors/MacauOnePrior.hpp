@@ -191,16 +191,17 @@ public:
    {
    }
 
-   void save(std::string prefix, std::string suffix) override
+   std::string save(std::string prefix, std::string extension) override
    {
-      prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, beta);
+      std::string path = NormalOnePrior::save(prefix, extension);
+      smurff::matrix_io::eigen::write_matrix(path, beta);
+      return path;
    }
 
-   void restore(std::string prefix, std::string suffix) override
+   void restore(std::string prefix, std::string extension) override
    {
       prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, beta);
+      smurff::matrix_io::eigen::read_matrix(prefix + "-link" + extension, beta);
    }
 
    std::ostream &status(std::ostream &os, std::string indent) const override

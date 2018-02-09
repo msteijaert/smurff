@@ -71,17 +71,17 @@ void Result::init()
 }
 
 //--- output model to files
-void Result::save(std::string prefix)
+std::string Result::save(std::string prefix)
 {
    if (!m_predictions || m_predictions->empty())
-      return;
+      return std::string();
 
-   std::string fname_pred = prefix + "-predictions.csv";
+   std::string fname_pred = getPredFileName(prefix);
    std::ofstream predfile;
    predfile.open(fname_pred);
 
    for(size_t d = 0; d < m_dims.size(); d++)
-      predfile << "c" << d << ",";
+      predfile << "coord" << d << ",";
 
    predfile << "y,pred_1samp,pred_avg,var,std" << std::endl;
 
@@ -97,6 +97,8 @@ void Result::save(std::string prefix)
    }
 
    predfile.close();
+
+   return fname_pred;
 }
 
 ///--- update RMSE and AUC
@@ -211,6 +213,11 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
    }
 
    return os;
+}
+
+std::string Result::getPredFileName(std::string prefix) const
+{
+   return prefix + "-predictions.csv";
 }
 
 //macau ProbitNoise eval

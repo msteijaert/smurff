@@ -67,7 +67,7 @@ struct Result
    // general
 
 public:
-   void save(std::string fname_prefix);
+   std::string save(std::string fname_prefix);
 
 private:
    void init();
@@ -84,6 +84,8 @@ public:
    {
       threshold = t; classify = true;
    }
+
+   std::string getPredFileName(std::string prefix) const;
 };
 
 }; // end namespace smurff

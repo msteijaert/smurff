@@ -63,7 +63,7 @@ public:
    const Eigen::VectorXd& getUsum() { return Usum; } 
    const Eigen::MatrixXd& getUUsum()  { return UUsum; }
 
-   virtual void save(std::string prefix, std::string suffix);
+   virtual std::string save(std::string prefix, std::string suffix);
    virtual void restore(std::string prefix, std::string suffix);
    virtual std::ostream &info(std::ostream &os, std::string indent);
    virtual std::ostream &status(std::ostream &os, std::string indent) const = 0;
@@ -86,5 +86,8 @@ public:
    {
       m_mode = value;
    }
+
+protected:
+   std::string getPriorFileName(std::string prefix, std::string extension) const;
 };
 }

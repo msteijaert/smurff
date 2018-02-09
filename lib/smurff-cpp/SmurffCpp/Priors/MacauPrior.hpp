@@ -146,18 +146,18 @@ public:
       tol = t;
    }
 
-   void save(std::string prefix, std::string suffix) override
+   std::string save(std::string prefix, std::string extension) override
    {
-      NormalPrior::save(prefix, suffix);
-      prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, this->beta);
+      std::string path = NormalPrior::save(prefix, extension);
+      smurff::matrix_io::eigen::write_matrix(path, this->beta);
+      return path;
    }
 
-   void restore(std::string prefix, std::string suffix) override
+   void restore(std::string prefix, std::string extension) override
    {
-      NormalPrior::restore(prefix, suffix);
+      NormalPrior::restore(prefix, extension);
       prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, this->beta);
+      smurff::matrix_io::eigen::read_matrix(prefix + "-link" + extension, this->beta);
    }
 
 private:

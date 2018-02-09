@@ -123,11 +123,12 @@ void ILatentPrior::sample_latents()
    update_prior();
 }
 
-void ILatentPrior::save(std::string prefix, std::string suffix)
+std::string ILatentPrior::save(std::string prefix, std::string extension)
 {
+   return getPriorFileName(prefix, extension);
 }
 
-void ILatentPrior::restore(std::string prefix, std::string suffix)
+void ILatentPrior::restore(std::string prefix, std::string extension)
 {
     init_Usum();
 }
@@ -136,4 +137,9 @@ void ILatentPrior::init_Usum()
 {
     Usum = U().rowwise().sum();
     UUsum = U() * U().transpose(); 
+}
+
+std::string ILatentPrior::getPriorFileName(std::string prefix, std::string extension) const
+{
+   return prefix + "-F" + std::to_string(m_mode) + "-link" + extension;
 }
