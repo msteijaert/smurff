@@ -106,7 +106,6 @@ void StepFile::save(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, 
 
    //save priors
 
-   std::uint64_t pIndex = 0;
    for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
    {
       std::string priorPath = getPriorFileName(priors.at(pIndex)->getMode());
