@@ -84,7 +84,7 @@ std::shared_ptr<StepFile> RootFile::createStepFile(int isample) const
 std::shared_ptr<StepFile> RootFile::getLastStepFile() const
 {
    INIReader reader(m_path);
-   THROWERROR_ASSERT(reader.ParseError() >= 0, "Can't load '" + m_path + "'\n");
+   THROWERROR_ASSERT_MSG(reader.ParseError() >= 0, "Can't load '" + m_path + "'\n");
 
    int isample = 1;
    while (true)
