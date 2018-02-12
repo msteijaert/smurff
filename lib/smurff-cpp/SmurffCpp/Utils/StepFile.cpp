@@ -61,6 +61,19 @@ void StepFile::savePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) c
    }
 }
 
+void StepFile::restoreModel(std::shared_ptr<Model> model) const
+{
+   model->restore(shared_from_this());
+}
+
+void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+{
+   for (auto &p : priors)
+   {
+      p->restore(shared_from_this());
+   }
+}
+
 void StepFile::save(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
    saveModel(model);
@@ -101,4 +114,10 @@ void StepFile::save(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, 
    }
 
    stepFile.close();
+}
+
+void StepFile::restore(std::shared_ptr<Model> model, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+{
+   restoreModel(model);
+   restorePriors(priors);
 }

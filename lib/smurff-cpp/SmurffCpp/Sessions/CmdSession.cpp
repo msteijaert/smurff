@@ -14,6 +14,8 @@
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
 
+#include <SmurffCpp/Utils/RootFile.h>
+
 #define HELP_NAME "help"
 #define PRIOR_NAME "prior"
 #define SIDE_INFO_NAME "side-info"
@@ -23,11 +25,9 @@
 #define BURNIN_NAME "burnin"
 #define NSAMPLES_NAME "nsamples"
 #define NUM_LATENT_NAME "num-latent"
-#define RESTORE_PREFIX_NAME "restore-prefix"
-#define RESTORE_SUFFIX_NAME "restore-suffix"
 #define INIT_MODEL_NAME "init-model"
 #define SAVE_PREFIX_NAME "save-prefix"
-#define SAVE_SUFFIX_NAME "save-suffix"
+#define SAVE_EXTENSION_NAME "save-extension"
 #define SAVE_FREQ_NAME "save-freq"
 #define THRESHOLD_NAME "threshold"
 #define VERBOSE_NAME "verbose"
@@ -42,6 +42,7 @@
 #define TOL_NAME "tol"
 #define DIRECT_NAME "direct"
 #define INI_NAME "ini"
+#define ROOT_NAME "root"
 
 #define NONE_TOKEN "none"
 
@@ -69,14 +70,13 @@ boost::program_options::options_description get_desc()
    boost::program_options::options_description general_desc("General parameters");
    general_desc.add_options()
       (INI_NAME, boost::program_options::value<std::string>(), "read options from this .ini file")
+      (ROOT_NAME, boost::program_options::value<std::string>(), "restore session from root .ini file")
       (BURNIN_NAME, boost::program_options::value<int>(), "number of samples to discard")
       (NSAMPLES_NAME, boost::program_options::value<int>(), "number of samples to collect")
       (NUM_LATENT_NAME, boost::program_options::value<int>(), "number of latent dimensions")
-      (RESTORE_PREFIX_NAME, boost::program_options::value<std::string>(), "prefix for file to initialize state")
-      (RESTORE_SUFFIX_NAME, boost::program_options::value<std::string>(), "suffix for initialization files (.csv or .ddm)")
       (INIT_MODEL_NAME, boost::program_options::value<std::string>(), "One of <random|zero>")
       (SAVE_PREFIX_NAME, boost::program_options::value<std::string>(), "prefix for result files")
-      (SAVE_SUFFIX_NAME, boost::program_options::value<std::string>(), "suffix for result files (.csv or .ddm)")
+      (SAVE_EXTENSION_NAME, boost::program_options::value<std::string>(), "extension for result files (.csv or .ddm)")
       (SAVE_FREQ_NAME, boost::program_options::value<int>(), "save every n iterations (0 == never, -1 == final model)")
       (THRESHOLD_NAME, boost::program_options::value<double>(), "threshold for binary classification")
       (VERBOSE_NAME, boost::program_options::value<int>(), "verbose output")
@@ -164,12 +164,15 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
 #ifdef HAVE_BOOST
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
-   if (vm.count(INI_NAME)) {
+   //create new session with ini file
+   if (vm.count(INI_NAME)) 
+   {
       auto ini_file = vm[INI_NAME].as<std::string>();
       bool success = config.restore(ini_file);
       THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
    }
 
+   //create new session from command line options or override options from ini file
    if (vm.count(PRIOR_NAME))
       for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
          config.getPriorTypes().push_back(stringToPriorType(pr));
@@ -221,20 +224,14 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    if(vm.count(NUM_LATENT_NAME))
       config.setNumLatent(vm[NUM_LATENT_NAME].as<int>());
 
-   if(vm.count(RESTORE_PREFIX_NAME))
-      config.setRestorePrefix(vm[RESTORE_PREFIX_NAME].as<std::string>());
-
-   if(vm.count(RESTORE_SUFFIX_NAME))
-      config.setRestoreSuffix(vm[RESTORE_SUFFIX_NAME].as<std::string>());
-
    if(vm.count(INIT_MODEL_NAME))
       config.setModelInitType(stringToModelInitType(vm[INIT_MODEL_NAME].as<std::string>()));
 
    if(vm.count(SAVE_PREFIX_NAME))
       config.setSavePrefix(vm[SAVE_PREFIX_NAME].as<std::string>());
 
-   if(vm.count(SAVE_SUFFIX_NAME))
-      config.setSaveSuffix(vm[SAVE_SUFFIX_NAME].as<std::string>());
+   if(vm.count(SAVE_EXTENSION_NAME))
+      config.setSaveExtension(vm[SAVE_EXTENSION_NAME].as<std::string>());
 
    if(vm.count(SAVE_FREQ_NAME))
       config.setSaveFreq(vm[SAVE_FREQ_NAME].as<int>());
@@ -280,7 +277,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 }
 #endif
 
-bool parse_options(int argc, char* argv[], Config& config)
+bool CmdSession::parse_options(int argc, char* argv[])
 {
    #ifdef HAVE_BOOST
    try
@@ -307,8 +304,21 @@ bool parse_options(int argc, char* argv[], Config& config)
          return false;
       }
 
-      fill_config(vm, config);
-      return true;
+      //restore session from root file (command line arguments are already stored in file)
+      if (vm.count(ROOT_NAME))
+      {
+         auto root_file = vm[ROOT_NAME].as<std::string>();
+         setFromRootPath(root_file);
+         return true;
+      }
+      //create new session from config (passing command line arguments)
+      else
+      {
+         Config config;
+         fill_config(vm, config);
+         setFromConfig(config);
+         return true;
+      }
    }
    catch (const boost::program_options::error &ex)
    {
@@ -323,6 +333,9 @@ bool parse_options(int argc, char* argv[], Config& config)
       return false;
    }
    #else
+
+   //ADD ROOT RESTORE HERE!
+
    if (argc != 3 || std::string(argv[1]) != "--ini") {
       std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
       return false;
@@ -338,11 +351,10 @@ bool parse_options(int argc, char* argv[], Config& config)
 
 void CmdSession::setFromArgs(int argc, char** argv)
 {
-   Config config;
-   if(!parse_options(argc, argv, config))
-      exit(0); //need a way to figure out how to handle help and version
+   std::shared_ptr<RootFile> rootFile;
 
-   setFromConfig(config);
+   if(!parse_options(argc, argv))
+      exit(0); //need a way to figure out how to handle help and version
 }
 
 //create cmd session

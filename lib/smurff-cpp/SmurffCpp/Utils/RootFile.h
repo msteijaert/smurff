@@ -28,10 +28,15 @@ private:
    void appendToRootFile(std::string tag, std::string item, bool truncate) const;
 
 public:
-   void saveConfig(Config config);
+   void saveConfig(Config& config);
+
+   void restoreConfig(Config& config);
 
 public:
    std::shared_ptr<StepFile> createStepFile(int isample) const;
+
+public:
+   std::shared_ptr<StepFile> getLastStepFile() const;
 };
 
 }

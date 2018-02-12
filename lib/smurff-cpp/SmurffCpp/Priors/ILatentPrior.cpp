@@ -127,7 +127,7 @@ void ILatentPrior::save(std::shared_ptr<const StepFile> sf)
 {
 }
 
-void ILatentPrior::restore(std::string prefix, std::string extension)
+void ILatentPrior::restore(std::shared_ptr<const StepFile> sf)
 {
     init_Usum();
 }

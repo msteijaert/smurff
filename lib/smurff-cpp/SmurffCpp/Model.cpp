@@ -146,12 +146,13 @@ void Model::save(std::shared_ptr<const StepFile> sf)
    }
 }
 
-void Model::restore(std::string prefix, std::string extension)
+void Model::restore(std::shared_ptr<const StepFile> sf)
 {
-   int i = 0;
+   std::int32_t i = 0;
    for(auto U : m_samples)
    {
-      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + extension, *U);
+      std::string path = sf->getModelFileName(i++);
+      smurff::matrix_io::eigen::read_matrix(path, *U);
    }
 }
 

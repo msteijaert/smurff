@@ -53,11 +53,9 @@ void BaseSession::save(std::shared_ptr<StepFile> stepFile)
    stepFile->save(m_model, m_pred, m_priors);
 }
 
-void BaseSession::restore(std::string prefix, std::string suffix)
+void BaseSession::restore(std::shared_ptr<StepFile> stepFile)
 {
-   m_model->restore(prefix, suffix);
-   for(auto &p : m_priors)
-      p->restore(prefix, suffix);
+   stepFile->restore(m_model, m_priors);
 }
 
 std::shared_ptr<std::vector<ResultItem> > BaseSession::getResult()

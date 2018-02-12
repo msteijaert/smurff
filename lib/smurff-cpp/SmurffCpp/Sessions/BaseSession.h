@@ -70,7 +70,7 @@ public:
 
    void save(std::shared_ptr<StepFile> stepFile);
 
-   void restore(std::string prefix, std::string suffix);
+   void restore(std::shared_ptr<StepFile> stepFile);
 
 public:
    std::shared_ptr<std::vector<ResultItem> > getResult() override;

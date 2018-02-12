@@ -20,7 +20,7 @@ namespace smurff {
    public:
       StepFile(int isample, std::string prefix, std::string extension);
 
-   public:
+   private:
       std::string getSamplePrefix() const;
 
    public:
@@ -36,7 +36,13 @@ namespace smurff {
       void savePred(std::shared_ptr<Result> m_pred) const;
       void savePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
+   private:
+      void restoreModel(std::shared_ptr<Model> model) const;
+      void restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+
    public:
       void save(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+
+      void restore(std::shared_ptr<Model> model, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
    };
 }

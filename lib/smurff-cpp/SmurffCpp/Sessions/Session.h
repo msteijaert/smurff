@@ -31,7 +31,9 @@ protected:
    }
 
 protected:
+   void setFromRootPath(std::string rootPath);
    void setFromConfig(const Config& cfg);
+   void setFromBase();
 
    // execution of the sampler
 public:
@@ -49,6 +51,7 @@ public:
 private:
    //save iteration
    void save(int isample);
+   void restore();
    void printStatus(double elapsedi);
 
 public:

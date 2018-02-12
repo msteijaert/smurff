@@ -17,6 +17,19 @@
 
 using namespace smurff;
 
+void Session::setFromRootPath(std::string rootPath)
+{
+   // assign config
+
+   m_rootFile = std::make_shared<RootFile>(rootPath);
+   m_rootFile->restoreConfig(config);
+
+   config.validate();
+
+   //base functionality
+   setFromBase();
+}
+
 void Session::setFromConfig(const Config& cfg)
 {
    // assign config
@@ -24,8 +37,15 @@ void Session::setFromConfig(const Config& cfg)
    cfg.validate();
    config = cfg;
 
-   m_rootFile = std::make_shared<RootFile>(cfg.getSavePrefix(), cfg.getSaveSuffix());
+   m_rootFile = std::make_shared<RootFile>(config.getSavePrefix(), config.getSaveExtension());
+   m_rootFile->saveConfig(config);
 
+   //base functionality
+   setFromBase();
+}
+
+void Session::setFromBase()
+{
    std::shared_ptr<Session> this_session = shared_from_this();
 
    // initialize pred
@@ -43,7 +63,7 @@ void Session::setFromConfig(const Config& cfg)
    // initialize priors
 
    std::shared_ptr<IPriorFactory> priorFactory = this->create_prior_factory();
-   for(std::size_t i = 0; i < config.getPriorTypes().size(); i++)
+   for (std::size_t i = 0; i < config.getPriorTypes().size(); i++)
       this->addPrior(priorFactory->create_prior(this_session, i));
 }
 
@@ -64,8 +84,8 @@ void Session::init()
    //initialize model (samples)
    m_model->init(config.getNumLatent(), data()->dim(), config.getModelInitType());
 
-   //initialize priors (?)
-   for( auto &p : m_priors)
+   //initialize priors
+   for(auto &p : m_priors)
       p->init();
 
    //write header to status file
@@ -81,12 +101,7 @@ void Session::init()
       info(std::cout, "");
 
    //restore session (model, priors)
-   if (config.getRestorePrefix().size())
-   {
-      if (config.getVerbose())
-         printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.getRestorePrefix().c_str(), config.getSaveSuffix().c_str());
-      restore(config.getRestorePrefix(), config.getRestoreSuffix());
-   }
+   restore();
 
    //print session status to console
    if (config.getVerbose())
@@ -101,9 +116,8 @@ void Session::init()
 
 void Session::run()
 {
-   m_rootFile->saveConfig(config);
-
    init();
+
    while (iter < config.getBurnin() + config.getNSamples())
       step();
 }
@@ -143,17 +157,11 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
           os << indent << "  Save model after last iteration\n";
       }
       os << indent << "  Save prefix: " << config.getSavePrefix() << "\n";
-      os << indent << "  Save suffix: " << config.getSaveSuffix() << "\n";
+      os << indent << "  Save extension: " << config.getSaveExtension() << "\n";
    }
    else
    {
       os << indent << "  Save model: never\n";
-   }
-
-   if (config.getRestorePrefix().size())
-   {
-      os << indent << "  Restore prefix: " << config.getRestorePrefix() << "\n";
-      os << indent << "  Restore suffix: " << config.getRestoreSuffix() << "\n";
    }
 
    os << indent << "}\n";
@@ -174,12 +182,23 @@ void Session::save(int isample)
       return;
 
    std::shared_ptr<StepFile> stepFile = m_rootFile->createStepFile(isample);
-   std::string fprefix = stepFile->getSamplePrefix();
 
    if (config.getVerbose())
-      printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.getSaveSuffix().c_str());
+      printf("-- Saving model, predictions,... into '%s'.\n", stepFile->getStepFileName().c_str());
 
    BaseSession::save(stepFile);
+}
+
+void Session::restore()
+{
+   std::shared_ptr<StepFile> stepFile = m_rootFile->getLastStepFile();
+   if (stepFile)
+   {
+      if (config.getVerbose())
+         printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
+
+      BaseSession::restore(stepFile);
+   }
 }
 
 void Session::printStatus(double elapsedi)

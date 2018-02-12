@@ -91,7 +91,7 @@ public:
 public:
    // output to file
    void save(std::shared_ptr<const StepFile> sf);
-   void restore(std::string prefix, std::string extension);
+   void restore(std::shared_ptr<const StepFile> sf);
 
    std::ostream& info(std::ostream &os, std::string indent) const;
    std::ostream& status(std::ostream &os, std::string indent) const;

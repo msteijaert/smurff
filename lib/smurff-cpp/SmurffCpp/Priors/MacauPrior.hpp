@@ -154,11 +154,12 @@ public:
       smurff::matrix_io::eigen::write_matrix(path, this->beta);
    }
 
-   void restore(std::string prefix, std::string extension) override
+   void restore(std::shared_ptr<const StepFile> sf) override
    {
-      NormalPrior::restore(prefix, extension);
-      prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::read_matrix(prefix + "-link" + extension, this->beta);
+      NormalPrior::restore(sf);
+
+      std::string path = sf->getPriorFileName(m_mode);
+      smurff::matrix_io::eigen::read_matrix(path, this->beta);
    }
 
 private:
