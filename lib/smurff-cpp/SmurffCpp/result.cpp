@@ -17,6 +17,7 @@
 #include <SmurffCpp/result.h>
 
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/StepFile.h>
 
 using namespace std;
 using namespace Eigen;
@@ -71,12 +72,12 @@ void Result::init()
 }
 
 //--- output model to files
-std::string Result::save(std::string prefix)
+void Result::save(std::shared_ptr<const StepFile> sf)
 {
    if (!m_predictions || m_predictions->empty())
-      return std::string();
+      return;
 
-   std::string fname_pred = getPredFileName(prefix);
+   std::string fname_pred = sf->getPredFileName();
    std::ofstream predfile;
    predfile.open(fname_pred);
 
@@ -97,8 +98,6 @@ std::string Result::save(std::string prefix)
    }
 
    predfile.close();
-
-   return fname_pred;
 }
 
 ///--- update RMSE and AUC
@@ -213,11 +212,6 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
    }
 
    return os;
-}
-
-std::string Result::getPredFileName(std::string prefix) const
-{
-   return prefix + "-predictions.csv";
 }
 
 //macau ProbitNoise eval

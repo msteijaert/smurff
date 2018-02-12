@@ -7,6 +7,8 @@
 #include <SmurffCpp/Sessions/ISession.h>
 #include <SmurffCpp/Utils/Error.h>
 
+#include <SmurffCpp/Utils/StepFile.h>
+
 namespace smurff {
 
 class ILatentPrior;
@@ -66,7 +68,7 @@ public:
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);
 
-   std::string save(std::string prefix, std::string suffix);
+   void save(std::shared_ptr<StepFile> stepFile);
 
    void restore(std::string prefix, std::string suffix);
 
@@ -74,9 +76,6 @@ public:
    std::shared_ptr<std::vector<ResultItem> > getResult() override;
    MatrixConfig getSample(int dim) override;
    double getRmseAvg() override;
-
-private:
-   std::string getRootFileName(std::string prefix) const;
 };
 
 }

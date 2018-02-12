@@ -191,11 +191,12 @@ public:
    {
    }
 
-   std::string save(std::string prefix, std::string extension) override
+   void save(std::shared_ptr<const StepFile> sf) override
    {
-      std::string path = NormalOnePrior::save(prefix, extension);
+      NormalOnePrior::save(sf);
+
+      std::string path = sf->getPriorFileName(m_mode);
       smurff::matrix_io::eigen::write_matrix(path, beta);
-      return path;
    }
 
    void restore(std::string prefix, std::string extension) override

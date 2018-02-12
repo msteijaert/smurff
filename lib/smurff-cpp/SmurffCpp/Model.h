@@ -12,6 +12,8 @@
 
 namespace smurff {
 
+class StepFile;
+
 class Data;
 
 class SubModel;
@@ -88,14 +90,11 @@ public:
 
 public:
    // output to file
-   void save(std::string prefix, std::string extension, std::vector<std::string>& paths);
+   void save(std::shared_ptr<const StepFile> sf);
    void restore(std::string prefix, std::string extension);
 
    std::ostream& info(std::ostream &os, std::string indent) const;
    std::ostream& status(std::ostream &os, std::string indent) const;
-
-private:
-   std::string getModelFileName(std::string prefix, std::string extension, std::int32_t index) const;
 };
 
 // SubModel is a proxy class that allows to access i'th column of each U matrix in the model

@@ -15,6 +15,8 @@ FILE (GLOB UTIL_FILES   "../Utils/TruncNorm.h"
                         "../Utils/omp_util.h"
                         "../Utils/Error.h"
                         "../Utils/ThreadVector.hpp"
+                        "../Utils/RootFile.h"
+                        "../Utils/StepFile.h"
 
                         "../Utils/TruncNorm.cpp"
                         "../Utils/InvNormCdf.cpp"
@@ -25,6 +27,8 @@ FILE (GLOB UTIL_FILES   "../Utils/TruncNorm.h"
                         "../Utils/counters.cpp"
                         "../Utils/linop.cpp"
                         "../Utils/omp_util.cpp"
+                        "../Utils/RootFile.cpp"
+                        "../Utils/StepFile.cpp"
                         )
 
 source_group ("Utils" FILES ${UTIL_FILES})

@@ -22,6 +22,7 @@
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/StepFile.h>
 
 using namespace std;
 using namespace Eigen;
@@ -135,14 +136,13 @@ SubModel Model::full()
    return this_model;
 }
 
-void Model::save(std::string prefix, std::string extension, std::vector<std::string>& paths)
+void Model::save(std::shared_ptr<const StepFile> sf)
 {
    std::int32_t i = 0;
    for (auto U : m_samples)
    {
-      std::string path = getModelFileName(prefix, extension, i++);
+      std::string path = sf->getModelFileName(i++);
       smurff::matrix_io::eigen::write_matrix(path, *U);
-      paths.push_back(path);
    }
 }
 
@@ -171,12 +171,6 @@ std::ostream& Model::status(std::ostream &os, std::string indent) const
    os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
    return os;
 }
-
-std::string Model::getModelFileName(std::string prefix, std::string extension, std::int32_t index) const
-{
-   return prefix + "-U" + std::to_string(index) + "-latents" + extension;
-}
-
 
 Eigen::MatrixXd::BlockXpr SubModel::U(int f)
 {

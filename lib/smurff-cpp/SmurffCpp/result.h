@@ -8,6 +8,8 @@
 
 namespace smurff {
 
+class StepFile;
+
 class Model;
 class Data;
 
@@ -67,7 +69,7 @@ struct Result
    // general
 
 public:
-   std::string save(std::string fname_prefix);
+   void save(std::shared_ptr<const StepFile> sf);
 
 private:
    void init();
@@ -84,8 +86,6 @@ public:
    {
       threshold = t; classify = true;
    }
-
-   std::string getPredFileName(std::string prefix) const;
 };
 
 }; // end namespace smurff

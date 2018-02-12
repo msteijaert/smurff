@@ -6,6 +6,7 @@
 #include "BaseSession.h"
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Priors/IPriorFactory.h>
+#include <SmurffCpp/Utils/RootFile.h>
 
 namespace smurff {
 
@@ -15,6 +16,9 @@ class Session : public BaseSession, public std::enable_shared_from_this<Session>
 {
    //only session factory should call setFromConfig
    friend class SessionFactory;
+
+private:
+   std::shared_ptr<RootFile> m_rootFile;
 
 public:
    Config config;
@@ -46,15 +50,6 @@ private:
    //save iteration
    void save(int isample);
    void printStatus(double elapsedi);
-
-private:
-   void appendToRootFile(std::string tag, std::string item, bool truncate) const;
-
-   std::string getOptionsFileName() const;
-
-   std::string getSamplePrefix(int isample) const;
-
-   std::string getRootFileName() const;
 
 public:
    virtual std::shared_ptr<IPriorFactory> create_prior_factory() const;
