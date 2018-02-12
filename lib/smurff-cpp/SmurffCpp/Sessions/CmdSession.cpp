@@ -307,7 +307,7 @@ bool CmdSession::parse_options(int argc, char* argv[])
       //restore session from root file (command line arguments are already stored in file)
       if (vm.count(ROOT_NAME))
       {
-         auto root_file = vm[ROOT_NAME].as<std::string>();
+         std::string root_file = vm[ROOT_NAME].as<std::string>();
          setFromRootPath(root_file);
          return true;
       }
@@ -334,18 +334,50 @@ bool CmdSession::parse_options(int argc, char* argv[])
    }
    #else
 
-   //ADD ROOT RESTORE HERE!
-
-   if (argc != 3 || std::string(argv[1]) != "--ini") {
+   if (argc != 3) 
+   {
       std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
       return false;
    }
 
-   std::string ini_file(argv[2]);
-   bool success = config.restore(ini_file);
-   if (!success)
-      std::cout << "Could not load ini file '" + ini_file + "'" << std::endl;
-   return success;
+   try
+   {
+      //restore session from root file (command line arguments are already stored in file)
+      if (std::string(argv[1]) == "--" + std::string(ROOT_NAME))
+      {
+         std::string root_file(argv[2]);
+         setFromRootPath(root_file);
+         return true;
+      }
+      //create new session from config (passing command line arguments)
+      else if (std::string(argv[1]) == "--" + std::string(INI_NAME))
+      {
+         Config config;
+
+         std::string ini_file(argv[2]);
+         bool success = config.restore(ini_file);
+         if (!success)
+         {
+            std::cout << "Could not load ini file '" << ini_file << "'" << std::endl;
+            return false;
+         }
+
+         setFromConfig(config);
+         return true;
+      }
+      else
+      {
+         std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
+         return false;
+      }
+   }
+   catch (std::runtime_error& ex)
+   {
+      std::cerr << "Failed to parse command line arguments: " << std::endl;
+      std::cerr << ex.what() << std::endl;
+      return false;
+   }
+
    #endif
 }
 
