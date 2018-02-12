@@ -10,7 +10,17 @@ using namespace smurff;
 
 RootFile::RootFile(std::string path)
    : m_path(path)
-{ 
+{
+   //AGE: I know that this is an extra call to restoreConfig
+   //however it is a small price to pay for making constructor being solid (assigning all fields here, instead of restoreConfig)
+   Config config;
+   restoreConfig(config);
+
+   m_prefix = config.getSavePrefix();
+   THROWERROR_ASSERT_MSG(!m_prefix.empty(), "Save prefix is empty");
+
+   m_extension = config.getSaveExtension();
+   THROWERROR_ASSERT_MSG(!m_extension.empty(), "Save extension is empty");
 }
 
 RootFile::RootFile(std::string prefix, std::string extension)
@@ -61,12 +71,6 @@ void RootFile::restoreConfig(Config& config)
 
    bool success = config.restore(optionsFileName);
    THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
-
-   m_prefix = config.getSavePrefix();
-   THROWERROR_ASSERT_MSG(!m_prefix.empty(), "Save prefix is empty");
-
-   m_extension = config.getSaveExtension();
-   THROWERROR_ASSERT_MSG(!m_extension.empty(), "Save extension is empty");
 }
 
 std::shared_ptr<StepFile> RootFile::createStepFile(int isample) const
