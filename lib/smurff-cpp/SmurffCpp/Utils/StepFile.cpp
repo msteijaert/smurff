@@ -9,7 +9,7 @@
 
 using namespace smurff;
 
-StepFile::StepFile(int isample, std::string prefix, std::string extension)
+StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension)
    : m_isample(isample), m_prefix(prefix), m_extension(extension)
 {
 }
@@ -43,17 +43,17 @@ std::string StepFile::getPredFileName() const
    return prefix + "-predictions.csv";
 }
 
-void StepFile::saveModel(std::shared_ptr<Model> model) const
+void StepFile::saveModel(std::shared_ptr<const Model> model) const
 {
    model->save(shared_from_this());
 }
 
-void StepFile::savePred(std::shared_ptr<Result> m_pred) const
+void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
 {
    return m_pred->save(shared_from_this());
 }
 
-void StepFile::savePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
    for (auto &p : priors)
    {
@@ -74,7 +74,7 @@ void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors
    }
 }
 
-void StepFile::save(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
    saveModel(model);
    savePred(pred);
@@ -119,4 +119,9 @@ void StepFile::restore(std::shared_ptr<Model> model, std::vector<std::shared_ptr
 {
    restoreModel(model);
    restorePriors(priors);
+}
+
+std::int32_t StepFile::getIsample() const
+{
+   return m_isample;
 }

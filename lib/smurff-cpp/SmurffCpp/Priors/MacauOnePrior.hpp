@@ -191,7 +191,7 @@ public:
    {
    }
 
-   void save(std::shared_ptr<const StepFile> sf) override
+   void save(std::shared_ptr<const StepFile> sf) const override
    {
       NormalOnePrior::save(sf);
 

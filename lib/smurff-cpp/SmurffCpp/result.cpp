@@ -72,7 +72,7 @@ void Result::init()
 }
 
 //--- output model to files
-void Result::save(std::shared_ptr<const StepFile> sf)
+void Result::save(std::shared_ptr<const StepFile> sf) const
 {
    if (!m_predictions || m_predictions->empty())
       return;

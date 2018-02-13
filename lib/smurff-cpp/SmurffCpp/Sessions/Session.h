@@ -50,7 +50,7 @@ public:
 
 private:
    //save iteration
-   void save(int isample);
+   void save(int isample) const;
    void restore();
    void printStatus(double elapsedi);
 

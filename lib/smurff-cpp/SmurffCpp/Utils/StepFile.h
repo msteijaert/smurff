@@ -3,22 +3,23 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <cstdint>
 
 namespace smurff {
 
    class Model;
-   struct Result;
+   class Result;
    class ILatentPrior;
 
    class StepFile : public std::enable_shared_from_this<StepFile>
    {
    private:
-      int m_isample;
+      std::int32_t m_isample;
       std::string m_prefix;
       std::string m_extension;
 
    public:
-      StepFile(int isample, std::string prefix, std::string extension);
+      StepFile(std::int32_t isample, std::string prefix, std::string extension);
 
    private:
       std::string getSamplePrefix() const;
@@ -31,18 +32,21 @@ namespace smurff {
       std::string getPriorFileName(std::uint32_t mode) const;
       std::string getPredFileName() const;
 
-   private:
-      void saveModel(std::shared_ptr<Model> model) const;
-      void savePred(std::shared_ptr<Result> m_pred) const;
-      void savePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+   public:
+      void saveModel(std::shared_ptr<const Model> model) const;
+      void savePred(std::shared_ptr<const Result> m_pred) const;
+      void savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
-   private:
+   public:
       void restoreModel(std::shared_ptr<Model> model) const;
       void restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
    public:
-      void save(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+      void save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
       void restore(std::shared_ptr<Model> model, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+
+   public:
+      std::int32_t getIsample() const;
    };
 }

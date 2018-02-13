@@ -136,7 +136,7 @@ SubModel Model::full()
    return this_model;
 }
 
-void Model::save(std::shared_ptr<const StepFile> sf)
+void Model::save(std::shared_ptr<const StepFile> sf) const
 {
    std::int32_t i = 0;
    for (auto U : m_samples)

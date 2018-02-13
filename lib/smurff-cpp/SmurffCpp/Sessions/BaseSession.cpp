@@ -48,7 +48,7 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent)
    return os;
 }
 
-void BaseSession::save(std::shared_ptr<StepFile> stepFile)
+void BaseSession::save(std::shared_ptr<StepFile> stepFile) const
 {
    stepFile->save(m_model, m_pred, m_priors);
 }

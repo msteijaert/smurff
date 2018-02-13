@@ -168,7 +168,7 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
    return os;
 }
 
-void Session::save(int isample)
+void Session::save(int isample) const
 {
    if (!config.getSaveFreq() || isample < 0) //do not save if (never save) mode is selected or if burnin
       return;

@@ -146,7 +146,7 @@ public:
       tol = t;
    }
 
-   void save(std::shared_ptr<const StepFile> sf) override
+   void save(std::shared_ptr<const StepFile> sf) const override
    {
       NormalPrior::save(sf);
 

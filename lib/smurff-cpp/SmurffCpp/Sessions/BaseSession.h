@@ -15,7 +15,7 @@ class ILatentPrior;
 class Data;
 class Model;
 class SessionFactory;
-struct Result;
+class Result;
 
 class BaseSession : public ISession
 {
@@ -68,7 +68,7 @@ public:
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);
 
-   void save(std::shared_ptr<StepFile> stepFile);
+   void save(std::shared_ptr<StepFile> stepFile) const;
 
    void restore(std::shared_ptr<StepFile> stepFile);
 

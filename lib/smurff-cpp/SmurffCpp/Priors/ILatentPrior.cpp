@@ -123,7 +123,7 @@ void ILatentPrior::sample_latents()
    update_prior();
 }
 
-void ILatentPrior::save(std::shared_ptr<const StepFile> sf)
+void ILatentPrior::save(std::shared_ptr<const StepFile> sf) const
 {
 }
 

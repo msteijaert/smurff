@@ -9,6 +9,7 @@
 namespace smurff {
 
 class StepFile;
+class RootFile;
 
 class Model;
 class Data;
@@ -45,8 +46,9 @@ double calc_auc(const std::vector<Item> &predictions, double threshold)
    return calc_auc(predictions, threshold, [](const Item &a, const Item &b) { return a.pred < b.pred;});
 }
 
-struct Result
+class Result
 {
+public:
    //sparse representation of test matrix
    std::shared_ptr<std::vector<ResultItem> > m_predictions;
 
@@ -59,6 +61,7 @@ struct Result
    //-- prediction metrics
    void update(std::shared_ptr<const Model> model, bool burnin);
 
+public:
    double rmse_avg = NAN;
    double rmse_1sample = NAN;
    double auc_avg = NAN;
@@ -69,7 +72,7 @@ struct Result
    // general
 
 public:
-   void save(std::shared_ptr<const StepFile> sf);
+   void save(std::shared_ptr<const StepFile> sf) const;
 
 private:
    void init();
