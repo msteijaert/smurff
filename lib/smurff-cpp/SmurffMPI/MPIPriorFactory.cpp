@@ -15,11 +15,11 @@ std::shared_ptr<ILatentPrior> MPIPriorFactory::create_macau_prior(std::shared_pt
 
 std::shared_ptr<ILatentPrior> MPIPriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
 {
-   PriorTypes pt = session->config.getPriorTypes().at(mode);
+   PriorTypes pt = session->getConfig().getPriorTypes().at(mode);
 
    if(pt == PriorTypes::macau)
    {
-      return PriorFactory::create_macau_prior<MPIPriorFactory>(session, mode, pt, session->config.getSideInfo().at(mode));
+      return PriorFactory::create_macau_prior<MPIPriorFactory>(session, mode, pt, session->getConfig().getSideInfo().at(mode));
    }
    else
    {

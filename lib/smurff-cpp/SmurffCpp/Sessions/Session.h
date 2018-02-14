@@ -20,8 +20,10 @@ class Session : public BaseSession, public std::enable_shared_from_this<Session>
 private:
    std::shared_ptr<RootFile> m_rootFile;
 
-private:
+protected:
    Config m_config;
+
+private:
    int iter = -1; //index of step iteration
 
 protected:
