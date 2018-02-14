@@ -149,14 +149,29 @@ public:
       m_test = value;
    }
 
+   const std::vector<std::shared_ptr<MatrixConfig> >& getSideInfo() const
+   {
+      return m_sideInfo;
+   }
+
    std::vector<std::shared_ptr<MatrixConfig> >& getSideInfo()
    {
       return m_sideInfo;
    }
 
+   const std::vector<std::vector<std::shared_ptr<TensorConfig> > >& getAuxData() const
+   {
+      return m_auxData;
+   }
+   
    std::vector<std::vector<std::shared_ptr<TensorConfig> > >& getAuxData()
    {
       return m_auxData;
+   }
+
+   const std::vector<PriorTypes>& getPriorTypes() const
+   {
+      return m_prior_types;
    }
 
    std::vector<PriorTypes>& getPriorTypes()

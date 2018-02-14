@@ -20,8 +20,8 @@ class Session : public BaseSession, public std::enable_shared_from_this<Session>
 private:
    std::shared_ptr<RootFile> m_rootFile;
 
-public:
-   Config config;
+private:
+   Config m_config;
    int iter = -1; //index of step iteration
 
 protected:
@@ -56,6 +56,12 @@ private:
 
 public:
    virtual std::shared_ptr<IPriorFactory> create_prior_factory() const;
+
+public:
+   const Config& getConfig()
+   {
+      return m_config;
+   }
 };
 
 }
