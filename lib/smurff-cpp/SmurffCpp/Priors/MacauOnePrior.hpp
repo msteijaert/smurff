@@ -7,6 +7,8 @@
 
 #include <SmurffCpp/DataMatrices/ScarceMatrixData.h>
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/IO/GenericIO.h>
+
 #include <SmurffCpp/Utils/linop.h>
 
 #include <SmurffCpp/Priors/NormalOnePrior.h>
@@ -204,6 +206,9 @@ public:
       NormalOnePrior::restore(sf);
 
       std::string path = sf->getPriorFileName(m_mode);
+
+      THROWERROR_FILE_NOT_EXIST(path, "Prior file does not exist");
+
       smurff::matrix_io::eigen::read_matrix(path, beta);
    }
 
