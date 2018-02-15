@@ -74,6 +74,8 @@ public:
 public:
    void save(std::shared_ptr<const StepFile> sf) const;
 
+   void restore(std::shared_ptr<const StepFile> sf);
+
 private:
    void init();
 

@@ -18,6 +18,9 @@
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StepFile.h>
+#include <SmurffCpp/Utils/StringUtils.h>
+
+#include <SmurffCpp/IO/GenericIO.h>
 
 using namespace std;
 using namespace Eigen;
@@ -79,9 +82,9 @@ void Result::save(std::shared_ptr<const StepFile> sf) const
 
    std::string fname_pred = sf->getPredFileName();
    std::ofstream predfile;
-   predfile.open(fname_pred);
+   predfile.open(fname_pred, std::ios::out);
 
-   for(size_t d = 0; d < m_dims.size(); d++)
+   for(std::size_t d = 0; d < m_dims.size(); d++)
       predfile << "coord" << d << ",";
 
    predfile << "y,pred_1samp,pred_avg,var,std" << std::endl;
@@ -98,6 +101,62 @@ void Result::save(std::shared_ptr<const StepFile> sf) const
    }
 
    predfile.close();
+}
+
+void Result::restore(std::shared_ptr<const StepFile> sf)
+{
+   std::string fname_pred = sf->getPredFileName();
+
+   THROWERROR_FILE_NOT_EXIST(fname_pred, "Prediction file does not exist");
+
+   //since predictions were set in set method - clear them
+   std::size_t oldSize = m_predictions->size();
+   m_predictions->clear();
+
+   //open file with predictions
+   std::ifstream predFile;
+   predFile.open(fname_pred, std::ios::in);
+
+   //parse header
+   std::string header;
+   getline(predFile, header);
+
+   std::vector<std::string> headerTokens;
+   smurff::split(header, headerTokens, ',');
+
+   //parse all lines
+   std::vector<std::string> tokens;
+   std::vector<int> coords;
+   std::string line;
+
+   while (getline(predFile, line))
+   {
+      //split line
+      smurff::split(line, tokens, ',');
+
+      //construct coordinates
+      coords.clear();
+
+      std::size_t nCoords = m_dims.size();
+
+      for (std::size_t c = 0; c < nCoords; c++)
+         coords.push_back(stoi(tokens[c].c_str()));
+
+      //parse other values
+      double val = stod(tokens.at(nCoords).c_str());
+      double pred_1sample = stod(tokens.at(nCoords + 1).c_str());
+      double pred_avg = stod(tokens.at(nCoords + 2).c_str());
+      double var = stod(tokens.at(nCoords + 3).c_str());
+      double stds = stod(tokens.at(nCoords + 4).c_str());
+
+      //construct result item
+      m_predictions->push_back({ smurff::PVec<>(coords), val, pred_1sample, pred_avg, var, stds });
+   }
+
+   //just a sanity check, not sure if it is needed
+   THROWERROR_ASSERT_MSG(oldSize == m_predictions->size(), "Incorrect predictions size after restore");
+
+   predFile.close();
 }
 
 ///--- update RMSE and AUC
