@@ -24,6 +24,8 @@
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StepFile.h>
 
+#include <SmurffCpp/IO/GenericIO.h>
+
 using namespace std;
 using namespace Eigen;
 using namespace smurff;
@@ -149,9 +151,12 @@ void Model::save(std::shared_ptr<const StepFile> sf) const
 void Model::restore(std::shared_ptr<const StepFile> sf)
 {
    std::int32_t i = 0;
-   for(auto U : m_samples)
+   for (auto U : m_samples)
    {
       std::string path = sf->getModelFileName(i++);
+
+      THROWERROR_FILE_NOT_EXIST(path, "Model file does not exist");
+
       smurff::matrix_io::eigen::read_matrix(path, *U);
    }
 }
