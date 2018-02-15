@@ -69,6 +69,8 @@ void Session::setFromBase()
 
 void Session::init()
 {
+   m_iter = 0;
+
    //init omp
    threads_init();
 
@@ -110,7 +112,6 @@ void Session::init()
       printf(" ====== Sampling (burning phase) ====== \n");
    }
 
-   iter = 0;
    is_init = true;
 }
 
@@ -118,7 +119,7 @@ void Session::run()
 {
    init();
 
-   while (iter < m_config.getBurnin() + m_config.getNSamples())
+   while (m_iter < m_config.getBurnin() + m_config.getNSamples())
       step();
 }
 
@@ -126,7 +127,7 @@ void Session::step()
 {
    THROWERROR_ASSERT(is_init);
 
-   if (m_config.getVerbose() && iter == m_config.getBurnin())
+   if (m_config.getVerbose() && m_iter == m_config.getBurnin())
    {
       printf(" ====== Burn-in complete, averaging samples ====== \n");
    }
@@ -136,26 +137,35 @@ void Session::step()
    auto endi = tick();
 
    //WARNING: update is an expensive operation because of sort (when calculating AUC)
-   m_pred->update(m_model, iter < m_config.getBurnin());
+   m_pred->update(m_model, m_iter < m_config.getBurnin());
 
    printStatus(endi - starti);
-   save(iter - m_config.getBurnin() + 1);
-   iter++;
+
+   save(m_iter - m_config.getBurnin() + 1);
+
+   m_iter++;
 }
 
 std::ostream& Session::info(std::ostream &os, std::string indent)
 {
+   os << indent << name << " {\n";
+
    BaseSession::info(os, indent);
+
    os << indent << "  Version: " << smurff::SMURFF_VERSION << "\n" ;
    os << indent << "  Iterations: " << m_config.getBurnin() << " burnin + " << m_config.getNSamples() << " samples\n";
 
    if (m_config.getSaveFreq() != 0)
    {
-      if (m_config.getSaveFreq() > 0) {
+      if (m_config.getSaveFreq() > 0) 
+      {
           os << indent << "  Save model: every " << m_config.getSaveFreq() << " iteration\n";
-      } else {
+      } 
+      else 
+      {
           os << indent << "  Save model after last iteration\n";
       }
+
       os << indent << "  Save prefix: " << m_config.getSavePrefix() << "\n";
       os << indent << "  Save extension: " << m_config.getSaveExtension() << "\n";
    }
@@ -198,6 +208,11 @@ void Session::restore()
          printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
 
       BaseSession::restore(stepFile);
+
+      //restore last iteration index
+      std::shared_ptr<StepFile> stepFile = m_rootFile->getLastStepFile();
+      m_iter = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+      m_iter++; //go to next iteration
    }
 }
 
@@ -214,22 +229,22 @@ void Session::printStatus(double elapsedi)
 
    std::string phase;
    int i, from;
-   if (iter < 0)
+   if (m_iter < 0)
    {
       phase = "Initial";
       i = 0;
       from = 0;
    }
-   else if (iter < m_config.getBurnin())
+   else if (m_iter < m_config.getBurnin())
    {
       phase = "Burnin";
-      i = iter + 1;
+      i = m_iter + 1;
       from = m_config.getBurnin();
    }
    else
    {
       phase = "Sample";
-      i = iter - m_config.getBurnin() + 1;
+      i = m_iter - m_config.getBurnin() + 1;
       from = m_config.getNSamples();
    }
 

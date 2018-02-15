@@ -24,7 +24,7 @@ protected:
    Config m_config;
 
 private:
-   int iter = -1; //index of step iteration
+   int m_iter = -1; //index of step iteration
 
 protected:
    Session()

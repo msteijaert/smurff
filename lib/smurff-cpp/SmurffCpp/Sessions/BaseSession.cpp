@@ -31,7 +31,6 @@ void BaseSession::step()
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent)
 {
-   os << indent << name << " {\n";
    os << indent << "  Data: {\n";
    data()->info(os, indent + "    ");
    os << indent << "  }\n";
@@ -55,7 +54,7 @@ void BaseSession::save(std::shared_ptr<StepFile> stepFile) const
 
 void BaseSession::restore(std::shared_ptr<StepFile> stepFile)
 {
-   stepFile->restore(m_model, m_priors);
+   stepFile->restore(m_model, m_pred, m_priors);
 }
 
 std::shared_ptr<std::vector<ResultItem> > BaseSession::getResult()
