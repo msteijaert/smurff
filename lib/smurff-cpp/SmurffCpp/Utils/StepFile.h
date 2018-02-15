@@ -19,10 +19,14 @@ namespace smurff {
       std::string m_extension;
 
    public:
-      StepFile(std::int32_t isample, std::string prefix, std::string extension);
+      StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create);
+
+      StepFile(const std::string& path, std::string prefix, std::string extension, bool create);
 
    private:
       std::string getSamplePrefix() const;
+
+      std::int32_t StepFile::getIsampleFromPath(const std::string& path) const;
 
    public:
       std::string getStepFileName() const;
@@ -39,14 +43,17 @@ namespace smurff {
 
    public:
       void restoreModel(std::shared_ptr<Model> model) const;
+      void restorePred(std::shared_ptr<Result> m_pred) const;
       void restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
    public:
       void save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
-      void restore(std::shared_ptr<Model> model, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+      void restore(std::shared_ptr<Model> model, std::shared_ptr<Result> m_pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
    public:
       std::int32_t getIsample() const;
+
+      std::int32_t getNSamples() const;
    };
 }

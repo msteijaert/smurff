@@ -5,12 +5,20 @@
 
 #include <SmurffCpp/IO/INIReader.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/StringUtils.h>
+#include <SmurffCpp/Utils/IniUtils.h>
+
+#define OPTIONS_TAG "options"
+#define STEP_PREFIX "step_"
 
 using namespace smurff;
 
 RootFile::RootFile(std::string path)
    : m_path(path)
 {
+   //load all entries in ini file to be able to go through step variables
+   loadIni(m_path, m_iniStorage);
+
    //AGE: I know that this is an extra call to restoreConfig
    //however it is a small price to pay for making constructor being solid (assigning all fields here, instead of restoreConfig)
    Config config;
@@ -39,68 +47,66 @@ std::string RootFile::getOptionsFileName() const
    return m_prefix + "-options.ini";
 }
 
-void RootFile::appendToRootFile(std::string tag, std::string value, bool truncate) const
+void RootFile::appendToRootFile(std::string tag, std::string value) const
 {
    std::string configPath = getRootFileName();
 
    std::ofstream rootFile;
-
-   if (truncate)
-      rootFile.open(configPath, std::ios::out | std::ios::trunc);
-   else
-      rootFile.open(configPath, std::ios::out | std::ios::app);
-
+   rootFile.open(configPath, std::ios::out | std::ios::app);
    rootFile << tag << " = " << value << std::endl;
    rootFile.close();
+
+   m_iniStorage.insert(std::make_pair(tag, value));
 }
 
 void RootFile::saveConfig(Config& config)
 {
    std::string configPath = getOptionsFileName();
    config.save(configPath);
-   appendToRootFile("options", configPath, true);
+   appendToRootFile(OPTIONS_TAG, configPath);
 }
 
 void RootFile::restoreConfig(Config& config)
 {
-   INIReader reader(m_path);
-   THROWERROR_ASSERT_MSG(reader.ParseError() >= 0, "Can't load '" + m_path + "'\n");
+   THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Root ini file is not loaded");
 
-   std::string optionsFileName = reader.Get("", "options", "");
-   THROWERROR_ASSERT_MSG(!optionsFileName.empty(), "Can't load '" + m_path + "'\n");
+   auto optionsIt = m_iniStorage.find(OPTIONS_TAG);
+   THROWERROR_ASSERT_MSG(optionsIt != m_iniStorage.end(), "Options tag is not found in root ini file");
+   
+   std::string optionsFileName = optionsIt->second;
 
    bool success = config.restore(optionsFileName);
    THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
 }
 
-std::shared_ptr<StepFile> RootFile::createStepFile(int isample) const
+std::shared_ptr<StepFile> RootFile::createStepFile(std::int32_t isample) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true);
    std::string stepFileName = stepFile->getStepFileName();
-   appendToRootFile("step_" + std::to_string(isample), stepFileName, false);
+   std::string stepTag = STEP_PREFIX + std::to_string(isample);
+   appendToRootFile(stepTag, stepFileName);
+
    return stepFile;
 }
 
 std::shared_ptr<StepFile> RootFile::getLastStepFile() const
 {
-   INIReader reader(m_path);
-   THROWERROR_ASSERT_MSG(reader.ParseError() >= 0, "Can't load '" + m_path + "'\n");
+   std::string lastItem;
 
-   int isample = 1;
-   while (true)
+   for (auto& item : m_iniStorage)
    {
-      std::string stepFile = reader.Get("", "step_" + std::to_string(isample), "<invalid>");
-      if (stepFile == "<invalid>")
-      {
-         isample--;
-         break;
-      }
-      isample++;
+      if (startsWith(item.first, STEP_PREFIX))
+         lastItem = item.second;
    }
 
-   if (isample < 1)
+   if (lastItem.empty())
       return std::shared_ptr<StepFile>();
+   else
+      return std::make_shared<StepFile>(lastItem, m_prefix, m_extension, false);
+}
 
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension);
+std::shared_ptr<StepFile> RootFile::getStepFile(std::int32_t isample) const
+{
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false);
    return stepFile;
 }

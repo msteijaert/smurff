@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include <SmurffCpp/Configs/Config.h>
 
@@ -15,6 +16,8 @@ private:
    std::string m_prefix;
    std::string m_extension;
 
+   mutable std::unordered_map<std::string, std::string> m_iniStorage;
+
 public:
    RootFile(std::string path);
 
@@ -25,7 +28,7 @@ private:
    std::string getOptionsFileName() const;
 
 private:
-   void appendToRootFile(std::string tag, std::string item, bool truncate) const;
+   void appendToRootFile(std::string tag, std::string item) const;
 
 public:
    void saveConfig(Config& config);
@@ -33,10 +36,12 @@ public:
    void restoreConfig(Config& config);
 
 public:
-   std::shared_ptr<StepFile> createStepFile(int isample) const;
+   std::shared_ptr<StepFile> createStepFile(std::int32_t isample) const;
 
 public:
    std::shared_ptr<StepFile> getLastStepFile() const;
+
+   std::shared_ptr<StepFile> getStepFile(std::int32_t isample) const;
 };
 
 }
