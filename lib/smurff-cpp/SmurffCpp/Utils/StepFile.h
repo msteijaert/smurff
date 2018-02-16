@@ -28,7 +28,7 @@ namespace smurff {
    private:
       std::string getSamplePrefix() const;
 
-      std::int32_t StepFile::getIsampleFromPath(const std::string& path) const;
+      std::int32_t getIsampleFromPath(const std::string& path) const;
 
    public:
       std::string getStepFileName() const;
