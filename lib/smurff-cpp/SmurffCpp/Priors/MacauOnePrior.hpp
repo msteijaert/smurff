@@ -207,7 +207,7 @@ public:
 
       std::string path = sf->getPriorFileName(m_mode);
 
-      THROWERROR_FILE_NOT_EXIST(path, "Prior file does not exist");
+      THROWERROR_FILE_NOT_EXIST(path);
 
       smurff::matrix_io::eigen::read_matrix(path, beta);
    }

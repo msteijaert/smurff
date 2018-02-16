@@ -155,7 +155,7 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
    {
       std::string path = sf->getModelFileName(i++);
 
-      THROWERROR_FILE_NOT_EXIST(path, "Model file does not exist");
+      THROWERROR_FILE_NOT_EXIST(path);
 
       smurff::matrix_io::eigen::read_matrix(path, *U);
    }

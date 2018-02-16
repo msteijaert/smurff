@@ -81,7 +81,7 @@ void RootFile::restoreConfig(Config& config)
 
 std::shared_ptr<StepFile> RootFile::createStepFile(std::int32_t isample) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension);
    std::string stepFileName = stepFile->getStepFileName();
    std::string stepTag = STEP_PREFIX + std::to_string(isample);
    appendToRootFile(stepTag, stepFileName);
@@ -102,11 +102,11 @@ std::shared_ptr<StepFile> RootFile::getLastStepFile() const
    if (lastItem.empty())
       return std::shared_ptr<StepFile>();
    else
-      return std::make_shared<StepFile>(lastItem, m_prefix, m_extension, false);
+      return std::make_shared<StepFile>(lastItem, m_prefix, m_extension);
 }
 
 std::shared_ptr<StepFile> RootFile::getStepFile(std::int32_t isample) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension);
    return stepFile;
 }

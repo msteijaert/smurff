@@ -107,7 +107,7 @@ void Result::restore(std::shared_ptr<const StepFile> sf)
 {
    std::string fname_pred = sf->getPredFileName();
 
-   THROWERROR_FILE_NOT_EXIST(fname_pred, "Prediction file does not exist");
+   THROWERROR_FILE_NOT_EXIST(fname_pred);
 
    //since predictions were set in set method - clear them
    std::size_t oldSize = m_predictions->size();

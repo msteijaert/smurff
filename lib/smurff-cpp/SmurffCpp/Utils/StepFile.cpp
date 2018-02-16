@@ -22,28 +22,18 @@
 
 using namespace smurff;
 
-StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create)
+StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension)
    : m_isample(isample), m_prefix(prefix), m_extension(extension)
 {
-   if (create)
-   {
-      std::ofstream stepFile;
-      stepFile.open(getStepFileName(), std::ios::in | std::ios::trunc);
-      stepFile.close();
-   }
+   std::ofstream stepFile;
+   stepFile.open(getStepFileName(), std::ios::in | std::ios::trunc);
+   stepFile.close();
 }
 
-StepFile::StepFile(const std::string& path, std::string prefix, std::string extension, bool create)
+StepFile::StepFile(const std::string& path, std::string prefix, std::string extension)
    : m_prefix(prefix), m_extension(extension)
 {
    m_isample = getIsampleFromPath(path);
-
-   if (create)
-   {
-      std::ofstream stepFile;
-      stepFile.open(getStepFileName(), std::ios::in | std::ios::trunc);
-      stepFile.close();
-   }
 }
 
 std::string StepFile::getStepFileName() const
