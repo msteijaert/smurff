@@ -51,10 +51,17 @@ public:
    std::ostream &info(std::ostream &, std::string indent) override;
 
 private:
-   //save iteration
+   //save current iteration
    void save(int isample) const;
-   void restore();
-   void printStatus(double elapsedi);
+   
+   //restore last iteration
+   bool restore();
+
+private:
+   void printStatus(double elapsedi, bool resume);
+
+private:
+   void initRng();
 
 public:
    virtual std::shared_ptr<IPriorFactory> create_prior_factory() const;

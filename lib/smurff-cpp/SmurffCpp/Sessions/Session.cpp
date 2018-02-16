@@ -74,11 +74,8 @@ void Session::init()
    //init omp
    threads_init();
 
-   //init random generator
-   if(m_config.getRandomSeedSet())
-      init_bmrng(m_config.getRandomSeed());
-   else
-      init_bmrng();
+   //initialize random generator
+   initRng();
 
    //initialize train matrix (centring and noise model)
    data()->init();
@@ -103,12 +100,12 @@ void Session::init()
       info(std::cout, "");
 
    //restore session (model, priors)
-   restore();
+   bool resume = restore();
 
    //print session status to console
    if (m_config.getVerbose())
    {
-      printStatus(0);
+      printStatus(0, resume);
       printf(" ====== Sampling (burning phase) ====== \n");
    }
 
@@ -139,7 +136,7 @@ void Session::step()
    //WARNING: update is an expensive operation because of sort (when calculating AUC)
    m_pred->update(m_model, m_iter < m_config.getBurnin());
 
-   printStatus(endi - starti);
+   printStatus(endi - starti, false);
 
    save(m_iter - m_config.getBurnin() + 1);
 
@@ -199,24 +196,25 @@ void Session::save(int isample) const
    BaseSession::save(stepFile);
 }
 
-void Session::restore()
+bool Session::restore()
 {
    std::shared_ptr<StepFile> stepFile = m_rootFile->getLastStepFile();
-   if (stepFile)
-   {
-      if (m_config.getVerbose())
-         printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
+   if (!stepFile)
+      return false;
 
-      BaseSession::restore(stepFile);
+   if (m_config.getVerbose())
+      printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
 
-      //restore last iteration index
-      std::shared_ptr<StepFile> stepFile = m_rootFile->getLastStepFile();
-      m_iter = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
-      m_iter++; //go to next iteration
-   }
+   BaseSession::restore(stepFile);
+
+   //restore last iteration index
+   m_iter = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+   m_iter++; //go to next iteration
+
+   return true;
 }
 
-void Session::printStatus(double elapsedi)
+void Session::printStatus(double elapsedi, bool resume)
 {
    if(!m_config.getVerbose())
       return;
@@ -226,6 +224,8 @@ void Session::printStatus(double elapsedi)
 
    auto nnz_per_sec = (data()->nnz()) / elapsedi;
    auto samples_per_sec = (m_model->nsamples()) / elapsedi;
+
+   std::string resumeString = resume ? "Continue from " : std::string();
 
    std::string phase;
    int i, from;
@@ -248,7 +248,7 @@ void Session::printStatus(double elapsedi)
       from = m_config.getNSamples();
    }
 
-   printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
+   printf("%s%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", resumeString.c_str(), phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
 
    if (m_config.getClassify())
       printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
@@ -287,6 +287,15 @@ void Session::printStatus(double elapsedi)
                   m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
       fclose(f);
    }
+}
+
+void Session::initRng()
+{
+   //init random generator
+   if (m_config.getRandomSeedSet())
+      init_bmrng(m_config.getRandomSeed());
+   else
+      init_bmrng();
 }
 
 std::shared_ptr<IPriorFactory> Session::create_prior_factory() const
