@@ -198,36 +198,50 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
   REQUIRE(data->var_total() == Approx(1.25));
 }
 
-// smurff
-/*
-TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
- 	double x[6] = {0.1, 0.4, -0.7, 0.3, 0.11, 0.23};
+using namespace Eigen;
+using namespace std;
 
-	// ColMajor case
-  auto prior = make_dense_prior(3, x, 3, 2, true, true);
-  Eigen::MatrixXd Ftrue(3, 2);
-  Ftrue <<  0.1, 0.3,
-						0.4, 0.11,
-					 -0.7, 0.23;
-  REQUIRE( (*(prior->F) - Ftrue).norm() == Approx(0) );
-	Eigen::MatrixXd tmp = Eigen::MatrixXd::Zero(2, 2);
-	tmp.triangularView<Eigen::Lower>()  = prior->FtF;
-	tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
-  REQUIRE( tmp.norm() == Approx(0) );
-
-	// RowMajor case
-  auto prior2 = make_dense_prior(3, x, 3, 2, false, true);
-	Eigen::MatrixXd Ftrue2(3, 2);
-	Ftrue2 << 0.1,  0.4,
-				   -0.7,  0.3,
-					  0.11, 0.23;
-  REQUIRE( (*(prior2->F) - Ftrue2).norm() == Approx(0) );
-	Eigen::MatrixXd tmp2 = Eigen::MatrixXd::Zero(2, 2);
-	tmp2.triangularView<Eigen::Lower>()  = prior2->FtF;
-	tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;
-  REQUIRE( tmp2.norm() == Approx(0) );
+MacauPrior<MatrixXd>* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF) {
+        MatrixXd* Fmat = new MatrixXd(0, 0);
+        if (colMajor) {
+                *Fmat = Map<Matrix<double, Dynamic, Dynamic, ColMajor> >(ptr, nrows, ncols);
+        } else {
+                *Fmat = Map<Matrix<double, Dynamic, Dynamic, RowMajor> >(ptr, nrows, ncols);
+        }
+        auto ret = new MacauPrior<Eigen::MatrixXd>(0, 0);
+        std::shared_ptr<Eigen::MatrixXd> Fmat_ptr = std::shared_ptr<MatrixXd>(Fmat);
+        ret->addSideInfo(Fmat_ptr);
+        ret->FtF.resize(Fmat->cols(), Fmat->cols());
+        smurff::linop::At_mul_A(ret->FtF, *ret->Features);
+        return ret;
 }
-*/
+
+TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
+    double x[6] = {0.1, 0.4, -0.7, 0.3, 0.11, 0.23};
+
+    // ColMajor case
+    auto prior = make_dense_prior(3, x, 3, 2, true, true);
+
+    Eigen::MatrixXd Ftrue(3, 2);
+    Ftrue <<  0.1, 0.3, 0.4, 0.11, -0.7, 0.23;
+    REQUIRE( (*(prior->Features) - Ftrue).norm() == Approx(0) );
+    Eigen::MatrixXd tmp = Eigen::MatrixXd::Zero(2, 2);
+    tmp.triangularView<Eigen::Lower>()  = prior->FtF;
+    tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
+    REQUIRE( tmp.norm() == Approx(0) );
+
+    // RowMajor case
+    auto prior2 = make_dense_prior(3, x, 3, 2, false, true);
+    Eigen::MatrixXd Ftrue2(3, 2);
+    Ftrue2 << 0.1,  0.4,
+           -0.7,  0.3,
+           0.11, 0.23;
+    REQUIRE( (*(prior2->Features) - Ftrue2).norm() == Approx(0) );
+    Eigen::MatrixXd tmp2 = Eigen::MatrixXd::Zero(2, 2);
+    tmp2.triangularView<Eigen::Lower>()  = prior2->FtF;
+    tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;
+    REQUIRE( tmp2.norm() == Approx(0) );
+}
 
 TEST_CASE("inv_norm_cdf/inv_norm_cdf", "Inverse normal CDF") {
 	REQUIRE( inv_norm_cdf(0.0)  == -std::numeric_limits<double>::infinity());
