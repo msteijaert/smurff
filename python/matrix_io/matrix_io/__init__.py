@@ -7,8 +7,8 @@ def read_dense_float64(filename):
     with open(filename) as f:
         nrow = np.fromfile(f, dtype=np.int64, count=1)[0]
         ncol = np.fromfile(f, dtype=np.int64, count=1)[0]
-        arr = np.fromfile(f, dtype=np.float64, count=nrow*ncol)
-        return arr.reshape((nrow,ncol))
+        vals = np.fromfile(f, dtype=np.float64, count=nrow*ncol)
+        return np.ndarray((nrow,ncol), buffer=vals, dtype=np.float64, order = 'F')
 
 def read_sparse_float64(filename):
     with open(filename) as f:
@@ -30,13 +30,13 @@ def read_sparse_binary_matrix(filename):
         return scipy.sparse.coo_matrix((np.ones(nnz), (rows, cols)), shape=[nrow, ncol])
 
 def write_dense_float64(filename, Y):
-    with open(filename, 'w') as f:
+    with open(filename, 'wb') as f:
         np.array(Y.shape[0]).astype(np.int64).tofile(f)
         np.array(Y.shape[1]).astype(np.int64).tofile(f)
-        Y.astype(np.float64).tofile(f)
+        f.write(Y.astype(np.float64).tobytes(order='F'))
 
 def write_sparse_float64(filename, Y):
-    with open(filename, 'w') as f:
+    with open(filename, 'wb') as f:
         Y = Y.tocoo(copy = False)
         np.array(Y.shape[0]).astype(np.int64).tofile(f)
         np.array(Y.shape[1]).astype(np.int64).tofile(f)
@@ -46,7 +46,7 @@ def write_sparse_float64(filename, Y):
         Y.data.astype(np.float64, copy=False).tofile(f)
 
 def write_sparse_binary_matrix(filename, Y):
-    with open(filename, 'w') as f:
+    with open(filename, 'wb') as f:
         Y = Y.tocoo(copy = False)
         np.array( Y.shape[0] ).astype(np.int64).tofile(f)
         np.array( Y.shape[1] ).astype(np.int64).tofile(f)
