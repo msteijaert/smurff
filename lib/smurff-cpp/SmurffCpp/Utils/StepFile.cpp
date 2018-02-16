@@ -19,6 +19,7 @@
 #define NUM_MODELS_TAG "num_models"
 #define NUM_PRIORS_TAG "num_priors"
 #define PRED_TAG "pred"
+#define PRED_STATE_TAG "pred_state"
 
 using namespace smurff;
 
@@ -84,6 +85,12 @@ std::string StepFile::getPredFileName() const
    return prefix + "-predictions.csv";
 }
 
+std::string StepFile::getPredStateFileName() const
+{
+   std::string prefix = getSamplePrefix();
+   return prefix + "-predictions-state.ini";
+}
+
 void StepFile::saveModel(std::shared_ptr<const Model> model) const
 {
    model->save(shared_from_this());
@@ -116,6 +123,7 @@ void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
 
    stepFile << "#predictions" << std::endl;
    stepFile << PRED_TAG << " = " << getPredFileName() << std::endl;
+   stepFile << PRED_STATE_TAG << " = " << getPredStateFileName() << std::endl;
 
    stepFile.close();
 }

@@ -19,8 +19,16 @@
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StepFile.h>
 #include <SmurffCpp/Utils/StringUtils.h>
+#include <SmurffCpp/Utils/IniUtils.h>
 
 #include <SmurffCpp/IO/GenericIO.h>
+
+#define RMSE_AVG_TAG "rmse_avg"
+#define RMSE_1SAMPLE_TAG "rmse_1sample"
+#define AUC_AVG_TAG "auc_avg"
+#define AUC_1SAMPLE_TAG "auc_1sample"
+#define SAMPLE_ITER_TAG "sample_iter"
+#define BURNIN_ITER_TAG "burnin_iter"
 
 using namespace std;
 using namespace Eigen;
@@ -77,6 +85,12 @@ void Result::init()
 //--- output model to files
 void Result::save(std::shared_ptr<const StepFile> sf) const
 {
+   savePred(sf);
+   savePredState(sf);
+}
+
+void Result::savePred(std::shared_ptr<const StepFile> sf) const
+{
    if (!m_predictions || m_predictions->empty())
       return;
 
@@ -84,12 +98,12 @@ void Result::save(std::shared_ptr<const StepFile> sf) const
    std::ofstream predfile;
    predfile.open(fname_pred, std::ios::out);
 
-   for(std::size_t d = 0; d < m_dims.size(); d++)
+   for (std::size_t d = 0; d < m_dims.size(); d++)
       predfile << "coord" << d << ",";
 
    predfile << "y,pred_1samp,pred_avg,var,std" << std::endl;
 
-   for(std::vector<ResultItem>::const_iterator it = m_predictions->begin(); it != m_predictions->end(); it++)
+   for (std::vector<ResultItem>::const_iterator it = m_predictions->begin(); it != m_predictions->end(); it++)
    {
       it->coords.save(predfile)
          << "," << to_string(it->val)
@@ -103,7 +117,29 @@ void Result::save(std::shared_ptr<const StepFile> sf) const
    predfile.close();
 }
 
+void Result::savePredState(std::shared_ptr<const StepFile> sf) const
+{
+   std::string predStateName = sf->getPredStateFileName();
+   std::ofstream predStatefile;
+   predStatefile.open(predStateName, std::ios::out);
+
+   predStatefile << RMSE_AVG_TAG << " = " << rmse_avg << std::endl;
+   predStatefile << RMSE_1SAMPLE_TAG << " = " << rmse_1sample << std::endl;
+   predStatefile << AUC_AVG_TAG << " = " << auc_avg << std::endl;
+   predStatefile << AUC_1SAMPLE_TAG << " = " << auc_1sample << std::endl;
+   predStatefile << SAMPLE_ITER_TAG << " = " << sample_iter << std::endl;
+   predStatefile << BURNIN_ITER_TAG << " = " << burnin_iter << std::endl;
+   
+   predStatefile.close();
+}
+
 void Result::restore(std::shared_ptr<const StepFile> sf)
+{
+   restorePred(sf);
+   restoreState(sf);
+}
+
+void Result::restorePred(std::shared_ptr<const StepFile> sf)
 {
    std::string fname_pred = sf->getPredFileName();
 
@@ -157,6 +193,42 @@ void Result::restore(std::shared_ptr<const StepFile> sf)
    THROWERROR_ASSERT_MSG(oldSize == m_predictions->size(), "Incorrect predictions size after restore");
 
    predFile.close();
+}
+
+void Result::restoreState(std::shared_ptr<const StepFile> sf)
+{
+   std::string predStateName = sf->getPredStateFileName();
+   std::ifstream predStatefile;
+   predStatefile.open(predStateName, std::ios::in);
+
+   std::unordered_map<std::string, std::string> values;
+   smurff::loadIni(predStateName, values);
+
+   auto valIt = values.find(RMSE_AVG_TAG);
+   THROWERROR_ASSERT_MSG(valIt != values.end(), RMSE_AVG_TAG + " not found");
+   rmse_avg = stod(valIt->second.c_str());
+   
+   valIt = values.find(RMSE_1SAMPLE_TAG);
+   THROWERROR_ASSERT_MSG(valIt != values.end(), RMSE_1SAMPLE_TAG + " not found");
+   rmse_1sample = stod(valIt->second.c_str());
+   
+   valIt = values.find(AUC_AVG_TAG);
+   THROWERROR_ASSERT_MSG(valIt != values.end(), AUC_AVG_TAG + " not found");
+   auc_avg = stod(valIt->second.c_str());
+   
+   valIt = values.find(AUC_1SAMPLE_TAG);
+   THROWERROR_ASSERT_MSG(valIt != values.end(), AUC_1SAMPLE_TAG + " not found");
+   auc_1sample = stod(valIt->second.c_str());
+   
+   valIt = values.find(SAMPLE_ITER_TAG);
+   THROWERROR_ASSERT_MSG(valIt != values.end(), SAMPLE_ITER_TAG + " not found");
+   sample_iter = stoi(valIt->second.c_str());
+   
+   valIt = values.find(BURNIN_ITER_TAG);
+   THROWERROR_ASSERT_MSG(valIt != values.end(), BURNIN_ITER_TAG + " not found");
+   burnin_iter = stoi(valIt->second.c_str());
+   
+   predStatefile.close();
 }
 
 ///--- update RMSE and AUC

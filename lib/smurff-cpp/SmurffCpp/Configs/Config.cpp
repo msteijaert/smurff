@@ -328,6 +328,8 @@ void Config::save(std::string fname) const
 
 bool Config::restore(std::string fname)
 {
+   THROWERROR_FILE_NOT_EXIST(fname);
+
    INIReader reader(fname);
 
    if (reader.ParseError() < 0)

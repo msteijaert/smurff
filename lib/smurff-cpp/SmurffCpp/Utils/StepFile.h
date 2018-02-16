@@ -38,6 +38,8 @@ namespace smurff {
       std::string getPriorFileName(std::uint32_t mode) const;
       std::string getPredFileName() const;
 
+      std::string getPredStateFileName() const;
+
    public:
       void saveModel(std::shared_ptr<const Model> model) const;
       void savePred(std::shared_ptr<const Result> m_pred) const;
