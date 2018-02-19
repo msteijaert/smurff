@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='matrix_io',
-        version='0.1',
+        version='0.4',
         description='Reading and writing sparse and dense matrices in binary format',
         url='http://github.com/ExaScience/smurff',
         author='Tom Vander Aa',
