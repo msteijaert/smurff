@@ -51,7 +51,7 @@ git clone https://github.com/ExaScience/smurff.git
 cd smurff/lib/smurff-cpp/
 mkdir build
 cd build
-cmake ../ -DENABLE_OPENBLAS=ON -DCMAKE_BUILD_TYPE=Debug
+cmake ../cmake -DENABLE_OPENBLAS=ON -DCMAKE_BUILD_TYPE=Debug
 make
 make test
 
