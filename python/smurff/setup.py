@@ -1,8 +1,8 @@
 import subprocess
 
 from setuptools import setup
-from setuptools import Extension
-from Cython.Build import build_ext
+from Cython.Distutils import Extension
+from Cython.Distutils import build_ext
 import numpy
 import numpy.distutils.system_info as sysinfo
 import sys
