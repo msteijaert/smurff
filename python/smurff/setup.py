@@ -1,12 +1,17 @@
 import subprocess
 
+from pkg_resources import parse_version
 from setuptools import setup
+import Cython
 from Cython.Distutils import Extension
 from Cython.Distutils import build_ext
 import numpy
 import numpy.distutils.system_info as sysinfo
 import sys
 import os
+
+if parse_version(Cython.__version__) < parse_version("0.25"):
+    raise ValueError("Requires Cython >=0.25, have found Cython %s" % Cython.__version__)
 
 lapack_opt_info = sysinfo.get_info("lapack_opt")
 # {'libraries': ['mkl_rt', 'pthread'],
