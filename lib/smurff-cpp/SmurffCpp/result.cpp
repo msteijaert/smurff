@@ -96,7 +96,7 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
 
    std::string fname_pred = sf->getPredFileName();
    std::ofstream predfile;
-   predfile.open(fname_pred, std::ios::out);
+   predfile.open(fname_pred);
 
    for (std::size_t d = 0; d < m_dims.size(); d++)
       predfile << "coord" << d << ",";
@@ -121,7 +121,7 @@ void Result::savePredState(std::shared_ptr<const StepFile> sf) const
 {
    std::string predStateName = sf->getPredStateFileName();
    std::ofstream predStatefile;
-   predStatefile.open(predStateName, std::ios::out);
+   predStatefile.open(predStateName);
 
    predStatefile << RMSE_AVG_TAG << " = " << rmse_avg << std::endl;
    predStatefile << RMSE_1SAMPLE_TAG << " = " << rmse_1sample << std::endl;
@@ -151,7 +151,7 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
 
    //open file with predictions
    std::ifstream predFile;
-   predFile.open(fname_pred, std::ios::in);
+   predFile.open(fname_pred);
 
    //parse header
    std::string header;
@@ -199,7 +199,7 @@ void Result::restoreState(std::shared_ptr<const StepFile> sf)
 {
    std::string predStateName = sf->getPredStateFileName();
    std::ifstream predStatefile;
-   predStatefile.open(predStateName, std::ios::in);
+   predStatefile.open(predStateName);
 
    std::unordered_map<std::string, std::string> values;
    smurff::loadIni(predStateName, values);

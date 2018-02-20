@@ -198,7 +198,7 @@ void Session::save(int isample) const
 
 bool Session::restore()
 {
-   std::shared_ptr<StepFile> stepFile = m_rootFile->getLastStepFile();
+   std::shared_ptr<StepFile> stepFile = m_rootFile->openLastStepFile();
    if (!stepFile)
       return false;
 

@@ -20,7 +20,7 @@ namespace smurff {
 
    public:
       //this constructor should be used to create a step file on a first run of session
-      StepFile(std::int32_t isample, std::string prefix, std::string extension);
+      StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create);
 
       //this constructor should be used to  open existing step file when previous session is continued
       StepFile(const std::string& path, std::string prefix, std::string extension);

@@ -16,7 +16,8 @@ private:
    std::string m_prefix;
    std::string m_extension;
 
-   mutable std::unordered_map<std::string, std::string> m_iniStorage;
+   //AGE: should preserve order of elements as in file
+   mutable std::vector<std::pair<std::string, std::string> > m_iniStorage;
 
 public:
    //this constructor should be used to open existing root file when previous session is continued
@@ -44,9 +45,15 @@ public:
    std::shared_ptr<StepFile> createStepFile(std::int32_t isample) const;
 
 public:
-   std::shared_ptr<StepFile> getLastStepFile() const;
+   std::shared_ptr<StepFile> openLastStepFile() const;
 
-   std::shared_ptr<StepFile> getStepFile(std::int32_t isample) const;
+   std::shared_ptr<StepFile> openStepFile(std::int32_t isample) const;
+
+   std::shared_ptr<StepFile> openStepFile(std::string path) const;
+
+public:
+   std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesBegin() const;
+   std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesEnd() const;
 };
 
 }

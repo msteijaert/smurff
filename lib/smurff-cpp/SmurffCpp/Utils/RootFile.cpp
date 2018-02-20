@@ -52,11 +52,11 @@ void RootFile::appendToRootFile(std::string tag, std::string value) const
    std::string configPath = getRootFileName();
 
    std::ofstream rootFile;
-   rootFile.open(configPath, std::ios::out | std::ios::app);
+   rootFile.open(configPath, std::ios::app);
    rootFile << tag << " = " << value << std::endl;
    rootFile.close();
 
-   m_iniStorage.insert(std::make_pair(tag, value));
+   m_iniStorage.push_back(std::make_pair(tag, value));
 }
 
 void RootFile::saveConfig(Config& config)
@@ -70,7 +70,7 @@ void RootFile::restoreConfig(Config& config)
 {
    THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Root ini file is not loaded");
 
-   auto optionsIt = m_iniStorage.find(OPTIONS_TAG);
+   auto optionsIt = iniFind(m_iniStorage, OPTIONS_TAG);
    THROWERROR_ASSERT_MSG(optionsIt != m_iniStorage.end(), "Options tag is not found in root ini file");
    
    std::string optionsFileName = optionsIt->second;
@@ -81,7 +81,7 @@ void RootFile::restoreConfig(Config& config)
 
 std::shared_ptr<StepFile> RootFile::createStepFile(std::int32_t isample) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true);
    std::string stepFileName = stepFile->getStepFileName();
    std::string stepTag = STEP_PREFIX + std::to_string(isample);
    appendToRootFile(stepTag, stepFileName);
@@ -89,7 +89,7 @@ std::shared_ptr<StepFile> RootFile::createStepFile(std::int32_t isample) const
    return stepFile;
 }
 
-std::shared_ptr<StepFile> RootFile::getLastStepFile() const
+std::shared_ptr<StepFile> RootFile::openLastStepFile() const
 {
    std::string lastItem;
 
@@ -105,8 +105,26 @@ std::shared_ptr<StepFile> RootFile::getLastStepFile() const
       return std::make_shared<StepFile>(lastItem, m_prefix, m_extension);
 }
 
-std::shared_ptr<StepFile> RootFile::getStepFile(std::int32_t isample) const
+std::shared_ptr<StepFile> RootFile::openStepFile(std::int32_t isample) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false);
    return stepFile;
+}
+
+std::shared_ptr<StepFile> RootFile::openStepFile(std::string path) const
+{
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(path, m_prefix, m_extension);
+   return stepFile;
+}
+
+std::vector<std::pair<std::string, std::string> >::const_iterator RootFile::stepFilesBegin() const
+{
+   auto it = m_iniStorage.begin();
+   std::advance(it, 1);
+   return it;
+}
+
+std::vector<std::pair<std::string, std::string> >::const_iterator RootFile::stepFilesEnd() const
+{
+   return m_iniStorage.end();
 }

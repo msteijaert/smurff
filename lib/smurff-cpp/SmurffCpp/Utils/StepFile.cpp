@@ -23,12 +23,15 @@
 
 using namespace smurff;
 
-StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension)
+StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create)
    : m_isample(isample), m_prefix(prefix), m_extension(extension)
 {
-   std::ofstream stepFile;
-   stepFile.open(getStepFileName(), std::ios::in | std::ios::trunc);
-   stepFile.close();
+   if (create)
+   {
+      std::ofstream stepFile;
+      stepFile.open(getStepFileName(), std::ios::trunc);
+      stepFile.close();
+   }
 }
 
 StepFile::StepFile(const std::string& path, std::string prefix, std::string extension)
@@ -98,7 +101,7 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    //save models
 
    std::ofstream stepFile;
-   stepFile.open(getStepFileName(), std::ios::in | std::ios::app);
+   stepFile.open(getStepFileName(), std::ios::app);
 
    stepFile << "#models" << std::endl;
    stepFile << NUM_MODELS_TAG << " = " << model->nmodes() << std::endl;
@@ -119,7 +122,7 @@ void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
    //save predictions
 
    std::ofstream stepFile;
-   stepFile.open(getStepFileName(), std::ios::in | std::ios::app);
+   stepFile.open(getStepFileName(), std::ios::app);
 
    stepFile << "#predictions" << std::endl;
    stepFile << PRED_TAG << " = " << getPredFileName() << std::endl;
@@ -138,7 +141,7 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
    //save priors
 
    std::ofstream stepFile;
-   stepFile.open(getStepFileName(), std::ios::in | std::ios::app);
+   stepFile.open(getStepFileName(), std::ios::app);
 
    stepFile << "#priors" << std::endl;
    stepFile << NUM_PRIORS_TAG << " = " << priors.size() << std::endl;
