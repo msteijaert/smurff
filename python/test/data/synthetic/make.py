@@ -9,30 +9,6 @@ import itertools
 import matrix_io as mio
 from sklearn import preprocessing
 
-def write_dense_float64_col_major(filename, Y):
-    with open(filename, 'wb') as f:
-        np.array(Y.shape[0]).astype(np.int64).tofile(f)
-        np.array(Y.shape[1]).astype(np.int64).tofile(f)
-        f.write(Y.astype(np.float64).tobytes(order='F'))
-
-def write_dense_float64_col_major_matrix_as_tensor(filename, Y):
-    with open(filename, 'wb') as f:
-        np.array(len(Y.shape)).astype(np.int64).tofile(f)
-        np.array(Y.shape[0]).astype(np.int64).tofile(f)
-        np.array(Y.shape[1]).astype(np.int64).tofile(f)
-        f.write(Y.astype(np.float64).tobytes(order='F'))
-
-def write_sparse_float64_matrix_as_tensor(filename, Y):
-    with open(filename, 'w') as f:
-        Y = Y.tocoo(copy = False)
-        np.array(len(Y.shape)).astype(np.uint64).tofile(f)
-        np.array(Y.shape[0]).astype(np.uint64).tofile(f)
-        np.array(Y.shape[1]).astype(np.uint64).tofile(f)
-        np.array(Y.nnz).astype(np.uint64).tofile(f)
-        (Y.row + 1).astype(np.uint32, copy=False).tofile(f)
-        (Y.col + 1).astype(np.uint32, copy=False).tofile(f)
-        Y.data.astype(np.float64, copy=False).tofile(f)
-
 #parser = argparse.ArgumentParser(description='SMURFF tests')
 #parser.add_argument('--envdir',  metavar='DIR', dest='envdir',  nargs=1, help='Env dir', default='conda_envs')
 #parser.add_argument('--data', metavar='DIR', dest='datadir', nargs=1, help='Data dir', default='data')
@@ -96,15 +72,15 @@ def write_matrix(filename, A):
         # TRANSPOSE BECAUSE OF INTERNAL REPRESENTATION OF DENSE
         # mio.write_dense_float64(filename + ".ddm", A.transpose())
         # mio.write_dense_float64(filename + ".ddm", A)
-        write_dense_float64_col_major(filename + ".ddm", A)
+        mio.write_dense_float64(filename + ".ddm", A)
 
     sio.mmwrite(filename, A)
 
 def write_tensor(filename, A):
     if sparse.issparse(A):
-        write_sparse_float64_matrix_as_tensor(filename + ".sdt", A)
+        mio.write_sparse_float64_matrix_as_tensor(filename + ".sdt", A)
     else:
-        write_dense_float64_col_major_matrix_as_tensor(filename + ".ddt", A)
+        mio.write_dense_float64_matrix_as_tensor(filename + ".ddt", A)
 
 def write_feat(base, features):
     for (indx,F) in enumerate(features):
@@ -258,5 +234,5 @@ def gen_tensor_tests():
         gen_and_write_test_tensor(train_tensor, density, dirname)
 
 if __name__ == "__main__":
-    #gen_matrix_tests()
-    gen_tensor_tests()
+    gen_matrix_tests()
+    #gen_tensor_tests()
