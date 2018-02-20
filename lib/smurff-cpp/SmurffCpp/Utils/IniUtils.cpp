@@ -8,7 +8,7 @@
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/GenericIO.h>
 
-void loadIniBase(const std::string& path, std::function<void(std::pair<std::string, std::string>&)> inserter)
+void loadIniBase(const std::string& path, std::function<void(std::pair<std::string, std::string>)> inserter)
 {
    THROWERROR_FILE_NOT_EXIST(path);
 
@@ -29,7 +29,7 @@ void loadIniBase(const std::string& path, std::function<void(std::pair<std::stri
    file.close();
 }
 
-void vector_inserter(std::vector<std::pair<std::string, std::string> >& values, std::pair<std::string, std::string>& value)
+void vector_inserter(std::vector<std::pair<std::string, std::string> >& values, std::pair<std::string, std::string> value)
 {
    values.push_back(value);
 }
@@ -42,7 +42,7 @@ void smurff::loadIni(const std::string& path, std::vector<std::pair<std::string,
    loadIniBase(path, func);
 }
 
-void map_inserter(std::unordered_map<std::string, std::string>& values, std::pair<std::string, std::string>& value)
+void map_inserter(std::unordered_map<std::string, std::string>& values, std::pair<std::string, std::string> value)
 {
    values.insert(value);
 }
