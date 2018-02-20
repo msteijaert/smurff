@@ -389,6 +389,7 @@ TEST_CASE("randn", "Test random number generation")
    #endif
 }
 
+#ifdef TEST_RANDOM
 TEST_CASE("rgamma", "Test random number generation")
 {
    #ifdef USE_BOOST_RANDOM
@@ -463,3 +464,4 @@ TEST_CASE("rgamma", "Test random number generation")
    
    #endif
 }
+#endif //TEST_RANDOM

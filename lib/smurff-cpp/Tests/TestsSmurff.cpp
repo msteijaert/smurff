@@ -179,6 +179,7 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
    }
 }
 
+#ifdef TEST_RANDOM
 //
 //      train: dense matrix
 //       test: sparse matrix
@@ -999,6 +1000,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
 }
 
+#endif // TEST_RANDOM
+
 //test throw
 
 //
@@ -1121,6 +1124,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 }
 
 //=================================================================
+
+#ifdef TEST_RANDOM
 
 //
 //      train: dense matrix
@@ -1857,6 +1862,8 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
 
    REQUIRE_THROWS(SessionFactory::create_py_session(config));
 }
+
+#endif // TEST_RANDOM
 
 //test throw
 
