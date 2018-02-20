@@ -52,6 +52,11 @@ public:
    std::shared_ptr<StepFile> openStepFile(std::string path) const;
 
 public:
+   void flush() const;
+
+   void flushLast() const;
+
+public:
    std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesBegin() const;
    std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesEnd() const;
 };

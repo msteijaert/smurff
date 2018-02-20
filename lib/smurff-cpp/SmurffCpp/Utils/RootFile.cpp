@@ -49,14 +49,12 @@ std::string RootFile::getOptionsFileName() const
 
 void RootFile::appendToRootFile(std::string tag, std::string value) const
 {
-   std::string configPath = getRootFileName();
-
-   std::ofstream rootFile;
-   rootFile.open(configPath, std::ios::app);
-   rootFile << tag << " = " << value << std::endl;
-   rootFile.close();
-
    m_iniStorage.push_back(std::make_pair(tag, value));
+
+   //this function should be used here when it is required to write to root file immediately
+   //currently we call flushLast method separately
+   //this guarantees integrity of a step - step file entry is written after everything else is calculated/written
+   //flushLast();
 }
 
 void RootFile::saveConfig(Config& config)
@@ -115,6 +113,33 @@ std::shared_ptr<StepFile> RootFile::openStepFile(std::string path) const
 {
    std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(path, m_prefix, m_extension);
    return stepFile;
+}
+
+void RootFile::flush() const
+{
+   std::string configPath = getRootFileName();
+
+   std::ofstream rootFile;
+   rootFile.open(configPath, std::ios::trunc);
+
+   for (auto item : m_iniStorage)
+   {
+      rootFile << item.first << " = " << item.second << std::endl;
+   }
+
+   rootFile.close();
+}
+
+void RootFile::flushLast() const
+{
+   auto& last = m_iniStorage.back();
+
+   std::string configPath = getRootFileName();
+
+   std::ofstream rootFile;
+   rootFile.open(configPath, std::ios::app);
+   rootFile << last.first << " = " << last.second << std::endl;
+   rootFile.close();
 }
 
 std::vector<std::pair<std::string, std::string> >::const_iterator RootFile::stepFilesBegin() const

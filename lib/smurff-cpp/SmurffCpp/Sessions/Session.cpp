@@ -194,6 +194,9 @@ void Session::save(int isample) const
       printf("-- Saving model, predictions,... into '%s'.\n", stepFile->getStepFileName().c_str());
 
    BaseSession::save(stepFile);
+
+   //flush last item in a root file
+   m_rootFile->flushLast();
 }
 
 bool Session::restore()
