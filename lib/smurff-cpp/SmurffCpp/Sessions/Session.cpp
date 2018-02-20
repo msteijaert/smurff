@@ -42,6 +42,9 @@ void Session::setFromConfig(const Config& cfg)
 
    //base functionality
    setFromBase();
+
+   //flush record about options.ini
+   m_rootFile->flushLast();
 }
 
 void Session::setFromBase()
@@ -69,8 +72,6 @@ void Session::setFromBase()
 
 void Session::init()
 {
-   m_iter = 0;
-
    //init omp
    threads_init();
 
@@ -108,6 +109,11 @@ void Session::init()
       printStatus(0, resume);
       printf(" ====== Sampling (burning phase) ====== \n");
    }
+
+   //restore will either start from initial iteration (-1) that should be printed with printStatus
+   //or it will start with last iteration that was previously saved
+   //in any case - we have to move to next iteration
+   m_iter++; //go to next iteration
 
    is_init = true;
 }
@@ -177,7 +183,12 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
 void Session::save(int isample) const
 {
-   if (!m_config.getSaveFreq() || isample < 0) //do not save if (never save) mode is selected or if burnin
+   //do not save if 'never save' mode is selected
+   if (!m_config.getSaveFreq())
+      return;
+
+   //do not save if burnin
+   if (isample < 0)
       return;
 
    //save_freq > 0: check modulo
@@ -203,18 +214,22 @@ bool Session::restore()
 {
    std::shared_ptr<StepFile> stepFile = m_rootFile->openLastStepFile();
    if (!stepFile)
+   {
+      //if there is nothing to restore - start from initial iteration
+      m_iter = -1;
       return false;
+   }
+   else
+   {
+      if (m_config.getVerbose())
+         printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
 
-   if (m_config.getVerbose())
-      printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
+      BaseSession::restore(stepFile);
 
-   BaseSession::restore(stepFile);
-
-   //restore last iteration index
-   m_iter = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
-   m_iter++; //go to next iteration
-
-   return true;
+      //restore last iteration index
+      m_iter = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+      return true;
+   }   
 }
 
 void Session::printStatus(double elapsedi, bool resume)
