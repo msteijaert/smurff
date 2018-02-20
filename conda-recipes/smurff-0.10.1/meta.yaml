@@ -11,13 +11,13 @@ requirements:
     - cmake
     - {{ compiler('cxx') }}    # [not win]
     - llvm-openmp              # [osx]
-    - openblas
+    - mkl
     - eigen3
-    - boost
+    - libboost
   run:
     - llvm-openmp              # [osx]
-    - openblas
-    - boost
+    - mkl
+    - libboost
 
 test:
     commands:
