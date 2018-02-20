@@ -10,5 +10,5 @@ make install
 popd
 
 pushd python/smurff
-$PYTHON setup.py install --with-openmp --single-version-externally-managed --record=record.txt
+python setup.py install --with-openmp --single-version-externally-managed --record=record.txt
 popd
