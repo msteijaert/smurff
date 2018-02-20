@@ -10,14 +10,23 @@ requirements:
   build:
     - cmake
     - {{ compiler('cxx') }}    # [not win]
+    - {{ compiler('c') }}      # [not win]
     - llvm-openmp              # [osx]
-    - mkl
     - eigen3
     - libboost
+    - cython >=0.25
+    - python
+    - setuptools
+    - numpy
+    - scipy
+    - pandas
   run:
     - llvm-openmp              # [osx]
-    - mkl
     - libboost
+    - python
+    - numpy
+    - scipy
+    - pandas
 
 test:
     commands:
