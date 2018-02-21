@@ -198,8 +198,6 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
 void Result::restoreState(std::shared_ptr<const StepFile> sf)
 {
    std::string predStateName = sf->getPredStateFileName();
-   std::ifstream predStatefile;
-   predStatefile.open(predStateName);
 
    std::unordered_map<std::string, std::string> values;
    smurff::loadIni(predStateName, values);
@@ -227,8 +225,6 @@ void Result::restoreState(std::shared_ptr<const StepFile> sf)
    valIt = values.find(BURNIN_ITER_TAG);
    THROWERROR_ASSERT_MSG(valIt != values.end(), BURNIN_ITER_TAG + " not found");
    burnin_iter = stoi(valIt->second.c_str());
-   
-   predStatefile.close();
 }
 
 ///--- update RMSE and AUC

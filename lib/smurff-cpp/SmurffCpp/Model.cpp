@@ -140,7 +140,7 @@ SubModel Model::full()
 
 void Model::save(std::shared_ptr<const StepFile> sf) const
 {
-   std::int32_t i = 0;
+   std::uint64_t i = 0;
    for (auto U : m_samples)
    {
       std::string path = sf->getModelFileName(i++);
@@ -150,7 +150,7 @@ void Model::save(std::shared_ptr<const StepFile> sf) const
 
 void Model::restore(std::shared_ptr<const StepFile> sf)
 {
-   std::int32_t i = 0;
+   std::uint64_t i = 0;
    for (auto U : m_samples)
    {
       std::string path = sf->getModelFileName(i++);
