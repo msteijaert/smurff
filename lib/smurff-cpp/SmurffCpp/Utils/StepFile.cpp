@@ -9,8 +9,10 @@
 
 #include <SmurffCpp/IO/INIReader.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/IO/GenericIO.h>
 
 #define STEP_SAMPLE_PREFIX "-sample-"
+#define STEP_BURNIN_PREFIX "-burnin-"
 #define STEP_INI_SUFFIX "-step.ini"
 
 #define MODEL_PREFIX "model_"
@@ -23,8 +25,8 @@
 
 using namespace smurff;
 
-StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create)
-   : m_isample(isample), m_prefix(prefix), m_extension(extension)
+StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool burnin)
+   : m_isample(isample), m_prefix(prefix), m_extension(extension), m_burnin(burnin)
 {
    if (create)
    {
@@ -37,24 +39,43 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
 StepFile::StepFile(const std::string& path, std::string prefix, std::string extension)
    : m_prefix(prefix), m_extension(extension)
 {
-   m_isample = getIsampleFromPath(path);
+   m_isample = tryGetIsampleFromPathInternal(path, STEP_BURNIN_PREFIX, STEP_INI_SUFFIX);
+
+   if (m_isample < 0)
+   {
+      m_isample = tryGetIsampleFromPathInternal(path, STEP_SAMPLE_PREFIX, STEP_INI_SUFFIX);
+
+      if (m_isample < 0)
+      {
+         THROWERROR("Invalid step file name");
+      }
+      else
+      {
+         m_burnin = false;
+      }
+   }
+   else
+   {
+      m_burnin = true;
+   }
 }
 
 std::string StepFile::getStepFileName() const
 {
-   std::string prefix = getSamplePrefix();
+   std::string prefix = getStepPrefix();
    return prefix + STEP_INI_SUFFIX;
 }
 
-std::int32_t StepFile::getIsampleFromPath(const std::string& path) const
+std::int32_t StepFile::tryGetIsampleFromPathInternal(const std::string& path, const std::string& prefix, const std::string& suffix) const
 {
-   std::size_t idx0 = path.find(STEP_SAMPLE_PREFIX);
-   THROWERROR_ASSERT_MSG(idx0 > 0, "Invalid step file name");
+   std::size_t idx0 = path.find(prefix);
+   if (idx0 == -1)
+      return -1;
 
-   std::size_t idx1 = path.find(STEP_INI_SUFFIX);
-   THROWERROR_ASSERT_MSG(idx1 > 0, "Invalid step file name");
+   std::size_t idx1 = path.find(suffix);
+   THROWERROR_ASSERT_MSG(idx1 != -1, "Invalid step file name");
 
-   std::size_t start = idx0 + std::string(STEP_SAMPLE_PREFIX).length();
+   std::size_t start = idx0 + prefix.length();
    std::string indexStr = path.substr(start, idx1 - start);
 
    std::int32_t index;
@@ -65,32 +86,33 @@ std::int32_t StepFile::getIsampleFromPath(const std::string& path) const
    return index;
 }
 
-std::string StepFile::getSamplePrefix() const
+std::string StepFile::getStepPrefix() const
 {
-   return m_prefix + STEP_SAMPLE_PREFIX + std::to_string(m_isample);
+   std::string prefix = m_burnin ? STEP_BURNIN_PREFIX : STEP_SAMPLE_PREFIX;
+   return m_prefix + prefix + std::to_string(m_isample);
 }
 
 std::string StepFile::getModelFileName(std::uint64_t index) const
 {
-   std::string prefix = getSamplePrefix();
+   std::string prefix = getStepPrefix();
    return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
 }
 
-std::string StepFile::getPriorFileName(uint32_t mode) const
+std::string StepFile::getPriorFileName(std::uint32_t mode) const
 {
-   std::string prefix = getSamplePrefix();
+   std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
 }
 
 std::string StepFile::getPredFileName() const
 {
-   std::string prefix = getSamplePrefix();
+   std::string prefix = getStepPrefix();
    return prefix + "-predictions.csv";
 }
 
 std::string StepFile::getPredStateFileName() const
 {
-   std::string prefix = getSamplePrefix();
+   std::string prefix = getStepPrefix();
    return prefix + "-predictions-state.ini";
 }
 
@@ -173,6 +195,38 @@ void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors
    }
 }
 
+void StepFile::removeModel() const
+{
+   std::uint64_t index = 0;
+   while (true)
+   {
+      std::string path = getModelFileName(index++);
+      if (!generic_io::file_exists(path))
+         break;
+
+      std::remove(path.c_str());
+   }   
+}
+
+void StepFile::removePred() const
+{
+   std::remove(getPredFileName().c_str());
+   std::remove(getPredStateFileName().c_str());
+}
+
+void StepFile::removePriors() const
+{
+   std::uint32_t mode = 0;
+   while (true)
+   {
+      std::string path = getPriorFileName(mode++);
+      if (!generic_io::file_exists(path))
+         break;
+
+      std::remove(path.c_str());
+   }
+}
+
 void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
    saveModel(model);
@@ -180,11 +234,29 @@ void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Re
    savePriors(priors);
 }
 
-void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> m_pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
    restoreModel(model);
-   restorePred(m_pred);
+   restorePred(pred);
    restorePriors(priors);
+}
+
+void StepFile::remove(bool model, bool pred, bool priors) const
+{
+   //remove all model files
+   if(model)
+      removeModel();
+
+   //remove all pred files
+   if(pred)
+      removePred();
+
+   //remove all prior files
+   if(priors)
+      removePriors();
+
+   //remove step file itself
+   std::remove(getStepFileName().c_str());
 }
 
 std::int32_t StepFile::getIsample() const
@@ -200,4 +272,9 @@ std::int32_t StepFile::getNSamples() const
 
    std::int32_t num_models = reader.GetInteger("", NUM_MODELS_TAG, 0);
    return num_models;
+}
+
+bool StepFile::getBurnin() const
+{
+   return m_burnin;
 }

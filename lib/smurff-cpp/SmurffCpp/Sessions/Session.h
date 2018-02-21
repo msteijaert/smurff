@@ -52,13 +52,15 @@ public:
 
 private:
    //save current iteration
-   void save(int isample) const;
+   void save(int iteration) const;
+
+   void saveInternal(std::shared_ptr<StepFile> stepFile) const;
    
    //restore last iteration
-   bool restore();
+   bool restore(int& iteration);
 
 private:
-   void printStatus(double elapsedi, bool resume);
+   void printStatus(double elapsedi, bool resume, int isample);
 
 private:
    void initRng();

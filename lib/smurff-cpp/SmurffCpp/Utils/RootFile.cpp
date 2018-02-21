@@ -9,7 +9,8 @@
 #include <SmurffCpp/Utils/IniUtils.h>
 
 #define OPTIONS_TAG "options"
-#define STEP_PREFIX "step_"
+#define BURNIN_STEP_PREFIX "burnin_step_"
+#define SAMPLE_STEP_PREFIX "sample_step_"
 
 using namespace smurff;
 
@@ -77,43 +78,91 @@ void RootFile::restoreConfig(Config& config)
    THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
 }
 
-std::shared_ptr<StepFile> RootFile::createStepFile(std::int32_t isample) const
+std::shared_ptr<StepFile> RootFile::createSampleStepFile(std::int32_t isample) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true);
+   return createStepFileInternal(isample, false);
+}
+
+std::shared_ptr<StepFile> RootFile::createBurninStepFile(std::int32_t isample) const
+{
+   return createStepFileInternal(isample, true);
+}
+
+std::shared_ptr<StepFile> RootFile::createStepFileInternal(std::int32_t isample, bool burnin) const
+{
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true, burnin);
+
    std::string stepFileName = stepFile->getStepFileName();
-   std::string stepTag = STEP_PREFIX + std::to_string(isample);
+   std::string tagPrefix = burnin ? BURNIN_STEP_PREFIX : SAMPLE_STEP_PREFIX;
+   std::string stepTag = tagPrefix + std::to_string(isample);
    appendToRootFile(stepTag, stepFileName);
 
    return stepFile;
 }
 
+void RootFile::removeSampleStepFile(std::int32_t isample) const
+{
+   removeStepFileInternal(isample, false);
+}
+
+void RootFile::removeBurninStepFile(std::int32_t isample) const
+{
+   removeStepFileInternal(isample, true);
+}
+
+void RootFile::removeStepFileInternal(std::int32_t isample, bool burnin) const
+{
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, burnin);
+   stepFile->remove(true, true, true);
+}
+
 std::shared_ptr<StepFile> RootFile::openLastStepFile() const
 {
-   std::string lastItem;
+   std::string lastBurninItem;
+   std::string lastStepItem;
 
    for (auto& item : m_iniStorage)
    {
-      if (startsWith(item.first, STEP_PREFIX))
-         lastItem = item.second;
+      if (startsWith(item.first, BURNIN_STEP_PREFIX))
+         lastBurninItem = item.second;
+
+      if (startsWith(item.first, SAMPLE_STEP_PREFIX))
+         lastStepItem = item.second;
    }
 
-   if (lastItem.empty())
-      return std::shared_ptr<StepFile>();
+   //try open sample file
+   //if no sample file then try open burnin file
+   //if no burnin file then return empty file
+   if (lastStepItem.empty())
+   {
+      if (lastBurninItem.empty())
+      {
+         return std::shared_ptr<StepFile>();
+      }
+      else
+      {
+         return std::make_shared<StepFile>(lastBurninItem, m_prefix, m_extension);
+      }  
+   }
    else
-      return std::make_shared<StepFile>(lastItem, m_prefix, m_extension);
+   {
+      return std::make_shared<StepFile>(lastStepItem, m_prefix, m_extension);
+   }   
 }
 
-std::shared_ptr<StepFile> RootFile::openStepFile(std::int32_t isample) const
+/*
+std::shared_ptr<StepFile> RootFile::openSampleStepFile(std::int32_t isample) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, false);
    return stepFile;
 }
 
-std::shared_ptr<StepFile> RootFile::openStepFile(std::string path) const
+std::shared_ptr<StepFile> RootFile::openSampleStepFile(std::string path) const
 {
    std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(path, m_prefix, m_extension);
    return stepFile;
 }
+*/
 
 void RootFile::flush() const
 {
@@ -142,6 +191,8 @@ void RootFile::flushLast() const
    rootFile.close();
 }
 
+//AGE: to properly implement this we need smth like boost::adaptors::filtered
+/*
 std::vector<std::pair<std::string, std::string> >::const_iterator RootFile::stepFilesBegin() const
 {
    auto it = m_iniStorage.begin();
@@ -153,3 +204,4 @@ std::vector<std::pair<std::string, std::string> >::const_iterator RootFile::step
 {
    return m_iniStorage.end();
 }
+*/

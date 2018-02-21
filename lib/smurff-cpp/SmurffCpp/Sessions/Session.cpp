@@ -101,12 +101,12 @@ void Session::init()
       info(std::cout, "");
 
    //restore session (model, priors)
-   bool resume = restore();
+   bool resume = restore(m_iter);
 
    //print session status to console
    if (m_config.getVerbose())
    {
-      printStatus(0, resume);
+      printStatus(0, resume, m_iter);
       printf(" ====== Sampling (burning phase) ====== \n");
    }
 
@@ -142,9 +142,9 @@ void Session::step()
    //WARNING: update is an expensive operation because of sort (when calculating AUC)
    m_pred->update(m_model, m_iter < m_config.getBurnin());
 
-   printStatus(endi - starti, false);
+   printStatus(endi - starti, false, m_iter);
 
-   save(m_iter - m_config.getBurnin() + 1);
+   save(m_iter);
 
    m_iter++;
 }
@@ -181,25 +181,45 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
    return os;
 }
 
-void Session::save(int isample) const
+void Session::save(int iteration) const
 {
    //do not save if 'never save' mode is selected
    if (!m_config.getSaveFreq())
       return;
 
-   //do not save if burnin
-   if (isample < 0)
-      return;
+   int isample = iteration - m_config.getBurnin() + 1;
 
-   //save_freq > 0: check modulo
-   if (m_config.getSaveFreq() > 0 && ((isample + 1) % m_config.getSaveFreq()) != 0) //do not save if not a save iteration
-      return;
+   //save if burnin
+   if (isample <= 0)
+   {
+      int iburnin = iteration + 1;
 
-   //save_freq < 0: save last iter
-   if (m_config.getSaveFreq() < 0 && isample < m_config.getNSamples()) //do not save if (final model) mode is selected and not a final iteration
-      return;
+      //remove previous iteration
+      m_rootFile->removeBurninStepFile(iburnin - 1);
 
-   std::shared_ptr<StepFile> stepFile = m_rootFile->createStepFile(isample);
+      //save this iteration
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createBurninStepFile(iburnin);
+      saveInternal(stepFile);
+   }
+   else
+   {
+      //save_freq > 0: check modulo
+      if (m_config.getSaveFreq() > 0 && ((isample + 1) % m_config.getSaveFreq()) != 0) //do not save if not a save iteration
+         return;
+
+      //save_freq < 0: save last iter
+      if (m_config.getSaveFreq() < 0 && isample < m_config.getNSamples()) //do not save if (final model) mode is selected and not a final iteration
+         return;
+
+      //save this iteration
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createSampleStepFile(isample);
+      saveInternal(stepFile);
+   }
+}
+
+void Session::saveInternal(std::shared_ptr<StepFile> stepFile) const
+{
+   
 
    if (m_config.getVerbose())
       printf("-- Saving model, predictions,... into '%s'.\n", stepFile->getStepFileName().c_str());
@@ -210,13 +230,13 @@ void Session::save(int isample) const
    m_rootFile->flushLast();
 }
 
-bool Session::restore()
+bool Session::restore(int& iteration)
 {
    std::shared_ptr<StepFile> stepFile = m_rootFile->openLastStepFile();
    if (!stepFile)
    {
       //if there is nothing to restore - start from initial iteration
-      m_iter = -1;
+      iteration = -1;
       return false;
    }
    else
@@ -227,12 +247,20 @@ bool Session::restore()
       BaseSession::restore(stepFile);
 
       //restore last iteration index
-      m_iter = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+      if (stepFile->getBurnin())
+      {
+         iteration = stepFile->getIsample() - 1; //restore original state
+      }
+      else
+      {
+         iteration = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+      }
+
       return true;
    }   
 }
 
-void Session::printStatus(double elapsedi, bool resume)
+void Session::printStatus(double elapsedi, bool resume, int iteration)
 {
    if(!m_config.getVerbose())
       return;
@@ -247,22 +275,22 @@ void Session::printStatus(double elapsedi, bool resume)
 
    std::string phase;
    int i, from;
-   if (m_iter < 0)
+   if (iteration < 0)
    {
       phase = "Initial";
-      i = 0;
+      i = iteration + 1;
       from = 0;
    }
-   else if (m_iter < m_config.getBurnin())
+   else if (iteration < m_config.getBurnin())
    {
       phase = "Burnin";
-      i = m_iter + 1;
+      i = iteration + 1;
       from = m_config.getBurnin();
    }
    else
    {
       phase = "Sample";
-      i = m_iter - m_config.getBurnin() + 1;
+      i = iteration - m_config.getBurnin() + 1;
       from = m_config.getNSamples();
    }
 

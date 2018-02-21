@@ -42,23 +42,41 @@ public:
    void restoreConfig(Config& config);
 
 public:
-   std::shared_ptr<StepFile> createStepFile(std::int32_t isample) const;
+   std::shared_ptr<StepFile> createSampleStepFile(std::int32_t isample) const;
+
+   std::shared_ptr<StepFile> createBurninStepFile(std::int32_t isample) const;
+
+public:
+   void removeSampleStepFile(std::int32_t isample) const;
+
+   void removeBurninStepFile(std::int32_t isample) const;
+
+private:
+   std::shared_ptr<StepFile> createStepFileInternal(std::int32_t isample, bool burnin) const;
+
+private:
+   void removeStepFileInternal(std::int32_t isample, bool burnin) const;
 
 public:
    std::shared_ptr<StepFile> openLastStepFile() const;
 
-   std::shared_ptr<StepFile> openStepFile(std::int32_t isample) const;
+/*
+public:
+   std::shared_ptr<StepFile> openSampleStepFile(std::int32_t isample) const;
 
-   std::shared_ptr<StepFile> openStepFile(std::string path) const;
+   std::shared_ptr<StepFile> openSampleStepFile(std::string path) const;
+*/
 
 public:
    void flush() const;
 
    void flushLast() const;
 
+/*
 public:
    std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesBegin() const;
    std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesEnd() const;
+*/
 };
 
 }
