@@ -1,0 +1,28 @@
+library("Matrix")
+
+exportGFADREAM <- function() {
+    Y <- dreamExp()
+    for(set in names(Y))  writeMM(as(Y[[set]], "sparseMatrix"), paste0(set,".mm"))
+}
+
+	dds.mm	        1643	53	31	1643	100%
+	dss.mm	        1643	53	31	1643	100%
+-->	exome.mm       	26500	53	500	3510	13%
+	ge.mm	        26500	53	500	26500	100%
+	met.mm	        26500	53	500	26500	100%
+	rppa.mm	        3498	53	66	3498	100%
+
+
+v0.9
+
+ smurff --train=exome.mm --burnin=500  --nsamples=10 --verbose=2 --num-latent=60  --row-prior=normal \
+        --col-prior=normal --status=stats.csv --save-prefix=results --save-freq=-1 --seed=1234 \
+        --direct --center=none --row-features dds.mm --row-features dss.mm --row-features ge.mm \
+        --row-features met.mm --row-features rppa.mm --precision=5.0 
+
+v0.10
+
+~/excape/smurff/lib/smurff-cpp/build/makefiles/Debug/smurff --train=exome.mm --burnin=500  --nsamples=10 \
+--verbose=2 --num-latent=60  --prior=normal normal --status=stats.csv --save-prefix=results \
+--save-freq=-1 --seed=1234         --direct --aux-data dds.mm,dss.mm,ge.mm,met.mm,rppa.mm none \
+--side-info none none --precision=5.0
