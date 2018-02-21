@@ -36,5 +36,9 @@ void smurff::split(const std::string& str, std::vector<std::string >& tokens, ch
 
 bool smurff::startsWith(const std::string& str, const std::string& prefix)
 {
+   //protection from out of range exception
+   if (str.length() < prefix.length())
+      return false;
+
    return std::equal(prefix.begin(), prefix.end(), str.begin());
 }
