@@ -204,7 +204,7 @@ void Session::save(int iteration) const
    else
    {
       //save_freq > 0: check modulo
-      if (m_config.getSaveFreq() > 0 && ((isample + 1) % m_config.getSaveFreq()) != 0) //do not save if not a save iteration
+      if (m_config.getSaveFreq() > 0 && (isample % m_config.getSaveFreq()) != 0) //do not save if not a save iteration
          return;
 
       //save_freq < 0: save last iter
@@ -219,8 +219,6 @@ void Session::save(int iteration) const
 
 void Session::saveInternal(std::shared_ptr<StepFile> stepFile) const
 {
-   
-
    if (m_config.getVerbose())
       printf("-- Saving model, predictions,... into '%s'.\n", stepFile->getStepFileName().c_str());
 
