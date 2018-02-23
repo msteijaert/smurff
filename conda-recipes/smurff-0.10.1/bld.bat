@@ -5,7 +5,7 @@ cd build
 
 set CMAKE_CONFIG="Release"
 
-cmake ..\lib\smurff-cpp\cmake -LAH -G"%GENERATOR%"                       ^
+cmake ..\lib\smurff-cpp\cmake -LAH -G"%CMAKE_GENERATOR%"                       ^
     -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%"
 
 cmake --build . --config %CMAKE_CONFIG% --target ALL_BUILD
