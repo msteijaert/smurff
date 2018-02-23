@@ -10,9 +10,9 @@ source:
 requirements:
   build:
     - {{ compiler("cxx") }}
-    - {{ compiler("fortran") }}
+    - {{ compiler("fortran") }} # [not win]
     - cmake
-    - mkl-devel
+    - mkl-devel                 # [not win]
 
 test:
   files:
