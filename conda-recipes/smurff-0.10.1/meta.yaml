@@ -18,8 +18,6 @@ requirements:
     - python
     - setuptools
     - numpy
-    - scipy
-    - pandas
   run:
     - llvm-openmp              # [osx]
     - libboost
