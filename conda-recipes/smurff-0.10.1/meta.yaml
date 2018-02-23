@@ -28,10 +28,10 @@ requirements:
     - pandas
 
 test:
-    - commands:
-        $PREFIX/libexec/tests
-    - imports
-	smurff
+    commands:
+        - $PREFIX/libexec/tests
+    imports:
+        - smurff
 
 about:
   home: https://github.com/ExaScience/smurff
