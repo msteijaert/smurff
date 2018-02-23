@@ -13,6 +13,7 @@ requirements:
     - {{ compiler('c') }}      # [not win]
     - llvm-openmp              # [osx]
     - eigen3
+  host:
     - libboost
     - cython >=0.25
     - python
