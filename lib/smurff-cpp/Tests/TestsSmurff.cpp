@@ -1863,7 +1863,6 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    REQUIRE_THROWS(SessionFactory::create_py_session(config));
 }
 
-#endif // TEST_RANDOM
 
 //test throw
 
@@ -2428,3 +2427,5 @@ TEST_CASE(
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
 }
+#endif // TEST_RANDOM
+
