@@ -23,7 +23,7 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
       //read will throw exception if file extension is not correct
       return matrix_io::read_matrix(filename, isScarce);
    }
-   catch(std::runtime_error& e)
+   catch(std::runtime_error& ex1)
    {
       try
       {
@@ -35,9 +35,9 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
          //read will throw exception if file extension is not correct
          return tensor_io::read_tensor(filename, isScarce);
       }
-      catch(std::runtime_error& e)
+      catch(std::runtime_error& ex2)
       {
-         THROWERROR("Wrong file format " + filename);
+         THROWERROR("Wrong file format " + filename + ". " + ex2.what());
       }
    }
 }
