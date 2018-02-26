@@ -17,32 +17,56 @@
 
 using namespace smurff;
 
+void Session::setFromRootPath(std::string rootPath)
+{
+   // assign config
+
+   m_rootFile = std::make_shared<RootFile>(rootPath);
+   m_rootFile->restoreConfig(m_config);
+
+   m_config.validate();
+
+   //base functionality
+   setFromBase();
+}
+
 void Session::setFromConfig(const Config& cfg)
 {
    // assign config
 
    cfg.validate();
-   cfg.save(cfg.getSavePrefix() + ".ini");
-   config = cfg;
+   m_config = cfg;
 
+   m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+   m_rootFile->saveConfig(m_config);
+
+   //base functionality
+   setFromBase();
+
+   //flush record about options.ini
+   m_rootFile->flushLast();
+}
+
+void Session::setFromBase()
+{
    std::shared_ptr<Session> this_session = shared_from_this();
 
    // initialize pred
 
-   if (config.getClassify())
-      m_pred->setThreshold(config.getThreshold());
+   if (m_config.getClassify())
+      m_pred->setThreshold(m_config.getThreshold());
 
-   if (config.getTest())
-      m_pred->set(config.getTest());
+   if (m_config.getTest())
+      m_pred->set(m_config.getTest());
 
    // initialize data
 
-   data_ptr = config.getTrain()->create(std::make_shared<DataCreator>(this_session));
+   data_ptr = m_config.getTrain()->create(std::make_shared<DataCreator>(this_session));
 
    // initialize priors
 
    std::shared_ptr<IPriorFactory> priorFactory = this->create_prior_factory();
-   for(std::size_t i = 0; i < config.getPriorTypes().size(); i++)
+   for (std::size_t i = 0; i < m_config.getPriorTypes().size(); i++)
       this->addPrior(priorFactory->create_prior(this_session, i));
 }
 
@@ -51,57 +75,54 @@ void Session::init()
    //init omp
    threads_init();
 
-   //init random generator
-   if(config.getRandomSeedSet())
-      init_bmrng(config.getRandomSeed());
-   else
-      init_bmrng();
+   //initialize random generator
+   initRng();
 
    //initialize train matrix (centring and noise model)
    data()->init();
 
    //initialize model (samples)
-   m_model->init(config.getNumLatent(), data()->dim(), config.getModelInitType());
+   m_model->init(m_config.getNumLatent(), data()->dim(), m_config.getModelInitType());
 
-   //initialize priors (?)
-   for( auto &p : m_priors)
+   //initialize priors
+   for(auto &p : m_priors)
       p->init();
 
    //write header to status file
-   if (config.getCsvStatus().size())
+   if (m_config.getCsvStatus().size())
    {
-      auto f = fopen(config.getCsvStatus().c_str(), "w");
+      auto f = fopen(m_config.getCsvStatus().c_str(), "w");
       fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
       fclose(f);
    }
 
    //write info to console
-   if (config.getVerbose())
+   if (m_config.getVerbose())
       info(std::cout, "");
 
    //restore session (model, priors)
-   if (config.getRestorePrefix().size())
-   {
-      if (config.getVerbose())
-         printf("-- Restoring model, predictions,... from '%s*%s'.\n", config.getRestorePrefix().c_str(), config.getSaveSuffix().c_str());
-      restore(config.getRestorePrefix(), config.getRestoreSuffix());
-   }
+   bool resume = restore(m_iter);
 
    //print session status to console
-   if (config.getVerbose())
+   if (m_config.getVerbose())
    {
-      printStatus(0);
+      printStatus(0, resume, m_iter);
       printf(" ====== Sampling (burning phase) ====== \n");
    }
 
-   iter = 0;
+   //restore will either start from initial iteration (-1) that should be printed with printStatus
+   //or it will start with last iteration that was previously saved
+   //in any case - we have to move to next iteration
+   m_iter++; //go to next iteration
+
    is_init = true;
 }
 
 void Session::run()
 {
    init();
-   while (iter < config.getBurnin() + config.getNSamples())
+
+   while (m_iter < m_config.getBurnin() + m_config.getNSamples())
       step();
 }
 
@@ -109,7 +130,7 @@ void Session::step()
 {
    THROWERROR_ASSERT(is_init);
 
-   if (config.getVerbose() && iter == config.getBurnin())
+   if (m_config.getVerbose() && m_iter == m_config.getBurnin())
    {
       printf(" ====== Burn-in complete, averaging samples ====== \n");
    }
@@ -119,68 +140,127 @@ void Session::step()
    auto endi = tick();
 
    //WARNING: update is an expensive operation because of sort (when calculating AUC)
-   m_pred->update(m_model, iter < config.getBurnin());
+   m_pred->update(m_model, m_iter < m_config.getBurnin());
 
-   printStatus(endi - starti);
-   save(iter - config.getBurnin() + 1);
-   iter++;
+   printStatus(endi - starti, false, m_iter);
+
+   save(m_iter);
+
+   m_iter++;
 }
 
 std::ostream& Session::info(std::ostream &os, std::string indent)
 {
-   BaseSession::info(os, indent);
-   os << indent << "  Version: " << smurff::SMURFF_VERSION << "\n" ;
-   os << indent << "  Iterations: " << config.getBurnin() << " burnin + " << config.getNSamples() << " samples\n";
+   os << indent << name << " {\n";
 
-   if (config.getSaveFreq() != 0)
+   BaseSession::info(os, indent);
+
+   os << indent << "  Version: " << smurff::SMURFF_VERSION << "\n" ;
+   os << indent << "  Iterations: " << m_config.getBurnin() << " burnin + " << m_config.getNSamples() << " samples\n";
+
+   if (m_config.getSaveFreq() != 0)
    {
-      if (config.getSaveFreq() > 0) {
-          os << indent << "  Save model: every " << config.getSaveFreq() << " iteration\n";
-      } else {
+      if (m_config.getSaveFreq() > 0) 
+      {
+          os << indent << "  Save model: every " << m_config.getSaveFreq() << " iteration\n";
+      } 
+      else 
+      {
           os << indent << "  Save model after last iteration\n";
       }
-      os << indent << "  Save prefix: " << config.getSavePrefix() << "\n";
-      os << indent << "  Save suffix: " << config.getSaveSuffix() << "\n";
+
+      os << indent << "  Save prefix: " << m_config.getSavePrefix() << "\n";
+      os << indent << "  Save extension: " << m_config.getSaveExtension() << "\n";
    }
    else
    {
       os << indent << "  Save model: never\n";
    }
 
-   if (config.getRestorePrefix().size())
-   {
-      os << indent << "  Restore prefix: " << config.getRestorePrefix() << "\n";
-      os << indent << "  Restore suffix: " << config.getRestoreSuffix() << "\n";
-   }
-
    os << indent << "}\n";
    return os;
 }
 
-void Session::save(int isample)
+void Session::save(int iteration) const
 {
-   if (!config.getSaveFreq() || isample < 0) //do not save if (never save) mode is selected or if burnin
+   //do not save if 'never save' mode is selected
+   if (!m_config.getSaveFreq())
       return;
 
-   //save_freq > 0: check modulo
-   if (config.getSaveFreq() > 0 && ((isample + 1) % config.getSaveFreq()) != 0) //do not save if not a save iteration
-      return;
+   int isample = iteration - m_config.getBurnin() + 1;
 
-   //save_freq < 0: save last iter
-   if (config.getSaveFreq() < 0 && isample < config.getNSamples()) //do not save if (final model) mode is selected and not a final iteration
-      return;
+   //save if burnin
+   if (isample <= 0)
+   {
+      int iburnin = iteration + 1;
 
-   std::string fprefix = config.getSavePrefix() + "-sample-" + std::to_string(isample);
+      //remove previous iteration
+      m_rootFile->removeBurninStepFile(iburnin - 1);
 
-   if (config.getVerbose())
-      printf("-- Saving model, predictions,... into '%s*%s'.\n", fprefix.c_str(), config.getSaveSuffix().c_str());
+      //save this iteration
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createBurninStepFile(iburnin);
+      saveInternal(stepFile);
+   }
+   else
+   {
+      //save_freq > 0: check modulo - do not save if not a save iteration
+      if (m_config.getSaveFreq() > 0 && (isample % m_config.getSaveFreq()) != 0)
+         return;
 
-   BaseSession::save(fprefix, config.getSaveSuffix());
+      //save_freq < 0: save last iter - do not save if (final model) mode is selected and not a final iteration
+      if (m_config.getSaveFreq() < 0 && isample < m_config.getNSamples())
+         return;
+
+      //save this iteration
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createSampleStepFile(isample);
+      saveInternal(stepFile);
+   }
 }
 
-void Session::printStatus(double elapsedi)
+void Session::saveInternal(std::shared_ptr<StepFile> stepFile) const
 {
-   if(!config.getVerbose())
+   if (m_config.getVerbose())
+      printf("-- Saving model, predictions,... into '%s'.\n", stepFile->getStepFileName().c_str());
+
+   BaseSession::save(stepFile);
+
+   //flush last item in a root file
+   m_rootFile->flushLast();
+}
+
+bool Session::restore(int& iteration)
+{
+   std::shared_ptr<StepFile> stepFile = m_rootFile->openLastStepFile();
+   if (!stepFile)
+   {
+      //if there is nothing to restore - start from initial iteration
+      iteration = -1;
+      return false;
+   }
+   else
+   {
+      if (m_config.getVerbose())
+         printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
+
+      BaseSession::restore(stepFile);
+
+      //restore last iteration index
+      if (stepFile->getBurnin())
+      {
+         iteration = stepFile->getIsample() - 1; //restore original state
+      }
+      else
+      {
+         iteration = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+      }
+
+      return true;
+   }   
+}
+
+void Session::printStatus(double elapsedi, bool resume, int iteration)
+{
+   if(!m_config.getVerbose())
       return;
 
    double snorm0 = m_model->U(0).norm();
@@ -189,30 +269,32 @@ void Session::printStatus(double elapsedi)
    auto nnz_per_sec = (data()->nnz()) / elapsedi;
    auto samples_per_sec = (m_model->nsamples()) / elapsedi;
 
+   std::string resumeString = resume ? "Continue from " : std::string();
+
    std::string phase;
    int i, from;
-   if (iter < 0)
+   if (iteration < 0)
    {
       phase = "Initial";
-      i = 0;
+      i = iteration + 1;
       from = 0;
    }
-   else if (iter < config.getBurnin())
+   else if (iteration < m_config.getBurnin())
    {
       phase = "Burnin";
-      i = iter + 1;
-      from = config.getBurnin();
+      i = iteration + 1;
+      from = m_config.getBurnin();
    }
    else
    {
       phase = "Sample";
-      i = iter - config.getBurnin() + 1;
-      from = config.getNSamples();
+      i = iteration - m_config.getBurnin() + 1;
+      from = m_config.getNSamples();
    }
 
-   printf("%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
+   printf("%s%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", resumeString.c_str(), phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
 
-   if (config.getClassify())
+   if (m_config.getClassify())
       printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
 
    printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
@@ -220,7 +302,7 @@ void Session::printStatus(double elapsedi)
    // avoid computing train_rmse twice
    double train_rmse = NAN;
 
-   if (config.getVerbose() > 1)
+   if (m_config.getVerbose() > 1)
    {
       train_rmse = data()->train_rmse(m_model);
       printf("  RMSE train: %.4f\n", train_rmse);
@@ -235,20 +317,29 @@ void Session::printStatus(double elapsedi)
       data()->status(std::cout, "    ");
    }
 
-   if (config.getVerbose() > 2)
+   if (m_config.getVerbose() > 2)
    {
       printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
    }
 
-   if (config.getCsvStatus().size())
+   if (m_config.getCsvStatus().size())
    {
       // train_rmse is printed as NAN, unless verbose > 1
-      auto f = fopen(config.getCsvStatus().c_str(), "a");
+      auto f = fopen(m_config.getCsvStatus().c_str(), "a");
       fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
                   phase.c_str(), i, from,
                   m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
       fclose(f);
    }
+}
+
+void Session::initRng()
+{
+   //init random generator
+   if (m_config.getRandomSeedSet())
+      init_bmrng(m_config.getRandomSeed());
+   else
+      init_bmrng();
 }
 
 std::shared_ptr<IPriorFactory> Session::create_prior_factory() const

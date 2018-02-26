@@ -123,11 +123,11 @@ void ILatentPrior::sample_latents()
    update_prior();
 }
 
-void ILatentPrior::save(std::string prefix, std::string suffix)
+void ILatentPrior::save(std::shared_ptr<const StepFile> sf) const
 {
 }
 
-void ILatentPrior::restore(std::string prefix, std::string suffix)
+void ILatentPrior::restore(std::shared_ptr<const StepFile> sf)
 {
     init_Usum();
 }

@@ -7,6 +7,8 @@
 
 #include <SmurffCpp/DataMatrices/ScarceMatrixData.h>
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/IO/GenericIO.h>
+
 #include <SmurffCpp/Utils/linop.h>
 
 #include <SmurffCpp/Priors/NormalOnePrior.h>
@@ -191,16 +193,23 @@ public:
    {
    }
 
-   void save(std::string prefix, std::string suffix) override
+   void save(std::shared_ptr<const StepFile> sf) const override
    {
-      prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, beta);
+      NormalOnePrior::save(sf);
+
+      std::string path = sf->getPriorFileName(m_mode);
+      smurff::matrix_io::eigen::write_matrix(path, beta);
    }
 
-   void restore(std::string prefix, std::string suffix) override
+   void restore(std::shared_ptr<const StepFile> sf) override
    {
-      prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, beta);
+      NormalOnePrior::restore(sf);
+
+      std::string path = sf->getPriorFileName(m_mode);
+
+      THROWERROR_FILE_NOT_EXIST(path);
+
+      smurff::matrix_io::eigen::read_matrix(path, beta);
    }
 
    std::ostream &status(std::ostream &os, std::string indent) const override

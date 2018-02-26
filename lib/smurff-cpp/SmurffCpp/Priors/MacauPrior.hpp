@@ -6,6 +6,7 @@
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/IO/GenericIO.h>
 
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Utils/Distribution.h>
@@ -146,18 +147,23 @@ public:
       tol = t;
    }
 
-   void save(std::string prefix, std::string suffix) override
+   void save(std::shared_ptr<const StepFile> sf) const override
    {
-      NormalPrior::save(prefix, suffix);
-      prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::write_matrix(prefix + "-link" + suffix, this->beta);
+      NormalPrior::save(sf);
+
+      std::string path = sf->getPriorFileName(m_mode);
+      smurff::matrix_io::eigen::write_matrix(path, this->beta);
    }
 
-   void restore(std::string prefix, std::string suffix) override
+   void restore(std::shared_ptr<const StepFile> sf) override
    {
-      NormalPrior::restore(prefix, suffix);
-      prefix += "-F" + std::to_string(m_mode);
-      smurff::matrix_io::eigen::read_matrix(prefix + "-link" + suffix, this->beta);
+      NormalPrior::restore(sf);
+
+      std::string path = sf->getPriorFileName(m_mode);
+
+      THROWERROR_FILE_NOT_EXIST(path);
+
+      smurff::matrix_io::eigen::read_matrix(path, this->beta);
    }
 
 private:

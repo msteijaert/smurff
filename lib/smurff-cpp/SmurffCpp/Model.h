@@ -12,6 +12,8 @@
 
 namespace smurff {
 
+class StepFile;
+
 class Data;
 
 class SubModel;
@@ -88,8 +90,8 @@ public:
 
 public:
    // output to file
-   void save(std::string prefix, std::string suffix);
-   void restore(std::string prefix, std::string suffix);
+   void save(std::shared_ptr<const StepFile> sf) const;
+   void restore(std::shared_ptr<const StepFile> sf);
 
    std::ostream& info(std::ostream &os, std::string indent) const;
    std::ostream& status(std::ostream &os, std::string indent) const;

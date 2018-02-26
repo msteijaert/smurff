@@ -7,13 +7,15 @@
 #include <SmurffCpp/Sessions/ISession.h>
 #include <SmurffCpp/Utils/Error.h>
 
+#include <SmurffCpp/Utils/StepFile.h>
+
 namespace smurff {
 
 class ILatentPrior;
 class Data;
 class Model;
 class SessionFactory;
-struct Result;
+class Result;
 
 class BaseSession : public ISession
 {
@@ -66,9 +68,9 @@ public:
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);
 
-   void save(std::string prefix, std::string suffix);
+   void save(std::shared_ptr<StepFile> stepFile) const;
 
-   void restore(std::string prefix, std::string suffix);
+   void restore(std::shared_ptr<StepFile> stepFile);
 
 public:
    std::shared_ptr<std::vector<ResultItem> > getResult() override;

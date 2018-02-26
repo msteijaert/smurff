@@ -18,11 +18,13 @@
 
 namespace smurff {
 
+class StepFile;
+
 class ILatentPrior
 {
 public:
    std::shared_ptr<BaseSession> m_session;
-   uint32_t m_mode;
+   std::uint32_t m_mode;
    std::string m_name = "xxxx";
 
    smurff::thread_vector<Eigen::VectorXd> rrs;
@@ -63,8 +65,8 @@ public:
    const Eigen::VectorXd& getUsum() { return Usum; } 
    const Eigen::MatrixXd& getUUsum()  { return UUsum; }
 
-   virtual void save(std::string prefix, std::string suffix);
-   virtual void restore(std::string prefix, std::string suffix);
+   virtual void save(std::shared_ptr<const StepFile> sf) const;
+   virtual void restore(std::shared_ptr<const StepFile> sf);
    virtual std::ostream &info(std::ostream &os, std::string indent);
    virtual std::ostream &status(std::ostream &os, std::string indent) const = 0;
 
@@ -82,9 +84,15 @@ private:
    Eigen::MatrixXd UUsum;
 
 public:
-   void setMode(int value)
+   void setMode(std::uint32_t value)
    {
       m_mode = value;
+   }
+
+public:
+   std::uint32_t getMode() const
+   {
+      return m_mode;
    }
 };
 }

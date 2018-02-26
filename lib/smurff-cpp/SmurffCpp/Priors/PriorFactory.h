@@ -37,9 +37,9 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
 {
     std::shared_ptr<MacauPrior> prior(new MacauPrior(session, -1));
 
-    prior->addSideInfo(side_info, session->config.getDirect());
-    prior->setLambdaBeta(session->config.getLambdaBeta());
-    prior->setTol(session->config.getTol());
+    prior->addSideInfo(side_info, session->getConfig().getDirect());
+    prior->setLambdaBeta(session->getConfig().getLambdaBeta());
+    prior->setTol(session->getConfig().getTol());
 
     return prior;
 }

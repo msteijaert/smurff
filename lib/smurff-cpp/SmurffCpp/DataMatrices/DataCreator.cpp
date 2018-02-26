@@ -20,14 +20,14 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const MatrixConfig> mc
    std::vector<std::shared_ptr<TensorConfig> > col_matrices;
 
    //row prior
-   PriorTypes rowPriorType = m_session->config.getPriorTypes().at(0);
+   PriorTypes rowPriorType = m_session->getConfig().getPriorTypes().at(0);
    if (rowPriorType != PriorTypes::macau && rowPriorType != PriorTypes::macauone)
-      row_matrices = m_session->config.getAuxData().at(0);
+      row_matrices = m_session->getConfig().getAuxData().at(0);
 
    //col prior
-   PriorTypes colPriorType = m_session->config.getPriorTypes().at(1);
+   PriorTypes colPriorType = m_session->getConfig().getPriorTypes().at(1);
    if (colPriorType != PriorTypes::macau && colPriorType != PriorTypes::macauone)
-      col_matrices = m_session->config.getAuxData().at(1);
+      col_matrices = m_session->getConfig().getAuxData().at(1);
 
    //create creator
    std::shared_ptr<DataCreatorBase> creatorBase = std::make_shared<DataCreatorBase>();
@@ -57,7 +57,7 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const MatrixConfig> mc
 
 std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const TensorConfig> tc) const
 {
-   for (const auto& sideInfo : m_session->config.getSideInfo())
+   for (const auto& sideInfo : m_session->getConfig().getSideInfo())
    {
       if (sideInfo)
       {
@@ -65,7 +65,7 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const TensorConfig> tc
       }
    }
 
-   for (const auto& auxDataSet : m_session->config.getAuxData())
+   for (const auto& auxDataSet : m_session->getConfig().getAuxData())
    {
       if (!auxDataSet.empty())
       {

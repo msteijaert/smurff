@@ -1,5 +1,7 @@
 #include "BaseSession.h"
 
+#include <fstream>
+
 #include <SmurffCpp/Priors/ILatentPrior.h>
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
@@ -29,7 +31,6 @@ void BaseSession::step()
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent)
 {
-   os << indent << name << " {\n";
    os << indent << "  Data: {\n";
    data()->info(os, indent + "    ");
    os << indent << "  }\n";
@@ -46,19 +47,14 @@ std::ostream &BaseSession::info(std::ostream &os, std::string indent)
    return os;
 }
 
-void BaseSession::save(std::string prefix, std::string suffix)
+void BaseSession::save(std::shared_ptr<StepFile> stepFile) const
 {
-   m_model->save(prefix, suffix);
-   m_pred->save(prefix);
-   for(auto &p : m_priors)
-      p->save(prefix, suffix);
+   stepFile->save(m_model, m_pred, m_priors);
 }
 
-void BaseSession::restore(std::string prefix, std::string suffix)
+void BaseSession::restore(std::shared_ptr<StepFile> stepFile)
 {
-   m_model->restore(prefix, suffix);
-   for(auto &p : m_priors)
-      p->restore(prefix, suffix);
+   stepFile->restore(m_model, m_pred, m_priors);
 }
 
 std::shared_ptr<std::vector<ResultItem> > BaseSession::getResult()

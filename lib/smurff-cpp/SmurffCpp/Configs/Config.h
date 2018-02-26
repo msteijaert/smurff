@@ -70,16 +70,12 @@ private:
    // -- priors
    std::vector<PriorTypes> m_prior_types;
 
-   //-- restore
-   std::string m_restore_prefix;
-   std::string m_restore_suffix;
-
    //-- init model
    ModelInitTypes m_model_init_type;
 
    //-- save
    std::string m_save_prefix;
-   std::string m_save_suffix;
+   std::string m_save_extension;
    int m_save_freq;
 
    //-- general
@@ -107,13 +103,10 @@ public:
       //technically - all defaults are specified in CmdSession parser
       //these values are only needed if Config is going to be created outside of parser
 
-      m_restore_prefix = "";
-      m_restore_suffix = ".csv";
-
       m_model_init_type = ModelInitTypes::zero;
 
       m_save_prefix = "save";
-      m_save_suffix = ".csv";
+      m_save_extension = ".csv";
       m_save_freq = 0; // never
 
       m_random_seed_set = false;
@@ -156,39 +149,34 @@ public:
       m_test = value;
    }
 
+   const std::vector<std::shared_ptr<MatrixConfig> >& getSideInfo() const
+   {
+      return m_sideInfo;
+   }
+
    std::vector<std::shared_ptr<MatrixConfig> >& getSideInfo()
    {
       return m_sideInfo;
    }
 
+   const std::vector<std::vector<std::shared_ptr<TensorConfig> > >& getAuxData() const
+   {
+      return m_auxData;
+   }
+   
    std::vector<std::vector<std::shared_ptr<TensorConfig> > >& getAuxData()
    {
       return m_auxData;
    }
 
-   std::vector<PriorTypes>& getPriorTypes()
+   const std::vector<PriorTypes>& getPriorTypes() const
    {
       return m_prior_types;
    }
 
-   std::string getRestorePrefix() const
+   std::vector<PriorTypes>& getPriorTypes()
    {
-      return m_restore_prefix;
-   }
-
-   void setRestorePrefix(std::string value)
-   {
-      m_restore_prefix = value;
-   }
-
-   std::string getRestoreSuffix() const
-   {
-      return m_restore_suffix;
-   }
-
-   void setRestoreSuffix(std::string value)
-   {
-      m_restore_suffix = value;
+      return m_prior_types;
    }
 
    ModelInitTypes getModelInitType() const
@@ -211,14 +199,14 @@ public:
       m_save_prefix = value;
    }
 
-   std::string getSaveSuffix() const
+   std::string getSaveExtension() const
    {
-      return m_save_suffix;
+      return m_save_extension;
    }
 
-   void setSaveSuffix(std::string value)
+   void setSaveExtension(std::string value)
    {
-      m_save_suffix = value;
+      m_save_extension = value;
    }
 
    int getSaveFreq() const

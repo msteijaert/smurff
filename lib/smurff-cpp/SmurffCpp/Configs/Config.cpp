@@ -233,11 +233,11 @@ bool Config::validate() const
    }
 
 
-   std::set<std::string> save_suffixes = { ".csv", ".ddm" };
+   std::set<std::string> save_extensions = { ".csv", ".ddm" };
 
-   if (save_suffixes.find(m_save_suffix) == save_suffixes.end())
+   if (save_extensions.find(m_save_extension) == save_extensions.end())
    {
-      THROWERROR("Unknown output suffix: " + m_save_suffix);
+      THROWERROR("Unknown output extension: " + m_save_extension);
    }
 
    m_train->getNoiseConfig().validate();
@@ -295,14 +295,9 @@ void Config::save(std::string fname) const
        print_tensor_config_vector(m_auxData.at(sIndex), "aux_data", sIndex);
    }
 
-   os << "# restore" << std::endl;
-   os << "restore_prefix = " << m_restore_prefix << std::endl;
-   os << "restore_suffix = " << m_restore_suffix << std::endl;
-   os << "init_model = " << modelInitTypeToString(m_model_init_type) << std::endl;
-
    os << "# save" << std::endl;
    os << "save_prefix = " << m_save_prefix << std::endl;
-   os << "save_suffix = " << m_save_suffix << std::endl;
+   os << "save_extension = " << m_save_extension << std::endl;
    os << "save_freq = " << m_save_freq << std::endl;
 
    os << "# general" << std::endl;
@@ -313,6 +308,7 @@ void Config::save(std::string fname) const
    os << "random_seed_set = " << m_random_seed_set << std::endl;
    os << "random_seed = " << m_random_seed << std::endl;
    os << "csv_status = " << m_csv_status << std::endl;
+   os << "init_model = " << modelInitTypeToString(m_model_init_type) << std::endl;
 
    os << "# for macau priors" << std::endl;
    os << "lambda_beta = " << m_lambda_beta << std::endl;
@@ -332,6 +328,8 @@ void Config::save(std::string fname) const
 
 bool Config::restore(std::string fname)
 {
+   THROWERROR_FILE_NOT_EXIST(fname);
+
    INIReader reader(fname);
 
    if (reader.ParseError() < 0)
@@ -377,20 +375,15 @@ bool Config::restore(std::string fname)
 
       while (std::getline(lineStream, token, ','))
       {
-          if(token == AUX_DATA_NONE) continue;
+          if(token == AUX_DATA_NONE) 
+             continue;
           dimAuxData.push_back(matrix_io::read_matrix(token, false));
       }
-
    }
-
-   //-- restore
-   m_restore_prefix = reader.Get("", "restore_prefix",  "");
-   m_restore_suffix = reader.Get("", "restore_suffix",  ".csv");
-   m_model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
 
    //-- save
    m_save_prefix = reader.Get("", "save_prefix",  "save");
-   m_save_suffix = reader.Get("", "save_suffix",  ".csv");
+   m_save_extension = reader.Get("", "save_extension",  ".csv");
    m_save_freq = reader.GetInteger("", "save_freq",  0); // never
 
    //-- general
@@ -401,6 +394,7 @@ bool Config::restore(std::string fname)
    m_random_seed_set = reader.GetBoolean("", "random_seed_set",  false);
    m_random_seed = reader.GetInteger("", "random_seed",  -1);
    m_csv_status = reader.Get("", "csv_status",  "status.csv");
+   m_model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
 
    //-- for macau priors
    m_lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
@@ -413,7 +407,8 @@ bool Config::restore(std::string fname)
    noise.precision = reader.GetReal("", "precision",  5.0);
    noise.sn_init = reader.GetReal("", "sn_init",  1.0);
    noise.sn_max = reader.GetReal("", "sn_max",  10.0);
-   if (m_train) m_train->setNoiseConfig(noise);
+   if (m_train) 
+      m_train->setNoiseConfig(noise);
 
    //-- binary classification
    m_classify = reader.GetBoolean("", "classify",  false);

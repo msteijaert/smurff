@@ -22,6 +22,9 @@
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/StepFile.h>
+
+#include <SmurffCpp/IO/GenericIO.h>
 
 using namespace std;
 using namespace Eigen;
@@ -135,21 +138,26 @@ SubModel Model::full()
    return this_model;
 }
 
-void Model::save(std::string prefix, std::string suffix)
+void Model::save(std::shared_ptr<const StepFile> sf) const
 {
-   int i = 0;
-   for(auto U : m_samples)
+   std::uint64_t i = 0;
+   for (auto U : m_samples)
    {
-      smurff::matrix_io::eigen::write_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
+      std::string path = sf->getModelFileName(i++);
+      smurff::matrix_io::eigen::write_matrix(path, *U);
    }
 }
 
-void Model::restore(std::string prefix, std::string suffix)
+void Model::restore(std::shared_ptr<const StepFile> sf)
 {
-   int i = 0;
-   for(auto U : m_samples)
+   std::uint64_t i = 0;
+   for (auto U : m_samples)
    {
-      smurff::matrix_io::eigen::read_matrix(prefix + "-U" + std::to_string(i++) + "-latents" + suffix, *U);
+      std::string path = sf->getModelFileName(i++);
+
+      THROWERROR_FILE_NOT_EXIST(path);
+
+      smurff::matrix_io::eigen::read_matrix(path, *U);
    }
 }
 

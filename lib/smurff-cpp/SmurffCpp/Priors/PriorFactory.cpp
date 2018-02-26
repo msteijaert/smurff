@@ -70,7 +70,7 @@ std::shared_ptr<SparseDoubleFeat> PriorFactory::side_info_config_to_sparse_featu
 
 std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
 {
-   PriorTypes priorType = session->config.getPriorTypes().at(mode);
+   PriorTypes priorType = session->getConfig().getPriorTypes().at(mode);
 
    switch(priorType)
    {
@@ -83,7 +83,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
       return std::shared_ptr<NormalOnePrior>(new NormalOnePrior(session, -1));
    case PriorTypes::macau:
    case PriorTypes::macauone:
-      return create_macau_prior<PriorFactory>(session, mode, priorType, session->config.getSideInfo().at(mode));
+      return create_macau_prior<PriorFactory>(session, mode, priorType, session->getConfig().getSideInfo().at(mode));
    default:
       {
          THROWERROR("Unknown prior: " + priorTypeToString(priorType));
