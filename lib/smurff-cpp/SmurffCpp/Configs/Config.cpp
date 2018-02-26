@@ -10,8 +10,6 @@
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
 
-
-
 using namespace smurff;
 
 PriorTypes smurff::stringToPriorType(std::string name)
@@ -82,6 +80,53 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
          THROWERROR("Invalid model init type");
       }
    }
+}
+
+//config
+int Config::BURNIN_DEFAULT_VALUE = 200;
+int Config::NSAMPLES_DEFAULT_VALUE = 800;
+int Config::NUM_LATENT_DEFAULT_VALUE = 96;
+ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
+char* Config::SAVE_PREFIX_DEFAULT_VALUE = "save";
+char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".csv";
+int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
+int Config::VERBOSE_DEFAULT_VALUE = 1;
+char* Config::STATUS_DEFAULT_VALUE = "";
+double Config::LAMBDA_BETA_DEFAULT_VALUE = 10.0;
+double Config::TOL_DEFAULT_VALUE = 1e-6;
+double Config::THRESHOLD_DEFAULT_VALUE = 0.0;
+int Config::RANDOM_SEED_DEFAULT_VALUE = 0;
+
+//noise config
+NoiseTypes Config::NOISE_TYPE_DEFAULT_VALUE = NoiseTypes::fixed;
+double Config::PRECISION_DEFAULT_VALUE = 5.0;
+double Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE = 1.0;
+double Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE = 10.0;
+double Config::PROBIT_DEFAULT_VALUE = 0.0;
+
+Config::Config()
+{
+   m_model_init_type = Config::INIT_MODEL_DEFAULT_VALUE;
+
+   m_save_prefix = Config::SAVE_PREFIX_DEFAULT_VALUE;
+   m_save_extension = Config::SAVE_EXTENSION_DEFAULT_VALUE;
+   m_save_freq = Config::SAVE_FREQ_DEFAULT_VALUE;
+
+   m_random_seed_set = false;
+   m_random_seed = Config::RANDOM_SEED_DEFAULT_VALUE;
+
+   m_verbose = Config::VERBOSE_DEFAULT_VALUE;
+   m_csv_status = Config::STATUS_DEFAULT_VALUE;
+   m_burnin = Config::BURNIN_DEFAULT_VALUE;
+   m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
+   m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
+
+   m_lambda_beta = Config::LAMBDA_BETA_DEFAULT_VALUE;
+   m_tol = Config::TOL_DEFAULT_VALUE;
+   m_direct = false;
+
+   m_threshold = Config::THRESHOLD_DEFAULT_VALUE;
+   m_classify = false;
 }
 
 bool Config::validate() const
@@ -250,7 +295,6 @@ void Config::save(std::string fname) const
    if (!m_save_freq)
       return;
 
-
    std::ofstream os(fname);
 
    auto print_tensor_config = [&os](const std::shared_ptr<TensorConfig> &cfg, const std::string name, int idx = -1 ) -> void {
@@ -320,6 +364,7 @@ void Config::save(std::string fname) const
    os << "precision = " << m_train->getNoiseConfig().precision << std::endl;
    os << "sn_init = " << m_train->getNoiseConfig().sn_init << std::endl;
    os << "sn_max = " << m_train->getNoiseConfig().sn_max << std::endl;
+   os << "noise_threshold = " << m_train->getNoiseConfig().threshold << std::endl;
 
    os << "# binary classification" << std::endl;
    os << "classify = " << m_classify << std::endl;
@@ -382,37 +427,38 @@ bool Config::restore(std::string fname)
    }
 
    //-- save
-   m_save_prefix = reader.Get("", "save_prefix",  "save");
-   m_save_extension = reader.Get("", "save_extension",  ".csv");
-   m_save_freq = reader.GetInteger("", "save_freq",  0); // never
+   m_save_prefix = reader.Get("", "save_prefix", Config::SAVE_PREFIX_DEFAULT_VALUE);
+   m_save_extension = reader.Get("", "save_extension", Config::SAVE_EXTENSION_DEFAULT_VALUE);
+   m_save_freq = reader.GetInteger("", "save_freq", Config::SAVE_FREQ_DEFAULT_VALUE);
 
    //-- general
-   m_verbose = reader.GetInteger("", "verbose",  false);
-   m_burnin = reader.GetInteger("", "burnin",  200);
-   m_nsamples = reader.GetInteger("", "nsamples",  800);
-   m_num_latent = reader.GetInteger("", "num_latent",  96);
+   m_verbose = reader.GetInteger("", "verbose", Config::VERBOSE_DEFAULT_VALUE);
+   m_burnin = reader.GetInteger("", "burnin", Config::BURNIN_DEFAULT_VALUE);
+   m_nsamples = reader.GetInteger("", "nsamples", Config::NSAMPLES_DEFAULT_VALUE);
+   m_num_latent = reader.GetInteger("", "num_latent", Config::NUM_LATENT_DEFAULT_VALUE);
    m_random_seed_set = reader.GetBoolean("", "random_seed_set",  false);
-   m_random_seed = reader.GetInteger("", "random_seed",  -1);
-   m_csv_status = reader.Get("", "csv_status",  "status.csv");
-   m_model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
+   m_random_seed = reader.GetInteger("", "random_seed", Config::RANDOM_SEED_DEFAULT_VALUE);
+   m_csv_status = reader.Get("", "csv_status", Config::STATUS_DEFAULT_VALUE);
+   m_model_init_type = stringToModelInitType(reader.Get("", "init_model", modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
 
    //-- for macau priors
-   m_lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
-   m_tol = reader.GetReal("", "tol",  1e-6);
+   m_lambda_beta = reader.GetReal("", "lambda_beta", Config::LAMBDA_BETA_DEFAULT_VALUE);
+   m_tol = reader.GetReal("", "tol", Config::TOL_DEFAULT_VALUE);
    m_direct = reader.GetBoolean("", "direct",  false);
 
    //-- noise model
    NoiseConfig noise;
-   noise.setNoiseType(smurff::stringToNoiseType(reader.Get("", "noise_model",  NOISE_NAME_FIXED)));
-   noise.precision = reader.GetReal("", "precision",  5.0);
-   noise.sn_init = reader.GetReal("", "sn_init",  1.0);
-   noise.sn_max = reader.GetReal("", "sn_max",  10.0);
+   noise.setNoiseType(smurff::stringToNoiseType(reader.Get("", "noise_model", noiseTypeToString(Config::NOISE_TYPE_DEFAULT_VALUE))));
+   noise.precision = reader.GetReal("", "precision", Config::PRECISION_DEFAULT_VALUE);
+   noise.sn_init = reader.GetReal("", "sn_init", Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE);
+   noise.sn_max = reader.GetReal("", "sn_max", Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE);
+   noise.threshold = reader.GetReal("", "noise_threshold", Config::PROBIT_DEFAULT_VALUE);
    if (m_train) 
       m_train->setNoiseConfig(noise);
 
    //-- binary classification
    m_classify = reader.GetBoolean("", "classify",  false);
-   m_threshold = reader.GetReal("", "threshold",  .0);
+   m_threshold = reader.GetReal("", "threshold", Config::THRESHOLD_DEFAULT_VALUE);
 
    return true;
 }

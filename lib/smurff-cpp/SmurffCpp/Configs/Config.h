@@ -56,6 +56,30 @@ std::string modelInitTypeToString(ModelInitTypes type);
 
 struct Config
 {
+public:
+
+   //config
+   static int BURNIN_DEFAULT_VALUE;
+   static int NSAMPLES_DEFAULT_VALUE;
+   static int NUM_LATENT_DEFAULT_VALUE;
+   static ModelInitTypes INIT_MODEL_DEFAULT_VALUE;
+   static char* SAVE_PREFIX_DEFAULT_VALUE;
+   static char* SAVE_EXTENSION_DEFAULT_VALUE;
+   static int SAVE_FREQ_DEFAULT_VALUE;
+   static int VERBOSE_DEFAULT_VALUE;
+   static char* STATUS_DEFAULT_VALUE;
+   static double LAMBDA_BETA_DEFAULT_VALUE;
+   static double TOL_DEFAULT_VALUE;
+   static double THRESHOLD_DEFAULT_VALUE;
+   static int RANDOM_SEED_DEFAULT_VALUE;
+
+   //noise config
+   static NoiseTypes NOISE_TYPE_DEFAULT_VALUE;
+   static double PRECISION_DEFAULT_VALUE;
+   static double ADAPTIVE_SN_INIT_DEFAULT_VALUE;
+   static double ADAPTIVE_SN_MAX_DEFAULT_VALUE;
+   static double PROBIT_DEFAULT_VALUE;
+
 private:
    //-- train and test
    std::shared_ptr<TensorConfig> m_train;
@@ -97,31 +121,7 @@ private:
    double m_threshold;
 
 public:
-   Config()
-   {
-      //these are default values for config
-      //technically - all defaults are specified in CmdSession parser
-      //these values are only needed if Config is going to be created outside of parser
-
-      m_model_init_type = ModelInitTypes::zero;
-
-      m_save_prefix = "save";
-      m_save_extension = ".csv";
-      m_save_freq = 0; // never
-
-      m_random_seed_set = false;
-      m_verbose = 1;
-      m_csv_status = "";
-      m_burnin = 200;
-      m_nsamples = 800;
-      m_num_latent = 96;
-
-      m_lambda_beta = 10.0;
-      m_tol = 1e-6;
-      m_direct = false;
-
-      m_classify = false;
-   }
+   Config();
 
 public:
    bool validate() const;

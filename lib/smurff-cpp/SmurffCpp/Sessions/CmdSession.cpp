@@ -72,30 +72,30 @@ boost::program_options::options_description get_desc()
    general_desc.add_options()
       (INI_NAME, boost::program_options::value<std::string>(), "read options from this .ini file")
       (ROOT_NAME, boost::program_options::value<std::string>(), "restore session from root .ini file")
-      (BURNIN_NAME, boost::program_options::value<int>()->default_value(200), "number of samples to discard")
-      (NSAMPLES_NAME, boost::program_options::value<int>()->default_value(800), "number of samples to collect")
-      (NUM_LATENT_NAME, boost::program_options::value<int>()->default_value(96), "number of latent dimensions")
-      (INIT_MODEL_NAME, boost::program_options::value<std::string>()->default_value(MODEL_INIT_NAME_ZERO), "Initialize model using <random|zero> values")
-      (SAVE_PREFIX_NAME, boost::program_options::value<std::string>()->default_value("save"), "prefix for result files")
-      (SAVE_EXTENSION_NAME, boost::program_options::value<std::string>()->default_value(".csv"), "extension for result files (.csv or .ddm)")
-      (SAVE_FREQ_NAME, boost::program_options::value<int>()->default_value(0), "save every n iterations (0 == never, -1 == final model)")
-      (THRESHOLD_NAME, boost::program_options::value<double>(), "threshold for binary classification and AUC calculation")
-      (VERBOSE_NAME, boost::program_options::value<int>()->default_value(1), "verbosity of output (0, 1 or 2)")
+      (BURNIN_NAME, boost::program_options::value<int>()->default_value(Config::BURNIN_DEFAULT_VALUE), "number of samples to discard")
+      (NSAMPLES_NAME, boost::program_options::value<int>()->default_value(Config::NSAMPLES_DEFAULT_VALUE), "number of samples to collect")
+      (NUM_LATENT_NAME, boost::program_options::value<int>()->default_value(Config::NUM_LATENT_DEFAULT_VALUE), "number of latent dimensions")
+      (INIT_MODEL_NAME, boost::program_options::value<std::string>()->default_value(modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)), "Initialize model using <random|zero> values")
+      (SAVE_PREFIX_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_PREFIX_DEFAULT_VALUE), "prefix for result files")
+      (SAVE_EXTENSION_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")
+      (SAVE_FREQ_NAME, boost::program_options::value<int>()->default_value(Config::SAVE_FREQ_DEFAULT_VALUE), "save every n iterations (0 == never, -1 == final model)")
+      (THRESHOLD_NAME, boost::program_options::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation")
+      (VERBOSE_NAME, boost::program_options::value<int>()->default_value(Config::VERBOSE_DEFAULT_VALUE), "verbosity of output (0, 1 or 2)")
       (QUIET_NAME, "no output (equivalent to verbose=0)")
-      (STATUS_NAME, boost::program_options::value<std::string>()->default_value(std::string()), "output progress to csv file")
-      (SEED_NAME, boost::program_options::value<int>(), "random number generator seed");
+      (STATUS_NAME, boost::program_options::value<std::string>()->default_value(Config::STATUS_DEFAULT_VALUE), "output progress to csv file")
+      (SEED_NAME, boost::program_options::value<int>()->default_value(Config::RANDOM_SEED_DEFAULT_VALUE), "random number generator seed");
 
    boost::program_options::options_description noise_desc("Noise model.");
    noise_desc.add_options()
-      (PRECISION_NAME, boost::program_options::value<std::string>()->default_value("5.0"), "set fixed precision of observations")
-      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value("1.0,10.0"),
+      (PRECISION_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(Config::PRECISION_DEFAULT_VALUE)), "set fixed precision of observations")
+      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE) + "," + std::to_string(Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE)),
         "use adaptive precision of observations, sets initial (default: 1.0) and maximum (default:10.0) SNR")
-      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value("0.0"), "Use probit noise model with given threshold");
+      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(Config::PROBIT_DEFAULT_VALUE)), "Use probit noise model with given threshold");
  
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
-      (LAMBDA_BETA_NAME, boost::program_options::value<double>()->default_value(10.0), "initial value of lambda beta")
-      (TOL_NAME, boost::program_options::value<double>()->default_value(1e-6), "tolerance for CG")
+      (LAMBDA_BETA_NAME, boost::program_options::value<double>()->default_value(Config::LAMBDA_BETA_DEFAULT_VALUE), "initial value of lambda beta")
+      (TOL_NAME, boost::program_options::value<double>()->default_value(Config::TOL_DEFAULT_VALUE), "tolerance for CG")
       (DIRECT_NAME, "Use Cholesky decomposition i.o. CG Solver");
 
    boost::program_options::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
@@ -167,7 +167,8 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
    //create new session with ini file
-   if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted()) {
+   if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted()) 
+   {
       auto ini_file = vm[INI_NAME].as<std::string>();
       bool success = config.restore(ini_file);
       THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
