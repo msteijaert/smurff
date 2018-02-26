@@ -18,12 +18,6 @@
 #define PRIOR_NAME_NORMAL "normal"
 #define PRIOR_NAME_NORMALONE "normalone"
 
-#define CENTER_MODE_STR_NONE "none"
-#define CENTER_MODE_STR_GLOBAL "global"
-#define CENTER_MODE_STR_VIEW "view"
-#define CENTER_MODE_STR_ROWS "rows"
-#define CENTER_MODE_STR_COLS "cols"
-
 #define MODEL_INIT_NAME_RANDOM "random"
 #define MODEL_INIT_NAME_ZERO "zero"
 
