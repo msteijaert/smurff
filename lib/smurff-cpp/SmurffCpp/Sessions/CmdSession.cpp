@@ -195,9 +195,10 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())
    {
       int dim = 0;
+      int num_dim = config.getPriorTypes().size();
       for (auto auxDataString : vm[AUX_DATA_NAME].as<std::vector<std::string> >())
       {
-         PVec<> pos = {0};
+         PVec<> pos(num_dim);
          
          std::stringstream lineStream(auxDataString);
          std::string token;
