@@ -18,7 +18,14 @@ using namespace smurff;
 
 tensor_io::TensorType tensor_io::ExtensionToTensorType(const std::string& fname)
 {
-   std::string extension = fname.substr(fname.find_last_of("."));
+   std::size_t dotIndex = fname.find_last_of(".");
+   if (dotIndex == -1)
+   {
+      THROWERROR("Extension is not specified in " + fname);
+   }
+
+   std::string extension = fname.substr(dotIndex);
+
    if (extension == EXTENSION_SDT)
    {
       return tensor_io::TensorType::sdt;
@@ -41,7 +48,7 @@ tensor_io::TensorType tensor_io::ExtensionToTensorType(const std::string& fname)
    }
    else
    {
-      THROWERROR("Unknown file type: " + extension);
+      THROWERROR("Unknown file type: " + extension + " specified in " + fname);
    }
    return tensor_io::TensorType::none;
 }
@@ -114,11 +121,11 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
       }
    case tensor_io::TensorType::none:
       {
-         THROWERROR("Unknown tensor type");
+         THROWERROR("Unknown tensor type specified in " + filename);
       }
    default:
       {
-         THROWERROR("Unknown tensor type");
+         THROWERROR("Unknown tensor type specified in " + filename);
       }
    }
 

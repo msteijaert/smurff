@@ -30,7 +30,14 @@ using namespace smurff;
 
 matrix_io::MatrixType matrix_io::ExtensionToMatrixType(const std::string& fname)
 {
-   std::string extension = fname.substr(fname.find_last_of("."));
+   std::size_t dotIndex = fname.find_last_of(".");
+   if (dotIndex == -1)
+   {
+      THROWERROR("Extension is not specified in " + fname);
+   }
+
+   std::string extension = fname.substr(dotIndex);
+
    if (extension == EXTENSION_SDM)
    {
       return matrix_io::MatrixType::sdm;
@@ -53,7 +60,7 @@ matrix_io::MatrixType matrix_io::ExtensionToMatrixType(const std::string& fname)
    }
    else
    {
-      THROWERROR("Unknown file type: " + extension);
+      THROWERROR("Unknown file type: " + extension + " specified in " + fname);
    }
    return matrix_io::MatrixType::none;
 }
@@ -126,11 +133,11 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
       }
    case matrix_io::MatrixType::none:
       {
-         THROWERROR("Unknown matrix type");
+         THROWERROR("Unknown matrix type specified in " + filename);
       }
    default:
       {
-         THROWERROR("Unknown matrix type");
+         THROWERROR("Unknown matrix type specified in " + filename);
       }
    }
 
