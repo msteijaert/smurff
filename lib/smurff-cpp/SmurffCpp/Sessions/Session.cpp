@@ -203,12 +203,12 @@ void Session::save(int iteration) const
    }
    else
    {
-      //save_freq > 0: check modulo
-      if (m_config.getSaveFreq() > 0 && (isample % m_config.getSaveFreq()) != 0) //do not save if not a save iteration
+      //save_freq > 0: check modulo - do not save if not a save iteration
+      if (m_config.getSaveFreq() > 0 && (isample % m_config.getSaveFreq()) != 0)
          return;
 
-      //save_freq < 0: save last iter
-      if (m_config.getSaveFreq() < 0 && isample < m_config.getNSamples()) //do not save if (final model) mode is selected and not a final iteration
+      //save_freq < 0: save last iter - do not save if (final model) mode is selected and not a final iteration
+      if (m_config.getSaveFreq() < 0 && isample < m_config.getNSamples())
          return;
 
       //save this iteration
