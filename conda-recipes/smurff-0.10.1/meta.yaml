@@ -20,7 +20,7 @@ requirements:
     - cython >=0.25
     - python
     - setuptools
-    - numpy
+    - numpy >=1.13
   run:
     - intel-openmp 2017.*
     - mkl 2017.*
