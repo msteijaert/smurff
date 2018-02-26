@@ -151,16 +151,6 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
       if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
          sideInfo->setNoiseConfig(nc);
    }
-
-   // set for aux data
-   for(auto& auxDataSet : config.getAuxData())
-   {
-      for(auto auxData : auxDataSet)
-      {
-         if (auxData->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-            auxData->setNoiseConfig(nc);
-      }
-   }
 }
 
 #ifdef HAVE_BOOST
@@ -173,6 +163,12 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
    }
 
+   if (vm.count(TEST_NAME) && !vm[TEST_NAME].defaulted())
+      config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
+   
+   if (vm.count(TRAIN_NAME) && !vm[TRAIN_NAME].defaulted())
+      config.setTrain(generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true));
+   
    //create new session from command line options or override options from ini file
    if (vm.count(PRIOR_NAME) && !vm[PRIOR_NAME].defaulted())
       for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
@@ -191,11 +187,11 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())
    {
+      int dim = 0;
       for (auto auxDataString : vm[AUX_DATA_NAME].as<std::vector<std::string> >())
       {
-         config.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-         auto& dimAuxData = config.getAuxData().back();
-
+         PVec<> pos = {0};
+         
          std::stringstream lineStream(auxDataString);
          std::string token;
 
@@ -204,17 +200,14 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
             //add ability to skip features for specific dimention
             if(token == NONE_TOKEN)
                continue;
-
-            dimAuxData.push_back(matrix_io::read_matrix(token, false));
+            
+            pos[dim]++;
+            config.getAuxData().insert(std::make_pair(pos, matrix_io::read_matrix(token, false)));
          }
+         dim++;
       }
    }
 
-   if (vm.count(TEST_NAME) && !vm[TEST_NAME].defaulted())
-      config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
-
-   if (vm.count(TRAIN_NAME) && !vm[TRAIN_NAME].defaulted())
-      config.setTrain(generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true));
 
    if (vm.count(BURNIN_NAME) && !vm[BURNIN_NAME].defaulted())
       config.setBurnin(vm[BURNIN_NAME].as<int>());

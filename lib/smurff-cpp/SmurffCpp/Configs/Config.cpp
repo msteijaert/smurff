@@ -121,17 +121,14 @@ bool Config::validate() const
          }
       }
 
-      for (auto& auxData : m_auxData)
+      if (!m_auxData.empty())
       {
-         if (!auxData.empty())
-         {
-            //it is advised to check macau and macauone priors implementation
-            //as well as code in PriorFactory that creates macau priors
-
-            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
-            //however TensorDataFactory will do an additional check throwing an exception
-            THROWERROR("Aux data is not supported for TensorData");
-         }
+         //it is advised to check macau and macauone priors implementation
+         //as well as code in PriorFactory that creates macau priors
+         
+         //this check does not directly check that input data is Tensor (it only checks number of dimensions)
+         //however TensorDataFactory will do an additional check throwing an exception
+         THROWERROR("Aux data is not supported for TensorData");
       }
    }
 
@@ -160,20 +157,19 @@ bool Config::validate() const
       }
    }
 
-   for (std::size_t i = 0; i < m_auxData.size(); i++) //go through each dimension
+   /*
+   for(auto& ad : m_auxData)
    {
-      const auto& auxDataSet = m_auxData[i];
-      for(auto& ad : auxDataSet)
+      auto &pos = ad.first;
+      auto &data = ad.second;
+      if (m_train->getDims()[i] != ad->getDims()[i]) //compare sizes in specific dimension
       {
-         //AGE: not sure how strict should be the check. which adjacent dimensions do we need to check?
-         if (m_train->getDims()[i] != ad->getDims()[i]) //compare sizes in specific dimension
-         {
-            std::stringstream ss;
-            ss << "Aux data and train data should have the same number of records in dimension " << i;
-            THROWERROR(ss.str());
-         }
+         std::stringstream ss;
+         ss << "Aux data and train data should have the same number of records in dimension " << i;
+         THROWERROR(ss.str());
       }
    }
+    */
 
    for(std::size_t i = 0; i < m_prior_types.size(); i++)
    {
@@ -218,11 +214,6 @@ bool Config::validate() const
             break;
          case PriorTypes::macau:
          case PriorTypes::macauone:
-            if (!m_auxData[i].empty())
-            {
-               std::stringstream ss;
-               ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have aux data";
-            }
             break;
          default:
             {
@@ -253,28 +244,30 @@ void Config::save(std::string fname) const
 
    std::ofstream os(fname);
 
-   auto print_tensor_config = [&os](const std::shared_ptr<TensorConfig> &cfg, const std::string name, int idx = -1 ) -> void {
-       os << name;
-       if (idx >= 0) os << "_" << idx;
-       os << " = ";
-       if (cfg) cfg->save(os);
-       else os << "none";
-       os << std::endl;
+   auto print_noise_config = [&os](const NoiseConfig &cfg) -> void {
+       os << "# noise model" << std::endl;
+       os << "noise_model = " << smurff::noiseTypeToString(cfg.getNoiseType()) << std::endl;
+       os << "precision = " << cfg.precision << std::endl;
+       os << "sn_init = " << cfg.sn_init << std::endl;
+       os << "sn_max = " << cfg.sn_max << std::endl;
    };
 
-   auto print_tensor_config_vector = [&os](const std::vector<std::shared_ptr<TensorConfig>> &vec, const std::string name, int idx = -1 ) -> void {
-       os << name;
-       if (idx >= 0) os << "_" << idx;
-       os << " = ";
-       if (vec.empty()) os << "none";
-       else for(const auto &cfg : vec) {
-           cfg->save(os);
-           os << ",";
-       }
-       os << std::endl;
+   auto print_tensor_config = [&os, &print_noise_config](const std::shared_ptr<TensorConfig> &cfg, const std::string sec_name) -> void {
+      os << "[" << sec_name << "]" << std::endl;
+      os << "file = " << cfg->getFilename();
+      print_noise_config(cfg->getNoiseConfig());
    };
-
-
+   
+   auto print_tensor_config_pos = [&os, &print_tensor_config](const PVec<>& pos, const std::shared_ptr<TensorConfig> &cfg, const std::string name) -> void {
+      print_tensor_config(cfg, name);
+      os << "pos = " << pos << std::endl;
+   };
+   
+   auto print_tensor_config_idx = [&os, &print_tensor_config](int idx, const std::shared_ptr<TensorConfig> &cfg, const std::string name) -> void {
+      print_tensor_config(cfg, name);
+      os << "idx = " << idx << std::endl;
+   };
+   
    os << "# priors" << std::endl;
    os << "num_priors = " << m_prior_types.size() << std::endl;
    for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
@@ -287,13 +280,11 @@ void Config::save(std::string fname) const
 
    os << "# side_info" << std::endl;
    for(std::size_t sIndex = 0; sIndex < m_sideInfo.size(); sIndex++)
-       print_tensor_config(m_sideInfo.at(sIndex), "side_info", sIndex);
+       print_tensor_config_idx(sIndex, m_sideInfo.at(sIndex), "side_info");
 
    os << "# aux_data" << std::endl;
-   for(std::size_t sIndex = 0; sIndex < m_auxData.size(); sIndex++)
-   {
-       print_tensor_config_vector(m_auxData.at(sIndex), "aux_data", sIndex);
-   }
+   for(const auto &ad : m_auxData)
+       print_tensor_config_pos(ad.first, ad.second, "aux_data");
 
    os << "# save" << std::endl;
    os << "save_prefix = " << m_save_prefix << std::endl;
@@ -314,12 +305,6 @@ void Config::save(std::string fname) const
    os << "lambda_beta = " << m_lambda_beta << std::endl;
    os << "tol = " << m_tol << std::endl;
    os << "direct = " << m_direct << std::endl;
-
-   os << "# noise model" << std::endl;
-   os << "noise_model = " << smurff::noiseTypeToString(m_train->getNoiseConfig().getNoiseType()) << std::endl;
-   os << "precision = " << m_train->getNoiseConfig().precision << std::endl;
-   os << "sn_init = " << m_train->getNoiseConfig().sn_init << std::endl;
-   os << "sn_max = " << m_train->getNoiseConfig().sn_max << std::endl;
 
    os << "# binary classification" << std::endl;
    os << "classify = " << m_classify << std::endl;
@@ -365,6 +350,7 @@ bool Config::restore(std::string fname)
       else
           m_sideInfo.push_back(matrix_io::read_matrix(sideInfo, false));
 
+      /*
       ss << "aux_data_" << pIndex;
       std::string auxDataString = reader.Get("", ss.str(), AUX_DATA_NONE);
       m_auxData.push_back(std::vector<std::shared_ptr<TensorConfig> >());
@@ -379,6 +365,7 @@ bool Config::restore(std::string fname)
              continue;
           dimAuxData.push_back(matrix_io::read_matrix(token, false));
       }
+       */
    }
 
    //-- save
