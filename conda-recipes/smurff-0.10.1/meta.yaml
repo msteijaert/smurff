@@ -9,17 +9,21 @@ source:
 requirements:
   build:
     - cmake
-    - {{ compiler('cxx') }}    # [not win]
-    - {{ compiler('c') }}      # [not win]
+    - {{ compiler('cxx') }}
+    - {{ compiler('c') }}
     - llvm-openmp              # [osx]
-    - eigen3
   host:
+    - eigen3
+    - intel-openmp 2017.*
+    - mkl 2017.*
     - libboost
     - cython >=0.25
     - python
     - setuptools
     - numpy
   run:
+    - intel-openmp 2017.*
+    - mkl 2017.*
     - llvm-openmp              # [osx]
     - libboost
     - python
