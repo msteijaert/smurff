@@ -151,6 +151,13 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
       if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
          sideInfo->setNoiseConfig(nc);
    }
+  
+   // set for aux data
+   for(auto& auxData : config.getAuxData())
+   {
+       if (auxData.second->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+           auxData.second->setNoiseConfig(nc);
+   }
 }
 
 #ifdef HAVE_BOOST

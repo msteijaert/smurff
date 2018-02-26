@@ -139,13 +139,6 @@ bool Config::validate() const
       THROWERROR("Number of side info should equal to number of dimensions in train data");
    }
 
-   //for simplicity we store empty vector if aux data is not specified for dimension
-   //this way we can whether that size equals to getNModes
-   if (m_auxData.size() != m_train->getNModes())
-   {
-      THROWERROR("Number of aux data should equal to number of dimensions in train data");
-   }
-
    for (std::size_t i = 0; i < m_sideInfo.size(); i++)
    {
       const std::shared_ptr<MatrixConfig>& sideInfo = m_sideInfo[i];
@@ -253,9 +246,13 @@ void Config::save(std::string fname) const
    };
 
    auto print_tensor_config = [&os, &print_noise_config](const std::shared_ptr<TensorConfig> &cfg, const std::string sec_name) -> void {
-      os << "[" << sec_name << "]" << std::endl;
-      os << "file = " << cfg->getFilename();
-      print_noise_config(cfg->getNoiseConfig());
+      if (cfg) {
+         os << "[" << sec_name << "]" << std::endl;
+         os << "file = " << cfg->getFilename();
+         print_noise_config(cfg->getNoiseConfig());
+      } else {
+         os << "# no" << sec_name << std::endl;
+      }
    };
    
    auto print_tensor_config_pos = [&os, &print_tensor_config](const PVec<>& pos, const std::shared_ptr<TensorConfig> &cfg, const std::string name) -> void {
