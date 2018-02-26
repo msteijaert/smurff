@@ -258,28 +258,3 @@ template<>
 void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg();
 
 }
-
-//==========================
-
-//macau Probit sample latents
-/*
-template<class FType>
-void MacauPrior<FType>::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-                                       double mean_value, const Eigen::MatrixXd &samples, const int num_latent) {
-  const int N = U.cols();
-  #pragma omp parallel for schedule(dynamic, 2)
-  for(int n = 0; n < N; n++) {
-    // TODO: try moving mu + Uhat.col(n) inside sample_latent for speed
-    sample_latent_blas_probit(U, n, mat, mean_value, samples, mu + Uhat.col(n), Lambda, num_latent);
-  }
-}
-*/
-
-//macau Tensor method
-/*
-template<class FType>
-void MacauPrior<FType>::sample_latents(ProbitNoise& noiseModel, TensorData & data,
-                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, int mode, const int num_latent) {
-  // TODO:
-}
-*/

@@ -340,5 +340,5 @@ public:
    }
 };
 
-} // end namespace smurff
+}
 

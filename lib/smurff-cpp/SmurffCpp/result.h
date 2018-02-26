@@ -100,4 +100,4 @@ public:
    }
 };
 
-}; // end namespace smurff
+};

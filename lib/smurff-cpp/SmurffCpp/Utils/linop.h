@@ -60,15 +60,7 @@ void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt);
 void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 void A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 
-//template<int N>
-//inline void A_mul_B_omp(double alpha, Eigen::MatrixXd & out, double beta, Eigen::Matrix<double, N, N> & A, Eigen::MatrixXd & B);
 inline void A_mul_B_omp(double alpha, Eigen::MatrixXd & out, double beta, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-/*
-template<int N>
-inline void A_mul_B_add_omp(Eigen::MatrixXd & out, Eigen::Matrix<double, N, N> & A, Eigen::MatrixXd & B);
-template<int N>
-inline void A_mul_B_sub_omp(Eigen::MatrixXd & out, Eigen::Matrix<double, N, N> & A, Eigen::MatrixXd & B);
-*/
 
 void A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
 void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
@@ -567,29 +559,5 @@ inline void A_mul_B_omp(
     out.block(0, col, nrow, bcols).noalias() = alpha * out.block(0, col, nrow, bcols) + beta * A * B.block(0, col, nrow, bcols);
   }
 }
-
-/*
-template<int N>
-inline void A_mul_B_omp(
-    double alpha,
-    Eigen::MatrixXd & out,
-    double beta,
-    Eigen::Matrix<double, N, N> & A,
-    Eigen::MatrixXd & B)
-{
-  THROWERROR_ASSERT(out.cols() == B.cols());
-  
-  const int nblocks = out.cols() / 64;
-  #pragma omp parallel for schedule(dynamic, 8)
-  for (int block = 0; block < nblocks; block++) 
-  {
-    int col = block * 64;
-    out.template block<N, 64>(0, col).noalias() = alpha * out.template block<N, 64>(0, col) + beta * A * B.template block<N, 64>(0, col);
-  }
-  // last remaining block
-  int col = nblocks * 64;
-  out.block(0, col, N, out.cols() - col) = alpha * out.block(0, col, N, out.cols() - col) + beta * A * B.block(0, col, N, out.cols() - col);
-}
-*/
 
 }}
