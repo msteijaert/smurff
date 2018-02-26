@@ -244,26 +244,26 @@ void Config::save(std::string fname) const
        os << "sn_init = " << cfg.sn_init << std::endl;
        os << "sn_max = " << cfg.sn_max << std::endl;
    };
-
-   auto print_tensor_config = [&os, &print_noise_config](const std::shared_ptr<TensorConfig> &cfg, const std::string sec_name) -> void {
+   
+   auto print_tensor_config = [&os, &print_noise_config](const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg) -> void {
       if (cfg) {
-         os << "[" << sec_name << "]" << std::endl;
-         os << "file = " << cfg->getFilename();
+         os << "[" << sec_name;
+         if (sec_idx >= 0) os << "_" << sec_idx;
+         os << "]" << std::endl;
+         os << "file = " << cfg->getFilename() << std::endl;
+         os << "is_dense = " << cfg->isDense() << std::endl;
+         os << "is_scarce = " << cfg->isScarce() << std::endl;
          print_noise_config(cfg->getNoiseConfig());
       } else {
-         os << "# no" << sec_name << std::endl;
+         os << "# no" << sec_name << " " << sec_idx << std::endl;
       }
    };
    
-   auto print_tensor_config_pos = [&os, &print_tensor_config](const PVec<>& pos, const std::shared_ptr<TensorConfig> &cfg, const std::string name) -> void {
-      print_tensor_config(cfg, name);
+   auto print_tensor_config_pos = [&os, &print_tensor_config](const std::string sec_name, int sec_idx, const PVec<>& pos, const std::shared_ptr<TensorConfig> &cfg) -> void {
+      print_tensor_config(sec_name, sec_idx, cfg);
       os << "pos = " << pos << std::endl;
    };
-   
-   auto print_tensor_config_idx = [&os, &print_tensor_config](int idx, const std::shared_ptr<TensorConfig> &cfg, const std::string name) -> void {
-      print_tensor_config(cfg, name);
-      os << "idx = " << idx << std::endl;
-   };
+  
    
    os << "# priors" << std::endl;
    os << "num_priors = " << m_prior_types.size() << std::endl;
@@ -272,16 +272,17 @@ void Config::save(std::string fname) const
       os << "prior_" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
    }
 
-   print_tensor_config(m_train, "train");
-   print_tensor_config(m_test , "test");
+   print_tensor_config("train", -1, m_train);
+   print_tensor_config("test", -1, m_test);
 
    os << "# side_info" << std::endl;
    for(std::size_t sIndex = 0; sIndex < m_sideInfo.size(); sIndex++)
-       print_tensor_config_idx(sIndex, m_sideInfo.at(sIndex), "side_info");
+       print_tensor_config("side_info", sIndex, m_sideInfo.at(sIndex));
 
    os << "# aux_data" << std::endl;
+   int aux_data_count = 0;
    for(const auto &ad : m_auxData)
-       print_tensor_config_pos(ad.first, ad.second, "aux_data");
+       print_tensor_config_pos("aux_data", aux_data_count++, ad.first, ad.second);
 
    os << "# save" << std::endl;
    os << "save_prefix = " << m_save_prefix << std::endl;
