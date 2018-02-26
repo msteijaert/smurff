@@ -187,16 +187,23 @@ void Session::save(int iteration) const
    if (!m_config.getSaveFreq())
       return;
 
-   int isample = iteration - m_config.getBurnin() + 1;
+   std::int32_t isample = iteration - m_config.getBurnin() + 1;
 
    //save if burnin
    if (isample <= 0)
    {
-      int iburnin = iteration + 1;
+      std::int32_t iburninPrev = iteration;
+      if (iburninPrev > 0)
+      {
+         //remove previous iteration
+         m_rootFile->removeBurninStepFile(iburninPrev);
 
-      //remove previous iteration
-      m_rootFile->removeBurninStepFile(iburnin - 1);
+         //flush last item in a root file
+         m_rootFile->flushLast();
+      }
 
+      std::int32_t iburnin = iteration + 1;
+      
       //save this iteration
       std::shared_ptr<StepFile> stepFile = m_rootFile->createBurninStepFile(iburnin);
       saveInternal(stepFile);

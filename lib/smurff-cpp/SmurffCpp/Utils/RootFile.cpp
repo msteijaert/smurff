@@ -114,6 +114,11 @@ void RootFile::removeStepFileInternal(std::int32_t isample, bool burnin) const
 {
    std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, burnin);
    stepFile->remove(true, true, true);
+
+   std::string stepFileName = stepFile->getStepFileName();
+   std::string tagPrefix = burnin ? BURNIN_STEP_PREFIX : SAMPLE_STEP_PREFIX;
+   std::string stepTag = "# removed " + tagPrefix + std::to_string(isample);
+   appendToRootFile(stepTag, stepFileName);
 }
 
 std::shared_ptr<StepFile> RootFile::openLastStepFile() const
