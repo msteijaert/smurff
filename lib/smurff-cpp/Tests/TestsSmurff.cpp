@@ -179,6 +179,7 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
    }
 }
 
+#define TEST_RANDOM 1
 #ifdef TEST_RANDOM
 //
 //      train: dense matrix
@@ -1884,8 +1885,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -1902,8 +1901,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -1948,8 +1945,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -1966,8 +1961,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2013,8 +2006,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2031,8 +2022,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2078,8 +2067,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2096,8 +2083,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2143,8 +2128,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2161,8 +2144,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2208,8 +2189,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2226,8 +2205,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2273,8 +2250,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2291,8 +2266,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2338,8 +2311,6 @@ TEST_CASE(
    matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   matrixSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2356,8 +2327,6 @@ TEST_CASE(
    tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
    tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
-   tensorSessionConfig.getAuxData().push_back(std::vector<std::shared_ptr<TensorConfig> >());
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
