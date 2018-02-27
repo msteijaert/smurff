@@ -33,16 +33,12 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         #-- priors
         vector[PriorTypes]& getPriorTypes()
 
-        #-- restore
-        void setRestorePrefix(string value)
-        void setRestoreSuffix(string value)
-
         #-- init model
         void setModelInitType(ModelInitTypes value)
 
         #-- save
         void setSavePrefix(string value)
-        void setSaveSuffix(string value)
+        void setSaveExtension(string value)
         void setSaveFreq(int value)
 
         #-- general

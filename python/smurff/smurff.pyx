@@ -284,10 +284,8 @@ def smurff(Y,
            quite          = False,
            init_model     = None,
            save_prefix    = None,
-           save_suffix    = None,
+           save_extension = None,
            save_freq      = None,
-           restore_prefix = None,
-           restore_suffix = None,
            csv_status     = None):
 
     # Create and initialize smurff-cpp Config instance
@@ -354,17 +352,11 @@ def smurff(Y,
     if save_prefix:
         config.setSavePrefix(save_prefix)
 
-    if save_suffix:
-        config.setSaveSuffix(save_suffix)
+    if save_extension:
+        config.setSaveExtension(save_extension)
 
     if save_freq:
         config.setSaveFreq(save_freq)
-
-    if restore_prefix:
-        config.setRestorePrefix(restore_prefix)
-
-    if restore_suffix:
-        config.setRestoreSuffix(restore_suffix)
 
     if csv_status:
         config.setCsvStatus(csv_status)
