@@ -3,12 +3,12 @@ import scipy.sparse
 import scipy.io as sio
 import os
 
-def read_dense_float64(filename):
+def read_dense_float64(filename, order = 'F'):
     with open(filename) as f:
         nrow = np.fromfile(f, dtype=np.int64, count=1)[0]
         ncol = np.fromfile(f, dtype=np.int64, count=1)[0]
         vals = np.fromfile(f, dtype=np.float64, count=nrow*ncol)
-        return np.ndarray((nrow,ncol), buffer=vals, dtype=np.float64, order = 'F')
+        return np.ndarray((nrow,ncol), buffer=vals, dtype=np.float64, order = order)
 
 def read_sparse_float64(filename):
     with open(filename) as f:
@@ -29,11 +29,11 @@ def read_sparse_binary_matrix(filename):
         cols = np.fromfile(f, dtype=np.int32, count=nnz) - 1
         return scipy.sparse.coo_matrix((np.ones(nnz), (rows, cols)), shape=[nrow, ncol])
 
-def write_dense_float64(filename, Y):
+def write_dense_float64(filename, Y, order = 'F'):
     with open(filename, 'wb') as f:
         np.array(Y.shape[0]).astype(np.int64).tofile(f)
         np.array(Y.shape[1]).astype(np.int64).tofile(f)
-        f.write(Y.astype(np.float64).tobytes(order='F'))
+        f.write(Y.astype(np.float64).tobytes(order = order))
 
 def write_sparse_float64(filename, Y):
     with open(filename, 'wb') as f:
@@ -54,20 +54,20 @@ def write_sparse_binary_matrix(filename, Y):
         (Y.row + 1).astype(np.int32, copy=False).tofile(f)
         (Y.col + 1).astype(np.int32, copy=False).tofile(f)
 
-def read_dense_float64_tensor_as_matrix(filename):
+def read_dense_float64_tensor_as_matrix(filename, order = 'F'):
     with open(filename) as f:
         ndim = np.fromfile(f, dtype=np.int64, count=1)[0]
         nrow = np.fromfile(f, dtype=np.int64, count=1)[0]
         ncol = np.fromfile(f, dtype=np.int64, count=1)[0]
         vals = np.fromfile(f, dtype=np.float64, count=nrow*ncol)
-        return np.ndarray((nrow,ncol), buffer=vals, dtype=np.float64, order='F')
+        return np.ndarray((nrow,ncol), buffer=vals, dtype=np.float64, order = order)
 
-def write_dense_float64_matrix_as_tensor(filename, Y):
+def write_dense_float64_matrix_as_tensor(filename, Y, order = 'F'):
     with open(filename, 'wb') as f:
         np.array(len(Y.shape)).astype(np.int64).tofile(f)
         np.array(Y.shape[0]).astype(np.int64).tofile(f)
         np.array(Y.shape[1]).astype(np.int64).tofile(f)
-        f.write(Y.astype(np.float64).tobytes(order='F'))
+        f.write(Y.astype(np.float64).tobytes(order = order))
 
 def read_sparse_float64_tensor_as_matrix(filename):
     with open(filename) as f:
