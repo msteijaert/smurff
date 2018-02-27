@@ -406,7 +406,7 @@ bool Config::restore(std::string fname)
 
    auto add_index = [](const std::string name, int idx = -1) -> std::string
    {
-       if (idx >=0) name + "_" + std::to_string(idx);
+       if (idx >=0) return name + "_" + std::to_string(idx);
        return name;
    };
 
