@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iomanip>
 #include <ctime>
+#include <string>
+#include <memory>
 
 #include <SmurffCpp/Version.h>
 #include <SmurffCpp/Utils/Error.h>
@@ -15,8 +17,8 @@
 
 #define NUM_PRIORS_TAG "num_priors"
 #define PRIOR_PREFIX "prior"
-#define TRAIN_TAG "train"
-#define TEST_TAG "test"
+#define TRAIN_SECTION_TAG "train"
+#define TEST_SECTION_TAG "test"
 #define NUM_SIDE_INFO_TAG "num_side_info"
 #define SIDE_INFO_PREFIX "side_info"
 #define NUM_AUX_DATA_TAG "num_aux_data"
@@ -42,6 +44,12 @@
 #define NOISE_THRESHOLD_TAG "noise_threshold"
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
+#define POS_TAG "pos"
+#define FILE_TAG "file"
+#define DENSE_TAG "dense"
+#define SCARCE_TAG "scarce"
+#define SPARSE_TAG "sparse"
+#define TYPE_TAG "type"
 
 using namespace smurff;
 
@@ -314,40 +322,32 @@ void Config::save(std::string fname) const
 
    std::ofstream os(fname);
 
-   auto print_noise_config = [&os](const NoiseConfig &cfg) -> void {
-      os << NOISE_MODEL_TAG << "  = " << smurff::noiseTypeToString(cfg.getNoiseType()) << std::endl;
-      os << PRECISION_TAG << " = " << cfg.precision << std::endl;
-      os << SN_INIT_TAG << " = " << cfg.sn_init << std::endl;
-      os << SN_MAX_TAG << " = " << cfg.sn_max << std::endl;
-      os << NOISE_THRESHOLD_TAG << " = " << cfg.threshold << std::endl;
-   };
-      
-   
-   auto print_tensor_config = [&os, &print_noise_config](const std::string sec_name, int sec_idx,
-           const std::shared_ptr<TensorConfig> &cfg,
-           const char *noneString = "",
-           const PVec<> &pos = PVec<>()
-           ) -> void {
+   auto print_tensor_config = [&os](const std::string sec_name, int sec_idx,
+           const std::shared_ptr<TensorConfig> &cfg) -> void
+   {
 
        os << std::endl << "[" << sec_name;
        if (sec_idx >= 0) os << "_" << sec_idx;
        os << "]" << std::endl;
 
        if (cfg) {
-           if (pos) os << "pos = " << pos << std::endl;
-           os << "file = " << cfg->getFilename() << std::endl;
-           os << "is_dense = " << cfg->isDense() << std::endl;
-           os << "is_scarce = " << cfg->isScarce() << std::endl;
-           print_noise_config(cfg->getNoiseConfig());
+           if (cfg->getPos()) os << POS_TAG << " = " << cfg->getPos() << std::endl;
+           os << FILE_TAG << " = " << cfg->getFilename() << std::endl;
+           std::string type_str = cfg->isDense() ? DENSE_TAG : cfg->isScarce() ? SCARCE_TAG : SPARSE_TAG;
+           os << TYPE_TAG << " = " << type_str << std::endl;
+           auto &noise_config = cfg->getNoiseConfig();
+           if (noise_config.getNoiseType() != NoiseTypes::unset) {
+               os << NOISE_MODEL_TAG << "  = " << smurff::noiseTypeToString(noise_config.getNoiseType()) << std::endl;
+               os << PRECISION_TAG << " = " << noise_config.precision << std::endl;
+               os << SN_INIT_TAG << " = " << noise_config.sn_init << std::endl;
+               os << SN_MAX_TAG << " = " << noise_config.sn_max << std::endl;
+               os << NOISE_THRESHOLD_TAG << " = " << noise_config.threshold << std::endl;
+           }
        } else {
-           os << "file = " << noneString << std::endl;
+           os << "file = " << NONE_TAG << std::endl;
        }
    };
    
-   auto print_tensor_config_pos = [&os, &print_tensor_config](const std::string sec_name, int sec_idx, const PVec<>& pos, const std::shared_ptr<TensorConfig> &cfg) -> void {
-      print_tensor_config(sec_name, sec_idx, cfg);
-   };
-  
    os << "## SMURFF config .ini file" << std::endl;
    os << "# generated file - copy before editing!" << std::endl;
    auto t = std::time(nullptr);
@@ -360,19 +360,19 @@ void Config::save(std::string fname) const
    for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
       os << PRIOR_PREFIX << "_" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
 
-   print_tensor_config("train", -1, m_train, TRAIN_NONE);
-   print_tensor_config("test", -1, m_test, TEST_NONE);
+   print_tensor_config("train", -1, m_train);
+   print_tensor_config("test", -1, m_test);
 
    os << std::endl << "# side_info" << std::endl;
    os << NUM_SIDE_INFO_TAG << " = " << m_sideInfo.size() << std::endl;
    for(std::size_t sIndex = 0; sIndex < m_sideInfo.size(); sIndex++)
-       print_tensor_config(SIDE_INFO_PREFIX, sIndex, m_sideInfo.at(sIndex), SIDE_INFO_NONE);
+       print_tensor_config(SIDE_INFO_PREFIX, sIndex, m_sideInfo.at(sIndex));
 
    os << std::endl << "# aux_data" << std::endl;
    os << NUM_AUX_DATA_TAG << " = " << m_auxData.size() << std::endl;
    int aux_data_count = 0;
    for(const auto &ad : m_auxData)
-       print_tensor_config_pos(AUX_DATA_PREFIX, aux_data_count++, ad.first, ad.second);
+       print_tensor_config(AUX_DATA_PREFIX, aux_data_count++, ad);
 
    os << std::endl << "# save" << std::endl;
    os << SAVE_PREFIX_TAG << " = " << m_save_prefix << std::endl;
@@ -411,49 +411,71 @@ bool Config::restore(std::string fname)
       return false;
    }
 
-   //-- test
-   std::string testFilename = reader.Get("", TEST_TAG,  TEST_NONE);
-   if (testFilename != TEST_NONE)
-      setTest(generic_io::read_data_config(testFilename, true));
+   auto add_index = [](const std::string name, int idx = -1) -> std::string
+   {
+       if (idx >=0) name + "_" + std::to_string(idx);
+       return name;
+   };
 
-   //-- train
-   std::string trainFilename = reader.Get("", TEST_TAG,  TRAIN_NONE);
-   if (trainFilename != TRAIN_NONE)
-      setTrain(generic_io::read_data_config(trainFilename, true));
+   auto split = [](const std::string &str, const char delim) -> std::vector<int>
+   {
+       std::vector<int> ret;
+       std::stringstream lineStream(str);
+       std::string token;
+       while (std::getline(lineStream, token, delim))
+           ret.push_back(std::stoi(token));
+       return ret;
+   };
+
+   auto restore_tensor_config = [&reader, &split](const std::string sec_name) -> std::shared_ptr<TensorConfig>
+   {
+       //-- basic stuff
+       std::string filename = reader.Get(sec_name, FILE_TAG,  NONE_TAG);
+       if (filename == NONE_TAG) return std::shared_ptr<TensorConfig>();
+       bool is_scarce = reader.Get(sec_name, TYPE_TAG, SCARCE_TAG) == SCARCE_TAG;
+
+       //--read file
+       auto cfg = generic_io::read_data_config(filename, is_scarce);
+
+       //-- pos 
+       std::string pos_str = reader.Get(sec_name, POS_TAG, NONE_TAG);
+       if (pos_str != NONE_TAG) cfg->setPos(PVec<>(split(pos_str, ',')));
+
+       //-- noise model
+       NoiseConfig noise;
+       noise.setNoiseType(smurff::stringToNoiseType(reader.Get(sec_name, NOISE_MODEL_TAG, noiseTypeToString(Config::NOISE_TYPE_DEFAULT_VALUE))));
+       noise.precision = reader.GetReal(sec_name, PRECISION_TAG, Config::PRECISION_DEFAULT_VALUE);
+       noise.sn_init = reader.GetReal(sec_name, SN_INIT_TAG, Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE);
+       noise.sn_max = reader.GetReal(sec_name, SN_MAX_TAG, Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE);
+       noise.threshold = reader.GetReal(sec_name, NOISE_THRESHOLD_TAG, Config::PROBIT_DEFAULT_VALUE);
+       cfg->setNoiseConfig(noise);
+       
+       return cfg;
+   };
+
+   //-- test and 
+   setTest(restore_tensor_config(TEST_SECTION_TAG));
+   setTrain(restore_tensor_config(TRAIN_SECTION_TAG));
 
    size_t num_priors = reader.GetInteger("", NUM_PRIORS_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
    {
-      std::stringstream ss;
-
-      // -- priors
-      ss << PRIOR_PREFIX << "_" << pIndex;
-      std::string pName = reader.Get("", ss.str(),  PRIOR_NAME_DEFAULT);
+      std::string pName = reader.Get("", add_index(PRIOR_PREFIX, pIndex),  PRIOR_NAME_DEFAULT);
       m_prior_types.push_back(stringToPriorType(pName));
+   }
 
-      ss << SIDE_INFO_PREFIX << "_" << pIndex;
-      std::string sideInfo = reader.Get("", ss.str(), SIDE_INFO_NONE);
-      if (sideInfo == SIDE_INFO_NONE)
-          m_sideInfo.push_back(std::shared_ptr<MatrixConfig>());
-      else
-          m_sideInfo.push_back(matrix_io::read_matrix(sideInfo, false));
+   size_t num_side_info = reader.GetInteger("", NUM_SIDE_INFO_TAG, 0);
+   for(std::size_t pIndex = 0; pIndex < num_side_info; pIndex++)
+   {
+      auto tensor_cfg = restore_tensor_config(add_index(SIDE_INFO_PREFIX, pIndex));
+      auto matrix_cfg = std::dynamic_pointer_cast<MatrixConfig>(tensor_cfg);
+      m_sideInfo.push_back(matrix_cfg);
+   }
 
-      /*
-      ss << AUX_DATA_PREFIX << "_" << pIndex;
-      std::string auxDataString = reader.Get("", ss.str(), AUX_DATA_NONE);
-      m_auxData.push_back(std::vector<std::shared_ptr<TensorConfig> >());
-      auto& dimAuxData = m_auxData.back();
-
-      std::stringstream lineStream(auxDataString);
-      std::string token;
-
-      while (std::getline(lineStream, token, ','))
-      {
-          if(token == AUX_DATA_NONE) 
-             continue;
-          dimAuxData.push_back(matrix_io::read_matrix(token, false));
-      }
-       */
+   size_t num_aux_data = reader.GetInteger("", NUM_AUX_DATA_TAG, 0);
+   for(std::size_t pIndex = 0; pIndex < num_aux_data; pIndex++)
+   {
+       m_auxData.push_back(restore_tensor_config(add_index(AUX_DATA_PREFIX, pIndex)));
    }
 
    //-- save
@@ -475,16 +497,6 @@ bool Config::restore(std::string fname)
    m_lambda_beta = reader.GetReal("", LAMBDA_BETA_TAG, Config::LAMBDA_BETA_DEFAULT_VALUE);
    m_tol = reader.GetReal("", TOL_TAG, Config::TOL_DEFAULT_VALUE);
    m_direct = reader.GetBoolean("", DIRECT_TAG,  false);
-
-   //-- noise model
-   NoiseConfig noise;
-   noise.setNoiseType(smurff::stringToNoiseType(reader.Get("", NOISE_MODEL_TAG, noiseTypeToString(Config::NOISE_TYPE_DEFAULT_VALUE))));
-   noise.precision = reader.GetReal("", PRECISION_TAG, Config::PRECISION_DEFAULT_VALUE);
-   noise.sn_init = reader.GetReal("", SN_INIT_TAG, Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE);
-   noise.sn_max = reader.GetReal("", SN_MAX_TAG, Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE);
-   noise.threshold = reader.GetReal("", NOISE_THRESHOLD_TAG, Config::PROBIT_DEFAULT_VALUE);
-   if (m_train) 
-      m_train->setNoiseConfig(noise);
 
    //-- binary classification
    m_classify = reader.GetBoolean("", CLASSIFY_TAG,  false);

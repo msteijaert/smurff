@@ -357,6 +357,14 @@ const std::string &TensorConfig::getFilename() const {
     return m_filename;
 }
 
+void TensorConfig::setPos(const PVec<> &f) {
+    m_pos = f;
+}
+    
+const PVec<> &TensorConfig::getPos() const {
+    return m_pos;
+}
+
 std::ostream& TensorConfig::info(std::ostream& os) const
 {
    if (!m_dims->size())

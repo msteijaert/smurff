@@ -3,15 +3,11 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <map>
 
 #include <SmurffCpp/Utils/PVec.hpp>
 #include "MatrixConfig.h"
 
-#define TRAIN_NONE "none"
-#define TEST_NONE "none"
-#define SIDE_INFO_NONE "none"
-#define AUX_DATA_NONE "none"
+#define NONE_TAG "none"
 
 #define PRIOR_NAME_DEFAULT "default"
 #define PRIOR_NAME_MACAU "macau"
@@ -81,11 +77,9 @@ private:
    std::shared_ptr<TensorConfig> m_train;
    std::shared_ptr<TensorConfig> m_test;
 
-   //-- sideinfo
+   //-- sideinfo and aux_data
    std::vector<std::shared_ptr<MatrixConfig> > m_sideInfo; //set of side info matrices for macau and macauone priors
-
-   //-- aux data maps position to config
-   std::map<PVec<>, std::shared_ptr<TensorConfig> > m_auxData; //set of aux data matrices for normal and spikeandslab priors
+   std::vector<std::shared_ptr<TensorConfig> > m_auxData; //set of aux data matrices for normal and spikeandslab priors
 
    // -- priors
    std::vector<PriorTypes> m_prior_types;
@@ -155,12 +149,12 @@ public:
       return m_sideInfo;
    }
 
-   const std::map<PVec<>, std::shared_ptr<TensorConfig> >& getAuxData() const
+   const std::vector< std::shared_ptr<TensorConfig> >& getAuxData() const
    {
       return m_auxData;
    }
    
-   std::map<PVec<>, std::shared_ptr<TensorConfig> >& getAuxData()
+   std::vector< std::shared_ptr<TensorConfig> >& getAuxData()
    {
       return m_auxData;
    }

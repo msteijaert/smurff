@@ -155,8 +155,8 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
    // set for aux data
    for(auto& auxData : config.getAuxData())
    {
-       if (auxData.second->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-           auxData.second->setNoiseConfig(nc);
+       if (auxData->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+           auxData->setNoiseConfig(nc);
    }
 }
 
@@ -212,7 +212,10 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
             
             // FIXME!
             pos[(dim + 1) % num_dim]++;
-            config.getAuxData().insert(std::make_pair(pos, matrix_io::read_matrix(token, false)));
+            auto cfg = matrix_io::read_matrix(token, false);
+            cfg->setPos(pos);
+            config.getAuxData().push_back(cfg);
+            
          }
          dim++;
       }

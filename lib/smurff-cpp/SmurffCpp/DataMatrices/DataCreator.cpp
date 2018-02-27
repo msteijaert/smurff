@@ -32,7 +32,7 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const MatrixConfig> mc
 
    for(auto &m : aux_matrices)
    {
-      local_data_ptr->add(m.first, m.second->create(creatorBase));
+      local_data_ptr->add(m->getPos(), m->create(creatorBase));
    }
 
    return local_data_ptr;

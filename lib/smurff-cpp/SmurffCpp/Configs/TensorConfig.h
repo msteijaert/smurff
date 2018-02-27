@@ -5,7 +5,9 @@
 #include <memory>
 #include <cstdint>
 
+#include <SmurffCpp/Utils/PVec.hpp>
 #include <SmurffCpp/Configs/NoiseConfig.h>
+
 
 namespace smurff
 {
@@ -32,6 +34,8 @@ namespace smurff
 
    private:
       std::string m_filename = "";
+
+      PVec<> m_pos = PVec<>();
 
    protected:
       TensorConfig(bool isDense, bool isBinary, bool isScarce,
@@ -101,6 +105,9 @@ namespace smurff
 
       void setFilename(const std::string &f);
       const std::string &getFilename() const;
+
+      void setPos(const PVec<> &);
+      const PVec<> &getPos() const;
 
    public:
       virtual std::ostream& info(std::ostream& os) const;
