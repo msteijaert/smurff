@@ -210,7 +210,8 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
             if(token == NONE_TOKEN)
                continue;
             
-            pos[dim]++;
+            // FIXME!
+            pos[(dim + 1) % num_dim]++;
             config.getAuxData().insert(std::make_pair(pos, matrix_io::read_matrix(token, false)));
          }
          dim++;
