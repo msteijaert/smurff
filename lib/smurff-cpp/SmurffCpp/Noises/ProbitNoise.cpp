@@ -20,7 +20,6 @@ ProbitNoise::ProbitNoise(double t)
  * rr.noalias() += col * z
  */
 
-
 double ProbitNoise::sample(const SubModel& model, const PVec<> &pos, double val)
 {
     double sign = (val < threshold) ? -1. : 1.;

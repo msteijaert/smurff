@@ -100,30 +100,3 @@ std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
    os << indent << m_name << ": mu = " <<  mu.norm() << std::endl;
    return os;
 }
-//macau Probit sample latents
-/*
-void BPMFPrior::sample_latents(ProbitNoise & noise, Eigen::MatrixXd &U, const Eigen::SparseMatrix<double> &mat,
-   double mean_value, const Eigen::MatrixXd &samples, const int num_latent)
-{
-   const int N = U.cols();
-
-   #pragma omp parallel for schedule(dynamic, 2)
-   for(int n = 0; n < N; n++) 
-   {
-      sample_latent_blas_probit(U, n, mat, mean_value, samples, mu, Lambda, num_latent);
-   }
-}
-*/
-
-//macau Tensor methods
-/*
-void BPMFPrior::sample_latents(ProbitNoise& noiseModel, TensorData & data,
-                               std::vector< std::unique_ptr<Eigen::MatrixXd> > & samples, 
-                               int mode, 
-                               const int num_latent
-                              ) 
-{
-  // TODO
-  THROWERROR("Unimplemented: sample_latents");
-}
-*/

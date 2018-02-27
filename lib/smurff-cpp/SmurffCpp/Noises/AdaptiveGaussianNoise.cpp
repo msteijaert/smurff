@@ -13,7 +13,6 @@ AdaptiveGaussianNoise::AdaptiveGaussianNoise(double sinit, double smax)
 
 }
 
-//  AdaptiveGaussianNoise  ////
 void AdaptiveGaussianNoise::init(const Data* data)
 {
    INoiseModel::init(data);
@@ -64,10 +63,3 @@ void AdaptiveGaussianNoise::setSNMax(double a)
 {
    sn_max  = a;
 }
-
-
-
-
-
-
-

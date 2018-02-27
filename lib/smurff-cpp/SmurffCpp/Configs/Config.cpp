@@ -10,7 +10,33 @@
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
 
-
+#define NUM_PRIORS_TAG "num_priors"
+#define PRIOR_PREFIX "prior"
+#define TRAIN_TAG "train"
+#define TEST_TAG "test"
+#define SIDE_INFO_PREFIX "side_info"
+#define AUX_DATA_PREFIX "aux_data"
+#define SAVE_PREFIX_TAG "save_prefix"
+#define SAVE_EXTENSION_TAG "save_extension"
+#define SAVE_FREQ_TAG "save_freq"
+#define VERBOSE_TAG "verbose"
+#define BURNING_TAG "burnin"
+#define NSAMPLES_TAG "nsamples"
+#define NUM_LATENT_TAG "num_latent"
+#define RANDOM_SEED_SET_TAG "random_seed_set"
+#define RANDOM_SEED_TAG "random_seed"
+#define CSV_STATUS_TAG "csv_status"
+#define INIT_MODEL_TAG "init_model"
+#define LAMBDA_BETA_TAG "lambda_beta"
+#define TOL_TAG "tol"
+#define DIRECT_TAG "direct"
+#define NOISE_MODEL_TAG "noise_model"
+#define PRECISION_TAG "precision"
+#define SN_INIT_TAG "sn_init"
+#define SN_MAX_TAG "sn_max"
+#define NOISE_THRESHOLD_TAG "noise_threshold"
+#define CLASSIFY_TAG "classify"
+#define THRESHOLD_TAG "threshold"
 
 using namespace smurff;
 
@@ -82,6 +108,53 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
          THROWERROR("Invalid model init type");
       }
    }
+}
+
+//config
+int Config::BURNIN_DEFAULT_VALUE = 200;
+int Config::NSAMPLES_DEFAULT_VALUE = 800;
+int Config::NUM_LATENT_DEFAULT_VALUE = 96;
+ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
+const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "save";
+const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".csv";
+int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
+int Config::VERBOSE_DEFAULT_VALUE = 1;
+const char* Config::STATUS_DEFAULT_VALUE = "";
+double Config::LAMBDA_BETA_DEFAULT_VALUE = 10.0;
+double Config::TOL_DEFAULT_VALUE = 1e-6;
+double Config::THRESHOLD_DEFAULT_VALUE = 0.0;
+int Config::RANDOM_SEED_DEFAULT_VALUE = 0;
+
+//noise config
+NoiseTypes Config::NOISE_TYPE_DEFAULT_VALUE = NoiseTypes::fixed;
+double Config::PRECISION_DEFAULT_VALUE = 5.0;
+double Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE = 1.0;
+double Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE = 10.0;
+double Config::PROBIT_DEFAULT_VALUE = 0.0;
+
+Config::Config()
+{
+   m_model_init_type = Config::INIT_MODEL_DEFAULT_VALUE;
+
+   m_save_prefix = Config::SAVE_PREFIX_DEFAULT_VALUE;
+   m_save_extension = Config::SAVE_EXTENSION_DEFAULT_VALUE;
+   m_save_freq = Config::SAVE_FREQ_DEFAULT_VALUE;
+
+   m_random_seed_set = false;
+   m_random_seed = Config::RANDOM_SEED_DEFAULT_VALUE;
+
+   m_verbose = Config::VERBOSE_DEFAULT_VALUE;
+   m_csv_status = Config::STATUS_DEFAULT_VALUE;
+   m_burnin = Config::BURNIN_DEFAULT_VALUE;
+   m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
+   m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
+
+   m_lambda_beta = Config::LAMBDA_BETA_DEFAULT_VALUE;
+   m_tol = Config::TOL_DEFAULT_VALUE;
+   m_direct = false;
+
+   m_threshold = Config::THRESHOLD_DEFAULT_VALUE;
+   m_classify = false;
 }
 
 bool Config::validate() const
@@ -234,18 +307,20 @@ void Config::save(std::string fname) const
    if (!m_save_freq)
       return;
 
-
    std::ofstream os(fname);
 
    auto print_noise_config = [&os](const NoiseConfig &cfg) -> void {
-       os << "# noise model" << std::endl;
-       os << "noise_model = " << smurff::noiseTypeToString(cfg.getNoiseType()) << std::endl;
-       os << "precision = " << cfg.precision << std::endl;
-       os << "sn_init = " << cfg.sn_init << std::endl;
-       os << "sn_max = " << cfg.sn_max << std::endl;
+      os << "# noise model" << std::endl;
+      os << NOISE_MODEL_TAG << "  = " << smurff::noiseTypeToString(cfg.getNoiseType()) << std::endl;
+      os << PRECISION_TAG << " = " << cfg.precision << std::endl;
+      os << SN_INIT_TAG << " = " << cfg.sn_init << std::endl;
+      os << SN_MAX_TAG << " = " << cfg.sn_max << std::endl;
+      os << NOISE_THRESHOLD_TAG << " = " << cfg.threshold << std::endl;
    };
+      
    
-   auto print_tensor_config = [&os, &print_noise_config](const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg) -> void {
+   auto print_tensor_config = [&os, &print_noise_config](const std::string sec_name, int sec_idx,
+                                                         const std::shared_ptr<TensorConfig> &cfg) -> void {
       if (cfg) {
          os << "[" << sec_name;
          if (sec_idx >= 0) os << "_" << sec_idx;
@@ -255,7 +330,7 @@ void Config::save(std::string fname) const
          os << "is_scarce = " << cfg->isScarce() << std::endl;
          print_noise_config(cfg->getNoiseConfig());
       } else {
-         os << "# no" << sec_name << " " << sec_idx << std::endl;
+         os << "# no " << sec_name << " " << sec_idx << std::endl;
       }
    };
    
@@ -266,47 +341,52 @@ void Config::save(std::string fname) const
   
    
    os << "# priors" << std::endl;
-   os << "num_priors = " << m_prior_types.size() << std::endl;
+   os << NUM_PRIORS_TAG << " = " << m_prior_types.size() << std::endl;
    for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
-   {
-      os << "prior_" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
-   }
+      os << PRIOR_PREFIX << "_" << pIndex << " = " << priorTypeToString(m_prior_types.at(pIndex)) << std::endl;
 
    print_tensor_config("train", -1, m_train);
    print_tensor_config("test", -1, m_test);
 
    os << "# side_info" << std::endl;
    for(std::size_t sIndex = 0; sIndex < m_sideInfo.size(); sIndex++)
-       print_tensor_config("side_info", sIndex, m_sideInfo.at(sIndex));
+       print_tensor_config(SIDE_INFO_PREFIX, sIndex, m_sideInfo.at(sIndex));
 
    os << "# aux_data" << std::endl;
    int aux_data_count = 0;
    for(const auto &ad : m_auxData)
-       print_tensor_config_pos("aux_data", aux_data_count++, ad.first, ad.second);
+       print_tensor_config_pos(AUX_DATA_PREFIX, aux_data_count++, ad.first, ad.second);
 
    os << "# save" << std::endl;
-   os << "save_prefix = " << m_save_prefix << std::endl;
-   os << "save_extension = " << m_save_extension << std::endl;
-   os << "save_freq = " << m_save_freq << std::endl;
+   os << SAVE_PREFIX_TAG << " = " << m_save_prefix << std::endl;
+   os << SAVE_EXTENSION_TAG << " = " << m_save_extension << std::endl;
+   os << SAVE_FREQ_TAG << " = " << m_save_freq << std::endl;
 
    os << "# general" << std::endl;
-   os << "verbose = " << m_verbose << std::endl;
-   os << "burnin = " << m_burnin << std::endl;
-   os << "nsamples = " << m_nsamples << std::endl;
-   os << "num_latent = " << m_num_latent << std::endl;
-   os << "random_seed_set = " << m_random_seed_set << std::endl;
-   os << "random_seed = " << m_random_seed << std::endl;
-   os << "csv_status = " << m_csv_status << std::endl;
-   os << "init_model = " << modelInitTypeToString(m_model_init_type) << std::endl;
+   os << VERBOSE_TAG << " = " << m_verbose << std::endl;
+   os << BURNING_TAG << " = " << m_burnin << std::endl;
+   os << NSAMPLES_TAG  << " = " << m_nsamples << std::endl;
+   os << NUM_LATENT_TAG << " = " << m_num_latent << std::endl;
+   os << RANDOM_SEED_SET_TAG << " = " << m_random_seed_set << std::endl;
+   os << RANDOM_SEED_TAG << " = " << m_random_seed << std::endl;
+   os << CSV_STATUS_TAG << " = " << m_csv_status << std::endl;
+   os << INIT_MODEL_TAG << " = " << modelInitTypeToString(m_model_init_type) << std::endl;
 
    os << "# for macau priors" << std::endl;
-   os << "lambda_beta = " << m_lambda_beta << std::endl;
-   os << "tol = " << m_tol << std::endl;
-   os << "direct = " << m_direct << std::endl;
+   os << LAMBDA_BETA_TAG << " = " << m_lambda_beta << std::endl;
+   os << TOL_TAG << " = " << m_tol << std::endl;
+   os << DIRECT_TAG << " = " << m_direct << std::endl;
+
+   os << "# noise model" << std::endl;
+   os << NOISE_MODEL_TAG << " = " << smurff::noiseTypeToString(m_train->getNoiseConfig().getNoiseType()) << std::endl;
+   os << PRECISION_TAG << " = " << m_train->getNoiseConfig().precision << std::endl;
+   os << SN_INIT_TAG << " = " << m_train->getNoiseConfig().sn_init << std::endl;
+   os << SN_MAX_TAG << " = " << m_train->getNoiseConfig().sn_max << std::endl;
+   os << NOISE_THRESHOLD_TAG << " = " << m_train->getNoiseConfig().threshold << std::endl;
 
    os << "# binary classification" << std::endl;
-   os << "classify = " << m_classify << std::endl;
-   os << "threshold = " << m_threshold << std::endl;
+   os << CLASSIFY_TAG << " = " << m_classify << std::endl;
+   os << THRESHOLD_TAG << " = " << m_threshold << std::endl;
 }
 
 bool Config::restore(std::string fname)
@@ -322,26 +402,26 @@ bool Config::restore(std::string fname)
    }
 
    //-- test
-   std::string testFilename = reader.Get("", "test",  TEST_NONE);
+   std::string testFilename = reader.Get("", TEST_TAG,  TEST_NONE);
    if (testFilename != TEST_NONE)
       setTest(generic_io::read_data_config(testFilename, true));
 
    //-- train
-   std::string trainFilename = reader.Get("", "train",  TRAIN_NONE);
+   std::string trainFilename = reader.Get("", TEST_TAG,  TRAIN_NONE);
    if (trainFilename != TRAIN_NONE)
       setTrain(generic_io::read_data_config(trainFilename, true));
 
-   size_t num_priors = reader.GetInteger("", "num_priors", 0);
+   size_t num_priors = reader.GetInteger("", NUM_PRIORS_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
    {
       std::stringstream ss;
 
       // -- priors
-      ss << "prior_" << pIndex;
+      ss << PRIOR_PREFIX << "_" << pIndex;
       std::string pName = reader.Get("", ss.str(),  PRIOR_NAME_DEFAULT);
       m_prior_types.push_back(stringToPriorType(pName));
 
-      ss << "side_info_" << pIndex;
+      ss << SIDE_INFO_PREFIX << "_" << pIndex;
       std::string sideInfo = reader.Get("", ss.str(), SIDE_INFO_NONE);
       if (sideInfo == SIDE_INFO_NONE)
           m_sideInfo.push_back(std::shared_ptr<MatrixConfig>());
@@ -349,7 +429,7 @@ bool Config::restore(std::string fname)
           m_sideInfo.push_back(matrix_io::read_matrix(sideInfo, false));
 
       /*
-      ss << "aux_data_" << pIndex;
+      ss << AUX_DATA_PREFIX << "_" << pIndex;
       std::string auxDataString = reader.Get("", ss.str(), AUX_DATA_NONE);
       m_auxData.push_back(std::vector<std::shared_ptr<TensorConfig> >());
       auto& dimAuxData = m_auxData.back();
@@ -367,37 +447,38 @@ bool Config::restore(std::string fname)
    }
 
    //-- save
-   m_save_prefix = reader.Get("", "save_prefix",  "save");
-   m_save_extension = reader.Get("", "save_extension",  ".csv");
-   m_save_freq = reader.GetInteger("", "save_freq",  0); // never
+   m_save_prefix = reader.Get("", SAVE_PREFIX_TAG, Config::SAVE_PREFIX_DEFAULT_VALUE);
+   m_save_extension = reader.Get("", SAVE_EXTENSION_TAG, Config::SAVE_EXTENSION_DEFAULT_VALUE);
+   m_save_freq = reader.GetInteger("", SAVE_FREQ_TAG, Config::SAVE_FREQ_DEFAULT_VALUE);
 
    //-- general
-   m_verbose = reader.GetInteger("", "verbose",  false);
-   m_burnin = reader.GetInteger("", "burnin",  200);
-   m_nsamples = reader.GetInteger("", "nsamples",  800);
-   m_num_latent = reader.GetInteger("", "num_latent",  96);
-   m_random_seed_set = reader.GetBoolean("", "random_seed_set",  false);
-   m_random_seed = reader.GetInteger("", "random_seed",  -1);
-   m_csv_status = reader.Get("", "csv_status",  "status.csv");
-   m_model_init_type = stringToModelInitType(reader.Get("", "init_model", MODEL_INIT_NAME_RANDOM));
+   m_verbose = reader.GetInteger("", VERBOSE_TAG, Config::VERBOSE_DEFAULT_VALUE);
+   m_burnin = reader.GetInteger("", BURNING_TAG, Config::BURNIN_DEFAULT_VALUE);
+   m_nsamples = reader.GetInteger("", NSAMPLES_TAG, Config::NSAMPLES_DEFAULT_VALUE);
+   m_num_latent = reader.GetInteger("", NUM_LATENT_TAG, Config::NUM_LATENT_DEFAULT_VALUE);
+   m_random_seed_set = reader.GetBoolean("", RANDOM_SEED_SET_TAG,  false);
+   m_random_seed = reader.GetInteger("", RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
+   m_csv_status = reader.Get("", CSV_STATUS_TAG, Config::STATUS_DEFAULT_VALUE);
+   m_model_init_type = stringToModelInitType(reader.Get("", INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
 
    //-- for macau priors
-   m_lambda_beta = reader.GetReal("", "lambda_beta",  10.0);
-   m_tol = reader.GetReal("", "tol",  1e-6);
-   m_direct = reader.GetBoolean("", "direct",  false);
+   m_lambda_beta = reader.GetReal("", LAMBDA_BETA_TAG, Config::LAMBDA_BETA_DEFAULT_VALUE);
+   m_tol = reader.GetReal("", TOL_TAG, Config::TOL_DEFAULT_VALUE);
+   m_direct = reader.GetBoolean("", DIRECT_TAG,  false);
 
    //-- noise model
    NoiseConfig noise;
-   noise.setNoiseType(smurff::stringToNoiseType(reader.Get("", "noise_model",  NOISE_NAME_FIXED)));
-   noise.precision = reader.GetReal("", "precision",  5.0);
-   noise.sn_init = reader.GetReal("", "sn_init",  1.0);
-   noise.sn_max = reader.GetReal("", "sn_max",  10.0);
+   noise.setNoiseType(smurff::stringToNoiseType(reader.Get("", NOISE_MODEL_TAG, noiseTypeToString(Config::NOISE_TYPE_DEFAULT_VALUE))));
+   noise.precision = reader.GetReal("", PRECISION_TAG, Config::PRECISION_DEFAULT_VALUE);
+   noise.sn_init = reader.GetReal("", SN_INIT_TAG, Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE);
+   noise.sn_max = reader.GetReal("", SN_MAX_TAG, Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE);
+   noise.threshold = reader.GetReal("", NOISE_THRESHOLD_TAG, Config::PROBIT_DEFAULT_VALUE);
    if (m_train) 
       m_train->setNoiseConfig(noise);
 
    //-- binary classification
-   m_classify = reader.GetBoolean("", "classify",  false);
-   m_threshold = reader.GetReal("", "threshold",  .0);
+   m_classify = reader.GetBoolean("", CLASSIFY_TAG,  false);
+   m_threshold = reader.GetReal("", THRESHOLD_TAG, Config::THRESHOLD_DEFAULT_VALUE);
 
    return true;
 }

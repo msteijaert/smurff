@@ -65,7 +65,7 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen(const smurff::
 
    out.setFromTriplets(begin, end);
 
-   THROWERROR_ASSERT(out.nonZeros() == (int)matrixConfig.getNNZ());
+   THROWERROR_ASSERT_MSG(out.nonZeros() == (int)matrixConfig.getNNZ(), "probable presence of duplicate records in " + matrixConfig.getFilename());
 
    return out;
 }
