@@ -111,6 +111,7 @@ std::shared_ptr<MatrixConfig> getRowAuxDataDenseMatrixConfig()
    std::vector<double> rowAuxDataDenseMatrixConfigVals = { 1, 2, 3 };
    std::shared_ptr<MatrixConfig> rowAuxDataDenseMatrixConfig =
       std::make_shared<MatrixConfig>(3, 1, std::move(rowAuxDataDenseMatrixConfigVals), fixed_ncfg);
+   rowAuxDataDenseMatrixConfig->setPos(PVec<>({0,1}));
    return rowAuxDataDenseMatrixConfig;
 }
 
@@ -119,6 +120,7 @@ std::shared_ptr<MatrixConfig> getColAuxDataDenseMatrixConfig()
    std::vector<double> colAuxDataDenseMatrixConfigVals = { 1, 2, 3, 4 };
    std::shared_ptr<MatrixConfig> colAuxDataDenseMatrixConfig =
       std::make_shared<MatrixConfig>(1, 4, std::move(colAuxDataDenseMatrixConfigVals), fixed_ncfg);
+   colAuxDataDenseMatrixConfig->setPos(PVec<>({1,0}));
    return colAuxDataDenseMatrixConfig;
 }
 
@@ -179,7 +181,6 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
    }
 }
 
-#define TEST_RANDOM 1
 #ifdef TEST_RANDOM
 //
 //      train: dense matrix
