@@ -59,11 +59,11 @@ public:
    static int NSAMPLES_DEFAULT_VALUE;
    static int NUM_LATENT_DEFAULT_VALUE;
    static ModelInitTypes INIT_MODEL_DEFAULT_VALUE;
-   static char* SAVE_PREFIX_DEFAULT_VALUE;
-   static char* SAVE_EXTENSION_DEFAULT_VALUE;
+   static const char* SAVE_PREFIX_DEFAULT_VALUE;
+   static const char* SAVE_EXTENSION_DEFAULT_VALUE;
    static int SAVE_FREQ_DEFAULT_VALUE;
    static int VERBOSE_DEFAULT_VALUE;
-   static char* STATUS_DEFAULT_VALUE;
+   static const char* STATUS_DEFAULT_VALUE;
    static double LAMBDA_BETA_DEFAULT_VALUE;
    static double TOL_DEFAULT_VALUE;
    static double THRESHOLD_DEFAULT_VALUE;
