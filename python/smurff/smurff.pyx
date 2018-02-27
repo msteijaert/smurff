@@ -294,16 +294,16 @@ def smurff(Y,
     cdef Config config
     cdef NoiseConfig nc
 
-    if precision:
+    if precision is not None:
         nc.setNoiseType(fixed)
         nc.precision = precision
 
-    if sn_init and sn_max:
+    if sn_init is not None and sn_max is not None:
         nc.setNoiseType(adaptive)
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    if threshold:
+    if threshold is not None:
         nc.setNoiseType(probit)
         nc.threshold = threshold
         config.setThreshold(threshold)
