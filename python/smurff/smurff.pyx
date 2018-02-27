@@ -284,26 +284,24 @@ def smurff(Y,
            quite          = False,
            init_model     = None,
            save_prefix    = None,
-           save_suffix    = None,
+           save_extension = None,
            save_freq      = None,
-           restore_prefix = None,
-           restore_suffix = None,
            csv_status     = None):
 
     # Create and initialize smurff-cpp Config instance
     cdef Config config
     cdef NoiseConfig nc
 
-    if precision:
+    if precision is not None:
         nc.setNoiseType(fixed)
         nc.precision = precision
 
-    if sn_init and sn_max:
+    if sn_init is not None and sn_max is not None:
         nc.setNoiseType(adaptive)
         nc.sn_init = sn_init
         nc.sn_max = sn_max
 
-    if threshold:
+    if threshold is not None:
         nc.setNoiseType(probit)
         nc.threshold = threshold
         config.setThreshold(threshold)
@@ -354,17 +352,11 @@ def smurff(Y,
     if save_prefix:
         config.setSavePrefix(save_prefix)
 
-    if save_suffix:
-        config.setSaveSuffix(save_suffix)
+    if save_extension:
+        config.setSaveExtension(save_extension)
 
     if save_freq:
         config.setSaveFreq(save_freq)
-
-    if restore_prefix:
-        config.setRestorePrefix(restore_prefix)
-
-    if restore_suffix:
-        config.setRestoreSuffix(restore_suffix)
 
     if csv_status:
         config.setCsvStatus(csv_status)

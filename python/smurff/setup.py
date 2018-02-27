@@ -4,7 +4,7 @@ from pkg_resources import parse_version
 from setuptools import setup
 import Cython
 from Cython.Distutils import Extension
-from Cython.Distutils import build_ext
+from Cython.Build import cythonize
 import numpy
 import numpy.distutils.system_info as sysinfo
 import sys
@@ -66,20 +66,20 @@ CLASSIFIERS = [
     "Operating System :: MacOS"
 ]
 
-setup(cmdclass={'build_ext': build_ext},
-        name = 'smurff',
-        version = subprocess.check_output("git describe", shell=True).rstrip().decode(),
-        # packages = ["smurff"],
-        # package_dir = {'' : 'python'},
-        url = "http://github.com/ExaScience/smurff",
-        license = "MIT",
-        description = 'Bayesian Factorization Methods',
-        long_description = 'Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and smurff. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. smurff method provides also the ability to incorporate high-dimensional side information to the factorization.',
-        author = "Tom Vander Aa",
-        author_email = "Tom.VanderAa@imec.be",
-        ext_modules = [
-            Extension(
-                "smurff",
+setup(
+    name = 'smurff',
+    version = subprocess.check_output("git describe", shell=True).rstrip().decode(),
+    # packages = ["smurff"],
+    # package_dir = {'' : 'python'},
+    url = "http://github.com/ExaScience/smurff",
+    license = "MIT",
+    description = 'Bayesian Factorization Methods',
+    long_description = 'Highly optimized and parallelized methods for Bayesian Factorization, including BPMF and smurff. The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices. smurff method provides also the ability to incorporate high-dimensional side information to the factorization.',
+    author = "Tom Vander Aa",
+    author_email = "Tom.VanderAa@imec.be",
+    ext_modules = cythonize([
+        Extension(
+            "smurff",
                 sources = SOURCES,
                 include_dirs = INCLUDE_DIRS,
                 libraries = LIBRARIES,
@@ -88,9 +88,9 @@ setup(cmdclass={'build_ext': build_ext},
                 extra_link_args = EXTRA_LINK_ARGS,
                 language = "c++",
             )
-        ],
-        # cythonize(ext_modules, compiler_directives={'c_string_type': 'str', 'c_string_encoding': 'default'}),
-        classifiers = CLASSIFIERS,
-        keywords = "bayesian factorization machine-learning high-dimensional side-information",
-        install_requires = ['numpy', 'scipy', 'pandas']
+        ], compiler_directives={'c_string_type': 'str', 'c_string_encoding': 'default'}),
+    # cythonize(ext_modules, compiler_directives={'c_string_type': 'str', 'c_string_encoding': 'default'}),
+    classifiers = CLASSIFIERS,
+    keywords = "bayesian factorization machine-learning high-dimensional side-information",
+    install_requires = ['numpy', 'scipy', 'pandas']
 )
