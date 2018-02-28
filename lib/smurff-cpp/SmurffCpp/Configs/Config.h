@@ -159,6 +159,13 @@ public:
       return m_auxData;
    }
 
+   std::vector< std::shared_ptr<TensorConfig> > getData() const
+   {
+       auto data = m_auxData;
+       data.push_back(m_train);
+       return data;
+   }
+
    const std::vector<PriorTypes>& getPriorTypes() const
    {
       return m_prior_types;

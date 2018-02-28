@@ -248,9 +248,7 @@ bool Config::validate() const
       }
    }
 
-   auto auxDataPlusTrain = m_auxData;
-   auxDataPlusTrain.push_back(m_train);
-   for(auto& ad1 : auxDataPlusTrain)
+   for(auto& ad1 : getData())
    {
        const auto &dim1 = ad1->getDims();
        const auto &pos1 = ad1->getPos();
@@ -261,7 +259,7 @@ bool Config::validate() const
            THROWERROR(ss.str());
        }
 
-       for(auto& ad2 : auxDataPlusTrain)
+       for(auto& ad2 : getData())
        {
            if (ad1 == ad2) continue;
            const auto &dim2 = ad2->getDims();
