@@ -33,8 +33,8 @@ namespace smurff
       std::shared_ptr<std::vector<double> > m_values;
 
    private:
-      std::string m_filename = "";
-      std::shared_ptr<PVec<>> m_pos = 0;
+      std::string m_filename;
+      std::shared_ptr<PVec<>> m_pos;
 
    protected:
       TensorConfig(bool isDense, bool isBinary, bool isScarce,
@@ -102,10 +102,10 @@ namespace smurff
       std::shared_ptr<std::vector<std::uint32_t> > getColumnsPtr() const;
       std::shared_ptr<std::vector<double> > getValuesPtr() const;
 
-      void setFilename(const std::string &f);
+      void setFilename(const std::string& f);
       const std::string &getFilename() const;
 
-      void setPos(const PVec<> &);
+      void setPos(const PVec<>& p);
       bool hasPos() const;
       const PVec<> &getPos() const;
 

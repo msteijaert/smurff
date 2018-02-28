@@ -348,26 +348,28 @@ void TensorConfig::setNoiseConfig(const NoiseConfig& value)
    m_noiseConfig = value;
 }
 
-
-void TensorConfig::setFilename(const std::string &f) {
+void TensorConfig::setFilename(const std::string &f) 
+{
     m_filename = f;
 }
     
-const std::string &TensorConfig::getFilename() const {
+const std::string &TensorConfig::getFilename() const 
+{
     return m_filename;
 }
 
-void TensorConfig::setPos(const PVec<> &f) {
-    // there must be a better way to do this...
-    // with less <>>><<>>
-    m_pos = std::shared_ptr<PVec<>>(new PVec<>(f));
+void TensorConfig::setPos(const PVec<>& p) 
+{
+   m_pos = std::make_shared<PVec<>>(p);
 }
     
-bool TensorConfig::hasPos() const {
-    return m_pos != 0;
+bool TensorConfig::hasPos() const 
+{
+    return m_pos != nullptr;
 }    
 
-const PVec<> &TensorConfig::getPos() const {
+const PVec<>& TensorConfig::getPos() const 
+{
     return *m_pos;
 }
 
