@@ -121,32 +121,37 @@ void Session::init()
 void Session::run()
 {
    init();
-
-   while (m_iter < m_config.getBurnin() + m_config.getNSamples())
-      step();
+   while (step());
 }
 
-void Session::step()
+bool Session::step()
 {
-   THROWERROR_ASSERT(is_init);
+   bool isStep = m_iter < m_config.getBurnin() + m_config.getNSamples();
 
-   if (m_config.getVerbose() && m_iter == m_config.getBurnin())
+   if (isStep)
    {
-      printf(" ====== Burn-in complete, averaging samples ====== \n");
+      THROWERROR_ASSERT(is_init);
+
+      if (m_config.getVerbose() && m_iter == m_config.getBurnin())
+      {
+         printf(" ====== Burn-in complete, averaging samples ====== \n");
+      }
+
+      auto starti = tick();
+      BaseSession::step();
+      auto endi = tick();
+
+      //WARNING: update is an expensive operation because of sort (when calculating AUC)
+      m_pred->update(m_model, m_iter < m_config.getBurnin());
+
+      printStatus(endi - starti, false, m_iter);
+
+      save(m_iter);
+
+      m_iter++;
    }
 
-   auto starti = tick();
-   BaseSession::step();
-   auto endi = tick();
-
-   //WARNING: update is an expensive operation because of sort (when calculating AUC)
-   m_pred->update(m_model, m_iter < m_config.getBurnin());
-
-   printStatus(endi - starti, false, m_iter);
-
-   save(m_iter);
-
-   m_iter++;
+   return isStep;
 }
 
 std::ostream& Session::info(std::ostream &os, std::string indent)
@@ -160,11 +165,11 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
    if (m_config.getSaveFreq() != 0)
    {
-      if (m_config.getSaveFreq() > 0) 
+      if (m_config.getSaveFreq() > 0)
       {
           os << indent << "  Save model: every " << m_config.getSaveFreq() << " iteration\n";
-      } 
-      else 
+      }
+      else
       {
           os << indent << "  Save model after last iteration\n";
       }
@@ -203,7 +208,7 @@ void Session::save(int iteration) const
       }
 
       std::int32_t iburnin = iteration + 1;
-      
+
       //save this iteration
       std::shared_ptr<StepFile> stepFile = m_rootFile->createBurninStepFile(iburnin);
       saveInternal(stepFile);
@@ -262,7 +267,7 @@ bool Session::restore(int& iteration)
       }
 
       return true;
-   }   
+   }
 }
 
 void Session::printStatus(double elapsedi, bool resume, int iteration)

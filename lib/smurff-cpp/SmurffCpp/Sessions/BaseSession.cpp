@@ -22,11 +22,12 @@ void BaseSession::addPrior(std::shared_ptr<ILatentPrior> prior)
    m_priors.push_back(prior);
 }
 
-void BaseSession::step()
+bool BaseSession::step()
 {
    for(auto &p : m_priors)
       p->sample_latents();
    data()->update(m_model);
+   return true;
 }
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent)

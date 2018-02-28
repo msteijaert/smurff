@@ -21,7 +21,7 @@ protected:
    }
 
 protected:
-   void step() override;
+   bool step() override;
 
 private:
    static void intHandler(int);

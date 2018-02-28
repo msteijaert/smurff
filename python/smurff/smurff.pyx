@@ -263,7 +263,7 @@ class Result:
         self.predictions = predictions
         self.rmse = rmse
 
-def smurff(Y,
+def smurff(Y              = None,
            Ytest          = None,
            data_shape     = None,
            priors         = [],
@@ -286,87 +286,93 @@ def smurff(Y,
            save_prefix    = None,
            save_extension = None,
            save_freq      = None,
-           csv_status     = None):
+           csv_status     = None,
+           root_path      = None):
 
-    # Create and initialize smurff-cpp Config instance
     cdef Config config
     cdef NoiseConfig nc
+    cdef shared_ptr[ISession] session
 
-    if precision is not None:
-        nc.setNoiseType(fixed)
-        nc.precision = precision
+    if root_path is not None:
+        session = SessionFactory.create_py_session_from_root_path(root_path)
+    else:
+        # Create and initialize smurff-cpp Config instance
 
-    if sn_init is not None and sn_max is not None:
-        nc.setNoiseType(adaptive)
-        nc.sn_init = sn_init
-        nc.sn_max = sn_max
+        if precision is not None:
+            nc.setNoiseType(fixed)
+            nc.precision = precision
 
-    if threshold is not None:
-        nc.setNoiseType(probit)
-        nc.threshold = threshold
-        config.setThreshold(threshold)
-        config.setClassify(True)
+        if sn_init is not None and sn_max is not None:
+            nc.setNoiseType(adaptive)
+            nc.sn_init = sn_init
+            nc.sn_max = sn_max
 
-    train, test = prepare_data(Y, Ytest, data_shape)
-    train.get().setNoiseConfig(nc)
+        if threshold is not None:
+            nc.setNoiseType(probit)
+            nc.threshold = threshold
+            config.setThreshold(threshold)
+            config.setClassify(True)
 
-    config.setTrain(train)
-    if Ytest is not None:
-        test.get().setNoiseConfig(nc)
-        config.setTest(test)
+        train, test = prepare_data(Y, Ytest, data_shape)
+        train.get().setNoiseConfig(nc)
 
-    for i in range(len(priors)):
-        prior_type_str = priors[i]
-        config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
+        config.setTrain(train)
+        if Ytest is not None:
+            test.get().setNoiseConfig(nc)
+            config.setTest(test)
 
-        prior_side_info = side_info[i]
-        if prior_side_info is None:
-            config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
-        else:
-            config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
+        for i in range(len(priors)):
+            prior_type_str = priors[i]
+            config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
 
-        prior_aux_data = aux_data[i]
-        config.getAuxData().push_back(vector[shared_ptr[TensorConfig]]())
-        if prior_aux_data is not None:
-            for ad in prior_aux_data:
-                config.getAuxData().back().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
+            prior_side_info = side_info[i]
+            if prior_side_info is None:
+                config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
+            else:
+                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
 
-    config.setLambdaBeta(lambda_beta)
-    config.setNumLatent(num_latent)
-    config.setBurnin(burnin)
-    config.setNSamples(nsamples)
-    config.setTol(tol)
-    config.setDirect(direct)
+            prior_aux_data = aux_data[i]
+            config.getAuxData().push_back(vector[shared_ptr[TensorConfig]]())
+            if prior_aux_data is not None:
+                for ad in prior_aux_data:
+                    config.getAuxData().back().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
 
-    if seed:
-        config.setRandomSeedSet(True)
-        config.setRandomSeed(seed)
+        config.setLambdaBeta(lambda_beta)
+        config.setNumLatent(num_latent)
+        config.setBurnin(burnin)
+        config.setNSamples(nsamples)
+        config.setTol(tol)
+        config.setDirect(direct)
 
-    config.setVerbose(verbose)
-    if quite:
-        config.setVerbose(False)
+        if seed:
+            config.setRandomSeedSet(True)
+            config.setRandomSeed(seed)
 
-    if init_model:
-        config.setModelInitType(stringToModelInitType(init_model))
+        config.setVerbose(verbose)
+        if quite:
+            config.setVerbose(False)
 
-    if save_prefix:
-        config.setSavePrefix(save_prefix)
+        if init_model:
+            config.setModelInitType(stringToModelInitType(init_model))
 
-    if save_extension:
-        config.setSaveExtension(save_extension)
+        if save_prefix:
+            config.setSavePrefix(save_prefix)
 
-    if save_freq:
-        config.setSaveFreq(save_freq)
+        if save_extension:
+            config.setSaveExtension(save_extension)
 
-    if csv_status:
-        config.setCsvStatus(csv_status)
+        if save_freq:
+            config.setSaveFreq(save_freq)
+
+        if csv_status:
+            config.setCsvStatus(csv_status)
+
+        session = SessionFactory.create_py_session_from_config(config)
 
     # Create and run session
-    cdef shared_ptr[ISession] session = SessionFactory.create_py_session(config)
     session.get().init()
-    cdef size_t iterations_count = <size_t>(config.getNSamples() + config.getBurnin())
-    for i in range(iterations_count):
-        session.get().step()
+    while session.get().step():
+        pass
 
     # Create Python list of ResultItem from C++ vector of ResultItem
     cpp_result_items_ptr = session.get().getResult()
