@@ -16,17 +16,14 @@ using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
 
-#ifdef USE_BOOST_RANDOM
-#include <boost/random.hpp>
-#define MERSENNE_TWISTER boost::random::mt19937
-#define UNIFORM_REAL_DISTRIBUTION boost::random::uniform_real_distribution<double>
-#define GAMMA_DISTRIBUTION boost::random::gamma_distribution<double>
-#else
 #include <random>
-#define MERSENNE_TWISTER std::mt19937
+#define MERSENNE_TWISTER std::minstd_rand0
+//#define MERSENNE_TWISTER std::mt19937
 #define UNIFORM_REAL_DISTRIBUTION std::uniform_real_distribution<double>
 #define GAMMA_DISTRIBUTION std::gamma_distribution<double>
-#endif
+
+
+
 
 static smurff::thread_vector<MERSENNE_TWISTER> bmrngs;
 
