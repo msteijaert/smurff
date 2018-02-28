@@ -110,7 +110,27 @@ boost::program_options::options_description get_desc()
 }
 #endif
 
-void set_noise_model(Config& config, std::string noiseName, std::string optarg)
+void set_noise_configs(Config& config, const NoiseConfig nc)
+{
+   if(!config.getTrain())
+      THROWERROR("train data is not provided");
+
+   //set for side info
+   for(auto& sideInfo : config.getSideInfo())
+   {
+      if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+         sideInfo->setNoiseConfig(nc);
+   }
+  
+   // set for aux data
+   for(auto& data : config.getData())
+   {
+       if (data->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+           data->setNoiseConfig(nc);
+   }
+}
+
+NoiseConfig parse_noise_arg(std::string noiseName, std::string optarg)
 {
    NoiseConfig nc;
    nc.setNoiseType(smurff::stringToNoiseType(noiseName));
@@ -138,26 +158,7 @@ void set_noise_model(Config& config, std::string noiseName, std::string optarg)
       nc.threshold = strtod(optarg.c_str(), NULL);
    }
 
-   if(!config.getTrain())
-      THROWERROR("train data is not provided");
-
-   // set global noise model
-   if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-      config.getTrain()->setNoiseConfig(nc);
-
-   //set for side info
-   for(auto& sideInfo : config.getSideInfo())
-   {
-      if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-         sideInfo->setNoiseConfig(nc);
-   }
-  
-   // set for aux data
-   for(auto& auxData : config.getAuxData())
-   {
-       if (auxData->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-           auxData->setNoiseConfig(nc);
-   }
+   return nc;
 }
 
 #ifdef HAVE_BOOST
@@ -269,13 +270,13 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    }
 
    if (vm.count(PRECISION_NAME) && !vm[PRECISION_NAME].defaulted())
-      set_noise_model(config, NOISE_NAME_FIXED, vm[PRECISION_NAME].as<std::string>());
-
-   if (vm.count(ADAPTIVE_NAME) && !vm[ADAPTIVE_NAME].defaulted())
-      set_noise_model(config, NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>());
-
-   if (vm.count(PROBIT_NAME) && !vm[PROBIT_NAME].defaulted())
-      set_noise_model(config, NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>());
+      set_noise_configs(config, parse_noise_arg(NOISE_NAME_FIXED, vm[PRECISION_NAME].as<std::string>()));
+   else if (vm.count(ADAPTIVE_NAME) && !vm[ADAPTIVE_NAME].defaulted())
+      set_noise_configs(config, parse_noise_arg(NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>()));
+   else if (vm.count(PROBIT_NAME) && !vm[PROBIT_NAME].defaulted())
+      set_noise_configs(config, parse_noise_arg(NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>()));
+   else 
+      set_noise_configs(config, NoiseConfig(Config::NOISE_TYPE_DEFAULT_VALUE));
 
    if (vm.count(LAMBDA_BETA_NAME) && !vm[LAMBDA_BETA_NAME].defaulted())
       config.setLambdaBeta(vm[LAMBDA_BETA_NAME].as<double>());
