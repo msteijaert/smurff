@@ -180,7 +180,7 @@ bool Config::validate() const
    }
 
    auto train_pos = PVec<>(std::vector<int>(m_train->getNModes())); // all 0
-   if (!m_train->getPos().size()) 
+   if (!m_train->hasPos())
    {
        m_train->setPos(train_pos);
    }
@@ -250,14 +250,18 @@ bool Config::validate() const
 
    for(auto& ad1 : getData())
    {
-       const auto &dim1 = ad1->getDims();
-       const auto &pos1 = ad1->getPos();
-       if (!pos1.size())
+       if (!ad1->hasPos())
        {
            std::stringstream ss;
            ss << "Data \"" << ad1->info() <<  "\" is missing position info";
            THROWERROR(ss.str());
        }
+   }
+
+   for(auto& ad1 : getData())
+   {
+       const auto &dim1 = ad1->getDims();
+       const auto &pos1 = ad1->getPos();
 
        for(auto& ad2 : getData())
        {
@@ -356,7 +360,7 @@ void Config::save(std::string fname) const
        os << "]" << std::endl;
 
        if (cfg) {
-           if (cfg->getPos().size()) os << POS_TAG << " = " << cfg->getPos() << std::endl;
+           if (cfg->hasPos()) os << POS_TAG << " = " << cfg->getPos() << std::endl;
            os << FILE_TAG << " = " << cfg->getFilename() << std::endl;
            std::string type_str = cfg->isDense() ? DENSE_TAG : cfg->isScarce() ? SCARCE_TAG : SPARSE_TAG;
            os << TYPE_TAG << " = " << type_str << std::endl;

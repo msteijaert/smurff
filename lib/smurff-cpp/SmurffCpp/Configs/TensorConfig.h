@@ -34,8 +34,7 @@ namespace smurff
 
    private:
       std::string m_filename = "";
-
-      PVec<> m_pos = PVec<>();
+      std::shared_ptr<PVec<>> m_pos = 0;
 
    protected:
       TensorConfig(bool isDense, bool isBinary, bool isScarce,
@@ -107,6 +106,7 @@ namespace smurff
       const std::string &getFilename() const;
 
       void setPos(const PVec<> &);
+      bool hasPos() const;
       const PVec<> &getPos() const;
 
    public:

@@ -358,11 +358,15 @@ const std::string &TensorConfig::getFilename() const {
 }
 
 void TensorConfig::setPos(const PVec<> &f) {
-    m_pos = f;
+    m_pos = std::unique_ptr<PVec<>>(new PVec<>(f));
 }
     
+bool TensorConfig::hasPos() const {
+    return m_pos != 0;
+}    
+
 const PVec<> &TensorConfig::getPos() const {
-    return m_pos;
+    return *m_pos;
 }
 
 std::ostream& TensorConfig::info(std::ostream& os) const
@@ -381,7 +385,7 @@ std::ostream& TensorConfig::info(std::ostream& os) const
    {
         os << " \"" << getFilename() << "\"";
    }
-   if (getPos().size())
+   if (hasPos())
    {
         os << " @[" << getPos() << "]";
    }

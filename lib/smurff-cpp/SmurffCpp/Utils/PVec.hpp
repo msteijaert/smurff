@@ -19,8 +19,6 @@ namespace smurff
       std::array<int, MaxSize> m_v;
 
    public:
-      PVec() : m_size(0) {}
-
       PVec(size_t size)
          : m_size(size)
       {
@@ -162,14 +160,6 @@ namespace smurff
          return !(*this == other);
       }
 
-      explicit operator bool() const
-      {
-         // true if any >0
-         for (size_t i = 0; i < m_size; ++i)
-            if (at(i) > 0) return true;
-         return false;
-      }
- 
       bool operator<(const PVec& other) const
       {
          if (m_size != other.m_size)
