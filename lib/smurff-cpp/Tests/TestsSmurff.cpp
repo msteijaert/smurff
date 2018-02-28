@@ -181,7 +181,6 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
    }
 }
 
-#define TEST_RANDOM
 #ifdef TEST_RANDOM
 //
 //      train: dense matrix
