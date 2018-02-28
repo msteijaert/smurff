@@ -10,6 +10,7 @@
 
 #include <SmurffCpp/Version.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/TensorUtils.h>
 #include <SmurffCpp/IO/INIReader.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/IO/GenericIO.h>
@@ -178,6 +179,16 @@ bool Config::validate() const
       THROWERROR("Missing train data");
    }
 
+   auto train_pos = PVec<>(std::vector<int>(m_train->getNModes())); // all 0
+   if (!m_train->getPos().size()) 
+   {
+       m_train->setPos(train_pos);
+   }
+   else if (m_train->getPos() != train_pos)
+   {
+       THROWERROR("Train should be at upper position (all zeros)");
+   }
+
    if (m_test && !m_test->getNNZ())
    {
       THROWERROR("Missing test data");
@@ -237,19 +248,44 @@ bool Config::validate() const
       }
    }
 
-   /*
-   for(auto& ad : m_auxData)
+   auto auxDataPlusTrain = m_auxData;
+   auxDataPlusTrain.push_back(m_train);
+   for(auto& ad1 : auxDataPlusTrain)
    {
-      auto &pos = ad.first;
-      auto &data = ad.second;
-      if (m_train->getDims()[i] != ad->getDims()[i]) //compare sizes in specific dimension
-      {
-         std::stringstream ss;
-         ss << "Aux data and train data should have the same number of records in dimension " << i;
-         THROWERROR(ss.str());
-      }
+       const auto &dim1 = ad1->getDims();
+       const auto &pos1 = ad1->getPos();
+       if (!pos1.size())
+       {
+           std::stringstream ss;
+           ss << "Data \"" << ad1->info() <<  "\" is missing position info";
+           THROWERROR(ss.str());
+       }
+
+       for(auto& ad2 : auxDataPlusTrain)
+       {
+           if (ad1 == ad2) continue;
+           const auto &dim2 = ad2->getDims();
+           const auto &pos2 = ad2->getPos();
+
+           if (pos1 == pos2) 
+           {
+               std::stringstream ss;
+               ss << "Data \"" << ad1->info() <<  "\" and \"" << ad2->info() << "\" at same position";
+               THROWERROR(ss.str());
+           }
+
+           // if two data blocks are aligned in a certain dimension
+           // this dimension should be equal size
+           for (unsigned i=0; i<pos1.size(); ++i) {
+               if (pos1.at(i) == pos2.at(i) && (dim1.at(i) != dim2.at(i)))
+               {
+                   std::stringstream ss;
+                   ss << "Data \"" << ad1->info() << "\" and \"" << ad2->info() << "\" differen in size in dimension " << i;
+                   THROWERROR(ss.str());
+               }
+           }
+       }
    }
-    */
 
    for(std::size_t i = 0; i < m_prior_types.size(); i++)
    {
@@ -322,7 +358,7 @@ void Config::save(std::string fname) const
        os << "]" << std::endl;
 
        if (cfg) {
-           if (cfg->getPos()) os << POS_TAG << " = " << cfg->getPos() << std::endl;
+           if (cfg->getPos().size()) os << POS_TAG << " = " << cfg->getPos() << std::endl;
            os << FILE_TAG << " = " << cfg->getFilename() << std::endl;
            std::string type_str = cfg->isDense() ? DENSE_TAG : cfg->isScarce() ? SCARCE_TAG : SPARSE_TAG;
            os << TYPE_TAG << " = " << type_str << std::endl;

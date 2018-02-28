@@ -377,7 +377,22 @@ std::ostream& TensorConfig::info(std::ostream& os) const
       for (std::size_t i = 1; i < m_dims->size(); i++)
          os << " x " << m_dims->operator[](i);
    }
+   if (getFilename().size())
+   {
+        os << " \"" << getFilename() << "\"";
+   }
+   if (getPos().size())
+   {
+        os << " @[" << getPos() << "]";
+   }
    return os;
+}
+
+std::string TensorConfig::info() const
+{
+    std::stringstream ss;
+    info(ss);
+    return ss.str();
 }
 
 std::ostream& TensorConfig::save(std::ostream& os) const

@@ -111,6 +111,7 @@ namespace smurff
 
    public:
       virtual std::ostream& info(std::ostream& os) const;
+      virtual std::string info() const;
       virtual std::ostream& save(std::ostream& os) const;
 
    public:
