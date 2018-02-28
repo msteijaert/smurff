@@ -159,23 +159,6 @@ namespace smurff
       {
          return !(*this == other);
       }
-
-      bool operator<(const PVec& other) const
-      {
-         if (m_size != other.m_size)
-         {
-            THROWERROR_SPEC(std::length_error, "Both PVec intances must have the same size");
-         }
-         
-         // we compare left to right
-         for (size_t i = 0; i < m_size; ++i)
-         {
-            if (at(i) < other.at(i)) return true;
-            if (at(i) > other.at(i)) return false;
-         }
-         
-         return false; // all equal
-      }
       
       bool in(const PVec& start, const PVec& end) const
       {
