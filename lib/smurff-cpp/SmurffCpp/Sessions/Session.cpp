@@ -30,7 +30,8 @@ void Session::setFromConfig(const Config& cfg)
    if (config.classify)
       m_pred->setThreshold(config.threshold);
 
-   m_pred->set(config.test);
+   if (config.test.getNNZ()) 
+       m_pred->set(config.test);
 
    // initialize data
 
