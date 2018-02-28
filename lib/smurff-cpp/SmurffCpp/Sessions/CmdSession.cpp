@@ -20,7 +20,8 @@ using namespace matrix_io;
 
 enum OPT_ENUM
 {
-   ROW_PRIOR = 1024, COL_PRIOR, ROW_FEATURES, COL_FEATURES, FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
+   ROW_PRIOR = 1024, COL_PRIOR, PRIOR, ROW_FEATURES, COL_FEATURES, FEATURES,
+   FNAME_ROW_MODEL, FNAME_COL_MODEL, FNAME_TEST, FNAME_TRAIN,
    BURNIN, NSAMPLES, NUM_LATENT, PRECISION, ADAPTIVE, LAMBDA_BETA, TOL, DIRECT,
    RESTORE_PREFIX, RESTORE_SUFFIX, SAVE_PREFIX, SAVE_SUFFIX, SAVE_FREQ, THRESHOLD, VERBOSE, QUIET, VERSION, SEED,
    INIT_MODEL, CENTER, STATUS_FILE
@@ -63,13 +64,37 @@ static int parse_opts(int key, char *optarg, struct argp_state *state)
             m.setNoiseConfig(nc);
    };
 
+   auto parse_features = [](std::vector<MatrixConfig>& features, std::string optarg)
+   {
+          
+         std::stringstream lineStream(optarg);
+         std::string token;
+
+         while (std::getline(lineStream, token, ','))
+         {
+            if(token == "none") continue;
+            features.push_back(read_matrix(token));
+         }
+   };
+
    switch (key)
    {
       case ROW_PRIOR:       c.row_prior_type          = stringToPriorType(optarg); break;
       case COL_PRIOR:       c.col_prior_type          = stringToPriorType(optarg); break;
+      case PRIOR:           
+                            c.row_prior_type          = stringToPriorType(optarg); 
+                            optarg                    = state->argv[state->next++];
+                            c.col_prior_type          = stringToPriorType(optarg);
+                            break;
 
       case ROW_FEATURES:    c.row_features.push_back(read_matrix(optarg)); break;
       case COL_FEATURES:    c.col_features.push_back(read_matrix(optarg)); break;
+      case FEATURES:        
+                            parse_features(c.row_features, optarg);
+                            optarg = state->argv[state->next++];
+                            parse_features(c.col_features, optarg);
+                            break;
+
       case CENTER:          c.center_mode_type        = stringToCenterMode(optarg); break;
 
 
@@ -115,8 +140,11 @@ void CmdSession::setFromArgs(int argc, char** argv)
         {0,0,0,0,"Priors and side Info:",1},
         {"row-prior",	     ROW_PRIOR     , "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
         {"col-prior",	     COL_PRIOR	, "PRIOR", 0, "One of <normal|spikeandslab|macau|macauone>"},
+        {"prior",	     PRIOR	, "PRIOR", 0, "Two of <normal|spikeandslab|macau|macauone>"},
         {"row-features",     ROW_FEATURES	, "FILE",  0, "side info for rows"},
         {"col-features",     COL_FEATURES	, "FILE",  0, "side info for cols"},
+        {"side-info",        FEATURES	, "FILE,FILE,FILE FILE,FILE,FILE",  0, "side info for rows and cols"},
+        {"aux-data",         FEATURES	, "FILE,FILE,FILE FILE,FILE,FILE",  0, "side info for rows and cols"},
         {"row-model",        FNAME_ROW_MODEL	, "FILE",  0, "initialization matrix for row model"},
         {"col-model",        FNAME_COL_MODEL	, "FILE",  0, "initialization matrix for col model"},
         {"center",           CENTER	        , "MODE",  0, "center <global|rows|cols|none>"},
