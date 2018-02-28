@@ -191,6 +191,10 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
          else
             config.getSideInfo().push_back(matrix_io::read_matrix(sideInfo, false));
       }
+   } else {
+       // same as "none none ..."
+       auto num_priors = config.getPriorTypes().size();
+       config.getSideInfo().resize(num_priors);
    }
 
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())
