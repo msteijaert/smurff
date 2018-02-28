@@ -358,7 +358,9 @@ const std::string &TensorConfig::getFilename() const {
 }
 
 void TensorConfig::setPos(const PVec<> &f) {
-    m_pos = std::unique_ptr<PVec<>>(new PVec<>(f));
+    // there must be a better way to do this...
+    // with less <>>><<>>
+    m_pos = std::shared_ptr<PVec<>>(new PVec<>(f));
 }
     
 bool TensorConfig::hasPos() const {
