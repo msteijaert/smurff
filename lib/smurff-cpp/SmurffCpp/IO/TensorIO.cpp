@@ -19,7 +19,7 @@ using namespace smurff;
 tensor_io::TensorType tensor_io::ExtensionToTensorType(const std::string& fname)
 {
    std::size_t dotIndex = fname.find_last_of(".");
-   if (dotIndex == -1)
+   if (dotIndex == std::string::npos)
    {
       THROWERROR("Extension is not specified in " + fname);
    }

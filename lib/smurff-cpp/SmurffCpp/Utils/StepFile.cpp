@@ -69,11 +69,11 @@ std::string StepFile::getStepFileName() const
 std::int32_t StepFile::tryGetIsampleFromPathInternal(const std::string& path, const std::string& prefix, const std::string& suffix) const
 {
    std::size_t idx0 = path.find(prefix);
-   if (idx0 == -1)
+   if (idx0 == std::string::npos)
       return -1;
 
    std::size_t idx1 = path.find(suffix);
-   THROWERROR_ASSERT_MSG(idx1 != -1, "Invalid step file name");
+   THROWERROR_ASSERT_MSG(idx1 != std::string::npos, "Invalid step file name");
 
    std::size_t start = idx0 + prefix.length();
    std::string indexStr = path.substr(start, idx1 - start);
