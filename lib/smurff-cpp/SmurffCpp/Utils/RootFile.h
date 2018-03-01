@@ -41,6 +41,11 @@ public:
 
    void restoreConfig(Config& config);
 
+private:
+   void restoreState(std::string& save_prefix, std::string& save_extension);
+
+   std::string restoreGetOptionsFileName() const;
+
 public:
    std::shared_ptr<StepFile> createSampleStepFile(std::int32_t isample) const;
 

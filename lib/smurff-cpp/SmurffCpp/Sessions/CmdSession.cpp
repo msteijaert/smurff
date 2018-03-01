@@ -15,6 +15,7 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 
 #include <SmurffCpp/Utils/RootFile.h>
+#include <SmurffCpp/Utils/StringUtils.h>
 
 #define HELP_NAME "help"
 #define PRIOR_NAME "prior"
@@ -87,10 +88,10 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description noise_desc("Noise model.");
    noise_desc.add_options()
-      (PRECISION_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(Config::PRECISION_DEFAULT_VALUE)), "set fixed precision of observations")
-      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(Config::ADAPTIVE_SN_INIT_DEFAULT_VALUE) + "," + std::to_string(Config::ADAPTIVE_SN_MAX_DEFAULT_VALUE)),
+      (PRECISION_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::PRECISION_DEFAULT_VALUE)), "set fixed precision of observations")
+      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::ADAPTIVE_SN_INIT_DEFAULT_VALUE) + "," + std::to_string(NoiseConfig::ADAPTIVE_SN_MAX_DEFAULT_VALUE)),
         "use adaptive precision of observations, sets initial (default: 1.0) and maximum (default:10.0) SNR")
-      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(Config::PROBIT_DEFAULT_VALUE)), "Use probit noise model with given threshold");
+      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::PROBIT_DEFAULT_VALUE)), "Use probit noise model with given threshold");
  
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
@@ -146,16 +147,16 @@ NoiseConfig parse_noise_arg(std::string noiseName, std::string optarg)
       if(tokens.size() != 2)
          THROWERROR("invalid number of options for adaptive noise");
 
-      nc.sn_init = strtod(tokens[0].c_str(), NULL);
-      nc.sn_max = strtod(tokens[1].c_str(), NULL);
+      nc.setSnInit(strtod(tokens[0].c_str(), NULL));
+      nc.setSnMax(strtod(tokens[1].c_str(), NULL));
    }
    else if (nc.getNoiseType() == NoiseTypes::fixed)
    {
-      nc.precision = strtod(optarg.c_str(), NULL);
+      nc.setPrecision(strtod(optarg.c_str(), NULL));
    }
    else if (nc.getNoiseType() == NoiseTypes::probit)
    {
-      nc.threshold = strtod(optarg.c_str(), NULL);
+      nc.setThreshold(strtod(optarg.c_str(), NULL));
    }
 
    return nc;
@@ -192,10 +193,12 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
          else
             config.getSideInfo().push_back(matrix_io::read_matrix(sideInfo, false));
       }
-   } else {
-       // same as "none none ..."
-       auto num_priors = config.getPriorTypes().size();
-       config.getSideInfo().resize(num_priors);
+   } 
+   else 
+   {
+      // same as "none none ..."
+      auto num_priors = config.getPriorTypes().size();
+      config.getSideInfo().resize(num_priors);
    }
 
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())
@@ -205,27 +208,26 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       for (auto auxDataString : vm[AUX_DATA_NAME].as<std::vector<std::string> >())
       {
          PVec<> pos(num_dim);
-         
+
          std::stringstream lineStream(auxDataString);
          std::string token;
 
          while (std::getline(lineStream, token, ','))
          {
             //add ability to skip features for specific dimention
-            if(token == NONE_TOKEN)
+            if (token == NONE_TOKEN)
                continue;
-            
+
             // FIXME!
             pos[(dim + 1) % num_dim]++;
             auto cfg = matrix_io::read_matrix(token, false);
             cfg->setPos(pos);
             config.getAuxData().push_back(cfg);
-            
+
          }
          dim++;
       }
    }
-
 
    if (vm.count(BURNIN_NAME) && !vm[BURNIN_NAME].defaulted())
       config.setBurnin(vm[BURNIN_NAME].as<int>());
@@ -276,7 +278,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    else if (vm.count(PROBIT_NAME) && !vm[PROBIT_NAME].defaulted())
       set_noise_configs(config, parse_noise_arg(NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>()));
    else 
-      set_noise_configs(config, NoiseConfig(Config::NOISE_TYPE_DEFAULT_VALUE));
+      set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
 
    if (vm.count(LAMBDA_BETA_NAME) && !vm[LAMBDA_BETA_NAME].defaulted())
       config.setLambdaBeta(vm[LAMBDA_BETA_NAME].as<double>());

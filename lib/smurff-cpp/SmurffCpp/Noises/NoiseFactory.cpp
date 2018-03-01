@@ -14,11 +14,11 @@ std::shared_ptr<INoiseModel> NoiseFactory::create_noise_model(const NoiseConfig&
    switch(config.getNoiseType())
    {
       case NoiseTypes::fixed:
-         return std::shared_ptr<INoiseModel>(new FixedGaussianNoise(config.precision));
+         return std::shared_ptr<INoiseModel>(new FixedGaussianNoise(config.getPrecision()));
       case NoiseTypes::adaptive:
-         return std::shared_ptr<INoiseModel>(new AdaptiveGaussianNoise(config.sn_init, config.sn_max));
+         return std::shared_ptr<INoiseModel>(new AdaptiveGaussianNoise(config.getSnInit(), config.getSnMax()));
       case NoiseTypes::probit:
-         return std::shared_ptr<INoiseModel>(new ProbitNoise(config.threshold));
+         return std::shared_ptr<INoiseModel>(new ProbitNoise(config.getThreshold()));
       case NoiseTypes::unused:
          return std::shared_ptr<INoiseModel>(new UnusedNoise());
       default:

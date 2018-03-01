@@ -65,13 +65,6 @@ public:
    static double THRESHOLD_DEFAULT_VALUE;
    static int RANDOM_SEED_DEFAULT_VALUE;
 
-   //noise config
-   static NoiseTypes NOISE_TYPE_DEFAULT_VALUE;
-   static double PRECISION_DEFAULT_VALUE;
-   static double ADAPTIVE_SN_INIT_DEFAULT_VALUE;
-   static double ADAPTIVE_SN_MAX_DEFAULT_VALUE;
-   static double PROBIT_DEFAULT_VALUE;
-
 private:
    //-- train and test
    std::shared_ptr<TensorConfig> m_train;
@@ -115,8 +108,12 @@ public:
 
 public:
    bool validate() const;
-   void save(std::string) const;
-   bool restore(std::string);
+
+   void save(std::string fname) const;
+
+   bool restore(std::string fname);
+
+   static bool restoreSaveInfo(std::string fname, std::string& save_prefix, std::string& save_extension);
 
 public:
    std::shared_ptr<TensorConfig> getTrain() const

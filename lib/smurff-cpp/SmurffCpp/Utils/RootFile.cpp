@@ -7,6 +7,7 @@
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 #include <SmurffCpp/Utils/IniUtils.h>
+#include <SmurffCpp/IO/GenericIO.h>
 
 #define OPTIONS_TAG "options"
 #define BURNIN_STEP_PREFIX "burnin_step_"
@@ -20,16 +21,8 @@ RootFile::RootFile(std::string path)
    //load all entries in ini file to be able to go through step variables
    loadIni(m_path, m_iniStorage);
 
-   //AGE: I know that this is an extra call to restoreConfig
-   //however it is a small price to pay for making constructor being solid (assigning all fields here, instead of restoreConfig)
-   Config config;
-   restoreConfig(config);
-
-   m_prefix = config.getSavePrefix();
-   THROWERROR_ASSERT_MSG(!m_prefix.empty(), "Save prefix is empty");
-
-   m_extension = config.getSaveExtension();
-   THROWERROR_ASSERT_MSG(!m_extension.empty(), "Save extension is empty");
+   //lightweight restore of prefix and extension
+   restoreState(m_prefix, m_extension);
 }
 
 RootFile::RootFile(std::string prefix, std::string extension)
@@ -65,16 +58,33 @@ void RootFile::saveConfig(Config& config)
    appendToRootFile(OPTIONS_TAG, configPath);
 }
 
-void RootFile::restoreConfig(Config& config)
+std::string RootFile::restoreGetOptionsFileName() const
 {
    THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Root ini file is not loaded");
 
    auto optionsIt = iniFind(m_iniStorage, OPTIONS_TAG);
    THROWERROR_ASSERT_MSG(optionsIt != m_iniStorage.end(), "Options tag is not found in root ini file");
-   
-   std::string optionsFileName = optionsIt->second;
 
+   return optionsIt->second;
+}
+
+void RootFile::restoreConfig(Config& config)
+{
+   //get options filename
+   std::string optionsFileName = restoreGetOptionsFileName();
+
+   //restore config
    bool success = config.restore(optionsFileName);
+   THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
+}
+
+void RootFile::restoreState(std::string& save_prefix, std::string& save_extension)
+{
+   //get options filename
+   std::string optionsFileName = restoreGetOptionsFileName();
+
+   //lightweight restore
+   bool success = Config::restoreSaveInfo(optionsFileName, save_prefix, save_extension);
    THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
 }
 
