@@ -961,9 +961,9 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
    }
 
    // Check field type
-   if (field != MM_FLD_REAL)
+   if (field != MM_FLD_REAL && field != MM_FLD_PATTERN)
    {
-      THROWERROR("Invalid MatrixMarket field type: only 'real' field type is supported");
+      THROWERROR("Invalid MatrixMarket field type: only 'real' and 'pattern' field types are supported");
    }
 
    // Check symmetry type
@@ -1004,7 +1004,16 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
       std::uint32_t row;
       std::uint32_t col;
       double val;
-      in >> row >> col >> val;
+
+      if (field == MM_FLD_REAL)
+      {
+         in >> row >> col >> val;
+      }
+      else if (field == MM_FLD_PATTERN)
+      {
+         in >> row >> col;
+         val = 1.0;
+      }
 
       if (in.fail())
       {
