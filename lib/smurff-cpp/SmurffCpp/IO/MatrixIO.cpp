@@ -26,6 +26,7 @@ using namespace smurff;
 #define MM_FMT_ARRAY    "ARRAY"
 #define MM_FMT_COORD    "COORDINATE"
 #define MM_FLD_REAL     "REAL"
+#define MM_FLD_PATTERN  "PATTERN"
 #define MM_SYM_GENERAL  "GENERAL"
 
 matrix_io::MatrixType matrix_io::ExtensionToMatrixType(const std::string& fname)
@@ -320,9 +321,9 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
    }
 
    // Check field type
-   if (field != MM_FLD_REAL)
+   if (field != MM_FLD_REAL && field != MM_FLD_PATTERN)
    {
-      THROWERROR("Invalid MatrixMarket field type: only 'real' field type is supported");
+      THROWERROR("Invalid MatrixMarket field type: only 'real' and 'pattern' field types are supported");
    }
 
    // Check symmetry type
@@ -360,7 +361,20 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
          std::uint32_t row;
          std::uint32_t col;
          double val;
-         in >> row >> col >> val;
+
+         if (field == MM_FLD_REAL)
+         {
+            in >> row >> col >> val;
+         }
+         else if (field == MM_FLD_PATTERN)
+         {
+            in >> row >> col;
+            val = 1.0;
+         }
+         else
+         {
+            THROWERROR("Invalid MatrixMarket field type: coord format supports only 'real' and 'pattern' field types");
+         }
 
          if (in.fail())
          {
@@ -376,6 +390,11 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
    }
    else if (format == MM_FMT_ARRAY)
    {
+      if (field != MM_FLD_REAL)
+      {
+         THROWERROR("Invalid MatrixMarket field type: array format supports only 'real' field type");
+      }
+
       std::uint64_t nrows;
       std::uint64_t ncols;
       in >> nrows >> ncols;
@@ -548,7 +567,7 @@ void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<const Mat
    out << "%%MatrixMarket ";
    out << MM_OBJ_MATRIX << " ";
    out << (matrixConfig->isDense() ? MM_FMT_ARRAY : MM_FMT_COORD) << " ";
-   out << MM_FLD_REAL << " ";
+   out << (matrixConfig->isBinary() ? MM_FLD_PATTERN : MM_FLD_REAL) << " ";
    out << MM_SYM_GENERAL << std::endl;
 
    if (matrixConfig->isDense())
@@ -567,8 +586,15 @@ void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<const Mat
       {
          const std::uint32_t& row = matrixConfig->getColumns()[i] + 1;
          const std::uint32_t& col = matrixConfig->getColumns()[i + matrixConfig->getNNZ()] + 1;
-         const double& val = matrixConfig->getValues()[i];
-         out << row << " " << col << " " << val << std::endl;
+         if (matrixConfig->isBinary())
+         {
+            out << row << " " << col << std::endl;
+         }
+         else
+         {
+            const double& val = matrixConfig->getValues()[i];
+            out << row << " " << col << " " << val << std::endl;
+         }
       }
    }
 }
@@ -935,9 +961,9 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
    }
 
    // Check field type
-   if (field != MM_FLD_REAL)
+   if (field != MM_FLD_REAL && field != MM_FLD_PATTERN)
    {
-      THROWERROR("Invalid MatrixMarket field type: only 'real' field type is supported");
+      THROWERROR("Invalid MatrixMarket field type: only 'real' and 'pattern' field types are supported");
    }
 
    // Check symmetry type
@@ -978,7 +1004,16 @@ void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::SparseMatrix<
       std::uint32_t row;
       std::uint32_t col;
       double val;
-      in >> row >> col >> val;
+
+      if (field == MM_FLD_REAL)
+      {
+         in >> row >> col >> val;
+      }
+      else if (field == MM_FLD_PATTERN)
+      {
+         in >> row >> col;
+         val = 1.0;
+      }
 
       if (in.fail())
       {

@@ -262,6 +262,41 @@ TEST_CASE("matrix_io/read_matrix_market | matrix_io/write_matrix_market | sparse
    REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
 
+TEST_CASE("matrix_io/read_matrix_market | matrix_io/write_matrix_market | sparse binary")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::shared_ptr<MatrixConfig> matrixConfig =
+      std::make_shared<MatrixConfig>( matrixConfigNRow
+                                    , matrixConfigNCol
+                                    , std::move(matrixConfigRows)
+                                    , std::move(matrixConfigCols)
+                                    , fixed_ncfg
+                                    , false
+                                    );
+
+   std::stringstream matrixStream;
+   matrix_io::write_matrix_market(matrixStream, matrixConfig);
+   std::shared_ptr<MatrixConfig> actualMatrixConfig = matrix_io::read_matrix_market(matrixStream, false);
+   Eigen::SparseMatrix<double> actualMatrix = matrix_utils::sparse_to_eigen(*actualMatrixConfig);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
+
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
+}
+
 TEST_CASE("matrix_io/read_dense_float64_bin | matrix_io/write_dense_float64_bin")
 {
    std::uint64_t matrixConfigNRow = 3;
@@ -682,6 +717,41 @@ TEST_CASE("matrix_io/eigen::read_matrix_market(std::istream& in, Eigen::Sparse& 
 
    Eigen::SparseMatrix<double> actualMatrix;
    matrix_io::eigen::read_matrix_market(matrixStream, actualMatrix);
+
+   REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
+}
+
+TEST_CASE("matrix_io/eigen::read_matrix_market(std::istream& in, Eigen::Sparse& X) | matrix_io/write_matrix_market(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig)")
+{
+   std::uint64_t matrixConfigNRow = 3;
+   std::uint64_t matrixConfigNCol = 4;
+   std::vector<std::uint32_t> matrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> matrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::shared_ptr<MatrixConfig> matrixConfig =
+      std::make_shared<MatrixConfig>( matrixConfigNRow
+                                    , matrixConfigNCol
+                                    , std::move(matrixConfigRows)
+                                    , std::move(matrixConfigCols)
+                                    , fixed_ncfg
+                                    , false
+                                    );
+
+   std::stringstream matrixStream;
+   matrix_io::write_matrix_market(matrixStream, matrixConfig);
+   Eigen::SparseMatrix<double> actualMatrix;
+   matrix_io::eigen::read_matrix_market(matrixStream, actualMatrix);
+
+   Eigen::SparseMatrix<double> expectedMatrix(3, 4);
+   std::vector<Eigen::Triplet<double> > expectedMatrixTriplets;
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(0, 3, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 0, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 1, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 2, 1));
+   expectedMatrixTriplets.push_back(Eigen::Triplet<double>(2, 3, 1));
+   expectedMatrix.setFromTriplets(expectedMatrixTriplets.begin(), expectedMatrixTriplets.end());
 
    REQUIRE(matrix_utils::equals(actualMatrix, expectedMatrix));
 }
