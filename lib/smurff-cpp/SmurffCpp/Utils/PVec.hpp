@@ -37,6 +37,8 @@ namespace smurff
 
       PVec(const std::initializer_list<int>& l)
       {
+         std::fill(m_v.begin(), m_v.end(), 0);
+
          m_size = std::distance(l.begin(), l.end());
 
          if (m_size == 0)
@@ -56,6 +58,8 @@ namespace smurff
       template<template<typename, typename ...> class T, typename ... V>
       PVec(const T<int, V...>& v)
       {
+         std::fill(m_v.begin(), m_v.end(), 0);
+
          m_size = std::distance(v.begin(), v.end());
 
          if (m_size == 0)
