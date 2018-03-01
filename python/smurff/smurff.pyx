@@ -321,6 +321,12 @@ def smurff(Y              = None,
             test.get().setNoiseConfig(nc)
             config.setTest(test)
 
+        if len(side_info) == 0:
+            side_info = [None] * len(priors)
+
+        if len(aux_data) == 0:
+            aux_data = [None] * len(priors)
+
         for i in range(len(priors)):
             prior_type_str = priors[i]
             config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
