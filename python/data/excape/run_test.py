@@ -9,7 +9,7 @@ from time import time
 
 
 def load_data():
-    #download()
+    download()
 
     files = [
             "train.sdm",
@@ -59,7 +59,7 @@ class TestExCAPE(unittest.TestCase):
             "burnin"     : 100,
             "nsamples"   : 200,
             "precision"  : 1.0,
-            "verbose"    : 1, 
+            "verbose"    : 0, 
         }
 
     @classmethod
