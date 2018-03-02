@@ -107,9 +107,8 @@ def read_csv(filename):
 
 def write_csv(filename, Y):
     with open(filename, 'wb') as f:
-        f.writeline(shape[0])
-        f.writeline(shape[1])
-        np.savetxt(f, delimiter=',')
+        header = "%d\n%d" % Y.shape
+        np.savetxt(f, Y, header=header, comments = "", delimiter=',')
 
 
 ext_map = {
