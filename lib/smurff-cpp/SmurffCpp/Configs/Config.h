@@ -4,12 +4,10 @@
 #include <vector>
 #include <memory>
 
+#include <SmurffCpp/Utils/PVec.hpp>
 #include "MatrixConfig.h"
 
-#define TRAIN_NONE "none"
-#define TEST_NONE "none"
-#define SIDE_INFO_NONE "none"
-#define AUX_DATA_NONE "none"
+#define NONE_TAG "none"
 
 #define PRIOR_NAME_DEFAULT "default"
 #define PRIOR_NAME_MACAU "macau"
@@ -57,33 +55,24 @@ public:
    static int NSAMPLES_DEFAULT_VALUE;
    static int NUM_LATENT_DEFAULT_VALUE;
    static ModelInitTypes INIT_MODEL_DEFAULT_VALUE;
-   static char* SAVE_PREFIX_DEFAULT_VALUE;
-   static char* SAVE_EXTENSION_DEFAULT_VALUE;
+   static const char* SAVE_PREFIX_DEFAULT_VALUE;
+   static const char* SAVE_EXTENSION_DEFAULT_VALUE;
    static int SAVE_FREQ_DEFAULT_VALUE;
    static int VERBOSE_DEFAULT_VALUE;
-   static char* STATUS_DEFAULT_VALUE;
+   static const char* STATUS_DEFAULT_VALUE;
    static double LAMBDA_BETA_DEFAULT_VALUE;
    static double TOL_DEFAULT_VALUE;
    static double THRESHOLD_DEFAULT_VALUE;
    static int RANDOM_SEED_DEFAULT_VALUE;
-
-   //noise config
-   static NoiseTypes NOISE_TYPE_DEFAULT_VALUE;
-   static double PRECISION_DEFAULT_VALUE;
-   static double ADAPTIVE_SN_INIT_DEFAULT_VALUE;
-   static double ADAPTIVE_SN_MAX_DEFAULT_VALUE;
-   static double PROBIT_DEFAULT_VALUE;
 
 private:
    //-- train and test
    std::shared_ptr<TensorConfig> m_train;
    std::shared_ptr<TensorConfig> m_test;
 
-   //-- sideinfo
+   //-- sideinfo and aux_data
    std::vector<std::shared_ptr<MatrixConfig> > m_sideInfo; //set of side info matrices for macau and macauone priors
-
-   //-- aux data
-   std::vector<std::vector<std::shared_ptr<TensorConfig> > > m_auxData; //set of aux data matrices for normal and spikeandslab priors
+   std::vector<std::shared_ptr<TensorConfig> > m_auxData; //set of aux data matrices for normal and spikeandslab priors
 
    // -- priors
    std::vector<PriorTypes> m_prior_types;
@@ -119,8 +108,12 @@ public:
 
 public:
    bool validate() const;
-   void save(std::string) const;
-   bool restore(std::string);
+
+   void save(std::string fname) const;
+
+   bool restore(std::string fname);
+
+   static bool restoreSaveInfo(std::string fname, std::string& save_prefix, std::string& save_extension);
 
 public:
    std::shared_ptr<TensorConfig> getTrain() const
@@ -153,14 +146,21 @@ public:
       return m_sideInfo;
    }
 
-   const std::vector<std::vector<std::shared_ptr<TensorConfig> > >& getAuxData() const
+   const std::vector< std::shared_ptr<TensorConfig> >& getAuxData() const
    {
       return m_auxData;
    }
    
-   std::vector<std::vector<std::shared_ptr<TensorConfig> > >& getAuxData()
+   std::vector< std::shared_ptr<TensorConfig> >& getAuxData()
    {
       return m_auxData;
+   }
+
+   std::vector< std::shared_ptr<TensorConfig> > getData() const
+   {
+       auto data = m_auxData;
+       data.push_back(m_train);
+       return data;
    }
 
    const std::vector<PriorTypes>& getPriorTypes() const

@@ -130,6 +130,7 @@ void ILatentPrior::save(std::shared_ptr<const StepFile> sf) const
 void ILatentPrior::restore(std::shared_ptr<const StepFile> sf)
 {
     init_Usum();
+    update_prior();
 }
 
 void ILatentPrior::init_Usum()

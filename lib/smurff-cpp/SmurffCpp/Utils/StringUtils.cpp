@@ -6,6 +6,24 @@
 #include <locale>
 #include <sstream>
 
+template<>
+std::string smurff::_util::convert<std::string>(const std::string& value)
+{
+   return value;
+}
+
+template<>
+int smurff::_util::convert<int>(const std::string& value)
+{
+   return std::stoi(value);
+}
+
+template<>
+double smurff::_util::convert<double>(const std::string& value)
+{
+   return std::stod(value);
+}
+
 std::string& smurff::ltrim(std::string& s)
 {
    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
@@ -21,17 +39,6 @@ std::string& smurff::rtrim(std::string& s)
 std::string& smurff::trim(std::string& s)
 {
    return ltrim(rtrim(s));
-}
-
-void smurff::split(const std::string& str, std::vector<std::string >& tokens, char delim)
-{
-   tokens.clear();
-
-   std::stringstream ss(str);
-   std::string token;
-
-   while (getline(ss, token, delim))
-      tokens.push_back(token);
 }
 
 bool smurff::startsWith(const std::string& str, const std::string& prefix)
