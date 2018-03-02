@@ -77,7 +77,12 @@ std::vector<std::pair<std::string, std::string> >::const_iterator smurff::iniFin
 
 void smurff::iniRemove(std::vector<std::pair<std::string, std::string> >& values, std::string tag)
 {
-   auto it = iniFind(values, tag);
-   if (it != values.end())
-      values.erase(it);
+   for (std::vector<std::pair<std::string, std::string> >::iterator it = values.begin(); it != values.end(); ++it)
+   {
+      if (it->first == tag)
+      {
+         values.erase(it);
+         break;
+      }
+   }
 }
