@@ -107,9 +107,8 @@ def read_csv(filename):
 
 def write_csv(filename, Y):
     with open(filename, 'wb') as f:
-        f.writeline(shape[0])
-        f.writeline(shape[1])
-        np.savetxt(f, delimiter=',')
+        header = "%d\n%d" % Y.shape
+        np.savetxt(f, Y, header=header, comments = "", delimiter=',')
 
 
 ext_map = {
@@ -121,13 +120,13 @@ ext_map = {
         ".csv": ( read_csv,                  write_csv ),
 }
 
-def read_matrix(filename):
+def read_matrix(filename, **kwargs):
     base, ext =  os.path.splitext(filename)
-    return ext_map[ext][0](filename)
+    return ext_map[ext][0](filename, **kwargs)
 
-def write_matrix(filename, Y):
+def write_matrix(filename, Y, **kwargs):
     base, ext =  os.path.splitext(filename)
-    return ext_map[ext][1](filename, Y)
+    return ext_map[ext][1](filename, Y, **kwargs)
 
 
 ## example
