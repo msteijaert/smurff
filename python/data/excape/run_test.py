@@ -59,7 +59,7 @@ class TestExCAPE(unittest.TestCase):
             "burnin"     : 100,
             "nsamples"   : 200,
             "precision"  : 1.0,
-            "verbose"    : 0, 
+            "verbose"    : 1, 
         }
 
     @classmethod
@@ -80,6 +80,43 @@ class TestExCAPE(unittest.TestCase):
         result = smurff_macau(
                           TestExCAPE.data["train"],
                         [ TestExCAPE.data["side_c2v"], None ],
+                        Ytest      = TestExCAPE.data["test"],
+                        **TestExCAPE.default_opts)
+
+        self.assertLess(result.rmse, 1.08)
+        self.assertGreater(result.rmse, 1.0)
+        self.assertLess(result.time, 60.)
+
+    def test_smurff_macau_ecfp_sparse_direct(self):
+        opts = TestExCAPE.default_opts
+        opts["direct"] = True
+        result = smurff_macau(
+                          TestExCAPE.data["train"],
+                        [ TestExCAPE.data["side_ecfp6_counts_var005"], None ],
+                        Ytest      = TestExCAPE.data["test"],
+                        **TestExCAPE.default_opts)
+
+        self.assertLess(result.rmse, 1.08)
+        self.assertGreater(result.rmse, 1.0)
+        self.assertLess(result.time, 60.)
+
+    def test_smurff_macau_ecfp_sparse_cg(self):
+        opts = TestExCAPE.default_opts
+        opts["direct"] = False
+        result = smurff_macau(
+                          TestExCAPE.data["train"],
+                        [ TestExCAPE.data["side_ecfp6_counts_var005"], None ],
+                        Ytest      = TestExCAPE.data["test"],
+                        **TestExCAPE.default_opts)
+
+        self.assertLess(result.rmse, 1.08)
+        self.assertGreater(result.rmse, 1.0)
+        self.assertLess(result.time, 60.)
+
+    def test_smurff_macau_ecfp_dense(self):
+        result = smurff_macau(
+                          TestExCAPE.data["train"],
+                        [ TestExCAPE.data["side_ecfp6_folded_dense"], None ],
                         Ytest      = TestExCAPE.data["test"],
                         **TestExCAPE.default_opts)
 
