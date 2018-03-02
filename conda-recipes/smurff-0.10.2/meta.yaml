@@ -33,9 +33,9 @@ requirements:
 
 test:
     commands:
-        - $PREFIX/libexec/tests
-        - $PYTHON python/smurff/test/test_bpmf.py
-        - $PYTHON python/smurff/test/test_smurff.py
+        - OMP_NUM_THREADS=1 $PREFIX/libexec/tests
+        - OMP_NUM_THREADS=1 $PYTHON python/smurff/test/test_bpmf.py
+        - OMP_NUM_THREADS=1 $PYTHON python/smurff/test/test_smurff.py
     imports:
         - smurff
     source_files:
