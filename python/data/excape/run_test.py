@@ -1,37 +1,91 @@
 #!/usr/bin/env python
 
 from make import download
-from smurff import smurff
+import smurff
 import matrix_io as mio
 import unittest
+import os
+from time import time
 
 
 def load_data():
-    download()
-    train = mio.read_matrix("train.sdm")
-    test = mio.read_matrix("test.sdm")
+    #download()
 
-    return (train, test)
+    files = [
+            "train.sdm",
+            "test.sdm",
+            "side_c2v.ddm",
+            "side_ecfp6_counts_var005.sdm",
+            "side_ecfp6_folded_dense.ddm"
+            ]
+
+    data = dict()
+    for f in files:
+        key = os.path.splitext(f)[0]
+        data[key] = mio.read_matrix(f)
+
+    return data
+
+def time_smurff(Ytrain, **kwargs):
+    start = time()
+    result = smurff.smurff(Ytrain, **kwargs)
+    stop = time()
+    result.time = stop - start
+    return result
+
+def smurff_bpmf(Ytrain, **kwargs):
+    kwargs["priors"] = ["normal", "normal"]
+    kwargs["side_info"] = [ None, None ]
+    kwargs["aux_data"] =  [ [], [] ]
+    return time_smurff(Ytrain, **kwargs)
+
+def smurff_macau(Ytrain, side_info, **kwargs):
+    priors = [ 'normal', 'normal' ]
+    for d in range(2):
+        if not side_info[d] is None:
+            priors[d] = 'macau'
+
+    kwargs["priors"] = priors
+    kwargs["side_info"] = side_info
+    kwargs["aux_data"] =  [ [], [] ]
+
+    return time_smurff(Ytrain, **kwargs)
+
 
 class TestExCAPE(unittest.TestCase):
     
+    default_opts = {
+            "num_latent" : 16,
+            "burnin"     : 100,
+            "nsamples"   : 200,
+            "precision"  : 1.0,
+            "verbose"    : 0, 
+        }
+
     @classmethod
     def setUpClass(cls):
-        (cls.train, cls.test) = load_data()
+        cls.data = load_data()
 
-    def test_bpmf(self):
-        result = smurff(TestExCAPE.train,
-                        Ytest=TestExCAPE.test,
-                        priors=['normal', 'normal'],
-                        side_info=[None, None],
-                        aux_data=[[], []],
-                        num_latent = 16,
-                        burnin=100,
-                        nsamples=200,
-                        precision=1.0,
-                        verbose=0)
+    def test_smurff_bpmf(self):
+        result = smurff_bpmf(
+                        TestExCAPE.data["train"],
+                        Ytest      = TestExCAPE.data["test"],
+                        **TestExCAPE.default_opts)
 
-        self.assertAlmostEqual(result.rmse, 1.21, places=2)
+        self.assertLess(result.rmse, 1.22)
+        self.assertGreater(result.rmse, 1.10)
+        self.assertLess(result.time, 60.)
+
+    def test_smurff_macau_c2v(self):
+        result = smurff_macau(
+                          TestExCAPE.data["train"],
+                        [ TestExCAPE.data["side_c2v"], None ],
+                        Ytest      = TestExCAPE.data["test"],
+                        **TestExCAPE.default_opts)
+
+        self.assertLess(result.rmse, 1.08)
+        self.assertGreater(result.rmse, 1.0)
+        self.assertLess(result.time, 60.)
 
 
 if __name__ == "__main__":
