@@ -59,7 +59,7 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description priors_desc("Priors and side Info");
    priors_desc.add_options()
-     (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), 
+     (PRIOR_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(),
         "provide a prior-type for each dimension of train; prior-types:  <normal|normalone|spikeandslab|macau|macauone>")
      (SIDE_INFO_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(), "Side info for each dimention")
      (AUX_DATA_NAME, boost::program_options::value<std::vector<std::string> >()->multitoken(),"Aux data for each dimention");
@@ -92,7 +92,7 @@ boost::program_options::options_description get_desc()
       (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::ADAPTIVE_SN_INIT_DEFAULT_VALUE) + "," + std::to_string(NoiseConfig::ADAPTIVE_SN_MAX_DEFAULT_VALUE)),
         "use adaptive precision of observations, sets initial (default: 1.0) and maximum (default:10.0) SNR")
       (PROBIT_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::PROBIT_DEFAULT_VALUE)), "Use probit noise model with given threshold");
- 
+
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
       (LAMBDA_BETA_NAME, boost::program_options::value<double>()->default_value(Config::LAMBDA_BETA_DEFAULT_VALUE), "initial value of lambda beta")
@@ -122,7 +122,7 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
       if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
          sideInfo->setNoiseConfig(nc);
    }
-  
+
    // set for aux data
    for(auto& data : config.getData())
    {
@@ -166,7 +166,7 @@ NoiseConfig parse_noise_arg(std::string noiseName, std::string optarg)
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
    //create new session with ini file
-   if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted()) 
+   if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted())
    {
       auto ini_file = vm[INI_NAME].as<std::string>();
       bool success = config.restore(ini_file);
@@ -175,10 +175,10 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(TEST_NAME) && !vm[TEST_NAME].defaulted())
       config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
-   
+
    if (vm.count(TRAIN_NAME) && !vm[TRAIN_NAME].defaulted())
       config.setTrain(generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true));
-   
+
    //create new session from command line options or override options from ini file
    if (vm.count(PRIOR_NAME) && !vm[PRIOR_NAME].defaulted())
       for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
@@ -193,8 +193,8 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
          else
             config.getSideInfo().push_back(matrix_io::read_matrix(sideInfo, false));
       }
-   } 
-   else 
+   }
+   else
    {
       // same as "none none ..."
       auto num_priors = config.getPriorTypes().size();
@@ -205,26 +205,41 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    {
       int dim = 0;
       int num_dim = config.getPriorTypes().size();
+
+      THROWERROR_ASSERT_MSG(num_dim <= 2, "Only matrix and 2D tensor support aux data");
+
       for (auto auxDataString : vm[AUX_DATA_NAME].as<std::vector<std::string> >())
       {
          PVec<> pos(num_dim);
 
-         std::stringstream lineStream(auxDataString);
-         std::string token;
+         std::vector<std::string> tokens;
+         smurff::split(auxDataString, tokens, ',');
 
-         while (std::getline(lineStream, token, ','))
+         for (auto token : tokens)
          {
             //add ability to skip features for specific dimention
             if (token == NONE_TOKEN)
                continue;
 
-            // FIXME!
-            pos[(dim + 1) % num_dim]++;
+            //not an elegant solution but it works
+            switch (dim)
+            {
+            case 0: //row aux data
+               pos[1]++;
+               break;
+            case 1: //col aux data
+               pos[0]++;
+               break;
+            default: //other dimensions data
+               pos[dim]++;
+               break;
+            }
+
             auto cfg = matrix_io::read_matrix(token, false);
             cfg->setPos(pos);
             config.getAuxData().push_back(cfg);
-
          }
+
          dim++;
       }
    }
@@ -277,7 +292,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       set_noise_configs(config, parse_noise_arg(NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>()));
    else if (vm.count(PROBIT_NAME) && !vm[PROBIT_NAME].defaulted())
       set_noise_configs(config, parse_noise_arg(NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>()));
-   else 
+   else
       set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
 
    if (vm.count(LAMBDA_BETA_NAME) && !vm[LAMBDA_BETA_NAME].defaulted())
@@ -348,7 +363,7 @@ bool CmdSession::parse_options(int argc, char* argv[])
    }
    #else
 
-   if (argc != 3) 
+   if (argc != 3)
    {
       std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
       return false;
