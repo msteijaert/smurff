@@ -311,6 +311,11 @@ bool CmdSession::parse_options(int argc, char* argv[])
    #ifdef HAVE_BOOST
    try
    {
+      if (argc < 2)
+      {
+         THROWERROR("No command line arguments provided");
+      }
+
       boost::program_options::options_description desc = get_desc();
       boost::program_options::command_line_parser parser{ argc, argv };
       parser.options(desc);
