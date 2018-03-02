@@ -120,13 +120,13 @@ ext_map = {
         ".csv": ( read_csv,                  write_csv ),
 }
 
-def read_matrix(filename):
+def read_matrix(filename, **kwargs):
     base, ext =  os.path.splitext(filename)
-    return ext_map[ext][0](filename)
+    return ext_map[ext][0](filename, **kwargs)
 
-def write_matrix(filename, Y):
+def write_matrix(filename, Y, **kwargs):
     base, ext =  os.path.splitext(filename)
-    return ext_map[ext][1](filename, Y)
+    return ext_map[ext][1](filename, Y, **kwargs)
 
 
 ## example
