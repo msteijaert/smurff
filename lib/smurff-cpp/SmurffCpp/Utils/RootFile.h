@@ -34,7 +34,7 @@ private:
    std::string getOptionsFileName() const;
 
 private:
-   void appendToRootFile(std::string tag, std::string item) const;
+   void appendToRootFile(std::string tag, std::string value) const;
 
 public:
    void saveConfig(Config& config);

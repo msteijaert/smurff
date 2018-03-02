@@ -7,9 +7,9 @@
 #include <SmurffCpp/result.h>
 #include <SmurffCpp/Priors/ILatentPrior.h>
 
-#include <SmurffCpp/IO/INIReader.h>
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/GenericIO.h>
+#include <SmurffCpp/Utils/IniUtils.h>
 
 #define STEP_SAMPLE_PREFIX "-sample-"
 #define STEP_BURNIN_PREFIX "-burnin-"
@@ -33,6 +33,13 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
       std::ofstream stepFile;
       stepFile.open(getStepFileName(), std::ios::trunc);
       stepFile.close();
+   }
+   else
+   {
+      std::string path = getStepFileName();
+
+      //load all entries in ini file to be able to go through step file internals
+      loadIni(path, m_iniStorage);
    }
 }
 
@@ -58,7 +65,12 @@ StepFile::StepFile(const std::string& path, std::string prefix, std::string exte
    {
       m_burnin = true;
    }
+
+   //load all entries in ini file to be able to go through step file internals
+   loadIni(path, m_iniStorage);
 }
+
+//name methods
 
 std::string StepFile::getStepFileName() const
 {
@@ -116,41 +128,36 @@ std::string StepFile::getPredStateFileName() const
    return prefix + "-predictions-state.ini";
 }
 
+//save methods
+
 void StepFile::saveModel(std::shared_ptr<const Model> model) const
 {
    model->save(shared_from_this());
 
    //save models
 
-   std::ofstream stepFile;
-   stepFile.open(getStepFileName(), std::ios::app);
-
-   stepFile << "#models" << std::endl;
-   stepFile << NUM_MODELS_TAG << " = " << model->nmodes() << std::endl;
+   appendCommentToStepFile("models");
+   appendToStepFile(NUM_MODELS_TAG, std::to_string(model->nmodes()));
 
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
       std::string path = getModelFileName(mIndex);
-      stepFile << MODEL_PREFIX << mIndex << " = " << path << std::endl;
+      appendToStepFile(MODEL_PREFIX + std::to_string(mIndex), path);
    }
-
-   stepFile.close();
 }
 
 void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
 {
+   if (m_pred->isEmpty())
+      return;
+
    m_pred->save(shared_from_this());
 
    //save predictions
 
-   std::ofstream stepFile;
-   stepFile.open(getStepFileName(), std::ios::app);
-
-   stepFile << "#predictions" << std::endl;
-   stepFile << PRED_TAG << " = " << getPredFileName() << std::endl;
-   stepFile << PRED_STATE_TAG << " = " << getPredStateFileName() << std::endl;
-
-   stepFile.close();
+   appendCommentToStepFile("predictions");
+   appendToStepFile(PRED_TAG, getPredFileName());
+   appendToStepFile(PRED_STATE_TAG, getPredStateFileName());
 }
 
 void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
@@ -162,38 +169,69 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
 
    //save priors
 
-   std::ofstream stepFile;
-   stepFile.open(getStepFileName(), std::ios::app);
-
-   stepFile << "#priors" << std::endl;
-   stepFile << NUM_PRIORS_TAG << " = " << priors.size() << std::endl;
+   appendCommentToStepFile("priors");
+   appendToStepFile(NUM_PRIORS_TAG, std::to_string(priors.size()));
 
    for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
    {
       std::string priorPath = getPriorFileName(priors.at(pIndex)->getMode());
-      stepFile << PRIOR_PREFIX << pIndex << " = " << priorPath << std::endl;
+      appendToStepFile(PRIOR_PREFIX + std::to_string(pIndex), priorPath);
    }
-
-   stepFile.close();
 }
+
+void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+{
+   saveModel(model);
+   savePred(pred);
+   savePriors(priors);
+}
+
+//restore methods
 
 void StepFile::restoreModel(std::shared_ptr<Model> model) const
 {
+   //it is enough to check presence of num tag
+   auto nmodels = tryGetIniValueBase(NUM_MODELS_TAG);
+   if (!nmodels.first)
+      return;
+
    model->restore(shared_from_this());
 }
 
 void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
 {
+   auto predIt = tryGetIniValueBase(PRED_TAG);
+   if (!predIt.first)
+      return;
+
+   auto predStateIt = tryGetIniValueBase(PRED_STATE_TAG);
+   if (!predStateIt.first)
+      return;
+
    m_pred->restore(shared_from_this());
 }
 
 void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
+   //it is enough to check presence of num tag
+   auto npriors = tryGetIniValueBase(NUM_PRIORS_TAG);
+   if (!npriors.first)
+      return;
+
    for (auto &p : priors)
    {
       p->restore(shared_from_this());
    }
 }
+
+void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+{
+   restoreModel(model);
+   restorePred(pred);
+   restorePriors(priors);
+}
+
+//remove methods
 
 void StepFile::removeModel() const
 {
@@ -205,13 +243,22 @@ void StepFile::removeModel() const
          break;
 
       std::remove(path.c_str());
-   }   
+   }
+
+   std::int32_t nModels = getNSamples();
+   for(std::int32_t i = 0; i < nModels; i++)
+      removeFromStepFile(MODEL_PREFIX + std::to_string(i));
+
+   removeFromStepFile(NUM_MODELS_TAG);
 }
 
 void StepFile::removePred() const
 {
    std::remove(getPredFileName().c_str());
+   removeFromStepFile(PRED_TAG);
+
    std::remove(getPredStateFileName().c_str());
+   removeFromStepFile(PRED_STATE_TAG);
 }
 
 void StepFile::removePriors() const
@@ -225,20 +272,12 @@ void StepFile::removePriors() const
 
       std::remove(path.c_str());
    }
-}
 
-void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
-{
-   saveModel(model);
-   savePred(pred);
-   savePriors(priors);
-}
+   std::int32_t nPriors = getNPriors();
+   for (std::int32_t i = 0; i < nPriors; i++)
+      removeFromStepFile(PRIOR_PREFIX + std::to_string(i));
 
-void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
-{
-   restoreModel(model);
-   restorePred(pred);
-   restorePriors(priors);
+   removeFromStepFile(NUM_PRIORS_TAG);
 }
 
 void StepFile::remove(bool model, bool pred, bool priors) const
@@ -257,24 +296,85 @@ void StepFile::remove(bool model, bool pred, bool priors) const
 
    //remove step file itself
    std::remove(getStepFileName().c_str());
+
+   THROWERROR_ASSERT_MSG(m_iniStorage.empty(), "Unexpected data in step file");
 }
+
+//getters
 
 std::int32_t StepFile::getIsample() const
 {
    return m_isample;
 }
 
-std::int32_t StepFile::getNSamples() const
-{
-   std::string name = getStepFileName();
-   INIReader reader(name);
-   THROWERROR_ASSERT_MSG(reader.ParseError() >= 0, "Can't load '" + name + "'\n");
-
-   std::int32_t num_models = reader.GetInteger("", NUM_MODELS_TAG, 0);
-   return num_models;
-}
-
 bool StepFile::getBurnin() const
 {
    return m_burnin;
+}
+
+std::int32_t StepFile::getNSamples() const
+{
+   return std::stoi(getIniValueBase(NUM_MODELS_TAG));
+}
+
+std::int32_t StepFile::getNPriors() const
+{
+   return std::stoi(getIniValueBase(NUM_PRIORS_TAG));
+}
+
+//ini methods
+
+std::string StepFile::getIniValueBase(const std::string& tag) const
+{
+   THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Step ini file is not loaded");
+
+   auto it = iniFind(m_iniStorage, tag);
+   THROWERROR_ASSERT_MSG(it != m_iniStorage.end(), tag + " tag is not found in step ini file");
+
+   return it->second;
+}
+
+std::pair<bool, std::string> StepFile::tryGetIniValueBase(const std::string& tag) const
+{
+   THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Step ini file is not loaded");
+
+   auto it = iniFind(m_iniStorage, tag);
+   if (it == m_iniStorage.end())
+      return std::make_pair(false, std::string());
+   else
+      return std::make_pair(true, it->second);
+}
+
+void StepFile::appendToStepFile(std::string tag, std::string value) const
+{
+   m_iniStorage.push_back(std::make_pair(tag, value));
+
+   flushLast();
+}
+
+void StepFile::appendCommentToStepFile(std::string comment) const
+{
+   std::string stepFilePath = getStepFileName();
+
+   std::ofstream rootFile;
+   rootFile.open(stepFilePath, std::ios::app);
+   rootFile << "#" << comment << std::endl;
+   rootFile.close();
+}
+
+void StepFile::removeFromStepFile(std::string tag) const
+{
+   smurff::iniRemove(m_iniStorage, tag);
+}
+
+void StepFile::flushLast() const
+{
+   auto& last = m_iniStorage.back();
+
+   std::string stepFilePath = getStepFileName();
+
+   std::ofstream rootFile;
+   rootFile.open(stepFilePath, std::ios::app);
+   rootFile << last.first << " = " << last.second << std::endl;
+   rootFile.close();
 }
