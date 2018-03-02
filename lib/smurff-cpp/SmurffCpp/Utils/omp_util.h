@@ -6,4 +6,4 @@ int thread_limit();
 
 int thread_num();
 
-void threads_init();
+void threads_init(bool verbose = false);
