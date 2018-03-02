@@ -21,9 +21,19 @@ void loadIniBase(const std::string& path, std::function<void(std::pair<std::stri
    {
       smurff::split(line, tokens, '=');
 
-      THROWERROR_ASSERT_MSG(tokens.size() == 2, "Invalid key value pair in ini file");
-
-      inserter(std::make_pair(smurff::trim(tokens.at(0)), smurff::trim(tokens.at(1))));
+      if (tokens.size() == 1)
+      {
+         //skip comment
+         THROWERROR_ASSERT_MSG(smurff::startsWith(smurff::trim(tokens.at(0)), "#"), "Invalid key value pair in ini file");
+      }
+      else if (tokens.size() == 2)
+      {
+         inserter(std::make_pair(smurff::trim(tokens.at(0)), smurff::trim(tokens.at(1))));
+      }
+      else if(tokens.size() > 2)
+      {
+         THROWERROR("Invalid key value pair in ini file");
+      }
    }
 
    file.close();
@@ -63,4 +73,16 @@ std::vector<std::pair<std::string, std::string> >::const_iterator smurff::iniFin
          return it;
    }
    return values.end();
+}
+
+void smurff::iniRemove(std::vector<std::pair<std::string, std::string> >& values, std::string tag)
+{
+   for (std::vector<std::pair<std::string, std::string> >::iterator it = values.begin(); it != values.end(); ++it)
+   {
+      if (it->first == tag)
+      {
+         values.erase(it);
+         break;
+      }
+   }
 }

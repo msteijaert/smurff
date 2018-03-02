@@ -312,6 +312,13 @@ bool CmdSession::parse_options(int argc, char* argv[])
    try
    {
       boost::program_options::options_description desc = get_desc();
+
+      if (argc < 2)
+      {
+         std::cout << desc << std::endl;
+         return false;
+      }
+
       boost::program_options::command_line_parser parser{ argc, argv };
       parser.options(desc);
 
