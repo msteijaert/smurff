@@ -87,7 +87,7 @@ int ILatentPrior::num_cols() const
 
 std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
 {
-   os << indent << m_mode << ": " << m_name << "\n";
+   os << indent << m_mode << ": " << m_name << std::endl;
    return os;
 }
 

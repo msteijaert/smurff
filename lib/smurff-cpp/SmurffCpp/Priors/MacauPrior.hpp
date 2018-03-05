@@ -170,19 +170,19 @@ private:
 
    std::ostream &printSideInfo(std::ostream &os, const SparseDoubleFeat &F)
    {
-      os << "SparseDouble [" << F.rows() << ", " << F.cols() << "]\n";
+      os << "SparseDouble [" << F.rows() << ", " << F.cols() << "]" << std::endl;
       return os;
    }
 
    std::ostream &printSideInfo(std::ostream &os, const Eigen::MatrixXd &F)
    {
-      os << "DenseDouble [" << F.rows() << ", " << F.cols() << "]\n";
+      os << "DenseDouble [" << F.rows() << ", " << F.cols() << "]" << std::endl;
       return os;
    }
 
    std::ostream &printSideInfo(std::ostream &os, const SparseFeat &F)
    {
-      os << "SparseBinary [" << F.rows() << ", " << F.cols() << "]\n";
+      os << "SparseBinary [" << F.rows() << ", " << F.cols() << "]" << std::endl;
       return os;
    }
 
@@ -192,15 +192,15 @@ public:
    {
       NormalPrior::info(os, indent);
       os << indent << " SideInfo: "; printSideInfo(os, *Features);
-      os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << "\n";
-      os << indent << " Tol: " << tol << "\n";
-      os << indent << " LambdaBeta: " << lambda_beta << "\n";
+      os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << std::endl;
+      os << indent << " Tol: " << tol << std::endl;
+      os << indent << " LambdaBeta: " << lambda_beta << std::endl;
       return os;
    }
 
    std::ostream &status(std::ostream &os, std::string indent) const override
    {
-      os << indent << "  " << m_name << ": Beta = " << beta.norm() << "\n";
+      os << indent << "  " << m_name << ": Beta = " << beta.norm() << std::endl;
       return os;
    }
 

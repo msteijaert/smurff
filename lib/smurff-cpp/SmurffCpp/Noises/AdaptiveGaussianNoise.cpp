@@ -43,7 +43,7 @@ void AdaptiveGaussianNoise::update(const SubModel& model)
 
 std::ostream &AdaptiveGaussianNoise::info(std::ostream &os, std::string indent)
 {
-   os << "Adaptive gaussian noise with max precision of " << alpha_max << "\n";
+   os << "Adaptive gaussian noise with max precision of " << alpha_max << std::endl;
    return os;
 }
 

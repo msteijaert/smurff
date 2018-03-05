@@ -10,7 +10,7 @@ FixedGaussianNoise::FixedGaussianNoise(double a)
 
 std::ostream& FixedGaussianNoise::info(std::ostream& os, std::string indent)
 {
-   os << "Fixed gaussian noise with precision: " << alpha << "\n";
+   os << "Fixed gaussian noise with precision: " << alpha << std::endl;
    return os;
 }
 

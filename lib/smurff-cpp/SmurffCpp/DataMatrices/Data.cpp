@@ -74,9 +74,9 @@ std::ostream& Data::info(std::ostream& os, std::string indent)
 {
    double cwise_mean = this->sum() / (this->size() - this->nna());
 
-   os << indent << "Type: " << name << "\n";
-   os << indent << "Component-wise mean: " << cwise_mean << "\n";
-   os << indent << "Component-wise variance: " << var_total() << "\n";
+   os << indent << "Type: " << name << std::endl;
+   os << indent << "Component-wise mean: " << cwise_mean << std::endl;
+   os << indent << "Component-wise variance: " << var_total() << std::endl;
    os << indent << "Noise: ";
    noise()->info(os, "");
    return os;
@@ -84,6 +84,6 @@ std::ostream& Data::info(std::ostream& os, std::string indent)
 
 std::ostream& Data::status(std::ostream& os, std::string indent) const
 {
-   os << indent << noise()->getStatus() << "\n";
+   os << indent << noise()->getStatus() << std::endl;
    return os;
 }

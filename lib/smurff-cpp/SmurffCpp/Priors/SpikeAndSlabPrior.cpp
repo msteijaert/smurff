@@ -92,7 +92,7 @@ std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) co
    for(int v=0; v<V; ++v) 
    {
        int Zcount = (Zkeep.col(v).array() > 0).count();
-       os << indent << m_name << ": Z[" << v << "] = " << Zcount << "/" << num_latent() << "\n";
+       os << indent << m_name << ": Z[" << v << "] = " << Zcount << "/" << num_latent() << std::endl;
    }
    return os;
 }

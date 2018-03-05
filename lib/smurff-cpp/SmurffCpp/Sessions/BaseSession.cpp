@@ -31,19 +31,19 @@ void BaseSession::step()
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent)
 {
-   os << indent << "  Data: {\n";
+   os << indent << "  Data: {" << std::endl;
    data()->info(os, indent + "    ");
-   os << indent << "  }\n";
-   os << indent << "  Model: {\n";
+   os << indent << "  }" << std::endl;
+   os << indent << "  Model: {" << std::endl;
    m_model->info(os, indent + "    ");
-   os << indent << "  }\n";
-   os << indent << "  Priors: {\n";
+   os << indent << "  }" << std::endl;
+   os << indent << "  Priors: {" << std::endl;
    for( auto &p : m_priors)
       p->info(os, indent + "    ");
-   os << indent << "  }\n";
-   os << indent << "  Result: {\n";
+   os << indent << "  }" << std::endl;
+   os << indent << "  Result: {" << std::endl;
    m_pred->info(os, indent + "    ");
-   os << indent << "  }\n";
+   os << indent << "  }" << std::endl;
    return os;
 }
 
