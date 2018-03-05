@@ -81,7 +81,7 @@ boost::program_options::options_description get_desc()
       (SAVE_EXTENSION_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")
       (SAVE_FREQ_NAME, boost::program_options::value<int>()->default_value(Config::SAVE_FREQ_DEFAULT_VALUE), "save every n iterations (0 == never, -1 == final model)")
       (THRESHOLD_NAME, boost::program_options::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation")
-      (VERBOSE_NAME, boost::program_options::value<int>()->default_value(Config::VERBOSE_DEFAULT_VALUE), "verbosity of output (0, 1 or 2)")
+      (VERBOSE_NAME, boost::program_options::value<int>()->default_value(Config::VERBOSE_DEFAULT_VALUE), "verbosity of output (0, 1, 2 or 3)")
       (QUIET_NAME, "no output (equivalent to verbose=0)")
       (STATUS_NAME, boost::program_options::value<std::string>()->default_value(Config::STATUS_DEFAULT_VALUE), "output progress to csv file")
       (SEED_NAME, boost::program_options::value<int>()->default_value(Config::RANDOM_SEED_DEFAULT_VALUE), "random number generator seed");
