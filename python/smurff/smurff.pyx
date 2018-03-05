@@ -351,17 +351,11 @@ def smurff(Y              = None,
                 for ad in prior_aux_data:
                     if ad is not None:
                         if i == 0:
-                            coord = pos.get().at(1) + 1
-                            coord_ref = pos.get().at(1)
-                            coord_ref = coord
+                            (&pos.get()[0].at(1))[0] += 1
                         elif i == 1:
-                            coord = pos.get().at(0) + 1
-                            coord_ref = pos.get().at(0)
-                            coord_ref = coord
+                            (&pos.get()[0].at(0))[0] += 1
                         else:
-                            coord = pos.get().at(i) + 1
-                            coord_ref = pos.get().at(i)
-                            coord_ref = coord
+                            (&pos.get()[0].at(i))[0] += 1
                         config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
                         config.getAuxData().back().get().setPos(pos.get()[0])
 
