@@ -8,6 +8,7 @@ from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
 from TensorConfig cimport TensorConfig
 from SessionFactory cimport SessionFactory
+from PVec cimport PVec
 
 cimport numpy as np
 import  numpy as np
@@ -292,6 +293,7 @@ def smurff(Y              = None,
     cdef Config config
     cdef NoiseConfig nc
     cdef shared_ptr[ISession] session
+    cdef shared_ptr[PVec] pos
 
     if root_path is not None:
         session = SessionFactory.create_py_session_from_root_path(root_path)
@@ -300,16 +302,16 @@ def smurff(Y              = None,
 
         if precision is not None:
             nc.setNoiseType(fixed)
-            nc.precision = precision
+            nc.setPrecision(precision)
 
         if sn_init is not None and sn_max is not None:
             nc.setNoiseType(adaptive)
-            nc.sn_init = sn_init
-            nc.sn_max = sn_max
+            nc.setSnInit(sn_init)
+            nc.setSnMax(sn_max)
 
         if threshold is not None:
             nc.setNoiseType(probit)
-            nc.threshold = threshold
+            nc.setThreshold(threshold)
             config.setThreshold(threshold)
             config.setClassify(True)
 
@@ -338,10 +340,24 @@ def smurff(Y              = None,
                 config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
 
             prior_aux_data = aux_data[i]
-            config.getAuxData().push_back(vector[shared_ptr[TensorConfig]]())
             if prior_aux_data is not None:
+                pos = make_shared[PVec](len(priors))
                 for ad in prior_aux_data:
-                    config.getAuxData().back().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
+                    if ad is not None:
+                        if i == 0:
+                            coord = pos.get().at(1) + 1
+                            coord_ref = pos.get().at(1)
+                            coord_ref = coord
+                        elif i == 1:
+                            coord = pos.get().at(0) + 1
+                            coord_ref = pos.get().at(0)
+                            coord_ref = coord
+                        else:
+                            coord = pos.get().at(i) + 1
+                            coord_ref = pos.get().at(i)
+                            coord_ref = coord
+                        config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
+                        config.getAuxData().back().get().setPos(pos.get()[0])
 
         config.setLambdaBeta(lambda_beta)
         config.setNumLatent(num_latent)

@@ -28,7 +28,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         vector[shared_ptr[MatrixConfig]]& getSideInfo()
 
         #-- aux data
-        vector[vector[shared_ptr[TensorConfig]]]& getAuxData()
+        vector[shared_ptr[TensorConfig]]& getAuxData()
 
         #-- priors
         vector[PriorTypes]& getPriorTypes()
