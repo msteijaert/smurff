@@ -108,7 +108,6 @@ void Session::init()
    if (m_config.getVerbose())
    {
       printStatus(std::cout, 0, resume, m_iter);
-      std::cout << " ====== Sampling (burning phase) ====== " << std::endl;
    }
 
    //restore will either start from initial iteration (-1) that should be printed with printStatus
@@ -132,11 +131,6 @@ bool Session::step()
    if (isStep)
    {
       THROWERROR_ASSERT(is_init);
-
-      if (m_config.getVerbose() && m_iter == m_config.getBurnin())
-      {
-         std::cout << " ====== Burn-in complete, averaging samples ====== " << std::endl;
-      }
 
       auto starti = tick();
       BaseSession::step();
@@ -307,6 +301,22 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
       phase = "Sample";
       i = iteration - m_config.getBurnin() + 1;
       from = m_config.getNSamples();
+   }
+
+   if (m_config.getVerbose())
+   {
+      if (iteration < 0)
+      {
+         std::cout << " ====== Initial phase ====== " << std::endl;
+      }
+      else if (iteration < m_config.getBurnin() && iteration == 0)
+      {
+         std::cout << " ====== Sampling (burning phase) ====== " << std::endl;
+      }
+      else if (iteration == m_config.getBurnin())
+      {
+         std::cout << " ====== Burn-in complete, averaging samples ====== " << std::endl;
+      }
    }
 
    output << resumeString
