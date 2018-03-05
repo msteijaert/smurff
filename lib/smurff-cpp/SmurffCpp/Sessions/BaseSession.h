@@ -63,7 +63,7 @@ public:
    void addPrior(std::shared_ptr<ILatentPrior> prior);
 
 public:
-   void step() override;
+   bool step() override;
 
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);

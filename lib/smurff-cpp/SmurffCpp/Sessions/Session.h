@@ -45,7 +45,7 @@ protected:
    void init() override;
 
 public:
-   void step() override;
+   bool step() override;
 
 public:
    std::ostream &info(std::ostream &, std::string indent) override;
@@ -55,7 +55,7 @@ private:
    void save(int iteration) const;
 
    void saveInternal(std::shared_ptr<StepFile> stepFile) const;
-   
+
    //restore last iteration
    bool restore(int& iteration);
 

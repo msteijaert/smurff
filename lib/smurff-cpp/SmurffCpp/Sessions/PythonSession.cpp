@@ -8,16 +8,16 @@ using namespace smurff;
 
 bool PythonSession::keepRunning = true;
 
-void PythonSession::step() 
+bool PythonSession::step()
 {
-   if (!keepRunning) 
-   return;
+   if (!keepRunning)
+   return false;
    signal(SIGINT, intHandler);
-   Session::step();
+   return Session::step();
 }
 
-void PythonSession::intHandler(int) 
+void PythonSession::intHandler(int)
 {
    keepRunning = false;
    printf("[Received Ctrl-C. Stopping after finishing the current iteration.]\n");
-} 
+}

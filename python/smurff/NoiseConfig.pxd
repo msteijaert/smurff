@@ -3,15 +3,17 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         pass
 
     cdef cppclass NoiseConfig:
-        # for fixed gaussian noise
-        double precision
+        double getPrecision() const;
+        void setPrecision(double value);
 
-        # for adaptive gausssian noise
-        double sn_init
-        double sn_max
+        double getSnInit() const;
+        void setSnInit(double value);
 
-        # for probit
-        double threshold
+        double getSnMax() const;
+        void setSnMax(double value);
+
+        double getThreshold() const;
+        void setThreshold(double value);
 
         NoiseConfig() except +
         void setNoiseType(NoiseTypes value)
