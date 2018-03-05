@@ -60,7 +60,7 @@ private:
    bool restore(int& iteration);
 
 private:
-   void printStatus(double elapsedi, bool resume, int isample);
+   void printStatus(std::ostream& output, double elapsedi, bool resume, int isample);
 
 private:
    void initRng();

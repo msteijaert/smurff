@@ -1,6 +1,7 @@
 #include "Session.h"
 
 #include <string>
+#include <iomanip>
 
 #include <SmurffCpp/Version.h>
 
@@ -106,8 +107,8 @@ void Session::init()
    //print session status to console
    if (m_config.getVerbose())
    {
-      printStatus(0, resume, m_iter);
-      printf(" ====== Sampling (burning phase) ====== \n");
+      printStatus(std::cout, 0, resume, m_iter);
+      std::cout << " ====== Sampling (burning phase) ====== " << std::endl;
    }
 
    //restore will either start from initial iteration (-1) that should be printed with printStatus
@@ -132,7 +133,7 @@ void Session::step()
 
    if (m_config.getVerbose() && m_iter == m_config.getBurnin())
    {
-      printf(" ====== Burn-in complete, averaging samples ====== \n");
+      std::cout << " ====== Burn-in complete, averaging samples ====== " << std::endl;
    }
 
    auto starti = tick();
@@ -142,7 +143,7 @@ void Session::step()
    //WARNING: update is an expensive operation because of sort (when calculating AUC)
    m_pred->update(m_model, m_iter < m_config.getBurnin());
 
-   printStatus(endi - starti, false, m_iter);
+   printStatus(std::cout, endi - starti, false, m_iter);
 
    save(m_iter);
 
@@ -227,7 +228,9 @@ void Session::save(int iteration) const
 void Session::saveInternal(std::shared_ptr<StepFile> stepFile) const
 {
    if (m_config.getVerbose())
-      printf("-- Saving model, predictions,... into '%s'.\n", stepFile->getStepFileName().c_str());
+   {
+      std::cout << "-- Saving model, predictions,... into '" << stepFile->getStepFileName() << "'." << std::endl;
+   }
 
    BaseSession::save(stepFile);
 
@@ -247,7 +250,9 @@ bool Session::restore(int& iteration)
    else
    {
       if (m_config.getVerbose())
-         printf("-- Restoring model, predictions,... from '%s'.\n", stepFile->getStepFileName().c_str());
+      {
+         std::cout << "-- Restoring model, predictions,... from '" << stepFile->getStepFileName() << "'." << std::endl;
+      }
 
       BaseSession::restore(stepFile);
 
@@ -265,7 +270,7 @@ bool Session::restore(int& iteration)
    }   
 }
 
-void Session::printStatus(double elapsedi, bool resume, int iteration)
+void Session::printStatus(std::ostream& output, double elapsedi, bool resume, int iteration)
 {
    if(!m_config.getVerbose())
       return;
@@ -273,8 +278,8 @@ void Session::printStatus(double elapsedi, bool resume, int iteration)
    double snorm0 = m_model->U(0).norm();
    double snorm1 = m_model->U(1).norm();
 
-   auto nnz_per_sec = (data()->nnz()) / elapsedi;
-   auto samples_per_sec = (m_model->nsamples()) / elapsedi;
+   std::uint64_t nnz_per_sec = elapsedi == 0.0 ? data()->nnz() : (data()->nnz()) / elapsedi;
+   std::uint64_t samples_per_sec = elapsedi == 0.0 ? m_model->nsamples() : (m_model->nsamples()) / elapsedi;
 
    std::string resumeString = resume ? "Continue from " : std::string();
 
@@ -299,12 +304,37 @@ void Session::printStatus(double elapsedi, bool resume, int iteration)
       from = m_config.getNSamples();
    }
 
-   printf("%s%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", resumeString.c_str(), phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
+   output << resumeString
+          << phase 
+          << " "
+          << std::setfill(' ') << std::setw(3) << i 
+          << "/"
+          << std::setfill(' ') << std::setw(3) << from 
+          << ": RMSE: "
+          << std::fixed << std::setprecision(4) << m_pred->rmse_avg 
+          << " (1samp: "
+          << std::fixed << std::setprecision(4) << m_pred->rmse_1sample
+          << ")"
+          << std::endl;
 
    if (m_config.getClassify())
-      printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
+   {
+      output << " AUC:"
+             << std::fixed << std::setprecision(4) << m_pred->auc_avg
+             << " (1samp: "
+             << std::fixed << std::setprecision(4) << m_pred->auc_1sample
+             << ")"
+             << std::endl;
+   }
 
-   printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
+   output << "  U:["
+          << std::scientific << std::setprecision(2) << snorm0
+          << ", "
+          << std::scientific << std::setprecision(2) << snorm1
+          << "] [took: "
+          << std::fixed << std::setprecision(1) << elapsedi
+          << "s]"
+          << std::endl;
 
    // avoid computing train_rmse twice
    double train_rmse = NAN;
@@ -312,21 +342,21 @@ void Session::printStatus(double elapsedi, bool resume, int iteration)
    if (m_config.getVerbose() > 1)
    {
       train_rmse = data()->train_rmse(m_model);
-      printf("  RMSE train: %.4f\n", train_rmse);
-      printf("  Priors:\n");
+      output << std::fixed << std::setprecision(4) << "  RMSE train: " << train_rmse << std::endl;
+      output << "  Priors:" << std::endl;
 
       for(const auto &p : m_priors)
-         p->status(std::cout, "     ");
+         p->status(output, "     ");
 
-      printf("  Model:\n");
-      m_model->status(std::cout, "    ");
-      printf("  Noise:\n");
-      data()->status(std::cout, "    ");
+      output << "  Model:" << std::endl;
+      m_model->status(output, "    ");
+      output << "  Noise:" << std::endl;
+      data()->status(output, "    ");
    }
 
    if (m_config.getVerbose() > 2)
    {
-      printf("  Compute Performance: %.0f samples/sec, %.0f nnz/sec\n", samples_per_sec, nnz_per_sec);
+      output << "  Compute Performance: " << samples_per_sec << " samples/sec, " << nnz_per_sec << " nnz/sec" << std::endl;
    }
 
    if (m_config.getCsvStatus().size())
