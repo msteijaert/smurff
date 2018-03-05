@@ -260,6 +260,13 @@ bool Config::validate() const
          if (ad1 == ad2) 
             continue;
 
+         if (!ad2->hasPos())
+         {
+            std::stringstream ss;
+            ss << "Data \"" << ad2->info() << "\" is missing position info";
+            THROWERROR(ss.str());
+         }
+
          const auto& dim2 = ad2->getDims();
          const auto& pos2 = ad2->getPos();
 
