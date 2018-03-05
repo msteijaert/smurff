@@ -212,7 +212,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -266,7 +266,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -324,7 +324,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -382,7 +382,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -438,7 +438,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -492,7 +492,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -550,7 +550,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -608,7 +608,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -668,7 +668,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -726,7 +726,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -790,7 +790,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -842,7 +842,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -901,7 +901,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -958,7 +958,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1020,7 +1020,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   REQUIRE_THROWS(SessionFactory::create_py_session(config));
+   REQUIRE_THROWS(SessionFactory::create_session(config));
 }
 
 //test throw
@@ -1058,7 +1058,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   REQUIRE_THROWS(SessionFactory::create_py_session(config));
+   REQUIRE_THROWS(SessionFactory::create_session(config));
 }
 
 //test throw
@@ -1096,7 +1096,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   REQUIRE_THROWS(SessionFactory::create_py_session(config));
+   REQUIRE_THROWS(SessionFactory::create_session(config));
 }
 
 //=================================================================
@@ -1133,7 +1133,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1187,7 +1187,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1243,7 +1243,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1299,7 +1299,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1358,7 +1358,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1415,7 +1415,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    config.setRandomSeedSet(true);
    config.setDirect(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1471,7 +1471,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1525,7 +1525,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1581,7 +1581,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1635,7 +1635,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1693,7 +1693,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1751,7 +1751,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> session = SessionFactory::create_py_session(config);
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
@@ -1810,7 +1810,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   REQUIRE_THROWS(SessionFactory::create_py_session(config));
+   REQUIRE_THROWS(SessionFactory::create_session(config));
 }
 
 
@@ -1847,7 +1847,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
 
-   REQUIRE_THROWS(SessionFactory::create_py_session(config));
+   REQUIRE_THROWS(SessionFactory::create_session(config));
 }
 
 //=================================================================
@@ -1909,8 +1909,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 
@@ -1969,8 +1969,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 
@@ -2030,8 +2030,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 
@@ -2091,8 +2091,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 
@@ -2152,8 +2152,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 
@@ -2213,8 +2213,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 
@@ -2274,8 +2274,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 
@@ -2335,8 +2335,8 @@ TEST_CASE(
    tensorSessionConfig.setRandomSeed(1234);
    tensorSessionConfig.setRandomSeedSet(true);
 
-   std::shared_ptr<ISession> matrixSession = SessionFactory::create_py_session(matrixSessionConfig);
-   std::shared_ptr<ISession> tensorSession = SessionFactory::create_py_session(tensorSessionConfig);
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
    matrixSession->run();
    tensorSession->run();
 

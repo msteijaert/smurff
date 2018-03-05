@@ -13,6 +13,9 @@ namespace smurff {
    public:
       static std::shared_ptr<ISession> create_py_session(Config& cfg);
       static std::shared_ptr<ISession> create_py_session(const std::string& rootPath);
+
+      //for testing only
+      static std::shared_ptr<ISession> create_session(Config& cfg);
    };
 
 }
