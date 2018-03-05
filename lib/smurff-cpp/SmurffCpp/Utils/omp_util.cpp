@@ -1,9 +1,10 @@
 #include "omp_util.h"
 
+#include <iostream>
+
 // _OPENMP will be enabled if -fopenmp flag is passed to the compiler (use cmake release build)
 #if defined(_OPENMP)
 
-#include <iostream>
 #include <omp.h>
 
 int nthreads() 
@@ -28,12 +29,15 @@ int thread_num()
    return omp_get_thread_num(); 
 }
 
-void threads_init() 
+void threads_init(bool verbose) 
 {
-   std::cout << "Using OpenMP with up to " << thread_limit() << " threads.\n";
-   #ifdef OPENBLAS
-   std::cout << "Using BLAS with up to " << openblas_get_num_threads() << " threads.\n";
-   #endif
+    if (verbose)
+    {
+        std::cout << "Using OpenMP with up to " << thread_limit() << " threads.\n";
+        #ifdef OPENBLAS
+        std::cout << "Using BLAS with up to " << openblas_get_num_threads() << " threads.\n";
+        #endif
+    }
 }
 
 #else
@@ -53,8 +57,12 @@ int thread_limit()
    return 1; 
 }
 
-void threads_init() 
+void threads_init(bool verbose) 
 { 
+    if (verbose)
+    {
+        std::cout << "No threading library used.\n";
+    }
 
 }
 

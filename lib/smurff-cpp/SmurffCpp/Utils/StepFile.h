@@ -19,6 +19,9 @@ namespace smurff {
       std::string m_extension;
       bool m_burnin;
 
+      //AGE: should preserve order of elements as in file
+      mutable std::vector<std::pair<std::string, std::string> > m_iniStorage;
+
    public:
       //this constructor should be used to create a step file on a first run of session
       StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool burnin);
@@ -46,28 +49,43 @@ namespace smurff {
       void savePred(std::shared_ptr<const Result> m_pred) const;
       void savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
+      void save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+
    public:
       void restoreModel(std::shared_ptr<Model> model) const;
       void restorePred(std::shared_ptr<Result> m_pred) const;
       void restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+
+      void restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
    public:
       void removeModel() const;
       void removePred() const;
       void removePriors() const;
 
-   public:
-      void save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
-
-      void restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
-
       void remove(bool model, bool pred, bool priors) const;
 
    public:
       std::int32_t getIsample() const;
 
+      bool getBurnin() const;
+
+   public:
       std::int32_t getNSamples() const;
 
-      bool getBurnin() const;
+      std::int32_t getNPriors() const;
+
+   public:
+      std::string getIniValueBase(const std::string& tag) const;
+
+      std::pair<bool, std::string> tryGetIniValueBase(const std::string& tag) const;
+
+      void appendToStepFile(std::string tag, std::string value) const;
+
+      void appendCommentToStepFile(std::string comment) const;
+
+      void removeFromStepFile(std::string tag) const;
+
+      void flushLast() const;
    };
 }

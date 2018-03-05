@@ -73,7 +73,7 @@ void Session::setFromBase()
 void Session::init()
 {
    //init omp
-   threads_init();
+   threads_init(m_config.getVerbose());
 
    //initialize random generator
    initRng();

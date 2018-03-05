@@ -33,7 +33,7 @@
 using namespace std;
 using namespace Eigen;
 
-namespace smurff {
+using namespace smurff;
 
 //Y - test sparse matrix
 void Result::set(std::shared_ptr<TensorConfig> Y)
@@ -91,7 +91,7 @@ void Result::save(std::shared_ptr<const StepFile> sf) const
 
 void Result::savePred(std::shared_ptr<const StepFile> sf) const
 {
-   if (!m_predictions || m_predictions->empty())
+   if (isEmpty())
       return;
 
    std::string fname_pred = sf->getPredFileName();
@@ -119,6 +119,9 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
 
 void Result::savePredState(std::shared_ptr<const StepFile> sf) const
 {
+   if (isEmpty())
+      return;
+
    std::string predStateName = sf->getPredStateFileName();
    std::ofstream predStatefile;
    predStatefile.open(predStateName);
@@ -227,7 +230,7 @@ void Result::restoreState(std::shared_ptr<const StepFile> sf)
    burnin_iter = stoi(valIt->second.c_str());
 }
 
-///--- update RMSE and AUC
+//--- update RMSE and AUC
 
 //model - holds samples (U matrices)
 void Result::update(std::shared_ptr<const Model> model, bool burnin)
@@ -341,4 +344,7 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
    return os;
 }
 
+bool Result::isEmpty() const
+{
+   return !m_predictions || m_predictions->empty();
 }

@@ -98,6 +98,9 @@ public:
    {
       threshold = t; classify = true;
    }
+
+public:
+   bool isEmpty() const;
 };
 
 };
