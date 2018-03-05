@@ -288,7 +288,8 @@ def smurff(Y              = None,
            save_extension = None,
            save_freq      = None,
            csv_status     = None,
-           root_path      = None):
+           root_path      = None,
+           ini_path       = None):
 
     cdef Config config
     cdef NoiseConfig nc
@@ -297,6 +298,11 @@ def smurff(Y              = None,
 
     if root_path is not None:
         session = SessionFactory.create_py_session_from_root_path(root_path)
+    elif ini_path is not None:
+        success = config.restore(ini_path)
+        if not success:
+            raise f"Could not load init file '{ini_path}'"
+        session = SessionFactory.create_py_session_from_config(config)
     else:
         # Create and initialize smurff-cpp Config instance
 
