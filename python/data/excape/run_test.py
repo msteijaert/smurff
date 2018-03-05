@@ -26,6 +26,10 @@ def load_data():
 
     return data
 
+
+def smurff_cmdline(Ytrain, **kwargs):
+    pass
+    
 def time_smurff(Ytrain, **kwargs):
     start = time()
     result = smurff.smurff(Ytrain, **kwargs)
@@ -96,7 +100,7 @@ class TestExCAPE(unittest.TestCase):
                         Ytest      = TestExCAPE.data["test"],
                         **TestExCAPE.default_opts)
 
-        self.assertLess(result.rmse, 1.11)
+        self.assertLess(result.rmse, 1.17)
         self.assertGreater(result.rmse, 1.0)
         self.assertLess(result.time, 60.)
 
@@ -111,7 +115,7 @@ class TestExCAPE(unittest.TestCase):
 
         self.assertLess(result.rmse, 1.17)
         self.assertGreater(result.rmse, 1.0)
-        self.assertLess(result.time, 60.)
+        self.assertLess(result.time, 360.)
 
     def test_smurff_macau_ecfp_dense(self):
         result = smurff_macau(
