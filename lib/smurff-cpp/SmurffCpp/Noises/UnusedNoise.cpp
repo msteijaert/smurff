@@ -21,7 +21,7 @@ double UnusedNoise::sample(const SubModel& model, const PVec<> &pos, double val)
 
 std::ostream& UnusedNoise::info(std::ostream& os, std::string indent)
 {
-   os << "Noisemodel is not used here.\n";
+   os << "Noisemodel is not used here." << std::endl;
    return os;
 }
 

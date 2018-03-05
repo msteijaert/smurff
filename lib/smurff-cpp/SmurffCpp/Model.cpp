@@ -163,7 +163,7 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
 
 std::ostream& Model::info(std::ostream &os, std::string indent) const
 {
-   os << indent << "Num-latents: " << m_num_latent << "\n";
+   os << indent << "Num-latents: " << m_num_latent << std::endl;
    return os;
 }
 
@@ -174,7 +174,7 @@ std::ostream& Model::status(std::ostream &os, std::string indent) const
    for(std::uint64_t d = 0; d < nmodes(); ++d)
       P *= U(d).rowwise().norm().array();
 
-   os << indent << "  Latent-wise norm: " << P.transpose() << "\n";
+   os << indent << "  Latent-wise norm: " << P.transpose() << std::endl;
    return os;
 }
 

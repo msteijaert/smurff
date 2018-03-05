@@ -214,7 +214,7 @@ public:
 
    std::ostream &status(std::ostream &os, std::string indent) const override
    {
-      os << indent << "  " << m_name << ": Beta = " << beta.norm() << "\n";
+      os << indent << "  " << m_name << ": Beta = " << beta.norm() << std::endl;
       return os;
    }
 };
