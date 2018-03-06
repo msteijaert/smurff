@@ -60,14 +60,13 @@ class TestMatrixIO(unittest.TestCase):
         actual_matrix = matrix_io.read_sparse_float64_tensor_as_matrix(matrix_relative_path)
         self.assertTrue((expected_matrix != actual_matrix).nnz == 0)
 
-    @unittest.skip
     def test_csv(self):
         matrix_filename = "test_csv.csv"
         matrix_relative_path = f"{self.TEMP_DIR_NAME}/{matrix_filename}"
-        expected_matrix = scipy.sparse.rand(10, 20, 0.5)
+        expected_matrix = numpy.random.randn(10, 20)
         matrix_io.write_csv(matrix_relative_path, expected_matrix)
         actual_matrix = matrix_io.read_csv(matrix_relative_path)
-        self.assertTrue((expected_matrix != actual_matrix).nnz == 0)
+        self.assertTrue(numpy.allclose(actual_matrix, expected_matrix))
 
     def test_dense_mtx(self):
         matrix_filename = "test_dense_mtx.mtx"
@@ -125,6 +124,14 @@ class TestMatrixIO(unittest.TestCase):
         matrix_io.write_matrix(matrix_relative_path, expected_matrix)
         actual_matrix = matrix_io.read_matrix(matrix_relative_path)
         self.assertTrue(numpy.allclose(actual_matrix.todense(), expected_matrix.todense()))
+
+    def test_dense_matrix_csv(self):
+        matrix_filename = "test_dense_matrix_csv.csv"
+        matrix_relative_path = f"{self.TEMP_DIR_NAME}/{matrix_filename}"
+        expected_matrix = numpy.random.randn(10, 20)
+        matrix_io.write_matrix(matrix_relative_path, expected_matrix)
+        actual_matrix = matrix_io.read_matrix(matrix_relative_path)
+        self.assertTrue(numpy.allclose(actual_matrix, expected_matrix))
 
 if __name__ == '__main__':
     unittest.main()
