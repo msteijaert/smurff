@@ -457,7 +457,7 @@ bool Config::restore(std::string fname)
 
    INIReader reader(fname);
 
-   if (reader.ParseError() < 0)
+   if (reader.getParseError() < 0)
    {
       std::cout << "Can't load '" << fname << "'\n";
       return false;
@@ -473,18 +473,18 @@ bool Config::restore(std::string fname)
    auto restore_tensor_config = [&reader](const std::string sec_name) -> std::shared_ptr<TensorConfig>
    {
       //restore filename
-      std::string filename = reader.Get(sec_name, FILE_TAG,  NONE_TAG);
+      std::string filename = reader.get(sec_name, FILE_TAG,  NONE_TAG);
       if (filename == NONE_TAG) 
          return std::shared_ptr<TensorConfig>();
 
       //restore type
-      bool is_scarce = reader.Get(sec_name, TYPE_TAG, SCARCE_TAG) == SCARCE_TAG;
+      bool is_scarce = reader.get(sec_name, TYPE_TAG, SCARCE_TAG) == SCARCE_TAG;
 
       //restore data
       auto cfg = generic_io::read_data_config(filename, is_scarce);
 
       //restore position
-      std::string pos_str = reader.Get(sec_name, POS_TAG, NONE_TAG);
+      std::string pos_str = reader.get(sec_name, POS_TAG, NONE_TAG);
       if (pos_str != NONE_TAG)
       {
          std::vector<int> tokens;
@@ -497,14 +497,14 @@ bool Config::restore(std::string fname)
       //restore noise model
       NoiseConfig noise;
 
-      NoiseTypes noiseType = smurff::stringToNoiseType(reader.Get(sec_name, NOISE_MODEL_TAG, smurff::noiseTypeToString(NoiseTypes::unset)));
+      NoiseTypes noiseType = smurff::stringToNoiseType(reader.get(sec_name, NOISE_MODEL_TAG, smurff::noiseTypeToString(NoiseTypes::unset)));
       if (noiseType != NoiseTypes::unset)
       {
          noise.setNoiseType(noiseType);
-         noise.setPrecision(reader.GetReal(sec_name, PRECISION_TAG, NoiseConfig::PRECISION_DEFAULT_VALUE));
-         noise.setSnInit(reader.GetReal(sec_name, SN_INIT_TAG, NoiseConfig::ADAPTIVE_SN_INIT_DEFAULT_VALUE));
-         noise.setSnMax(reader.GetReal(sec_name, SN_MAX_TAG, NoiseConfig::ADAPTIVE_SN_MAX_DEFAULT_VALUE));
-         noise.setThreshold(reader.GetReal(sec_name, NOISE_THRESHOLD_TAG, NoiseConfig::PROBIT_DEFAULT_VALUE));
+         noise.setPrecision(reader.getReal(sec_name, PRECISION_TAG, NoiseConfig::PRECISION_DEFAULT_VALUE));
+         noise.setSnInit(reader.getReal(sec_name, SN_INIT_TAG, NoiseConfig::ADAPTIVE_SN_INIT_DEFAULT_VALUE));
+         noise.setSnMax(reader.getReal(sec_name, SN_MAX_TAG, NoiseConfig::ADAPTIVE_SN_MAX_DEFAULT_VALUE));
+         noise.setThreshold(reader.getReal(sec_name, NOISE_THRESHOLD_TAG, NoiseConfig::PROBIT_DEFAULT_VALUE));
       }
 
       //assign noise model
@@ -522,15 +522,15 @@ bool Config::restore(std::string fname)
    //restore global data
 
    //restore priors
-   size_t num_priors = reader.GetInteger(GLOBAL_SECTION_TAG, NUM_PRIORS_TAG, 0);
+   size_t num_priors = reader.getInteger(GLOBAL_SECTION_TAG, NUM_PRIORS_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
    {
-      std::string pName = reader.Get(GLOBAL_SECTION_TAG, add_index(PRIOR_PREFIX, pIndex),  PRIOR_NAME_DEFAULT);
+      std::string pName = reader.get(GLOBAL_SECTION_TAG, add_index(PRIOR_PREFIX, pIndex),  PRIOR_NAME_DEFAULT);
       m_prior_types.push_back(stringToPriorType(pName));
    }
 
    //restore side info
-   size_t num_side_info = reader.GetInteger(GLOBAL_SECTION_TAG, NUM_SIDE_INFO_TAG, 0);
+   size_t num_side_info = reader.getInteger(GLOBAL_SECTION_TAG, NUM_SIDE_INFO_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_side_info; pIndex++)
    {
       auto tensor_cfg = restore_tensor_config(add_index(SIDE_INFO_PREFIX, pIndex));
@@ -539,35 +539,35 @@ bool Config::restore(std::string fname)
    }
 
    //restore aux data
-   size_t num_aux_data = reader.GetInteger(GLOBAL_SECTION_TAG, NUM_AUX_DATA_TAG, 0);
+   size_t num_aux_data = reader.getInteger(GLOBAL_SECTION_TAG, NUM_AUX_DATA_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_aux_data; pIndex++)
    {
       m_auxData.push_back(restore_tensor_config(add_index(AUX_DATA_PREFIX, pIndex)));
    }
 
    //restore save data
-   m_save_prefix = reader.Get(GLOBAL_SECTION_TAG, SAVE_PREFIX_TAG, Config::SAVE_PREFIX_DEFAULT_VALUE);
-   m_save_extension = reader.Get(GLOBAL_SECTION_TAG, SAVE_EXTENSION_TAG, Config::SAVE_EXTENSION_DEFAULT_VALUE);
-   m_save_freq = reader.GetInteger(GLOBAL_SECTION_TAG, SAVE_FREQ_TAG, Config::SAVE_FREQ_DEFAULT_VALUE);
+   m_save_prefix = reader.get(GLOBAL_SECTION_TAG, SAVE_PREFIX_TAG, Config::SAVE_PREFIX_DEFAULT_VALUE);
+   m_save_extension = reader.get(GLOBAL_SECTION_TAG, SAVE_EXTENSION_TAG, Config::SAVE_EXTENSION_DEFAULT_VALUE);
+   m_save_freq = reader.getInteger(GLOBAL_SECTION_TAG, SAVE_FREQ_TAG, Config::SAVE_FREQ_DEFAULT_VALUE);
 
    //restore general data
-   m_verbose = reader.GetInteger(GLOBAL_SECTION_TAG, VERBOSE_TAG, Config::VERBOSE_DEFAULT_VALUE);
-   m_burnin = reader.GetInteger(GLOBAL_SECTION_TAG, BURNING_TAG, Config::BURNIN_DEFAULT_VALUE);
-   m_nsamples = reader.GetInteger(GLOBAL_SECTION_TAG, NSAMPLES_TAG, Config::NSAMPLES_DEFAULT_VALUE);
-   m_num_latent = reader.GetInteger(GLOBAL_SECTION_TAG, NUM_LATENT_TAG, Config::NUM_LATENT_DEFAULT_VALUE);
-   m_random_seed_set = reader.GetBoolean(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG,  false);
-   m_random_seed = reader.GetInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
-   m_csv_status = reader.Get(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, Config::STATUS_DEFAULT_VALUE);
-   m_model_init_type = stringToModelInitType(reader.Get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
+   m_verbose = reader.getInteger(GLOBAL_SECTION_TAG, VERBOSE_TAG, Config::VERBOSE_DEFAULT_VALUE);
+   m_burnin = reader.getInteger(GLOBAL_SECTION_TAG, BURNING_TAG, Config::BURNIN_DEFAULT_VALUE);
+   m_nsamples = reader.getInteger(GLOBAL_SECTION_TAG, NSAMPLES_TAG, Config::NSAMPLES_DEFAULT_VALUE);
+   m_num_latent = reader.getInteger(GLOBAL_SECTION_TAG, NUM_LATENT_TAG, Config::NUM_LATENT_DEFAULT_VALUE);
+   m_random_seed_set = reader.getBoolean(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG,  false);
+   m_random_seed = reader.getInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
+   m_csv_status = reader.get(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, Config::STATUS_DEFAULT_VALUE);
+   m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
 
    //restore macau priors data
-   m_lambda_beta = reader.GetReal(GLOBAL_SECTION_TAG, LAMBDA_BETA_TAG, Config::LAMBDA_BETA_DEFAULT_VALUE);
-   m_tol = reader.GetReal(GLOBAL_SECTION_TAG, TOL_TAG, Config::TOL_DEFAULT_VALUE);
-   m_direct = reader.GetBoolean(GLOBAL_SECTION_TAG, DIRECT_TAG,  false);
+   m_lambda_beta = reader.getReal(GLOBAL_SECTION_TAG, LAMBDA_BETA_TAG, Config::LAMBDA_BETA_DEFAULT_VALUE);
+   m_tol = reader.getReal(GLOBAL_SECTION_TAG, TOL_TAG, Config::TOL_DEFAULT_VALUE);
+   m_direct = reader.getBoolean(GLOBAL_SECTION_TAG, DIRECT_TAG,  false);
 
    //restore probit prior data
-   m_classify = reader.GetBoolean(GLOBAL_SECTION_TAG, CLASSIFY_TAG,  false);
-   m_threshold = reader.GetReal(GLOBAL_SECTION_TAG, THRESHOLD_TAG, Config::THRESHOLD_DEFAULT_VALUE);
+   m_classify = reader.getBoolean(GLOBAL_SECTION_TAG, CLASSIFY_TAG,  false);
+   m_threshold = reader.getReal(GLOBAL_SECTION_TAG, THRESHOLD_TAG, Config::THRESHOLD_DEFAULT_VALUE);
 
    return true;
 }
@@ -578,14 +578,14 @@ bool Config::restoreSaveInfo(std::string fname, std::string& save_prefix, std::s
 
    INIReader reader(fname);
 
-   if (reader.ParseError() < 0)
+   if (reader.getParseError() < 0)
    {
       std::cout << "Can't load '" << fname << "'\n";
       return false;
    }
 
-   save_prefix = reader.Get(GLOBAL_SECTION_TAG, SAVE_PREFIX_TAG, Config::SAVE_PREFIX_DEFAULT_VALUE);
-   save_extension = reader.Get(GLOBAL_SECTION_TAG, SAVE_EXTENSION_TAG, Config::SAVE_EXTENSION_DEFAULT_VALUE);
+   save_prefix = reader.get(GLOBAL_SECTION_TAG, SAVE_PREFIX_TAG, Config::SAVE_PREFIX_DEFAULT_VALUE);
+   save_extension = reader.get(GLOBAL_SECTION_TAG, SAVE_EXTENSION_TAG, Config::SAVE_EXTENSION_DEFAULT_VALUE);
 
    return true;
 }

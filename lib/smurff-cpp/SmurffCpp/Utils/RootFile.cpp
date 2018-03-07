@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <SmurffCpp/IO/INIReader.h>
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 #include <SmurffCpp/Utils/IniUtils.h>
