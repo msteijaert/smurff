@@ -36,10 +36,6 @@ if 'library_dirs' in lapack_opt_info:
 if 'libraries' in lapack_opt_info:
     LIBRARIES += lapack_opt_info['libraries']
 
-LIBRARIES          = ["smurff-cpp" ]
-EXTRA_COMPILE_ARGS = ['-std=c++11']
-EXTRA_LINK_ARGS    = []
-
 # add --with-smurff-cpp option
 for arg in sys.argv:
     if arg.startswith("--with-smurff-cpp="):
