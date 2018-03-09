@@ -195,8 +195,7 @@ void Session::save(int iteration)
 {
    //do not save if 'never save' mode is selected
    if (!m_config.getSaveFreq() && 
-       !m_config.getCheckpointFreq() &&
-       !m_config.getCsvStatus().size())
+       !m_config.getCheckpointFreq())
       return;
 
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
@@ -293,11 +292,15 @@ bool Session::restore(int& iteration)
 
 void Session::printStatus(std::ostream& output, double elapsedi, bool resume, int iteration)
 {
-   if(!m_config.getVerbose())
+   if(!m_config.getVerbose() &&
+      !m_config.getCsvStatus().size())
       return;
 
    double snorm0 = m_model->U(0).norm();
    double snorm1 = m_model->U(1).norm();
+
+   // avoid computing train_rmse twice
+   double train_rmse = NAN;
 
    std::uint64_t nnz_per_sec = elapsedi == 0.0 ? data()->nnz() : (data()->nnz()) / elapsedi;
    std::uint64_t samples_per_sec = elapsedi == 0.0 ? m_model->nsamples() : (m_model->nsamples()) / elapsedi;
@@ -327,73 +330,70 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
 
    if (m_config.getVerbose())
    {
-      if (iteration < 0)
-      {
-         std::cout << " ====== Initial phase ====== " << std::endl;
-      }
-      else if (iteration < m_config.getBurnin() && iteration == 0)
-      {
-         std::cout << " ====== Sampling (burning phase) ====== " << std::endl;
-      }
-      else if (iteration == m_config.getBurnin())
-      {
-         std::cout << " ====== Burn-in complete, averaging samples ====== " << std::endl;
-      }
-   }
+       if (iteration < 0)
+       {
+           output << " ====== Initial phase ====== " << std::endl;
+       }
+       else if (iteration < m_config.getBurnin() && iteration == 0)
+       {
+           output << " ====== Sampling (burning phase) ====== " << std::endl;
+       }
+       else if (iteration == m_config.getBurnin())
+       {
+           output << " ====== Burn-in complete, averaging samples ====== " << std::endl;
+       }
 
-   output << resumeString
-          << phase
-          << " "
-          << std::setfill(' ') << std::setw(3) << i
-          << "/"
-          << std::setfill(' ') << std::setw(3) << from
-          << ": RMSE: "
-          << std::fixed << std::setprecision(4) << m_pred->rmse_avg
-          << " (1samp: "
-          << std::fixed << std::setprecision(4) << m_pred->rmse_1sample
-          << ")"
-          << std::endl;
+       output << resumeString
+           << phase
+           << " "
+           << std::setfill(' ') << std::setw(3) << i
+           << "/"
+           << std::setfill(' ') << std::setw(3) << from
+           << ": RMSE: "
+           << std::fixed << std::setprecision(4) << m_pred->rmse_avg
+           << " (1samp: "
+           << std::fixed << std::setprecision(4) << m_pred->rmse_1sample
+           << ")"
+           << std::endl;
 
-   if (m_config.getClassify())
-   {
-      output << " AUC:"
-             << std::fixed << std::setprecision(4) << m_pred->auc_avg
-             << " (1samp: "
-             << std::fixed << std::setprecision(4) << m_pred->auc_1sample
-             << ")"
-             << std::endl;
-   }
+       if (m_config.getClassify())
+       {
+           output << " AUC:"
+               << std::fixed << std::setprecision(4) << m_pred->auc_avg
+               << " (1samp: "
+               << std::fixed << std::setprecision(4) << m_pred->auc_1sample
+               << ")"
+               << std::endl;
+       }
 
-   output << "  U:["
-          << std::scientific << std::setprecision(2) << snorm0
-          << ", "
-          << std::scientific << std::setprecision(2) << snorm1
-          << "] [took: "
-          << std::fixed << std::setprecision(1) << elapsedi
-          << "s]"
-          << std::endl;
+       output << "  U:["
+           << std::scientific << std::setprecision(2) << snorm0
+           << ", "
+           << std::scientific << std::setprecision(2) << snorm1
+           << "] [took: "
+           << std::fixed << std::setprecision(1) << elapsedi
+           << "s]"
+           << std::endl;
 
-   // avoid computing train_rmse twice
-   double train_rmse = NAN;
+       if (m_config.getVerbose() > 1)
+       {
+           train_rmse = data()->train_rmse(m_model);
+           output << std::fixed << std::setprecision(4) << "  RMSE train: " << train_rmse << std::endl;
+           output << "  Priors:" << std::endl;
 
-   if (m_config.getVerbose() > 1)
-   {
-      train_rmse = data()->train_rmse(m_model);
-      output << std::fixed << std::setprecision(4) << "  RMSE train: " << train_rmse << std::endl;
-      output << "  Priors:" << std::endl;
+           for(const auto &p : m_priors)
+               p->status(output, "     ");
 
-      for(const auto &p : m_priors)
-         p->status(output, "     ");
+           output << "  Model:" << std::endl;
+           m_model->status(output, "    ");
+           output << "  Noise:" << std::endl;
+           data()->status(output, "    ");
+       }
 
-      output << "  Model:" << std::endl;
-      m_model->status(output, "    ");
-      output << "  Noise:" << std::endl;
-      data()->status(output, "    ");
-   }
-
-   if (m_config.getVerbose() > 2)
-   {
-      output << "  Compute Performance: " << samples_per_sec << " samples/sec, " << nnz_per_sec << " nnz/sec" << std::endl;
+       if (m_config.getVerbose() > 2)
+       {
+           output << "  Compute Performance: " << samples_per_sec << " samples/sec, " << nnz_per_sec << " nnz/sec" << std::endl;
+       }
    }
 
    if (m_config.getCsvStatus().size())
