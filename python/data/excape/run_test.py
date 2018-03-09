@@ -3,8 +3,11 @@
 from make import download
 import smurff
 import matrix_io as mio
+import pandas as pd
 import unittest
 import os
+import tempfile
+from subprocess import call
 from time import time
 
 
@@ -27,8 +30,22 @@ def load_data():
     return data
 
 
-def smurff_cmdline(Ytrain, **kwargs):
+class Result:
     pass
+
+def smurff_cmdline(cmd):
+    result = Result()
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        os.chdir(tmpdirname)
+        start = time()
+        result.retcode = call(cmd, shell=True)
+        stop = time()
+        result.time = stop - start
+        stats = pd.read_csv("stats.csv", sep=";")
+        last_row = stats.tail(1)
+        result.rmse = float(last_row['rmse_avg'])
+    return result
+    
     
 def time_smurff(Ytrain, **kwargs):
     start = time()
@@ -69,6 +86,24 @@ class TestExCAPE(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.data = load_data()
+
+    def test_smurff_bpmf_cmd(self):
+        params = { "datadir" : os.getcwd() }
+        result = smurff_cmdline(
+             ("smurff"
+           + " --train={datadir}/train.sdm"
+           + " --test={datadir}/test.sdm" 
+           + " --prior=normal normal"
+           + " --side-info=none none"
+           + " --aux-data=none none"
+           + " --save-freq=0"
+           + " --num-latent=16 --burnin=100 --nsamples=100"
+           + " --precision=1.0 --verbose=1 --status=stats.csv").format(**params)
+        )
+
+        self.assertLess(result.rmse, 1.22)
+        self.assertGreater(result.rmse, 1.10)
+        self.assertLess(result.time, 60.)
 
     def test_smurff_bpmf(self):
         result = smurff_bpmf(
