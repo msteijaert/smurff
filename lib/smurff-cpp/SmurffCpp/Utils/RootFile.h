@@ -49,12 +49,12 @@ private:
 public:
    std::shared_ptr<StepFile> createSampleStepFile(std::int32_t isample) const;
 
-   std::shared_ptr<StepFile> createBurninStepFile(std::int32_t isample) const;
+   std::shared_ptr<StepFile> createCheckpointStepFile(std::int32_t isample) const;
 
 public:
    void removeSampleStepFile(std::int32_t isample) const;
 
-   void removeBurninStepFile(std::int32_t isample) const;
+   void removeCheckpointStepFile(std::int32_t isample) const;
 
 private:
    std::shared_ptr<StepFile> createStepFileInternal(std::int32_t isample, bool burnin) const;

@@ -68,7 +68,7 @@ public:
 public:
    virtual std::ostream &info(std::ostream &, std::string indent);
 
-   void save(std::shared_ptr<StepFile> stepFile) const;
+   void save(std::shared_ptr<StepFile> stepFile);
 
    void restore(std::shared_ptr<StepFile> stepFile);
 

@@ -30,6 +30,7 @@
 #define SAVE_PREFIX_NAME "save-prefix"
 #define SAVE_EXTENSION_NAME "save-extension"
 #define SAVE_FREQ_NAME "save-freq"
+#define CHECKPOINT_FREQ_NAME "checkpoint-freq"
 #define THRESHOLD_NAME "threshold"
 #define VERBOSE_NAME "verbose"
 #define QUIET_NAME "quiet"
@@ -80,6 +81,7 @@ boost::program_options::options_description get_desc()
       (SAVE_PREFIX_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_PREFIX_DEFAULT_VALUE), "prefix for result files")
       (SAVE_EXTENSION_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")
       (SAVE_FREQ_NAME, boost::program_options::value<int>()->default_value(Config::SAVE_FREQ_DEFAULT_VALUE), "save every n iterations (0 == never, -1 == final model)")
+      (CHECKPOINT_FREQ_NAME, boost::program_options::value<int>()->default_value(Config::CHECKPOINT_FREQ_DEFAULT_VALUE), "save state every n seconds, only one checkpointing state is kept")
       (THRESHOLD_NAME, boost::program_options::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation")
       (VERBOSE_NAME, boost::program_options::value<int>()->default_value(Config::VERBOSE_DEFAULT_VALUE), "verbosity of output (0, 1, 2 or 3)")
       (QUIET_NAME, "no output (equivalent to verbose=0)")
@@ -264,6 +266,9 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(SAVE_FREQ_NAME) && !vm[SAVE_FREQ_NAME].defaulted())
       config.setSaveFreq(vm[SAVE_FREQ_NAME].as<int>());
+   
+   if (vm.count(CHECKPOINT_FREQ_NAME) && !vm[CHECKPOINT_FREQ_NAME].defaulted())
+      config.setCheckpointFreq(vm[CHECKPOINT_FREQ_NAME].as<int>());
 
    if (vm.count(THRESHOLD_NAME) && !vm[THRESHOLD_NAME].defaulted())
    {

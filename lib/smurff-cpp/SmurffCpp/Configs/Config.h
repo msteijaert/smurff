@@ -58,6 +58,7 @@ public:
    static const char* SAVE_PREFIX_DEFAULT_VALUE;
    static const char* SAVE_EXTENSION_DEFAULT_VALUE;
    static int SAVE_FREQ_DEFAULT_VALUE;
+   static int CHECKPOINT_FREQ_DEFAULT_VALUE;
    static int VERBOSE_DEFAULT_VALUE;
    static const char* STATUS_DEFAULT_VALUE;
    static double LAMBDA_BETA_DEFAULT_VALUE;
@@ -84,6 +85,7 @@ private:
    std::string m_save_prefix;
    std::string m_save_extension;
    int m_save_freq;
+   int m_checkpoint_freq;
 
    //-- general
    bool m_random_seed_set;
@@ -211,6 +213,16 @@ public:
    void setSaveFreq(int value)
    {
       m_save_freq = value;
+   }
+
+   int getCheckpointFreq() const
+   {
+      return m_checkpoint_freq;
+   }
+
+   void setCheckpointFreq(int value)
+   {
+      m_checkpoint_freq = value;
    }
 
    bool getRandomSeedSet() const

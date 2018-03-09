@@ -9,7 +9,7 @@
 #include <SmurffCpp/IO/GenericIO.h>
 
 #define OPTIONS_TAG "options"
-#define BURNIN_STEP_PREFIX "burnin_step_"
+#define CHECKPOINT_STEP_PREFIX "checkpoint_step_"
 #define SAMPLE_STEP_PREFIX "sample_step_"
 
 using namespace smurff;
@@ -92,17 +92,17 @@ std::shared_ptr<StepFile> RootFile::createSampleStepFile(std::int32_t isample) c
    return createStepFileInternal(isample, false);
 }
 
-std::shared_ptr<StepFile> RootFile::createBurninStepFile(std::int32_t isample) const
+std::shared_ptr<StepFile> RootFile::createCheckpointStepFile(std::int32_t isample) const
 {
    return createStepFileInternal(isample, true);
 }
 
-std::shared_ptr<StepFile> RootFile::createStepFileInternal(std::int32_t isample, bool burnin) const
+std::shared_ptr<StepFile> RootFile::createStepFileInternal(std::int32_t isample, bool checkpoint) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true, burnin);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true, checkpoint);
 
    std::string stepFileName = stepFile->getStepFileName();
-   std::string tagPrefix = burnin ? BURNIN_STEP_PREFIX : SAMPLE_STEP_PREFIX;
+   std::string tagPrefix = checkpoint ? CHECKPOINT_STEP_PREFIX : SAMPLE_STEP_PREFIX;
    std::string stepTag = tagPrefix + std::to_string(isample);
    appendToRootFile(stepTag, stepFileName);
 
@@ -114,48 +114,48 @@ void RootFile::removeSampleStepFile(std::int32_t isample) const
    removeStepFileInternal(isample, false);
 }
 
-void RootFile::removeBurninStepFile(std::int32_t isample) const
+void RootFile::removeCheckpointStepFile(std::int32_t isample) const
 {
    removeStepFileInternal(isample, true);
 }
 
-void RootFile::removeStepFileInternal(std::int32_t isample, bool burnin) const
+void RootFile::removeStepFileInternal(std::int32_t isample, bool checkpoint) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, burnin);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, checkpoint);
    stepFile->remove(true, true, true);
 
    std::string stepFileName = stepFile->getStepFileName();
-   std::string tagPrefix = burnin ? BURNIN_STEP_PREFIX : SAMPLE_STEP_PREFIX;
+   std::string tagPrefix = checkpoint ? CHECKPOINT_STEP_PREFIX : SAMPLE_STEP_PREFIX;
    std::string stepTag = "# removed " + tagPrefix + std::to_string(isample);
    appendToRootFile(stepTag, stepFileName);
 }
 
 std::shared_ptr<StepFile> RootFile::openLastStepFile() const
 {
-   std::string lastBurninItem;
+   std::string lastCheckpointItem;
    std::string lastStepItem;
 
    for (auto& item : m_iniStorage)
    {
-      if (startsWith(item.first, BURNIN_STEP_PREFIX))
-         lastBurninItem = item.second;
+      if (startsWith(item.first, CHECKPOINT_STEP_PREFIX))
+         lastCheckpointItem = item.second;
 
       if (startsWith(item.first, SAMPLE_STEP_PREFIX))
          lastStepItem = item.second;
    }
 
    //try open sample file
-   //if no sample file then try open burnin file
-   //if no burnin file then return empty file
+   //if no sample file then try open checkpoint file
+   //if no checkpoint file then return empty file
    if (lastStepItem.empty())
    {
-      if (lastBurninItem.empty())
+      if (lastCheckpointItem.empty())
       {
          return std::shared_ptr<StepFile>();
       }
       else
       {
-         return std::make_shared<StepFile>(lastBurninItem, m_prefix, m_extension);
+         return std::make_shared<StepFile>(lastCheckpointItem, m_prefix, m_extension);
       }  
    }
    else

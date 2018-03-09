@@ -25,6 +25,8 @@ protected:
 
 private:
    int m_iter = -1; //index of step iteration
+   double m_lastCheckpointTime;
+   int m_lastCheckpointIter;
 
 protected:
    Session()
@@ -52,9 +54,9 @@ public:
 
 private:
    //save current iteration
-   void save(int iteration) const;
+   void save(int iteration);
 
-   void saveInternal(std::shared_ptr<StepFile> stepFile) const;
+   void saveInternal(std::shared_ptr<StepFile> stepFile);
 
    //restore last iteration
    bool restore(int& iteration);

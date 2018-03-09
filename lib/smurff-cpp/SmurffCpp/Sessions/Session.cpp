@@ -115,6 +115,11 @@ void Session::init()
    //in any case - we have to move to next iteration
    m_iter++; //go to next iteration
 
+
+   //to keep track at what time we last checkpointed
+   m_lastCheckpointTime = tick();
+   m_lastCheckpointIter = -1;
+
    is_init = true;
 }
 
@@ -158,15 +163,20 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
    os << indent << "  Version: " << smurff::SMURFF_VERSION << "\n" ;
    os << indent << "  Iterations: " << m_config.getBurnin() << " burnin + " << m_config.getNSamples() << " samples\n";
 
-   if (m_config.getSaveFreq() != 0)
+   if (m_config.getSaveFreq() != 0 || m_config.getCheckpointFreq() != 0)
    {
       if (m_config.getSaveFreq() > 0)
       {
           os << indent << "  Save model: every " << m_config.getSaveFreq() << " iteration\n";
       }
-      else
+      else if (m_config.getSaveFreq() < 0)
       {
           os << indent << "  Save model after last iteration\n";
+      }
+
+      if (m_config.getCheckpointFreq() > 0)
+      {
+          os << indent << "  Checkpoint state: every " << m_config.getSaveFreq() << " seconds\n";
       }
 
       os << indent << "  Save prefix: " << m_config.getSavePrefix() << "\n";
@@ -181,34 +191,38 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
    return os;
 }
 
-void Session::save(int iteration) const
+void Session::save(int iteration)
 {
    //do not save if 'never save' mode is selected
-   if (!m_config.getSaveFreq() && !m_config.getCsvStatus().size())
+   if (!m_config.getSaveFreq() && 
+       !m_config.getCheckpointFreq() &&
+       !m_config.getCsvStatus().size())
       return;
 
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
 
-   //save if burnin
-   if (isample <= 0)
+   //save if checkpoint threshold overdue
+   if (m_lastCheckpointTime + m_config.getCheckpointFreq() > tick())
    {
-      std::int32_t iburninPrev = iteration;
-      if (iburninPrev > 0)
+      if (m_lastCheckpointIter > 0)
       {
          //remove previous iteration
-         m_rootFile->removeBurninStepFile(iburninPrev);
+         m_rootFile->removeCheckpointStepFile(m_lastCheckpointIter);
 
          //flush last item in a root file
          m_rootFile->flushLast();
       }
 
-      std::int32_t iburnin = iteration + 1;
-
       //save this iteration
-      std::shared_ptr<StepFile> stepFile = m_rootFile->createBurninStepFile(iburnin);
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createCheckpointStepFile(iteration);
       saveInternal(stepFile);
+
+      m_lastCheckpointTime = tick();
+      m_lastCheckpointIter = iteration;
    }
-   else
+
+   //save model during sampling stage
+   if (isample > 0)
    {
       //save_freq > 0: check modulo - do not save if not a save iteration
       if (m_config.getSaveFreq() > 0 && (isample % m_config.getSaveFreq()) != 0)
@@ -224,7 +238,7 @@ void Session::save(int iteration) const
    }
 }
 
-void Session::saveInternal(std::shared_ptr<StepFile> stepFile) const
+void Session::saveInternal(std::shared_ptr<StepFile> stepFile)
 {
    if (m_config.getVerbose())
    {

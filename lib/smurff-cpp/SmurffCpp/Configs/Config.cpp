@@ -30,6 +30,7 @@
 #define SAVE_PREFIX_TAG "save_prefix"
 #define SAVE_EXTENSION_TAG "save_extension"
 #define SAVE_FREQ_TAG "save_freq"
+#define CHECKPOINT_FREQ_TAG "checkpoint_freq"
 #define VERBOSE_TAG "verbose"
 #define BURNING_TAG "burnin"
 #define NSAMPLES_TAG "nsamples"
@@ -135,6 +136,7 @@ ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
 const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "save";
 const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".csv";
 int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
+int Config::CHECKPOINT_FREQ_DEFAULT_VALUE = 0;
 int Config::VERBOSE_DEFAULT_VALUE = 1;
 const char* Config::STATUS_DEFAULT_VALUE = "";
 double Config::LAMBDA_BETA_DEFAULT_VALUE = 10.0;
@@ -149,6 +151,7 @@ Config::Config()
    m_save_prefix = Config::SAVE_PREFIX_DEFAULT_VALUE;
    m_save_extension = Config::SAVE_EXTENSION_DEFAULT_VALUE;
    m_save_freq = Config::SAVE_FREQ_DEFAULT_VALUE;
+   m_checkpoint_freq = Config::CHECKPOINT_FREQ_DEFAULT_VALUE;
 
    m_random_seed_set = false;
    m_random_seed = Config::RANDOM_SEED_DEFAULT_VALUE;
@@ -413,6 +416,7 @@ void Config::save(std::string fname) const
    os << SAVE_PREFIX_TAG << " = " << m_save_prefix << std::endl;
    os << SAVE_EXTENSION_TAG << " = " << m_save_extension << std::endl;
    os << SAVE_FREQ_TAG << " = " << m_save_freq << std::endl;
+   os << CHECKPOINT_FREQ_TAG << " = " << m_checkpoint_freq << std::endl;
 
    //general data
    os << std::endl << "# general" << std::endl;
@@ -549,6 +553,7 @@ bool Config::restore(std::string fname)
    m_save_prefix = reader.get(GLOBAL_SECTION_TAG, SAVE_PREFIX_TAG, Config::SAVE_PREFIX_DEFAULT_VALUE);
    m_save_extension = reader.get(GLOBAL_SECTION_TAG, SAVE_EXTENSION_TAG, Config::SAVE_EXTENSION_DEFAULT_VALUE);
    m_save_freq = reader.getInteger(GLOBAL_SECTION_TAG, SAVE_FREQ_TAG, Config::SAVE_FREQ_DEFAULT_VALUE);
+   m_checkpoint_freq = reader.getInteger(GLOBAL_SECTION_TAG, CHECKPOINT_FREQ_TAG, Config::CHECKPOINT_FREQ_DEFAULT_VALUE);
 
    //restore general data
    m_verbose = reader.getInteger(GLOBAL_SECTION_TAG, VERBOSE_TAG, Config::VERBOSE_DEFAULT_VALUE);
