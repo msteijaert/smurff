@@ -184,7 +184,7 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 void Session::save(int iteration) const
 {
    //do not save if 'never save' mode is selected
-   if (!m_config.getSaveFreq())
+   if (!m_config.getSaveFreq() && !m_config.getCsvStatus().size())
       return;
 
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
