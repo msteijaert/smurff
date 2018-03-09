@@ -58,9 +58,10 @@ for arg in sys.argv:
 
 # add --with-openmp option
 for arg in sys.argv:
-    if (arg == "--with-openmp"):
-        EXTRA_COMPILE_ARGS.append("-fopenmp")
-        EXTRA_LINK_ARGS.append("-fopenmp")
+    if arg.startswith("--with-openmp"):
+        openmp_lib=arg[len("--with-openmp"):]
+        EXTRA_COMPILE_ARGS.append("-fopenmp" + openmp_lib)
+        EXTRA_LINK_ARGS.append("-fopenmp" + openmp_lib)
         sys.argv.remove(arg)
 
 CLASSIFIERS = [
