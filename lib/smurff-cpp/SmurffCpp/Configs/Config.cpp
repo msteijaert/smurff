@@ -341,9 +341,6 @@ bool Config::validate() const
 
 void Config::save(std::string fname) const
 {
-   if (!m_save_freq)
-      return;
-
    std::ofstream os(fname);
 
    auto print_tensor_config = [&os](const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg) -> void
