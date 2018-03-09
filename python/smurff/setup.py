@@ -21,9 +21,22 @@ lapack_opt_info = sysinfo.get_info("lapack_opt")
 # }
 
 SOURCES            = ["smurff.pyx"]
-INCLUDE_DIRS       = [ numpy.get_include() ] + lapack_opt_info['include_dirs']
-LIBRARY_DIRS       = lapack_opt_info['library_dirs']
-LIBRARIES          = ["smurff-cpp" ] + lapack_opt_info['libraries']
+INCLUDE_DIRS       = [ numpy.get_include() ]
+LIBRARY_DIRS       = []
+LIBRARIES          = ["smurff-cpp" ]
+EXTRA_COMPILE_ARGS = ['-std=c++11']
+EXTRA_LINK_ARGS    = []
+
+if 'include_dirs' in lapack_opt_info:
+    INCLUDE_DIRS += lapack_opt_info['include_dirs']
+
+if 'library_dirs' in lapack_opt_info:
+    LIBRARY_DIRS += lapack_opt_info['library_dirs']
+
+if 'libraries' in lapack_opt_info:
+    LIBRARIES += lapack_opt_info['libraries']
+
+LIBRARIES          = ["smurff-cpp" ]
 EXTRA_COMPILE_ARGS = ['-std=c++11']
 EXTRA_LINK_ARGS    = []
 
