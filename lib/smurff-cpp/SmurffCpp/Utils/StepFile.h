@@ -17,14 +17,14 @@ namespace smurff {
       std::int32_t m_isample;
       std::string m_prefix;
       std::string m_extension;
-      bool m_burnin;
+      bool m_checkpoint;
 
       //AGE: should preserve order of elements as in file
       mutable std::vector<std::pair<std::string, std::string> > m_iniStorage;
 
    public:
       //this constructor should be used to create a step file on a first run of session
-      StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool burnin);
+      StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool checkpoint);
 
       //this constructor should be used to  open existing step file when previous session is continued
       StepFile(const std::string& path, std::string prefix, std::string extension);
@@ -68,7 +68,7 @@ namespace smurff {
    public:
       std::int32_t getIsample() const;
 
-      bool getBurnin() const;
+      bool getCheckpoint() const;
 
    public:
       std::int32_t getNSamples() const;

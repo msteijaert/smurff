@@ -12,7 +12,7 @@
 #include <SmurffCpp/Utils/IniUtils.h>
 
 #define STEP_SAMPLE_PREFIX "-sample-"
-#define STEP_BURNIN_PREFIX "-burnin-"
+#define STEP_CHECKPOINT_PREFIX "-checkpoint-"
 #define STEP_INI_SUFFIX "-step.ini"
 
 #define MODEL_PREFIX "model_"
@@ -25,8 +25,8 @@
 
 using namespace smurff;
 
-StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool burnin)
-   : m_isample(isample), m_prefix(prefix), m_extension(extension), m_burnin(burnin)
+StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool checkpoint)
+   : m_isample(isample), m_prefix(prefix), m_extension(extension), m_checkpoint(checkpoint)
 {
    if (create)
    {
@@ -46,7 +46,7 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
 StepFile::StepFile(const std::string& path, std::string prefix, std::string extension)
    : m_prefix(prefix), m_extension(extension)
 {
-   m_isample = tryGetIsampleFromPathInternal(path, STEP_BURNIN_PREFIX, STEP_INI_SUFFIX);
+   m_isample = tryGetIsampleFromPathInternal(path, STEP_CHECKPOINT_PREFIX, STEP_INI_SUFFIX);
 
    if (m_isample < 0)
    {
@@ -58,12 +58,12 @@ StepFile::StepFile(const std::string& path, std::string prefix, std::string exte
       }
       else
       {
-         m_burnin = false;
+         m_checkpoint = false;
       }
    }
    else
    {
-      m_burnin = true;
+      m_checkpoint = true;
    }
 
    //load all entries in ini file to be able to go through step file internals
@@ -100,7 +100,7 @@ std::int32_t StepFile::tryGetIsampleFromPathInternal(const std::string& path, co
 
 std::string StepFile::getStepPrefix() const
 {
-   std::string prefix = m_burnin ? STEP_BURNIN_PREFIX : STEP_SAMPLE_PREFIX;
+   std::string prefix = m_checkpoint ? STEP_CHECKPOINT_PREFIX : STEP_SAMPLE_PREFIX;
    return m_prefix + prefix + std::to_string(m_isample);
 }
 
@@ -307,9 +307,9 @@ std::int32_t StepFile::getIsample() const
    return m_isample;
 }
 
-bool StepFile::getBurnin() const
+bool StepFile::getCheckpoint() const
 {
-   return m_burnin;
+   return m_checkpoint;
 }
 
 std::int32_t StepFile::getNSamples() const
