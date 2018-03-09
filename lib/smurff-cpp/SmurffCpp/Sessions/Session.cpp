@@ -272,14 +272,18 @@ bool Session::restore(int& iteration)
 
 void Session::printStatus(double elapsedi, bool resume, int iteration)
 {
-   if(!m_config.getVerbose())
+   if(!m_config.getVerbose() &&
+      !m_config.getCsvStatus().size())
       return;
 
    double snorm0 = m_model->U(0).norm();
    double snorm1 = m_model->U(1).norm();
 
-   auto nnz_per_sec = (data()->nnz()) / elapsedi;
-   auto samples_per_sec = (m_model->nsamples()) / elapsedi;
+   // avoid computing train_rmse twice
+   double train_rmse = NAN;
+
+   std::uint64_t nnz_per_sec = elapsedi == 0.0 ? data()->nnz() : (data()->nnz()) / elapsedi;
+   std::uint64_t samples_per_sec = elapsedi == 0.0 ? m_model->nsamples() : (m_model->nsamples()) / elapsedi;
 
    std::string resumeString = resume ? "Continue from " : std::string();
 
