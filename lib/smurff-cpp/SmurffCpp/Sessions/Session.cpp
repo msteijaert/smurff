@@ -176,7 +176,7 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
       if (m_config.getCheckpointFreq() > 0)
       {
-          os << indent << "  Checkpoint state: every " << m_config.getSaveFreq() << " seconds\n";
+          os << indent << "  Checkpoint state: every " << m_config.getCheckpointFreq() << " seconds\n";
       }
 
       os << indent << "  Save prefix: " << m_config.getSavePrefix() << "\n";
@@ -202,7 +202,7 @@ void Session::save(int iteration)
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
 
    //save if checkpoint threshold overdue
-   if (m_lastCheckpointTime + m_config.getCheckpointFreq() > tick())
+   if (m_lastCheckpointTime + m_config.getCheckpointFreq() < tick())
    {
       if (m_lastCheckpointIter > 0)
       {
@@ -219,7 +219,7 @@ void Session::save(int iteration)
 
       m_lastCheckpointTime = tick();
       m_lastCheckpointIter = iteration;
-   }
+   } 
 
    //save model during sampling stage
    if (isample > 0)
@@ -270,7 +270,7 @@ bool Session::restore(int& iteration)
       BaseSession::restore(stepFile);
 
       //restore last iteration index
-      if (stepFile->getBurnin())
+      if (stepFile->getCheckpoint())
       {
          iteration = stepFile->getIsample() - 1; //restore original state
       }
