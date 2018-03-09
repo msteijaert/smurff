@@ -92,7 +92,7 @@ void Session::init()
    if (m_config.getCsvStatus().size())
    {
       auto f = fopen(m_config.getCsvStatus().c_str(), "w");
-      fprintf(f, "phase;iter;phase_len;globmean_rmse;colmean_rmse;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
+      fprintf(f, "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
       fclose(f);
    }
 
@@ -212,15 +212,20 @@ void Session::save(int iteration) const
    {
       //save_freq > 0: check modulo - do not save if not a save iteration
       if (m_config.getSaveFreq() > 0 && (isample % m_config.getSaveFreq()) != 0)
-         return;
-
+      {
+          // don't save
+      }
       //save_freq < 0: save last iter - do not save if (final model) mode is selected and not a final iteration
-      if (m_config.getSaveFreq() < 0 && isample < m_config.getNSamples())
-         return;
-
-      //save this iteration
-      std::shared_ptr<StepFile> stepFile = m_rootFile->createSampleStepFile(isample);
-      saveInternal(stepFile);
+      else if (m_config.getSaveFreq() < 0 && isample < m_config.getNSamples())
+      {
+          // don't save
+      }
+      else
+      {
+          //do save this iteration
+          std::shared_ptr<StepFile> stepFile = m_rootFile->createSampleStepFile(isample);
+          saveInternal(stepFile);
+      }
    }
 }
 
