@@ -3,13 +3,18 @@
 ![Install with Conda](https://anaconda.org/vanderaa/smurff/badges/installer/conda.svg)
 
 
-## Bayesian Factorization with Side Information
+## What is Bayesian Matrix Factorization 
 
-Highly optimized and parallelized methods for Bayesian Factorization, including 
-[BPMF](https://www.cs.toronto.edu/~amnih/papers/bpmf.pdf), 
-[Macau](https://arxiv.org/abs/1509.04610) and
-[GFA](https://arxiv.org/pdf/1411.5799.pdf).
-The package uses optimized OpenMP/C++ code with a Cython wrapper to factorize large scale matrices.
+Matrix factorization is a common machine learning technique for recommender systems, like books for Amazon or movies for Netflix.
+
+
+## What is SMURFF 
+SMURFF is a highly optimized and parallelized framework for Bayesian Matrix and Tensors Factorization
+
+SMURFF supports these matrix factorization methods: 
+* [BPMF](https://www.cs.toronto.edu/~amnih/papers/bpmf.pdf), 
+* [Macau](https://arxiv.org/abs/1509.04610) and
+* [GFA](https://arxiv.org/pdf/1411.5799.pdf).
 
 Macau method is able to perform **matrix** and **tensor** factorization while
 incorporating high-dimensional side information to the factorization.
