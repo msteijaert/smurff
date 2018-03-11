@@ -1,6 +1,6 @@
 # SMURFF - Scalable Matrix Factorization Framework
 [![Build Status](https://travis-ci.org/ExaScience/smurff.svg?branch=master)](https://travis-ci.org/ExaScience/smurff)
-[![Install with Conda](https://anaconda.org/vanderaa/smurff/badges/installer/conda.svg)]
+![Install with Conda](https://anaconda.org/vanderaa/smurff/badges/installer/conda.svg)
 
 
 ## Bayesian Factorization with Side Information
