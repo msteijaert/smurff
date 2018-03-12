@@ -35,6 +35,7 @@ public:
    Eigen::MatrixXd beta;      // link matrix
    bool use_FtF;
    double lambda_beta;
+   bool enable_lambda_beta_sampling;
    double lambda_beta_mu0; // Hyper-prior for lambda_beta
    double lambda_beta_nu0; // Hyper-prior for lambda_beta
 
@@ -48,7 +49,8 @@ public:
    MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalPrior(session, mode, "MacauPrior")
    {
-
+      lambda_beta = Config::LAMBDA_BETA_DEFAULT_VALUE;
+      enable_lambda_beta_sampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
    }
 
    virtual ~MacauPrior() {}
@@ -82,7 +84,9 @@ public:
       std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
       sample_beta();
       smurff::linop::compute_uhat(Uhat, *Features, beta);
-      lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
+
+      if(enable_lambda_beta_sampling)
+         lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
    }
 
    void addSideInfo(std::shared_ptr<FType> &Fmat, bool comp_FtF = false)
@@ -91,16 +95,9 @@ public:
       Features = Fmat;
       use_FtF = comp_FtF;
 
-      // initial value (should be determined automatically)
-      lambda_beta = 5.0;
       // Hyper-prior for lambda_beta (mean 1.0, var of 1e+3):
       lambda_beta_mu0 = 1.0;
       lambda_beta_nu0 = 1e-3;
-   }
-
-   double getLinkLambda()
-   {
-      return lambda_beta;
    }
 
    const Eigen::VectorXd getMu(int n) const override
@@ -137,6 +134,13 @@ public:
          sample_beta_cg();
    }
 
+public:
+
+   double getLinkLambda()
+   {
+      return lambda_beta;
+   }
+
    void setLambdaBeta(double lb)
    {
       lambda_beta = lb;
@@ -146,6 +150,13 @@ public:
    {
       tol = t;
    }
+
+   void setEnableLambdaBetaSampling(bool value)
+   {
+      enable_lambda_beta_sampling = value;
+   }
+
+public:
 
    void save(std::shared_ptr<const StepFile> sf) const override
    {

@@ -30,8 +30,9 @@ public:
    Eigen::VectorXd F_colsq;   // sum-of-squares for every feature (column)
 
    Eigen::MatrixXd beta;      // link matrix
-   double lb0 = 5.0;
+   double lb0;
    Eigen::VectorXd lambda_beta;
+   bool enable_lambda_beta_sampling;
    double lambda_beta_a0; // Hyper-prior for lambda_beta
    double lambda_beta_b0; // Hyper-prior for lambda_beta
 
@@ -39,6 +40,8 @@ public:
    MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalOnePrior(session, mode, "MacauOnePrior")
    {
+      lb0 = Config::LAMBDA_BETA_DEFAULT_VALUE;
+      enable_lambda_beta_sampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
    }
 
    void init() override
@@ -51,7 +54,7 @@ public:
 
       // initial value (should be determined automatically)
       // Hyper-prior for lambda_beta (mean 1.0):
-      lambda_beta     = Eigen::VectorXd::Constant(num_latent(), lb0);
+      lambda_beta = Eigen::VectorXd::Constant(num_latent(), lb0);
       lambda_beta_a0 = 0.1;
       lambda_beta_b0 = 0.1;
    }
@@ -68,7 +71,9 @@ public:
       sample_mu_lambda(U());
       sample_beta(U());
       smurff::linop::compute_uhat(Uhat, *Features, beta);
-      sample_lambda_beta();
+
+      if(enable_lambda_beta_sampling)
+         sample_lambda_beta();
    }
     
    const Eigen::VectorXd getMu(int n) const override
@@ -76,11 +81,28 @@ public:
       return this->mu + Uhat.col(n);
    }
 
+public:
 
    double getLinkLambda()
    {
       return lambda_beta.mean();
    }
+
+   void setLambdaBeta(double lb)
+   {
+      lb0 = lb;
+   }
+
+   void setTol(double)
+   {
+   }
+
+   void setEnableLambdaBetaSampling(bool value)
+   {
+      enable_lambda_beta_sampling = value;
+   }
+
+public:
 
    //used in update_prior
 
@@ -184,14 +206,7 @@ public:
       }
    }
 
-   void setLambdaBeta(double lb)
-   {
-       lb0 = lb;
-   }
-
-   void setTol(double)
-   {
-   }
+public:
 
    void save(std::shared_ptr<const StepFile> sf) const override
    {
