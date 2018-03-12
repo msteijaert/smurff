@@ -147,18 +147,18 @@ class TestExCAPE(unittest.TestCase):
     def test_macau_c2v(self):
         params = self.get_default_opts()
         side_info = [ "side_c2v.ddm", "none" ]
-        self.macau(side_info, params, [1.08, 1.0, 240. ])
+        self.macau(side_info, params, [1.1, 1.0, 240. ])
 
     def test_macau_ecfp_sparse_direct(self):
         params = self.get_default_opts()
         side_info = [ "side_ecfp6_counts_var005.sdm", "none" ]
-        self.macau(side_info, params, [1.17, 1.0, 900. ])
+        self.macau(side_info, params, [1.19, 1.0, 900. ])
 
     def test_macau_ecfp_sparse_cg(self):
         params = self.get_default_opts()
         params["direct"] = False
         side_info = [ "side_ecfp6_counts_var005.sdm", "none" ]
-        self.macau(side_info, params, [1.17, 1.0, 480. ])
+        self.macau(side_info, params, [1.19, 1.0, 480. ])
 
     def test_macau_ecfp_dense(self):
         params = self.get_default_opts()
