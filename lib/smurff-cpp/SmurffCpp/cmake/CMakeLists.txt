@@ -184,6 +184,7 @@ add_library (${PROJECT} STATIC ${HEADER_FILES}
                                )
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
+
 #SETUP INCLUDES
 include_directories(../)
 include_directories(../..)
@@ -202,3 +203,20 @@ install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../Sessions/ISession.h DESTINATION include/SmurffCpp/Sessions)
+
+# generate libsmurff.pc
+set(PKG_CONFIG_DEST_DIR "${CMAKE_INSTALL_PREFIX}")
+
+foreach(LIB ${ALGEBRA_LIBS})
+    set(PKG_CONFIG_PRIVATE_LIBS "${PKG_CONFIG_PRIVATE_LIBS} -l${LIB}")
+endforeach()
+
+if(${OPENMP_FOUND})
+    foreach(LIB ${OpenMP_CXX_LIB_NAMES})
+        set(PKG_CONFIG_PRIVATE_LIBS "${PKG_CONFIG_PRIVATE_LIBS} -l${LIB}")
+    endforeach()
+    set(PKG_CONFIG_CFLAGS "${PKG_CONFIG_CFLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
+CONFIGURE_FILE("../libsmurff.pc.in" "libsmurff.pc" @ONLY)
+
