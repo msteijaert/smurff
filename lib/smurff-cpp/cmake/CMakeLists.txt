@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.6.0)
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
-set (PROJECT smurff)
+set (PROJECT RootSmurff)
 project (${PROJECT})
 
 MESSAGE("smurff")
@@ -219,7 +219,8 @@ endif()
 message("Checking build dependencies...")
 
 #set additional search paths for cmake scripts
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/")
+SET(SCRIPT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/scripts/")
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCRIPT_DIR}")
 
 include(scripts/DependenciesConfig.cmake)
 
@@ -341,4 +342,9 @@ add_subdirectory (../Tests/cmake tests/Tests)
 add_subdirectory (../BenchMvnormal/cmake tests/BenchMvnormal)
 add_subdirectory (../BenchNrandn/cmake tests/BenchNrandn)
 add_subdirectory (../BenchWishart/cmake tests/BenchWishart)
+
+
+# python
+
+add_subdirectory (../../../python/smurff python/Smurff)
 
