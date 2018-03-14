@@ -85,11 +85,9 @@ if (MSVC OR MSVC_IDE OR MSVC_VERSION OR MSVC60 OR MSVC70 OR MSVC71 OR MSVC80 OR 
 
 elseif (CMAKE_COMPILER_IS_GNUCXX OR APPLE)
    if(APPLE)
-      message(STATUS "   -- OSX: Using iOS SDK: ${CMAKE_OSX_SYSROOT}")
       message(STATUS "   -- OSX: System root directory found at: ${CMAKE_OSX_SYSROOT}")
-      message(STATUS "   -- OSX: Xcode developer directory found at: ${XCODE_DEVELOPER_DIR}")
-      message(STATUS "   -- OSX: gcc found at: ${CMAKE_C_COMPILER}")
-      message(STATUS "   -- OSX: g++ found at: ${CMAKE_CXX_COMPILER}")
+      message(STATUS "   -- OSX: c compiler found at: ${CMAKE_C_COMPILER}")
+      message(STATUS "   -- OSX: c++ compiler found at: ${CMAKE_CXX_COMPILER}")
 
       add_definitions(-DMAC_OSX)
    endif()
