@@ -123,7 +123,7 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
          {
             if (item)
             {
-               auto& sideInfo = item->getSideInfo();
+               const auto& sideInfo = item->getSideInfo();
 
                if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
                   sideInfo->setNoiseConfig(nc);
@@ -300,7 +300,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(SAVE_FREQ_NAME) && !vm[SAVE_FREQ_NAME].defaulted())
       config.setSaveFreq(vm[SAVE_FREQ_NAME].as<int>());
-   
+
    if (vm.count(CHECKPOINT_FREQ_NAME) && !vm[CHECKPOINT_FREQ_NAME].defaulted())
       config.setCheckpointFreq(vm[CHECKPOINT_FREQ_NAME].as<int>());
 

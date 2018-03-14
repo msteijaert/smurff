@@ -46,7 +46,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
     prior->setTolValues(config_items);
 
     prior->setEnableLambdaBetaSampling(session->getConfig().getEnableLambdaBetaSampling());
-    
+
     return prior;
 }
 
@@ -80,7 +80,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
       THROWERROR("Side info should always present for macau prior");
    }
 
-   //FIXME: 
+   //FIXME:
    //there is a problem - do we want different types of side infos for one prior?
    //if yes then we can not use current implementation of MacauPrior for example
    //if we want to store each side info separately since type of sideinfo is specified as template argument
@@ -88,7 +88,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
    //or we can try to merge HERE all side info into single matrix and store it into macau prior
 
    auto& configItem = priorConfig->getConfigItems().front();
-   auto& sideinfoConfig = configItem->getSideInfo();
+   const auto& sideinfoConfig = configItem->getSideInfo();
 
    if (sideinfoConfig->isBinary())
    {

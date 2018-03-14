@@ -5,7 +5,7 @@
 #include <SmurffCpp/IO/IDataWriter.h>
 #include <SmurffCpp/DataMatrices/IDataCreator.h>
 #include <SmurffCpp/Utils/Error.h>
-#include <SmurffCpp/IO/GenericIO.h>v
+#include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 
 #define POS_TAG "pos"
@@ -365,27 +365,27 @@ void TensorConfig::setNoiseConfig(const NoiseConfig& value)
    m_noiseConfig = value;
 }
 
-void TensorConfig::setFilename(const std::string &f) 
+void TensorConfig::setFilename(const std::string &f)
 {
     m_filename = f;
 }
-    
-const std::string &TensorConfig::getFilename() const 
+
+const std::string &TensorConfig::getFilename() const
 {
     return m_filename;
 }
 
-void TensorConfig::setPos(const PVec<>& p) 
+void TensorConfig::setPos(const PVec<>& p)
 {
    m_pos = std::make_shared<PVec<>>(p);
 }
-    
-bool TensorConfig::hasPos() const 
+
+bool TensorConfig::hasPos() const
 {
     return m_pos != nullptr;
-}    
+}
 
-const PVec<>& TensorConfig::getPos() const 
+const PVec<>& TensorConfig::getPos() const
 {
     return *m_pos;
 }

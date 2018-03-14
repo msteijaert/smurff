@@ -203,7 +203,7 @@ bool Config::validate() const
       {
          //it is advised to check macau and macauone priors implementation
          //as well as code in PriorFactory that creates macau priors
-         
+
          //this check does not directly check that input data is Tensor (it only checks number of dimensions)
          //however TensorDataFactory will do an additional check throwing an exception
          THROWERROR("Aux data is not supported for TensorData");
@@ -226,7 +226,7 @@ bool Config::validate() const
 
          for (auto configItem : configItems)
          {
-            auto& sideInfo = configItem->getSideInfo();
+            const auto& sideInfo = configItem->getSideInfo();
             THROWERROR_ASSERT(sideInfo);
 
             if (sideInfo->getDims()[0] != m_train->getDims()[i])
@@ -253,7 +253,7 @@ bool Config::validate() const
 
       for(auto& ad2 : getData())
       {
-         if (ad1 == ad2) 
+         if (ad1 == ad2)
             continue;
 
          if (!ad2->hasPos())
@@ -266,7 +266,7 @@ bool Config::validate() const
          const auto& dim2 = ad2->getDims();
          const auto& pos2 = ad2->getPos();
 
-         if (pos1 == pos2) 
+         if (pos1 == pos2)
          {
             std::stringstream ss;
             ss << "Data \"" << ad1->info() <<  "\" and \"" << ad2->info() << "\" at same position";
@@ -275,7 +275,7 @@ bool Config::validate() const
 
          // if two data blocks are aligned in a certain dimension
          // this dimension should be equal size
-         for (std::size_t i = 0; i < pos1.size(); ++i) 
+         for (std::size_t i = 0; i < pos1.size(); ++i)
          {
             if (pos1.at(i) == pos2.at(i) && (dim1.at(i) != dim2.at(i)))
             {
@@ -335,7 +335,7 @@ bool Config::validate() const
 void Config::save(std::string fname) const
 {
    std::ofstream os(fname);
-   
+
    //write header with time and version
    os << "## SMURFF config .ini file" << std::endl;
    os << "# generated file - copy before editing!" << std::endl;
@@ -355,7 +355,7 @@ void Config::save(std::string fname) const
    os << std::endl << "# count" << std::endl;
    os << NUM_PRIORS_TAG << " = " << m_prior_types.size() << std::endl;
    os << NUM_AUX_DATA_TAG << " = " << m_auxData.size() << std::endl;
-   
+
    //priors data
    os << std::endl << "# priors" << std::endl;
    for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
@@ -431,7 +431,7 @@ bool Config::restore(std::string fname)
 
    auto add_index = [](const std::string name, int idx = -1) -> std::string
    {
-      if (idx >= 0) 
+      if (idx >= 0)
          return name + "_" + std::to_string(idx);
       return name;
    };
@@ -462,7 +462,7 @@ bool Config::restore(std::string fname)
       else
          m_macauPriorConfigs.push_back(std::shared_ptr<MacauPriorConfig>());
    }
-   
+
    //restore aux data
    std::size_t num_aux_data = reader.getInteger(GLOBAL_SECTION_TAG, NUM_AUX_DATA_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_aux_data; pIndex++)
