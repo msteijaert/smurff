@@ -218,5 +218,6 @@ if(${OPENMP_FOUND})
     set(PKG_CONFIG_CFLAGS "${PKG_CONFIG_CFLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-CONFIGURE_FILE("../libsmurff.pc.in" "libsmurff.pc" @ONLY)
+CONFIGURE_FILE("../libsmurff.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/libsmurff.pc" @ONLY)
 
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libsmurff.pc" DESTINATION share/pkgconfig)
