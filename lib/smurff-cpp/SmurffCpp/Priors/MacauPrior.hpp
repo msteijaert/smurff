@@ -30,15 +30,22 @@ public:
    typedef FType SideInfo;
 
    Eigen::MatrixXd Uhat;
-   std::shared_ptr<FType> Features;  // side information
    Eigen::MatrixXd FtF;       // F'F
    Eigen::MatrixXd beta;      // link matrix
-   bool use_FtF;
-   double lambda_beta;
+   
    bool enable_lambda_beta_sampling;
    double lambda_beta_mu0; // Hyper-prior for lambda_beta
    double lambda_beta_nu0; // Hyper-prior for lambda_beta
 
+   std::vector<std::shared_ptr<FType> > side_info_values;
+   std::vector<double> lambda_beta_values;
+   std::vector<bool> direct_values;
+   std::vector<double> tol_values;
+
+   //these must be removed
+   std::shared_ptr<FType> Features;  // side information
+   bool use_FtF;
+   double lambda_beta;
    double tol = 1e-6;
 
 private:
@@ -49,7 +56,9 @@ public:
    MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalPrior(session, mode, "MacauPrior")
    {
-      lambda_beta = Config::LAMBDA_BETA_DEFAULT_VALUE;
+      lambda_beta = MacauPriorConfig::LAMBDA_BETA_DEFAULT_VALUE;
+      tol = MacauPriorConfig::TOL_DEFAULT_VALUE;
+
       enable_lambda_beta_sampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
    }
 
@@ -89,17 +98,6 @@ public:
          lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
    }
 
-   void addSideInfo(std::shared_ptr<FType> &Fmat, bool comp_FtF = false)
-   {
-      // side information
-      Features = Fmat;
-      use_FtF = comp_FtF;
-
-      // Hyper-prior for lambda_beta (mean 1.0, var of 1e+3):
-      lambda_beta_mu0 = 1.0;
-      lambda_beta_nu0 = 1e-3;
-   }
-
    const Eigen::VectorXd getMu(int n) const override
    {
       return this->mu + Uhat.col(n);
@@ -136,19 +134,45 @@ public:
 
 public:
 
-   double getLinkLambda()
+   void addSideInfo(std::shared_ptr<FType>& side_info, bool direct = false)
    {
-      return lambda_beta;
+      //FIXME: remove old code
+
+      // side information
+      Features = side_info;
+      use_FtF = direct;
+
+      //FIXME: this code should push multiple side info items that are passed?
+
+      // side information
+      side_info_values.push_back(side_info);
+      direct_values.push_back(direct);
+
+      // Hyper-prior for lambda_beta (mean 1.0, var of 1e+3):
+      lambda_beta_mu0 = 1.0;
+      lambda_beta_nu0 = 1e-3;
    }
 
-   void setLambdaBeta(double lb)
+   void setLambdaBetaValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
    {
-      lambda_beta = lb;
+      lambda_beta_values.clear();
+
+      for (auto& item : config_items)
+         lambda_beta_values.push_back(item->getLambdaBeta());
+
+      //FIXME: remove old code
+      lambda_beta = config_items.front()->getLambdaBeta();
    }
 
-   void setTol(double t)
+   void setTolValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
    {
-      tol = t;
+      tol_values.clear();
+
+      for (auto& item : config_items)
+         tol_values.push_back(item->getTol());
+
+      //FIXME: remove old code
+      tol = config_items.front()->getTol();
    }
 
    void setEnableLambdaBetaSampling(bool value)

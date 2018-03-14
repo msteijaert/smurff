@@ -40,10 +40,7 @@
 #define PRECISION_NAME "precision"
 #define ADAPTIVE_NAME "adaptive"
 #define PROBIT_NAME "probit"
-#define LAMBDA_BETA_NAME "lambda-beta"
 #define ENABLE_LAMBDA_BETA_SAMPLING_NAME "enable-lambda-beta-sampling"
-#define TOL_NAME "tol"
-#define DIRECT_NAME "direct"
 #define INI_NAME "ini"
 #define ROOT_NAME "root"
 
@@ -98,10 +95,7 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
-      (LAMBDA_BETA_NAME, boost::program_options::value<double>()->default_value(Config::LAMBDA_BETA_DEFAULT_VALUE), "initial value of lambda beta")
-      (ENABLE_LAMBDA_BETA_SAMPLING_NAME, boost::program_options::value<bool>()->default_value(Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE), "enable sampling of lambda beta")
-      (TOL_NAME, boost::program_options::value<double>()->default_value(Config::TOL_DEFAULT_VALUE), "tolerance for CG")
-      (DIRECT_NAME, "Use Cholesky decomposition i.o. CG Solver");
+      (ENABLE_LAMBDA_BETA_SAMPLING_NAME, boost::program_options::value<bool>()->default_value(Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE), "enable sampling of lambda beta");
 
    boost::program_options::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
    desc.add(basic_desc);
@@ -121,10 +115,21 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
       THROWERROR("train data is not provided");
 
    //set for side info
-   for(auto& sideInfo : config.getSideInfo())
+   for (auto& mpc : config.getMacauPriorConfigs())
    {
-      if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-         sideInfo->setNoiseConfig(nc);
+      if (mpc)
+      {
+         for (auto& item : mpc->getConfigItems())
+         {
+            if (item)
+            {
+               auto& sideInfo = item->getSideInfo();
+
+               if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+                  sideInfo->setNoiseConfig(nc);
+            }
+         }
+      }
    }
 
    // set for aux data
@@ -190,19 +195,46 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(SIDE_INFO_NAME) && !vm[SIDE_INFO_NAME].defaulted())
    {
-      for (auto sideInfo : vm[SIDE_INFO_NAME].as<std::vector<std::string> >())
+      //parse each group of tokens into MacauPriorConfig
+      for (auto sideInfoString : vm[SIDE_INFO_NAME].as<std::vector<std::string> >())
       {
-         if (sideInfo == NONE_TOKEN)
-            config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-         else
-            config.getSideInfo().push_back(matrix_io::read_matrix(sideInfo, false));
+         std::vector<std::string> tokens;
+         smurff::split(sideInfoString, tokens, ',');
+
+         auto mpc = std::make_shared<MacauPriorConfig>();
+
+         //parse each token into MacauPriorConfigItem
+         for (auto token : tokens)
+         {
+            if (token == NONE_TOKEN)
+            {
+               mpc = std::shared_ptr<MacauPriorConfig>();
+               break;
+            }
+
+            std::vector<std::string> properties;
+            smurff::split(token, properties, ';');
+
+            THROWERROR_ASSERT(properties.size() == 4);
+
+            auto mpci = std::make_shared<MacauPriorConfigItem>();
+
+            mpci->setLambdaBeta(stod(properties.at(0)));
+            mpci->setTol(stod(properties.at(1)));
+            mpci->setDirect(stoi(properties.at(2)));
+            mpci->setSideInfo(matrix_io::read_matrix(properties.at(3), false));
+
+            mpc->getConfigItems().push_back(mpci);
+         }
+
+         config.getMacauPriorConfigs().push_back(mpc);
       }
    }
    else
    {
       // same as "none none ..."
       auto num_priors = config.getPriorTypes().size();
-      config.getSideInfo().resize(num_priors);
+      config.getMacauPriorConfigs().resize(num_priors);
    }
 
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())
@@ -302,17 +334,8 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    else
       set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
 
-   if (vm.count(LAMBDA_BETA_NAME) && !vm[LAMBDA_BETA_NAME].defaulted())
-      config.setLambdaBeta(vm[LAMBDA_BETA_NAME].as<double>());
-
    if (vm.count(ENABLE_LAMBDA_BETA_SAMPLING_NAME) && !vm[ENABLE_LAMBDA_BETA_SAMPLING_NAME].defaulted())
       config.setEnableLambdaBetaSampling(vm[ENABLE_LAMBDA_BETA_SAMPLING_NAME].as<bool>());
-
-   if (vm.count(TOL_NAME) && !vm[TOL_NAME].defaulted())
-      config.setTol(vm[TOL_NAME].as<double>());
-
-   if (vm.count(DIRECT_NAME) && !vm[DIRECT_NAME].defaulted())
-      config.setDirect(true);
 }
 #endif
 

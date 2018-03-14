@@ -59,11 +59,13 @@ FILE (GLOB CONFIG_FILES "../Configs/Config.h"
                         "../Configs/MatrixConfig.h"
                         "../Configs/TensorConfig.h"
                         "../Configs/NoiseConfig.h"
+                        "../Configs/MacauPriorConfig.h"
 
                         "../Configs/Config.cpp"
                         "../Configs/MatrixConfig.cpp"
                         "../Configs/TensorConfig.cpp"
                         "../Configs/NoiseConfig.cpp"
+                        "../Configs/MacauPriorConfig.cpp"
                         )
 
 source_group ("Configs" FILES ${CONFIG_FILES})

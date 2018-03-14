@@ -26,21 +26,29 @@ public:
 
    Eigen::MatrixXd Uhat;
 
-   std::shared_ptr<FType> Features;  // side information
    Eigen::VectorXd F_colsq;   // sum-of-squares for every feature (column)
 
    Eigen::MatrixXd beta;      // link matrix
-   double lb0;
+   
    Eigen::VectorXd lambda_beta;
+
    bool enable_lambda_beta_sampling;
    double lambda_beta_a0; // Hyper-prior for lambda_beta
    double lambda_beta_b0; // Hyper-prior for lambda_beta
+
+   std::vector<std::shared_ptr<FType> > side_info_values;
+   std::vector<double> lambda_beta_values;
+
+   //these must be removed
+   std::shared_ptr<FType> Features;  // side information
+   double lb0;
 
 public:
    MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalOnePrior(session, mode, "MacauOnePrior")
    {
-      lb0 = Config::LAMBDA_BETA_DEFAULT_VALUE;
+      lb0 = MacauPriorConfig::LAMBDA_BETA_DEFAULT_VALUE;
+
       enable_lambda_beta_sampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
    }
 
@@ -59,13 +67,6 @@ public:
       lambda_beta_b0 = 0.1;
    }
 
-   void addSideInfo(std::shared_ptr<FType> &Fmat, bool)
-   {
-      // side information
-      Features = Fmat;
-      F_colsq = smurff::linop::col_square_sum(*Features);
-   }
-
    void update_prior() override
    {
       sample_mu_lambda(U());
@@ -82,18 +83,31 @@ public:
    }
 
 public:
-
-   double getLinkLambda()
+   void addSideInfo(std::shared_ptr<FType>& side_info, bool direct = false)
    {
-      return lambda_beta.mean();
+      //FIXME: remove old code
+      Features = side_info;
+
+      //FIXME: this code should push multiple side info items that are passed?
+
+      // side information
+      side_info_values.push_back(side_info);
+
+      F_colsq = smurff::linop::col_square_sum(*Features);
    }
 
-   void setLambdaBeta(double lb)
+   void setLambdaBetaValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
    {
-      lb0 = lb;
+      lambda_beta_values.clear();
+
+      for (auto& item : config_items)
+         lambda_beta_values.push_back(item->getLambdaBeta());
+
+      //FIXME: remove old code
+      lb0 = config_items.front()->getLambdaBeta();
    }
 
-   void setTol(double)
+   void setTolValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
    {
    }
 
