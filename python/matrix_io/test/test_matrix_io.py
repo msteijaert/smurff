@@ -133,5 +133,56 @@ class TestMatrixIO(unittest.TestCase):
         actual_matrix = matrix_io.read_matrix(matrix_relative_path)
         self.assertTrue(numpy.allclose(actual_matrix, expected_matrix))
 
+    def test_read_cpp_generated_dense_matrix_ddm(self):
+        matrix_relative_path = "test_data/cpp_generated_dense_matrix.ddm"
+        expected_matrix = numpy.array([[1,  2,  3,  4],
+                                       [5,  6,  7,  8],
+                                       [9, 10, 11, 12]])
+        actual_matrix = matrix_io.read_matrix(matrix_relative_path)
+        self.assertTrue(numpy.allclose(actual_matrix, expected_matrix))
+
+    def test_read_cpp_generated_dense_matrix_mtx(self):
+        matrix_relative_path = "test_data/cpp_generated_dense_matrix.mtx"
+        expected_matrix = numpy.array([[1,  2,  3,  4],
+                                       [5,  6,  7,  8],
+                                       [9, 10, 11, 12]])
+        actual_matrix = matrix_io.read_matrix(matrix_relative_path)
+        self.assertTrue(numpy.allclose(actual_matrix, expected_matrix))
+
+    def test_read_cpp_generated_dense_matrix_csv(self):
+        matrix_relative_path = "test_data/cpp_generated_dense_matrix.csv"
+        expected_matrix = numpy.array([[1,  2,  3,  4],
+                                       [5,  6,  7,  8],
+                                       [9, 10, 11, 12]])
+        actual_matrix = matrix_io.read_matrix(matrix_relative_path)
+        self.assertTrue(numpy.allclose(actual_matrix, expected_matrix))
+
+    def test_read_cpp_generated_sparse_matrix_sdm(self):
+        matrix_relative_path = "test_data/cpp_generated_sparse_matrix.sdm"
+        expected_matrix_rows  = numpy.array([0, 0, 0, 0, 2,  2,  2,  2])
+        expected_matrix_cols  = numpy.array([0, 1, 2, 3, 0,  1,  2,  3])
+        expected_matrix_vals  = numpy.array([1, 2, 3, 4, 9, 10, 11, 12])
+        expected_matrix = scipy.sparse.coo_matrix((expected_matrix_vals, (expected_matrix_rows, expected_matrix_cols)), shape=(3, 4))
+        actual_matrix = matrix_io.read_matrix(matrix_relative_path)
+        self.assertTrue(numpy.allclose(actual_matrix.todense(), expected_matrix.todense()))
+
+    def test_read_cpp_generated_sparse_matrix_sbm(self):
+        matrix_relative_path = "test_data/cpp_generated_sparse_matrix.sbm"
+        expected_matrix_rows  = numpy.array([0, 0, 0, 0, 2, 2, 2, 2])
+        expected_matrix_cols  = numpy.array([0, 1, 2, 3, 0, 1, 2, 3])
+        expected_matrix_vals  = numpy.array([1, 1, 1, 1, 1, 1, 1, 1])
+        expected_matrix = scipy.sparse.coo_matrix((expected_matrix_vals, (expected_matrix_rows, expected_matrix_cols)), shape=(3, 4))
+        actual_matrix = matrix_io.read_matrix(matrix_relative_path)
+        self.assertTrue(numpy.allclose(actual_matrix.todense(), expected_matrix.todense()))
+
+    def test_read_cpp_generated_sparse_matrix_mtx(self):
+        matrix_relative_path = "test_data/cpp_generated_sparse_matrix.mtx"
+        expected_matrix_rows  = numpy.array([0, 0, 0, 0, 2,  2,  2,  2])
+        expected_matrix_cols  = numpy.array([0, 1, 2, 3, 0,  1,  2,  3])
+        expected_matrix_vals  = numpy.array([1, 2, 3, 4, 9, 10, 11, 12])
+        expected_matrix = scipy.sparse.coo_matrix((expected_matrix_vals, (expected_matrix_rows, expected_matrix_cols)), shape=(3, 4))
+        actual_matrix = matrix_io.read_matrix(matrix_relative_path)
+        self.assertTrue(numpy.allclose(actual_matrix.todense(), expected_matrix.todense()))
+
 if __name__ == '__main__':
     unittest.main()
