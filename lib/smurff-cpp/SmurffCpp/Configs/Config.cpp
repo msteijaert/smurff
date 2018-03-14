@@ -40,6 +40,7 @@
 #define CSV_STATUS_TAG "csv_status"
 #define INIT_MODEL_TAG "init_model"
 #define LAMBDA_BETA_TAG "lambda_beta"
+#define ENABLE_LAMBDA_BETA_SAMPLING_TAG "enable_lambda_beta_sampling"
 #define TOL_TAG "tol"
 #define DIRECT_TAG "direct"
 #define NOISE_MODEL_TAG "noise_model"
@@ -140,6 +141,7 @@ int Config::CHECKPOINT_FREQ_DEFAULT_VALUE = 0;
 int Config::VERBOSE_DEFAULT_VALUE = 1;
 const char* Config::STATUS_DEFAULT_VALUE = "";
 double Config::LAMBDA_BETA_DEFAULT_VALUE = 10.0;
+bool Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE = false;
 double Config::TOL_DEFAULT_VALUE = 1e-6;
 double Config::THRESHOLD_DEFAULT_VALUE = 0.0;
 int Config::RANDOM_SEED_DEFAULT_VALUE = 0;
@@ -163,6 +165,7 @@ Config::Config()
    m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
 
    m_lambda_beta = Config::LAMBDA_BETA_DEFAULT_VALUE;
+   m_enableLambdaBetaSampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
    m_tol = Config::TOL_DEFAULT_VALUE;
    m_direct = false;
 
@@ -429,6 +432,7 @@ void Config::save(std::string fname) const
    //macau priors data
    os << std::endl << "# for macau priors" << std::endl;
    os << LAMBDA_BETA_TAG << " = " << m_lambda_beta << std::endl;
+   os << ENABLE_LAMBDA_BETA_SAMPLING_TAG << " = " << m_enableLambdaBetaSampling << std::endl;
    os << TOL_TAG << " = " << m_tol << std::endl;
    os << DIRECT_TAG << " = " << m_direct << std::endl;
 
@@ -564,6 +568,7 @@ bool Config::restore(std::string fname)
 
    //restore macau priors data
    m_lambda_beta = reader.getReal(GLOBAL_SECTION_TAG, LAMBDA_BETA_TAG, Config::LAMBDA_BETA_DEFAULT_VALUE);
+   m_enableLambdaBetaSampling = reader.getBoolean(GLOBAL_SECTION_TAG, ENABLE_LAMBDA_BETA_SAMPLING_TAG, Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE);
    m_tol = reader.getReal(GLOBAL_SECTION_TAG, TOL_TAG, Config::TOL_DEFAULT_VALUE);
    m_direct = reader.getBoolean(GLOBAL_SECTION_TAG, DIRECT_TAG,  false);
 

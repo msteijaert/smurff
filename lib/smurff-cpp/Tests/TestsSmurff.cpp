@@ -667,6 +667,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -725,6 +726,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -789,6 +791,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -841,6 +844,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -900,6 +904,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -957,6 +962,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -1019,6 +1025,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1057,6 +1064,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1095,6 +1103,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1357,6 +1366,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -1414,6 +1424,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
+   config.setEnableLambdaBetaSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -1809,6 +1820,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    config.setVerbose(false);
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
+   config.setEnableLambdaBetaSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1846,6 +1858,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    config.setVerbose(false);
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
+   config.setEnableLambdaBetaSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }

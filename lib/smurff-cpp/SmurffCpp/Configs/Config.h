@@ -62,6 +62,7 @@ public:
    static int VERBOSE_DEFAULT_VALUE;
    static const char* STATUS_DEFAULT_VALUE;
    static double LAMBDA_BETA_DEFAULT_VALUE;
+   static bool ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
    static double TOL_DEFAULT_VALUE;
    static double THRESHOLD_DEFAULT_VALUE;
    static int RANDOM_SEED_DEFAULT_VALUE;
@@ -98,6 +99,7 @@ private:
 
    //-- for macau priors
    double m_lambda_beta;
+   bool m_enableLambdaBetaSampling;
    double m_tol;
    bool m_direct;
 
@@ -303,6 +305,16 @@ public:
    void setLambdaBeta(double value)
    {
       m_lambda_beta = value;
+   }
+
+   bool getEnableLambdaBetaSampling() const
+   {
+      return m_enableLambdaBetaSampling;
+   }
+
+   void setEnableLambdaBetaSampling(bool value)
+   {
+      m_enableLambdaBetaSampling = value;
    }
 
    double getTol() const
