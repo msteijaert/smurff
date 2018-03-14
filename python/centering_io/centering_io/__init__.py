@@ -47,10 +47,6 @@ def mean(m, mode):
         elif (mode != "none"):
             raise ValueError("Unknown centering mode: %s" % ( mode ) )
 
-    if (mode == "cols"):     sio.mmwrite("mean_cols", np.expand_dims(mean, 0))
-    elif (mode == "rows"):   sio.mmwrite("mean_rows", np.expand_dims(mean, 1))
-    elif (mode == "global"): sio.mmwrite("mean_global", np.full([1,1], mean))
-
     return mean
 
 
