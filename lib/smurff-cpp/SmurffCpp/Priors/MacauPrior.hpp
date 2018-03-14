@@ -115,7 +115,7 @@ public:
       // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(lambda_beta) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
       HyperU = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
-      //Ft_y = smurff::linop::A_mul_B(HyperU, *Features);
+      
       Ft_y = smurff::linop::A_mul_B(HyperU, *Features);
       HyperU2 = MvNormal_prec_omp(Lambda, num_feat);
 
