@@ -120,6 +120,10 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
    if(!config.getTrain())
       THROWERROR("train data is not provided");
 
+   // set for train data
+   if (config.getTrain()->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+      config.getTrain()->setNoiseConfig(nc);
+
    //set for side info
    for(auto& sideInfo : config.getSideInfo())
    {
@@ -128,7 +132,7 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
    }
 
    // set for aux data
-   for(auto& data : config.getData())
+   for(auto& data : config.getAuxData())
    {
        if (data->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
            data->setNoiseConfig(nc);
