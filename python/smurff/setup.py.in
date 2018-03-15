@@ -5,10 +5,10 @@ import os
 import sys
 
 if os.path.exists('CMakeLists.txt'):
-    print("""The setup.py script should be executed from the build directory."""
+    print("The setup.py script should be executed from the build directory.")
     sys.exit(1)
 
-LASSIFIERS = [
+CLASSIFIERS = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT",
@@ -23,7 +23,6 @@ LASSIFIERS = [
     "Operating System :: Unix",
     "Operating System :: MacOS"
 ]
-
 
 setup(
     name = 'smurff',
@@ -44,9 +43,3 @@ setup(
     keywords = "bayesian factorization machine-learning high-dimensional side-information",
     install_requires = ['numpy', 'scipy', 'pandas']
 )
-
-C
-setup(
-    # packages = ["smurff"],
-    # package_dir = {'' : 'python'},
-
