@@ -25,5 +25,7 @@ add_custom_target( ReplicatePythonSourceTree ALL ${CMAKE_COMMAND} -P
   ${CMAKE_CURRENT_BINARY_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
+configure_file(setup.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
+
 add_subdirectory( src )
 
