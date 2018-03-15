@@ -22,9 +22,9 @@ lapack_opt_info = sysinfo.get_info("lapack_opt")
 
 SOURCES            = ["smurff.pyx"]
 INCLUDE_DIRS       = [ numpy.get_include() ]
-LIBRARY_DIRS       = [ "/usr/local/opt/openblas/lib" ]
+LIBRARY_DIRS       = [ ]
 LIBRARIES          = ["smurff-cpp", "openblas" ]
-EXTRA_COMPILE_ARGS = ['-std=c++11']
+EXTRA_COMPILE_ARGS = ['-std=c++11', pkgconfig.cflags("libsmurff") ]
 EXTRA_LINK_ARGS    = []
 
 # add --with-smurff-cpp option
