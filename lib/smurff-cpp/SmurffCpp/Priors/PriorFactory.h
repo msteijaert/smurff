@@ -42,10 +42,10 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
     std::shared_ptr<MacauPrior> prior(new MacauPrior(session, -1));
 
     prior->addSideInfo(side_info, direct);
-    prior->setLambdaBetaValues(config_items);
+    prior->setBetaPrecisionValues(config_items);
     prior->setTolValues(config_items);
 
-    prior->setEnableLambdaBetaSampling(session->getConfig().getEnableLambdaBetaSampling());
+    prior->setEnableBetaPrecisionSampling(session->getConfig().getEnableBetaPrecisionSampling());
 
     return prior;
 }

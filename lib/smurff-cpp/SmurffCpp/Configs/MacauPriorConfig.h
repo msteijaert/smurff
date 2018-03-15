@@ -15,7 +15,7 @@ namespace smurff
    class MacauPriorConfigItem
    {
    private:
-      double m_lambda_beta;
+      double m_beta_precision;
       double m_tol;
       bool m_direct;
 
@@ -35,14 +35,14 @@ namespace smurff
          m_sideInfo = value;
       }
 
-      double getLambdaBeta() const
+      double getBetaPrecision() const
       {
-         return m_lambda_beta;
+         return m_beta_precision;
       }
 
-      void setLambdaBeta(double value)
+      void setBetaPrecision(double value)
       {
-         m_lambda_beta = value;
+         m_beta_precision = value;
       }
 
       double getTol() const
@@ -74,7 +74,7 @@ namespace smurff
    class MacauPriorConfig
    {
    public:
-      static double LAMBDA_BETA_DEFAULT_VALUE;
+      static double BETA_PRECISION_DEFAULT_VALUE;
       static double TOL_DEFAULT_VALUE;
 
    private:

@@ -30,26 +30,26 @@ public:
 
    Eigen::MatrixXd beta;      // link matrix
    
-   Eigen::VectorXd lambda_beta;
+   Eigen::VectorXd beta_precision;
 
-   bool enable_lambda_beta_sampling;
-   double lambda_beta_a0; // Hyper-prior for lambda_beta
-   double lambda_beta_b0; // Hyper-prior for lambda_beta
+   bool enable_beta_precision_sampling;
+   double beta_precision_a0; // Hyper-prior for beta_precision
+   double beta_precision_b0; // Hyper-prior for beta_precision
 
    std::vector<std::shared_ptr<FType> > side_info_values;
-   std::vector<double> lambda_beta_values;
+   std::vector<double> beta_precision_values;
 
    //these must be removed
    std::shared_ptr<FType> Features;  // side information
-   double lb0;
+   double bp0;
 
 public:
    MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalOnePrior(session, mode, "MacauOnePrior")
    {
-      lb0 = MacauPriorConfig::LAMBDA_BETA_DEFAULT_VALUE;
+      bp0 = MacauPriorConfig::BETA_PRECISION_DEFAULT_VALUE;
 
-      enable_lambda_beta_sampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
+      enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
    }
 
    void init() override
@@ -61,10 +61,10 @@ public:
       beta = Eigen::MatrixXd::Constant(num_latent(), Features->cols(), 0.0);
 
       // initial value (should be determined automatically)
-      // Hyper-prior for lambda_beta (mean 1.0):
-      lambda_beta = Eigen::VectorXd::Constant(num_latent(), lb0);
-      lambda_beta_a0 = 0.1;
-      lambda_beta_b0 = 0.1;
+      // Hyper-prior for beta_precision (mean 1.0):
+      beta_precision = Eigen::VectorXd::Constant(num_latent(), bp0);
+      beta_precision_a0 = 0.1;
+      beta_precision_b0 = 0.1;
    }
 
    void update_prior() override
@@ -73,8 +73,8 @@ public:
       sample_beta(U());
       smurff::linop::compute_uhat(Uhat, *Features, beta);
 
-      if(enable_lambda_beta_sampling)
-         sample_lambda_beta();
+      if(enable_beta_precision_sampling)
+         sample_beta_precision();
    }
     
    const Eigen::VectorXd getMu(int n) const override
@@ -96,24 +96,24 @@ public:
       F_colsq = smurff::linop::col_square_sum(*Features);
    }
 
-   void setLambdaBetaValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
+   void setBetaPrecisionValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
    {
-      lambda_beta_values.clear();
+      beta_precision_values.clear();
 
       for (auto& item : config_items)
-         lambda_beta_values.push_back(item->getLambdaBeta());
+         beta_precision_values.push_back(item->getBetaPrecision());
 
       //FIXME: remove old code
-      lb0 = config_items.front()->getLambdaBeta();
+      bp0 = config_items.front()->getBetaPrecision();
    }
 
    void setTolValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
    {
    }
 
-   void setEnableLambdaBetaSampling(bool value)
+   void setEnableBetaPrecisionSampling(bool value)
    {
-      enable_lambda_beta_sampling = value;
+      enable_beta_precision_sampling = value;
    }
 
 public:
@@ -155,7 +155,7 @@ public:
             for (int d = 0; d < dcount; d++)
             {
                int dx = d + dstart;
-               double A_df     = lambda_beta(dx) + Lambda(dx,dx) * F_colsq(f);
+               double A_df     = beta_precision(dx) + Lambda(dx,dx) * F_colsq(f);
                double B_df     = Lambda(dx,dx) * (zx(d) + beta(dx,f) * F_colsq(f));
                double A_inv    = 1.0 / A_df;
                double beta_new = B_df * A_inv + std::sqrt(A_inv) * randvals(d);
@@ -191,10 +191,10 @@ public:
 
    //used in update_prior
 
-   void sample_lambda_beta()
+   void sample_beta_precision()
    {
-      double lambda_beta_a = lambda_beta_a0 + beta.cols() / 2.0;
-      Eigen::VectorXd lambda_beta_b = Eigen::VectorXd::Constant(beta.rows(), lambda_beta_b0);
+      double beta_precision_a = beta_precision_a0 + beta.cols() / 2.0;
+      Eigen::VectorXd beta_precision_b = Eigen::VectorXd::Constant(beta.rows(), beta_precision_b0);
       const int D = beta.rows();
       const int F = beta.cols();
       #pragma omp parallel
@@ -211,12 +211,12 @@ public:
          }
          #pragma omp critical
          {
-            lambda_beta_b += tmp / 2;
+            beta_precision_b += tmp / 2;
          }
       }
       for (int d = 0; d < D; d++)
       {
-         lambda_beta(d) = rgamma(lambda_beta_a, 1.0 / lambda_beta_b(d));
+         beta_precision(d) = rgamma(beta_precision_a, 1.0 / beta_precision_b(d));
       }
    }
 

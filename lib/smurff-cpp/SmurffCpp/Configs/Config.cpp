@@ -37,7 +37,7 @@
 #define RANDOM_SEED_TAG "random_seed"
 #define CSV_STATUS_TAG "csv_status"
 #define INIT_MODEL_TAG "init_model"
-#define ENABLE_LAMBDA_BETA_SAMPLING_TAG "enable_lambda_beta_sampling"
+#define ENABLE_BETA_PRECISION_SAMPLING_TAG "enable_beta_precision_sampling"
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
 
@@ -124,7 +124,7 @@ int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
 int Config::CHECKPOINT_FREQ_DEFAULT_VALUE = 0;
 int Config::VERBOSE_DEFAULT_VALUE = 1;
 const char* Config::STATUS_DEFAULT_VALUE = "";
-bool Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE = false;
+bool Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE = false;
 double Config::THRESHOLD_DEFAULT_VALUE = 0.0;
 int Config::RANDOM_SEED_DEFAULT_VALUE = 0;
 
@@ -146,7 +146,7 @@ Config::Config()
    m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
    m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
 
-   m_enableLambdaBetaSampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
+   m_enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
 
    m_threshold = Config::THRESHOLD_DEFAULT_VALUE;
    m_classify = false;
@@ -381,7 +381,7 @@ void Config::save(std::string fname) const
 
    //macau priors data
    os << std::endl << "# for macau priors" << std::endl;
-   os << ENABLE_LAMBDA_BETA_SAMPLING_TAG << " = " << m_enableLambdaBetaSampling << std::endl;
+   os << ENABLE_BETA_PRECISION_SAMPLING_TAG << " = " << m_enable_beta_precision_sampling << std::endl;
 
    //probit prior data
    os << std::endl << "# binary classification" << std::endl;
@@ -487,7 +487,7 @@ bool Config::restore(std::string fname)
    m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
 
    //restore macau priors data
-   m_enableLambdaBetaSampling = reader.getBoolean(GLOBAL_SECTION_TAG, ENABLE_LAMBDA_BETA_SAMPLING_TAG, Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE);
+   m_enable_beta_precision_sampling = reader.getBoolean(GLOBAL_SECTION_TAG, ENABLE_BETA_PRECISION_SAMPLING_TAG, Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE);
 
    //restore probit prior data
    m_classify = reader.getBoolean(GLOBAL_SECTION_TAG, CLASSIFY_TAG,  false);

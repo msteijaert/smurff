@@ -40,7 +40,7 @@
 #define PRECISION_NAME "precision"
 #define ADAPTIVE_NAME "adaptive"
 #define PROBIT_NAME "probit"
-#define ENABLE_LAMBDA_BETA_SAMPLING_NAME "enable-lambda-beta-sampling"
+#define ENABLE_BETA_PRECISION_SAMPLING_NAME "enable-beta-precision-sampling"
 #define INI_NAME "ini"
 #define ROOT_NAME "root"
 
@@ -95,7 +95,7 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
-      (ENABLE_LAMBDA_BETA_SAMPLING_NAME, boost::program_options::value<bool>()->default_value(Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE), "enable sampling of lambda beta");
+      (ENABLE_BETA_PRECISION_SAMPLING_NAME, boost::program_options::value<bool>()->default_value(Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE), "enable sampling of beta precision");
 
    boost::program_options::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
    desc.add(basic_desc);
@@ -223,7 +223,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
             auto mpci = std::make_shared<MacauPriorConfigItem>();
 
-            mpci->setLambdaBeta(stod(properties.at(0)));
+            mpci->setBetaPrecision(stod(properties.at(0)));
             mpci->setTol(stod(properties.at(1)));
             mpci->setDirect(stoi(properties.at(2)));
             mpci->setSideInfo(matrix_io::read_matrix(properties.at(3), false));
@@ -338,8 +338,8 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    else
       set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
 
-   if (vm.count(ENABLE_LAMBDA_BETA_SAMPLING_NAME) && !vm[ENABLE_LAMBDA_BETA_SAMPLING_NAME].defaulted())
-      config.setEnableLambdaBetaSampling(vm[ENABLE_LAMBDA_BETA_SAMPLING_NAME].as<bool>());
+   if (vm.count(ENABLE_BETA_PRECISION_SAMPLING_NAME) && !vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].defaulted())
+      config.setEnableBetaPrecisionSampling(vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].as<bool>());
 }
 #endif
 

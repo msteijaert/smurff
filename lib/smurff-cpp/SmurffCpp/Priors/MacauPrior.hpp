@@ -33,19 +33,19 @@ public:
    Eigen::MatrixXd FtF;       // F'F
    Eigen::MatrixXd beta;      // link matrix
    
-   bool enable_lambda_beta_sampling;
-   double lambda_beta_mu0; // Hyper-prior for lambda_beta
-   double lambda_beta_nu0; // Hyper-prior for lambda_beta
+   bool enable_beta_precision_sampling;
+   double beta_precision_mu0; // Hyper-prior for beta_precision
+   double beta_precision_nu0; // Hyper-prior for beta_precision
 
    std::vector<std::shared_ptr<FType> > side_info_values;
-   std::vector<double> lambda_beta_values;
+   std::vector<double> beta_precision_values;
    std::vector<bool> direct_values;
    std::vector<double> tol_values;
 
    //these must be removed
    std::shared_ptr<FType> Features;  // side information
    bool use_FtF;
-   double lambda_beta;
+   double beta_precision;
    double tol = 1e-6;
 
 private:
@@ -56,10 +56,10 @@ public:
    MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
       : NormalPrior(session, mode, "MacauPrior")
    {
-      lambda_beta = MacauPriorConfig::LAMBDA_BETA_DEFAULT_VALUE;
+      beta_precision = MacauPriorConfig::BETA_PRECISION_DEFAULT_VALUE;
       tol = MacauPriorConfig::TOL_DEFAULT_VALUE;
 
-      enable_lambda_beta_sampling = Config::ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
+      enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
    }
 
    virtual ~MacauPrior() {}
@@ -90,12 +90,12 @@ public:
       Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
 
       // sampling Gaussian
-      std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + lambda_beta * BBt, this->df + beta.cols());
+      std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + beta.cols());
       sample_beta();
       smurff::linop::compute_uhat(Uhat, *Features, beta);
 
-      if(enable_lambda_beta_sampling)
-         lambda_beta = sample_lambda_beta(beta, this->Lambda, lambda_beta_nu0, lambda_beta_mu0);
+      if(enable_beta_precision_sampling)
+         beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
    }
 
    const Eigen::VectorXd getMu(int n) const override
@@ -107,7 +107,7 @@ public:
    {
       const int num_feat = beta.cols();
 
-      // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(lambda_beta) * Normal(0, Lambda^-1)
+      // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
       Eigen::MatrixXd tmp = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
       Ft_y = smurff::linop::A_mul_B(tmp, *Features);
@@ -118,7 +118,7 @@ public:
       {
          for (int d = 0; d < num_latent(); d++)
          {
-            Ft_y(d, f) += std::sqrt(lambda_beta) * tmp2(d, f);
+            Ft_y(d, f) += std::sqrt(beta_precision) * tmp2(d, f);
          }
       }
    }
@@ -148,20 +148,20 @@ public:
       side_info_values.push_back(side_info);
       direct_values.push_back(direct);
 
-      // Hyper-prior for lambda_beta (mean 1.0, var of 1e+3):
-      lambda_beta_mu0 = 1.0;
-      lambda_beta_nu0 = 1e-3;
+      // Hyper-prior for beta_precision (mean 1.0, var of 1e+3):
+      beta_precision_mu0 = 1.0;
+      beta_precision_nu0 = 1e-3;
    }
 
-   void setLambdaBetaValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
+   void setBetaPrecisionValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
    {
-      lambda_beta_values.clear();
+      beta_precision_values.clear();
 
       for (auto& item : config_items)
-         lambda_beta_values.push_back(item->getLambdaBeta());
+         beta_precision_values.push_back(item->getBetaPrecision());
 
       //FIXME: remove old code
-      lambda_beta = config_items.front()->getLambdaBeta();
+      beta_precision = config_items.front()->getBetaPrecision();
    }
 
    void setTolValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
@@ -175,9 +175,9 @@ public:
       tol = config_items.front()->getTol();
    }
 
-   void setEnableLambdaBetaSampling(bool value)
+   void setEnableBetaPrecisionSampling(bool value)
    {
-      enable_lambda_beta_sampling = value;
+      enable_beta_precision_sampling = value;
    }
 
 public:
@@ -229,7 +229,7 @@ public:
       os << indent << " SideInfo: "; printSideInfo(os, *Features);
       os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << std::endl;
       os << indent << " Tol: " << tol << std::endl;
-      os << indent << " LambdaBeta: " << lambda_beta << std::endl;
+      os << indent << " BetaPrecision: " << beta_precision << std::endl;
       return os;
    }
 
@@ -249,7 +249,7 @@ private:
 
       Eigen::MatrixXd K(FtF.rows(), FtF.cols());
       K.triangularView<Eigen::Lower>() = FtF;
-      K.diagonal().array() += lambda_beta;
+      K.diagonal().array() += beta_precision;
       chol_decomp(K);
       chol_solve_t(K, Ft_y);
       beta = Ft_y;
@@ -260,7 +260,7 @@ private:
 
 public:
 
-   static std::pair<double,double> posterior_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
+   static std::pair<double,double> posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
    {
       const int D = beta.rows();
       Eigen::MatrixXd BB(D, D);
@@ -272,9 +272,9 @@ public:
       return std::make_pair(b, c);
    }
 
-   static double sample_lambda_beta(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
+   static double sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
    {
-      auto gamma_post = posterior_lambda_beta(beta, Lambda_u, nu, mu);
+      auto gamma_post = posterior_beta_precision(beta, Lambda_u, nu, mu);
       return rgamma(gamma_post.first, gamma_post.second);
    }
 };
@@ -285,7 +285,7 @@ void MacauPrior<FType>::sample_beta_cg()
    Eigen::MatrixXd Ft_y;
    this->compute_Ft_y_omp(Ft_y);
 
-   smurff::linop::solve_blockcg(beta, *Features, lambda_beta, Ft_y, tol, 32, 8);
+   smurff::linop::solve_blockcg(beta, *Features, beta_precision, Ft_y, tol, 32, 8);
 }
 
 // specialization for dense matrices --> always direct method
