@@ -270,7 +270,7 @@ def smurff(Y              = None,
            priors         = [],
            side_info      = [],
            aux_data       = [],
-           lambda_beta    = 10.0,
+           beta_precision = 10.0,
            num_latent     = 10,
            precision      = None,
            sn_init        = None,
@@ -359,7 +359,7 @@ def smurff(Y              = None,
                         config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
                         config.getAuxData().back().get().setPos(pos.get()[0])
 
-        config.setLambdaBeta(lambda_beta)
+        config.setBetaPrecision(beta_precision)
         config.setNumLatent(num_latent)
         config.setBurnin(burnin)
         config.setNSamples(nsamples)
