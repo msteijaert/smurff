@@ -61,8 +61,8 @@ public:
    static int CHECKPOINT_FREQ_DEFAULT_VALUE;
    static int VERBOSE_DEFAULT_VALUE;
    static const char* STATUS_DEFAULT_VALUE;
-   static double LAMBDA_BETA_DEFAULT_VALUE;
-   static bool ENABLE_LAMBDA_BETA_SAMPLING_DEFAULT_VALUE;
+   static double BETA_PRECISION_DEFAULT_VALUE;
+   static bool ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
    static double TOL_DEFAULT_VALUE;
    static double THRESHOLD_DEFAULT_VALUE;
    static int RANDOM_SEED_DEFAULT_VALUE;
@@ -98,8 +98,8 @@ private:
    int m_num_latent;
 
    //-- for macau priors
-   double m_lambda_beta;
-   bool m_enableLambdaBetaSampling;
+   double m_beta_precision;
+   bool m_enable_beta_precision_sampling;
    double m_tol;
    bool m_direct;
 
@@ -297,24 +297,24 @@ public:
       m_num_latent = value;
    }
 
-   double getLambdaBeta() const
+   double getBetaPrecision() const
    {
-      return m_lambda_beta;
+      return m_beta_precision;
    }
 
-   void setLambdaBeta(double value)
+   void setBetaPrecision(double value)
    {
-      m_lambda_beta = value;
+      m_beta_precision = value;
    }
 
-   bool getEnableLambdaBetaSampling() const
+   bool getEnableBetaPrecisionSampling() const
    {
-      return m_enableLambdaBetaSampling;
+      return m_enable_beta_precision_sampling;
    }
 
-   void setEnableLambdaBetaSampling(bool value)
+   void setEnableBetaPrecisionSampling(bool value)
    {
-      m_enableLambdaBetaSampling = value;
+      m_enable_beta_precision_sampling = value;
    }
 
    double getTol() const
