@@ -32,6 +32,8 @@ public:
    Eigen::MatrixXd Uhat;
    Eigen::MatrixXd FtF;       // F'F
    Eigen::MatrixXd beta;      // link matrix
+   Eigen::MatrixXd HyperU, HyperU2;
+   Eigen::MatrixXd Ft_y;
    
    bool enable_beta_precision_sampling;
    double beta_precision_mu0; // Hyper-prior for beta_precision
@@ -109,16 +111,17 @@ public:
 
       // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
       // Ft_y is [ D x F ] matrix
-      Eigen::MatrixXd tmp = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
-      Ft_y = smurff::linop::A_mul_B(tmp, *Features);
-      Eigen::MatrixXd tmp2 = MvNormal_prec_omp(Lambda, num_feat);
+      HyperU = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
+
+      Ft_y = smurff::linop::A_mul_B(HyperU, *Features);
+      HyperU2 = MvNormal_prec_omp(Lambda, num_feat);
 
       #pragma omp parallel for schedule(static)
       for (int f = 0; f < num_feat; f++)
       {
          for (int d = 0; d < num_latent(); d++)
          {
-            Ft_y(d, f) += std::sqrt(beta_precision) * tmp2(d, f);
+            Ft_y(d, f) += std::sqrt(beta_precision) * HyperU2(d, f);
          }
       }
    }
@@ -235,7 +238,14 @@ public:
 
    std::ostream &status(std::ostream &os, std::string indent) const override
    {
-      os << indent << "  " << m_name << ": Beta = " << beta.norm() << std::endl;
+      os << indent << m_name << ": " << std::endl;
+      indent += "  ";
+      os << indent << "FtF          = " << FtF.norm() << std::endl;
+      os << indent << "HyperU       = " << HyperU.norm() << std::endl;
+      os << indent << "HyperU2      = " << HyperU2.norm() << std::endl;
+      os << indent << "Beta         = " << beta.norm() << std::endl;
+      os << indent << "beta_precision  = " << beta_precision << std::endl;
+      os << indent << "Ft_y         = " << Ft_y.norm() << std::endl;
       return os;
    }
 
@@ -244,7 +254,6 @@ private:
    // direct method
    void sample_beta_direct()
    {
-      Eigen::MatrixXd Ft_y;
       this->compute_Ft_y_omp(Ft_y);
 
       Eigen::MatrixXd K(FtF.rows(), FtF.cols());
