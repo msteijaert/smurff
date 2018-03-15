@@ -8,9 +8,8 @@ MESSAGE("smurff")
 
 # OPTIONS
 
-OPTION(ENABLE_BLAS "Enable BLAS library" OFF)
-OPTION(ENABLE_LAPACK "Enable LAPACK library" ON)
-OPTION(ENABLE_OPENBLAS "Enable OPENBLAS library" OFF)
+OPTION(ENABLE_OPENBLAS "Look only for OPENBLAS library" OFF)
+OPTION(ENABLE_MKL "Look only for MKL library" OFF)
 
 OPTION(ENABLE_PROFILING "Enable performance counters" OFF)
 
@@ -86,31 +85,9 @@ if (MSVC OR MSVC_IDE OR MSVC_VERSION OR MSVC60 OR MSVC70 OR MSVC71 OR MSVC80 OR 
 
 elseif (CMAKE_COMPILER_IS_GNUCXX OR APPLE)
    if(APPLE)
-      # Set developer directory
-      #execute_process(COMMAND /usr/bin/xcode-select -print-path
-      #OUTPUT_VARIABLE XCODE_DEVELOPER_DIR
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      # Set the CMAKE_OSX_SYSROOT to the latest SDK found
-      #execute_process(COMMAND /usr/bin/xcrun -sdk macosx --show-sdk-path
-      #OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      # Locate gcc
-      #execute_process(COMMAND /usr/bin/xcrun -sdk macosx -find gcc
-      #OUTPUT_VARIABLE CMAKE_C_COMPILER
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      # Locate g++
-      #execute_process(COMMAND /usr/bin/xcrun -sdk macosx -find g++
-      #OUTPUT_VARIABLE CMAKE_CXX_COMPILER
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      message(STATUS "   -- OSX: Using iOS SDK: ${CMAKE_OSX_SYSROOT}")
       message(STATUS "   -- OSX: System root directory found at: ${CMAKE_OSX_SYSROOT}")
-      message(STATUS "   -- OSX: Xcode developer directory found at: ${XCODE_DEVELOPER_DIR}")
-      message(STATUS "   -- OSX: gcc found at: ${CMAKE_C_COMPILER}")
-      message(STATUS "   -- OSX: g++ found at: ${CMAKE_CXX_COMPILER}")
+      message(STATUS "   -- OSX: c compiler found at: ${CMAKE_C_COMPILER}")
+      message(STATUS "   -- OSX: c++ compiler found at: ${CMAKE_CXX_COMPILER}")
 
       add_definitions(-DMAC_OSX)
    endif()
@@ -260,38 +237,28 @@ endif()
 
 set(ALGEBRA_LIB_FOUND OFF)
 
-if(${ENABLE_BLAS})
-  if(${ENABLE_LAPACK} OR ${ENABLE_OPENBLAS})
-  message(FATAL_ERROR "Multiple algebra libraries specified")
-  endif()
-  configure_blas()
-  if(${BLAS_FOUND})
-    set(ALGEBRA_LIBS ${BLAS_LIBRARIES})
-    set(ALGEBRA_LIB_NAME BLAS)
-    set(ALGEBRA_LIB_FOUND ON)
-  endif()
-endif()
-
-if(${ENABLE_LAPACK})
-  if(${ENABLE_BLAS} OR ${ENABLE_OPENBLAS})
-  message(FATAL_ERROR "Multiple algebra libraries specified")
-  endif()
-  configure_lapack()
-  if(${LAPACK_FOUND})
-    set(ALGEBRA_LIBS ${LAPACK_LIBRARIES})
-    set(ALGEBRA_LIB_NAME LAPACK)
-    set(ALGEBRA_LIB_FOUND ON)
-  endif()
-endif()
-
 if(${ENABLE_OPENBLAS})
-  if(${ENABLE_BLAS} OR ${ENABLE_LAPACK})
-  message(FATAL_ERROR "Multiple algebra libraries specified")
+  if(${ENABLE_MKL})
+  message(FATAL_ERROR "You cannot both enable OpenBLAS and MKL")
   endif()
   configure_openblas()
   if(${BLAS_FOUND})
     set(ALGEBRA_LIBS ${BLAS_LIBRARIES})
     set(ALGEBRA_LIB_NAME OPENBLAS)
+    set(ALGEBRA_LIB_FOUND ON)
+  endif()
+elseif(${ENABLE_MKL})
+  configure_mkl()
+  if(${LAPACK_FOUND})
+    set(ALGEBRA_LIBS ${LAPACK_LIBRARIES})
+    set(ALGEBRA_LIB_NAME MKL)
+    set(ALGEBRA_LIB_FOUND ON)
+  endif()
+else()
+  configure_lapack()
+  if(${LAPACK_FOUND})
+    set(ALGEBRA_LIBS ${LAPACK_LIBRARIES})
+    set(ALGEBRA_LIB_NAME LAPACK)
     set(ALGEBRA_LIB_FOUND ON)
   endif()
 endif()

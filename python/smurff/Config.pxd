@@ -56,7 +56,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setNumLatent(int value)
 
         #-- for macau priors
-        void setLambdaBeta(double value)
+        void setBetaPrecision(double value)
         void setTol(double value)
         void setDirect(bool value)
 

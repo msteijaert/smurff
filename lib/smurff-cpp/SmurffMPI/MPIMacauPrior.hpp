@@ -81,7 +81,7 @@ public:
          this->Ft_y.transposeInPlace();
       }
    
-      MPI_Bcast(& this->lambda_beta, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(& this->beta_precision, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
       MPI_Bcast(& this->tol,         1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
    
       // sending Ft_y
@@ -98,7 +98,7 @@ public:
          }
       }
       // solving
-      smurff::linop::solve_blockcg(result, *this->Features, this->lambda_beta, RHS, this->tol, 32, 8);
+      smurff::linop::solve_blockcg(result, *this->Features, this->beta_precision, RHS, this->tol, 32, 8);
       result.transposeInPlace();
       MPI_Gatherv(result.data(), nrhs*num_feat, MPI_DOUBLE, this->Ft_y.data(), sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
       if (world_rank == 0) 

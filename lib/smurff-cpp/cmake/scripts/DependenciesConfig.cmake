@@ -38,31 +38,19 @@ macro(configure_openmp)
       message(STATUS "OpenMP found")
       set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
       set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${OpenMP_C_FLAGS}")
+      message(STATUS "OpenMP_CXX_LIB_NAMES ${OpenMP_CXX_LIB_NAMES}")
+      message(STATUS "OpenMP_CXX_LIBRARY ${OpenMP_CXX_LIBRARY}")
+      message(STATUS "OpenMP_CXX_LIBRARIES ${OpenMP_CXX_LIBRARIES}")
   else()
       message(STATUS "OpenMP not found")
   endif()
    
 endmacro(configure_openmp)
 
-
-macro(configure_blas)
-  message ("Dependency check for blas...")
-  find_package( BLAS REQUIRED )
-  message(STATUS BLAS: ${BLAS_LIBRARIES} )
-
-  find_path(BLAS_INCLUDE_DIRS cblas.h
-  /usr/include
-  /usr/local/include
-  $ENV{BLAS_HOME}/include)
-  message(STATUS ${BLAS_INCLUDE_DIRS})
-
-endmacro(configure_blas)
-
 macro(configure_lapack)
   message ("Dependency check for lapack...")
   find_package(LAPACK REQUIRED)
   message(STATUS LAPACK: ${LAPACK_LIBRARIES})
-
 endmacro(configure_lapack)
 
 macro(configure_openblas)
@@ -80,6 +68,28 @@ macro(configure_openblas)
   message(STATUS BLAS: ${BLAS_LIBRARIES} )
  
 endmacro(configure_openblas)
+
+macro(configure_mkl)
+  message ("Dependency check for MKL...")
+  set(BLA_VENDOR "Intel")
+  find_package( LAPACK REQUIRED )
+
+  # since we mix OpenMP and mkl we need to link this
+  if(${OPENMP_FOUND})
+      list(FIND OpenMP_CXX_LIB_NAMES "gomp" GNU_OPENMP)
+      list(FIND OpenMP_CXX_LIB_NAMES "iomp5" INTEL_OPENMP)
+      if(NOT GNU_OPENMP EQUAL -1)
+          find_library(INTEL_THREAD_LIBRARY "mkl_gnu_thread"  HINTS ENV LD_LIBRARY_PATH)
+      elseif(NOT INTEL_OPENMP EQUAL -1)
+          find_library(INTEL_THREAD_LIBRARY "mkl_intel_thread"  HINTS ENV LD_LIBRARY_PATH)
+      else()
+          message(ERROR "Unknown threading library ${OpenMP_CXX_LIB_NAMES}")
+      endif()
+      set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES} ${INTEL_THREAD_LIBRARY})
+  endif()
+  
+  message(STATUS MKL: ${LAPACK_LIBRARIES} )
+endmacro(configure_mkl)
 
 macro(configure_eigen)
   message ("Dependency check for eigen...")

@@ -186,6 +186,7 @@ add_library (${PROJECT} STATIC ${HEADER_FILES}
                                )
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
+
 #SETUP INCLUDES
 include_directories(../)
 include_directories(../..)

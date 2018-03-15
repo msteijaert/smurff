@@ -791,3 +791,52 @@ TEST_CASE("matrix_io/eigen::read_matrix_market | matrix_io/eigen::write_matrix_m
       REQUIRE_THROWS(matrix_io::eigen::read_matrix_market(matrixStream, actualMatrix));
    }
 }
+
+TEST_CASE("Genereate matrices for Python matrix_io tests", "[!hide]")
+{
+   std::uint64_t denseMatrixConfigNRow = 3;
+   std::uint64_t denseMatrixConfigNCol = 4;
+   std::vector<double> denseMatrixConfigValues = { 1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12 };
+   std::shared_ptr<MatrixConfig> denseMatrixConfig =
+      std::make_shared<MatrixConfig>( denseMatrixConfigNRow
+                                    , denseMatrixConfigNCol
+                                    , std::move(denseMatrixConfigValues)
+                                    , fixed_ncfg
+                                    );
+   matrix_io::write_matrix("cpp_generated_dense_matrix.ddm", denseMatrixConfig);
+   matrix_io::write_matrix("cpp_generated_dense_matrix.mtx", denseMatrixConfig);
+   matrix_io::write_matrix("cpp_generated_dense_matrix.csv", denseMatrixConfig);
+
+
+   std::uint64_t sparseMatrixConfigNRow = 3;
+   std::uint64_t sparseMatrixConfigNCol = 4;
+   std::vector<std::uint32_t> sparseMatrixConfigRows = { 0, 0, 0, 0, 2,  2,  2,  2 };
+   std::vector<std::uint32_t> sparseMatrixConfigCols = { 0, 1, 2, 3, 0,  1,  2,  3 };
+   std::vector<double> sparseMatrixConfigValues      = { 1, 2, 3, 4, 9, 10, 11, 12 };
+   std::shared_ptr<MatrixConfig> sparseMatrixConfig =
+      std::make_shared<MatrixConfig>( sparseMatrixConfigNRow
+                                    , sparseMatrixConfigNCol
+                                    , std::move(sparseMatrixConfigRows)
+                                    , std::move(sparseMatrixConfigCols)
+                                    , std::move(sparseMatrixConfigValues)
+                                    , fixed_ncfg
+                                    , false
+                                    );
+   matrix_io::write_matrix("cpp_generated_sparse_matrix.sdm", sparseMatrixConfig);
+   matrix_io::write_matrix("cpp_generated_sparse_matrix.mtx", sparseMatrixConfig);
+
+
+   std::uint64_t sparseBinaryMatrixConfigNRow = 3;
+   std::uint64_t sparseBinaryMatrixConfigNCol = 4;
+   std::vector<std::uint32_t> sparseBinaryMatrixConfigRows = { 0, 0, 0, 0, 2, 2, 2, 2 };
+   std::vector<std::uint32_t> sparseBinaryMatrixConfigCols = { 0, 1, 2, 3, 0, 1, 2, 3 };
+   std::shared_ptr<MatrixConfig> sparseBinaryMatrixConfig =
+      std::make_shared<MatrixConfig>( sparseBinaryMatrixConfigNRow
+                                    , sparseBinaryMatrixConfigNCol
+                                    , std::move(sparseBinaryMatrixConfigRows)
+                                    , std::move(sparseBinaryMatrixConfigCols)
+                                    , fixed_ncfg
+                                    , false
+                                    );
+   matrix_io::write_matrix("cpp_generated_sparse_matrix.sbm", sparseBinaryMatrixConfig);
+}

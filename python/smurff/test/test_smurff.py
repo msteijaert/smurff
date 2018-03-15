@@ -7,6 +7,10 @@ import itertools
 import collections
 
 class TestSmurff(unittest.TestCase):
+
+    # Python 2.7 @unittest.skip fix
+    __name__ = "TestSmurff"
+
     def test_bpmf(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)

@@ -71,19 +71,19 @@ TEST_CASE( "mvnormal/rgamma", "generaring random gamma variable" ) {
   REQUIRE( g > 0 );
 }
 
-TEST_CASE( "latentprior/sample_lambda_beta", "sampling lambda beta from gamma distribution" ) {
+TEST_CASE( "latentprior/sample_beta_precision", "sampling beta precision from gamma distribution" ) {
   init_bmrng(1234);
   Eigen::MatrixXd beta(2, 3), Lambda_u(2, 2);
   beta << 3.0, -2.00,  0.5,
           1.0,  0.91, -0.2;
   Lambda_u << 0.5, 0.1,
               0.1, 0.3;
-  auto post = MacauPrior<Eigen::MatrixXd>::posterior_lambda_beta(beta, Lambda_u, 0.01, 0.05);
+  auto post = MacauPrior<Eigen::MatrixXd>::posterior_beta_precision(beta, Lambda_u, 0.01, 0.05);
   REQUIRE( post.first  == Approx(3.005) );
   REQUIRE( post.second == Approx(0.2631083888) );
 
-  double lambda_beta = MacauPrior<Eigen::MatrixXd>::sample_lambda_beta(beta, Lambda_u, 0.01, 0.05);
-  REQUIRE( lambda_beta > 0 );
+  double beta_precision = MacauPrior<Eigen::MatrixXd>::sample_beta_precision(beta, Lambda_u, 0.01, 0.05);
+  REQUIRE( beta_precision > 0 );
 }
 
 TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculated")
