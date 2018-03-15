@@ -13,20 +13,7 @@ message(STATUS ${NUMPY_INCLUDE_DIR})
 include_directories(${NUMPY_INCLUDE_DIR})
 include_directories(../../lib/smurff-cpp)
 include_directories(include)
-
-# If the pyx file is a C++ file, we should specify that here.
-set_source_files_properties(
-    src/${PROJECT}.pyx
-    PROPERTIES CYTHON_IS_CXX TRUE )
-
-# Multi-file cython modules do not appear to be working at the moment.
-cython_add_module( ${PROJECT} src/${PROJECT}.pyx )
-
-#LINK LIBRARIES
-target_link_libraries (${PROJECT} smurff-cpp
-                            ${ALGEBRA_LIBS}
-                            ${OpenMP_CXX_LIBRARIES}
-                            ${CMAKE_THREAD_LIBS_INIT})
+include_directories(src)
 
 # With CMake, a clean separation can be made between the source tree and the
 # build tree.  When all source is compiled, as with pure C/C++, the source is
@@ -37,4 +24,6 @@ add_custom_target( ReplicatePythonSourceTree ALL ${CMAKE_COMMAND} -P
   ${SCRIPT_DIR}/ReplicatePythonSourceTree.cmake
   ${CMAKE_CURRENT_BINARY_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+
+add_subdirectory( src )
 
