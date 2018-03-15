@@ -40,8 +40,6 @@
 #define PRECISION_NAME "precision"
 #define ADAPTIVE_NAME "adaptive"
 #define PROBIT_NAME "probit"
-#define BETA_PRECISION_NAME "beta-precision"
-#define ENABLE_BETA_PRECISION_SAMPLING_NAME "enable-beta-precision-sampling"
 #define TOL_NAME "tol"
 #define DIRECT_NAME "direct"
 #define INI_NAME "ini"
@@ -98,8 +96,6 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
-      (BETA_PRECISION_NAME, boost::program_options::value<double>()->default_value(Config::BETA_PRECISION_DEFAULT_VALUE), "initial value of beta precision")
-      (ENABLE_BETA_PRECISION_SAMPLING_NAME, boost::program_options::value<bool>()->default_value(Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE), "enable sampling of beta precision")
       (TOL_NAME, boost::program_options::value<double>()->default_value(Config::TOL_DEFAULT_VALUE), "tolerance for CG")
       (DIRECT_NAME, "Use Cholesky decomposition i.o. CG Solver");
 
@@ -305,12 +301,6 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       set_noise_configs(config, parse_noise_arg(NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>()));
    else
       set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
-
-   if (vm.count(BETA_PRECISION_NAME) && !vm[BETA_PRECISION_NAME].defaulted())
-      config.setBetaPrecision(vm[BETA_PRECISION_NAME].as<double>());
-
-   if (vm.count(ENABLE_BETA_PRECISION_SAMPLING_NAME) && !vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].defaulted())
-      config.setEnableBetaPrecisionSampling(vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].as<bool>());
 
    if (vm.count(TOL_NAME) && !vm[TOL_NAME].defaulted())
       config.setTol(vm[TOL_NAME].as<double>());

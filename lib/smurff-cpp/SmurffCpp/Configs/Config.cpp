@@ -39,8 +39,6 @@
 #define RANDOM_SEED_TAG "random_seed"
 #define CSV_STATUS_TAG "csv_status"
 #define INIT_MODEL_TAG "init_model"
-#define BETA_PRECISION_TAG "beta_precision"
-#define ENABLE_BETA_PRECISION_SAMPLING_TAG "enable_beta_precision_sampling"
 #define TOL_TAG "tol"
 #define DIRECT_TAG "direct"
 #define NOISE_MODEL_TAG "noise_model"
@@ -164,8 +162,6 @@ Config::Config()
    m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
    m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
 
-   m_beta_precision = Config::BETA_PRECISION_DEFAULT_VALUE;
-   m_enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
    m_tol = Config::TOL_DEFAULT_VALUE;
    m_direct = false;
 
@@ -431,8 +427,6 @@ void Config::save(std::string fname) const
 
    //macau priors data
    os << std::endl << "# for macau priors" << std::endl;
-   os << BETA_PRECISION_TAG << " = " << m_beta_precision << std::endl;
-   os << ENABLE_BETA_PRECISION_SAMPLING_TAG << " = " << m_enable_beta_precision_sampling << std::endl;
    os << TOL_TAG << " = " << m_tol << std::endl;
    os << DIRECT_TAG << " = " << m_direct << std::endl;
 
@@ -567,8 +561,6 @@ bool Config::restore(std::string fname)
    m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
 
    //restore macau priors data
-   m_beta_precision = reader.getReal(GLOBAL_SECTION_TAG, BETA_PRECISION_TAG, Config::BETA_PRECISION_DEFAULT_VALUE);
-   m_enable_beta_precision_sampling = reader.getBoolean(GLOBAL_SECTION_TAG, ENABLE_BETA_PRECISION_SAMPLING_TAG, Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE);
    m_tol = reader.getReal(GLOBAL_SECTION_TAG, TOL_TAG, Config::TOL_DEFAULT_VALUE);
    m_direct = reader.getBoolean(GLOBAL_SECTION_TAG, DIRECT_TAG,  false);
 
