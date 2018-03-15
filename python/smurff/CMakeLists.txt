@@ -12,7 +12,7 @@ message(STATUS ${NUMPY_INCLUDE_DIR})
 
 include_directories(${NUMPY_INCLUDE_DIR})
 include_directories(../../lib/smurff-cpp)
-include_directories(.)
+include_directories(include)
 
 # If the pyx file is a C++ file, we should specify that here.
 set_source_files_properties(
