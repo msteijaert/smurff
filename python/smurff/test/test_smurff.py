@@ -29,7 +29,7 @@ class TestSmurff(unittest.TestCase):
         Xt = 0.3
         X, Xt = smurff.make_train_test(X, Xt)
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['normal', 'normal'],
                       num_latent=10,
                       burnin=10,
@@ -60,7 +60,7 @@ class TestSmurff(unittest.TestCase):
         F = scipy.sparse.rand(15, 2, 0.5)
         F.data[:] = 1
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['macau', 'normal'],
                       side_info=[F, None],
                       aux_data=[None, []],
@@ -240,7 +240,7 @@ class TestSmurff(unittest.TestCase):
 
         # Run SMURFF
         sparse_matrix_results = smurff.smurff(train_sparse_matrix,
-                                              test_sparse_matrix,
+                                              Ytest=test_sparse_matrix,
                                               data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,
@@ -300,7 +300,7 @@ class TestSmurff(unittest.TestCase):
 
         # Run SMURFF
         sparse_matrix_results = smurff.smurff(train_dense_matrix,
-                                              test_sparse_matrix,
+                                              Ytest=test_sparse_matrix,
                                               priors=['normal', 'normal'],
                                               data_shape=train_shape,
                                               num_latent=4,
@@ -311,7 +311,7 @@ class TestSmurff(unittest.TestCase):
                                               seed=1234)
 
         sparse_tensor_results = smurff.smurff(train_sparse_tensor,
-                                              test_sparse_tensor,
+                                              Ytest=test_sparse_tensor,
                                               data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,

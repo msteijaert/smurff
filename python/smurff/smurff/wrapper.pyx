@@ -27,7 +27,7 @@ import scipy.sparse
 import numbers
 
 from .prepare import make_train_test, make_train_test_df
-from .prepare import Result, ResultItem
+from .result import Result, ResultItem
 
 DENSE_MATRIX_TYPES  = [np.ndarray, np.matrix]
 SPARSE_MATRIX_TYPES = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
@@ -221,7 +221,27 @@ cdef class PySession:
         return self.ptr.get().step()
 
     def getResult(self):
-        return None
+        """ Create Python list of ResultItem from C++ vector of ResultItem """
+        cpp_result_items_ptr = self.ptr.get().getResult()
+        py_result_items = []
+
+        if cpp_result_items_ptr:
+            for i in range(cpp_result_items_ptr.get().size()):
+                cpp_result_item_ptr = &(cpp_result_items_ptr.get().at(i))
+                py_result_item_coords = []
+                for coord_index in range(cpp_result_item_ptr.coords.size()):
+                    coord = cpp_result_item_ptr.coords[coord_index]
+                    py_result_item_coords.append(coord)
+                py_result_item = ResultItem( tuple(py_result_item_coords)
+                                           , cpp_result_item_ptr.val
+                                           , cpp_result_item_ptr.pred_1sample
+                                           , cpp_result_item_ptr.pred_avg
+                                           , cpp_result_item_ptr.var
+                                           , cpp_result_item_ptr.stds
+                                           )
+                py_result_items.append(py_result_item)
+
+        return Result(py_result_items, self.ptr.get().getRmseAvg())
 
     # Create and initialize smurff-cpp Config instance
     @classmethod

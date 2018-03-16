@@ -5,6 +5,7 @@ import numpy as np
 
 class TestBPMF(unittest.TestCase):
     def test_bpmf(self):
+        print(self)
         X = scipy.sparse.rand(15, 10, 0.2)
         smurff.smurff(X,
                       priors=['normal', 'normal'],
@@ -20,7 +21,7 @@ class TestBPMF(unittest.TestCase):
         X = scipy.sparse.rand(15, 10, 0.2)
         Xt = scipy.sparse.rand(15, 10, 0.1)
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['normal', 'normal'],
                       side_info=[None, None],
                       aux_data=[[], []],
@@ -35,7 +36,7 @@ class TestBPMF(unittest.TestCase):
         Xt = 0.3
         X, Xt = smurff.make_train_test(X, Xt)
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['normal', 'normal'],
                       side_info=[None, None],
                       aux_data=[[], []],
@@ -50,7 +51,7 @@ class TestBPMF(unittest.TestCase):
          Xt = scipy.sparse.rand(15, 10, 0.1)
          F = scipy.sparse.rand(15, 2, 0.5)
          smurff.smurff(X,
-                       Xt,
+                       Ytest=Xt,
                        priors=['macau', 'normal'],
                        side_info=[F, None],
                        aux_data=[None, None],
@@ -66,7 +67,7 @@ class TestBPMF(unittest.TestCase):
         F = scipy.sparse.rand(15, 2, 0.5)
         F.data[:] = 1
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['macau', 'normal'],
                       side_info=[F, None],
                       aux_data=[None, None],
