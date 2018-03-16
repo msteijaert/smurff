@@ -232,7 +232,7 @@ cdef class PySession:
                priors         = [],
                side_info      = [],
                aux_data       = [],
-               lambda_beta    = 10.0,
+               beta_precision = 10.0,
                num_latent     = 10,
                precision      = None,
                sn_init        = None,
@@ -285,6 +285,7 @@ cdef class PySession:
         if len(aux_data) == 0:
             aux_data = [None] * len(priors)
 
+        cdef shared_ptr[MatrixConfig] side_info_config
         for i in range(len(priors)):
             prior_type_str = priors[i].encode('UTF-8')
             config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
@@ -293,7 +294,9 @@ cdef class PySession:
             if prior_side_info is None:
                 config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
             else:
-                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
+                side_info_config = shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info))
+                side_info_config.get().setNoiseConfig(nc)
+                config.getSideInfo().push_back(side_info_config)
 
             prior_aux_data = aux_data[i]
             if prior_aux_data is not None:

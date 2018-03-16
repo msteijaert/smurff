@@ -98,8 +98,6 @@ private:
    int m_num_latent;
 
    //-- for macau priors
-   double m_beta_precision;
-   bool m_enable_beta_precision_sampling;
    double m_tol;
    bool m_direct;
 
@@ -295,26 +293,6 @@ public:
    void setNumLatent(int value)
    {
       m_num_latent = value;
-   }
-
-   double getBetaPrecision() const
-   {
-      return m_beta_precision;
-   }
-
-   void setBetaPrecision(double value)
-   {
-      m_beta_precision = value;
-   }
-
-   bool getEnableBetaPrecisionSampling() const
-   {
-      return m_enable_beta_precision_sampling;
-   }
-
-   void setEnableBetaPrecisionSampling(bool value)
-   {
-      m_enable_beta_precision_sampling = value;
    }
 
    double getTol() const

@@ -128,37 +128,49 @@ std::shared_ptr<MatrixConfig> getColAuxDataDenseMatrixConfig()
 
 std::shared_ptr<MatrixConfig> getRowSideInfoDenseMatrixConfig()
 {
+   NoiseConfig nc(NoiseTypes::adaptive);
+   nc.setPrecision(10.0);
+
    std::vector<double> rowSideInfoDenseMatrixConfigVals = { 1, 2, 3 };
    std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 1, std::move(rowSideInfoDenseMatrixConfigVals), fixed_ncfg);
+      std::make_shared<MatrixConfig>(3, 1, std::move(rowSideInfoDenseMatrixConfigVals), nc);
    return rowSideInfoDenseMatrixConfig;
 }
 
 std::shared_ptr<MatrixConfig> getColSideInfoDenseMatrixConfig()
 {
+   NoiseConfig nc(NoiseTypes::adaptive);
+   nc.setPrecision(10.0);
+
    std::vector<double> colSideInfoDenseMatrixConfigVals = { 1, 2, 3, 4 };
    std::shared_ptr<MatrixConfig> colSideInfoDenseMatrixConfig =
-      std::make_shared<MatrixConfig>(4, 1, std::move(colSideInfoDenseMatrixConfigVals), fixed_ncfg);
+      std::make_shared<MatrixConfig>(4, 1, std::move(colSideInfoDenseMatrixConfigVals), nc);
    return colSideInfoDenseMatrixConfig;
 }
 
 std::shared_ptr<MatrixConfig> getRowSideInfoSparseMatrixConfig()
 {
+   NoiseConfig nc(NoiseTypes::adaptive);
+   nc.setPrecision(10.0);
+
    std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigRows = {0, 1, 2};
    std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigCols = {0, 0, 0};
    std::vector<double> rowSideInfoSparseMatrixConfigVals = { 1, 2, 3 };
    std::shared_ptr<MatrixConfig> rowSideInfoSparseMatrixConfig =
-      std::make_shared<MatrixConfig>(3, 1, std::move(rowSideInfoSparseMatrixConfigRows), std::move(rowSideInfoSparseMatrixConfigCols), std::move(rowSideInfoSparseMatrixConfigVals), fixed_ncfg, true);
+      std::make_shared<MatrixConfig>(3, 1, std::move(rowSideInfoSparseMatrixConfigRows), std::move(rowSideInfoSparseMatrixConfigCols), std::move(rowSideInfoSparseMatrixConfigVals), nc, true);
    return rowSideInfoSparseMatrixConfig;
 }
 
 std::shared_ptr<MatrixConfig> getColSideInfoSparseMatrixConfig()
 {
+   NoiseConfig nc(NoiseTypes::adaptive);
+   nc.setPrecision(10.0);
+
    std::vector<std::uint32_t> colSideInfoSparseMatrixConfigRows = {0, 1, 2, 3};
    std::vector<std::uint32_t> colSideInfoSparseMatrixConfigCols = {0, 0, 0, 0};
    std::vector<double> colSideInfoSparseMatrixConfigVals = { 1, 2, 3, 4 };
    std::shared_ptr<MatrixConfig> colSideInfoSparseMatrixConfig =
-      std::make_shared<MatrixConfig>(4, 1, std::move(colSideInfoSparseMatrixConfigRows), std::move(colSideInfoSparseMatrixConfigCols), std::move(colSideInfoSparseMatrixConfigVals), fixed_ncfg, true);
+      std::make_shared<MatrixConfig>(4, 1, std::move(colSideInfoSparseMatrixConfigRows), std::move(colSideInfoSparseMatrixConfigCols), std::move(colSideInfoSparseMatrixConfigVals), nc, true);
    return colSideInfoSparseMatrixConfig;
 }
 
@@ -667,7 +679,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -726,7 +737,6 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -791,7 +801,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -844,7 +853,6 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -904,7 +912,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -962,7 +969,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -1025,7 +1031,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1064,7 +1069,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1103,7 +1107,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1366,7 +1369,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -1424,7 +1426,6 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
    config.setDirect(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
@@ -1820,7 +1821,6 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    config.setVerbose(false);
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
@@ -1858,7 +1858,6 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    config.setVerbose(false);
    config.setRandomSeed(1234);
    config.setRandomSeedSet(true);
-   config.setEnableBetaPrecisionSampling(true);
 
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }

@@ -37,11 +37,7 @@
 #define VERSION_NAME "version"
 #define STATUS_NAME "status"
 #define SEED_NAME "seed"
-#define PRECISION_NAME "precision"
-#define ADAPTIVE_NAME "adaptive"
-#define PROBIT_NAME "probit"
-#define BETA_PRECISION_NAME "beta-precision"
-#define ENABLE_BETA_PRECISION_SAMPLING_NAME "enable-beta-precision-sampling"
+#define NOISE_MODEL_NAME "noise_model"
 #define TOL_NAME "tol"
 #define DIRECT_NAME "direct"
 #define INI_NAME "ini"
@@ -91,15 +87,10 @@ boost::program_options::options_description get_desc()
 
    boost::program_options::options_description noise_desc("Noise model.");
    noise_desc.add_options()
-      (PRECISION_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::PRECISION_DEFAULT_VALUE)), "set fixed precision of observations")
-      (ADAPTIVE_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::ADAPTIVE_SN_INIT_DEFAULT_VALUE) + "," + std::to_string(NoiseConfig::ADAPTIVE_SN_MAX_DEFAULT_VALUE)),
-        "use adaptive precision of observations, sets initial (default: 1.0) and maximum (default:10.0) SNR")
-      (PROBIT_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::PROBIT_DEFAULT_VALUE)), "Use probit noise model with given threshold");
-
+      (NOISE_MODEL_NAME, boost::program_options::value<std::string>()->default_value(NoiseConfig::get_default_string()), "set properties of noise model");
+      
    boost::program_options::options_description macau_prior_desc("For the macau prior");
    macau_prior_desc.add_options()
-      (BETA_PRECISION_NAME, boost::program_options::value<double>()->default_value(Config::BETA_PRECISION_DEFAULT_VALUE), "initial value of beta precision")
-      (ENABLE_BETA_PRECISION_SAMPLING_NAME, boost::program_options::value<bool>()->default_value(Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE), "enable sampling of beta precision")
       (TOL_NAME, boost::program_options::value<double>()->default_value(Config::TOL_DEFAULT_VALUE), "tolerance for CG")
       (DIRECT_NAME, "Use Cholesky decomposition i.o. CG Solver");
 
@@ -139,33 +130,20 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
    }
 }
 
-NoiseConfig parse_noise_arg(std::string noiseName, std::string optarg)
+NoiseConfig parse_noise_arg(std::string optarg)
 {
+   std::vector<std::string> tokens;
+   smurff::split(optarg, tokens, ';');
+
+   THROWERROR_ASSERT_MSG(tokens.size() == 5, "invalid number of options for noise model");
+
    NoiseConfig nc;
-   nc.setNoiseType(smurff::stringToNoiseType(noiseName));
-   if (nc.getNoiseType() == NoiseTypes::adaptive)
-   {
-      std::stringstream lineStream(optarg);
-      std::string token;
-      std::vector<std::string> tokens;
 
-      while (std::getline(lineStream, token, ','))
-         tokens.push_back(token);
-
-      if(tokens.size() != 2)
-         THROWERROR("invalid number of options for adaptive noise");
-
-      nc.setSnInit(strtod(tokens[0].c_str(), NULL));
-      nc.setSnMax(strtod(tokens[1].c_str(), NULL));
-   }
-   else if (nc.getNoiseType() == NoiseTypes::fixed)
-   {
-      nc.setPrecision(strtod(optarg.c_str(), NULL));
-   }
-   else if (nc.getNoiseType() == NoiseTypes::probit)
-   {
-      nc.setThreshold(strtod(optarg.c_str(), NULL));
-   }
+   nc.setNoiseType(smurff::stringToNoiseType(tokens.at(0)));
+   nc.setPrecision(stod(tokens.at(1)));
+   nc.setSnInit(stod(tokens.at(2)));
+   nc.setSnMax(stod(tokens.at(3)));
+   nc.setThreshold(stod(tokens.at(4)));
 
    return nc;
 }
@@ -297,20 +275,10 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       config.setRandomSeed(vm[SEED_NAME].as<int>());
    }
 
-   if (vm.count(PRECISION_NAME) && !vm[PRECISION_NAME].defaulted())
-      set_noise_configs(config, parse_noise_arg(NOISE_NAME_FIXED, vm[PRECISION_NAME].as<std::string>()));
-   else if (vm.count(ADAPTIVE_NAME) && !vm[ADAPTIVE_NAME].defaulted())
-      set_noise_configs(config, parse_noise_arg(NOISE_NAME_ADAPTIVE, vm[ADAPTIVE_NAME].as<std::string>()));
-   else if (vm.count(PROBIT_NAME) && !vm[PROBIT_NAME].defaulted())
-      set_noise_configs(config, parse_noise_arg(NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>()));
+   if (vm.count(NOISE_MODEL_NAME) && !vm[NOISE_MODEL_NAME].defaulted())
+      set_noise_configs(config, parse_noise_arg(vm[NOISE_MODEL_NAME].as<std::string>()));
    else
       set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
-
-   if (vm.count(BETA_PRECISION_NAME) && !vm[BETA_PRECISION_NAME].defaulted())
-      config.setBetaPrecision(vm[BETA_PRECISION_NAME].as<double>());
-
-   if (vm.count(ENABLE_BETA_PRECISION_SAMPLING_NAME) && !vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].defaulted())
-      config.setEnableBetaPrecisionSampling(vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].as<bool>());
 
    if (vm.count(TOL_NAME) && !vm[TOL_NAME].defaulted())
       config.setTol(vm[TOL_NAME].as<double>());
