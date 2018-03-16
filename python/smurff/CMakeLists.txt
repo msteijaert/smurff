@@ -1,5 +1,5 @@
 #SETUP PROJECT
-set (PROJECT cy_smurff)
+set (PROJECT python_smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
@@ -8,12 +8,10 @@ project (${PROJECT})
 include( UseCython )
 
 find_package(NumPy REQUIRED)
-message(STATUS ${NUMPY_INCLUDE_DIR})
 
 include_directories(${NUMPY_INCLUDE_DIR})
 include_directories(../../lib/smurff-cpp)
 include_directories(include)
-include_directories(src)
 
 # With CMake, a clean separation can be made between the source tree and the
 # build tree.  When all source is compiled, as with pure C/C++, the source is
@@ -27,5 +25,5 @@ add_custom_target( ReplicatePythonSourceTree ALL ${CMAKE_COMMAND} -P
 
 configure_file(setup.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
 
-add_subdirectory( src )
+add_subdirectory( smurff )
 

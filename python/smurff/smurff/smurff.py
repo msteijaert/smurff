@@ -1,19 +1,20 @@
-import cy_smurff
+from .wrapper import PySession
 
-def smurff(**args):
-    session = cy_smurff.createSession(**args)
+def smurff(train, test = None, **args):
+    session = PySession.fromConfig(train, **args)
 
+    session.init()
     while session.step():
         pass
 
     return session.getResult()
 
-def bpmf(**args):
+def bpmf(train, test = None, **args):
     args["priors"] = ["normal", "normal"]
     args["side_info_files"] = [ "none", "none" ]
-    return smurff(**args)
+    return smurff(train, **args)
 
-def macau(side_info, **args):
+def macau(train, side_info, test = None, **args):
     priors = [ 'normal', 'normal' ]
     for d in range(2):
         if side_info[d] != "none":
@@ -23,5 +24,5 @@ def macau(side_info, **args):
     args["side_info_files"] = side_info_files
     args["aux_data"] =  [ [], [] ]
 
-    return smurff(**args)
+    return smurff(train, **args)
 

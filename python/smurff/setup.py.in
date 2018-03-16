@@ -26,6 +26,7 @@ CLASSIFIERS = [
 
 setup(
     name = 'smurff',
+    packages = [ 'smurff', ]
     version = '@SMURFF_VERSION@',
     package_dir = {'': 'src'},
     data_files = [

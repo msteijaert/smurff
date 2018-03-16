@@ -9,6 +9,7 @@
 from libc.stdint cimport *
 from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
+from libcpp.string cimport string
 
 from Config cimport Config, PriorTypes, stringToPriorType, stringToModelInitType
 from ISession cimport ISession
@@ -25,8 +26,8 @@ import pandas as pd
 import scipy.sparse
 import numbers
 
-from prepare import make_train_test, make_train_test_df
-from prepare import Result, ResultItem
+from .prepare import make_train_test, make_train_test_df
+from .prepare import Result, ResultItem
 
 DENSE_MATRIX_TYPES  = [np.ndarray, np.matrix]
 SPARSE_MATRIX_TYPES = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
@@ -209,107 +210,124 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
     else:
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
 
-# Create and initialize smurff-cpp Config instance
-def createSession(
-           Y              = None,
-           Ytest          = None,
-           data_shape     = None,
-           priors         = [],
-           side_info      = [],
-           aux_data       = [],
-           lambda_beta    = 10.0,
-           num_latent     = 10,
-           precision      = None,
-           sn_init        = None,
-           sn_max         = None,
-           burnin         = 50,
-           nsamples       = 400,
-           tol            = 1e-6,
-           direct         = True,
-           seed           = None,
-           threshold      = None,
-           verbose        = True,
-           init_model     = None,
-           save_prefix    = None,
-           save_extension = None,
-           save_freq      = None,
-           csv_status     = None):
 
-    cdef Config config
-    cdef NoiseConfig nc
-    cdef shared_ptr[PVec] pos
+cdef class PySession:
+    cdef shared_ptr[ISession] ptr;
 
-    cpdef shared_ptr[ISession] session;
+    def init(self):
+        return self.ptr.get().init()
 
-    if precision is not None:
-        nc.setNoiseType(fixed)
-        nc.setPrecision(precision)
+    def step(self):
+        return self.ptr.get().step()
 
-    if sn_init is not None and sn_max is not None:
-        nc.setNoiseType(adaptive)
-        nc.setSnInit(sn_init)
-        nc.setSnMax(sn_max)
+    def getResult(self):
+        return None
 
-    if threshold is not None:
-        nc.setNoiseType(probit)
-        nc.setThreshold(threshold)
-        config.setThreshold(threshold)
-        config.setClassify(True)
+    # Create and initialize smurff-cpp Config instance
+    @classmethod
+    def fromConfig(cls,
+               Y              = None,
+               Ytest          = None,
+               data_shape     = None,
+               priors         = [],
+               side_info      = [],
+               aux_data       = [],
+               lambda_beta    = 10.0,
+               num_latent     = 10,
+               precision      = None,
+               sn_init        = None,
+               sn_max         = None,
+               burnin         = 50,
+               nsamples       = 400,
+               tol            = 1e-6,
+               direct         = True,
+               seed           = None,
+               threshold      = None,
+               verbose        = True,
+               init_model     = None,
+               save_prefix    = None,
+               save_extension = None,
+               save_freq      = None,
+               csv_status     = None):
 
-    train, test = prepare_data(Y, Ytest, data_shape)
-    train.get().setNoiseConfig(nc)
+        cdef Config config
+        cdef NoiseConfig nc
+        cdef shared_ptr[PVec] pos
+        cdef string prior_type_str
 
-    config.setTrain(train)
-    if Ytest is not None:
-        test.get().setNoiseConfig(nc)
-        config.setTest(test)
 
-    if len(side_info) == 0:
-        side_info = [None] * len(priors)
+        if precision is not None:
+            nc.setNoiseType(fixed)
+            nc.setPrecision(precision)
 
-    if len(aux_data) == 0:
-        aux_data = [None] * len(priors)
+        if sn_init is not None and sn_max is not None:
+            nc.setNoiseType(adaptive)
+            nc.setSnInit(sn_init)
+            nc.setSnMax(sn_max)
 
-    for i in range(len(priors)):
-        prior_type_str = priors[i]
-        config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
+        if threshold is not None:
+            nc.setNoiseType(probit)
+            nc.setThreshold(threshold)
+            config.setThreshold(threshold)
+            config.setClassify(True)
 
-        prior_side_info = side_info[i]
-        if prior_side_info is None:
-            config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
-        else:
-            config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
+        train, test = prepare_data(Y, Ytest, data_shape)
+        train.get().setNoiseConfig(nc)
 
-        prior_aux_data = aux_data[i]
-        if prior_aux_data is not None:
-            pos = make_shared[PVec](len(priors))
-            for ad in prior_aux_data:
-                if ad is not None:
-                    if i == 0:
-                        (&pos.get()[0].at(1))[0] += 1
-                    elif i == 1:
-                        (&pos.get()[0].at(0))[0] += 1
-                    else:
-                        (&pos.get()[0].at(i))[0] += 1
-                    config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
-                    config.getAuxData().back().get().setPos(pos.get()[0])
+        config.setTrain(train)
+        if Ytest is not None:
+            test.get().setNoiseConfig(nc)
+            config.setTest(test)
 
-    config.setNumLatent(num_latent)
-    config.setBurnin(burnin)
-    config.setNSamples(nsamples)
-    config.setTol(tol)
-    config.setDirect(direct)
+        if len(side_info) == 0:
+            side_info = [None] * len(priors)
 
-    if seed:
-        config.setRandomSeedSet(True)
-        config.setRandomSeed(seed)
+        if len(aux_data) == 0:
+            aux_data = [None] * len(priors)
 
-    config.setVerbose(verbose)
-    if init_model:     config.setModelInitType(stringToModelInitType(init_model))
-    if save_prefix:    config.setSavePrefix(save_prefix)
-    if save_extension: config.setSaveExtension(save_extension)
-    if save_freq:      config.setSaveFreq(save_freq)
-    if csv_status:     config.setCsvStatus(csv_status)
+        for i in range(len(priors)):
+            prior_type_str = priors[i].encode('UTF-8')
+            config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
 
-    session = SessionFactory.create_py_session_from_config(config)
+            prior_side_info = side_info[i]
+            if prior_side_info is None:
+                config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
+            else:
+                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
+
+            prior_aux_data = aux_data[i]
+            if prior_aux_data is not None:
+                pos = make_shared[PVec](len(priors))
+                for ad in prior_aux_data:
+                    if ad is not None:
+                        if i == 0:
+                            (&pos.get()[0].at(1))[0] += 1
+                        elif i == 1:
+                            (&pos.get()[0].at(0))[0] += 1
+                        else:
+                            (&pos.get()[0].at(i))[0] += 1
+                        config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
+                        config.getAuxData().back().get().setPos(pos.get()[0])
+
+        config.setNumLatent(num_latent)
+        config.setBurnin(burnin)
+        config.setNSamples(nsamples)
+        config.setTol(tol)
+        config.setDirect(direct)
+
+        if seed:
+            config.setRandomSeedSet(True)
+            config.setRandomSeed(seed)
+
+        config.setVerbose(verbose)
+        if init_model:     config.setModelInitType(stringToModelInitType(init_model))
+        if save_prefix:    config.setSavePrefix(save_prefix)
+        if save_extension: config.setSaveExtension(save_extension)
+        if save_freq:      config.setSaveFreq(save_freq)
+        if csv_status:     config.setCsvStatus(csv_status)
+
+        
+        session = PySession()
+        session.ptr = SessionFactory.create_py_session_from_config(config)
+        return session
 
