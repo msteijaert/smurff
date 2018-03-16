@@ -4,6 +4,7 @@ package:
 
 source:
   git_url: https://github.com/ExaScience/smurff
+  git_tag: cython_cmake
 
 requirements:
   build:
@@ -14,7 +15,7 @@ requirements:
   host:
     - eigen3
     - llvm-openmp              # [osx]
-    - mkl
+    - mkl-devel
     - libboost
     - cython >=0.25
     - python
