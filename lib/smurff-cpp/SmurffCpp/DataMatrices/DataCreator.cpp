@@ -40,13 +40,25 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const MatrixConfig> mc
 
 std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const TensorConfig> tc) const
 {
+   //FIXME:
+   //there is no other place except from this to check that side info is specified if we are using tensor data
+   //though side info is only relevant for PriorFactory
+   //this code should be removed later when we confirm that Tensor data works correctly with macau priors
+   for (const auto& mpc : m_session->getConfig().getMacauPriorConfigs())
+   {
+      if (mpc)
+      {
+         THROWERROR("Tensor config does not support side info");
+      }
+   }
+
    //we need TensorsData class to utilize aux data
    const auto& auxDataSet = m_session->getConfig().getAuxData();
    if (!auxDataSet.empty())
    {
       THROWERROR("Tensor config does not support aux data");
    }
-   
+
    //create creator
    std::shared_ptr<DataCreatorBase> creatorBase = std::make_shared<DataCreatorBase>();
 

@@ -210,7 +210,7 @@ MacauPrior<MatrixXd>* make_dense_prior(int nlatent, double* ptr, int nrows, int 
         }
         auto ret = new MacauPrior<Eigen::MatrixXd>(0, 0);
         std::shared_ptr<Eigen::MatrixXd> Fmat_ptr = std::shared_ptr<MatrixXd>(Fmat);
-        ret->addSideInfo(Fmat_ptr);
+        ret->addSideInfo(Fmat_ptr, 10.0, 1e-6, comp_FtF, true);
         ret->FtF.resize(Fmat->cols(), Fmat->cols());
         smurff::linop::At_mul_A(ret->FtF, *ret->Features);
         return ret;
