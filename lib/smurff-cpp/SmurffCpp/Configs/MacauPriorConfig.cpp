@@ -11,7 +11,6 @@
 
 #define NUM_SIDE_INFO_TAG "num_side_info"
 
-#define BETA_PRECISION_TAG "beta_precision"
 #define TOL_TAG "tol"
 #define DIRECT_TAG "direct"
 #define SIDE_INFO_PREFIX "side_info"
@@ -23,7 +22,6 @@ double MacauPriorConfig::TOL_DEFAULT_VALUE = 1e-6;
 
 MacauPriorConfigItem::MacauPriorConfigItem()
 {
-   m_beta_precision = MacauPriorConfig::BETA_PRECISION_DEFAULT_VALUE;
    m_tol = MacauPriorConfig::TOL_DEFAULT_VALUE;
    m_direct = false;
 }
@@ -34,7 +32,6 @@ void MacauPriorConfigItem::save(std::ofstream& os, std::size_t prior_index, std:
    os << "[" << MACAU_PRIOR_CONFIG_ITEM_PREFIX_TAG << "_" << prior_index << "_" << config_item_index << "]" << std::endl;
 
    //config item data
-   os << BETA_PRECISION_TAG << " = " << m_beta_precision << std::endl;
    os << TOL_TAG << " = " << m_tol << std::endl;
    os << DIRECT_TAG << " = " << m_direct << std::endl;
 
@@ -62,7 +59,6 @@ bool MacauPriorConfigItem::restore(const INIReader& reader, std::size_t prior_in
    section << MACAU_PRIOR_CONFIG_ITEM_PREFIX_TAG << "_" << prior_index << "_" << config_item_index;
 
    //restore side info properties
-   m_beta_precision = reader.getReal(section.str(), BETA_PRECISION_TAG, MacauPriorConfig::BETA_PRECISION_DEFAULT_VALUE);
    m_tol = reader.getReal(section.str(), TOL_TAG, MacauPriorConfig::TOL_DEFAULT_VALUE);
    m_direct = reader.getBoolean(section.str(), DIRECT_TAG, false);
 

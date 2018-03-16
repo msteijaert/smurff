@@ -20,11 +20,13 @@ private:
 
 public:
     template<class MacauPrior>
-    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, bool direct, std::shared_ptr<typename MacauPrior::SideInfo> side_info,
+    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session,
+                                                     const std::vector<std::shared_ptr<typename MacauPrior::SideInfo> >& side_infos,
                                                      const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items);
 
     template<class SideInfo>
-    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, bool direct, std::shared_ptr<SideInfo> side_info,
+    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, 
+                                                     const std::vector<std::shared_ptr<SideInfo> >& side_infos,
                                                      const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items);
 
     template<class Factory>
@@ -36,31 +38,55 @@ public:
 //-------
 
 template<class MacauPrior>
-std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, bool direct, std::shared_ptr<typename MacauPrior::SideInfo> side_info,
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session,
+                                                               const std::vector<std::shared_ptr<typename MacauPrior::SideInfo> >& side_infos,
                                                                const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
 {
-    std::shared_ptr<MacauPrior> prior(new MacauPrior(session, -1));
+   THROWERROR_ASSERT(side_infos.size() == config_items.size());
 
-    prior->addSideInfo(side_info, direct);
-    prior->setBetaPrecisionValues(config_items);
-    prior->setTolValues(config_items);
+   std::shared_ptr<MacauPrior> prior(new MacauPrior(session, -1));
 
-    prior->setEnableBetaPrecisionSampling(session->getConfig().getEnableBetaPrecisionSampling());
+   for (std::size_t i = 0; i < side_infos.size(); i++)
+   {
+      const auto& side_info = side_infos.at(i);
+      const auto& config_item = config_items.at(i);
+      const auto& side_info_config = config_item->getSideInfo();
+      const auto& noise_config = side_info_config->getNoiseConfig();
 
-    return prior;
+      switch (noise_config.getNoiseType())
+      {
+      case NoiseTypes::fixed:
+         {
+            prior->addSideInfo(side_info, noise_config.getPrecision(), config_item->getTol(), config_item->getDirect(), false);
+         }
+         break;
+      case NoiseTypes::adaptive:
+         {
+            prior->addSideInfo(side_info, noise_config.getPrecision(), config_item->getTol(), config_item->getDirect(), true);
+         }
+         break;
+      default:
+         {
+            THROWERROR("Unexpected noise type " + smurff::noiseTypeToString(noise_config.getNoiseType()) + "specified for macau prior");
+         }
+      }
+   }
+
+   return prior;
 }
 
 template<class SideInfo>
-std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, bool direct, std::shared_ptr<SideInfo> side_info,
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, 
+                                                               const std::vector<std::shared_ptr<SideInfo> >& side_infos,
                                                                const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
 {
    if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
    {
-      return create_macau_prior<MacauPrior<SideInfo>>(session, direct, side_info, config_items);
+      return create_macau_prior<MacauPrior<SideInfo>>(session, side_infos, config_items);
    }
    else if(prior_type == PriorTypes::macauone)
    {
-      return create_macau_prior<MacauOnePrior<SideInfo>>(session, direct, side_info, config_items);
+      return create_macau_prior<MacauOnePrior<SideInfo>>(session, side_infos, config_items);
    }
    else
    {
@@ -81,29 +107,42 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
    }
 
    //FIXME:
-   //there is a problem - do we want different types of side infos for one prior?
-   //if yes then we can not use current implementation of MacauPrior for example
-   //if we want to store each side info separately since type of sideinfo is specified as template argument
-   //we can try to convert side info to Data and finally get rid of legacy classes
-   //or we can try to merge HERE all side info into single matrix and store it into macau prior
+   //at the moment different side info types can not be stored into single vector - we need a proper interface
+   //this is the reason why we take only first side info.
+   //however code is written so that it uses vectors to make it easy to fix in the future
 
    auto& configItem = priorConfig->getConfigItems().front();
    const auto& sideinfoConfig = configItem->getSideInfo();
 
    if (sideinfoConfig->isBinary())
    {
-      std::shared_ptr<SparseFeat> sideInfo = side_info_config_to_sparse_binary_features(sideinfoConfig, mode);
-      return subFactory.create_macau_prior(session, prior_type, configItem->getDirect(), sideInfo, priorConfig->getConfigItems());
+      std::vector<std::shared_ptr<SparseFeat> > side_infos;
+      side_infos.push_back(side_info_config_to_sparse_binary_features(sideinfoConfig, mode));
+
+      std::vector<std::shared_ptr<MacauPriorConfigItem> > config_items;
+      config_items.push_back(configItem);
+
+      return subFactory.create_macau_prior(session, prior_type, side_infos, config_items);
    }
    else if (sideinfoConfig->isDense())
    {
-      std::shared_ptr<Eigen::MatrixXd> sideInfo = side_info_config_to_dense_features(sideinfoConfig, mode);
-      return subFactory.create_macau_prior(session, prior_type, configItem->getDirect(), sideInfo, priorConfig->getConfigItems());
+      std::vector<std::shared_ptr<Eigen::MatrixXd> > side_infos;
+      side_infos.push_back(side_info_config_to_dense_features(sideinfoConfig, mode));
+
+      std::vector<std::shared_ptr<MacauPriorConfigItem> > config_items;
+      config_items.push_back(configItem);
+
+      return subFactory.create_macau_prior(session, prior_type, side_infos, config_items);
    }
    else
    {
-      std::shared_ptr<SparseDoubleFeat> sideInfo = side_info_config_to_sparse_features(sideinfoConfig, mode);
-      return subFactory.create_macau_prior(session, prior_type, configItem->getDirect(), sideInfo, priorConfig->getConfigItems());
+      std::vector<std::shared_ptr<SparseDoubleFeat> > side_infos;
+      side_infos.push_back(side_info_config_to_sparse_features(sideinfoConfig, mode));
+
+      std::vector<std::shared_ptr<MacauPriorConfigItem> > config_items;
+      config_items.push_back(configItem);
+
+      return subFactory.create_macau_prior(session, prior_type, side_infos, config_items);
    }
 }
 }

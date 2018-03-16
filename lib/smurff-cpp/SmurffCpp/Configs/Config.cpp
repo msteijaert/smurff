@@ -37,7 +37,6 @@
 #define RANDOM_SEED_TAG "random_seed"
 #define CSV_STATUS_TAG "csv_status"
 #define INIT_MODEL_TAG "init_model"
-#define ENABLE_BETA_PRECISION_SAMPLING_TAG "enable_beta_precision_sampling"
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
 
@@ -145,8 +144,6 @@ Config::Config()
    m_burnin = Config::BURNIN_DEFAULT_VALUE;
    m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
    m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
-
-   m_enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
 
    m_threshold = Config::THRESHOLD_DEFAULT_VALUE;
    m_classify = false;
@@ -379,10 +376,6 @@ void Config::save(std::string fname) const
    os << CSV_STATUS_TAG << " = " << m_csv_status << std::endl;
    os << INIT_MODEL_TAG << " = " << modelInitTypeToString(m_model_init_type) << std::endl;
 
-   //macau priors data
-   os << std::endl << "# for macau priors" << std::endl;
-   os << ENABLE_BETA_PRECISION_SAMPLING_TAG << " = " << m_enable_beta_precision_sampling << std::endl;
-
    //probit prior data
    os << std::endl << "# binary classification" << std::endl;
    os << CLASSIFY_TAG << " = " << m_classify << std::endl;
@@ -485,9 +478,6 @@ bool Config::restore(std::string fname)
    m_random_seed = reader.getInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
    m_csv_status = reader.get(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, Config::STATUS_DEFAULT_VALUE);
    m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
-
-   //restore macau priors data
-   m_enable_beta_precision_sampling = reader.getBoolean(GLOBAL_SECTION_TAG, ENABLE_BETA_PRECISION_SAMPLING_TAG, Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE);
 
    //restore probit prior data
    m_classify = reader.getBoolean(GLOBAL_SECTION_TAG, CLASSIFY_TAG,  false);

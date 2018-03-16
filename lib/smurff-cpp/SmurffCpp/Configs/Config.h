@@ -95,9 +95,6 @@ private:
    int m_nsamples;
    int m_num_latent;
 
-   //-- for macau priors
-   bool m_enable_beta_precision_sampling;
-
    //-- binary classification
    bool m_classify;
    double m_threshold;
@@ -290,16 +287,6 @@ public:
    void setNumLatent(int value)
    {
       m_num_latent = value;
-   }
-
-   bool getEnableBetaPrecisionSampling() const
-   {
-      return m_enable_beta_precision_sampling;
-   }
-
-   void setEnableBetaPrecisionSampling(bool value)
-   {
-      m_enable_beta_precision_sampling = value;
    }
 
    bool getClassify() const

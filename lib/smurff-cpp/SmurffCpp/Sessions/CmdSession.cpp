@@ -40,7 +40,6 @@
 #define PRECISION_NAME "precision"
 #define ADAPTIVE_NAME "adaptive"
 #define PROBIT_NAME "probit"
-#define ENABLE_BETA_PRECISION_SAMPLING_NAME "enable-beta-precision-sampling"
 #define INI_NAME "ini"
 #define ROOT_NAME "root"
 
@@ -93,17 +92,12 @@ boost::program_options::options_description get_desc()
         "use adaptive precision of observations, sets initial (default: 1.0) and maximum (default:10.0) SNR")
       (PROBIT_NAME, boost::program_options::value<std::string>()->default_value(std::to_string(NoiseConfig::PROBIT_DEFAULT_VALUE)), "Use probit noise model with given threshold");
 
-   boost::program_options::options_description macau_prior_desc("For the macau prior");
-   macau_prior_desc.add_options()
-      (ENABLE_BETA_PRECISION_SAMPLING_NAME, boost::program_options::value<bool>()->default_value(Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE), "enable sampling of beta precision");
-
    boost::program_options::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
    desc.add(basic_desc);
    desc.add(priors_desc);
    desc.add(train_test_desc);
    desc.add(general_desc);
    desc.add(noise_desc);
-   desc.add(macau_prior_desc);
 
    return desc;
 }
@@ -219,14 +213,13 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
             std::vector<std::string> properties;
             smurff::split(token, properties, ';');
 
-            THROWERROR_ASSERT(properties.size() == 4);
+            THROWERROR_ASSERT(properties.size() == 3);
 
             auto mpci = std::make_shared<MacauPriorConfigItem>();
 
-            mpci->setBetaPrecision(stod(properties.at(0)));
-            mpci->setTol(stod(properties.at(1)));
-            mpci->setDirect(stoi(properties.at(2)));
-            mpci->setSideInfo(matrix_io::read_matrix(properties.at(3), false));
+            mpci->setTol(stod(properties.at(0)));
+            mpci->setDirect(stoi(properties.at(1)));
+            mpci->setSideInfo(matrix_io::read_matrix(properties.at(2), false));
 
             mpc->getConfigItems().push_back(mpci);
          }
@@ -337,9 +330,6 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       set_noise_configs(config, parse_noise_arg(NOISE_NAME_PROBIT, vm[PROBIT_NAME].as<std::string>()));
    else
       set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
-
-   if (vm.count(ENABLE_BETA_PRECISION_SAMPLING_NAME) && !vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].defaulted())
-      config.setEnableBetaPrecisionSampling(vm[ENABLE_BETA_PRECISION_SAMPLING_NAME].as<bool>());
 }
 #endif
 

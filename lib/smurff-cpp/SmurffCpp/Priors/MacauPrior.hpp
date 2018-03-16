@@ -35,20 +35,28 @@ public:
    Eigen::MatrixXd HyperU, HyperU2;
    Eigen::MatrixXd Ft_y;
    
-   bool enable_beta_precision_sampling;
    double beta_precision_mu0; // Hyper-prior for beta_precision
    double beta_precision_nu0; // Hyper-prior for beta_precision
 
+   //FIXME: these must be used
+
+   //new values
+
    std::vector<std::shared_ptr<FType> > side_info_values;
    std::vector<double> beta_precision_values;
-   std::vector<bool> direct_values;
    std::vector<double> tol_values;
+   std::vector<bool> direct_values;
+   std::vector<bool> enable_beta_precision_sampling_values;
 
-   //these must be removed
+   //FIXME: these must be removed
+
+   //old values
+
    std::shared_ptr<FType> Features;  // side information
-   bool use_FtF;
    double beta_precision;
    double tol = 1e-6;
+   bool use_FtF;
+   bool enable_beta_precision_sampling;
 
 private:
    MacauPrior()
@@ -137,50 +145,33 @@ public:
 
 public:
 
-   void addSideInfo(std::shared_ptr<FType>& side_info, bool direct = false)
+   void addSideInfo(const std::shared_ptr<FType>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a)
    {
       //FIXME: remove old code
 
-      // side information
-      Features = side_info;
-      use_FtF = direct;
-
-      //FIXME: this code should push multiple side info items that are passed?
+      // old code
 
       // side information
-      side_info_values.push_back(side_info);
-      direct_values.push_back(direct);
+      Features = side_info_a;
+      beta_precision = beta_precision_a;
+      tol = tolerance_a;
+      use_FtF = direct_a;
+      enable_beta_precision_sampling = enable_beta_precision_sampling_a;
+      
+      // new code
+      
+      // side information
+      side_info_values.push_back(side_info_a);
+      beta_precision_values.push_back(beta_precision_a);
+      tol_values.push_back(tolerance_a);
+      direct_values.push_back(direct_a);
+      enable_beta_precision_sampling_values.push_back(enable_beta_precision_sampling_a);
 
+      // other code
+      
       // Hyper-prior for beta_precision (mean 1.0, var of 1e+3):
       beta_precision_mu0 = 1.0;
       beta_precision_nu0 = 1e-3;
-   }
-
-   void setBetaPrecisionValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
-   {
-      beta_precision_values.clear();
-
-      for (auto& item : config_items)
-         beta_precision_values.push_back(item->getBetaPrecision());
-
-      //FIXME: remove old code
-      beta_precision = config_items.front()->getBetaPrecision();
-   }
-
-   void setTolValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
-   {
-      tol_values.clear();
-
-      for (auto& item : config_items)
-         tol_values.push_back(item->getTol());
-
-      //FIXME: remove old code
-      tol = config_items.front()->getTol();
-   }
-
-   void setEnableBetaPrecisionSampling(bool value)
-   {
-      enable_beta_precision_sampling = value;
    }
 
 public:

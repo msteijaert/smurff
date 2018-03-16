@@ -15,7 +15,6 @@ namespace smurff
    class MacauPriorConfigItem
    {
    private:
-      double m_beta_precision;
       double m_tol;
       bool m_direct;
 
@@ -33,16 +32,6 @@ namespace smurff
       void setSideInfo(std::shared_ptr<MatrixConfig> value)
       {
          m_sideInfo = value;
-      }
-
-      double getBetaPrecision() const
-      {
-         return m_beta_precision;
-      }
-
-      void setBetaPrecision(double value)
-      {
-         m_beta_precision = value;
       }
 
       double getTol() const

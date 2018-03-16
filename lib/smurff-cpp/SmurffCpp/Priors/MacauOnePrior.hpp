@@ -30,18 +30,25 @@ public:
 
    Eigen::MatrixXd beta;      // link matrix
    
-   Eigen::VectorXd beta_precision;
-
-   bool enable_beta_precision_sampling;
    double beta_precision_a0; // Hyper-prior for beta_precision
    double beta_precision_b0; // Hyper-prior for beta_precision
 
+   //FIXME: these must be used
+
+   //new values
+
    std::vector<std::shared_ptr<FType> > side_info_values;
    std::vector<double> beta_precision_values;
+   std::vector<bool> enable_beta_precision_sampling_values;
 
-   //these must be removed
+   //FIXME: these must be removed
+
+   //old values
+
    std::shared_ptr<FType> Features;  // side information
+   Eigen::VectorXd beta_precision;
    double bp0;
+   bool enable_beta_precision_sampling;
 
 public:
    MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
@@ -83,37 +90,29 @@ public:
    }
 
 public:
-   void addSideInfo(std::shared_ptr<FType>& side_info, bool direct = false)
+   //FIXME: tolerance_a and direct_a are not really used. 
+   //should remove later after PriorFactory is properly implemented. 
+   //No reason generalizing addSideInfo between priors
+   void addSideInfo(const std::shared_ptr<FType>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a)
    {
       //FIXME: remove old code
-      Features = side_info;
 
-      //FIXME: this code should push multiple side info items that are passed?
+      // old code
+
+      Features = side_info_a;
+      bp0 = beta_precision_a;
+      enable_beta_precision_sampling = enable_beta_precision_sampling_a;
+
+      // new code
 
       // side information
-      side_info_values.push_back(side_info);
+      side_info_values.push_back(side_info_a);
+      beta_precision_values.push_back(beta_precision_a);
+      enable_beta_precision_sampling_values.push_back(enable_beta_precision_sampling_a);
+
+      // other code
 
       F_colsq = smurff::linop::col_square_sum(*Features);
-   }
-
-   void setBetaPrecisionValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
-   {
-      beta_precision_values.clear();
-
-      for (auto& item : config_items)
-         beta_precision_values.push_back(item->getBetaPrecision());
-
-      //FIXME: remove old code
-      bp0 = config_items.front()->getBetaPrecision();
-   }
-
-   void setTolValues(const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
-   {
-   }
-
-   void setEnableBetaPrecisionSampling(bool value)
-   {
-      enable_beta_precision_sampling = value;
    }
 
 public:
