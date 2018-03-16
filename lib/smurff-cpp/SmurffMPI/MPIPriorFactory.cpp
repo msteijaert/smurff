@@ -8,9 +8,9 @@
 using namespace smurff;
 
 template<class SideInfo>
-std::shared_ptr<ILatentPrior> MPIPriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info)
+std::shared_ptr<ILatentPrior> MPIPriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info, const NoiseConfig& noise_config)
 {
-   return PriorFactory::create_macau_prior<MPIMacauPrior<SideInfo>>(session, side_info);
+   return PriorFactory::create_macau_prior<MPIMacauPrior<SideInfo>>(session, side_info, noise_config);
 }
 
 std::shared_ptr<ILatentPrior> MPIPriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
