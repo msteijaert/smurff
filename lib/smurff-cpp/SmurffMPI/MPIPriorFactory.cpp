@@ -8,9 +8,11 @@
 using namespace smurff;
 
 template<class SideInfo>
-std::shared_ptr<ILatentPrior> MPIPriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info, const NoiseConfig& noise_config)
+std::shared_ptr<ILatentPrior> MPIPriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, 
+                                                                  const std::vector<std::shared_ptr<SideInfo> >& side_infos,
+                                                                  const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
 {
-   return PriorFactory::create_macau_prior<MPIMacauPrior<SideInfo>>(session, side_info, noise_config);
+   return PriorFactory::create_macau_prior<MPIMacauPrior<SideInfo>>(session, side_infos, config_items);
 }
 
 std::shared_ptr<ILatentPrior> MPIPriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
@@ -19,7 +21,7 @@ std::shared_ptr<ILatentPrior> MPIPriorFactory::create_prior(std::shared_ptr<Sess
 
    if(pt == PriorTypes::macau)
    {
-      return PriorFactory::create_macau_prior<MPIPriorFactory>(session, mode, pt, session->getConfig().getSideInfo().at(mode));
+      return PriorFactory::create_macau_prior<MPIPriorFactory>(session, mode, pt, session->getConfig().getMacauPriorConfigs().at(mode));
    }
    else
    {
