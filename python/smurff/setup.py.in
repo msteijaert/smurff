@@ -26,13 +26,11 @@ CLASSIFIERS = [
 
 setup(
     name = 'smurff',
-    packages = [ 'smurff', ]
+    packages = [ 'smurff' ],
     version = '@SMURFF_VERSION@',
-    package_dir = {'': 'src'},
     data_files = [
-        (get_python_lib(), glob.glob('src/*.so')),
+        (os.path.join(get_python_lib(), "smurff"), glob.glob('smurff/*.so')),
     ],
-    test_require = ['nose'],
     url = "http://github.com/ExaScience/smurff",
     zip_safe = False,
     license = "MIT",
