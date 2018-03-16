@@ -234,6 +234,7 @@ configure_mpi()
 configure_openmp()
 configure_eigen()
 configure_boost()
+configure_python()
 endif()
 
 set(ALGEBRA_LIB_FOUND OFF)
@@ -343,8 +344,9 @@ add_subdirectory (../BenchMvnormal/cmake tests/BenchMvnormal)
 add_subdirectory (../BenchNrandn/cmake tests/BenchNrandn)
 add_subdirectory (../BenchWishart/cmake tests/BenchWishart)
 
-
 # python
 
-add_subdirectory (../../../python/smurff python/Smurff)
+if(PYTHONINTERP_FOUND)
+    add_subdirectory (../../../python/smurff python/Smurff)
+endif()
 
