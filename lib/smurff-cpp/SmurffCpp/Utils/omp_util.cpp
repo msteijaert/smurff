@@ -38,7 +38,7 @@ void threads_init()
   
    #if defined(MKL_THREAD_LIBRARY_GNU)
        mkl_set_threading_layer( MKL_THREADING_GNU );
-   #elif define(MKL_THREAD_LIBRARY_INTEL)
+   #elif defined(MKL_THREAD_LIBRARY_INTEL)
        mkl_set_threading_layer( MKL_THREADING_INTEL );
    #elif defined(MKL_THREAD_LIBRARY_SEQUENTIAL)
        THROWERROR("Shouldn't have MKL_THREAD_LIBRARY == sequential when OpenMP is enabled");
