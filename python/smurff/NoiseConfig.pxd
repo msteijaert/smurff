@@ -10,6 +10,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
 
     cdef cppclass NoiseConfig:
 
+        NoiseConfig() except +
         NoiseConfig(NoiseTypes nt) except +
 
         double getPrecision() const;
@@ -24,7 +25,6 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         double getThreshold() const;
         void setThreshold(double value);
 
-        NoiseConfig() except +
         void setNoiseType(NoiseTypes value)
 
 cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff::NoiseTypes":
