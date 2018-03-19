@@ -234,7 +234,6 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
             raise ValueError(error_msg)
 
     if test is not None:
-        test_config.setNoiseConfig(noise_config)
         # Adjust train and test dims. Makes sense only for sparse tensors
         # It does not have any effect in other case
         if shape is None:
