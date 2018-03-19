@@ -375,6 +375,8 @@ def smurff(Y              = None,
 
         if init_model:
             config.setModelInitType(stringToModelInitType(init_model))
+        else:
+            config.setModelInitType(INIT_MODEL_DEFAULT_VALUE)
 
         if save_prefix:
             config.setSavePrefix(save_prefix)
