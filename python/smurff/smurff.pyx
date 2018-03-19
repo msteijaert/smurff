@@ -2,7 +2,7 @@ from libc.stdint cimport *
 from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 
-from Config cimport Config, PriorTypes, stringToPriorType, stringToModelInitType
+from Config cimport *
 from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
@@ -271,23 +271,23 @@ def smurff(Y              = None,
            priors         = [],
            side_info      = [],
            aux_data       = [],
-           num_latent     = 10,
+           num_latent     = NUM_LATENT_DEFAULT_VALUE,
            precision      = 10.0,
            sn_init        = None,
            sn_max         = None,
-           burnin         = 50,
-           nsamples       = 400,
-           tol            = 1e-6,
+           burnin         = BURNIN_DEFAULT_VALUE,
+           nsamples       = NSAMPLES_DEFAULT_VALUE,
+           tol            = TOL_DEFAULT_VALUE,
            direct         = True,
-           seed           = None,
+           seed           = RANDOM_SEED_DEFAULT_VALUE,
            threshold      = None,
-           verbose        = True,
+           verbose        = VERBOSE_DEFAULT_VALUE,
            quite          = False,
            init_model     = None,
-           save_prefix    = None,
-           save_extension = None,
-           save_freq      = None,
-           csv_status     = None,
+           save_prefix    = SAVE_PREFIX_DEFAULT_VALUE,
+           save_extension = SAVE_EXTENSION_DEFAULT_VALUE,
+           save_freq      = SAVE_FREQ_DEFAULT_VALUE,
+           csv_status     = STATUS_DEFAULT_VALUE,
            root_path      = None,
            ini_path       = None):
 
