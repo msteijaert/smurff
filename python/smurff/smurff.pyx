@@ -75,7 +75,7 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef MatrixConfig* prepare_sparse_matrix(X, is_scarse):
+cdef MatrixConfig* prepare_sparse_matrix(X, NoiseConfig noise_config, is_scarse):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
 
@@ -106,32 +106,32 @@ cdef MatrixConfig* prepare_sparse_matrix(X, is_scarse):
     cdef shared_ptr[vector[uint32_t]] cols_vector_shared_ptr = shared_ptr[vector[uint32_t]](cols_vector_ptr)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
 
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), is_scarse)
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, noise_config, is_scarse)
     return matrix_config_ptr
 
-cdef MatrixConfig* prepare_dense_matrix(X):
+cdef MatrixConfig* prepare_dense_matrix(X, NoiseConfig noise_config):
     cdef np.ndarray[np.double_t] vals = np.squeeze(np.asarray(X.flatten(order='F')))
     cdef double* vals_begin = &vals[0]
     cdef double* vals_end = vals_begin + vals.shape[0]
     cdef vector[double]* vals_vector_ptr = new vector[double]()
     vals_vector_ptr.assign(vals_begin, vals_end)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, NoiseConfig())
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, noise_config)
     return matrix_config_ptr
 
-cdef MatrixConfig* prepare_sideinfo(in_matrix):
+cdef MatrixConfig* prepare_sideinfo(in_matrix, NoiseConfig noise_config):
     if type(in_matrix) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
-        return prepare_sparse_matrix(in_matrix, False)
+        return prepare_sparse_matrix(in_matrix, noise_config, False)
     else:
-        return prepare_dense_matrix(in_matrix)
+        return prepare_dense_matrix(in_matrix, noise_config)
 
-cdef TensorConfig* prepare_dense_tensor(tensor):
+cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config):
     if type(tensor) not in DENSE_TENSOR_TYPES:
         error_msg = "Unsupported dense tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
     raise NotImplementedError()
 
-cdef TensorConfig* prepare_sparse_tensor(tensor, shape, is_scarse):
+cdef TensorConfig* prepare_sparse_tensor(tensor, shape, NoiseConfig noise_config, is_scarse):
     if type(tensor) not in SPARSE_TENSOR_TYPES:
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
@@ -164,16 +164,16 @@ cdef TensorConfig* prepare_sparse_tensor(tensor, shape, is_scarse):
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
 
-cdef TensorConfig* prepare_auxdata(in_tensor, shape):
+cdef TensorConfig* prepare_auxdata(in_tensor, shape, NoiseConfig noise_config):
     if type(in_tensor) in DENSE_TENSOR_TYPES:
-        return prepare_dense_tensor(in_tensor)
+        return prepare_dense_tensor(in_tensor, noise_config)
     elif type(in_tensor) in SPARSE_TENSOR_TYPES:
-        return prepare_sparse_tensor(in_tensor, shape, True)
+        return prepare_sparse_tensor(in_tensor, shape, noise_config, True)
     else:
         error_msg = "Unsupported tensor type: {}".format(type(in_tensor))
         raise ValueError(error_msg)
 
-cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape):
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape, NoiseConfig noise_config):
     # Check train data type
     if (type(train) not in DENSE_MATRIX_TYPES and
         type(train) not in SPARSE_MATRIX_TYPES and
@@ -207,32 +207,34 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
 
     # Prepare train data
     if type(train) in DENSE_MATRIX_TYPES and len(train.shape) == 2:
-        train_config = prepare_dense_matrix(train)
+        train_config = prepare_dense_matrix(train, noise_config)
     elif type(train) in SPARSE_MATRIX_TYPES:
-        train_config = prepare_sparse_matrix(train, True)
+        train_config = prepare_sparse_matrix(train, noise_config, True)
     elif type(train) in DENSE_TENSOR_TYPES and len(train.shape) > 2:
-        train_config = prepare_dense_tensor(train)
+        train_config = prepare_dense_tensor(train, noise_config)
     elif type(train) in SPARSE_TENSOR_TYPES:
-        train_config = prepare_sparse_tensor(train, shape, True)
+        train_config = prepare_sparse_tensor(train, shape, noise_config, True)
     else:
         error_msg = "Unsupported train data type: {}".format(type(train))
         raise ValueError(error_msg)
+    train_config.setNoiseConfig(noise_config)
 
     # Prepare test data
     if test is not None:
         if type(test) in DENSE_MATRIX_TYPES and len(test.shape) == 2:
-            test_config = prepare_dense_matrix(test)
+            test_config = prepare_dense_matrix(test, noise_config)
         elif type(test) in SPARSE_MATRIX_TYPES:
-            test_config = prepare_sparse_matrix(test, True)
+            test_config = prepare_sparse_matrix(test, noise_config, True)
         elif type(test) in DENSE_TENSOR_TYPES and len(test.shape) > 2:
-            test_config = prepare_dense_tensor(test)
+            test_config = prepare_dense_tensor(test, noise_config)
         elif type(test) in SPARSE_TENSOR_TYPES:
-            test_config = prepare_sparse_tensor(test, shape, True)
+            test_config = prepare_sparse_tensor(test, shape, noise_config, True)
         else:
             error_msg = "Unsupported test data type: {}".format(type(test))
             raise ValueError(error_msg)
 
     if test is not None:
+        test_config.setNoiseConfig(noise_config)
         # Adjust train and test dims. Makes sense only for sparse tensors
         # It does not have any effect in other case
         if shape is None:
@@ -270,9 +272,8 @@ def smurff(Y              = None,
            priors         = [],
            side_info      = [],
            aux_data       = [],
-           beta_precision = 10.0,
            num_latent     = 10,
-           precision      = None,
+           precision      = 10.0,
            sn_init        = None,
            sn_max         = None,
            burnin         = 50,
@@ -321,7 +322,7 @@ def smurff(Y              = None,
             config.setThreshold(threshold)
             config.setClassify(True)
 
-        train, test = prepare_data(Y, Ytest, data_shape)
+        train, test = prepare_data(Y, Ytest, data_shape, nc)
         train.get().setNoiseConfig(nc)
 
         config.setTrain(train)
@@ -343,7 +344,7 @@ def smurff(Y              = None,
             if prior_side_info is None:
                 config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
             else:
-                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info)))
+                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info, nc)))
 
             prior_aux_data = aux_data[i]
             if prior_aux_data is not None:
@@ -356,10 +357,9 @@ def smurff(Y              = None,
                             (&pos.get()[0].at(0))[0] += 1
                         else:
                             (&pos.get()[0].at(i))[0] += 1
-                        config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
+                        config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape, nc)))
                         config.getAuxData().back().get().setPos(pos.get()[0])
 
-        config.setBetaPrecision(beta_precision)
         config.setNumLatent(num_latent)
         config.setBurnin(burnin)
         config.setNSamples(nsamples)
