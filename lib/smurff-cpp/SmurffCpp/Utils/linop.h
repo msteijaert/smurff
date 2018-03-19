@@ -560,4 +560,42 @@ inline void A_mul_B_omp(
   }
 }
 
+template<> inline void compute_uhat(Eigen::MatrixXd & uhat, std::shared_ptr<ISideInfo>& sparseFeat, Eigen::MatrixXd & beta) 
+{
+   THROWERROR_NOTIMPL();
+}
+
+//should not be inline
+inline void At_mul_A(Eigen::MatrixXd & out, std::shared_ptr<ISideInfo>& A)
+{
+   THROWERROR_NOTIMPL();
+}
+
+//should not be inline
+inline Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, std::shared_ptr<ISideInfo>& B)
+{
+   THROWERROR_NOTIMPL();
+}
+
+inline void solve_blockcg(Eigen::MatrixXd & X, std::shared_ptr<ISideInfo>& K, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess)
+{
+   THROWERROR_NOTIMPL();
+}
+
+//should not be inline
+inline Eigen::VectorXd col_square_sum(std::shared_ptr<ISideInfo>& A)
+{
+   THROWERROR_NOTIMPL();
+}
+
+inline void At_mul_Bt(Eigen::VectorXd & Y, std::shared_ptr<ISideInfo>& X, const int col, Eigen::MatrixXd & B)
+{
+   THROWERROR_NOTIMPL();
+}
+
+inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, std::shared_ptr<ISideInfo>& A, const int col, Eigen::VectorXd & b)
+{
+   THROWERROR_NOTIMPL();
+}
+
 }}
