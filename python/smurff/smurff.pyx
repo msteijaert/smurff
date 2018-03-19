@@ -266,21 +266,19 @@ class Result:
         self.rmse = rmse
 
 def smurff(Y              = None,
+           Ynoise        = None,
            Ytest          = None,
            data_shape     = None,
            priors         = [],
+           prior_noises   = [],
            side_info      = [],
            aux_data       = [],
            num_latent     = NUM_LATENT_DEFAULT_VALUE,
-           precision      = 10.0,
-           sn_init        = None,
-           sn_max         = None,
            burnin         = BURNIN_DEFAULT_VALUE,
            nsamples       = NSAMPLES_DEFAULT_VALUE,
            tol            = TOL_DEFAULT_VALUE,
            direct         = True,
            seed           = RANDOM_SEED_DEFAULT_VALUE,
-           threshold      = None,
            verbose        = VERBOSE_DEFAULT_VALUE,
            quite          = False,
            init_model     = None,
@@ -292,7 +290,7 @@ def smurff(Y              = None,
            ini_path       = None):
 
     cdef Config config
-    cdef NoiseConfig nc
+    cdef NoiseConfig noise_config
     cdef shared_ptr[ISession] session
     cdef shared_ptr[PVec] pos
 
@@ -306,27 +304,25 @@ def smurff(Y              = None,
     else:
         # Create and initialize smurff-cpp Config instance
 
-        if precision is not None:
-            nc.setNoiseType(fixed)
-            nc.setPrecision(precision)
+        if Ynoise is not None:
+            noise_config.setNoiseType(stringToNoiseType(Ynoise[0]))
 
-        if sn_init is not None and sn_max is not None:
-            nc.setNoiseType(adaptive)
-            nc.setSnInit(sn_init)
-            nc.setSnMax(sn_max)
+            if Ynoise[1] is not None:
+                noise_config.setPrecision(Ynoise[1])
+            if Ynoise[2] is not None:
+                noise_config.setSnInit(Ynoise[2])
+            if Ynoise[3] is not None:
+                noise_config.setSnMax(Ynoise[3])
+            if Ynoise[4] is not None:
+                noise_config.setThreshold(Ynoise[4])
+        else:
+            noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
 
-        if threshold is not None:
-            nc.setNoiseType(probit)
-            nc.setThreshold(threshold)
-            config.setThreshold(threshold)
-            config.setClassify(True)
-
-        train, test = prepare_data(Y, Ytest, data_shape, nc)
-        train.get().setNoiseConfig(nc)
-
+        train, test = prepare_data(Y, Ytest, data_shape, noise_config)
+        train.get().setNoiseConfig(noise_config)
         config.setTrain(train)
+
         if Ytest is not None:
-            test.get().setNoiseConfig(nc)
             config.setTest(test)
 
         if len(side_info) == 0:
@@ -339,11 +335,20 @@ def smurff(Y              = None,
             prior_type_str = priors[i]
             config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
 
+            if len(prior_noises) > 0 and prior_noises[i] is not None:
+                noise_config.setNoiseType(stringToNoiseType(prior_noises[i][0]))
+                noise_config.setPrecision(prior_noises[i][1])
+                noise_config.setSnInit(prior_noises[i][2])
+                noise_config.setSnMax(prior_noises[i][3])
+                noise_config.setThreshold(prior_noises[i][4])
+            else:
+                noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
+
             prior_side_info = side_info[i]
             if prior_side_info is None:
                 config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
             else:
-                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info, nc)))
+                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info, noise_config)))
 
             prior_aux_data = aux_data[i]
             if prior_aux_data is not None:
@@ -356,7 +361,7 @@ def smurff(Y              = None,
                             (&pos.get()[0].at(0))[0] += 1
                         else:
                             (&pos.get()[0].at(i))[0] += 1
-                        config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape, nc)))
+                        config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape, noise_config)))
                         config.getAuxData().back().get().setPos(pos.get()[0])
 
         config.setNumLatent(num_latent)
