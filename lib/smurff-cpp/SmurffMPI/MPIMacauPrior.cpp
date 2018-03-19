@@ -1,4 +1,4 @@
-#include "MPIMacauPrior.hpp"
+#include "MPIMacauPrior.h"
 
 #include <SmurffCpp/Utils/Distribution.h>
 
