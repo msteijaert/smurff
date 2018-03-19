@@ -8,9 +8,8 @@ MESSAGE("smurff")
 
 # OPTIONS
 
-OPTION(ENABLE_BLAS "Enable BLAS library" OFF)
-OPTION(ENABLE_LAPACK "Enable LAPACK library" ON)
-OPTION(ENABLE_OPENBLAS "Enable OPENBLAS library" OFF)
+OPTION(ENABLE_OPENBLAS "Look only for OPENBLAS library" OFF)
+OPTION(ENABLE_MKL "Look only for MKL library" OFF)
 
 OPTION(ENABLE_PROFILING "Enable performance counters" OFF)
 
@@ -86,31 +85,9 @@ if (MSVC OR MSVC_IDE OR MSVC_VERSION OR MSVC60 OR MSVC70 OR MSVC71 OR MSVC80 OR 
 
 elseif (CMAKE_COMPILER_IS_GNUCXX OR APPLE)
    if(APPLE)
-      # Set developer directory
-      #execute_process(COMMAND /usr/bin/xcode-select -print-path
-      #OUTPUT_VARIABLE XCODE_DEVELOPER_DIR
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      # Set the CMAKE_OSX_SYSROOT to the latest SDK found
-      #execute_process(COMMAND /usr/bin/xcrun -sdk macosx --show-sdk-path
-      #OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      # Locate gcc
-      #execute_process(COMMAND /usr/bin/xcrun -sdk macosx -find gcc
-      #OUTPUT_VARIABLE CMAKE_C_COMPILER
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      # Locate g++
-      #execute_process(COMMAND /usr/bin/xcrun -sdk macosx -find g++
-      #OUTPUT_VARIABLE CMAKE_CXX_COMPILER
-      #OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-      message(STATUS "   -- OSX: Using iOS SDK: ${CMAKE_OSX_SYSROOT}")
       message(STATUS "   -- OSX: System root directory found at: ${CMAKE_OSX_SYSROOT}")
-      message(STATUS "   -- OSX: Xcode developer directory found at: ${XCODE_DEVELOPER_DIR}")
-      message(STATUS "   -- OSX: gcc found at: ${CMAKE_C_COMPILER}")
-      message(STATUS "   -- OSX: g++ found at: ${CMAKE_CXX_COMPILER}")
+      message(STATUS "   -- OSX: c compiler found at: ${CMAKE_C_COMPILER}")
+      message(STATUS "   -- OSX: c++ compiler found at: ${CMAKE_CXX_COMPILER}")
 
       add_definitions(-DMAC_OSX)
    endif()
@@ -134,27 +111,44 @@ message("Initializing versioning...")
 execute_process(
   COMMAND git rev-list HEAD --count
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  RESULT_VARIABLE GIT_COMMIT_COUNT_ERROR
   OUTPUT_VARIABLE GIT_COMMIT_COUNT
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+if(NOT "${GIT_COMMIT_COUNT_ERROR}" STREQUAL "0")
+   set(GIT_COMMIT_COUNT "Unknown")
+endif()
+
 message(STATUS "GIT commit count ${GIT_COMMIT_COUNT}")
 
 #get GIT commit SHA
 execute_process(
   COMMAND git rev-parse HEAD
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  RESULT_VARIABLE GIT_COMMIT_ERROR
   OUTPUT_VARIABLE GIT_COMMIT
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+if(NOT "${GIT_COMMIT_ERROR}" STREQUAL "0")
+   set(GIT_COMMIT "Unknown")
+endif()
+
 message(STATUS "GIT commit SHA ${GIT_COMMIT}")
 
 #get GIT branch
 execute_process(
   COMMAND git name-rev --name-only HEAD
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  RESULT_VARIABLE GIT_BRANCH_ERROR
   OUTPUT_VARIABLE GIT_BRANCH
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+if(NOT "${GIT_BRANCH_ERROR}" STREQUAL "0")
+   set(GIT_BRANCH "Unknown")
+endif()
 
 message(STATUS "GIT branch ${GIT_BRANCH}")
 
@@ -162,9 +156,14 @@ message(STATUS "GIT branch ${GIT_BRANCH}")
 execute_process(
   COMMAND git describe
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  RESULT_VARIABLE SMURFF_VERSION_ERROR
   OUTPUT_VARIABLE SMURFF_VERSION
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+if(NOT "${SMURFF_VERSION_ERROR}" STREQUAL "0")
+   set(SMURFF_VERSION "Unknown")
+endif()
 
 message(STATUS "GIT describe ${SMURFF_VERSION}")
 
@@ -220,7 +219,8 @@ endif()
 message("Checking build dependencies...")
 
 #set additional search paths for cmake scripts
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/")
+SET(SCRIPT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/scripts/")
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCRIPT_DIR}")
 
 include(scripts/DependenciesConfig.cmake)
 
@@ -238,45 +238,29 @@ endif()
 
 set(ALGEBRA_LIB_FOUND OFF)
 
-if(${ENABLE_BLAS})
-  if(${ENABLE_LAPACK} OR ${ENABLE_OPENBLAS})
-  message(FATAL_ERROR "Multiple algebra libraries specified")
-  endif()
-  configure_blas()
-  if(${BLAS_FOUND})
-    set(ALGEBRA_LIBS ${BLAS_LIBRARIES})
-    set(ALGEBRA_LIB_NAME BLAS)
-    set(ALGEBRA_LIB_FOUND ON)
-  endif()
-endif()
-
-if(${ENABLE_LAPACK})
-  if(${ENABLE_BLAS} OR ${ENABLE_OPENBLAS})
-  message(FATAL_ERROR "Multiple algebra libraries specified")
-  endif()
-  configure_lapack()
-  if(${LAPACK_FOUND})
-    set(ALGEBRA_LIBS ${LAPACK_LIBRARIES})
-    set(ALGEBRA_LIB_NAME LAPACK)
-    set(ALGEBRA_LIB_FOUND ON)
-  endif()
-endif()
-
 if(${ENABLE_OPENBLAS})
-  if(${ENABLE_BLAS} OR ${ENABLE_LAPACK})
-  message(FATAL_ERROR "Multiple algebra libraries specified")
+  if(${ENABLE_MKL})
+  message(FATAL_ERROR "You cannot both enable OpenBLAS and MKL")
   endif()
   configure_openblas()
-  if(${BLAS_FOUND})
-    set(ALGEBRA_LIBS ${BLAS_LIBRARIES})
-    set(ALGEBRA_LIB_NAME OPENBLAS)
-    set(ALGEBRA_LIB_FOUND ON)
-  endif()
+  set(ALGEBRA_LIBS ${BLAS_LIBRARIES})
+  set(ALGEBRA_LIB_NAME OPENBLAS)
+  set(ALGEBRA_LIB_FOUND ON)
+elseif(${ENABLE_MKL})
+  configure_mkl()
+  set(ALGEBRA_LIBS ${MKL_LIBRARIES})
+  set(ALGEBRA_LIB_NAME MKL)
+  set(ALGEBRA_LIB_FOUND ON)
+else()
+  configure_lapack()
+  set(ALGEBRA_LIBS ${LAPACK_LIBRARIES})
+  set(ALGEBRA_LIB_NAME LAPACK)
+  set(ALGEBRA_LIB_FOUND ON)
 endif()
 
 if(${ALGEBRA_LIB_FOUND})
-  message(STATUS "Algebra lib name: " ${ALGEBRA_LIB_NAME})
-  message(STATUS ${ALGEBRA_LIBS})
+  message(STATUS "Algebra lib name:  ${ALGEBRA_LIB_NAME}")
+  message(STATUS "Algebra libs: ${ALGEBRA_LIBS}")
 else()
   message(FATAL_ERROR "Algebra library not specified")
 endif()
@@ -352,4 +336,3 @@ add_subdirectory (../Tests/cmake tests/Tests)
 add_subdirectory (../BenchMvnormal/cmake tests/BenchMvnormal)
 add_subdirectory (../BenchNrandn/cmake tests/BenchNrandn)
 add_subdirectory (../BenchWishart/cmake tests/BenchWishart)
-

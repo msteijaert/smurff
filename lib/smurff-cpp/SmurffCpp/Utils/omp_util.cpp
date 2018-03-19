@@ -6,6 +6,10 @@
 #include <iostream>
 #include <omp.h>
 
+#ifdef MKL_THREAD_LIBRARY
+#include <mkl.h>
+#endif
+
 int nthreads() 
 {
    return omp_get_num_threads(); 
@@ -31,8 +35,13 @@ int thread_num()
 void threads_init() 
 {
    std::cout << "Using OpenMP with up to " << thread_limit() << " threads.\n";
-   #ifdef OPENBLAS
-   std::cout << "Using BLAS with up to " << openblas_get_num_threads() << " threads.\n";
+  
+   #if defined(MKL_THREAD_LIBRARY_GNU)
+       mkl_set_threading_layer( MKL_THREADING_GNU );
+   #elif define(MKL_THREAD_LIBRARY_INTEL)
+       mkl_set_threading_layer( MKL_THREADING_INTEL );
+   #elif defined(MKL_THREAD_LIBRARY_SEQUENTIAL)
+       THROWERROR("Shouldn't have MKL_THREAD_LIBRARY == sequential when OpenMP is enabled");
    #endif
 }
 
