@@ -64,3 +64,8 @@ void SparseFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eige
 {
    smurff::linop::add_Acol_mul_bt(Z, *m_side_info, col, b);
 }
+
+std::shared_ptr<SparseFeat> SparseFeatSideInfo::get_features()
+{
+   return m_side_info;
+}

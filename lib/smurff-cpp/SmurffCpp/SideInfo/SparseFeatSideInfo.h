@@ -42,6 +42,10 @@ public:
    void At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B) override;
 
    void add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b) override;
+
+   //only for tests
+public:
+   std::shared_ptr<SparseFeat> get_features();
 };
 
 }

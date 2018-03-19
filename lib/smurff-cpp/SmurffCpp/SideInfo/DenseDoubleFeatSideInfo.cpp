@@ -64,3 +64,8 @@ void DenseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col,
 {
    smurff::linop::add_Acol_mul_bt(Z, *m_side_info, col, b);
 }
+
+std::shared_ptr<Eigen::MatrixXd> DenseDoubleFeatSideInfo::get_features()
+{
+   return m_side_info;
+}
