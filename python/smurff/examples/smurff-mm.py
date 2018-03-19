@@ -9,13 +9,13 @@ test = scipy.io.mmread(test_matrix_path)
 
 result = smurff(
         train,
+        Ynoise = ('fixed', 5., None, None, None),
         Ytest = test,
         priors = ["normal", "normal"],
         side_info = [ None, None ],
         aux_data =  [ [], [] ],
         num_latent = 1,
         burnin = 1,
-        nsamples = 5,
-        precision = 5.)
+        nsamples = 5)
 
 print(result.predictions[0])
