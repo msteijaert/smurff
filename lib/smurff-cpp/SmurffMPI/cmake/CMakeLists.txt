@@ -7,6 +7,7 @@ project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../MPISession.h"
                         "../MPIMacauPrior.hpp"
+                        "../MPIMacauPrior.cpp"
                         "../MPIPriorFactory.h"
                         "../../SmurffCpp/Sessions/CmdSession.h")
 source_group ("Header Files" FILES ${HEADER_FILES})
