@@ -9,13 +9,8 @@ import os
 import tempfile
 from subprocess import call
 from time import time
+import sys
 
-
-def smurff_py(args):
-    allowed_args = [ "Ytest", "num_latent", "burnin", "nsamples", "precision", "verbose",
-            "aux_data", "side_info", "direct", "priors", "lambda_beta"]
-    filtered_args = { k: args[k] for k in allowed_args}
-    return smurff.smurff(args["train"], **filtered_args)
 
 def smurff_cmd(args):
     args["side_info_string"] = " ".join(args["side_info_files"])
@@ -28,11 +23,10 @@ def smurff_cmd(args):
              + " --test={datadir}/{test_file}" 
              + " --prior={prior_string}"
              + " --side-info={side_info_string}"
-             + " --lambda-beta={lambda_beta}"
              + " --aux-data={aux_data_string}"
              + " {direct_string}"
              + " --num-latent={num_latent} --burnin={burnin} --nsamples={nsamples}"
-             + " --precision={precision} --verbose={verbose} --status=stats.csv"
+             + " --noise_model=\"fixed;{precision};1;1;1\" --verbose={verbose} --status=stats.csv"
              ).format(**args)
 
     class Result:
@@ -73,6 +67,7 @@ def load_data():
     return data
 
 class TestExCAPE(unittest.TestCase):
+    verbose = 0
 
     def get_default_opts(self):
         return {
@@ -83,20 +78,13 @@ class TestExCAPE(unittest.TestCase):
                 "burnin"          : 100,
                 "nsamples"        : 200,
                 "precision"       : 1.0,
-                "verbose"         : 0, 
+                "verbose"         : TestExCAPE.verbose, 
                 "aux_data_files"  : [ "none", "none" ],
                 "side_info_files" : [ "none", "none" ],
                 "direct"          : True,
-                "lambda_beta"     : 5.0,
                 }
 
-    @classmethod
-    def setUpClass(cls):
-        cls.data = load_data()
-        
-
     def files_to_data(self, args):
-
         args["train"] = TestExCAPE.data[args["train_file"]]
         args["Ytest"] = TestExCAPE.data[args["test_file"]]
 
@@ -113,15 +101,14 @@ class TestExCAPE(unittest.TestCase):
     def time_smurff(self, args, expected):
         args = self.files_to_data(args)
 
-        for smurff in [ smurff_cmd, smurff_py ]:
-            start = time()
-            result = smurff(args)
-            stop = time()
-            elapsed = stop - start
+        start = time()
+        result = smurff_method(args)
+        stop = time()
+        elapsed = stop - start
 
-            self.assertLess(result.rmse, expected[0])
-            self.assertGreater(result.rmse, expected[1])
-            self.assertLess(elapsed, expected[2])
+        self.assertLess(result.rmse, expected[0])
+        self.assertGreater(result.rmse, expected[1])
+        self.assertLess(elapsed, expected[2])
 
     def bpmf(self, args, expected):
         args["priors"] = ["normal", "normal"]
@@ -165,5 +152,20 @@ class TestExCAPE(unittest.TestCase):
         side_info = [ "side_ecfp6_folded_dense.ddm", "none" ]
         self.macau(side_info, params, [ 1.08, 1.0, 240. ])
 
+
+class TestExCAPE(TestExCAPE):
+    smurff_method = smurff_cmd
+
+    @classmethod
+    def setUpClass(cls):
+        cls.data = load_data()
+
+    def smurff(args):
+        allowed_args = [ "Ytest", "num_latent", "burnin", "nsamples", "precision", "verbose",
+                "aux_data", "side_info", "direct", "priors"]
+        filtered_args = { k: args[k] for k in allowed_args}
+        return smurff.smurff(args["train"], **filtered_args)
+
 if __name__ == "__main__":
+    if ("-v" in sys.argv): TestExCAPE.verbose = 1
     unittest.main()
