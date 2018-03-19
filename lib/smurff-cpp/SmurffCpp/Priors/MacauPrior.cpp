@@ -3,9 +3,10 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/IO/GenericIO.h>
 
-#include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/Error.h>
+
+#include <SmurffCpp/Utils/linop.h>
 
 using namespace smurff;
 
@@ -36,7 +37,7 @@ void MacauPrior::init()
    if (use_FtF)
    {
       FtF.resize(Features->cols(), Features->cols());
-      smurff::linop::At_mul_A(FtF, Features);
+      Features->At_mul_A(FtF);
    }
 
    Uhat.resize(this->num_latent(), Features->rows());
@@ -55,7 +56,7 @@ void MacauPrior::update_prior()
    // sampling Gaussian
    std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + beta.cols());
    sample_beta();
-   smurff::linop::compute_uhat(Uhat, Features, beta);
+   Features->compute_uhat(Uhat, beta);
 
    if (enable_beta_precision_sampling)
       beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
@@ -74,7 +75,7 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
    // Ft_y is [ D x F ] matrix
    HyperU = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
 
-   Ft_y = smurff::linop::A_mul_B(HyperU, Features);
+   Ft_y = Features->A_mul_B(HyperU);
    HyperU2 = MvNormal_prec_omp(Lambda, num_feat);
 
    #pragma omp parallel for schedule(static)
@@ -209,6 +210,6 @@ void MacauPrior::sample_beta_cg()
       Eigen::MatrixXd Ft_y;
       this->compute_Ft_y_omp(Ft_y);
 
-      smurff::linop::solve_blockcg(beta, Features, beta_precision, Ft_y, tol, 32, 8);
+      Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8);
    }
 }

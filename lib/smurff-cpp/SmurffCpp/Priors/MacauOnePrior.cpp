@@ -34,7 +34,7 @@ void MacauOnePrior::update_prior()
 {
    sample_mu_lambda(U());
    sample_beta(U());
-   smurff::linop::compute_uhat(Uhat, Features, beta);
+   Features->compute_uhat(Uhat, beta);
 
    if (enable_beta_precision_sampling)
       sample_beta_precision();
@@ -64,7 +64,7 @@ void MacauOnePrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, d
 
    // other code
 
-   F_colsq = smurff::linop::col_square_sum(Features);
+   F_colsq = Features->col_square_sum();
 }
 
 void MacauOnePrior::sample_beta(const Eigen::MatrixXd &U)
@@ -95,7 +95,7 @@ void MacauOnePrior::sample_beta(const Eigen::MatrixXd &U)
       {
          Eigen::VectorXd zx(dcount), delta_beta(dcount), randvals(dcount);
          // zx = Z[dstart : dstart + dcount, :] * F[:, f]
-         smurff::linop::At_mul_Bt(zx, Features, f, Z);
+         Features->At_mul_Bt(zx, f, Z);
          // TODO: check if sampling randvals for whole [nfeat x dcount] matrix works faster
          bmrandn_single(randvals);
 
@@ -111,7 +111,7 @@ void MacauOnePrior::sample_beta(const Eigen::MatrixXd &U)
             beta(dx, f) = beta_new;
          }
          // Z[dstart : dstart + dcount, :] += F[:, f] * delta_beta'
-         smurff::linop::add_Acol_mul_bt(Z, Features, f, delta_beta);
+         Features->add_Acol_mul_bt(Z, f, delta_beta);
       }
    }
 }

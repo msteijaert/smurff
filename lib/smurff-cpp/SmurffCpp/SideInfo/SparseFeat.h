@@ -2,10 +2,6 @@
 
 #include "LibFastSparseDependency.h"
 
-#include "ISideInfo.h"
-
-#include <memory>
-
 namespace smurff {
 
 class SparseFeat
@@ -49,38 +45,4 @@ public:
    }
 };
 
-class SparseFeatSideInfo : public ISideInfo
-{
-private:
-   std::shared_ptr<SparseFeat> m_side_info;
-
-public:
-   SparseFeatSideInfo(std::shared_ptr<SparseFeat> side_info)
-      : m_side_info(side_info)
-   {
-   }
-
-public:
-   int cols() const override
-   {
-      return m_side_info->cols();
-   }
-
-   int rows() const override
-   {
-      return m_side_info->rows();
-   }
-
-public:
-   std::ostream& print(std::ostream &os) const override
-   {
-      os << "SparseBinary [" << m_side_info->rows() << ", " << m_side_info->cols() << "]" << std::endl;
-      return os;
-   }
-
-   bool is_dense() const
-   {
-      return false;
-   }
-};
 }
