@@ -9,7 +9,6 @@
 
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Priors/MacauPrior.hpp>
-#include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Model.h>
 
 namespace smurff 
@@ -18,8 +17,7 @@ namespace smurff
 //why not use init method ?
 
 // Prior with side information
-template<class FType>
-class MPIMacauPrior : public MacauPrior<FType> 
+class MPIMacauPrior : public MacauPrior
 {
 public:
    int world_rank;
@@ -29,12 +27,12 @@ private:
    int* rhs_for_rank = NULL;
    double* rec     = NULL;
    int* sendcounts = NULL;
-   int* displs     = NULL;   
+   int* displs     = NULL;
    Eigen::MatrixXd Ft_y;
 
 public:
    MPIMacauPrior(std::shared_ptr<BaseSession> session, int mode)
-       : MacauPrior<FType>(session, mode)
+       : MacauPrior(session, mode)
    {
       MPI_Comm_size(MPI_COMM_WORLD, &world_size);
       MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -44,7 +42,7 @@ public:
 
    void init() override
    {
-      MacauPrior<FType>::init();
+      MacauPrior::init();
    
       rhs_for_rank = new int[world_size];
       split_work_mpi(this->num_latent(), world_size, rhs_for_rank);
@@ -64,7 +62,7 @@ public:
    std::ostream &info(std::ostream &os, std::string indent) override
    {
        if (world_rank == 0) {
-           MacauPrior<FType>::info(os, indent);
+           MacauPrior::info(os, indent);
            os << indent << " MPI version with " << world_size << " ranks\n";
        }
        return os;
@@ -98,7 +96,7 @@ public:
          }
       }
       // solving
-      smurff::linop::solve_blockcg(result, *this->Features, this->beta_precision, RHS, this->tol, 32, 8);
+      this->Features->solve_blockcg(result, this->beta_precision, RHS, this->tol, 32, 8);
       result.transposeInPlace();
       MPI_Gatherv(result.data(), nrhs*num_feat, MPI_DOUBLE, this->Ft_y.data(), sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
       if (world_rank == 0) 
