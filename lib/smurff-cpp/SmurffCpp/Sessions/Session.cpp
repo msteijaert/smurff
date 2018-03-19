@@ -282,8 +282,8 @@ void Session::printStatus(double elapsedi, bool resume, int iteration)
    // avoid computing train_rmse twice
    double train_rmse = NAN;
 
-   std::uint64_t nnz_per_sec = elapsedi == 0.0 ? data()->nnz() : (data()->nnz()) / elapsedi;
-   std::uint64_t samples_per_sec = elapsedi == 0.0 ? m_model->nsamples() : (m_model->nsamples()) / elapsedi;
+   double nnz_per_sec =  (double)(data()->nnz()) / elapsedi;
+   double samples_per_sec = (double)(m_model->nsamples()) / elapsedi;
 
    std::string resumeString = resume ? "Continue from " : std::string();
 
@@ -314,9 +314,6 @@ void Session::printStatus(double elapsedi, bool resume, int iteration)
       printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
 
    printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
-
-   // avoid computing train_rmse twice
-   double train_rmse = NAN;
 
    if (m_config.getVerbose() > 1)
    {
