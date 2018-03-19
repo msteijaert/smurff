@@ -1,4 +1,4 @@
-#include "MacauPrior.hpp"
+#include "MacauPrior.h"
 
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/IO/GenericIO.h>

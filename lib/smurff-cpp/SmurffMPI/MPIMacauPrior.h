@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <SmurffCpp/Priors/MacauPrior.hpp>
+#include <SmurffCpp/Priors/MacauPrior.h>
 
 namespace smurff 
 {

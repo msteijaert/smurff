@@ -3,7 +3,7 @@
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Priors/ILatentPrior.h>
 #include <SmurffMPI/MPIPriorFactory.h>
-#include <SmurffMPI/MPIMacauPrior.hpp>
+#include <SmurffMPI/MPIMacauPrior.h>
 
 using namespace smurff;
 

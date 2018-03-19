@@ -6,7 +6,7 @@ message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
 FILE (GLOB HEADER_FILES "../MPISession.h"
-                        "../MPIMacauPrior.hpp"
+                        "../MPIMacauPrior.h"
                         "../MPIMacauPrior.cpp"
                         "../MPIPriorFactory.h"
                         "../../SmurffCpp/Sessions/CmdSession.h")

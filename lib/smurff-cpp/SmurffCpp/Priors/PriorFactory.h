@@ -2,8 +2,8 @@
 
 #include <SmurffCpp/Priors/IPriorFactory.h>
 #include <SmurffCpp/Priors/ILatentPrior.h>
-#include <SmurffCpp/Priors/MacauOnePrior.hpp>
-#include <SmurffCpp/Priors/MacauPrior.hpp>
+#include <SmurffCpp/Priors/MacauOnePrior.h>
+#include <SmurffCpp/Priors/MacauPrior.h>
 #include <SmurffCpp/Sessions/Session.h>
 #include <SmurffCpp/Configs/MatrixConfig.h>
 #include <SmurffCpp/Configs/MacauPriorConfig.h>

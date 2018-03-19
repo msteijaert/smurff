@@ -22,8 +22,8 @@
 #include <SmurffCpp/Configs/MatrixConfig.h>
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
-#include <SmurffCpp/Priors/MacauPrior.hpp>
-#include <SmurffCpp/Priors/MacauOnePrior.hpp>
+#include <SmurffCpp/Priors/MacauPrior.h>
+#include <SmurffCpp/Priors/MacauOnePrior.h>
 
 #include <SmurffCpp/Noises/NoiseFactory.h>
 
