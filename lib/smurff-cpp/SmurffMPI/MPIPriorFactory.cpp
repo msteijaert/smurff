@@ -7,12 +7,11 @@
 
 using namespace smurff;
 
-template<class SideInfo>
 std::shared_ptr<ILatentPrior> MPIPriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, 
-                                                                  const std::vector<std::shared_ptr<SideInfo> >& side_infos,
+                                                                  const std::vector<std::shared_ptr<ISideInfo> >& side_infos,
                                                                   const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
 {
-   return PriorFactory::create_macau_prior<MPIMacauPrior<SideInfo>>(session, side_infos, config_items);
+   return PriorFactory::create_macau_prior<MPIMacauPrior>(session, side_infos, config_items);
 }
 
 std::shared_ptr<ILatentPrior> MPIPriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
