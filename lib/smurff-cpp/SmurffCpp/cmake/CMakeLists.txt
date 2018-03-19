@@ -156,8 +156,6 @@ source_group ("Sessions" FILES ${SESSION_FILES})
 FILE (GLOB HEADER_FILES "../Version.h"
                         "../Model.h"
                         "../result.h"
-                        "../SparseFeat.h"
-                        "../SparseDoubleFeat.h"
                         "../VMatrixIterator.hpp"
                         "../ConstVMatrixIterator.hpp"
                         "../VMatrixExprIterator.hpp"
@@ -172,6 +170,12 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
+FILE (GLOB SIDE_INFO_FILES "../SideInfo/SparseFeat.h"
+                           "../SideInfo/SparseDoubleFeat.h"
+                           "../SideInfo/LibFastSparseDependency.h"
+                        )
+source_group ("Side Info" FILES ${SIDE_INFO_FILES})
+
 #SETUP OUTPUT
 add_library (${PROJECT} STATIC ${HEADER_FILES} 
                                ${SOURCE_FILES}
@@ -183,6 +187,7 @@ add_library (${PROJECT} STATIC ${HEADER_FILES}
                                ${MATRIX_FILES}
                                ${TENSOR_FILES}
                                ${SESSION_FILES}
+                               ${SIDE_INFO_FILES}
                                )
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 

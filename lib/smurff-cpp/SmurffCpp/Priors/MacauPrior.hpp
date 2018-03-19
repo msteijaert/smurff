@@ -13,8 +13,8 @@
 #include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/Priors/NormalPrior.h>
-#include <SmurffCpp/SparseDoubleFeat.h>
-#include <SmurffCpp/SparseFeat.h>
+#include <SmurffCpp/SideInfo/SparseDoubleFeat.h>
+#include <SmurffCpp/SideInfo/SparseFeat.h>
 
 namespace smurff {
 
