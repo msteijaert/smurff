@@ -266,7 +266,7 @@ class Result:
         self.rmse = rmse
 
 def smurff(Y              = None,
-           Ynoise        = None,
+           Ynoise         = None,
            Ytest          = None,
            data_shape     = None,
            priors         = [],
@@ -337,10 +337,14 @@ def smurff(Y              = None,
 
             if len(prior_noises) > 0 and prior_noises[i] is not None:
                 noise_config.setNoiseType(stringToNoiseType(prior_noises[i][0]))
-                noise_config.setPrecision(prior_noises[i][1])
-                noise_config.setSnInit(prior_noises[i][2])
-                noise_config.setSnMax(prior_noises[i][3])
-                noise_config.setThreshold(prior_noises[i][4])
+                if prior_noises[i][1] is not None:
+                    noise_config.setPrecision(prior_noises[i][1])
+                if prior_noises[i][2] is not None:
+                    noise_config.setSnInit(prior_noises[i][2])
+                if prior_noises[i][3] is not None:
+                    noise_config.setSnMax(prior_noises[i][3])
+                if prior_noises[i][4] is not None:
+                    noise_config.setThreshold(prior_noises[i][4])
             else:
                 noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
 
