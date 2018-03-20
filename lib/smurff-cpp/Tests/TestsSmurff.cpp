@@ -798,8 +798,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
 //       seed: 1234
 //     direct: true
 //
-TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior macauone macauone --aux-data <row_side_info_sparse_matrix> <col_side_info_sparse_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct"
-, "[!hide]")
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior macauone macauone --aux-data <row_side_info_sparse_matrix> <col_side_info_sparse_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct", "")
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
@@ -828,11 +827,18 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    double actualRmseAvg = session->getRmseAvg();
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
-   // Pre-calculated results with single-threaded Debug master 6b6491b79751aaa469f9471e727b6630a7aa8a82
-   double expectedRmseAvg = 0.4708518779880723;
+   // Pre-calculated results with single-threaded Debug master 94faf14df84d4f03fcde04e3ed7b027bb5ddf021
+   double expectedRmseAvg = 0.2560913196194347;
    std::vector<ResultItem> expectedResults =
       {
-         //?
+         { { 0, 0 },  1,  0.9697891209009937,  1.1888876573150073, 13.0023726717691357, 0.5151257558323201 },
+         { { 0, 1 },  2,  1.6507486478456892,  1.9201809901623907, 10.6104557593333215, 0.4653384934171920 },
+         { { 0, 2 },  3,  2.3749597269033123,  2.8343315482606091, 16.6072939140552620, 0.5821721099408357 },
+         { { 0, 3 },  4,  3.4169870474726300,  3.6265404670905474, 19.9967324538157669, 0.6388243739010885 },
+         { { 2, 0 },  9,  8.5255103910246621,  8.5866291677773230, 11.3548882660243287, 0.4813859299899959 },
+         { { 2, 1 }, 10,  9.8042119691533962,  9.7732819953360330, 10.6537181855688932, 0.4662861997889824 },
+         { { 2, 2 }, 11, 11.1291102599651452, 10.7657127052161474, 10.1056223253705006, 0.4541334498951642 },
+         { { 2, 3 }, 12, 12.4021609548421328, 11.8037160302854787, 11.9214911296601294, 0.4932501772326114 }
       };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
