@@ -367,7 +367,7 @@ def smurff(Y                = None,
                             (&pos.get()[0].at(0))[0] += 1
                         else:
                             (&pos.get()[0].at(i))[0] += 1
-                    if len(aux_data_noises) > 0 and aux_data_noises[i] is not None and aux_data_noises[i][j] is not None:
+                    if len(aux_data_noises) > 0 and aux_data_noises[i] is not None and len(aux_data_noises[i]) > 0 and aux_data_noises[i][j] is not None:
                         noise_config.setNoiseType(stringToNoiseType(aux_data_noises[i][j][0]))
                         if aux_data_noises[i][j][1] is not None:
                             noise_config.setPrecision(aux_data_noises[i][j][1])
