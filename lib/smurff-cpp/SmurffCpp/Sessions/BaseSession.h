@@ -66,7 +66,7 @@ public:
    bool step() override;
 
 public:
-   virtual std::ostream &info(std::ostream &, std::string indent);
+   std::ostream &info(std::ostream &, std::string indent) override;
 
    void save(std::shared_ptr<StepFile> stepFile);
 

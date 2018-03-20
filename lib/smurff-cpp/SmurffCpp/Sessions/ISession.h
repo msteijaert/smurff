@@ -23,6 +23,9 @@ namespace smurff {
       virtual std::shared_ptr<std::vector<ResultItem> > getResult() = 0;
       virtual MatrixConfig getSample(int mode) = 0;
       virtual double getRmseAvg() = 0;
+
+   public:
+      virtual std::ostream &info(std::ostream &, std::string indent) = 0;
    };
 
 }

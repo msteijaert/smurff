@@ -34,6 +34,9 @@ TensorData::TensorData(const smurff::TensorConfig& tc)
    {
       m_Y->push_back(std::make_shared<SparseMode>(idx, tc.getValues(), mode, m_dims[mode]));
    }
+
+   std::uint64_t totalSize = std::accumulate(m_dims.begin(), m_dims.end(), (std::uint64_t)1, std::multiplies<std::uint64_t>());
+   this->name = totalSize == m_nnz ? "TensorData [fully known]" : "TensorData [with NAs]";
 }
 
 std::shared_ptr<SparseMode> TensorData::Y(std::uint64_t mode) const
@@ -189,4 +192,21 @@ PVec<> TensorData::pos(std::uint64_t mode, std::uint64_t hyperplane, std::uint64
    }
 
    return m_Y->at(mode)->pos(hyperplane, item);
+}
+
+std::ostream& TensorData::info(std::ostream& os, std::string indent)
+{
+   Data::info(os, indent);
+   double train_fill_rate = 100. * nnz() / size();
+   
+   os << indent << "Size: " << nnz() << " [";
+
+   for (std::size_t i = 0; i < m_dims.size() - 1; i++)
+   {
+      os << m_dims[i] << " x ";
+   }
+
+   os << m_dims.back() << "] (" << train_fill_rate << "%)\n";
+   
+   return os;
 }
