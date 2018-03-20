@@ -93,6 +93,7 @@ void Session::init()
    if (m_config.getCsvStatus().size())
    {
       auto f = fopen(m_config.getCsvStatus().c_str(), "w");
+      THROWERROR_ASSERT_MSG(f, "Could not open status csv file: " + m_config.getCsvStatus());
       fprintf(f, "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
       fclose(f);
    }
@@ -400,6 +401,7 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
    {
       // train_rmse is printed as NAN, unless verbose > 1
       auto f = fopen(m_config.getCsvStatus().c_str(), "a");
+      THROWERROR_ASSERT_MSG(f, "Could not open status csv file: " + m_config.getCsvStatus());
       fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
                   phase.c_str(), i, from,
                   m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);

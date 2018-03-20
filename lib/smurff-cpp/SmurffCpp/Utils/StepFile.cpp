@@ -32,6 +32,7 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
    {
       std::ofstream stepFile;
       stepFile.open(getStepFileName(), std::ios::trunc);
+      THROWERROR_ASSERT_MSG(stepFile.is_open(), "Error opening file: " + getStepFileName());
       stepFile.close();
    }
    else
@@ -358,6 +359,7 @@ void StepFile::appendCommentToStepFile(std::string comment) const
 
    std::ofstream rootFile;
    rootFile.open(stepFilePath, std::ios::app);
+   THROWERROR_ASSERT_MSG(rootFile.is_open(), "Error opening file: " + stepFilePath);
    rootFile << "#" << comment << std::endl;
    rootFile.close();
 }
@@ -375,6 +377,7 @@ void StepFile::flushLast() const
 
    std::ofstream rootFile;
    rootFile.open(stepFilePath, std::ios::app);
+   THROWERROR_ASSERT_MSG(rootFile.is_open(), "Error opening file: " + stepFilePath);
    rootFile << last.first << " = " << last.second << std::endl;
    rootFile.close();
 }

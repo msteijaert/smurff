@@ -105,30 +105,35 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix(const std::string& filename
    case matrix_io::MatrixType::sdm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = matrix_io::read_sparse_float64_bin(fileStream, isScarce);
          break;
       }
    case matrix_io::MatrixType::sbm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = matrix_io::read_sparse_binary_bin(fileStream, isScarce);
          break;
       }
    case matrix_io::MatrixType::mtx:
       {
          std::ifstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = matrix_io::read_matrix_market(fileStream, isScarce);
          break;
       }
    case matrix_io::MatrixType::csv:
       {
          std::ifstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = matrix_io::read_dense_float64_csv(fileStream);
          break;
       }
    case matrix_io::MatrixType::ddm:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = matrix_io::read_dense_float64_bin(fileStream);
          break;
       }
@@ -437,30 +442,35 @@ void matrix_io::write_matrix(const std::string& filename, std::shared_ptr<const 
    case matrix_io::MatrixType::sdm:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::write_sparse_float64_bin(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::sbm:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::write_sparse_binary_bin(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::write_matrix_market(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::csv:
       {
          std::ofstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::write_dense_float64_csv(fileStream, matrixConfig);
       }
       break;
    case matrix_io::MatrixType::ddm:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::write_dense_float64_bin(fileStream, matrixConfig);
       }
       break;
@@ -1044,18 +1054,21 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Ma
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::eigen::write_matrix_market(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::csv:
       {
          std::ofstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::eigen::write_dense_float64_csv(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::ddm:
       {
          std::ofstream fileStream(filename, std::ios_base::binary | std::ios::trunc);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::eigen::write_dense_float64_bin(fileStream, X);
       }
       break;
@@ -1078,18 +1091,21 @@ void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::Sp
    case matrix_io::MatrixType::sdm:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::eigen::write_sparse_float64_bin(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::sbm:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::eigen::write_sparse_binary_bin(fileStream, X);
       }
       break;
    case matrix_io::MatrixType::mtx:
       {
          std::ofstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          matrix_io::eigen::write_matrix_market(fileStream, X);
       }
       break;
