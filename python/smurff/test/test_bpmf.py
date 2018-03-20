@@ -13,21 +13,19 @@ class TestBPMF(unittest.TestCase):
                       num_latent = 10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_bpmf2(self):
         X = scipy.sparse.rand(15, 10, 0.2)
         Xt = scipy.sparse.rand(15, 10, 0.1)
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['normal', 'normal'],
                       side_info=[None, None],
                       aux_data=[[], []],
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_bpmf_numerictest(self):
@@ -35,14 +33,13 @@ class TestBPMF(unittest.TestCase):
         Xt = 0.3
         X, Xt = smurff.make_train_test(X, Xt)
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['normal', 'normal'],
                       side_info=[None, None],
                       aux_data=[[], []],
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_macau_sparse(self):
@@ -50,14 +47,13 @@ class TestBPMF(unittest.TestCase):
          Xt = scipy.sparse.rand(15, 10, 0.1)
          F = scipy.sparse.rand(15, 2, 0.5)
          smurff.smurff(X,
-                       Xt,
+                       Ytest=Xt,
                        priors=['macau', 'normal'],
                        side_info=[F, None],
                        aux_data=[None, None],
                        num_latent=5,
                        burnin=10,
                        nsamples=5,
-                       precision=1.0,
                        verbose=False)
 
     def test_macau_binsparse(self):
@@ -66,14 +62,13 @@ class TestBPMF(unittest.TestCase):
         F = scipy.sparse.rand(15, 2, 0.5)
         F.data[:] = 1
         smurff.smurff(X,
-                      Xt,
+                      Ytest=Xt,
                       priors=['macau', 'normal'],
                       side_info=[F, None],
                       aux_data=[None, None],
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
-                      precision=1.0,
                       verbose=False)
 
     def test_make_train_test(self):
