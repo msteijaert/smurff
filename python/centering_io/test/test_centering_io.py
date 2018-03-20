@@ -178,5 +178,87 @@ class TestCenteringIO(unittest.TestCase):
         scaled_matrix = cio.scale(origin_matrix, 'none', origin_matrix_std)
         self.assertTrue(np.allclose(scaled_matrix.todense(), origin_matrix.todense()))
 
+    def test_dense_matrix_rows_center_and_scale(self):
+        origin_matrix = np.array([[1,  2,  3,  4],
+                                  [5,  6,  7,  8],
+                                  [9, 10, 11, 12]])
+        centered_and_scaled_matrix, centered_and_scaled_matrix_mean, centered_and_scaled_matrix_std = cio.center_and_scale(origin_matrix, 'rows')
+        expected_matrix = [[-1.34164079, -0.4472136, 0.4472136, 1.34164079],
+                           [-1.34164079, -0.4472136, 0.4472136, 1.34164079],
+                           [-1.34164079, -0.4472136, 0.4472136, 1.34164079]]
+        expected_matrix_mean = [2.5, 6.5, 10.5]
+        expected_matrix_std = [1.11803399, 1.11803399, 1.11803399]
+        self.assertTrue(np.allclose(centered_and_scaled_matrix, expected_matrix))
+        self.assertTrue(np.allclose(centered_and_scaled_matrix_mean, expected_matrix_mean))
+        self.assertTrue(np.allclose(centered_and_scaled_matrix_std, expected_matrix_std))
+
+    def test_dense_matrix_rows_center_and_scale_with_mean_only(self):
+        origin_matrix = np.array([[1,  2,  3,  4],
+                                  [5,  6,  7,  8],
+                                  [9, 10, 11, 12]])
+        centered_and_scaled_matrix, centered_and_scaled_matrix_mean, centered_and_scaled_matrix_std = cio.center_and_scale(origin_matrix, 'rows', with_std=False)
+        expected_matrix = np.array([[-1.5, -0.5, 0.5, 1.5],
+                                    [-1.5, -0.5, 0.5, 1.5],
+                                    [-1.5, -0.5, 0.5, 1.5]])
+        self.assertTrue(np.allclose(centered_and_scaled_matrix, expected_matrix))
+        self.assertEqual(centered_and_scaled_matrix_std, None)
+
+    def test_dense_matrix_rows_center_and_scale_with_std_only(self):
+        origin_matrix = np.array([[1,  2,  3,  4],
+                                  [5,  6,  7,  8],
+                                  [9, 10, 11, 12]])
+        centered_and_scaled_matrix, centered_and_scaled_matrix_mean, centered_and_scaled_matrix_std = cio.center_and_scale(origin_matrix, 'rows', with_mean=False)
+        expected_matrix = [[ 0.89442719, 1.78885438, 2.68328157,  3.57770876],
+                           [ 4.47213595, 5.36656315, 6.26099034,  7.15541753],
+                           [ 8.04984472, 8.94427191, 9.83869910, 10.73312629]]
+        self.assertTrue(np.allclose(centered_and_scaled_matrix, expected_matrix))
+        self.assertEqual(centered_and_scaled_matrix_mean, None)
+
+    def test_dense_matrix_rows_center_and_scale_with_no_mean_and_std(self):
+        origin_matrix = np.array([[1,  2,  3,  4],
+                                  [5,  6,  7,  8],
+                                  [9, 10, 11, 12]])
+        centered_and_scaled_matrix, centered_and_scaled_matrix_mean, centered_and_scaled_matrix_std = cio.center_and_scale(origin_matrix, 'rows', with_mean=False, with_std=False)
+        self.assertTrue(np.allclose(centered_and_scaled_matrix, origin_matrix))
+        self.assertEqual(centered_and_scaled_matrix_mean, None)
+        self.assertEqual(centered_and_scaled_matrix_std, None)
+
+    def test_dense_matrix_cols_center_and_scale(self):
+        origin_matrix = np.array([[1,  2,  3,  4],
+                                  [5,  6,  7,  8],
+                                  [9, 10, 11, 12]])
+        centered_and_scaled_matrix, centered_and_scaled_matrix_mean, centered_and_scaled_matrix_std = cio.center_and_scale(origin_matrix, 'cols')
+        expected_matrix = [[-1.22474487, -1.22474487, -1.22474487, -1.22474487],
+                           [ 0.,          0.,          0.,          0.        ],
+                           [ 1.22474487,  1.22474487,  1.22474487,  1.22474487]]
+        expected_matrix_mean = [5., 6., 7., 8.]
+        expected_matrix_std = [3.26598632, 3.26598632, 3.26598632, 3.26598632]
+        self.assertTrue(np.allclose(centered_and_scaled_matrix, expected_matrix))
+        self.assertTrue(np.allclose(centered_and_scaled_matrix_mean, expected_matrix_mean))
+        self.assertTrue(np.allclose(centered_and_scaled_matrix_std, expected_matrix_std))
+
+    def test_dense_matrix_global_center_and_scale(self):
+        origin_matrix = np.array([[1,  2,  3,  4],
+                                  [5,  6,  7,  8],
+                                  [9, 10, 11, 12]])
+        centered_and_scaled_matrix, centered_and_scaled_matrix_mean, centered_and_scaled_matrix_std = cio.center_and_scale(origin_matrix, 'global')
+        expected_matrix = [[-1.59325501, -1.30357228, -1.01388955, -0.72420682],
+                           [-0.43452409, -0.14484136,  0.14484136,  0.43452409],
+                           [ 0.72420682,  1.01388955,  1.30357228,  1.59325501]]
+        expected_matrix_mean = 6.5
+        expected_matrix_std = 3.45205252953
+        self.assertTrue(np.allclose(centered_and_scaled_matrix, expected_matrix))
+        self.assertTrue(np.allclose(centered_and_scaled_matrix_mean, expected_matrix_mean))
+        self.assertTrue(np.allclose(centered_and_scaled_matrix_std, expected_matrix_std))
+
+    def test_dense_matrix_none_center_and_scale(self):
+        origin_matrix = np.array([[1,  2,  3,  4],
+                                  [5,  6,  7,  8],
+                                  [9, 10, 11, 12]])
+        centered_and_scaled_matrix, centered_and_scaled_matrix_mean, centered_and_scaled_matrix_std = cio.center_and_scale(origin_matrix, 'none')
+        self.assertTrue(np.allclose(centered_and_scaled_matrix, origin_matrix))
+        self.assertEqual(centered_and_scaled_matrix_mean, None)
+        self.assertEqual(centered_and_scaled_matrix_std, None)
+
 if __name__ == '__main__':
     unittest.main()
