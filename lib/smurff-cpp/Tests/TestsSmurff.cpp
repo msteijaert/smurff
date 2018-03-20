@@ -6,6 +6,26 @@
 #include <SmurffCpp/Sessions/SessionFactory.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Code for printing test results that can then be copy-pasted into tests as expected results
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// std::cout << std::fixed << std::setprecision(16) << actualRmseAvg << std::endl;
+// for (std::vector<ResultItem>::size_type i = 0; i < actualResults->size(); i++)
+// {
+//    const ResultItem& actualResultItem = actualResults->operator[](i);
+//    std::cout << std::setprecision(16);
+//    std::cout << "{ { " << actualResultItem.coords << " }, "
+//             << std::defaultfloat << actualResultItem.val << ", "
+//             << std::fixed << actualResultItem.pred_1sample << ", "
+//             << actualResultItem.pred_avg << ", "
+//             << actualResultItem.var << ", "
+//             << actualResultItem.stds
+//             << " }" << std::endl;
+// }
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
 // https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
 // By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
 #define APPROX_EPSILON std::numeric_limits<float>::epsilon()*100
