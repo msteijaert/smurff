@@ -186,7 +186,7 @@ FILE (GLOB SIDE_INFO_FILES "../SideInfo/ISideInfo.h"
 source_group ("Side Info" FILES ${SIDE_INFO_FILES})
 
 #SETUP OUTPUT
-add_library (${PROJECT} STATIC ${HEADER_FILES} 
+add_library (${PROJECT} STATIC ${HEADER_FILES}
                                ${SOURCE_FILES}
                                ${UTIL_FILES}
                                ${IO_FILES}
@@ -217,5 +217,7 @@ install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Configs/MacauPriorConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../Sessions/ISession.h DESTINATION include/SmurffCpp/Sessions)
+install (FILES ../IO/INIReader.h DESTINATION include/SmurffCpp/IO)
