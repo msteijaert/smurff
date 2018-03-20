@@ -22,8 +22,8 @@ lapack_opt_info = sysinfo.get_info("lapack_opt")
 
 SOURCES            = ["smurff.pyx"]
 INCLUDE_DIRS       = [ numpy.get_include() ]
-LIBRARY_DIRS       = [ "/usr/local/opt/openblas/lib" ]
-LIBRARIES          = ["smurff-cpp", "openblas" ]
+LIBRARY_DIRS       = [ ]
+LIBRARIES          = ["smurff-cpp", "mkl_rt" ]
 EXTRA_COMPILE_ARGS = ['-std=c++11']
 EXTRA_LINK_ARGS    = []
 
