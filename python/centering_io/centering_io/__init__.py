@@ -133,3 +133,17 @@ def scale(m, mode, std):
         elif (mode != "none"):
             raise ValueError("Unknown std mode: %s" % ( mode ) )
     return m
+
+def center_and_scale(m, mode, with_mean=True, with_std=True):
+    mean_m = None
+    std_m = None
+
+    if with_mean:
+        mean_m = mean(m, mode)
+        m = center(m, mode, mean_m)
+
+    if with_std:
+        std_m = std(m, mode)
+        m = scale(m, mode, std_m)
+
+    return m, mean_m, std_m
