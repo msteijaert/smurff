@@ -50,8 +50,8 @@ def smurff_cmd(args):
             stats = pd.read_csv(os.path.join(tmpdirname, "stats.csv"), sep=";")
             last_row = stats.tail(1)
             result.rmse = float(last_row['rmse_avg'])
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
     return result
         
@@ -139,6 +139,12 @@ class TestExCAPE(unittest.TestCase):
         args["aux_data"] =  [ [], [] ]
 
         self.time_smurff(args, expected)
+
+    def test_tiny(self):
+        params = self.get_default_opts()
+        params["burnin"] = 1
+        params["nsamples"] = 1
+        self.bpmf(params, [ 1.22, 1.10, 120. ])
 
     def test_bpmf(self):
         params = self.get_default_opts()
