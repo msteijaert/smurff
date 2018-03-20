@@ -31,4 +31,6 @@ namespace smurff { namespace matrix_utils {
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 
    bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision = std::numeric_limits<double>::epsilon());
+
+   bool equals_vector(const Eigen::VectorXd& v1, const Eigen::VectorXd& v2, double precision = std::numeric_limits<double>::epsilon() * 100);
 }}

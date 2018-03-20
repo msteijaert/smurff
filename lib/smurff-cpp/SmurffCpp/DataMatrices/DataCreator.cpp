@@ -40,11 +40,14 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const MatrixConfig> mc
 
 std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const TensorConfig> tc) const
 {
-   for (const auto& sideInfo : m_session->getConfig().getSideInfo())
+   if (m_session->getConfig().getSideInfo().size() > 2)
    {
-      if (sideInfo)
+      for (const auto& sideInfo : m_session->getConfig().getSideInfo())
       {
-         THROWERROR("Tensor config does not support side info");
+         if (sideInfo)
+         {
+            THROWERROR("Tensor config does not support side info");
+         }
       }
    }
 

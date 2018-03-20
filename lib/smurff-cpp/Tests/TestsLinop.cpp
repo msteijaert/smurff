@@ -451,3 +451,102 @@ TEST_CASE( "linop/A_mul_Bt_blas", "A_mul_Bt_blas is correct")
    Ctr = A * B.transpose();
    REQUIRE( (C - Ctr).norm() == Approx(0.0) );
 }
+
+TEST_CASE("linop/col_square_sum", "col_square_sum SparseDoubleFeat vs col_square_sum Eigen::MatrixXd")
+{
+   int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+   int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+   double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
+   SparseDoubleFeat sf(6, 4, 9, rows, cols, vals);
+
+   Eigen::MatrixXd X(6, 4);
+   X << 0., 0.6, 0., 0.,
+        0., -0.82, 0., 0.,
+        0., 1.19, 0., 0.06,
+        -0.76, 0., 1.48, 0.,
+        1.95, 0., 2.54, 0.,
+        0., 0., 0., 2.44;
+
+   Eigen::VectorXd sqs_sparse = smurff::linop::col_square_sum(sf);
+   Eigen::VectorXd sqs_dense = smurff::linop::col_square_sum(X);
+   
+   REQUIRE(matrix_utils::equals_vector(sqs_sparse, sqs_dense));
+}
+
+TEST_CASE("linop/At_mul_Bt", "At_mul_Bt SparseDoubleFeat vs At_mul_Bt Eigen::MatrixXd")
+{
+   int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+   int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+   double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
+   SparseDoubleFeat sf(6, 4, 9, rows, cols, vals);
+
+   Eigen::MatrixXd X(6, 4);
+   X << 0., 0.6, 0., 0.,
+      0., -0.82, 0., 0.,
+      0., 1.19, 0., 0.06,
+      -0.76, 0., 1.48, 0.,
+      1.95, 0., 2.54, 0.,
+      0., 0., 0., 2.44;
+
+   Eigen::MatrixXd B(10,6);
+
+   int bValue = 0;
+   for (int i = 0; i < 10; i++)
+   {
+      for (int j = 0; j < 6; j++)
+      {
+         B(i, j) = bValue++;
+      }
+   }
+
+   for (auto col = 0; col < sf.cols(); col++)
+   {
+      Eigen::VectorXd Y_sparse(10);
+      Eigen::VectorXd Y_dense(10);
+
+      smurff::linop::At_mul_Bt(Y_sparse, sf, col, B);
+      smurff::linop::At_mul_Bt(Y_dense, X, col, B);
+
+      REQUIRE(matrix_utils::equals_vector(Y_sparse, Y_dense));
+   }
+}
+
+TEST_CASE("linop/add_Acol_mul_bt", "add_Acol_mul_bt SparseDoubleFeat vs add_Acol_mul_bt Eigen::MatrixXd")
+{
+   int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+   int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+   double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
+   SparseDoubleFeat sf(6, 4, 9, rows, cols, vals);
+
+   Eigen::MatrixXd X(6, 4);
+   X << 0., 0.6, 0., 0.,
+      0., -0.82, 0., 0.,
+      0., 1.19, 0., 0.06,
+      -0.76, 0., 1.48, 0.,
+      1.95, 0., 2.54, 0.,
+      0., 0., 0., 2.44;
+
+   Eigen::VectorXd B(10);
+   int bValue = 0;
+   for (int i = 0; i < 10; i++)
+   {
+      B(i) = bValue++;
+   }
+
+   for (auto col = 0; col < sf.cols(); col++)
+   {
+      Eigen::MatrixXd Z_sparse(10, 6);
+      Z_sparse.setZero();
+
+      Eigen::MatrixXd Z_dense(10, 6);
+      Z_dense.setZero();
+
+      smurff::linop::add_Acol_mul_bt(Z_sparse, sf, col, B); //call again to test addition
+      smurff::linop::add_Acol_mul_bt(Z_sparse, sf, col, B);
+
+      smurff::linop::add_Acol_mul_bt(Z_dense, X, col, B);
+      smurff::linop::add_Acol_mul_bt(Z_dense, X, col, B); //call again to test addition
+
+      REQUIRE(matrix_utils::equals(Z_sparse, Z_dense));
+   }
+}

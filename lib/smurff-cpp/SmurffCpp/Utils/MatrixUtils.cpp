@@ -152,3 +152,17 @@ bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::Matrix
 
    return true;
 }
+
+bool smurff::matrix_utils::equals_vector(const Eigen::VectorXd& v1, const Eigen::VectorXd& v2, double precision)
+{
+   if (v1.size() != v2.size())
+      return false;
+
+   for (auto i = 0; i < v1.size(); i++)
+   {
+      if (std::abs(v1(i) - v2(i)) > precision)
+         return false;
+   }
+
+   return true;
+}

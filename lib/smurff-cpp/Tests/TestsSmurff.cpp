@@ -1016,7 +1016,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
 
 #endif // TEST_RANDOM
 
-//test throw
+//test throw - normal prior should not have side info
 
 //
 //      train: dense matrix
@@ -1055,7 +1055,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
 
-//test throw
+//test throw - macau prior should have side info
 
 //
 //      train: dense matrix
@@ -1093,7 +1093,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    REQUIRE_THROWS(SessionFactory::create_session(config));
 }
 
-//test throw
+//test throw - wrong dimentions of side info
 
 //
 //      train: dense matrix
@@ -1809,44 +1809,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
 
 //=================================================================
 
-//test throw
-
-//
-//      train: dense 2D-tensor
-//       test: sparse 2D-tensor
-//     priors: macau normal
-//   aux-data: row_dense_side_info none
-// num-latent: 4
-//     burnin: 50
-//   nsamples: 50
-//    verbose: 0
-//       seed: 1234
-//
-TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior macau normal --side-info row_dense_side_info none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
-{
-   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
-   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
-   std::shared_ptr<MatrixConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMatrixConfig();
-
-   Config config;
-   config.setTrain(trainDenseTensorConfig);
-   config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
-   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-   config.setNumLatent(4);
-   config.setBurnin(50);
-   config.setNSamples(50);
-   config.setVerbose(false);
-   config.setRandomSeed(1234);
-   config.setRandomSeedSet(true);
-
-   REQUIRE_THROWS(SessionFactory::create_session(config));
-}
-
-
-//test throw
+//test throw - do not allow 3 and more dimentions for tensor data with macau priors
 
 //
 //      train: dense 3D-tensor
@@ -2392,7 +2355,7 @@ TEST_CASE(
 //
 TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior macau macau --side-info <row_side_info_dense_matrix> <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct"
           "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior macau macau --side-info <row_side_info_dense_matrix> <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct",
-          "[!hide]")
+          "")
 {
    std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
@@ -2462,7 +2425,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
 //
 TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior macau macau --side-info <row_side_info_dense_matrix> <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct"
           "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior macau macau --side-info <row_side_info_dense_matrix> <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct",
-          "[!hide]")
+          "")
 {
    std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
@@ -2559,8 +2522,8 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainDenseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
+   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
+   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
    matrixRunConfig.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
    matrixRunConfig.getSideInfo().push_back(colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
@@ -2629,8 +2592,8 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainSparseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
+   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
+   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
    matrixRunConfig.getSideInfo().push_back(rowSideInfoDenseMatrixConfig);
    matrixRunConfig.getSideInfo().push_back(colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
