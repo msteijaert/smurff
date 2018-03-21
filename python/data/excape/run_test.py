@@ -12,8 +12,9 @@ from time import time
 
 
 def smurff_py(args):
-    allowed_args = [ "Ytest", "num_latent", "burnin", "nsamples", "precision", "verbose",
-            "aux_data", "side_info", "direct", "priors", "lambda_beta"]
+    args["Ynoise"] = ("fixed", args["precision"], 0.0, 0.0, 0.0) 
+    allowed_args = [ "Ytest", "num_latent", "burnin", "nsamples", "Ynoise", "verbose",
+            "aux_data", "side_info", "direct", "priors"]
     filtered_args = { k: args[k] for k in allowed_args}
     return smurff.smurff(args["train"], **filtered_args)
 
@@ -28,11 +29,10 @@ def smurff_cmd(args):
              + " --test={datadir}/{test_file}" 
              + " --prior={prior_string}"
              + " --side-info={side_info_string}"
-             + " --lambda-beta={lambda_beta}"
              + " --aux-data={aux_data_string}"
              + " {direct_string}"
              + " --num-latent={num_latent} --burnin={burnin} --nsamples={nsamples}"
-             + " --precision={precision} --verbose={verbose} --status=stats.csv"
+             + " --noise_model=\"fixed;{precision};0;0;0\" --verbose={verbose} --status=stats.csv"
              ).format(**args)
 
     class Result:
@@ -87,7 +87,6 @@ class TestExCAPE(unittest.TestCase):
                 "aux_data_files"  : [ "none", "none" ],
                 "side_info_files" : [ "none", "none" ],
                 "direct"          : True,
-                "lambda_beta"     : 5.0,
                 }
 
     @classmethod
