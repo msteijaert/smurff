@@ -203,19 +203,6 @@ bool Config::validate() const
 
    if (m_train->getNModes() > 2)
    {
-      for (auto& sideInfo : m_sideInfo)
-      {
-         if (sideInfo)
-         {
-            //it is advised to check macau and macauone priors implementation
-            //as well as code in PriorFactory that creates macau priors
-
-            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
-            //however TensorDataFactory will do an additional check throwing an exception
-            THROWERROR("Side info is not supported for TensorData");
-         }
-      }
-
       if (!m_auxData.empty())
       {
          //it is advised to check macau and macauone priors implementation
@@ -236,6 +223,10 @@ bool Config::validate() const
 
    for (std::size_t i = 0; i < m_sideInfo.size(); i++)
    {
+      //FIXME: is this a correct behavior?
+      if (i > 2)
+         break;
+
       const std::shared_ptr<MatrixConfig>& sideInfo = m_sideInfo[i];
       if (sideInfo && sideInfo->getDims()[0] != m_train->getDims()[i])
       {
