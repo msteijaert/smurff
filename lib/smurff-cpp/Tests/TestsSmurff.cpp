@@ -1899,7 +1899,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
 //    verbose: 0
 //       seed: 1234
 //
-TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prior macauone normal --side-info row_dense_side_info none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prior macauone normal --side-info row_dense_side_info none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234", "[!hide]")
 {
    std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor3dConfig();
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor3dConfig();
