@@ -9,10 +9,8 @@ Matrix factorization is a common machine learning technique for recommender syst
 
 ![Matrix Factorizaion](https://raw.githubusercontent.com/ExaScience/smurff/master/docs/matrix_factorization.svg?sanitize=true)
 
-
 The idea of these methods is to approximate the user-movie rating matrix R as a
-product of two low-rank matrices U and V (for the rest of the paper U refers to
-the users matrix and V to the movie matrix) such that R ≈ U × V . In this way U
+product of two low-rank matrices U and V such that R ≈ U × V . In this way U
 and V are constructed from the known ratings in R, which is usually very
 sparsely filled. The recommendations can be made from the approximation U × V
 which is dense. If M × N is the dimension of R then U and V will have

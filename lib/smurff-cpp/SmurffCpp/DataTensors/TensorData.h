@@ -49,6 +49,9 @@ public:
    double var_total() const override;
 
 public:
+   std::ostream& info(std::ostream& os, std::string indent) override;
+
+public:
    std::pair<PVec<>, double> item(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const;
    
    PVec<> pos(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const;

@@ -409,46 +409,49 @@ void smurff::linop::A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A,
   }
 }
 
-Eigen::VectorXd smurff::linop::col_square_sum(SparseFeat & A) {
-  const int ncol = A.cols();
-  VectorXd out(ncol);
-  #pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) 
-  {
-    out(col) = A.Mt.row_ptr[col + 1] - A.Mt.row_ptr[col];
-  }
-  return out;
+Eigen::VectorXd smurff::linop::col_square_sum(SparseFeat & A) 
+{
+   const int ncol = A.cols();
+   VectorXd out(ncol);
+   #pragma omp parallel for schedule(static)
+   for (int col = 0; col < ncol; col++)
+   {
+      out(col) = A.Mt.row_ptr[col + 1] - A.Mt.row_ptr[col];
+   }
+   return out;
 }
 
-Eigen::VectorXd smurff::linop::col_square_sum(SparseDoubleFeat & A) {
-  const int ncol = A.cols();
-  const int* row_ptr = A.Mt.row_ptr;
-  const double* vals = A.Mt.vals;
-  VectorXd out(ncol);
+Eigen::VectorXd smurff::linop::col_square_sum(SparseDoubleFeat & A) 
+{
+   const int ncol = A.cols();
+   const int* row_ptr = A.Mt.row_ptr;
+   const double* vals = A.Mt.vals;
+   VectorXd out(ncol);
 
-  #pragma omp parallel for schedule(dynamic, 256)
-  for (int col = 0; col < ncol; col++) 
-  {
-    double tmp = 0;
-    int i   = row_ptr[col];
-    int end = row_ptr[col + 1];
-    for (; i < end; i++) 
-    {
-      tmp += vals[i] * vals[i];
-    }
-    out(col) = tmp;
-  }
-  return out;
+   #pragma omp parallel for schedule(dynamic, 256)
+   for (int col = 0; col < ncol; col++) 
+   {
+      double tmp = 0;
+      int i   = row_ptr[col];
+      int end = row_ptr[col + 1];
+      for (; i < end; i++) 
+      {
+         tmp += vals[i] * vals[i];
+      }
+      out(col) = tmp;
+   }
+   return out;
 }
 
-Eigen::VectorXd smurff::linop::col_square_sum(Eigen::MatrixXd & A) {
-  const int ncol = A.cols();
-  VectorXd out(ncol);
-  #pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) 
-  {
-    out(col) = (A.col(col+1) - A.col(col)).sum();
-  }
-  return out;
+Eigen::VectorXd smurff::linop::col_square_sum(Eigen::MatrixXd & A) 
+{
+   const int ncol = A.cols();
+   VectorXd out(ncol);
+   #pragma omp parallel for schedule(static)
+   for (int col = 0; col < ncol; col++) 
+   {
+      out(col) = A.col(col).dot(A.col(col));
+   }
+   return out;
 }
 

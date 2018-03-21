@@ -183,18 +183,6 @@ bool Config::validate() const
 
    if (m_train->getNModes() > 2)
    {
-      for (auto& mpc : m_macauPriorConfigs)
-      {
-         if (mpc)
-         {
-            //it is advised to check macau and macauone priors implementation
-            //as well as code in PriorFactory that creates macau priors
-
-            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
-            //however TensorDataFactory will do an additional check throwing an exception
-            THROWERROR("Side info is not supported for TensorData");
-         }
-      }
 
       if (!m_auxData.empty())
       {
@@ -216,7 +204,11 @@ bool Config::validate() const
 
    for (std::size_t i = 0; i < m_macauPriorConfigs.size(); i++)
    {
+      //FIXME: is this a correct behavior?
+      if (i > 2)
+         break;
       if (m_macauPriorConfigs.at(i))
+
       {
          const auto& configItems = m_macauPriorConfigs.at(i)->getConfigItems();
          THROWERROR_ASSERT(!configItems.empty());
@@ -332,6 +324,7 @@ bool Config::validate() const
 void Config::save(std::string fname) const
 {
    std::ofstream os(fname);
+   THROWERROR_ASSERT_MSG(os, "Error opening file: " + fname);
 
    //write header with time and version
    os << "## SMURFF config .ini file" << std::endl;
