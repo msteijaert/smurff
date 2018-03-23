@@ -446,7 +446,8 @@ bool Config::restore(std::string fname)
 {
    THROWERROR_FILE_NOT_EXIST(fname);
 
-   INIReader reader(fname);
+   INIFile reader;
+   reader.open(fname);
 
    if (reader.getParseError() < 0)
    {
@@ -567,7 +568,8 @@ bool Config::restoreSaveInfo(std::string fname, std::string& save_prefix, std::s
 {
    THROWERROR_FILE_NOT_EXIST(fname);
 
-   INIReader reader(fname);
+   INIFile reader;
+   reader.open(fname);
 
    if (reader.getParseError() < 0)
    {

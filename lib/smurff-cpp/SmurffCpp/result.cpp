@@ -202,32 +202,26 @@ void Result::restoreState(std::shared_ptr<const StepFile> sf)
 {
    std::string predStateName = sf->getPredStateFileName();
 
-   std::unordered_map<std::string, std::string> values;
-   smurff::loadIni(predStateName, values);
+   INIFile iniReader;
+   iniReader.open(predStateName);
 
-   auto valIt = values.find(RMSE_AVG_TAG);
-   THROWERROR_ASSERT_MSG(valIt != values.end(), RMSE_AVG_TAG + " not found");
-   rmse_avg = stod(valIt->second.c_str());
+   auto value = iniReader.get(std::string(), RMSE_AVG_TAG);
+   rmse_avg = stod(value.c_str());
    
-   valIt = values.find(RMSE_1SAMPLE_TAG);
-   THROWERROR_ASSERT_MSG(valIt != values.end(), RMSE_1SAMPLE_TAG + " not found");
-   rmse_1sample = stod(valIt->second.c_str());
+   value = iniReader.get(std::string(), RMSE_1SAMPLE_TAG);
+   rmse_1sample = stod(value.c_str());
    
-   valIt = values.find(AUC_AVG_TAG);
-   THROWERROR_ASSERT_MSG(valIt != values.end(), AUC_AVG_TAG + " not found");
-   auc_avg = stod(valIt->second.c_str());
+   value = iniReader.get(std::string(), AUC_AVG_TAG);
+   auc_avg = stod(value.c_str());
    
-   valIt = values.find(AUC_1SAMPLE_TAG);
-   THROWERROR_ASSERT_MSG(valIt != values.end(), AUC_1SAMPLE_TAG + " not found");
-   auc_1sample = stod(valIt->second.c_str());
+   value = iniReader.get(std::string(), AUC_1SAMPLE_TAG);
+   auc_1sample = stod(value.c_str());
    
-   valIt = values.find(SAMPLE_ITER_TAG);
-   THROWERROR_ASSERT_MSG(valIt != values.end(), SAMPLE_ITER_TAG + " not found");
-   sample_iter = stoi(valIt->second.c_str());
+   value = iniReader.get(std::string(), SAMPLE_ITER_TAG);
+   sample_iter = stoi(value.c_str());
    
-   valIt = values.find(BURNIN_ITER_TAG);
-   THROWERROR_ASSERT_MSG(valIt != values.end(), BURNIN_ITER_TAG + " not found");
-   burnin_iter = stoi(valIt->second.c_str());
+   value = iniReader.get(std::string(), BURNIN_ITER_TAG);
+   burnin_iter = stoi(value.c_str());
 }
 
 //--- update RMSE and AUC

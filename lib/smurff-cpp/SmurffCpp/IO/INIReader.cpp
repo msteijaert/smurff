@@ -5,25 +5,44 @@
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 
 #include "ini.h"
 #include "INIReader.h"
 
-INIReader::INIReader(const std::string& filename)
+#include <SmurffCpp/Utils/Error.h>
+
+INIFile::INIFile()
+   : m_error(0)
 {
+}
+
+INIFile::~INIFile()
+{
+}
+
+void INIFile::open(const std::string& filename)
+{
+   m_filePath = filename;
    m_error = ini_parse(filename.c_str(), ValueHandler, this);
 }
 
-INIReader::~INIReader()
+void INIFile::create(const std::string& filename)
 {
+   m_filePath = filename;
+
+   std::ofstream stepFile;
+   stepFile.open(filename, std::ios::trunc);
+   THROWERROR_ASSERT_MSG(stepFile, "Error opening file: " + filename);
+   stepFile.close();
 }
 
-int INIReader::getParseError() const
+int INIFile::getParseError() const
 {
    return m_error;
 }
 
-std::string INIReader::get(const std::string& section, const std::string& name, const std::string& default_value) const
+std::string INIFile::get(const std::string& section, const std::string& name, const std::string& default_value) const
 {
    std::string key = MakeKey(section, name);
    auto valuesIt = m_values.find(key);
@@ -33,7 +52,7 @@ std::string INIReader::get(const std::string& section, const std::string& name, 
       return valuesIt->second;
 }
 
-int INIReader::getInteger(const std::string& section, const std::string& name, int default_value) const
+int INIFile::getInteger(const std::string& section, const std::string& name, int default_value) const
 {
    std::string valstr = get(section, name, "");
    const char* value = valstr.c_str();
@@ -43,7 +62,7 @@ int INIReader::getInteger(const std::string& section, const std::string& name, i
    return end > value ? n : default_value;
 }
 
-double INIReader::getReal(const std::string& section, const std::string& name, double default_value) const
+double INIFile::getReal(const std::string& section, const std::string& name, double default_value) const
 {
    std::string valstr = get(section, name, "");
    const char* value = valstr.c_str();
@@ -52,7 +71,7 @@ double INIReader::getReal(const std::string& section, const std::string& name, d
    return end > value ? n : default_value;
 }
 
-bool INIReader::getBoolean(const std::string& section, const std::string& name, bool default_value) const
+bool INIFile::getBoolean(const std::string& section, const std::string& name, bool default_value) const
 {
    std::string valstr = get(section, name, "");
    // Convert to lower case to make string comparisons case-insensitive
@@ -65,48 +84,79 @@ bool INIReader::getBoolean(const std::string& section, const std::string& name, 
       return default_value;
 }
 
-const std::set<std::string>& INIReader::getSections() const
+std::string INIFile::get(const std::string& section, const std::string& name) const
+{
+   std::string key = MakeKey(section, name);
+   auto valuesIt = m_values.find(key);
+   if (valuesIt == m_values.end())
+   {
+      THROWERROR("section: " + section + " name:" + name + " not found");
+   }
+   else
+   {
+      return valuesIt->second;
+   }
+}
+
+std::pair<bool, std::string> INIFile::tryGet(const std::string& section, const std::string& name) const
+{
+   std::string key = MakeKey(section, name);
+   auto valuesIt = m_values.find(key);
+   if (valuesIt == m_values.end())
+      return std::make_pair(false, std::string());
+   else
+      return std::make_pair(true, valuesIt->second);
+}
+
+const std::set<std::string>& INIFile::getSections() const
 {
    return m_sections;
 }
 
-std::map<std::string, std::vector<std::string> >::const_iterator INIReader::getFields(const std::string& section) const
+std::map<std::string, std::vector<std::string> >::const_iterator INIFile::getFields(const std::string& section) const
 {
    auto fieldSetIt = m_fields.find(section);
    if (fieldSetIt == m_fields.end())
-      return m_fields.end();
+      THROWERROR("section: " + section + " not found");
    return fieldSetIt;
 }
 
-std::string INIReader::MakeKey(const std::string& section, const std::string& name)
+std::string INIFile::MakeKey(const std::string& section, const std::string& name)
 {
-   return section + "=" + name;    
+   return section + "=" + name;
 }
 
-int INIReader::ValueHandler(void* user, const char* section, const char* name, const char* value)
+int INIFile::ValueHandler(void* user, const char* section, const char* name, const char* value)
 {
-   INIReader* reader = (INIReader*)user;
+   INIFile* reader = (INIFile*)user;
 
+   reader->insertItem(section, name, value);
+
+   return 1;
+}
+
+int INIFile::insertItem(const std::string& section, const std::string& name, const std::string& value)
+{
    // Insert the section in the sections set
-   reader->m_sections.insert(section);
+   m_sections.insert(section);
 
    // Add the value to the lookup map
    std::string key = MakeKey(section, name);
 
-   auto valuesIt = reader->m_values.find(key);
-   if (valuesIt == reader->m_values.end())
+   auto valuesIt = m_values.find(key);
+   if (valuesIt == m_values.end())
    {
-      reader->m_values.emplace(key, value);
+      m_values.emplace(key, value);
 
       //if value was not in the lookup map - we need to add it in list of m_fields as well
       //we store fields in original order as vector so the only efficient way to make sure that values are unique
       //is to use m_values as a lookup first
 
       //create entry for new section if required
-      auto fieldSetIt = reader->m_fields.find(section);
-      if (fieldSetIt == reader->m_fields.end())
+      auto fieldSetIt = m_fields.find(section);
+      if (fieldSetIt == m_fields.end())
       {
-         auto item = reader->m_fields.emplace(section, std::vector<std::string>());
+         auto item = m_fields.emplace(section, std::vector<std::string>());
          fieldSetIt = item.first;
       }
 
@@ -119,4 +169,80 @@ int INIReader::ValueHandler(void* user, const char* section, const char* name, c
    }
 
    return 1;
+}
+
+bool INIFile::empty() const
+{
+   return m_values.empty() && m_sections.empty() && m_fields.empty();
+}
+
+void INIFile::appendItem(const std::string& tag, const std::string& value)
+{
+   m_writeBuffer.push_back(std::make_pair(tag, value));
+
+   insertItem(std::string(), tag, value);
+}
+
+void INIFile::flush()
+{
+   std::ofstream stepFile;
+   stepFile.open(m_filePath, std::ios::app);
+   THROWERROR_ASSERT_MSG(stepFile, "Error opening file: " + m_filePath);
+
+   for (auto& item : m_writeBuffer)
+   {
+      stepFile << item.first << " = " << item.second << std::endl;
+   }
+
+   stepFile.close();
+
+   m_writeBuffer.clear();
+}
+
+void INIFile::removeItem(const std::string& section, const std::string& tag)
+{
+   //create a key
+   std::string key = MakeKey(section, tag);
+
+   //try erase value from values map
+   auto valuesIt = m_values.find(key);
+   if (valuesIt != m_values.end())
+      m_values.erase(valuesIt);
+   
+   //try find section in field groups
+   auto fieldsGroupIt = m_fields.find(section);
+   if (fieldsGroupIt != m_fields.end())
+   {
+      //try find field in field group
+      for (auto fieldIt = fieldsGroupIt->second.begin(); fieldIt != fieldsGroupIt->second.end(); ++fieldIt)
+      {
+         //erase field from section
+         if (*fieldIt == tag)
+         { 
+            fieldsGroupIt->second.erase(fieldIt);
+            break;
+         }
+      }
+
+      //check if section is now empty
+      if (fieldsGroupIt->second.empty())
+      {
+         //try erase section from sections map
+         auto sectionsIt = m_sections.find(fieldsGroupIt->first);
+         if (sectionsIt != m_sections.end())
+            m_sections.erase(sectionsIt);
+
+         //erase section from field groups
+         m_fields.erase(fieldsGroupIt);
+      }
+   }
+}
+
+void INIFile::appendComment(std::string comment)
+{
+   std::ofstream stepFile;
+   stepFile.open(m_filePath, std::ios::app);
+   THROWERROR_ASSERT_MSG(stepFile, "Error opening file: " + m_filePath);
+   stepFile << "#" << comment << std::endl;
+   stepFile.close();
 }

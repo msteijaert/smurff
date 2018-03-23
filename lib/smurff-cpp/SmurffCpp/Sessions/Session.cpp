@@ -207,10 +207,7 @@ void Session::save(int iteration)
            m_lastCheckpointTime + m_config.getCheckpointFreq() < tick()
       )
    {
-      //save this iteration
-      std::shared_ptr<StepFile> stepFile = m_rootFile->createCheckpointStepFile(iteration);
-      saveInternal(stepFile);
-
+      //remove previous iteration if required
       if (m_lastCheckpointIter >= 0)
       {
          //remove previous iteration
@@ -220,6 +217,11 @@ void Session::save(int iteration)
          m_rootFile->flushLast();
       }
 
+      //save this iteration
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createCheckpointStepFile(iteration);
+      saveInternal(stepFile);
+
+      //upddate counters
       m_lastCheckpointTime = tick();
       m_lastCheckpointIter = iteration;
    } 
