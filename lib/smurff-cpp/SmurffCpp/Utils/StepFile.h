@@ -5,6 +5,8 @@
 #include <vector>
 #include <cstdint>
 
+#include <SmurffCpp/IO/INIFile.h>
+
 namespace smurff {
 
    class Model;
@@ -19,8 +21,8 @@ namespace smurff {
       std::string m_extension;
       bool m_checkpoint;
 
-      //AGE: should preserve order of elements as in file
-      mutable std::vector<std::pair<std::string, std::string> > m_iniStorage;
+      //preserves order of elements in the file
+      mutable std::shared_ptr<INIFile> m_iniReader;
 
    public:
       //this constructor should be used to create a step file on a first run of session

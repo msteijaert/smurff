@@ -11,7 +11,7 @@
 #include <SmurffCpp/Version.h>
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/TensorUtils.h>
-#include <SmurffCpp/IO/INIReader.h>
+#include <SmurffCpp/IO/INIFile.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
@@ -446,7 +446,8 @@ bool Config::restore(std::string fname)
 {
    THROWERROR_FILE_NOT_EXIST(fname);
 
-   INIReader reader(fname);
+   INIFile reader;
+   reader.open(fname);
 
    if (reader.getParseError() < 0)
    {
@@ -567,7 +568,8 @@ bool Config::restoreSaveInfo(std::string fname, std::string& save_prefix, std::s
 {
    THROWERROR_FILE_NOT_EXIST(fname);
 
-   INIReader reader(fname);
+   INIFile reader;
+   reader.open(fname);
 
    if (reader.getParseError() < 0)
    {
