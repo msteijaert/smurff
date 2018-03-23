@@ -197,10 +197,7 @@ void Session::save(int iteration)
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
 
    //save if checkpoint threshold overdue
-   if (
-           m_config.getCheckpointFreq() &&
-           m_lastCheckpointTime + m_config.getCheckpointFreq() < tick()
-      )
+   if (m_config.getCheckpointFreq() && (tick() - m_lastCheckpointTime) >= m_config.getCheckpointFreq())
    {
       std::int32_t icheckpoint = iteration + 1;
 
