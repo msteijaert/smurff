@@ -19,7 +19,6 @@
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StepFile.h>
 #include <SmurffCpp/Utils/StringUtils.h>
-#include <SmurffCpp/Utils/IniUtils.h>
 
 #include <SmurffCpp/IO/GenericIO.h>
 

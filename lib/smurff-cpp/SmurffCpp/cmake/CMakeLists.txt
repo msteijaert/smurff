@@ -36,7 +36,7 @@ FILE (GLOB UTIL_FILES   "../Utils/TruncNorm.h"
 source_group ("Utils" FILES ${UTIL_FILES})
 
 FILE (GLOB IO_FILES     "../IO/ini.h"
-                        "../IO/INIReader.h"
+                        "../IO/INIFile.h"
                         "../IO/GenericIO.h"
                         "../IO/MatrixIO.h"
                         "../IO/TensorIO.h"
@@ -44,7 +44,7 @@ FILE (GLOB IO_FILES     "../IO/ini.h"
                         "../IO/DataWriter.h"
 
                         "../IO/ini.c"
-                        "../IO/INIReader.cpp"
+                        "../IO/INIFile.cpp"
                         "../IO/GenericIO.cpp"
                         "../IO/MatrixIO.cpp"
                         "../IO/TensorIO.cpp"

@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-#include <SmurffCpp/IO/INIReader.h>
+#include <SmurffCpp/IO/INIFile.h>
 
 namespace smurff {
 

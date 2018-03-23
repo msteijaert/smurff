@@ -8,7 +8,7 @@
 #include <fstream>
 
 #include "ini.h"
-#include "INIReader.h"
+#include "INIFile.h"
 
 #include <SmurffCpp/Utils/Error.h>
 

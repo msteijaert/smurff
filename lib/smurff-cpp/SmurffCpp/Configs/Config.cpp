@@ -11,7 +11,7 @@
 #include <SmurffCpp/Version.h>
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/TensorUtils.h>
-#include <SmurffCpp/IO/INIReader.h>
+#include <SmurffCpp/IO/INIFile.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
