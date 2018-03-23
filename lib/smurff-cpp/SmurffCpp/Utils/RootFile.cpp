@@ -4,7 +4,6 @@
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StringUtils.h>
-#include <SmurffCpp/Utils/IniUtils.h>
 #include <SmurffCpp/IO/GenericIO.h>
 
 #define OPTIONS_TAG "options"

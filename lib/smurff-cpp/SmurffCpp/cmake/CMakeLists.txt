@@ -17,7 +17,6 @@ FILE (GLOB UTIL_FILES   "../Utils/TruncNorm.h"
                         "../Utils/ThreadVector.hpp"
                         "../Utils/RootFile.h"
                         "../Utils/StepFile.h"
-                        "../Utils/IniUtils.h"
                         "../Utils/StringUtils.h"
 
                         "../Utils/TruncNorm.cpp"
@@ -31,7 +30,6 @@ FILE (GLOB UTIL_FILES   "../Utils/TruncNorm.h"
                         "../Utils/omp_util.cpp"
                         "../Utils/RootFile.cpp"
                         "../Utils/StepFile.cpp"
-                        "../Utils/IniUtils.cpp"
                         "../Utils/StringUtils.cpp"
                         )
 

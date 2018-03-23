@@ -8,7 +8,6 @@
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/GenericIO.h>
-#include <SmurffCpp/Utils/IniUtils.h>
 
 #define STEP_SAMPLE_PREFIX "-sample-"
 #define STEP_CHECKPOINT_PREFIX "-checkpoint-"
