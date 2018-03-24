@@ -285,6 +285,7 @@ void Session::printStatus(double elapsedi, bool resume, int iteration)
    double nnz_per_sec =  (double)(data()->nnz()) / elapsedi;
    double samples_per_sec = (double)(m_model->nsamples()) / elapsedi;
 
+
    std::string resumeString = resume ? "Continue from " : std::string();
 
    std::string phase;
@@ -308,12 +309,16 @@ void Session::printStatus(double elapsedi, bool resume, int iteration)
       from = m_config.getNSamples();
    }
 
-   printf("%s%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", resumeString.c_str(), phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
+   if (m_config.getVerbose() > 0) {
 
-   if (m_config.getClassify())
-      printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
+       printf("%s%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", resumeString.c_str(), phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
 
-   printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
+       if (m_config.getClassify())
+           printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
+
+       printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
+
+   }
 
    if (m_config.getVerbose() > 1)
    {
