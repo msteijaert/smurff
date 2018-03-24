@@ -40,7 +40,7 @@
      id="namedview500"
      showgrid="false"
      inkscape:zoom="0.82844734"
-     inkscape:cx="460.5"
+     inkscape:cx="176.23329"
      inkscape:cy="160"
      inkscape:window-x="0"
      inkscape:window-y="1"
@@ -52,1331 +52,1562 @@
     <path
        d="M57 5h259v196H57V5z"
        fill="#fff"
-       id="path6" />
+       id="path6"
+       style="" />
     <path
        d="M57 201h259V5H57v196z"
        fill="none"
        stroke="#000"
        stroke-width="3"
        stroke-miterlimit="8"
-       id="path8" />
+       id="path8"
+       style="" />
     <text
        y="-95"
        x="179"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
-       id="text10">
+       id="text10"
+       sodipodi:linespacing="125%">
       <tspan
          x="179"
          y="-95"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan12">R</tspan>
     </text>
     <text
        y="-92"
        x="301"
        transform="skewX(19) scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
-       id="text14">
+       id="text14"
+       sodipodi:linespacing="125%">
       <tspan
          x="301"
          y="-92"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan16">=</tspan>
     </text>
     <path
        d="M68 185h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path18" />
+       id="path18"
+       style="" />
     <path
        d="M68 191h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path20" />
+       id="path20"
+       style="" />
     <path
        d="M81 153h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path22" />
+       id="path22"
+       style="" />
     <path
        d="M81 159h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path24" />
+       id="path24"
+       style="" />
     <path
        d="M67 144h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path26" />
+       id="path26"
+       style="" />
     <path
        d="M67 149h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path28" />
+       id="path28"
+       style="" />
     <path
        d="M97 178h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path30" />
+       id="path30"
+       style="" />
     <path
        d="M97 183h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path32" />
+       id="path32"
+       style="" />
     <path
        d="M107 166h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path34" />
+       id="path34"
+       style="" />
     <path
        d="M107 171h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path36" />
+       id="path36"
+       style="" />
     <path
        d="M91 141h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path38" />
+       id="path38"
+       style="" />
     <path
        d="M91 147h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path40" />
+       id="path40"
+       style="" />
     <path
        d="M102 156h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path42" />
+       id="path42"
+       style="" />
     <path
        d="M102 162h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path44" />
+       id="path44"
+       style="" />
     <path
        d="M115 125h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path46" />
+       id="path46"
+       style="" />
     <path
        d="M115 131h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path48" />
+       id="path48"
+       style="" />
     <path
        d="M102 115h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path50" />
+       id="path50"
+       style="" />
     <path
        d="M102 120h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path52" />
+       id="path52"
+       style="" />
     <path
        d="M132 149h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path54" />
+       id="path54"
+       style="" />
     <path
        d="M132 154h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path56" />
+       id="path56"
+       style="" />
     <path
        d="M142 137h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path58" />
+       id="path58"
+       style="" />
     <path
        d="M142 142h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path60" />
+       id="path60"
+       style="" />
     <path
        d="M125 113h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path62" />
+       id="path62"
+       style="" />
     <path
        d="M125 119h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path64" />
+       id="path64"
+       style="" />
     <path
        d="M74 117h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path66" />
+       id="path66"
+       style="" />
     <path
        d="M74 123h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path68" />
+       id="path68"
+       style="" />
     <path
        d="M84 105h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path70" />
+       id="path70"
+       style="" />
     <path
        d="M84 111h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path72" />
+       id="path72"
+       style="" />
     <path
        d="M96 120h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path74" />
+       id="path74"
+       style="" />
     <path
        d="M96 126h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path76" />
+       id="path76"
+       style="" />
     <path
        d="M109 89h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path78" />
+       id="path78"
+       style="" />
     <path
        d="M109 95h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path80" />
+       id="path80"
+       style="" />
     <path
        d="M69 22h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path82" />
+       id="path82"
+       style="" />
     <path
        d="M69 28h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path84" />
+       id="path84"
+       style="" />
     <path
        d="M125 113h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path86" />
+       id="path86"
+       style="" />
     <path
        d="M125 118h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path88" />
+       id="path88"
+       style="" />
     <path
        d="M135 101h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path90" />
+       id="path90"
+       style="" />
     <path
        d="M135 106h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path92" />
+       id="path92"
+       style="" />
     <path
        d="M119 77h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path94" />
+       id="path94"
+       style="" />
     <path
        d="M119 83h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path96" />
+       id="path96"
+       style="" />
     <path
        d="M68 81h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path98" />
+       id="path98"
+       style="" />
     <path
        d="M68 87h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path100" />
+       id="path100"
+       style="" />
     <path
        d="M78 69h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path102" />
+       id="path102"
+       style="" />
     <path
        d="M78 75h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path104" />
+       id="path104"
+       style="" />
     <path
        d="M89 84h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path106" />
+       id="path106"
+       style="" />
     <path
        d="M89 90h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path108" />
+       id="path108"
+       style="" />
     <path
        d="M102 53h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path110" />
+       id="path110"
+       style="" />
     <path
        d="M102 59h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path112" />
+       id="path112"
+       style="" />
     <path
        d="M88 43h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path114" />
+       id="path114"
+       style="" />
     <path
        d="M88 48h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path116" />
+       id="path116"
+       style="" />
     <path
        d="M118 77h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path118" />
+       id="path118"
+       style="" />
     <path
        d="M118 82h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path120" />
+       id="path120"
+       style="" />
     <path
        d="M128 65h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path122" />
+       id="path122"
+       style="" />
     <path
        d="M128 70h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path124" />
+       id="path124"
+       style="" />
     <path
        d="M112 41h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path126" />
+       id="path126"
+       style="" />
     <path
        d="M112 47h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path128" />
+       id="path128"
+       style="" />
     <path
        d="M134 116h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path130" />
+       id="path130"
+       style="" />
     <path
        d="M134 121h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path132" />
+       id="path132"
+       style="" />
     <path
        d="M158 113h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path134" />
+       id="path134"
+       style="" />
     <path
        d="M158 119h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path136" />
+       id="path136"
+       style="" />
     <path
        d="M182 80h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path138" />
+       id="path138"
+       style="" />
     <path
        d="M182 85h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path140" />
+       id="path140"
+       style="" />
     <path
        d="M169 86h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path142" />
+       id="path142"
+       style="" />
     <path
        d="M169 92h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path144" />
+       id="path144"
+       style="" />
     <path
        d="M199 121h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path146" />
+       id="path146"
+       style="" />
     <path
        d="M199 126h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path148" />
+       id="path148"
+       style="" />
     <path
        d="M209 109h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path150" />
+       id="path150"
+       style="" />
     <path
        d="M209 114h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path152" />
+       id="path152"
+       style="" />
     <path
        d="M192 85h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path154" />
+       id="path154"
+       style="" />
     <path
        d="M192 91h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path156" />
+       id="path156"
+       style="" />
     <path
        d="M134 82h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path158" />
+       id="path158"
+       style="" />
     <path
        d="M134 88h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path160" />
+       id="path160"
+       style="" />
     <path
        d="M151 77h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path162" />
+       id="path162"
+       style="" />
     <path
        d="M151 83h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path164" />
+       id="path164"
+       style="" />
     <path
        d="M163 92h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path166" />
+       id="path166"
+       style="" />
     <path
        d="M163 98h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path168" />
+       id="path168"
+       style="" />
     <path
        d="M176 61h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path170" />
+       id="path170"
+       style="" />
     <path
        d="M176 67h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path172" />
+       id="path172"
+       style="" />
     <path
        d="M162 50h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path174" />
+       id="path174"
+       style="" />
     <path
        d="M162 56h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path176" />
+       id="path176"
+       style="" />
     <path
        d="M192 85h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path178" />
+       id="path178"
+       style="" />
     <path
        d="M192 90h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path180" />
+       id="path180"
+       style="" />
     <path
        d="M202 73h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path182" />
+       id="path182"
+       style="" />
     <path
        d="M202 78h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path184" />
+       id="path184"
+       style="" />
     <path
        d="M186 49h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path186" />
+       id="path186"
+       style="" />
     <path
        d="M186 55h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path188" />
+       id="path188"
+       style="" />
     <path
        d="M135 53h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path190" />
+       id="path190"
+       style="" />
     <path
        d="M135 59h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path192" />
+       id="path192"
+       style="" />
     <path
        d="M145 41h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path194" />
+       id="path194"
+       style="" />
     <path
        d="M145 47h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path196" />
+       id="path196"
+       style="" />
     <path
        d="M156 56h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path198" />
+       id="path198"
+       style="" />
     <path
        d="M156 62h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path200" />
+       id="path200"
+       style="" />
     <path
        d="M169 25h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path202" />
+       id="path202"
+       style="" />
     <path
        d="M169 31h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path204" />
+       id="path204"
+       style="" />
     <path
        d="M155 14h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path206" />
+       id="path206"
+       style="" />
     <path
        d="M155 20h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path208" />
+       id="path208"
+       style="" />
     <path
        d="M185 49h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path210" />
+       id="path210"
+       style="" />
     <path
        d="M185 54h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path212" />
+       id="path212"
+       style="" />
     <path
        d="M195 37h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path214" />
+       id="path214"
+       style="" />
     <path
        d="M195 42h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path216" />
+       id="path216"
+       style="" />
     <path
        d="M224 174h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path218" />
+       id="path218"
+       style="" />
     <path
        d="M224 180h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path220" />
+       id="path220"
+       style="" />
     <path
        d="M237 142h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path222" />
+       id="path222"
+       style="" />
     <path
        d="M237 148h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path224" />
+       id="path224"
+       style="" />
     <path
        d="M223 133h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path226" />
+       id="path226"
+       style="" />
     <path
        d="M223 138h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path228" />
+       id="path228"
+       style="" />
     <path
        d="M254 167h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path230" />
+       id="path230"
+       style="" />
     <path
        d="M254 172h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path232" />
+       id="path232"
+       style="" />
     <path
        d="M263 155h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path234" />
+       id="path234"
+       style="" />
     <path
        d="M263 160h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path236" />
+       id="path236"
+       style="" />
     <path
        d="M247 130h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path238" />
+       id="path238"
+       style="" />
     <path
        d="M247 136h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path240" />
+       id="path240"
+       style="" />
     <path
        d="M258 145h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path242" />
+       id="path242"
+       style="" />
     <path
        d="M258 151h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path244" />
+       id="path244"
+       style="" />
     <path
        d="M272 114h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path246" />
+       id="path246"
+       style="" />
     <path
        d="M272 120h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path248" />
+       id="path248"
+       style="" />
     <path
        d="M258 103h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path250" />
+       id="path250"
+       style="" />
     <path
        d="M258 109h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path252" />
+       id="path252"
+       style="" />
     <path
        d="M288 138h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path254" />
+       id="path254"
+       style="" />
     <path
        d="M288 143h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path256" />
+       id="path256"
+       style="" />
     <path
        d="M298 126h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path258" />
+       id="path258"
+       style="" />
     <path
        d="M298 131h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path260" />
+       id="path260"
+       style="" />
     <path
        d="M281 102h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path262" />
+       id="path262"
+       style="" />
     <path
        d="M281 108h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path264" />
+       id="path264"
+       style="" />
     <path
        d="M231 106h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path266" />
+       id="path266"
+       style="" />
     <path
        d="M231 112h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path268" />
+       id="path268"
+       style="" />
     <path
        d="M240 94h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path270" />
+       id="path270"
+       style="" />
     <path
        d="M240 100h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path272" />
+       id="path272"
+       style="" />
     <path
        d="M252 109h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path274" />
+       id="path274"
+       style="" />
     <path
        d="M252 115h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path276" />
+       id="path276"
+       style="" />
     <path
        d="M265 78h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path278" />
+       id="path278"
+       style="" />
     <path
        d="M265 84h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path280" />
+       id="path280"
+       style="" />
     <path
        d="M251 67h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path282" />
+       id="path282"
+       style="" />
     <path
        d="M251 73h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path284" />
+       id="path284"
+       style="" />
     <path
        d="M281 102h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path286" />
+       id="path286"
+       style="" />
     <path
        d="M281 107h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path288" />
+       id="path288"
+       style="" />
     <path
        d="M291 90h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path290" />
+       id="path290"
+       style="" />
     <path
        d="M291 95h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path292" />
+       id="path292"
+       style="" />
     <path
        d="M275 66h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path294" />
+       id="path294"
+       style="" />
     <path
        d="M275 72h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path296" />
+       id="path296"
+       style="" />
     <path
        d="M224 70h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path298" />
+       id="path298"
+       style="" />
     <path
        d="M224 76h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path300" />
+       id="path300"
+       style="" />
     <path
        d="M234 58h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path302" />
+       id="path302"
+       style="" />
     <path
        d="M234 64h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path304" />
+       id="path304"
+       style="" />
     <path
        d="M245 73h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path306" />
+       id="path306"
+       style="" />
     <path
        d="M245 79h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path308" />
+       id="path308"
+       style="" />
     <path
        d="M258 42h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path310" />
+       id="path310"
+       style="" />
     <path
        d="M258 48h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path312" />
+       id="path312"
+       style="" />
     <path
        d="M244 31h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path314" />
+       id="path314"
+       style="" />
     <path
        d="M244 37h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path316" />
+       id="path316"
+       style="" />
     <path
        d="M275 66h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path318" />
+       id="path318"
+       style="" />
     <path
        d="M275 71h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path320" />
+       id="path320"
+       style="" />
     <path
        d="M284 54h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path322" />
+       id="path322"
+       style="" />
     <path
        d="M284 59h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path324" />
+       id="path324"
+       style="" />
     <path
        d="M268 30h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path326" />
+       id="path326"
+       style="" />
     <path
        d="M268 36h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path328" />
+       id="path328"
+       style="" />
     <path
        d="M290 104h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path330" />
+       id="path330"
+       style="" />
     <path
        d="M290 110h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path332" />
+       id="path332"
+       style="" />
     <path
        d="M291 71h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path334" />
+       id="path334"
+       style="" />
     <path
        d="M291 77h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path336" />
+       id="path336"
+       style="" />
     <path
        d="M291 42h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path338" />
+       id="path338"
+       style="" />
     <path
        d="M291 48h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path340" />
+       id="path340"
+       style="" />
     <path
        d="M157 181h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path342" />
+       id="path342"
+       style="" />
     <path
        d="M157 187h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path344" />
+       id="path344"
+       style="" />
     <path
        d="M181 180h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path346" />
+       id="path346"
+       style="" />
     <path
        d="M181 186h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path348" />
+       id="path348"
+       style="" />
     <path
        d="M130 184h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path350" />
+       id="path350"
+       style="" />
     <path
        d="M130 190h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path352" />
+       id="path352"
+       style="" />
     <path
        d="M140 172h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path354" />
+       id="path354"
+       style="" />
     <path
        d="M140 178h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path356" />
+       id="path356"
+       style="" />
     <path
        d="M151 187h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path358" />
+       id="path358"
+       style="" />
     <path
        d="M151 193h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path360" />
+       id="path360"
+       style="" />
     <path
        d="M164 156h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path362" />
+       id="path362"
+       style="" />
     <path
        d="M164 162h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path364" />
+       id="path364"
+       style="" />
     <path
        d="M150 145h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path366" />
+       id="path366"
+       style="" />
     <path
        d="M150 151h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path368" />
+       id="path368"
+       style="" />
     <path
        d="M181 179h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path370" />
+       id="path370"
+       style="" />
     <path
        d="M181 185h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path372" />
+       id="path372"
+       style="" />
     <path
        d="M191 167h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path374" />
+       id="path374"
+       style="" />
     <path
        d="M191 173h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path376" />
+       id="path376"
+       style="" />
     <path
        d="M174 144h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path378" />
+       id="path378"
+       style="" />
     <path
        d="M174 150h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path380" />
+       id="path380"
+       style="" />
     <path
        d="M197 185h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path382" />
+       id="path382"
+       style="" />
     <path
        d="M197 191h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path384" />
+       id="path384"
+       style="" />
     <path
        d="M197 156h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path386" />
+       id="path386"
+       style="" />
     <path
        d="M197 162h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path388" />
+       id="path388"
+       style="" />
     <path
        d="M107 30h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path390" />
+       id="path390"
+       style="" />
     <path
        d="M107 36h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path392" />
+       id="path392"
+       style="" />
     <path
        d="M93 20h4v5h-4v-5z"
        fill="#5b9bd5"
-       id="path394" />
+       id="path394"
+       style="" />
     <path
        d="M93 25h4v-5h-4v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path396" />
+       id="path396"
+       style="" />
     <path
        d="M123 54h5v5h-5v-5z"
        fill="#5b9bd5"
-       id="path398" />
+       id="path398"
+       style="" />
     <path
        d="M123 59h5v-5h-5v5z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path400" />
+       id="path400"
+       style="" />
     <path
        d="M267 177h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path402" />
+       id="path402"
+       style="" />
     <path
        d="M267 183h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path404" />
+       id="path404"
+       style="" />
     <path
        d="M280 146h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path406" />
+       id="path406"
+       style="" />
     <path
        d="M280 152h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path408" />
+       id="path408"
+       style="" />
     <path
        d="M216 26h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path410" />
+       id="path410"
+       style="" />
     <path
        d="M216 32h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path412" />
+       id="path412"
+       style="" />
     <path
        d="M297 170h4v6h-4v-6z"
        fill="#5b9bd5"
-       id="path414" />
+       id="path414"
+       style="" />
     <path
        d="M297 176h4v-6h-4v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path416" />
+       id="path416"
+       style="" />
     <path
        d="M192 14h5v6h-5v-6z"
        fill="#5b9bd5"
-       id="path418" />
+       id="path418"
+       style="" />
     <path
        d="M192 20h5v-6h-5v6z"
        fill="none"
        stroke="#41719c"
        stroke-miterlimit="8"
-       id="path420" />
+       id="path420"
+       style="" />
     <path
        d="M368 5h57v196h-57V5z"
        fill="#fff"
-       id="path422" />
+       id="path422"
+       style="" />
     <path
        d="M368 201h57V5h-57v196z"
        stroke-miterlimit="8"
        id="path424"
        stroke-width="3"
        stroke="#000"
-       fill="none" />
+       fill="none"
+       style="" />
     <text
        y="-95"
        x="387"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
-       id="text426">
+       id="text426"
+       sodipodi:linespacing="125%">
       <tspan
          x="387"
          y="-95"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan428">U</tspan>
     </text>
     <path
        d="M461 146h224v57H461v-57z"
        fill="#fff"
-       id="path430" />
+       id="path430"
+       style="" />
     <path
        d="M461 203h224v-57H461v57z"
        fill="none"
        stroke="#000"
        stroke-width="3"
        stroke-miterlimit="8"
-       id="path432" />
+       id="path432"
+       style="" />
     <text
        y="-166"
        x="565"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
-       id="text434">
+       id="text434"
+       sodipodi:linespacing="125%">
       <tspan
          x="565"
          y="-166"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan436">V</tspan>
     </text>
     <path
        d="M36 198l1-187h-1l-1 186 1 1zm-4-2l3 7 3-6-6-1zm8-184l-3-6-3 6h6z"
        fill="#5b9bd5"
-       id="path438" />
+       id="path438"
+       style="" />
     <text
        y="-106"
        x="16"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        transform="scale(1 -1)"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text440">
+       id="text440"
+       sodipodi:linespacing="125%">
       <tspan
-         id="tspan442">N</tspan>
+         id="tspan442"
+         style="-inkscape-font-specification:'sans-serif, Normal';font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%;">N</tspan>
     </text>
     <path
        d="M466 224l215-2v-1l-215 2v1zm1-4l-6 4 6 2v-6zm213 5l6-3-6-3v6z"
        fill="#5b9bd5"
-       id="path444" />
+       id="path444"
+       style="" />
     <text
        y="-232"
        x="565"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text446">
+       id="text446"
+       sodipodi:linespacing="125%">
       <tspan
          x="565"
          y="-232"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan448">M</tspan>
     </text>
     <path
        d="M62 222h250v-1H62v1zm1-3l-6 3 6 3v-6zm248 5l6-3-6-3v6z"
        fill="#5b9bd5"
-       id="path450" />
+       id="path450"
+       style="" />
     <text
        y="-232"
        x="394"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text452">
+       id="text452"
+       sodipodi:linespacing="125%">
       <tspan
          x="394"
          y="-232"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan454">K</tspan>
     </text>
     <path
        d="M373 223h47v-1h-47v1zm1-3l-6 3 6 3v-6zm45 5l6-3-6-3v6zm282-26v-48h1v48h-1zm3-1l-3 6-3-6h6zm-6-46l3-6 3 6h-6z"
        fill="#5b9bd5"
-       id="path456" />
+       id="path456"
+       style="" />
     <text
        y="-169"
        x="712"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text458">
+       id="text458"
+       sodipodi:linespacing="125%">
       <tspan
          x="712"
          y="-169"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan460">K</tspan>
     </text>
     <text
        y="-168"
        x="437"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
-       id="text462">
+       id="text462"
+       sodipodi:linespacing="125%">
       <tspan
          x="437"
          y="-168"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan464">x</tspan>
     </text>
     <text
        y="-99"
        x="470"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text466">
+       id="text466"
+       sodipodi:linespacing="125%">
       <tspan
          x="470"
          y="-99"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan468">M</tspan>
     </text>
     <text
        y="-99"
        x="488"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text470">
+       id="text470"
+       sodipodi:linespacing="125%">
       <tspan
          x="488"
          y="-99"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan472">≪</tspan>
     </text>
     <text
        y="-99"
        x="509"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text474">
+       id="text474"
+       sodipodi:linespacing="125%">
       <tspan
          x="509"
          y="-99"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan476">K</tspan>
     </text>
     <text
        y="-69"
        x="471"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text478">
+       id="text478"
+       sodipodi:linespacing="125%">
       <tspan
          x="471"
          y="-69"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan480">N</tspan>
     </text>
     <text
        y="-69"
        x="489"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text482">
+       id="text482"
+       sodipodi:linespacing="125%">
       <tspan
          x="489"
          y="-69"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan484">≪</tspan>
     </text>
     <text
        y="-69"
        x="510"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text486">
+       id="text486"
+       sodipodi:linespacing="125%">
       <tspan
          x="510"
          y="-69"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan488">K</tspan>
     </text>
     <text
        y="-38"
        x="472"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text490">
+       id="text490"
+       sodipodi:linespacing="125%">
       <tspan
          x="472"
          y="-38"
-         style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
          id="tspan492">R</tspan>
     </text>
     <text
        y="-38"
        x="488"
        transform="scale(1 -1)"
-       style="-inkscape-font-specification:'Sans, Normal';text-align:start;line-height:125%"
+       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
        font-size="16"
        font-family="Sans"
        writing-mode="lr"
        fill="#5b9bd5"
-       id="text494">
+       id="text494"
+       sodipodi:linespacing="125%">
       <tspan
          x="488.20862 493.20901 500.20923 504.20883 513.20886 521.20801 527.20734 536.20734 541.2077 548.20795 557.20795 565.20715 571.20654 578.20673"
          y="-38"
-         id="tspan496">is very sparse</tspan>
+         id="tspan496"
+         style="-inkscape-font-specification:'sans-serif, Normal';font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%;">is very sparse</tspan>
     </text>
     <text
        id="text3853"
        writing-mode="lr"
        font-size="16"
        transform="scale(1,-1)"
-       style="font-size:16px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr;fill:#5b9bd5;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-anchor:start;"
+       style="font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr;fill:#5b9bd5;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-anchor:start;"
        x="187.88782"
        y="-228.63905"
        sodipodi:linespacing="125%">
