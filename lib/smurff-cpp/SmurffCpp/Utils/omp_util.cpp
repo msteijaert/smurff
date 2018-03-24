@@ -69,15 +69,17 @@ void threads_enable(int verbose)
 
 void threads_disable(int verbose) 
 {
-   THROWERROR_ASSERT (prev_threading_layer >= 0);
+   #if defined(MKL_THREAD_LIBRARY_GNU) || defined(MKL_THREAD_LIBRARY_INTEL) || defined(MKL_THREAD_LIBRARY_LLVM)
+       THROWERROR_ASSERT (prev_threading_layer >= 0);
 
-   if (verbose > 2)
-   {
-       std::cout << "  Back to using prev threading layer (" << prev_threading_layer << ")\n";
-   }
+       if (verbose > 2)
+       {
+           std::cout << "  Back to using prev threading layer (" << prev_threading_layer << ")\n";
+       }
 
-   mkl_set_threading_layer(prev_threading_layer);
-   prev_threading_layer = -1;
+       mkl_set_threading_layer(prev_threading_layer);
+       prev_threading_layer = -1;
+   #endif
 }
 
 #else
