@@ -196,7 +196,8 @@ void Session::save(int iteration)
 {
    //do not save if 'never save' mode is selected
    if (!m_config.getSaveFreq() && 
-       !m_config.getCheckpointFreq())
+       !m_config.getCheckpointFreq() &&
+       !m_config.getCsvStatus().size())
       return;
 
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
@@ -303,8 +304,8 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
    // avoid computing train_rmse twice
    double train_rmse = NAN;
 
-   std::uint64_t nnz_per_sec = elapsedi == 0.0 ? data()->nnz() : (data()->nnz()) / elapsedi;
-   std::uint64_t samples_per_sec = elapsedi == 0.0 ? m_model->nsamples() : (m_model->nsamples()) / elapsedi;
+   double nnz_per_sec =  (double)(data()->nnz()) / elapsedi;
+   double samples_per_sec = (double)(m_model->nsamples()) / elapsedi;
 
    std::string resumeString = resume ? "Continue from " : std::string();
 
@@ -330,6 +331,29 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
    }
 
    if (m_config.getVerbose())
+   printf("%s%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", resumeString.c_str(), phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
+
+   if (m_config.getClassify())
+      printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
+
+   printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
+
+   if (m_config.getVerbose() > 1)
+   {
+      train_rmse = data()->train_rmse(m_model);
+      printf("  RMSE train: %.4f\n", train_rmse);
+      printf("  Priors:\n");
+
+      for(const auto &p : m_priors)
+         p->status(std::cout, "     ");
+
+      printf("  Model:\n");
+      m_model->status(std::cout, "    ");
+      printf("  Noise:\n");
+      data()->status(std::cout, "    ");
+   }
+
+   if (m_config.getVerbose() > 2)
    {
        if (iteration < 0)
        {

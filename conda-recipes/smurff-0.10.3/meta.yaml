@@ -6,16 +6,23 @@ source:
   git_url: https://github.com/ExaScience/smurff
   git_rev: v0.10.3
 
+
+build:
+  number: 2
+  features:
+    - nomkl    [nomkl]
+
 requirements:
   build:
     - cmake
     - {{ compiler('cxx') }}
     - {{ compiler('c') }}
-    - llvm-openmp              # [osx]
+    - llvm-openmp             [osx]
   host:
     - eigen3
-    - llvm-openmp              # [osx]
-    - mkl-devel 2017.*
+    - mkl-devel 2017.*        [not nomkl]
+    - openblas                [linux and nomkl]
+    - llvm-openmp             [osx]
     - boost
     - cython >=0.25
     - python
@@ -23,8 +30,9 @@ requirements:
     - numpy
   run:
     - intel-openmp 2017.*
-    - mkl 2017.*
-    - llvm-openmp              # [osx]
+    - mkl-devel 2017.*        [not nomkl]
+    - openblas                [linux and nomkl]
+    - llvm-openmp             [osx]
     - libboost
     - python
     - numpy
