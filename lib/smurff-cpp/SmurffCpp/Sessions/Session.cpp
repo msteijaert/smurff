@@ -131,6 +131,9 @@ bool Session::step()
 
    if (isStep)
    {
+      //init omp
+      threads_enable(m_config.getVerbose());
+
       THROWERROR_ASSERT(is_init);
 
       auto starti = tick();
@@ -145,6 +148,8 @@ bool Session::step()
       save(m_iter);
 
       m_iter++;
+
+      threads_disable(m_config.getVerbose());
    }
 
    return isStep;
