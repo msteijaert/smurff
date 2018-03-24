@@ -340,30 +340,7 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
       from = m_config.getNSamples();
    }
 
-   if (m_config.getVerbose())
-   printf("%s%s %3d/%3d: RMSE: %.4f (1samp: %.4f)", resumeString.c_str(), phase.c_str(), i, from, m_pred->rmse_avg, m_pred->rmse_1sample);
-
-   if (m_config.getClassify())
-      printf(" AUC:%.4f (1samp: %.4f)", m_pred->auc_avg, m_pred->auc_1sample);
-
-   printf("  U:[%1.2e, %1.2e] [took: %0.1fs]\n", snorm0, snorm1, elapsedi);
-
-   if (m_config.getVerbose() > 1)
-   {
-      train_rmse = data()->train_rmse(m_model);
-      printf("  RMSE train: %.4f\n", train_rmse);
-      printf("  Priors:\n");
-
-      for(const auto &p : m_priors)
-         p->status(std::cout, "     ");
-
-      printf("  Model:\n");
-      m_model->status(std::cout, "    ");
-      printf("  Noise:\n");
-      data()->status(std::cout, "    ");
-   }
-
-   if (m_config.getVerbose() > 2)
+   if (m_config.getVerbose() > 0)
    {
        if (iteration < 0)
        {
@@ -388,8 +365,7 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
            << std::fixed << std::setprecision(4) << m_pred->rmse_avg
            << " (1samp: "
            << std::fixed << std::setprecision(4) << m_pred->rmse_1sample
-           << ")"
-           << std::endl;
+           << ")";
 
        if (m_config.getClassify())
        {
