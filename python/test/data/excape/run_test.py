@@ -35,8 +35,6 @@ def smurff_cmd(args):
              + " --precision={precision} --verbose={verbose} --status=stats.csv"
              ).format(**args)
 
-    print(cmd)
-
     class Result:
          pass
 
@@ -49,7 +47,6 @@ def smurff_cmd(args):
         result.retcode = call(cmd, shell=True, cwd=tmpdirname)
         result.rmse = float("nan")
         stats = pd.read_csv(os.path.join(tmpdirname, "stats.csv"), sep=";")
-        print(stats)
         last_row = stats.tail(1)
         result.rmse = float(last_row['rmse_avg'])
 
