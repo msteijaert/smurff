@@ -12,16 +12,17 @@ requirements:
     - {{ compiler('c') }}
     - llvm-openmp              # [osx]
   host:
+    - llvm-openmp              # [osx]
+    - mkl-devel
     - eigen3
-    - openblas
-    - libboost
+    - boost
     - cython >=0.25
     - python
     - setuptools
     - numpy >=1.13
   run:
-    - openblas
     - llvm-openmp              # [osx]
+    - mkl
     - libboost
     - python
     - numpy
