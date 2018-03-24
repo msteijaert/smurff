@@ -16,10 +16,10 @@ namespace smurff {
 class SpikeAndSlabPrior : public NormalOnePrior 
 {
 public:
-   // updated by every thread
+   // updated by every thread during sample_latents
    smurff::thread_vector<Eigen::MatrixXd> Zcol, W2col;
 
-   // read-only during sampling
+   // updated during update_prior
    Eigen::MatrixXd Zkeep;
    Eigen::ArrayXXd alpha, log_alpha;
    Eigen::ArrayXXd r, log_r;
