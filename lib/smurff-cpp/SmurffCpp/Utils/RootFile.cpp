@@ -1,11 +1,9 @@
 #include "RootFile.h"
 
 #include <iostream>
-#include <fstream>
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StringUtils.h>
-#include <SmurffCpp/Utils/IniUtils.h>
 #include <SmurffCpp/IO/GenericIO.h>
 
 #define OPTIONS_TAG "options"
@@ -18,7 +16,8 @@ RootFile::RootFile(std::string path)
    : m_path(path)
 {
    //load all entries in ini file to be able to go through step variables
-   loadIni(m_path, m_iniStorage);
+   m_iniReader = std::make_shared<INIFile>();
+   m_iniReader->open(m_path);
 
    //lightweight restore of prefix and extension
    restoreState(m_prefix, m_extension);
@@ -28,6 +27,10 @@ RootFile::RootFile(std::string prefix, std::string extension)
    : m_prefix(prefix), m_extension(extension)
 {
    m_path = getRootFileName();
+
+   //create root file
+   m_iniReader = std::make_shared<INIFile>();
+   m_iniReader->create(m_path);
 }
 
 std::string RootFile::getRootFileName() const
@@ -42,12 +45,17 @@ std::string RootFile::getOptionsFileName() const
 
 void RootFile::appendToRootFile(std::string tag, std::string value) const
 {
-   m_iniStorage.push_back(std::make_pair(tag, value));
+   m_iniReader->appendItem(tag, value);
 
    //this function should be used here when it is required to write to root file immediately
    //currently we call flushLast method separately
    //this guarantees integrity of a step - step file entry is written after everything else is calculated/written
    //flushLast();
+}
+
+void RootFile::appendCommentToRootFile(std::string comment) const
+{
+   m_iniReader->appendComment(comment);
 }
 
 void RootFile::saveConfig(Config& config)
@@ -59,12 +67,9 @@ void RootFile::saveConfig(Config& config)
 
 std::string RootFile::restoreGetOptionsFileName() const
 {
-   THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Root ini file is not loaded");
+   THROWERROR_ASSERT_MSG(m_iniReader, "Root ini file is not loaded");
 
-   auto optionsIt = iniFind(m_iniStorage, OPTIONS_TAG);
-   THROWERROR_ASSERT_MSG(optionsIt != m_iniStorage.end(), "Options tag is not found in root ini file");
-
-   return optionsIt->second;
+   return m_iniReader->get(std::string(), OPTIONS_TAG);
 }
 
 void RootFile::restoreConfig(Config& config)
@@ -127,7 +132,7 @@ void RootFile::removeStepFileInternal(std::int32_t isample, bool checkpoint) con
    std::string stepFileName = stepFile->getStepFileName();
    std::string tagPrefix = checkpoint ? CHECKPOINT_STEP_PREFIX : SAMPLE_STEP_PREFIX;
    std::string stepTag = "# removed " + tagPrefix + std::to_string(isample);
-   appendToRootFile(stepTag, stepFileName);
+   appendCommentToRootFile(stepTag + " " + stepFileName);
 }
 
 std::shared_ptr<StepFile> RootFile::openLastStepFile() const
@@ -135,13 +140,17 @@ std::shared_ptr<StepFile> RootFile::openLastStepFile() const
    std::string lastCheckpointItem;
    std::string lastStepItem;
 
-   for (auto& item : m_iniStorage)
+   for (auto& section : m_iniReader->getSections())
    {
-      if (startsWith(item.first, CHECKPOINT_STEP_PREFIX))
-         lastCheckpointItem = item.second;
+      auto fieldsIt = m_iniReader->getFields(section);
+      for (auto& field : fieldsIt->second)
+      {
+         if (startsWith(field, CHECKPOINT_STEP_PREFIX))
+            lastCheckpointItem = m_iniReader->get(section, field);
 
-      if (startsWith(item.first, SAMPLE_STEP_PREFIX))
-         lastStepItem = item.second;
+         if (startsWith(field, SAMPLE_STEP_PREFIX))
+            lastStepItem = m_iniReader->get(section, field);
+      }
    }
 
    //try open sample file
@@ -178,31 +187,9 @@ std::shared_ptr<StepFile> RootFile::openSampleStepFile(std::string path) const
 }
 */
 
-void RootFile::flush() const
-{
-   std::string configPath = getRootFileName();
-
-   std::ofstream rootFile;
-   rootFile.open(configPath, std::ios::trunc);
-
-   for (auto item : m_iniStorage)
-   {
-      rootFile << item.first << " = " << item.second << std::endl;
-   }
-
-   rootFile.close();
-}
-
 void RootFile::flushLast() const
 {
-   auto& last = m_iniStorage.back();
-
-   std::string configPath = getRootFileName();
-
-   std::ofstream rootFile;
-   rootFile.open(configPath, std::ios::app);
-   rootFile << last.first << " = " << last.second << std::endl;
-   rootFile.close();
+   m_iniReader->flush();
 }
 
 //AGE: to properly implement this we need smth like boost::adaptors::filtered

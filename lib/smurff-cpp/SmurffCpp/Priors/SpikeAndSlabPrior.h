@@ -16,11 +16,11 @@ namespace smurff {
 class SpikeAndSlabPrior : public NormalOnePrior 
 {
 public:
-   // updated by every thread
+   // updated by every thread during sample_latents
    smurff::thread_vector<Eigen::MatrixXd> Zcol, W2col;
 
-   // read-only during sampling
-   Eigen::MatrixXd Zkeep;
+   // updated during update_prior
+   Eigen::ArrayXXd Zkeep;
    Eigen::ArrayXXd alpha, log_alpha;
    Eigen::ArrayXXd r, log_r;
 
@@ -34,11 +34,17 @@ public:
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 
+   void save(std::shared_ptr<const StepFile> sf) const override;
+   void restore(std::shared_ptr<const StepFile> sf) override;
+
    std::pair<double,double> sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX) override;
 
    void update_prior() override;
 
    // mean value of Z
    std::ostream &status(std::ostream &os, std::string indent) const override;
+
+private:
+   void initLogRLogAlpha();
 };
 }

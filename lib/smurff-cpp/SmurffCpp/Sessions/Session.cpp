@@ -116,11 +116,6 @@ void Session::init()
    //in any case - we have to move to next iteration
    m_iter++; //go to next iteration
 
-
-   //to keep track at what time we last checkpointed
-   m_lastCheckpointTime = tick();
-   m_lastCheckpointIter = -1;
-
    is_init = true;
 }
 
@@ -203,24 +198,27 @@ void Session::save(int iteration)
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
 
    //save if checkpoint threshold overdue
-   if (
-           m_config.getCheckpointFreq() &&
-           m_lastCheckpointTime + m_config.getCheckpointFreq() < tick()
-      )
+   if (m_config.getCheckpointFreq() && (tick() - m_lastCheckpointTime) >= m_config.getCheckpointFreq())
    {
+      std::int32_t icheckpoint = iteration + 1;
+
       //save this iteration
-      std::shared_ptr<StepFile> stepFile = m_rootFile->createCheckpointStepFile(iteration);
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createCheckpointStepFile(icheckpoint);
       saveInternal(stepFile);
 
+      //remove previous iteration if required (initial m_lastCheckpointIter is -1 which means that it does not exist)
       if (m_lastCheckpointIter >= 0)
       {
+         std::int32_t icheckpointPrev = m_lastCheckpointIter + 1;
+
          //remove previous iteration
-         m_rootFile->removeCheckpointStepFile(m_lastCheckpointIter);
+         m_rootFile->removeCheckpointStepFile(icheckpointPrev);
 
          //flush last item in a root file
          m_rootFile->flushLast();
       }
 
+      //upddate counters
       m_lastCheckpointTime = tick();
       m_lastCheckpointIter = iteration;
    } 
@@ -267,6 +265,10 @@ bool Session::restore(int& iteration)
    {
       //if there is nothing to restore - start from initial iteration
       iteration = -1;
+
+      //to keep track at what time we last checkpointed
+      m_lastCheckpointTime = tick();
+      m_lastCheckpointIter = -1;
       return false;
    }
    else
@@ -282,10 +284,18 @@ bool Session::restore(int& iteration)
       if (stepFile->getCheckpoint())
       {
          iteration = stepFile->getIsample() - 1; //restore original state
+
+         //to keep track at what time we last checkpointed
+         m_lastCheckpointTime = tick();
+         m_lastCheckpointIter = iteration;
       }
       else
       {
          iteration = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+
+         //to keep track at what time we last checkpointed
+         m_lastCheckpointTime = tick();
+         m_lastCheckpointIter = iteration;
       }
 
       return true;
