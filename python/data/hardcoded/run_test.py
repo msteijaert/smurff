@@ -17,7 +17,7 @@ class TestSaveRestore(unittest.TestCase):
                 "save_freq"       : 1,
                 "save_prefix"       : "save",
                 "num_latent"      : 2,
-                "burnin"          : 200,
+                "burnin"          : 400,
                 "verbose"         : 0, 
                 "aux_data"        : [ "none", "none" ],
                 "side_info"       : [ "none", "none" ],
@@ -77,22 +77,22 @@ class TestSaveRestore(unittest.TestCase):
         nsamples = 100
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-             pfx10 = os.path.join(tmpdirname, "10")
-             pfx5 = os.path.join(tmpdirname, "5")
+             pfx_aswhole = os.path.join(tmpdirname, "aswhole")
+             pfx_twoparts = os.path.join(tmpdirname, "twoparts")
 
-             os.mkdir(pfx10)
+             os.mkdir(pfx_aswhole)
              args["nsamples"] = int(nsamples)
              cmd = self.make_cmd(args)
-             result10 = self.run_cmd(pfx10, cmd);
+             result_aswhole = self.run_cmd(pfx_aswhole, cmd);
 
-             os.mkdir(pfx5)
+             os.mkdir(pfx_twoparts)
              args["nsamples"] = int(nsamples-2)
              cmd = self.make_cmd(args)
-             result5_1 = self.run_cmd(pfx5, cmd);
+             result_twoparts_1 = self.run_cmd(pfx_twoparts, cmd);
              cmd = "sed -i -e 's/nsamples = %d/nsamples = %d/' save-options.ini; smurff --root save-root.ini" % (int(nsamples-2), int(nsamples))
-             result5_2 = self.run_cmd(pfx5, cmd)
+             result_twoparts_2 = self.run_cmd(pfx_twoparts, cmd)
              
-             self.assertAlmostEqual(result10, result5_2, places = 2)
+             self.assertAlmostEqual(result_aswhole, result_twoparts_2, places = 2)
         
            
     def test_save_restore(self):
