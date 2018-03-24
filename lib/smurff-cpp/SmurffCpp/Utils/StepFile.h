@@ -41,7 +41,8 @@ namespace smurff {
 
    public:
       std::string getModelFileName(std::uint64_t index) const;
-      std::string getPriorFileName(std::uint32_t mode) const;
+      std::string getLinkMatrixFileName(std::uint32_t mode) const;
+      std::vector<std::string> getSpikeAndSlabFileNames(std::uint32_t mode) const;
       std::string getPredFileName() const;
 
       std::string getPredStateFileName() const;

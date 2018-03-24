@@ -107,11 +107,21 @@ std::string StepFile::getModelFileName(std::uint64_t index) const
    return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
 }
 
-std::string StepFile::getPriorFileName(std::uint32_t mode) const
+std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 {
    std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
 }
+
+std::vector<std::string> StepFile::getSpikeAndSlabFileNames(std::uint32_t mode) const
+{
+   std::string prefix = getStepPrefix();
+   return {
+       prefix + "-SS" + std::to_string(mode) + "-alpha" + m_extension,
+       prefix + "-SS" + std::to_string(mode) + "-r" + m_extension
+   };
+}
+
 
 std::string StepFile::getPredFileName() const
 {
@@ -171,7 +181,7 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
 
    for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
    {
-      std::string priorPath = getPriorFileName(priors.at(pIndex)->getMode());
+      std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
       appendToStepFile(PRIOR_PREFIX + std::to_string(pIndex), priorPath);
    }
 }
@@ -263,7 +273,7 @@ void StepFile::removePriors() const
    std::uint32_t mode = 0;
    while (true)
    {
-      std::string path = getPriorFileName(mode++);
+      std::string path = getLinkMatrixFileName(mode++);
       if (!generic_io::file_exists(path))
          break;
 
