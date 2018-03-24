@@ -20,7 +20,7 @@ requirements:
     - llvm-openmp             [osx]
   host:
     - eigen3
-    - mkl-devel 2017.*        [not nomkl]
+    - mkl-devel               [not nomkl]
     - openblas                [linux and nomkl]
     - llvm-openmp             [osx]
     - boost
@@ -29,7 +29,7 @@ requirements:
     - setuptools
     - numpy
   run:
-    - mkl 2017.*             [not nomkl]
+    - mkl                     [not nomkl]
     - openblas                [linux and nomkl]
     - llvm-openmp             [osx]
     - libboost
