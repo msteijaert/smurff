@@ -21,7 +21,6 @@ robust to data-overfitting compared to non-Bayesian matrix factorization.
 
 ## What is SMURFF 
 SMURFF is a highly optimized and parallelized framework for Bayesian Matrix and Tensors Factorization
-
 SMURFF supports multiple matrix factorization methods: 
 * [BPMF](https://www.cs.toronto.edu/~amnih/papers/bpmf.pdf), the basic version;
 * [Macau](https://arxiv.org/abs/1509.04610), adding support for high-dimensional side information to the factorization;
@@ -30,7 +29,8 @@ SMURFF supports multiple matrix factorization methods:
 Macau and BPMF can also perform **tensor** factorization.
 
 ## Examples
-For examples see [documentation](https://github.com/ExaScience/smurff/blob/master/python/jupyter-notebook/smurff.ipynb).
+Documentation is generated from Jupyter Notebooks. You can find the notebooks in (python/jupyter-notebook)[python/jupyter-notebook/smurff.ipynb]
+and the resulting documentation on (readthedocs.io)[(http://smurff.readthedocs.io/en/latest/source/examples.html]
 
 # Installation
 
