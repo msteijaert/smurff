@@ -8,7 +8,7 @@ source:
 
 
 build:
-  number: 2
+  number: 3
   features:
     - nomkl    [nomkl]
 
@@ -29,8 +29,7 @@ requirements:
     - setuptools
     - numpy
   run:
-    - intel-openmp 2017.*
-    - mkl-devel 2017.*        [not nomkl]
+    - mkl 2017.*             [not nomkl]
     - openblas                [linux and nomkl]
     - llvm-openmp             [osx]
     - libboost
