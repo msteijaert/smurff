@@ -69,7 +69,7 @@ void threads_enable(int verbose)
 
 void threads_disable(int verbose) 
 {
-   #if defined(MKL_THREAD_LIBRARY_GNU) || defined(MKL_THREAD_LIBRARY_INTEL) || defined(MKL_THREAD_LIBRARY_LLVM)
+   #ifdef MKL_THREAD_LIBRARY
        THROWERROR_ASSERT (prev_threading_layer >= 0);
 
        if (verbose > 2)
