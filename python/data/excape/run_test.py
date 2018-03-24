@@ -122,6 +122,24 @@ class TestExCAPE(unittest.TestCase):
             self.assertGreater(result.rmse, expected[1])
             self.assertLess(elapsed, expected[2])
 
+    def ini(self, ini, expected):
+            start = time()
+            call("smurff --ini=" + ini, shell=True)
+            rmse = float("nan")
+            try:
+                stats = pd.read_csv("stats.csv", sep=";")
+                last_row = stats.tail(1)
+                rmse = float(last_row['rmse_avg'])
+            except Exception as e:
+                print(e)
+            stop = time()
+            elapsed = stop - start
+
+            self.assertLess(rmse, expected[0])
+            self.assertGreater(rmse, expected[1])
+            self.assertLess(elapsed, expected[2])
+
+
     def bpmf(self, args, expected):
         args["priors"] = ["normal", "normal"]
         args["side_info_files"] = [ "none", "none" ]
@@ -170,5 +188,12 @@ class TestExCAPE(unittest.TestCase):
         side_info = [ "side_ecfp6_folded_dense.ddm", "none" ]
         self.macau(side_info, params, [ 1.08, 1.0, 240. ])
 
+    def test_inifiles(self):
+        self.ini("bpmf.ini", [ 1.22, 1.10, 120. ])
+        self.ini("macau-c2v.ini", [1.1, 1.0, 240. ])
+        self.ini("macau-ecfp-sparse-direct.ini", [1.19, 1.0, 900. ])
+        self.ini("macau-ecfp-sparse-cg.ini", [1.19, 1.0, 900. ])
+        self.ini("macau-ecfp-dense.ini", [1.08, 1.0, 240. ])
+ 
 if __name__ == "__main__":
     unittest.main()
