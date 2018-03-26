@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <SmurffCpp/IO/INIReader.h>
+#include <SmurffCpp/IO/INIFile.h>
 
 #include "MatrixConfig.h"
 
@@ -57,7 +57,7 @@ namespace smurff
    public:
       void save(std::ofstream& os, std::size_t prior_index, std::size_t config_item_index) const;
 
-      bool restore(const INIReader& reader, std::size_t prior_index, std::size_t config_item_index);
+      bool restore(const INIFile& reader, std::size_t prior_index, std::size_t config_item_index);
    };
 
    class MacauPriorConfig
@@ -75,7 +75,7 @@ namespace smurff
    public:
       void save(std::ofstream& os, std::size_t prior_index) const;
 
-      bool restore(const INIReader& reader, std::size_t prior_index);
+      bool restore(const INIFile& reader, std::size_t prior_index);
 
    public:
       const std::vector<std::shared_ptr<MacauPriorConfigItem> >& getConfigItems() const

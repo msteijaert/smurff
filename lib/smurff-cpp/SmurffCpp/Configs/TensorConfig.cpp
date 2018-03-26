@@ -468,7 +468,7 @@ std::ostream& TensorConfig::save(std::ostream& os) const
    return os;
 }
 
-std::shared_ptr<TensorConfig> TensorConfig::restore_tensor_config(const INIReader& reader, const std::string sec_name)
+std::shared_ptr<TensorConfig> TensorConfig::restore_tensor_config(const INIFile& reader, const std::string sec_name)
 {
    //restore filename
    std::string filename = reader.get(sec_name, FILE_TAG, NONE_TAG);
@@ -487,7 +487,7 @@ std::shared_ptr<TensorConfig> TensorConfig::restore_tensor_config(const INIReade
    return cfg;
 }
 
-bool TensorConfig::restore(const INIReader& reader, const std::string sec_name)
+bool TensorConfig::restore(const INIFile& reader, const std::string sec_name)
 {
    //restore position
    std::string pos_str = reader.get(sec_name, POS_TAG, NONE_TAG);

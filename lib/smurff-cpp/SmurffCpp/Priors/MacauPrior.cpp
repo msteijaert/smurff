@@ -129,7 +129,7 @@ void MacauPrior::save(std::shared_ptr<const StepFile> sf) const
 {
    NormalPrior::save(sf);
 
-   std::string path = sf->getPriorFileName(m_mode);
+   std::string path = sf->getLinkMatrixFileName(m_mode);
    smurff::matrix_io::eigen::write_matrix(path, this->beta);
 }
 
@@ -137,7 +137,7 @@ void MacauPrior::restore(std::shared_ptr<const StepFile> sf)
 {
    NormalPrior::restore(sf);
 
-   std::string path = sf->getPriorFileName(m_mode);
+   std::string path = sf->getLinkMatrixFileName(m_mode);
 
    THROWERROR_FILE_NOT_EXIST(path);
 

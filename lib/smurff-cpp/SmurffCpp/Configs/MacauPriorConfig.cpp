@@ -46,7 +46,7 @@ void MacauPriorConfigItem::save(std::ofstream& os, std::size_t prior_index, std:
    os << std::endl;
 }
 
-bool MacauPriorConfigItem::restore(const INIReader& reader, std::size_t prior_index, std::size_t config_item_index)
+bool MacauPriorConfigItem::restore(const INIFile& reader, std::size_t prior_index, std::size_t config_item_index)
 {
    auto add_index = [](const std::string name, int idx = -1) -> std::string
    {
@@ -96,7 +96,7 @@ void MacauPriorConfig::save(std::ofstream& os, std::size_t prior_index) const
    }
 }
 
-bool MacauPriorConfig::restore(const INIReader& reader, std::size_t prior_index)
+bool MacauPriorConfig::restore(const INIFile& reader, std::size_t prior_index)
 {
    std::stringstream section;
    section << MACAU_PRIOR_CONFIG_PREFIX_TAG << "_" << prior_index;
