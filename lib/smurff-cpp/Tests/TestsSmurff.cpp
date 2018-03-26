@@ -2775,6 +2775,377 @@ TEST_CASE(
    REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
 }
 
+//==========================================================================
+
+//
+//      train: 1. dense 2D-tensor (matrix)
+//             2. dense matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normal normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainDenseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainDenseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normal normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainSparseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainSparseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. dense 2D-tensor (matrix)
+//             2. dense matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normal
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainDenseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainDenseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normal
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainSparseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainSparseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. dense 2D-tensor (matrix)
+//             2. dense matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainDenseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainDenseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainSparseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainSparseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+
+//==========================================================================
+
 //
 //      train: 1. dense 2D-tensor (matrix)
 //             2. dense matrix
