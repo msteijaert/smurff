@@ -52,6 +52,9 @@ void SpikeAndSlabPrior::update_prior()
        });
    }
 
+   Zcol.reset();
+   W2col.reset(); 
+
    initLogRLogAlpha();
 }
 

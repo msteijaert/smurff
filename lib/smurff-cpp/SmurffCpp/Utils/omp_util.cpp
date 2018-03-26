@@ -62,22 +62,22 @@ void threads_enable(int verbose)
        }
    #elif defined(MKL_THREAD_LIBRARY_SEQUENTIAL)
        THROWERROR("Shouldn't have MKL_THREAD_LIBRARY == sequential when OpenMP is enabled");
-   #else
-       THROWERROR("Unkown threading library define");
    #endif
 }
 
 void threads_disable(int verbose) 
 {
-   THROWERROR_ASSERT (prev_threading_layer >= 0);
+   #ifdef MKL_THREAD_LIBRARY
+       THROWERROR_ASSERT (prev_threading_layer >= 0);
 
-   if (verbose > 2)
-   {
-       std::cout << "  Back to using prev threading layer (" << prev_threading_layer << ")\n";
-   }
+       if (verbose > 2)
+       {
+           std::cout << "  Back to using prev threading layer (" << prev_threading_layer << ")\n";
+       }
 
-   mkl_set_threading_layer(prev_threading_layer);
-   prev_threading_layer = -1;
+       mkl_set_threading_layer(prev_threading_layer);
+       prev_threading_layer = -1;
+   #endif
 }
 
 #else
