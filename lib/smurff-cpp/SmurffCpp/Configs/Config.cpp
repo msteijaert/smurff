@@ -332,7 +332,7 @@ bool Config::validate() const
 void Config::save(std::string fname) const
 {
    std::ofstream os(fname);
-   THROWERROR_ASSERT_MSG(os, "Error opening file: " + fname);
+   THROWERROR_ASSERT_MSG(os.is_open(), "Error opening file: " + fname);
 
    auto print_tensor_config = [&os](const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg) -> void
    {
