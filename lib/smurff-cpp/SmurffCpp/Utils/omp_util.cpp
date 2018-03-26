@@ -62,8 +62,6 @@ void threads_enable(int verbose)
        }
    #elif defined(MKL_THREAD_LIBRARY_SEQUENTIAL)
        THROWERROR("Shouldn't have MKL_THREAD_LIBRARY == sequential when OpenMP is enabled");
-   #else
-       THROWERROR("Unkown threading library define");
    #endif
 }
 
