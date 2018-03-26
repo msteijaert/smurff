@@ -20,7 +20,7 @@ Bayesian probabilistic matrix factorization (BPMF) has been proven to be more
 robust to data-overfitting compared to non-Bayesian matrix factorization.
 
 ## What is SMURFF 
-SMURFF is a highly optimized and parallelized framework for Bayesian Matrix and Tensors Factorization
+SMURFF is a highly optimized and parallelized framework for Bayesian Matrix and Tensors Factorization.
 SMURFF supports multiple matrix factorization methods: 
 * [BPMF](https://www.cs.toronto.edu/~amnih/papers/bpmf.pdf), the basic version;
 * [Macau](https://arxiv.org/abs/1509.04610), adding support for high-dimensional side information to the factorization;
