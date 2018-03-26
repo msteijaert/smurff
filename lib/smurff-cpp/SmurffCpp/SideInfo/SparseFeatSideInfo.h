@@ -24,7 +24,7 @@ public:
 public:
    std::ostream& print(std::ostream &os) const override;
 
-   bool is_dense() const;
+   bool is_dense() const override;
 
 public:
    //linop
