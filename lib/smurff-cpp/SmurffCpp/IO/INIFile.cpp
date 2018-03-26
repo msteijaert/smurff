@@ -33,7 +33,7 @@ void INIFile::create(const std::string& filename)
 
    std::ofstream stepFile;
    stepFile.open(filename, std::ios::trunc);
-   THROWERROR_ASSERT_MSG(stepFile, "Error opening file: " + filename);
+   THROWERROR_ASSERT_MSG(stepFile.is_open(), "Error opening file: " + filename);
    stepFile.close();
 }
 
@@ -187,7 +187,7 @@ void INIFile::flush()
 {
    std::ofstream stepFile;
    stepFile.open(m_filePath, std::ios::app);
-   THROWERROR_ASSERT_MSG(stepFile, "Error opening file: " + m_filePath);
+   THROWERROR_ASSERT_MSG(stepFile.is_open(), "Error opening file: " + m_filePath);
 
    for (auto& item : m_writeBuffer)
    {
@@ -242,7 +242,7 @@ void INIFile::appendComment(std::string comment)
 {
    std::ofstream stepFile;
    stepFile.open(m_filePath, std::ios::app);
-   THROWERROR_ASSERT_MSG(stepFile, "Error opening file: " + m_filePath);
+   THROWERROR_ASSERT_MSG(stepFile.is_open(), "Error opening file: " + m_filePath);
    stepFile << "#" << comment << std::endl;
    stepFile.close();
 }
