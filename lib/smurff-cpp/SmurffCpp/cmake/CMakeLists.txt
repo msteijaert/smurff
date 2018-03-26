@@ -17,7 +17,6 @@ FILE (GLOB UTIL_FILES   "../Utils/TruncNorm.h"
                         "../Utils/ThreadVector.hpp"
                         "../Utils/RootFile.h"
                         "../Utils/StepFile.h"
-                        "../Utils/IniUtils.h"
                         "../Utils/StringUtils.h"
 
                         "../Utils/TruncNorm.cpp"
@@ -31,14 +30,13 @@ FILE (GLOB UTIL_FILES   "../Utils/TruncNorm.h"
                         "../Utils/omp_util.cpp"
                         "../Utils/RootFile.cpp"
                         "../Utils/StepFile.cpp"
-                        "../Utils/IniUtils.cpp"
                         "../Utils/StringUtils.cpp"
                         )
 
 source_group ("Utils" FILES ${UTIL_FILES})
 
 FILE (GLOB IO_FILES     "../IO/ini.h"
-                        "../IO/INIReader.h"
+                        "../IO/INIFile.h"
                         "../IO/GenericIO.h"
                         "../IO/MatrixIO.h"
                         "../IO/TensorIO.h"
@@ -46,7 +44,7 @@ FILE (GLOB IO_FILES     "../IO/ini.h"
                         "../IO/DataWriter.h"
 
                         "../IO/ini.c"
-                        "../IO/INIReader.cpp"
+                        "../IO/INIFile.cpp"
                         "../IO/GenericIO.cpp"
                         "../IO/MatrixIO.cpp"
                         "../IO/TensorIO.cpp"

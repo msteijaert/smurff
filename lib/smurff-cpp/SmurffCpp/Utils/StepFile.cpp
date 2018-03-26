@@ -1,7 +1,6 @@
 #include <SmurffCpp/Utils/StepFile.h>
 
 #include <iostream>
-#include <fstream>
 
 #include <SmurffCpp/Model.h>
 #include <SmurffCpp/result.h>
@@ -9,7 +8,6 @@
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/GenericIO.h>
-#include <SmurffCpp/Utils/IniUtils.h>
 
 #define STEP_SAMPLE_PREFIX "-sample-"
 #define STEP_CHECKPOINT_PREFIX "-checkpoint-"
@@ -30,17 +28,14 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
 {
    if (create)
    {
-      std::ofstream stepFile;
-      stepFile.open(getStepFileName(), std::ios::trunc);
-      THROWERROR_ASSERT_MSG(stepFile, "Error opening file: " + getStepFileName());
-      stepFile.close();
+      m_iniReader = std::make_shared<INIFile>();
+      m_iniReader->create(getStepFileName());
    }
    else
    {
-      std::string path = getStepFileName();
-
       //load all entries in ini file to be able to go through step file internals
-      loadIni(path, m_iniStorage);
+      m_iniReader = std::make_shared<INIFile>();
+      m_iniReader->open(getStepFileName());
    }
 }
 
@@ -68,7 +63,8 @@ StepFile::StepFile(const std::string& path, std::string prefix, std::string exte
    }
 
    //load all entries in ini file to be able to go through step file internals
-   loadIni(path, m_iniStorage);
+   m_iniReader = std::make_shared<INIFile>();
+   m_iniReader->open(path);
 }
 
 //name methods
@@ -111,11 +107,21 @@ std::string StepFile::getModelFileName(std::uint64_t index) const
    return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
 }
 
-std::string StepFile::getPriorFileName(std::uint32_t mode) const
+std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 {
    std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
 }
+
+std::vector<std::string> StepFile::getSpikeAndSlabFileNames(std::uint32_t mode) const
+{
+   std::string prefix = getStepPrefix();
+   return {
+       prefix + "-SS" + std::to_string(mode) + "-alpha" + m_extension,
+       prefix + "-SS" + std::to_string(mode) + "-r" + m_extension
+   };
+}
+
 
 std::string StepFile::getPredFileName() const
 {
@@ -175,7 +181,7 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
 
    for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
    {
-      std::string priorPath = getPriorFileName(priors.at(pIndex)->getMode());
+      std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
       appendToStepFile(PRIOR_PREFIX + std::to_string(pIndex), priorPath);
    }
 }
@@ -267,7 +273,7 @@ void StepFile::removePriors() const
    std::uint32_t mode = 0;
    while (true)
    {
-      std::string path = getPriorFileName(mode++);
+      std::string path = getLinkMatrixFileName(mode++);
       if (!generic_io::file_exists(path))
          break;
 
@@ -298,7 +304,10 @@ void StepFile::remove(bool model, bool pred, bool priors) const
    //remove step file itself
    std::remove(getStepFileName().c_str());
 
-   THROWERROR_ASSERT_MSG(m_iniStorage.empty(), "Unexpected data in step file");
+   THROWERROR_ASSERT_MSG(m_iniReader->empty(), "Unexpected data in step file");
+
+   //nullify reader
+   m_iniReader = std::shared_ptr<INIFile>();
 }
 
 //getters
@@ -327,57 +336,36 @@ std::int32_t StepFile::getNPriors() const
 
 std::string StepFile::getIniValueBase(const std::string& tag) const
 {
-   THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Step ini file is not loaded");
+   THROWERROR_ASSERT_MSG(m_iniReader, "Step ini file is not loaded");
 
-   auto it = iniFind(m_iniStorage, tag);
-   THROWERROR_ASSERT_MSG(it != m_iniStorage.end(), tag + " tag is not found in step ini file");
-
-   return it->second;
+   return m_iniReader->get(std::string(), tag);
 }
 
 std::pair<bool, std::string> StepFile::tryGetIniValueBase(const std::string& tag) const
 {
-   THROWERROR_ASSERT_MSG(!m_iniStorage.empty(), "Step ini file is not loaded");
+   THROWERROR_ASSERT_MSG(m_iniReader, "Step ini file is not loaded");
 
-   auto it = iniFind(m_iniStorage, tag);
-   if (it == m_iniStorage.end())
-      return std::make_pair(false, std::string());
-   else
-      return std::make_pair(true, it->second);
+   return m_iniReader->tryGet(std::string(), tag);
 }
 
 void StepFile::appendToStepFile(std::string tag, std::string value) const
 {
-   m_iniStorage.push_back(std::make_pair(tag, value));
-
+   m_iniReader->appendItem(tag, value);
+   
    flushLast();
 }
 
 void StepFile::appendCommentToStepFile(std::string comment) const
 {
-   std::string stepFilePath = getStepFileName();
-
-   std::ofstream rootFile;
-   rootFile.open(stepFilePath, std::ios::app);
-   THROWERROR_ASSERT_MSG(rootFile, "Error opening file: " + stepFilePath);
-   rootFile << "#" << comment << std::endl;
-   rootFile.close();
+   m_iniReader->appendComment(comment);
 }
 
 void StepFile::removeFromStepFile(std::string tag) const
 {
-   smurff::iniRemove(m_iniStorage, tag);
+   m_iniReader->removeItem(std::string(), tag);
 }
 
 void StepFile::flushLast() const
 {
-   auto& last = m_iniStorage.back();
-
-   std::string stepFilePath = getStepFileName();
-
-   std::ofstream rootFile;
-   rootFile.open(stepFilePath, std::ios::app);
-   THROWERROR_ASSERT_MSG(rootFile, "Error opening file: " + stepFilePath);
-   rootFile << last.first << " = " << last.second << std::endl;
-   rootFile.close();
+   m_iniReader->flush();
 }

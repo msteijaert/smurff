@@ -16,8 +16,8 @@ private:
    std::string m_prefix;
    std::string m_extension;
 
-   //AGE: should preserve order of elements as in file
-   mutable std::vector<std::pair<std::string, std::string> > m_iniStorage;
+   //preserves order of elements in the file
+   mutable std::shared_ptr<INIFile> m_iniReader;
 
 public:
    //this constructor should be used to open existing root file when previous session is continued
@@ -35,6 +35,8 @@ private:
 
 private:
    void appendToRootFile(std::string tag, std::string value) const;
+
+   void appendCommentToRootFile(std::string comment) const;
 
 public:
    void saveConfig(Config& config);
@@ -73,8 +75,6 @@ public:
 */
 
 public:
-   void flush() const;
-
    void flushLast() const;
 
 /*

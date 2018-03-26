@@ -78,10 +78,13 @@ macro(configure_mkl)
       add_definitions(-DMKL_THREAD_LIBRARY )
       list(FIND OpenMP_CXX_LIB_NAMES "gomp" GNU_OPENMP)
       list(FIND OpenMP_CXX_LIB_NAMES "iomp5" INTEL_OPENMP)
+      list(FIND OpenMP_CXX_LIB_NAMES "omp" LLVM_OPENMP)
       if(NOT GNU_OPENMP EQUAL -1)
           add_definitions(-DMKL_THREAD_LIBRARY_GNU )
       elseif(NOT INTEL_OPENMP EQUAL -1)
           add_definitions(-DMKL_THREAD_LIBRARY_INTEL )
+      elseif(NOT LLVM_OPENMP EQUAL -1)
+          add_definitions(-DMKL_THREAD_LIBRARY_LLVM )
       else()
           message(ERROR "Unknown threading library ${OpenMP_CXX_LIB_NAMES}")
       endif()
@@ -111,7 +114,7 @@ macro(configure_boost)
   if(${ENABLE_BOOST})
       message ("Dependency check for boost...")
       
-      set (Boost_USE_STATIC_LIBS ON)
+      set (Boost_USE_STATIC_LIBS OFF)
       set (Boost_USE_MULTITHREADED ON)
 
       # find boost random library - optional
@@ -147,6 +150,16 @@ macro(configure_boost)
                             program_options)
 
       FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
+      
+      #see https://stackoverflow.com/questions/28887680/linking-boost-library-with-boost-use-static-lib-off-on-windows
+      if (MSVC)
+         # disable autolinking in boost
+         add_definitions(-DBOOST_ALL_NO_LIB)
+
+         # force all boost libraries to dynamic link (we already disabled
+         # autolinking, so I don't know why we need this, but we do!)
+         add_definitions(-DBOOST_ALL_DYN_LINK)
+      endif()
   endif()
 
   if(Boost_FOUND)

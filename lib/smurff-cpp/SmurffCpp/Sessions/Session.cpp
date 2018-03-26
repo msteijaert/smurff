@@ -116,11 +116,6 @@ void Session::init()
    //in any case - we have to move to next iteration
    m_iter++; //go to next iteration
 
-
-   //to keep track at what time we last checkpointed
-   m_lastCheckpointTime = tick();
-   m_lastCheckpointIter = -1;
-
    is_init = true;
 }
 
@@ -136,6 +131,9 @@ bool Session::step()
 
    if (isStep)
    {
+      //init omp
+      threads_enable(m_config.getVerbose());
+
       THROWERROR_ASSERT(is_init);
 
       auto starti = tick();
@@ -150,6 +148,8 @@ bool Session::step()
       save(m_iter);
 
       m_iter++;
+
+      threads_disable(m_config.getVerbose());
    }
 
    return isStep;
@@ -196,30 +196,34 @@ void Session::save(int iteration)
 {
    //do not save if 'never save' mode is selected
    if (!m_config.getSaveFreq() && 
-       !m_config.getCheckpointFreq())
+       !m_config.getCheckpointFreq() &&
+       !m_config.getCsvStatus().size())
       return;
 
    std::int32_t isample = iteration - m_config.getBurnin() + 1;
 
    //save if checkpoint threshold overdue
-   if (
-           m_config.getCheckpointFreq() &&
-           m_lastCheckpointTime + m_config.getCheckpointFreq() < tick()
-      )
+   if (m_config.getCheckpointFreq() && (tick() - m_lastCheckpointTime) >= m_config.getCheckpointFreq())
    {
+      std::int32_t icheckpoint = iteration + 1;
+
       //save this iteration
-      std::shared_ptr<StepFile> stepFile = m_rootFile->createCheckpointStepFile(iteration);
+      std::shared_ptr<StepFile> stepFile = m_rootFile->createCheckpointStepFile(icheckpoint);
       saveInternal(stepFile);
 
+      //remove previous iteration if required (initial m_lastCheckpointIter is -1 which means that it does not exist)
       if (m_lastCheckpointIter >= 0)
       {
+         std::int32_t icheckpointPrev = m_lastCheckpointIter + 1;
+
          //remove previous iteration
-         m_rootFile->removeCheckpointStepFile(m_lastCheckpointIter);
+         m_rootFile->removeCheckpointStepFile(icheckpointPrev);
 
          //flush last item in a root file
          m_rootFile->flushLast();
       }
 
+      //upddate counters
       m_lastCheckpointTime = tick();
       m_lastCheckpointIter = iteration;
    } 
@@ -266,6 +270,10 @@ bool Session::restore(int& iteration)
    {
       //if there is nothing to restore - start from initial iteration
       iteration = -1;
+
+      //to keep track at what time we last checkpointed
+      m_lastCheckpointTime = tick();
+      m_lastCheckpointIter = -1;
       return false;
    }
    else
@@ -281,10 +289,18 @@ bool Session::restore(int& iteration)
       if (stepFile->getCheckpoint())
       {
          iteration = stepFile->getIsample() - 1; //restore original state
+
+         //to keep track at what time we last checkpointed
+         m_lastCheckpointTime = tick();
+         m_lastCheckpointIter = iteration;
       }
       else
       {
          iteration = stepFile->getIsample() + m_config.getBurnin() - 1; //restore original state
+
+         //to keep track at what time we last checkpointed
+         m_lastCheckpointTime = tick();
+         m_lastCheckpointIter = iteration;
       }
 
       return true;
@@ -303,8 +319,8 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
    // avoid computing train_rmse twice
    double train_rmse = NAN;
 
-   std::uint64_t nnz_per_sec = elapsedi == 0.0 ? data()->nnz() : (data()->nnz()) / elapsedi;
-   std::uint64_t samples_per_sec = elapsedi == 0.0 ? m_model->nsamples() : (m_model->nsamples()) / elapsedi;
+   double nnz_per_sec =  (double)(data()->nnz()) / elapsedi;
+   double samples_per_sec = (double)(m_model->nsamples()) / elapsedi;
 
    std::string resumeString = resume ? "Continue from " : std::string();
 
@@ -329,7 +345,7 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
       from = m_config.getNSamples();
    }
 
-   if (m_config.getVerbose())
+   if (m_config.getVerbose() > 0)
    {
        if (iteration < 0)
        {
@@ -354,8 +370,7 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
            << std::fixed << std::setprecision(4) << m_pred->rmse_avg
            << " (1samp: "
            << std::fixed << std::setprecision(4) << m_pred->rmse_1sample
-           << ")"
-           << std::endl;
+           << ")";
 
        if (m_config.getClassify())
        {

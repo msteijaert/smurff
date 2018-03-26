@@ -12,9 +12,8 @@ from time import time
 
 
 def smurff_py(args):
-    args["Ynoise"] = ("fixed", args["precision"], 0.0, 0.0, 0.0) 
-    allowed_args = [ "Ytest", "num_latent", "burnin", "nsamples", "Ynoise", "verbose",
-            "aux_data", "side_info", "direct", "priors"]
+    allowed_args = [ "Ytest", "num_latent", "burnin", "nsamples", "precision", "verbose",
+            "aux_data", "side_info", "direct", "priors", "lambda_beta"]
     filtered_args = { k: args[k] for k in allowed_args}
     return smurff.smurff(args["train"], **filtered_args)
 
@@ -29,10 +28,11 @@ def smurff_cmd(args):
              + " --test={datadir}/{test_file}" 
              + " --prior={prior_string}"
              + " --side-info={side_info_string}"
+             + " --lambda-beta={lambda_beta}"
              + " --aux-data={aux_data_string}"
              + " {direct_string}"
              + " --num-latent={num_latent} --burnin={burnin} --nsamples={nsamples}"
-             + " --noise_model=\"fixed;{precision};0;0;0\" --verbose={verbose} --status=stats.csv"
+             + " --precision={precision} --verbose={verbose} --status=stats.csv"
              ).format(**args)
 
     class Result:
@@ -46,12 +46,9 @@ def smurff_cmd(args):
     
         result.retcode = call(cmd, shell=True, cwd=tmpdirname)
         result.rmse = float("nan")
-        try:
-            stats = pd.read_csv(os.path.join(tmpdirname, "stats.csv"), sep=";")
-            last_row = stats.tail(1)
-            result.rmse = float(last_row['rmse_avg'])
-        except Exception as e:
-            print(e)
+        stats = pd.read_csv(os.path.join(tmpdirname, "stats.csv"), sep=";")
+        last_row = stats.tail(1)
+        result.rmse = float(last_row['rmse_avg'])
 
     return result
         
@@ -87,6 +84,7 @@ class TestExCAPE(unittest.TestCase):
                 "aux_data_files"  : [ "none", "none" ],
                 "side_info_files" : [ "none", "none" ],
                 "direct"          : True,
+                "lambda_beta"     : 5.0,
                 }
 
     @classmethod
@@ -122,24 +120,6 @@ class TestExCAPE(unittest.TestCase):
             self.assertGreater(result.rmse, expected[1])
             self.assertLess(elapsed, expected[2])
 
-    def ini(self, ini, expected):
-            start = time()
-            call("smurff --ini=" + ini, shell=True)
-            rmse = float("nan")
-            try:
-                stats = pd.read_csv("stats.csv", sep=";")
-                last_row = stats.tail(1)
-                rmse = float(last_row['rmse_avg'])
-            except Exception as e:
-                print(e)
-            stop = time()
-            elapsed = stop - start
-
-            self.assertLess(rmse, expected[0])
-            self.assertGreater(rmse, expected[1])
-            self.assertLess(elapsed, expected[2])
-
-
     def bpmf(self, args, expected):
         args["priors"] = ["normal", "normal"]
         args["side_info_files"] = [ "none", "none" ]
@@ -156,12 +136,6 @@ class TestExCAPE(unittest.TestCase):
         args["aux_data"] =  [ [], [] ]
 
         self.time_smurff(args, expected)
-
-    def test_tiny(self):
-        params = self.get_default_opts()
-        params["burnin"] = 1
-        params["nsamples"] = 1
-        self.bpmf(params, [ 1.22, 1.10, 120. ])
 
     def test_bpmf(self):
         params = self.get_default_opts()
@@ -188,12 +162,5 @@ class TestExCAPE(unittest.TestCase):
         side_info = [ "side_ecfp6_folded_dense.ddm", "none" ]
         self.macau(side_info, params, [ 1.08, 1.0, 240. ])
 
-    def test_inifiles(self):
-        self.ini("bpmf.ini", [ 1.22, 1.10, 120. ])
-        self.ini("macau-c2v.ini", [1.1, 1.0, 240. ])
-        self.ini("macau-ecfp-sparse-direct.ini", [1.19, 1.0, 900. ])
-        self.ini("macau-ecfp-sparse-cg.ini", [1.19, 1.0, 900. ])
-        self.ini("macau-ecfp-dense.ini", [1.08, 1.0, 240. ])
- 
 if __name__ == "__main__":
     unittest.main()
