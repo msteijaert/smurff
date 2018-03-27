@@ -285,7 +285,6 @@ std::shared_ptr<MacauPriorConfig> getRowSideInfoDenseMacauPrior3dConfig(bool dir
 
 void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, const std::vector<ResultItem>& expectedResultItems)
 {
-    return;
    REQUIRE(actualResultItems.size() == expectedResultItems.size());
    for (std::vector<ResultItem>::size_type i = 0; i < actualResultItems.size(); i++)
    {
@@ -450,17 +449,17 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
    // Pre-calculated results with single-threaded Debug master 6b6491b79751aaa469f9471e727b6630a7aa8a82
-   double expectedRmseAvg = 0.1583533773711920;
+   double expectedRmseAvg = 0.1583533773711829;
    std::vector<ResultItem> expectedResults =
       {
-         { { 0, 0 },  1,  1.7896283495233598,  1.8265540720487814, 25.6711703934737514, 0.7238103595566349 },
-         { { 0, 1 },  2,  2.6549376380335210,  2.3323840195614722, 26.0913060795546237, 0.7297092806567729 },
-         { { 0, 2 },  3,  2.5387870361790914,  2.8075245347069995, 21.2224050836179536, 0.6581111667711905 },
-         { { 0, 3 },  4,  3.3528800970371373,  3.2787994341024289, 24.4926713728696939, 0.7070010156859848 },
-         { { 2, 0 },  9,  7.6022367820348444,  8.3017756544085533, 46.4979311605163446, 0.9741341645906803 },
-         { { 2, 1 }, 10,  9.8804262990750100,  9.7705386422539515, 48.0887718030733495, 0.9906581177102272 },
-         { { 2, 2 }, 11, 11.2885241899954085, 11.1050562687125005, 32.6329648023197620, 0.8160752866719649 },
-         { { 2, 3 }, 12, 11.2319412121555118, 12.1926220674740815, 35.9673203004125952, 0.8567537247694809 }
+         { { 0, 0 },  1,  1.3970876257086884,  1.3081720685120921,  5.6761298730644301, 0.3403518549451144 },
+         { { 0, 1 },  2,  2.0669511205404860,  2.1147597291121842,  6.5724827168643003, 0.3662407682715967 },
+         { { 0, 2 },  3,  3.0612861520154930,  2.9313934134755972,  6.4962598965417140, 0.3641108795167812 },
+         { { 0, 3 },  4,  3.6745701414455216,  3.7815133692268490,  6.6642928670523931, 0.3687898817465309 },
+         { { 2, 0 },  9,  9.1408010981028482,  8.8294885424008527,  8.1251970316583506, 0.4072104463110742 },
+         { { 2, 1 }, 10,  9.5066130506196291,  9.9062805070310986, 10.1550761328358199, 0.4552432884629129 },
+         { { 2, 2 }, 11, 10.8983321481684392, 10.9827280423365199,  5.6572958143326222, 0.3397867222524051 },
+         { { 2, 3 }, 12, 12.1390136504331263, 12.0432137150030183,  8.7771569211253926, 0.4232323846913639 },
       };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
@@ -746,6 +745,232 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
          { { 2, 2 }, 11, 10.2254939825614652, 10.0307252450463356,  7.5610843353323487, 0.3928203706253167 },
          { { 2, 3 }, 12, 11.0073766677958247, 10.9749329740362089,  7.7998721649884830, 0.3989750175031034 }
       };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//=================================================================
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 58ae3185cedd290fa11b6ad5dfe2c37cc737ca2f
+   double expectedRmseAvg = 0.1046025193785267;
+   std::vector<ResultItem> expectedResults =
+   {
+      { { 0, 0 },  1,  0.6398041987067002,  1.1960951489026972,  8.3506822580602691, 0.4128221007882077 },
+      { { 0, 1 },  2,  1.6665037471842430,  1.9701934562275798,  6.0375497884314200, 0.3510203723499861 },
+      { { 0, 2 },  3,  2.4001872492808936,  2.9052877015610297,  6.1011353512416511, 0.3528639487846136 },
+      { { 0, 3 },  4,  4.5821386920341318,  3.9343849594183817,  7.6607228966962122, 0.3954001563050338 },
+      { { 2, 0 },  9,  9.2764717321622996,  8.8676950071982539,  7.7704678161496288, 0.3982222693920925 },
+      { { 2, 1 }, 10, 10.1687442378084700,  9.8985973705686270,  9.1033043301688998, 0.4310240376404257 },
+      { { 2, 2 }, 11, 11.4873079371473725, 11.0476921089657090,  6.4376202294642688, 0.3624637977549541 },
+      { { 2, 3 }, 12, 11.7491128177349538, 12.0696732685344159, 11.4958857855339822, 0.4843654756384784 },
+   };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: sparse matrix
+//       test: sparse matrix
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainSparseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 58ae3185cedd290fa11b6ad5dfe2c37cc737ca2f
+   double expectedRmseAvg = 0.1040665425080457;
+   std::vector<ResultItem> expectedResults =
+   {
+      { { 0, 0 },  1,  1.1070075631085672,  1.1537390478118794,  5.4538667569373063, 0.3336216467839012 },
+      { { 0, 1 },  2,  1.8479683722225788,  1.9381224379196147,  4.4252788799711702, 0.3005192404438735 },
+      { { 0, 2 },  3,  3.3410625885400376,  3.0989625987614446,  5.1538717256265159, 0.3243162894845569 },
+      { { 0, 3 },  4,  4.1835106598461866,  3.8286487844830597,  8.4162915831718017, 0.4144406504166693 },
+      { { 2, 0 },  9,  9.3616852264443509,  8.9342389616789468, 13.2691707115498243, 0.5203838989405101 },
+      { { 2, 1 }, 10, 10.0405247071161590,  9.8952191268513872, 11.0508015858745399, 0.4748963707768584 },
+      { { 2, 2 }, 11, 10.8012027854143806, 10.9313512425722106, 10.4429419909167631, 0.4616505876967452 },
+      { { 2, 3 }, 12, 11.3110730635176004, 12.0017894685065478, 15.5254415637928798, 0.5628905277226245 },
+   };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: normalone normalone
+//   aux-data: dense_matrix dense_matrix
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior normalone normalone --aux-data <dense_matrix> <dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<TensorConfig> rowAuxDataDenseMatrixConfig = getRowAuxDataDenseMatrixConfig();
+   std::shared_ptr<TensorConfig> colAuxDataDenseMatrixConfig = getColAuxDataDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
+   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 58ae3185cedd290fa11b6ad5dfe2c37cc737ca2f
+   double expectedRmseAvg = 0.1897676798061004;
+   std::vector<ResultItem> expectedResults =
+   {
+      { { 0, 0 },  1,  1.6636009125174940,  1.3803397709679142, 7.4452811983105551, 0.3898006083258925 },
+      { { 0, 1 },  2,  2.3461818226275590,  2.0791493496475559, 3.0469967456647118, 0.2493664112393284 },
+      { { 0, 2 },  3,  2.8487709456995121,  2.9184950426669114, 3.7818287143580189, 0.2778132067487815 },
+      { { 0, 3 },  4,  3.5207807180275781,  3.7608871448449159, 7.2938433217900194, 0.3858159474965407 },
+      { { 2, 0 },  9,  8.7705927206719174,  8.7809647841371596, 7.3877272784545189, 0.3882910563717061 },
+      { { 2, 1 }, 10,  9.7700707120379917,  9.9302634928422009, 8.6396795196108442, 0.4199047394304328 },
+      { { 2, 2 }, 11, 10.8839886697997859, 11.0259077120374620, 8.2202234892166004, 0.4095847446441783 },
+      { { 2, 3 }, 12, 12.1516915523529434, 12.1408630048324149, 9.2147810403179236, 0.4336551117245773 },
+   };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: sparse matrix
+//       test: sparse matrix
+//     priors: normalone normalone
+//   aux-data: dense_matrix dense_matrix
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior normalone normalone --aux-data <dense_matrix> <dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   std::shared_ptr<TensorConfig> rowAuxDataDenseMatrixConfig = getRowAuxDataDenseMatrixConfig();
+   std::shared_ptr<TensorConfig> colAuxDataDenseMatrixConfig = getColAuxDataDenseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainSparseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
+   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 58ae3185cedd290fa11b6ad5dfe2c37cc737ca2f
+   double expectedRmseAvg = 0.1439394852533368;
+   std::vector<ResultItem> expectedResults =
+   {
+      { { 0, 0 },  1,  1.6314513802581403,  1.2584247881085280, 6.2043436817404993, 0.3558359998806059 },
+      { { 0, 1 },  2,  2.8699829328619897,  2.0942929607047303, 4.6052191228145629, 0.3065682040442378 },
+      { { 0, 2 },  3,  3.1918407761792587,  2.9119343282494308, 4.7841848403160121, 0.3124682788901486 },
+      { { 0, 3 },  4,  3.8156356751084646,  3.7826433578452758, 6.1959983359779436, 0.3555966052034284 },
+      { { 2, 0 },  9,  8.9699080949779084,  8.8399194130340142, 7.7072031987539411, 0.3965978582885440 },
+      { { 2, 1 }, 10, 10.1617811398620788,  9.9289637835117439, 7.6341407333746849, 0.3947135549699736 },
+      { { 2, 2 }, 11, 10.9404167471187872, 10.9627953592930147, 9.4144922421649433, 0.4383292081735599 },
+      { { 2, 3 }, 12, 12.0937488958940182, 12.0549406377504891, 8.1888597315855360, 0.4088026251859062 },
+   };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
@@ -1750,18 +1975,128 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
 
    // Pre-calculated results with single-threaded Debug master 6b6491b79751aaa469f9471e727b6630a7aa8a82
-   double expectedRmseAvg = 0.9342940251186641;
+   double expectedRmseAvg = 0.9342940251186640;
    std::vector<ResultItem> expectedResults =
       {
-         { { 0, 0 },  1,  2.3705122746024765,  2.1705657803356178,  6.1911553798380599, 0.3554576061819658 },
-         { { 0, 1 },  2,  3.1011229285882380,  2.4591191554029850,  9.3773799541920653, 0.4374643998155284 },
-         { { 0, 2 },  3,  2.9511565553516110,  2.7621433890063019,  8.6613658290729152, 0.4204314069384726 },
-         { { 0, 3 },  4,  3.4022881883245222,  3.0339110969625152,  9.7750007006520843, 0.4466428217461795 },
-         { { 2, 0 },  9,  8.3086993795525323,  8.6694374222976354, 32.7276481206319048, 0.8172583350051225 },
-         { { 2, 1 }, 10, 10.8695063209483322,  9.8064265468900516, 59.0861402124385222, 1.0981072789906343 },
-         { { 2, 2 }, 11, 10.3438707755791945, 11.0270016369173245, 36.1715708858991860, 0.8591829398923283 },
-         { { 2, 3 }, 12, 11.9250973986757245, 12.1145205318322642, 36.5104785971590999, 0.8631985913480673 }
+         { { 0, 0 },  1,  2.0056595291331023,  1.9598211403470644,  1.8749914316461496, 0.1956147521484121 },
+         { { 0, 1 },  2,  2.5398777811226569,  2.2657627609831215,  2.2996275890812670, 0.2166360433708407 },
+         { { 0, 2 },  3,  2.5780017811675533,  2.5519190261754314,  3.1611436129748336, 0.2539943600922471 },
+         { { 0, 3 },  4,  3.2154956020695171,  2.8124216541044027,  4.3205967708649036, 0.2969435035547425 },
+         { { 2, 0 },  9,  7.4810109694101454,  7.7393275891525635,  8.3081522806329247, 0.4117695085556750 },
+         { { 2, 1 }, 10,  9.4736186603677233,  8.9468641576202543,  6.8681315745653109, 0.3743874336851237 },
+         { { 2, 2 }, 11,  9.6158192973107912, 10.0775943042116545, 14.4691441808780752, 0.5434046896674832 },
+         { { 2, 3 }, 12, 11.9936397587727157, 11.0883997849639879,  6.2683514647264129, 0.3576668003833420 },
       };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//=================================================================
+
+//
+//      train: dense 2D-tensor (matrix)
+//       test: sparse 2D-tensor (matrix)
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+
+   Config config;
+   config.setTrain(trainSparseTensorConfig);
+   config.setTest(testSparseTensorConfig);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 58ae3185cedd290fa11b6ad5dfe2c37cc737ca2f
+   double expectedRmseAvg = 0.1865312068330961;
+   std::vector<ResultItem> expectedResults =
+   {
+      { { 0, 0 },  1,  1.3377869837627250,  1.2426942041628888, 15.4183628201010539, 0.5609460452809593 },
+      { { 0, 1 },  2,  1.5853658173011411,  2.0996418227176195,  7.7199549874562283, 0.3969258139562367 },
+      { { 0, 2 },  3,  3.0147861108169942,  2.8909631943288585, 12.2373874884963723, 0.4997425355180889 },
+      { { 0, 3 },  4,  4.0009139221230052,  3.6407722654452295, 12.5046033683275972, 0.5051692657998172 },
+      { { 2, 0 },  9,  9.3851129255693113,  8.8174813234048344, 19.3632737648481665, 0.6286245718581481 },
+      { { 2, 1 }, 10, 10.5033510869079407,  9.9399812680236934, 16.1313141115525731, 0.5737686747047990 },
+      { { 2, 2 }, 11, 10.8513082347453462, 10.9435178708773009, 11.8098791706701967, 0.4909357822145127 },
+      { { 2, 3 }, 12, 11.7570197652033972, 12.1687691403767175, 20.6109766524335356, 0.6485616212668432 },
+   };
+
+   REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
+}
+
+//
+//      train: sparse 2D-tensor (matrix)
+//       test: sparse 2D-tensor (matrix)
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234")
+{
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+
+   Config config;
+   config.setTrain(trainSparseTensorConfig);
+   config.setTest(testSparseTensorConfig);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getPriorTypes().push_back(PriorTypes::normalone);
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+   session->run();
+
+   double actualRmseAvg = session->getRmseAvg();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+
+   // Pre-calculated results with single-threaded Debug master 58ae3185cedd290fa11b6ad5dfe2c37cc737ca2f
+   double expectedRmseAvg = 0.2134077966945759;
+   std::vector<ResultItem> expectedResults =
+   {
+      { { 0, 0 },  1, 1.3012153427793673,   1.3675856732361535, 17.4433432176131404, 0.5966461231566155 },
+      { { 0, 1 },  2, 1.5753379068895752,   2.0833602990738620,  9.6818082779579022, 0.4445086321321074 },
+      { { 0, 2 },  3, 3.2691429250797523,   2.8749544789585424,  8.5942888965805970, 0.4188002518511951 },
+      { { 0, 3 },  4, 3.5168211219785013,   3.6047371522643998, 18.6895737636052672, 0.6175919953550548 },
+      { { 2, 0 },  9, 8.2697375434082261,   8.8302409305890439, 34.8456502267481056, 0.8432886332171368 },
+      { { 2, 1 }, 10, 9.6455037084529565,   9.8967422879256244, 21.1629304058962013, 0.6571883587647006 },
+      { { 2, 2 }, 11, 10.9320586338322894, 10.9687279696402804, 24.7721184313511529, 0.7110228107272742 },
+      { { 2, 3 }, 12, 12.4105106177880540, 12.0997376414629603, 23.1528243648299892, 0.6873911693427607 },
+   };
 
    REQUIRE(actualRmseAvg == Approx(expectedRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*actualResults, expectedResults);
@@ -2030,7 +2365,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_dense_matrix>    --test <test_sparse_amtrix>    --prior normal normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normal normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normal normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
 )
 {
@@ -2090,7 +2425,7 @@ TEST_CASE(
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_sparse_matrix>    --test <test_sparse_amtrix>    --prior normal normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normal normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normal normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
 )
 {
@@ -2150,7 +2485,7 @@ TEST_CASE(
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_dense_matrix>    --test <test_sparse_amtrix>    --prior normal spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normal spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normal spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    , "[!hide]"
 )
@@ -2211,7 +2546,7 @@ TEST_CASE(
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_sparse_matrix>    --test <test_sparse_amtrix>    --prior normal spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normal spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normal spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    , "[!hide]"
 )
@@ -2272,7 +2607,7 @@ TEST_CASE(
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_dense_matrix>    --test <test_sparse_amtrix>    --prior spikeandslab normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior spikeandslab normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior spikeandslab normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    , "[!hide]"
 )
@@ -2333,7 +2668,7 @@ TEST_CASE(
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_sparse_matrix>    --test <test_sparse_amtrix>    --prior spikeandslab normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior spikeandslab normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior spikeandslab normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    , "[!hide]"
 )
@@ -2394,7 +2729,7 @@ TEST_CASE(
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_dense_matrix>    --test <test_sparse_amtrix>    --prior spikeandslab spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior spikeandslab spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior spikeandslab spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    , "[!hide]"
 )
@@ -2455,7 +2790,7 @@ TEST_CASE(
 //
 TEST_CASE(
    "matrix vs 2D-tensor"
-   "--train <train_sparse_matrix>    --test <test_sparse_amtrix>    --prior spikeandslab spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior spikeandslab spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior spikeandslab spikeandslab --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
    , "[!hide]"
 )
@@ -2500,6 +2835,377 @@ TEST_CASE(
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
 }
+
+//==========================================================================
+
+//
+//      train: 1. dense 2D-tensor (matrix)
+//             2. dense matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normal normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainDenseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainDenseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normal normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normal normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainSparseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainSparseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. dense 2D-tensor (matrix)
+//             2. dense matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normal
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainDenseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainDenseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normal
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normal --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainSparseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainSparseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. dense 2D-tensor (matrix)
+//             2. dense matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainDenseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainDenseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+//
+//      train: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//       test: 1. sparse 2D-tensor (matrix)
+//             2. sparse matrix
+//     priors: normalone normalone
+//   aux-data: none none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//
+TEST_CASE(
+   "matrix vs 2D-tensor"
+   "--train <train_sparse_matrix>    --test <test_sparse_matrix>    --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   "--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --prior normalone normalone --aux-data none none --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234"
+   , "[!hide]"
+)
+{
+   std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+   Config matrixSessionConfig;
+   matrixSessionConfig.setTrain(trainSparseMatrixConfig);
+   matrixSessionConfig.setTest(testSparseMatrixConfig);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   matrixSessionConfig.setNumLatent(4);
+   matrixSessionConfig.setBurnin(50);
+   matrixSessionConfig.setNSamples(50);
+   matrixSessionConfig.setVerbose(false);
+   matrixSessionConfig.setRandomSeed(1234);
+   matrixSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<TensorConfig> trainSparseTensorConfig = getTrainSparseTensor2dConfig();
+   std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
+   Config tensorSessionConfig;
+   tensorSessionConfig.setTrain(trainSparseTensorConfig);
+   tensorSessionConfig.setTest(testSparseTensorConfig);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
+   tensorSessionConfig.setNumLatent(4);
+   tensorSessionConfig.setBurnin(50);
+   tensorSessionConfig.setNSamples(50);
+   tensorSessionConfig.setVerbose(false);
+   tensorSessionConfig.setRandomSeed(1234);
+   tensorSessionConfig.setRandomSeedSet(true);
+
+   std::shared_ptr<ISession> matrixSession = SessionFactory::create_session(matrixSessionConfig);
+   std::shared_ptr<ISession> tensorSession = SessionFactory::create_session(tensorSessionConfig);
+   matrixSession->run();
+   tensorSession->run();
+
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+}
+
+
+//==========================================================================
 
 //
 //      train: 1. dense 2D-tensor (matrix)

@@ -324,7 +324,7 @@ bool Config::validate() const
 void Config::save(std::string fname) const
 {
    std::ofstream os(fname);
-   THROWERROR_ASSERT_MSG(os, "Error opening file: " + fname);
+   THROWERROR_ASSERT_MSG(os.is_open(), "Error opening file: " + fname);
 
    //write header with time and version
    os << "## SMURFF config .ini file" << std::endl;

@@ -92,35 +92,35 @@ std::shared_ptr<TensorConfig> tensor_io::read_tensor(const std::string& filename
    case tensor_io::TensorType::sdt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = tensor_io::read_sparse_float64_bin(fileStream, isScarce);
          break;
       }
    case tensor_io::TensorType::sbt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = tensor_io::read_sparse_binary_bin(fileStream, isScarce);
          break;
       }
    case tensor_io::TensorType::tns:
       {
          std::ifstream fileStream(filename);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = tensor_io::read_sparse_float64_tns(fileStream, isScarce);
          break;
       }
    case tensor_io::TensorType::csv:
       {
          std::ifstream fileStream(filename);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = tensor_io::read_dense_float64_csv(fileStream);
          break;
       }
    case tensor_io::TensorType::ddt:
       {
          std::ifstream fileStream(filename, std::ios_base::binary);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          ret = tensor_io::read_dense_float64_bin(fileStream);
          break;
       }
@@ -380,35 +380,35 @@ void tensor_io::write_tensor(const std::string& filename, std::shared_ptr<const 
    case tensor_io::TensorType::sdt:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          tensor_io::write_sparse_float64_bin(fileStream, tensorConfig);
       }
       break;
    case tensor_io::TensorType::sbt:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          tensor_io::write_sparse_binary_bin(fileStream, tensorConfig);
       }
       break;
    case tensor_io::TensorType::tns:
       {
          std::ofstream fileStream(filename);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          tensor_io::write_sparse_float64_tns(fileStream, tensorConfig);
       }
       break;
    case tensor_io::TensorType::csv:
       {
          std::ofstream fileStream(filename);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          tensor_io::write_dense_float64_csv(fileStream, tensorConfig);
       }
       break;
    case tensor_io::TensorType::ddt:
       {
          std::ofstream fileStream(filename, std::ios_base::binary);
-         THROWERROR_ASSERT_MSG(fileStream, "Error opening file: " + filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
          tensor_io::write_dense_float64_bin(fileStream, tensorConfig);
       }
       break;
