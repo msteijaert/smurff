@@ -6,7 +6,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   source/smurff
+   intro.md
+   INSTALL.md
+   source/smurff.md
 
 
 
