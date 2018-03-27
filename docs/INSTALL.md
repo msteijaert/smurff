@@ -1,12 +1,12 @@
 # Installation
+## Installation using Conda
 
-## Python wrapper installation on Ubuntu
+The easiest way to install SMURFF is to use [Conda](https://conda.io):
 
-1. Build C++ SMURFF library using [Source installation on Ubuntu using cmake](#source-installation-on-ubuntu-using-cmake)
-2. Go to SMURFF build directory that contains CMake generated Makefile and run `sudo make install`. By invoking this command you install SMURFF static library and headers to `/usr/local/`
-3. Go to [python/smurff](https://github.com/ExaScience/smurff/tree/master/python/smurff) directory
-4. Run `python setup.py build install`
-5. Go to [python/smurff/examples](https://github.com/ExaScience/smurff/tree/master/python/smurff/examples) directory and run `python smurff-mm.py` to verify that SMUFF Python module was installed correctly
+```bash
+conda install -c vanderaa smurff 
+```
+
 
 ## Source installation on Ubuntu using cmake
 
@@ -43,6 +43,13 @@ make test
 wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
 Debug/smurff --train chembl-IC50-346targets.mm
 ```
+## Python wrapper installation on Ubuntu
+
+1. Build C++ SMURFF library using [Source installation on Ubuntu using cmake](#source-installation-on-ubuntu-using-cmake)
+2. Go to SMURFF build directory that contains CMake generated Makefile and run `sudo make install`. By invoking this command you install SMURFF static library and headers to `/usr/local/`
+3. Go to [python/smurff](https://github.com/ExaScience/smurff/tree/master/python/smurff) directory
+4. Run `python setup.py build install`
+5. Go to [python/smurff/examples](https://github.com/ExaScience/smurff/tree/master/python/smurff/examples) directory and run `python smurff-mm.py` to verify that SMUFF Python module was installed correctly
 
 ## Source installation on Windows using Visual Studio and cmake
 
@@ -157,7 +164,3 @@ Build INSTALL target in Visual Studio in Release configuration.
 
 This will build all projects and install them in Program Files by default.
 
-## Installation using Conda
-```bash
-conda install -c vanderaa smurff 
-```
