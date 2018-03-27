@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
@@ -206,7 +207,7 @@ std::ostream& TensorData::info(std::ostream& os, std::string indent)
       os << m_dims[i] << " x ";
    }
 
-   os << m_dims.back() << "] (" << train_fill_rate << "%)\n";
+   os << m_dims.back() << "] (" << std::fixed << std::setprecision(2) << train_fill_rate << "%)\n";
    
    return os;
 }
