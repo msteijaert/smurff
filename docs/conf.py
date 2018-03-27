@@ -297,4 +297,5 @@ def setup(app):
         'enable_inline_math': True,
     }, True)
     app.add_transform(AutoStructify)
+    IPython.sphinxext.ipython_console_highlighting.setup(app)
 
