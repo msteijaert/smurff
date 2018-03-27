@@ -121,6 +121,8 @@ void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen:
       double noisy_val = noise()->sample(model, pos, sview->getValues()[j]);
       rr.noalias() += col * noisy_val; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
    }
+
+   MM.triangularView<Upper>() = MM.transpose();
 }
 
 void TensorData::update_pnm(const SubModel& model, uint32_t mode)
