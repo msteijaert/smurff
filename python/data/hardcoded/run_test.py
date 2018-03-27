@@ -32,7 +32,7 @@ class TestSaveRestore(unittest.TestCase):
         args["aux_data_string"] = " ".join(self.add_datadir(args["datadir"], args["aux_data"]))
         args["prior_string"] = " ".join(args["priors"])
 
-        cmd = (  " OMP_NUM_THREADS=1 smurff"
+        cmd = (  "OMP_NUM_THREADS=1 smurff"
                 + " --train={datadir}/{train}"
                 + " --test={datadir}/{test}" 
                 + " --prior={prior_string}"
@@ -89,27 +89,31 @@ class TestSaveRestore(unittest.TestCase):
              args["nsamples"] = int(nsamples-2)
              cmd = self.make_cmd(args)
              result_twoparts_1 = self.run_cmd(pfx_twoparts, cmd);
-             cmd = "sed -i -e 's/nsamples = %d/nsamples = %d/' save-options.ini; smurff --root save-root.ini" % (int(nsamples-2), int(nsamples))
+             cmd = "sed -i -e 's/nsamples = %d/nsamples = %d/' save-options.ini; OMP_NUM_THREADS=1 smurff --root save-root.ini" % (int(nsamples-2), int(nsamples))
              result_twoparts_2 = self.run_cmd(pfx_twoparts, cmd)
              
              self.assertAlmostEqual(result_aswhole, result_twoparts_2, places = 2)
         
            
-    def test_save_restore(self):
+    def test_normal(self):
         self.compare(["normal", "normal"])
         self.compare(["normal", "normal"], ["aux_0_0.mtx", "none" ])
         self.compare(["normal", "normal"], ["none", "aux_1_0.mtx" ])
 
+    def test_normalone(self):
         self.compare(["normalone", "normalone"])
         self.compare(["normalone", "normalone"], ["aux_0_0.mtx", "none" ])
         self.compare(["normalone", "normalone"], ["none", "aux_1_0.mtx" ])
 
+    def test_spikeandslab(self):
         self.compare(["normalone", "spikeandslab"], ["aux_0_0.mtx", "none" ])
         self.compare(["spikeandslab", "normalone"], ["none", "aux_1_0.mtx" ])
 
+    def test_macau(self):
         self.compare(["macau", "normal"], ["none", "none" ], ["feat_0_0.mtx", "none"])
         self.compare(["normal", "macau"], ["none", "none" ], ["none", "feat_1_0.mtx"])
 
+    def test_macauone(self):
         self.compare(["macauone", "normalone"], ["none", "none" ], ["feat_0_0.mtx", "none"])
         self.compare(["normalone", "macauone"], ["none", "none" ], ["none", "feat_1_0.mtx"])
 
