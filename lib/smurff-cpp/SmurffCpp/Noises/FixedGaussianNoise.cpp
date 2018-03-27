@@ -1,5 +1,7 @@
 #include "FixedGaussianNoise.h"
 
+#include <iomanip>
+
 using namespace smurff;
 
 FixedGaussianNoise::FixedGaussianNoise(double a)
@@ -10,7 +12,7 @@ FixedGaussianNoise::FixedGaussianNoise(double a)
 
 std::ostream& FixedGaussianNoise::info(std::ostream& os, std::string indent)
 {
-   os << "Fixed gaussian noise with precision: " << alpha << std::endl;
+   os << "Fixed gaussian noise with precision: " << std::fixed << std::setprecision(2) << alpha << std::endl;
    return os;
 }
 
