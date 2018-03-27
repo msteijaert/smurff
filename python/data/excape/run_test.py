@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from make import download
 import smurff
 import matrix_io as mio
 import pandas as pd
@@ -12,23 +11,6 @@ from subprocess import call
 from time import time
 
 global_verbose = False
-
-def load_data():
-    # download()
-
-    files = [
-            "train.sdm",
-            "test.sdm",
-            "side_c2v.ddm",
-            "side_ecfp6_counts_var005.sdm",
-            "side_ecfp6_folded_dense.ddm"
-            ]
-
-    data = dict()
-    for f in files:
-        data[f] = mio.read_matrix(f)
-
-    return data
 
 class TestExCAPE_py(unittest.TestCase):
     def get_default_opts(self):
@@ -47,7 +29,15 @@ class TestExCAPE_py(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.data = load_data()
+        files = [
+                "train.sdm",
+                "test.sdm",
+                "side_c2v.ddm",
+                "side_ecfp6_counts_var005.sdm",
+                "side_ecfp6_folded_dense.ddm"
+                ]
+
+        cls.data = { f : mio.read_matrix(f) for f in files }
 
     def macau(self, side_info, direct, expected):
         args = self.get_default_opts()
@@ -90,6 +80,13 @@ class TestExCAPE_py(unittest.TestCase):
         side_info = [ "side_ecfp6_folded_dense.ddm", None ]
         self.macau(side_info, True, [ 1.08, 1.0, 240. ])
 
+
+#
+##### run tests through ini files
+#
+
+
+
 def extract_rmse(stats_file):
     rmse = float("nan")
     try:
@@ -103,11 +100,28 @@ def extract_rmse(stats_file):
 
 class TestExCAPE_ini(unittest.TestCase):
     def ini(self, ini, expected):
-            start = time()
-            call("smurff --ini=" + ini, shell=True)
-            stop = time()
-            elapsed = stop - start
-            rmse = extract_rmse("stats.csv")
+            from_dir = os.getcwd()
+            link_files = [
+                    "bpmf.ini",
+                    "macau-c2v.ini",
+                    "macau-ecfp-dense.ini",
+                    "macau-ecfp-sparse-cg.ini",
+                    "macau-ecfp-sparse-direct.ini",
+                    "side_c2v.ddm",
+                    "side_ecfp6_counts_var005.sdm",
+                    "side_ecfp6_folded_dense.ddm",
+                    "test.sdm",
+                    "train.sdm",
+                ]
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                for f in link_files:
+                    os.symlink(os.path.join(from_dir, f), os.path.join(tmpdirname, f))
+
+                start = time()
+                call("smurff --ini=" + ini, shell=True, cwd=tmpdirname)
+                stop = time()
+                elapsed = stop - start
+                rmse = extract_rmse(os.path.join(tmpdirname, "stats.csv"))
 
             self.assertLess(rmse, expected[0])
             self.assertGreater(rmse, expected[1])
