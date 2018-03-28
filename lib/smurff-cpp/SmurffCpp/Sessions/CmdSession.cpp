@@ -195,7 +195,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
             std::vector<std::string> properties;
             smurff::split(token, properties, ';');
 
-            THROWERROR_ASSERT(properties.size() == 3);
+            THROWERROR_ASSERT_MSG(properties.size() == 3, "Wrong number of options specified for side info token");
 
             auto mpci = std::make_shared<MacauPriorConfigItem>();
 
