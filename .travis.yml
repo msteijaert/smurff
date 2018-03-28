@@ -35,7 +35,6 @@ addons:
 #      - libeigen3-dev # too old :(
 #      - cmake3
 #      - cmake3-data
-      - python-numpy
 script:
     - cd "${TRAVIS_BUILD_DIR}"
     - cd lib/smurff-cpp/cmake
@@ -43,7 +42,7 @@ script:
     - mkdir build
     - cd build
     - cmake --version
-    - cmake .. -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_INSTALL_PREFIX=$PWD/../prefix -DENABLE_BOOST_RANDOM=ON
+    - cmake .. -DENABLE_PYTHON=OFF -DENABLE_LAPACK=ON -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_INSTALL_PREFIX=$PWD/../prefix -DENABLE_BOOST_RANDOM=ON
     - make
     - make test
 

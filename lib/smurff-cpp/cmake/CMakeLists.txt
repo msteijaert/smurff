@@ -19,6 +19,8 @@ OPTION(ENABLE_VERBOSE_LINKER_LOG "Enable verbose linker log" OFF)
 OPTION(ENABLE_BOOST "Enable usage of Boost for program options" ON)
 OPTION(ENABLE_BOOST_RANDOM "Enable usage of Boost random library" OFF)
 
+OPTION(ENABLE_PYTHON "Enable Python Wrapper" ON)
+
 # INIT CMAKE
 
 message("Initializing cmake ...")
@@ -333,7 +335,7 @@ add_subdirectory (../BenchWishart/cmake tests/BenchWishart)
 
 # python
 
-if(PYTHONINTERP_FOUND)
+if(ENABLE_PYTHON)
     add_subdirectory (../../../python/smurff python/Smurff)
 endif()
 

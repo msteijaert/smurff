@@ -173,10 +173,9 @@ macro(configure_boost)
 endmacro(configure_boost)
 
 macro(configure_python)
-    find_package(PythonInterp) 
-
-    if(PYTHONINTERP_FOUND)
+    if(ENABLE_PYTHON)
+        find_package(PythonInterp REQUIRED) 
         find_package(NumPy REQUIRED)
         find_package( Cython REQUIRED )
-   endif()
+    endif()
 endmacro(configure_python)
