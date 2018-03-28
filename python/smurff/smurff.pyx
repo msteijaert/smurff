@@ -7,6 +7,8 @@ from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
 from TensorConfig cimport TensorConfig
+from MacauPriorConfig cimport *
+from MacauPriorConfigItem cimport *
 from SessionFactory cimport SessionFactory
 from PVec cimport PVec
 
@@ -119,11 +121,25 @@ cdef MatrixConfig* prepare_dense_matrix(X, NoiseConfig noise_config):
     cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, noise_config)
     return matrix_config_ptr
 
-cdef MatrixConfig* prepare_sideinfo(in_matrix, NoiseConfig noise_config):
-    if type(in_matrix) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
-        return prepare_sparse_matrix(in_matrix, noise_config, False)
+cdef shared_ptr[MacauPriorConfigItem] prepare_sideinfo(side_info, NoiseConfig noise_config):
+    if type(side_info[0]) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+        macau_prior_config_item_matrix = prepare_sparse_matrix(side_info[0], noise_config, False)
     else:
-        return prepare_dense_matrix(in_matrix, noise_config)
+        macau_prior_config_item_matrix = prepare_dense_matrix(side_info[0], noise_config)
+
+    macau_prior_config_item_matrix_tol = TOL_DEFAULT_VALUE
+    if side_info[1] is not None:
+        macau_prior_config_item_matrix_tol = side_info[1]
+
+    macau_prior_config_item_matrix_direct = False
+    if side_info[2] is not None:
+        macau_prior_config_item_matrix_direct = side_info[2]
+
+    cdef shared_ptr[MacauPriorConfigItem] macau_prior_config_item_ptr = make_shared[MacauPriorConfigItem]()
+    macau_prior_config_item_ptr.get().setSideInfo(shared_ptr[MatrixConfig](macau_prior_config_item_matrix))
+    macau_prior_config_item_ptr.get().setTol(macau_prior_config_item_matrix_tol)
+    macau_prior_config_item_ptr.get().setDirect(macau_prior_config_item_matrix_direct)
+    return macau_prior_config_item_ptr
 
 cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config):
     if type(tensor) not in DENSE_TENSOR_TYPES:
@@ -292,6 +308,7 @@ def smurff(Y                = None,
 
     cdef Config config
     cdef NoiseConfig noise_config
+    cdef shared_ptr[MacauPriorConfig] macau_prior_config_ptr
     cdef shared_ptr[ISession] session
     cdef shared_ptr[PVec] pos
 
@@ -335,24 +352,31 @@ def smurff(Y                = None,
         for prior_type_str in priors:
             config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
 
-        for i in range(len(side_info)):
-            if len(side_info_noises) > 0 and side_info_noises[i] is not None:
-                noise_config.setNoiseType(stringToNoiseType(side_info_noises[i][0]))
-                if side_info_noises[i][1] is not None:
-                    noise_config.setPrecision(side_info_noises[i][1])
-                if side_info_noises[i][2] is not None:
-                    noise_config.setSnInit(side_info_noises[i][2])
-                if side_info_noises[i][3] is not None:
-                    noise_config.setSnMax(side_info_noises[i][3])
-                if side_info_noises[i][4] is not None:
-                    noise_config.setThreshold(side_info_noises[i][4])
+        for i in range(len(priors)):
+            side_info_list = side_info[i]
+            if side_info_list is not None:
+                macau_prior_config_ptr = make_shared[MacauPriorConfig]()
+                for j in range(len(side_info_list)):
+                    si = side_info_list[j]
+                    if si is not None:
+                        if len(side_info_noises) > 0 and side_info_noises[i] is not None and len(side_info_noises[i]) > 0 and side_info_noises[i][j] is not None:
+                            noise_config.setNoiseType(stringToNoiseType(side_info_noises[i][j][0]))
+                            if side_info_noises[i][j][1] is not None:
+                                noise_config.setPrecision(side_info_noises[i][j][1])
+                            if side_info_noises[i][j][2] is not None:
+                                noise_config.setSnInit(side_info_noises[i][j][2])
+                            if side_info_noises[i][j][3] is not None:
+                                noise_config.setSnMax(side_info_noises[i][j][3])
+                            if side_info_noises[i][j][4] is not None:
+                                noise_config.setThreshold(side_info_noises[i][4])
+                        else:
+                            noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
+                        macau_prior_config_ptr.get().getConfigItems().push_back(prepare_sideinfo(si, noise_config))
+                    else:
+                        macau_prior_config_ptr.get().getConfigItems().push_back(make_shared[MacauPriorConfigItem]())
             else:
-                noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
-
-            if side_info[i] is None:
-                config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
-            else:
-                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(side_info[i], noise_config)))
+                macau_prior_config_ptr = shared_ptr[MacauPriorConfig]()
+            config.getMacauPriorConfigs().push_back(macau_prior_config_ptr)
 
         for i in range(len(aux_data)):
             aux_data_list = aux_data[i]
@@ -385,8 +409,6 @@ def smurff(Y                = None,
         config.setNumLatent(num_latent)
         config.setBurnin(burnin)
         config.setNSamples(nsamples)
-        config.setTol(tol)
-        config.setDirect(direct)
 
         if seed:
             config.setRandomSeedSet(True)

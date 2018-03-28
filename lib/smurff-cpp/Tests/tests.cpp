@@ -16,12 +16,14 @@
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/counters.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/linop.h>
 
 #include <SmurffCpp/Configs/MatrixConfig.h>
 
 #include <SmurffCpp/Priors/ILatentPrior.h>
-#include <SmurffCpp/Priors/MacauPrior.hpp>
-#include <SmurffCpp/Priors/MacauOnePrior.hpp>
+#include <SmurffCpp/Priors/MacauPrior.h>
+#include <SmurffCpp/Priors/MacauOnePrior.h>
 
 #include <SmurffCpp/Noises/NoiseFactory.h>
 
@@ -30,6 +32,8 @@
 #include <SmurffCpp/DataMatrices/FullMatrixData.hpp>
 #include <SmurffCpp/DataMatrices/SparseMatrixData.h>
 #include <SmurffCpp/DataMatrices/DenseMatrixData.h>
+
+#include <SmurffCpp/SideInfo/DenseDoubleFeatSideInfo.h>
 
 // https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
 // By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
@@ -78,11 +82,11 @@ TEST_CASE( "latentprior/sample_beta_precision", "sampling beta precision from ga
           1.0,  0.91, -0.2;
   Lambda_u << 0.5, 0.1,
               0.1, 0.3;
-  auto post = MacauPrior<Eigen::MatrixXd>::posterior_beta_precision(beta, Lambda_u, 0.01, 0.05);
+  auto post = MacauPrior::posterior_beta_precision(beta, Lambda_u, 0.01, 0.05);
   REQUIRE( post.first  == Approx(3.005) );
   REQUIRE( post.second == Approx(0.2631083888) );
 
-  double beta_precision = MacauPrior<Eigen::MatrixXd>::sample_beta_precision(beta, Lambda_u, 0.01, 0.05);
+  double beta_precision = MacauPrior::sample_beta_precision(beta, Lambda_u, 0.01, 0.05);
   REQUIRE( beta_precision > 0 );
 }
 
@@ -96,7 +100,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   std::shared_ptr<Model> model(new Model());
   
   std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, fixed_ncfg, false));
-  std::shared_ptr<Data> data(new ScarceMatrixData(matrix_utils::sparse_to_eigen(*S)));
+  std::shared_ptr<Data> data(new ScarceMatrixData(smurff::matrix_utils::sparse_to_eigen(*S)));
 
   p->set(S);
 
@@ -201,19 +205,24 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
 using namespace Eigen;
 using namespace std;
 
-MacauPrior<MatrixXd>* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF) {
-        MatrixXd* Fmat = new MatrixXd(0, 0);
-        if (colMajor) {
-                *Fmat = Map<Matrix<double, Dynamic, Dynamic, ColMajor> >(ptr, nrows, ncols);
-        } else {
-                *Fmat = Map<Matrix<double, Dynamic, Dynamic, RowMajor> >(ptr, nrows, ncols);
-        }
-        auto ret = new MacauPrior<Eigen::MatrixXd>(0, 0);
-        std::shared_ptr<Eigen::MatrixXd> Fmat_ptr = std::shared_ptr<MatrixXd>(Fmat);
-        ret->addSideInfo(Fmat_ptr);
-        ret->FtF.resize(Fmat->cols(), Fmat->cols());
-        smurff::linop::At_mul_A(ret->FtF, *ret->Features);
-        return ret;
+MacauPrior* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF) 
+{
+   MatrixXd* Fmat = new MatrixXd(0, 0);
+   if (colMajor) 
+   {
+      *Fmat = Map<Matrix<double, Dynamic, Dynamic, ColMajor> >(ptr, nrows, ncols);
+   } 
+   else 
+   {
+      *Fmat = Map<Matrix<double, Dynamic, Dynamic, RowMajor> >(ptr, nrows, ncols);
+   }
+   auto ret = new MacauPrior(0, 0);
+   std::shared_ptr<Eigen::MatrixXd> Fmat_ptr = std::shared_ptr<MatrixXd>(Fmat);
+   std::shared_ptr<DenseDoubleFeatSideInfo> side_info = std::make_shared<DenseDoubleFeatSideInfo>(Fmat_ptr);
+   ret->addSideInfo(side_info, 10.0, 1e-6, comp_FtF, true);
+   ret->FtF.resize(Fmat->cols(), Fmat->cols());
+   ret->Features->At_mul_A(ret->FtF);
+   return ret;
 }
 
 TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
@@ -224,7 +233,8 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
 
     Eigen::MatrixXd Ftrue(3, 2);
     Ftrue <<  0.1, 0.3, 0.4, 0.11, -0.7, 0.23;
-    REQUIRE( (*(prior->Features) - Ftrue).norm() == Approx(0) );
+    auto features_downcast1 = std::dynamic_pointer_cast<DenseDoubleFeatSideInfo>(prior->Features); //for the purpose of the test
+    REQUIRE( (*(features_downcast1->get_features()) - Ftrue).norm() == Approx(0) );
     Eigen::MatrixXd tmp = Eigen::MatrixXd::Zero(2, 2);
     tmp.triangularView<Eigen::Lower>()  = prior->FtF;
     tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
@@ -234,9 +244,11 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
     auto prior2 = make_dense_prior(3, x, 3, 2, false, true);
     Eigen::MatrixXd Ftrue2(3, 2);
     Ftrue2 << 0.1,  0.4,
-           -0.7,  0.3,
-           0.11, 0.23;
-    REQUIRE( (*(prior2->Features) - Ftrue2).norm() == Approx(0) );
+              -0.7,  0.3,
+              0.11, 0.23;
+
+    auto features_downcast2 = std::dynamic_pointer_cast<DenseDoubleFeatSideInfo>(prior2->Features); //for the purpose of the test
+    REQUIRE( (*(features_downcast2->get_features()) - Ftrue2).norm() == Approx(0) );
     Eigen::MatrixXd tmp2 = Eigen::MatrixXd::Zero(2, 2);
     tmp2.triangularView<Eigen::Lower>()  = prior2->FtF;
     tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;

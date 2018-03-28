@@ -5,6 +5,7 @@ from libcpp.memory cimport shared_ptr
 
 from MatrixConfig cimport MatrixConfig
 from TensorConfig cimport TensorConfig
+from MacauPriorConfig cimport MacauPriorConfig
 
 cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
     cdef cppclass PriorTypes:
@@ -41,7 +42,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setTest(shared_ptr[TensorConfig] value)
 
         #-- sideinfo
-        vector[shared_ptr[MatrixConfig]]& getSideInfo()
+        vector[shared_ptr[MacauPriorConfig]]& getMacauPriorConfigs()
 
         #-- aux data
         vector[shared_ptr[TensorConfig]]& getAuxData()
@@ -70,10 +71,6 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setNSamples(int value)
 
         void setNumLatent(int value)
-
-        #-- for macau priors
-        void setTol(double value)
-        void setDirect(bool value)
 
         #-- binary classification
         void setClassify(bool value)

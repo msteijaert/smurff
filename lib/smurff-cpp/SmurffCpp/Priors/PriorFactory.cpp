@@ -8,18 +8,25 @@
 
 #include <SmurffCpp/Utils/Error.h>
 
+#include <SmurffCpp/SideInfo/DenseDoubleFeatSideInfo.h>
+#include <SmurffCpp/SideInfo/SparseDoubleFeatSideInfo.h>
+#include <SmurffCpp/SideInfo/SparseFeatSideInfo.h>
+
+#include <SmurffCpp/Utils/MatrixUtils.h>
+
 using namespace smurff;
 using namespace Eigen;
 
 //create macau prior features
 
-std::shared_ptr<Eigen::MatrixXd> PriorFactory::side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
+std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    Eigen::MatrixXd sideinfo = matrix_utils::dense_to_eigen(*sideinfoConfig);
-   return std::shared_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(sideinfo));
+   auto side_info_ptr = std::make_shared<Eigen::MatrixXd>(sideinfo);
+   return std::make_shared<DenseDoubleFeatSideInfo>(side_info_ptr);
 }
 
-std::shared_ptr<SparseFeat> PriorFactory::side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
+std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    std::uint64_t nrow = sideinfoConfig->getNRow();
    std::uint64_t ncol = sideinfoConfig->getNCol();
@@ -38,10 +45,11 @@ std::shared_ptr<SparseFeat> PriorFactory::side_info_config_to_sparse_binary_feat
       colsRawPtr[i] = cols->operator[](i);
    }
 
-   return std::shared_ptr<SparseFeat>(new SparseFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr));
+   auto side_info_ptr = std::make_shared<SparseFeat>(nrow, ncol, nnz, rowsRawPtr, colsRawPtr);
+   return std::make_shared<SparseFeatSideInfo>(side_info_ptr);
 }
 
-std::shared_ptr<SparseDoubleFeat> PriorFactory::side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
+std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
 {
    std::uint64_t nrow = sideinfoConfig->getNRow();
    std::uint64_t ncol = sideinfoConfig->getNCol();
@@ -63,10 +71,29 @@ std::shared_ptr<SparseDoubleFeat> PriorFactory::side_info_config_to_sparse_featu
       valuesRawPtr[i] = values->operator[](i);
    }
 
-   return std::shared_ptr<SparseDoubleFeat>(new SparseDoubleFeat(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr));
+   auto side_info_ptr = std::make_shared<SparseDoubleFeat>(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr);
+   return std::make_shared<SparseDoubleFeatSideInfo>(side_info_ptr);
 }
 
 //-------
+
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type,
+   const std::vector<std::shared_ptr<ISideInfo> >& side_infos,
+   const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
+{
+   if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
+   {
+      return create_macau_prior<MacauPrior>(session, side_infos, config_items);
+   }
+   else if(prior_type == PriorTypes::macauone)
+   {
+      return create_macau_prior<MacauOnePrior>(session, side_infos, config_items);
+   }
+   else
+   {
+      THROWERROR("Unknown prior with side info: " + priorTypeToString(prior_type));
+   }
+}
 
 std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session> session, int mode)
 {
@@ -83,7 +110,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
       return std::shared_ptr<NormalOnePrior>(new NormalOnePrior(session, -1));
    case PriorTypes::macau:
    case PriorTypes::macauone:
-      return create_macau_prior<PriorFactory>(session, mode, priorType, session->getConfig().getSideInfo().at(mode));
+      return create_macau_prior<PriorFactory>(session, mode, priorType, session->getConfig().getMacauPriorConfigs().at(mode));
    default:
       {
          THROWERROR("Unknown prior: " + priorTypeToString(priorType));

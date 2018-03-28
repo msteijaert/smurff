@@ -5,6 +5,23 @@
 #include <SmurffCpp/IO/IDataWriter.h>
 #include <SmurffCpp/DataMatrices/IDataCreator.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/IO/GenericIO.h>
+#include <SmurffCpp/Utils/StringUtils.h>
+
+#define POS_TAG "pos"
+#define FILE_TAG "file"
+#define DENSE_TAG "dense"
+#define SCARCE_TAG "scarce"
+#define SPARSE_TAG "sparse"
+#define TYPE_TAG "type"
+
+#define NONE_TAG "none"
+
+#define NOISE_MODEL_TAG "noise_model"
+#define PRECISION_TAG "precision"
+#define SN_INIT_TAG "sn_init"
+#define SN_MAX_TAG "sn_max"
+#define NOISE_THRESHOLD_TAG "noise_threshold"
 
 using namespace smurff;
 
@@ -348,27 +365,27 @@ void TensorConfig::setNoiseConfig(const NoiseConfig& value)
    m_noiseConfig = value;
 }
 
-void TensorConfig::setFilename(const std::string &f) 
+void TensorConfig::setFilename(const std::string &f)
 {
     m_filename = f;
 }
-    
-const std::string &TensorConfig::getFilename() const 
+
+const std::string &TensorConfig::getFilename() const
 {
     return m_filename;
 }
 
-void TensorConfig::setPos(const PVec<>& p) 
+void TensorConfig::setPos(const PVec<>& p)
 {
    m_pos = std::make_shared<PVec<>>(p);
 }
-    
-bool TensorConfig::hasPos() const 
+
+bool TensorConfig::hasPos() const
 {
     return m_pos != nullptr;
-}    
+}
 
-const PVec<>& TensorConfig::getPos() const 
+const PVec<>& TensorConfig::getPos() const
 {
     return *m_pos;
 }
@@ -403,10 +420,103 @@ std::string TensorConfig::info() const
     return ss.str();
 }
 
+std::ostream& TensorConfig::save_tensor_config(std::ostream& os, const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg)
+{
+   //write section name
+   os << "[" << sec_name;
+   if (sec_idx >= 0)
+      os << "_" << sec_idx;
+   os << "]" << std::endl;
+
+   //write tensor config and noise config
+   if (cfg)
+   {
+      cfg->save(os);
+   }
+   else
+   {
+      os << "file = " << NONE_TAG << std::endl;
+   }
+
+   return os;
+}
+
 std::ostream& TensorConfig::save(std::ostream& os) const
 {
-   os << getFilename();
+   //write tensor config position
+   if (this->hasPos())
+      os << POS_TAG << " = " << this->getPos() << std::endl;
+
+   //write tensor config filename
+   os << FILE_TAG << " = " << this->getFilename() << std::endl;
+
+   //write tensor config type
+   std::string type_str = this->isDense() ? DENSE_TAG : this->isScarce() ? SCARCE_TAG : SPARSE_TAG;
+   os << TYPE_TAG << " = " << type_str << std::endl;
+
+   //write noise config
+   auto &noise_config = this->getNoiseConfig();
+   if (noise_config.getNoiseType() != NoiseTypes::unset)
+   {
+      os << NOISE_MODEL_TAG << "  = " << smurff::noiseTypeToString(noise_config.getNoiseType()) << std::endl;
+      os << PRECISION_TAG << " = " << noise_config.getPrecision() << std::endl;
+      os << SN_INIT_TAG << " = " << noise_config.getSnInit() << std::endl;
+      os << SN_MAX_TAG << " = " << noise_config.getSnMax() << std::endl;
+      os << NOISE_THRESHOLD_TAG << " = " << noise_config.getThreshold() << std::endl;
+   }
+
    return os;
+}
+
+std::shared_ptr<TensorConfig> TensorConfig::restore_tensor_config(const INIFile& reader, const std::string sec_name)
+{
+   //restore filename
+   std::string filename = reader.get(sec_name, FILE_TAG, NONE_TAG);
+   if (filename == NONE_TAG)
+      return std::shared_ptr<TensorConfig>();
+
+   //restore type
+   bool is_scarce = reader.get(sec_name, TYPE_TAG, SCARCE_TAG) == SCARCE_TAG;
+
+   //restore data
+   auto cfg = generic_io::read_data_config(filename, is_scarce);
+
+   //restore instance
+   cfg->restore(reader, sec_name);
+
+   return cfg;
+}
+
+bool TensorConfig::restore(const INIFile& reader, const std::string sec_name)
+{
+   //restore position
+   std::string pos_str = reader.get(sec_name, POS_TAG, NONE_TAG);
+   if (pos_str != NONE_TAG)
+   {
+      std::vector<int> tokens;
+      smurff::split(pos_str, tokens, ',');
+
+      //assign position
+      this->setPos(PVec<>(tokens));
+   }
+
+   //restore noise model
+   NoiseConfig noise;
+
+   NoiseTypes noiseType = smurff::stringToNoiseType(reader.get(sec_name, NOISE_MODEL_TAG, smurff::noiseTypeToString(NoiseTypes::unset)));
+   if (noiseType != NoiseTypes::unset)
+   {
+      noise.setNoiseType(noiseType);
+      noise.setPrecision(reader.getReal(sec_name, PRECISION_TAG, NoiseConfig::PRECISION_DEFAULT_VALUE));
+      noise.setSnInit(reader.getReal(sec_name, SN_INIT_TAG, NoiseConfig::ADAPTIVE_SN_INIT_DEFAULT_VALUE));
+      noise.setSnMax(reader.getReal(sec_name, SN_MAX_TAG, NoiseConfig::ADAPTIVE_SN_MAX_DEFAULT_VALUE));
+      noise.setThreshold(reader.getReal(sec_name, NOISE_THRESHOLD_TAG, NoiseConfig::PROBIT_DEFAULT_VALUE));
+   }
+
+   //assign noise model
+   this->setNoiseConfig(noise);
+
+   return true;
 }
 
 std::shared_ptr<Data> TensorConfig::create(std::shared_ptr<IDataCreator> creator) const

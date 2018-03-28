@@ -7,7 +7,7 @@
 
 #include <SmurffCpp/Configs/MatrixConfig.h>
 
-#include <SmurffCpp/LibFastSparseDependency.h>
+#include <SmurffCpp/SideInfo/LibFastSparseDependency.h>
 
 #include <SmurffCpp/Utils/Error.h>
 

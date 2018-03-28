@@ -23,8 +23,6 @@
 
 #define NUM_PRIORS_TAG "num_priors"
 #define PRIOR_PREFIX "prior"
-#define NUM_SIDE_INFO_TAG "num_side_info"
-#define SIDE_INFO_PREFIX "side_info"
 #define NUM_AUX_DATA_TAG "num_aux_data"
 #define AUX_DATA_PREFIX "aux_data"
 #define SAVE_PREFIX_TAG "save_prefix"
@@ -39,21 +37,8 @@
 #define RANDOM_SEED_TAG "random_seed"
 #define CSV_STATUS_TAG "csv_status"
 #define INIT_MODEL_TAG "init_model"
-#define TOL_TAG "tol"
-#define DIRECT_TAG "direct"
-#define NOISE_MODEL_TAG "noise_model"
-#define PRECISION_TAG "precision"
-#define SN_INIT_TAG "sn_init"
-#define SN_MAX_TAG "sn_max"
-#define NOISE_THRESHOLD_TAG "noise_threshold"
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
-#define POS_TAG "pos"
-#define FILE_TAG "file"
-#define DENSE_TAG "dense"
-#define SCARCE_TAG "scarce"
-#define SPARSE_TAG "sparse"
-#define TYPE_TAG "type"
 
 using namespace smurff;
 
@@ -138,9 +123,7 @@ int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
 int Config::CHECKPOINT_FREQ_DEFAULT_VALUE = 0;
 int Config::VERBOSE_DEFAULT_VALUE = 1;
 const char* Config::STATUS_DEFAULT_VALUE = "";
-double Config::BETA_PRECISION_DEFAULT_VALUE = 10.0;
 bool Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE = true;
-double Config::TOL_DEFAULT_VALUE = 1e-6;
 double Config::THRESHOLD_DEFAULT_VALUE = 0.0;
 int Config::RANDOM_SEED_DEFAULT_VALUE = 0;
 
@@ -161,9 +144,6 @@ Config::Config()
    m_burnin = Config::BURNIN_DEFAULT_VALUE;
    m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
    m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
-
-   m_tol = Config::TOL_DEFAULT_VALUE;
-   m_direct = false;
 
    m_threshold = Config::THRESHOLD_DEFAULT_VALUE;
    m_classify = false;
@@ -203,11 +183,12 @@ bool Config::validate() const
 
    if (m_train->getNModes() > 2)
    {
+
       if (!m_auxData.empty())
       {
          //it is advised to check macau and macauone priors implementation
          //as well as code in PriorFactory that creates macau priors
-         
+
          //this check does not directly check that input data is Tensor (it only checks number of dimensions)
          //however TensorDataFactory will do an additional check throwing an exception
          THROWERROR("Aux data is not supported for TensorData");
@@ -216,23 +197,34 @@ bool Config::validate() const
 
    //for simplicity we store empty shared_ptr if side info is not specified for dimension
    //this way we can whether that size equals to getNModes
-   if (m_sideInfo.size() != m_train->getNModes())
+   if (m_macauPriorConfigs.size() != m_train->getNModes())
    {
       THROWERROR("Number of side info should equal to number of dimensions in train data");
    }
 
-   for (std::size_t i = 0; i < m_sideInfo.size(); i++)
+   for (std::size_t i = 0; i < m_macauPriorConfigs.size(); i++)
    {
       //FIXME: is this a correct behavior?
       if (i > 2)
          break;
+      if (m_macauPriorConfigs.at(i))
 
-      const std::shared_ptr<MatrixConfig>& sideInfo = m_sideInfo[i];
-      if (sideInfo && sideInfo->getDims()[0] != m_train->getDims()[i])
       {
-         std::stringstream ss;
-         ss << "Side info should have the same number of rows as size of dimension " << i << " in train data";
-         THROWERROR(ss.str());
+         const auto& configItems = m_macauPriorConfigs.at(i)->getConfigItems();
+         THROWERROR_ASSERT(!configItems.empty());
+
+         for (auto configItem : configItems)
+         {
+            const auto& sideInfo = configItem->getSideInfo();
+            THROWERROR_ASSERT(sideInfo);
+
+            if (sideInfo->getDims()[0] != m_train->getDims()[i])
+            {
+               std::stringstream ss;
+               ss << "Side info should have the same number of rows as size of dimension " << i << " in train data";
+               THROWERROR(ss.str());
+            }
+         }
       }
    }
 
@@ -250,7 +242,7 @@ bool Config::validate() const
 
       for(auto& ad2 : getData())
       {
-         if (ad1 == ad2) 
+         if (ad1 == ad2)
             continue;
 
          if (!ad2->hasPos())
@@ -263,7 +255,7 @@ bool Config::validate() const
          const auto& dim2 = ad2->getDims();
          const auto& pos2 = ad2->getPos();
 
-         if (pos1 == pos2) 
+         if (pos1 == pos2)
          {
             std::stringstream ss;
             ss << "Data \"" << ad1->info() <<  "\" and \"" << ad2->info() << "\" at same position";
@@ -272,7 +264,7 @@ bool Config::validate() const
 
          // if two data blocks are aligned in a certain dimension
          // this dimension should be equal size
-         for (std::size_t i = 0; i < pos1.size(); ++i) 
+         for (std::size_t i = 0; i < pos1.size(); ++i)
          {
             if (pos1.at(i) == pos2.at(i) && (dim1.at(i) != dim2.at(i)))
             {
@@ -293,7 +285,7 @@ bool Config::validate() const
          case PriorTypes::normalone:
          case PriorTypes::spikeandslab:
          case PriorTypes::default_prior:
-            if (m_sideInfo[i])
+            if (m_macauPriorConfigs[i])
             {
                std::stringstream ss;
                ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have side info";
@@ -302,7 +294,7 @@ bool Config::validate() const
             break;
          case PriorTypes::macau:
          case PriorTypes::macauone:
-            if (!m_sideInfo[i])
+            if (!m_macauPriorConfigs[i])
             {
                std::stringstream ss;
                ss << "Side info is always needed when using macau prior in dimension " << i;
@@ -334,45 +326,6 @@ void Config::save(std::string fname) const
    std::ofstream os(fname);
    THROWERROR_ASSERT_MSG(os.is_open(), "Error opening file: " + fname);
 
-   auto print_tensor_config = [&os](const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg) -> void
-   {
-      //write section name
-      os << std::endl << "[" << sec_name;
-      if (sec_idx >= 0) 
-         os << "_" << sec_idx;
-      os << "]" << std::endl;
-
-      //write tensor config and noise config
-      if (cfg) 
-      {
-         //write tensor config position
-         if (cfg->hasPos())
-            os << POS_TAG << " = " << cfg->getPos() << std::endl;
-           
-         //write tensor config filename
-         os << FILE_TAG << " = " << cfg->getFilename() << std::endl;
-
-         //write tensor config type
-         std::string type_str = cfg->isDense() ? DENSE_TAG : cfg->isScarce() ? SCARCE_TAG : SPARSE_TAG;
-         os << TYPE_TAG << " = " << type_str << std::endl;
-           
-         //write noise config
-         auto &noise_config = cfg->getNoiseConfig();
-         if (noise_config.getNoiseType() != NoiseTypes::unset) 
-         {
-            os << NOISE_MODEL_TAG << "  = " << smurff::noiseTypeToString(noise_config.getNoiseType()) << std::endl;
-            os << PRECISION_TAG << " = " << noise_config.getPrecision() << std::endl;
-            os << SN_INIT_TAG << " = " << noise_config.getSnInit() << std::endl;
-            os << SN_MAX_TAG << " = " << noise_config.getSnMax() << std::endl;
-            os << NOISE_THRESHOLD_TAG << " = " << noise_config.getThreshold() << std::endl;
-         }
-      } 
-      else 
-      {
-         os << "file = " << NONE_TAG << std::endl;
-      }
-   };
-   
    //write header with time and version
    os << "## SMURFF config .ini file" << std::endl;
    os << "# generated file - copy before editing!" << std::endl;
@@ -392,8 +345,7 @@ void Config::save(std::string fname) const
    os << std::endl << "# count" << std::endl;
    os << NUM_PRIORS_TAG << " = " << m_prior_types.size() << std::endl;
    os << NUM_AUX_DATA_TAG << " = " << m_auxData.size() << std::endl;
-   os << NUM_SIDE_INFO_TAG << " = " << m_sideInfo.size() << std::endl;
-   
+
    //priors data
    os << std::endl << "# priors" << std::endl;
    for(std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
@@ -417,29 +369,38 @@ void Config::save(std::string fname) const
    os << CSV_STATUS_TAG << " = " << m_csv_status << std::endl;
    os << INIT_MODEL_TAG << " = " << modelInitTypeToString(m_model_init_type) << std::endl;
 
-   //macau priors data
-   os << std::endl << "# for macau priors" << std::endl;
-   os << TOL_TAG << " = " << m_tol << std::endl;
-   os << DIRECT_TAG << " = " << m_direct << std::endl;
-
    //probit prior data
    os << std::endl << "# binary classification" << std::endl;
    os << CLASSIFY_TAG << " = " << m_classify << std::endl;
    os << THRESHOLD_TAG << " = " << m_threshold << std::endl;
 
+   os << std::endl;
+
    //write train data section
-   print_tensor_config(TRAIN_SECTION_TAG, -1, m_train);
+   TensorConfig::save_tensor_config(os, TRAIN_SECTION_TAG, -1, m_train);
+
+   os << std::endl;
 
    //write test data section
-   print_tensor_config(TEST_SECTION_TAG, -1, m_test);
+   TensorConfig::save_tensor_config(os, TEST_SECTION_TAG, -1, m_test);
 
-   //write side info section
-   for(std::size_t sIndex = 0; sIndex < m_sideInfo.size(); sIndex++)
-       print_tensor_config(SIDE_INFO_PREFIX, sIndex, m_sideInfo.at(sIndex));
+   os << std::endl;
+
+   //write macau prior configs section
+   for (std::size_t mIndex = 0; mIndex < m_macauPriorConfigs.size(); mIndex++)
+   {
+      if (m_macauPriorConfigs.at(mIndex))
+      {
+         m_macauPriorConfigs.at(mIndex)->save(os, mIndex);
+      }
+   }
 
    //write aux data section
    for (std::size_t sIndex = 0; sIndex < m_auxData.size(); sIndex++)
-       print_tensor_config(AUX_DATA_PREFIX, sIndex, m_auxData.at(sIndex));
+   {
+      TensorConfig::save_tensor_config(os, AUX_DATA_PREFIX, sIndex, m_auxData.at(sIndex));
+      os << std::endl;
+   }
 }
 
 bool Config::restore(std::string fname)
@@ -457,84 +418,43 @@ bool Config::restore(std::string fname)
 
    auto add_index = [](const std::string name, int idx = -1) -> std::string
    {
-      if (idx >= 0) 
+      if (idx >= 0)
          return name + "_" + std::to_string(idx);
       return name;
    };
 
-   auto restore_tensor_config = [&reader](const std::string sec_name) -> std::shared_ptr<TensorConfig>
-   {
-      //restore filename
-      std::string filename = reader.get(sec_name, FILE_TAG,  NONE_TAG);
-      if (filename == NONE_TAG) 
-         return std::shared_ptr<TensorConfig>();
-
-      //restore type
-      bool is_scarce = reader.get(sec_name, TYPE_TAG, SCARCE_TAG) == SCARCE_TAG;
-
-      //restore data
-      auto cfg = generic_io::read_data_config(filename, is_scarce);
-
-      //restore position
-      std::string pos_str = reader.get(sec_name, POS_TAG, NONE_TAG);
-      if (pos_str != NONE_TAG)
-      {
-         std::vector<int> tokens;
-         smurff::split(pos_str, tokens, ',');
-
-         //assign position
-         cfg->setPos(PVec<>(tokens));
-      }
-
-      //restore noise model
-      NoiseConfig noise;
-
-      NoiseTypes noiseType = smurff::stringToNoiseType(reader.get(sec_name, NOISE_MODEL_TAG, smurff::noiseTypeToString(NoiseTypes::unset)));
-      if (noiseType != NoiseTypes::unset)
-      {
-         noise.setNoiseType(noiseType);
-         noise.setPrecision(reader.getReal(sec_name, PRECISION_TAG, NoiseConfig::PRECISION_DEFAULT_VALUE));
-         noise.setSnInit(reader.getReal(sec_name, SN_INIT_TAG, NoiseConfig::ADAPTIVE_SN_INIT_DEFAULT_VALUE));
-         noise.setSnMax(reader.getReal(sec_name, SN_MAX_TAG, NoiseConfig::ADAPTIVE_SN_MAX_DEFAULT_VALUE));
-         noise.setThreshold(reader.getReal(sec_name, NOISE_THRESHOLD_TAG, NoiseConfig::PROBIT_DEFAULT_VALUE));
-      }
-
-      //assign noise model
-      cfg->setNoiseConfig(noise);
-       
-      return cfg;
-   };
-
    //restore train data
-   setTest(restore_tensor_config(TEST_SECTION_TAG));
+   setTest(TensorConfig::restore_tensor_config(reader, TEST_SECTION_TAG));
 
    //restore test data
-   setTrain(restore_tensor_config(TRAIN_SECTION_TAG));
+   setTrain(TensorConfig::restore_tensor_config(reader, TRAIN_SECTION_TAG));
 
    //restore global data
 
    //restore priors
-   size_t num_priors = reader.getInteger(GLOBAL_SECTION_TAG, NUM_PRIORS_TAG, 0);
+   std::size_t num_priors = reader.getInteger(GLOBAL_SECTION_TAG, NUM_PRIORS_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
    {
       std::string pName = reader.get(GLOBAL_SECTION_TAG, add_index(PRIOR_PREFIX, pIndex),  PRIOR_NAME_DEFAULT);
       m_prior_types.push_back(stringToPriorType(pName));
    }
 
-   //restore side info
-   size_t num_side_info = reader.getInteger(GLOBAL_SECTION_TAG, NUM_SIDE_INFO_TAG, 0);
-   for(std::size_t pIndex = 0; pIndex < num_side_info; pIndex++)
+   //restore macau prior configs section
+   for (std::size_t mIndex = 0; mIndex < num_priors; mIndex++)
    {
-      auto tensor_cfg = restore_tensor_config(add_index(SIDE_INFO_PREFIX, pIndex));
-      auto matrix_cfg = std::dynamic_pointer_cast<MatrixConfig>(tensor_cfg);
-      m_sideInfo.push_back(matrix_cfg);
+      auto macauPriorConfig = std::make_shared<MacauPriorConfig>();
+
+      if (macauPriorConfig->restore(reader, mIndex))
+         m_macauPriorConfigs.push_back(macauPriorConfig);
+      else
+         m_macauPriorConfigs.push_back(std::shared_ptr<MacauPriorConfig>());
    }
 
    //restore aux data
-   size_t num_aux_data = reader.getInteger(GLOBAL_SECTION_TAG, NUM_AUX_DATA_TAG, 0);
+   std::size_t num_aux_data = reader.getInteger(GLOBAL_SECTION_TAG, NUM_AUX_DATA_TAG, 0);
    for(std::size_t pIndex = 0; pIndex < num_aux_data; pIndex++)
    {
-      m_auxData.push_back(restore_tensor_config(add_index(AUX_DATA_PREFIX, pIndex)));
+      m_auxData.push_back(TensorConfig::restore_tensor_config(reader, add_index(AUX_DATA_PREFIX, pIndex)));
    }
 
    //restore save data
@@ -552,10 +472,6 @@ bool Config::restore(std::string fname)
    m_random_seed = reader.getInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
    m_csv_status = reader.get(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, Config::STATUS_DEFAULT_VALUE);
    m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
-
-   //restore macau priors data
-   m_tol = reader.getReal(GLOBAL_SECTION_TAG, TOL_TAG, Config::TOL_DEFAULT_VALUE);
-   m_direct = reader.getBoolean(GLOBAL_SECTION_TAG, DIRECT_TAG,  false);
 
    //restore probit prior data
    m_classify = reader.getBoolean(GLOBAL_SECTION_TAG, CLASSIFY_TAG,  false);

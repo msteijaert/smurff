@@ -6,8 +6,7 @@
 
 #include <SmurffCpp/Utils/PVec.hpp>
 #include "MatrixConfig.h"
-
-#define NONE_TAG "none"
+#include "MacauPriorConfig.h"
 
 #define PRIOR_NAME_DEFAULT "default"
 #define PRIOR_NAME_MACAU "macau"
@@ -61,9 +60,7 @@ public:
    static int CHECKPOINT_FREQ_DEFAULT_VALUE;
    static int VERBOSE_DEFAULT_VALUE;
    static const char* STATUS_DEFAULT_VALUE;
-   static double BETA_PRECISION_DEFAULT_VALUE;
    static bool ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
-   static double TOL_DEFAULT_VALUE;
    static double THRESHOLD_DEFAULT_VALUE;
    static int RANDOM_SEED_DEFAULT_VALUE;
 
@@ -73,8 +70,9 @@ private:
    std::shared_ptr<TensorConfig> m_test;
 
    //-- sideinfo and aux_data
-   std::vector<std::shared_ptr<MatrixConfig> > m_sideInfo; //set of side info matrices for macau and macauone priors
    std::vector<std::shared_ptr<TensorConfig> > m_auxData; //set of aux data matrices for normal and spikeandslab priors
+
+   std::vector<std::shared_ptr<MacauPriorConfig> > m_macauPriorConfigs;
 
    // -- priors
    std::vector<PriorTypes> m_prior_types;
@@ -96,10 +94,6 @@ private:
    int m_burnin;
    int m_nsamples;
    int m_num_latent;
-
-   //-- for macau priors
-   double m_tol;
-   bool m_direct;
 
    //-- binary classification
    bool m_classify;
@@ -138,16 +132,6 @@ public:
       m_test = value;
    }
 
-   const std::vector<std::shared_ptr<MatrixConfig> >& getSideInfo() const
-   {
-      return m_sideInfo;
-   }
-
-   std::vector<std::shared_ptr<MatrixConfig> >& getSideInfo()
-   {
-      return m_sideInfo;
-   }
-
    const std::vector< std::shared_ptr<TensorConfig> >& getAuxData() const
    {
       return m_auxData;
@@ -156,6 +140,16 @@ public:
    std::vector< std::shared_ptr<TensorConfig> >& getAuxData()
    {
       return m_auxData;
+   }
+
+   const std::vector<std::shared_ptr<MacauPriorConfig> >& getMacauPriorConfigs() const
+   {
+      return m_macauPriorConfigs;
+   }
+
+   std::vector<std::shared_ptr<MacauPriorConfig> >& getMacauPriorConfigs()
+   {
+      return m_macauPriorConfigs;
    }
 
    std::vector< std::shared_ptr<TensorConfig> > getData() const
@@ -293,26 +287,6 @@ public:
    void setNumLatent(int value)
    {
       m_num_latent = value;
-   }
-
-   double getTol() const
-   {
-      return m_tol;
-   }
-
-   void setTol(double value)
-   {
-      m_tol = value;
-   }
-
-   bool getDirect() const
-   {
-      return m_direct;
-   }
-
-   void setDirect(bool value)
-   {
-      m_direct = value;
    }
 
    bool getClassify() const
