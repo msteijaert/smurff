@@ -154,14 +154,6 @@ NoiseConfig parse_noise_arg(std::string optarg)
 #ifdef HAVE_BOOST
 void fill_config(boost::program_options::variables_map& vm, Config& config)
 {
-   //create new session with ini file
-   if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted())
-   {
-      auto ini_file = vm[INI_NAME].as<std::string>();
-      bool success = config.restore(ini_file);
-      THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
-   }
-
    if (vm.count(TEST_NAME) && !vm[TEST_NAME].defaulted())
       config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
 
@@ -348,16 +340,38 @@ bool CmdSession::parse_options(int argc, char* argv[])
       //restore session from root file (command line arguments are already stored in file)
       if (vm.count(ROOT_NAME))
       {
-         std::string root_file = vm[ROOT_NAME].as<std::string>();
-         setFromRootPath(root_file);
+         Config config;
+
+         //restore config from root file
+         std::string root_name = vm[ROOT_NAME].as<std::string>();
+         auto root_file = std::make_shared<RootFile>(root_name);
+         root_file->restoreConfig(config);
+
+         //override root file config with options
+         fill_config(vm, config);
+
+         //create session from config, open root file
+         setRestoreFromConfig(config, root_name);
          return true;
       }
       //create new session from config (passing command line arguments)
       else
       {
          Config config;
+
+         //restore ini file if it was specified
+         if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted())
+         {
+            auto ini_file = vm[INI_NAME].as<std::string>();
+            bool success = config.restore(ini_file);
+            THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
+         }
+
+         //apply options or override ini file if it was specified
          fill_config(vm, config);
-         setFromConfig(config);
+
+         //create session from config, create root file
+         setCreateFromConfig(config);
          return true;
       }
    }

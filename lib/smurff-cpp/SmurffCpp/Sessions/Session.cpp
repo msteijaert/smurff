@@ -18,11 +18,12 @@
 
 using namespace smurff;
 
-void Session::setFromRootPath(std::string rootPath)
+void Session::setRestoreFromRootPath(std::string rootPath)
 {
-   // assign config
-
+   // open root file
    m_rootFile = std::make_shared<RootFile>(rootPath);
+
+   //restore config
    m_rootFile->restoreConfig(m_config);
 
    m_config.validate();
@@ -31,14 +32,31 @@ void Session::setFromRootPath(std::string rootPath)
    setFromBase();
 }
 
-void Session::setFromConfig(const Config& cfg)
+void Session::setRestoreFromConfig(const Config& cfg, std::string rootPath)
 {
-   // assign config
-
    cfg.validate();
+
+   // assign config
    m_config = cfg;
 
+   // open root file
+   m_rootFile = std::make_shared<RootFile>(rootPath);
+
+   //base functionality
+   setFromBase();
+}
+
+void Session::setCreateFromConfig(const Config& cfg)
+{
+   cfg.validate();
+
+   // assign config
+   m_config = cfg;
+
+   // create root file
    m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+
+   //save config
    m_rootFile->saveConfig(m_config);
 
    //base functionality
