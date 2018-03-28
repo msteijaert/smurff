@@ -6,8 +6,8 @@
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
 
-#include <SmurffCpp/SparseFeat.h>
-#include <SmurffCpp/SparseDoubleFeat.h>
+#include <SmurffCpp/SideInfo/SparseFeat.h>
+#include <SmurffCpp/SideInfo/SparseDoubleFeat.h>
 
 namespace smurff { namespace linop {
 

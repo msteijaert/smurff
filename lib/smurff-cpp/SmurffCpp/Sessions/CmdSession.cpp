@@ -38,8 +38,6 @@
 #define STATUS_NAME "status"
 #define SEED_NAME "seed"
 #define NOISE_MODEL_NAME "noise_model"
-#define TOL_NAME "tol"
-#define DIRECT_NAME "direct"
 #define INI_NAME "ini"
 #define ROOT_NAME "root"
 
@@ -88,11 +86,6 @@ boost::program_options::options_description get_desc()
    boost::program_options::options_description noise_desc("Noise model.");
    noise_desc.add_options()
       (NOISE_MODEL_NAME, boost::program_options::value<std::string>()->default_value(NoiseConfig::get_default_string()), "set properties of noise model");
-      
-   boost::program_options::options_description macau_prior_desc("For the macau prior");
-   macau_prior_desc.add_options()
-      (TOL_NAME, boost::program_options::value<double>()->default_value(Config::TOL_DEFAULT_VALUE), "tolerance for CG")
-      (DIRECT_NAME, "Use Cholesky decomposition i.o. CG Solver");
 
    boost::program_options::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
    desc.add(basic_desc);
@@ -100,7 +93,6 @@ boost::program_options::options_description get_desc()
    desc.add(train_test_desc);
    desc.add(general_desc);
    desc.add(noise_desc);
-   desc.add(macau_prior_desc);
 
    return desc;
 }
@@ -116,17 +108,28 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
       config.getTrain()->setNoiseConfig(nc);
 
    //set for side info
-   for(auto& sideInfo : config.getSideInfo())
+   for (auto& mpc : config.getMacauPriorConfigs())
    {
-      if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-         sideInfo->setNoiseConfig(nc);
+      if (mpc)
+      {
+         for (auto& item : mpc->getConfigItems())
+         {
+            if (item)
+            {
+               const auto& sideInfo = item->getSideInfo();
+
+               if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+                  sideInfo->setNoiseConfig(nc);
+            }
+         }
+      }
    }
 
    // set for aux data
    for(auto& data : config.getAuxData())
    {
-       if (data->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-           data->setNoiseConfig(nc);
+      if (data->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+         data->setNoiseConfig(nc);
    }
 }
 
@@ -172,19 +175,45 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(SIDE_INFO_NAME) && !vm[SIDE_INFO_NAME].defaulted())
    {
-      for (auto sideInfo : vm[SIDE_INFO_NAME].as<std::vector<std::string> >())
+      //parse each group of tokens into MacauPriorConfig
+      for (auto sideInfoString : vm[SIDE_INFO_NAME].as<std::vector<std::string> >())
       {
-         if (sideInfo == NONE_TOKEN)
-            config.getSideInfo().push_back(std::shared_ptr<MatrixConfig>());
-         else
-            config.getSideInfo().push_back(matrix_io::read_matrix(sideInfo, false));
+         std::vector<std::string> tokens;
+         smurff::split(sideInfoString, tokens, ',');
+
+         auto mpc = std::make_shared<MacauPriorConfig>();
+
+         //parse each token into MacauPriorConfigItem
+         for (auto token : tokens)
+         {
+            if (token == NONE_TOKEN)
+            {
+               mpc = std::shared_ptr<MacauPriorConfig>();
+               break;
+            }
+
+            std::vector<std::string> properties;
+            smurff::split(token, properties, ';');
+
+            THROWERROR_ASSERT(properties.size() == 3);
+
+            auto mpci = std::make_shared<MacauPriorConfigItem>();
+
+            mpci->setTol(stod(properties.at(0)));
+            mpci->setDirect(stoi(properties.at(1)));
+            mpci->setSideInfo(matrix_io::read_matrix(properties.at(2), false));
+
+            mpc->getConfigItems().push_back(mpci);
+         }
+
+         config.getMacauPriorConfigs().push_back(mpc);
       }
    }
    else
    {
       // same as "none none ..."
       auto num_priors = config.getPriorTypes().size();
-      config.getSideInfo().resize(num_priors);
+      config.getMacauPriorConfigs().resize(num_priors);
    }
 
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())
@@ -250,7 +279,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(SAVE_FREQ_NAME) && !vm[SAVE_FREQ_NAME].defaulted())
       config.setSaveFreq(vm[SAVE_FREQ_NAME].as<int>());
-   
+
    if (vm.count(CHECKPOINT_FREQ_NAME) && !vm[CHECKPOINT_FREQ_NAME].defaulted())
       config.setCheckpointFreq(vm[CHECKPOINT_FREQ_NAME].as<int>());
 
@@ -279,12 +308,6 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
       set_noise_configs(config, parse_noise_arg(vm[NOISE_MODEL_NAME].as<std::string>()));
    else
       set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
-
-   if (vm.count(TOL_NAME) && !vm[TOL_NAME].defaulted())
-      config.setTol(vm[TOL_NAME].as<double>());
-
-   if (vm.count(DIRECT_NAME) && !vm[DIRECT_NAME].defaulted())
-      config.setDirect(true);
 }
 #endif
 

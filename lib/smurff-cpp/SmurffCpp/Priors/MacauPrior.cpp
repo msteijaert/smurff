@@ -1,11 +1,215 @@
-#include "MacauPrior.hpp"
+#include "MacauPrior.h"
 
-namespace smurff
+#include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/IO/GenericIO.h>
+
+#include <SmurffCpp/Utils/Distribution.h>
+#include <SmurffCpp/Utils/Error.h>
+
+#include <SmurffCpp/Utils/linop.h>
+
+using namespace smurff;
+
+MacauPrior::MacauPrior()
+   : NormalPrior() 
 {
-   // specialization for dense matrices --> always direct method
-   template<>
-   void MacauPrior<Eigen::Matrix<double, -1, -1, 0, -1, -1>>::sample_beta_cg()
+}
+
+MacauPrior::MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
+   : NormalPrior(session, mode, "MacauPrior")
+{
+   beta_precision = MacauPriorConfig::BETA_PRECISION_DEFAULT_VALUE;
+   tol = MacauPriorConfig::TOL_DEFAULT_VALUE;
+
+   enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
+}
+
+MacauPrior::~MacauPrior()
+{
+}
+
+void MacauPrior::init()
+{
+   NormalPrior::init();
+
+   THROWERROR_ASSERT_MSG(Features->rows() == num_cols(), "Number of rows in train must be equal to number of rows in features");
+
+   if (use_FtF)
+   {
+      FtF.resize(Features->cols(), Features->cols());
+      Features->At_mul_A(FtF);
+   }
+
+   Uhat.resize(this->num_latent(), Features->rows());
+   Uhat.setZero();
+
+   beta.resize(this->num_latent(), Features->cols());
+   beta.setZero();
+}
+
+void MacauPrior::update_prior()
+{
+   // residual (Uhat is later overwritten):
+   Uhat.noalias() = U() - Uhat;
+   Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
+
+   // sampling Gaussian
+   std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + beta.cols());
+   sample_beta();
+   Features->compute_uhat(Uhat, beta);
+
+   if (enable_beta_precision_sampling)
+      beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
+}
+
+const Eigen::VectorXd MacauPrior::getMu(int n) const
+{
+   return this->mu + Uhat.col(n);
+}
+
+void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
+{
+   const int num_feat = beta.cols();
+
+   // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
+   // Ft_y is [ D x F ] matrix
+   HyperU = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
+
+   Ft_y = Features->A_mul_B(HyperU);
+   HyperU2 = MvNormal_prec_omp(Lambda, num_feat);
+
+   #pragma omp parallel for schedule(static)
+   for (int f = 0; f < num_feat; f++)
+   {
+      for (int d = 0; d < num_latent(); d++)
+      {
+         Ft_y(d, f) += std::sqrt(beta_precision) * HyperU2(d, f);
+      }
+   }
+}
+
+void MacauPrior::sample_beta()
+{
+   if (use_FtF)
+      sample_beta_direct();
+   else
+      sample_beta_cg();
+}
+
+void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a)
+{
+   //FIXME: remove old code
+
+   // old code
+
+   // side information
+   Features = side_info_a;
+   beta_precision = beta_precision_a;
+   tol = tolerance_a;
+   use_FtF = direct_a;
+   enable_beta_precision_sampling = enable_beta_precision_sampling_a;
+
+   // new code
+
+   // side information
+   side_info_values.push_back(side_info_a);
+   beta_precision_values.push_back(beta_precision_a);
+   tol_values.push_back(tolerance_a);
+   direct_values.push_back(direct_a);
+   enable_beta_precision_sampling_values.push_back(enable_beta_precision_sampling_a);
+
+   // other code
+
+   // Hyper-prior for beta_precision (mean 1.0, var of 1e+3):
+   beta_precision_mu0 = 1.0;
+   beta_precision_nu0 = 1e-3;
+}
+
+void MacauPrior::save(std::shared_ptr<const StepFile> sf) const
+{
+   NormalPrior::save(sf);
+
+   std::string path = sf->getLinkMatrixFileName(m_mode);
+   smurff::matrix_io::eigen::write_matrix(path, this->beta);
+}
+
+void MacauPrior::restore(std::shared_ptr<const StepFile> sf)
+{
+   NormalPrior::restore(sf);
+
+   std::string path = sf->getLinkMatrixFileName(m_mode);
+
+   THROWERROR_FILE_NOT_EXIST(path);
+
+   smurff::matrix_io::eigen::read_matrix(path, this->beta);
+}
+
+std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
+{
+   NormalPrior::info(os, indent);
+   os << indent << " SideInfo: ";
+   Features->print(os);
+   os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << std::endl;
+   os << indent << " Tol: " << tol << std::endl;
+   os << indent << " BetaPrecision: " << beta_precision << std::endl;
+   return os;
+}
+
+std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
+{
+   os << indent << m_name << ": " << std::endl;
+   indent += "  ";
+   os << indent << "FtF          = " << FtF.norm() << std::endl;
+   os << indent << "HyperU       = " << HyperU.norm() << std::endl;
+   os << indent << "HyperU2      = " << HyperU2.norm() << std::endl;
+   os << indent << "Beta         = " << beta.norm() << std::endl;
+   os << indent << "beta_precision  = " << beta_precision << std::endl;
+   os << indent << "Ft_y         = " << Ft_y.norm() << std::endl;
+   return os;
+}
+
+// direct method
+void MacauPrior::sample_beta_direct()
+{
+   this->compute_Ft_y_omp(Ft_y);
+
+   Eigen::MatrixXd K(FtF.rows(), FtF.cols());
+   K.triangularView<Eigen::Lower>() = FtF;
+   K.diagonal().array() += beta_precision;
+   chol_decomp(K);
+   chol_solve_t(K, Ft_y);
+   beta = Ft_y;
+}
+
+std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
+{
+   const int D = beta.rows();
+   Eigen::MatrixXd BB(D, D);
+   smurff::linop::A_mul_At_combo(BB, beta);
+   double nux = nu + beta.rows() * beta.cols();
+   double mux = mu * nux / (nu + mu * (BB.selfadjointView<Eigen::Lower>() * Lambda_u).trace());
+   double b = nux / 2;
+   double c = 2 * mux / nux;
+   return std::make_pair(b, c);
+}
+
+double MacauPrior::sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
+{
+   auto gamma_post = posterior_beta_precision(beta, Lambda_u, nu, mu);
+   return rgamma(gamma_post.first, gamma_post.second);
+}
+
+void MacauPrior::sample_beta_cg()
+{
+   if (Features->is_dense())
    {
       THROWERROR_NOTIMPL_MSG("Dense Matrix requires direct method");
+   }
+   else
+   {
+      Eigen::MatrixXd Ft_y;
+      this->compute_Ft_y_omp(Ft_y);
+
+      Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8);
    }
 }

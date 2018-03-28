@@ -2,10 +2,13 @@
 
 #include <SmurffCpp/Priors/IPriorFactory.h>
 #include <SmurffCpp/Priors/ILatentPrior.h>
-#include <SmurffCpp/Priors/MacauOnePrior.hpp>
-#include <SmurffCpp/Priors/MacauPrior.hpp>
+#include <SmurffCpp/Priors/MacauOnePrior.h>
+#include <SmurffCpp/Priors/MacauPrior.h>
 #include <SmurffCpp/Sessions/Session.h>
 #include <SmurffCpp/Configs/MatrixConfig.h>
+#include <SmurffCpp/Configs/MacauPriorConfig.h>
+
+#include <SmurffCpp/SideInfo/ISideInfo.h>
 
 namespace smurff {
 
@@ -13,19 +16,22 @@ class PriorFactory : public IPriorFactory
 {
 private:
 
-    std::shared_ptr<Eigen::MatrixXd> side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
-    std::shared_ptr<SparseFeat> side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
-    std::shared_ptr<SparseDoubleFeat> side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
+    std::shared_ptr<ISideInfo> side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
+    std::shared_ptr<ISideInfo> side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
+    std::shared_ptr<ISideInfo> side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
 
 public:
     template<class MacauPrior>
-    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, std::shared_ptr<typename MacauPrior::SideInfo> side_info, const NoiseConfig& noise_config);
+    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session,
+                                                     const std::vector<std::shared_ptr<ISideInfo> >& side_infos,
+                                                     const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items);
 
-    template<class SideInfo>
-    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info, const NoiseConfig& noise_config);
+    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, 
+                                                     const std::vector<std::shared_ptr<ISideInfo> >& side_infos,
+                                                     const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items);
 
     template<class Factory>
-    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MatrixConfig>& sideinfoConfig);
+    std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MacauPriorConfig>& priorConfig);
 
     std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode) override;
 };
@@ -33,79 +39,80 @@ public:
 //-------
 
 template<class MacauPrior>
-std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, std::shared_ptr<typename MacauPrior::SideInfo> side_info, const NoiseConfig& noise_config)
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session,
+                                                               const std::vector<std::shared_ptr<ISideInfo> >& side_infos,
+                                                               const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
 {
-    std::shared_ptr<MacauPrior> prior(new MacauPrior(session, -1));
+   THROWERROR_ASSERT(side_infos.size() == config_items.size());
 
-    prior->addSideInfo(side_info, session->getConfig().getDirect());
-    prior->setTol(session->getConfig().getTol());
+   std::shared_ptr<MacauPrior> prior(new MacauPrior(session, -1));
 
-    switch (noise_config.getNoiseType())
-    {
-    case NoiseTypes::fixed:
-       {
-          prior->setBetaPrecision(noise_config.getPrecision());
-          prior->setEnableBetaPrecisionSampling(false);
-       }
-       break;
-    case NoiseTypes::adaptive:
-       {
-          prior->setBetaPrecision(noise_config.getPrecision());
-          prior->setEnableBetaPrecisionSampling(true);
-       }
-       break;
-    default:
-       {
-          THROWERROR("Unexpected noise type " + smurff::noiseTypeToString(noise_config.getNoiseType()) + "specified for macau prior");
-       }
-    }
-
-    return prior;
-}
-
-template<class SideInfo>
-std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type, std::shared_ptr<SideInfo> side_info, const NoiseConfig& noise_config)
-{
-   if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
+   for (std::size_t i = 0; i < side_infos.size(); i++)
    {
-      return create_macau_prior<MacauPrior<SideInfo>>(session, side_info, noise_config);
+      const auto& side_info = side_infos.at(i);
+      const auto& config_item = config_items.at(i);
+      const auto& side_info_config = config_item->getSideInfo();
+      const auto& noise_config = side_info_config->getNoiseConfig();
+
+      switch (noise_config.getNoiseType())
+      {
+      case NoiseTypes::fixed:
+         {
+            prior->addSideInfo(side_info, noise_config.getPrecision(), config_item->getTol(), config_item->getDirect(), false);
+         }
+         break;
+      case NoiseTypes::adaptive:
+         {
+            prior->addSideInfo(side_info, noise_config.getPrecision(), config_item->getTol(), config_item->getDirect(), true);
+         }
+         break;
+      default:
+         {
+            THROWERROR("Unexpected noise type " + smurff::noiseTypeToString(noise_config.getNoiseType()) + "specified for macau prior");
+         }
+      }
    }
-   else if(prior_type == PriorTypes::macauone)
-   {
-      return create_macau_prior<MacauOnePrior<SideInfo>>(session, side_info, noise_config);
-   }
-   else
-   {
-      THROWERROR("Unknown prior with side info: " + priorTypeToString(prior_type));
-   }
+
+   return prior;
 }
 
 //mode - 0 (row), 1 (col)
 //vsideinfo - vector of side feature configs (row or col)
 template<class Factory>
-std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MatrixConfig>& sideinfoConfig)
+std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, int mode, PriorTypes prior_type, const std::shared_ptr<MacauPriorConfig>& priorConfig)
 {
    Factory &subFactory = dynamic_cast<Factory &>(*this);
 
-   if(!sideinfoConfig)
+   if(!priorConfig)
    {
       THROWERROR("Side info should always present for macau prior");
    }
 
-   if (sideinfoConfig->isBinary())
+   std::vector<std::shared_ptr<ISideInfo> > side_infos;
+   std::vector<std::shared_ptr<MacauPriorConfigItem> > config_items;
+
+   for (auto& configItem : priorConfig->getConfigItems())
    {
-      std::shared_ptr<SparseFeat> sideinfo = side_info_config_to_sparse_binary_features(sideinfoConfig, mode);
-      return subFactory.create_macau_prior(session, prior_type, sideinfo, sideinfoConfig->getNoiseConfig());
+      const auto& sideinfoConfig = configItem->getSideInfo();
+
+      if (sideinfoConfig->isBinary())
+      {
+         side_infos.push_back(side_info_config_to_sparse_binary_features(sideinfoConfig, mode));
+         config_items.push_back(configItem);
+      }
+      else if (sideinfoConfig->isDense())
+      {
+         side_infos.push_back(side_info_config_to_dense_features(sideinfoConfig, mode));
+         config_items.push_back(configItem);
+      }
+      else
+      {
+         side_infos.push_back(side_info_config_to_sparse_features(sideinfoConfig, mode));
+         config_items.push_back(configItem);
+      }
    }
-   else if (sideinfoConfig->isDense())
-   {
-      std::shared_ptr<Eigen::MatrixXd> sideinfo = side_info_config_to_dense_features(sideinfoConfig, mode);
-      return subFactory.create_macau_prior(session, prior_type, sideinfo, sideinfoConfig->getNoiseConfig());
-   }
-   else
-   {
-      std::shared_ptr<SparseDoubleFeat> sideinfo = side_info_config_to_sparse_features(sideinfoConfig, mode);
-      return subFactory.create_macau_prior(session, prior_type, sideinfo, sideinfoConfig->getNoiseConfig());
-   }
+
+   return subFactory.create_macau_prior(session, prior_type, side_infos, config_items);
 }
+
 }

@@ -57,11 +57,13 @@ FILE (GLOB CONFIG_FILES "../Configs/Config.h"
                         "../Configs/MatrixConfig.h"
                         "../Configs/TensorConfig.h"
                         "../Configs/NoiseConfig.h"
+                        "../Configs/MacauPriorConfig.h"
 
                         "../Configs/Config.cpp"
                         "../Configs/MatrixConfig.cpp"
                         "../Configs/TensorConfig.cpp"
                         "../Configs/NoiseConfig.cpp"
+                        "../Configs/MacauPriorConfig.cpp"
                         )
 
 source_group ("Configs" FILES ${CONFIG_FILES})
@@ -89,8 +91,8 @@ FILE (GLOB PRIOR_FILES  "../Priors/ILatentPrior.h"
                         "../Priors/NormalPrior.h"
                         "../Priors/NormalOnePrior.h"
                         "../Priors/SpikeAndSlabPrior.h"
-                        "../Priors/MacauPrior.hpp"
-                        "../Priors/MacauOnePrior.hpp"
+                        "../Priors/MacauPrior.h"
+                        "../Priors/MacauOnePrior.h"
                         "../Priors/IPriorFactory.h"
                         "../Priors/PriorFactory.h"
 
@@ -99,6 +101,7 @@ FILE (GLOB PRIOR_FILES  "../Priors/ILatentPrior.h"
                         "../Priors/NormalOnePrior.cpp"
                         "../Priors/SpikeAndSlabPrior.cpp"
                         "../Priors/MacauPrior.cpp"
+                        "../Priors/MacauOnePrior.cpp"
                         "../Priors/PriorFactory.cpp"
                         )
 
@@ -152,8 +155,6 @@ source_group ("Sessions" FILES ${SESSION_FILES})
 FILE (GLOB HEADER_FILES "../Version.h"
                         "../Model.h"
                         "../result.h"
-                        "../SparseFeat.h"
-                        "../SparseDoubleFeat.h"
                         "../VMatrixIterator.hpp"
                         "../ConstVMatrixIterator.hpp"
                         "../VMatrixExprIterator.hpp"
@@ -168,8 +169,22 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
                         )
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
+FILE (GLOB SIDE_INFO_FILES "../SideInfo/ISideInfo.h"
+                           "../SideInfo/SparseFeat.h"
+                           "../SideInfo/SparseDoubleFeat.h"
+                           "../SideInfo/DenseDoubleFeat.h"
+                           "../SideInfo/LibFastSparseDependency.h"
+                           "../SideInfo/DenseDoubleFeatSideInfo.h"
+                           "../SideInfo/DenseDoubleFeatSideInfo.cpp"
+                           "../SideInfo/SparseDoubleFeatSideInfo.h"
+                           "../SideInfo/SparseDoubleFeatSideInfo.cpp"
+                           "../SideInfo/SparseFeatSideInfo.h"
+                           "../SideInfo/SparseFeatSideInfo.cpp"
+                        )
+source_group ("Side Info" FILES ${SIDE_INFO_FILES})
+
 #SETUP OUTPUT
-add_library (${PROJECT} STATIC ${HEADER_FILES} 
+add_library (${PROJECT} STATIC ${HEADER_FILES}
                                ${SOURCE_FILES}
                                ${UTIL_FILES}
                                ${IO_FILES}
@@ -179,6 +194,7 @@ add_library (${PROJECT} STATIC ${HEADER_FILES}
                                ${MATRIX_FILES}
                                ${TENSOR_FILES}
                                ${SESSION_FILES}
+                               ${SIDE_INFO_FILES}
                                )
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
@@ -199,5 +215,7 @@ install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Configs/MacauPriorConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../Sessions/ISession.h DESTINATION include/SmurffCpp/Sessions)
+install (FILES ../IO/INIFile.h DESTINATION include/SmurffCpp/IO)
