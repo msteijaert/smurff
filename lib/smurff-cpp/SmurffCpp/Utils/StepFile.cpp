@@ -113,16 +113,6 @@ std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
 }
 
-std::vector<std::string> StepFile::getSpikeAndSlabFileNames(std::uint32_t mode) const
-{
-   std::string prefix = getStepPrefix();
-   return {
-       prefix + "-SS" + std::to_string(mode) + "-alpha" + m_extension,
-       prefix + "-SS" + std::to_string(mode) + "-r" + m_extension
-   };
-}
-
-
 std::string StepFile::getPredFileName() const
 {
    std::string prefix = getStepPrefix();

@@ -31,12 +31,14 @@ void SpikeAndSlabPrior::init()
    Zkeep = ArrayXXd::Constant(K, nview, D);
    r = ArrayXXd::Constant(K,nview,.5);
 
-   initLogRLogAlpha();
+   log_alpha = alpha.log();
+   log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
 }
 
 void SpikeAndSlabPrior::update_prior()
 {
    const int nview = data()->nview(m_mode);
+   const int K = num_latent();
    
    Zkeep = Zcol.combine();
    auto W2c = W2col.combine();
@@ -55,57 +57,37 @@ void SpikeAndSlabPrior::update_prior()
    Zcol.reset();
    W2col.reset(); 
 
-   initLogRLogAlpha();
-}
-
-void SpikeAndSlabPrior::initLogRLogAlpha()
-{
-   const int K = num_latent();
-   const int nview = data()->nview(m_mode);
-
    log_alpha = alpha.log();
    log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
 }
 
-void SpikeAndSlabPrior::save(std::shared_ptr<const StepFile> sf) const
-{
-  NormalOnePrior::save(sf);
-
-  std::vector<std::string> paths = sf->getSpikeAndSlabFileNames(m_mode);
-
-  smurff::matrix_io::eigen::write_matrix(paths[0], this->alpha.matrix());
-  smurff::matrix_io::eigen::write_matrix(paths[1], this->r.matrix());
-}
-
 void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
 {
+  const int K = num_latent();
+  const int nview = data()->nview(m_mode);
+
   NormalOnePrior::restore(sf);
 
-  std::vector<std::string> paths = sf->getSpikeAndSlabFileNames(m_mode);
-
-  for (auto path : paths) THROWERROR_FILE_NOT_EXIST(path);
-
-  MatrixXd alpha_as_matrix; // read_matrix cannot read in to Eigen::Array
-  smurff::matrix_io::eigen::read_matrix(paths[0], alpha_as_matrix);
-  this->alpha = alpha_as_matrix;
-
-  MatrixXd r_as_matrix; // read_matrix cannot read in to Eigen::Array
-  smurff::matrix_io::eigen::read_matrix(paths[1], r_as_matrix);
-  this->r = r_as_matrix;
-
-  //compute Zkeep
+  //compute Zcol
   int d = 0;
-  Zkeep.setZero();
+  ArrayXXd Z(ArrayXXd::Zero(K,nview));
+  ArrayXXd W2(ArrayXXd::Zero(K,nview));
   for(int v=0; v<data()->nview(m_mode); ++v) 
   {
       for(int i=0; i<data()->view_size(m_mode, v); ++i, ++d)
       {
-          Zkeep.col(v) += (U().col(d).array() > 0).cast<double>(); 
+        for(int k=0; k<K; ++k) if (U()(k,d) != 0) Z(k,v)++;
+        W2.col(v) += U().col(d).array().square(); 
       }
   }
   THROWERROR_ASSERT(d == num_cols());
 
-  initLogRLogAlpha();
+  Zcol.reset();
+  W2col.reset();
+  Zcol.local() = Z;
+  W2col.local() = W2;
+
+  update_prior();
 }
 
 std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)

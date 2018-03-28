@@ -34,7 +34,6 @@ public:
    virtual ~SpikeAndSlabPrior() {}
    void init() override;
 
-   void save(std::shared_ptr<const StepFile> sf) const override;
    void restore(std::shared_ptr<const StepFile> sf) override;
 
    std::pair<double,double> sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX) override;
@@ -43,8 +42,5 @@ public:
 
    // mean value of Z
    std::ostream &status(std::ostream &os, std::string indent) const override;
-
-private:
-   void initLogRLogAlpha();
 };
 }

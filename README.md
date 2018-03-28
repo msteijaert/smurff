@@ -7,7 +7,7 @@
 
 Matrix factorization is a common machine learning technique for recommender systems, like books for Amazon or movies for Netflix.
 
-![Matrix Factorizaion](https://raw.githubusercontent.com/ExaScience/smurff/master/docs/matrix_factorization.svg?sanitize=true)
+![Matrix Factorizaion](https://raw.githubusercontent.com/ExaScience/smurff/master/docs/_static/matrix_factorization.svg?sanitize=true)
 
 The idea of these methods is to approximate the user-movie rating matrix R as a
 product of two low-rank matrices U and V such that R ≈ U × V . In this way U
