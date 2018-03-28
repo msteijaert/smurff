@@ -10,9 +10,11 @@
 
 extern "C" { 
     static char lower = 'L';
+#ifndef EIGEN_USE_MKL_ALL
     // TODO, remove dependency on lapacke.h
     void dpotrf_(char *uplo, int *n, double *a, int *lda, int *info);
     void dpotrs_(char *uplo, int* n, int* nrhs, double* A, int* lda, double* B, int* ldb, int* info);
+#endif
 }
 
 void chol_decomp(double* A, int n) 

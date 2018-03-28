@@ -72,6 +72,7 @@ endmacro(configure_openblas)
 macro(configure_mkl)
   message ("Dependency check for MKL (using MKL SDL)...")
   find_library (MKL_LIBRARIES "mkl_rt" HINTS ENV LD_LIBRARY_PATH)
+  add_definitions(-DEIGEN_USE_MKL_ALL )
 
   # since we mix OpenMP and mkl we need to link this
   if(${OPENMP_FOUND})
@@ -107,7 +108,6 @@ macro(configure_eigen)
   
   message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
 
-  add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endmacro(configure_eigen)
 
 macro(configure_boost)
