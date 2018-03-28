@@ -97,8 +97,8 @@ public:
 
 public:
 
-   //appends item to the end of file - this is not possible to easily insert item in the arbitrary section so it is not supported
-   void appendItem(const std::string& tag, const std::string& value);
+   //appends item to the end of file - this is not possible to easily insert item in the arbitrary section so it is not supported - write is buffered
+   void appendItem(const std::string& section, const std::string& tag, const std::string& value);
 
    //flushes write buffer to file
    void flush();
@@ -106,6 +106,12 @@ public:
    //this will only remove item from dictionaries and not from the file - it is not easy to implement removal from the file so it is not supported
    void removeItem(const std::string& section, const std::string& tag);
 
-   //writes comment directly to file - it is not stored anywhere else
-   void appendComment(std::string comment);
+   //writes comment directly to file - it is not stored anywhere else and is not buffered
+   void appendComment(const std::string& comment);
+
+public:
+   //writes new section header directly to file - it is not buffered
+   void startSection(const std::string& section);
+
+   void endSection();
 };

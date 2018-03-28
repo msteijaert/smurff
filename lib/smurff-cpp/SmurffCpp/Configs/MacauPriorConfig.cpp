@@ -26,24 +26,23 @@ MacauPriorConfigItem::MacauPriorConfigItem()
    m_direct = false;
 }
 
-void MacauPriorConfigItem::save(std::ofstream& os, std::size_t prior_index, std::size_t config_item_index) const
+void MacauPriorConfigItem::save(INIFile& writer, std::size_t prior_index, std::size_t config_item_index) const
 {
+   std::string sectionName = std::string(MACAU_PRIOR_CONFIG_ITEM_PREFIX_TAG) + "_" + std::to_string(prior_index) + "_" + std::to_string(config_item_index);
+
    //macau prior config item section
-   os << "[" << MACAU_PRIOR_CONFIG_ITEM_PREFIX_TAG << "_" << prior_index << "_" << config_item_index << "]" << std::endl;
+   writer.startSection(sectionName);
 
    //config item data
-   os << TOL_TAG << " = " << m_tol << std::endl;
-   os << DIRECT_TAG << " = " << m_direct << std::endl;
+   writer.appendItem(sectionName, TOL_TAG, std::to_string(m_tol));
+   writer.appendItem(sectionName, DIRECT_TAG, std::to_string(m_direct));
 
-   os << std::endl;
+   writer.endSection();
 
-   std::stringstream ss;
-   ss << SIDE_INFO_PREFIX << "_" << prior_index;
-
+   std::string sideInfoName = std::string(SIDE_INFO_PREFIX) + "_" + std::to_string(prior_index);
+   
    //config item side info
-   TensorConfig::save_tensor_config(os, ss.str(), config_item_index, m_sideInfo);
-
-   os << std::endl;
+   TensorConfig::save_tensor_config(writer, sideInfoName, config_item_index, m_sideInfo);
 }
 
 bool MacauPriorConfigItem::restore(const INIFile& reader, std::size_t prior_index, std::size_t config_item_index)
@@ -76,15 +75,17 @@ MacauPriorConfig::MacauPriorConfig()
    
 }
 
-void MacauPriorConfig::save(std::ofstream& os, std::size_t prior_index) const
+void MacauPriorConfig::save(INIFile& writer, std::size_t prior_index) const
 {
    //macau prior config section
-   os << "[" << MACAU_PRIOR_CONFIG_PREFIX_TAG << "_" << prior_index << "]" << std::endl;
+   std::string sectionName = std::string(MACAU_PRIOR_CONFIG_PREFIX_TAG) + "_" + std::to_string(prior_index);
+
+   writer.startSection(sectionName);
 
    //number of side infos
-   os << NUM_SIDE_INFO_TAG << " = " << m_configItems.size() << std::endl;
+   writer.appendItem(sectionName, NUM_SIDE_INFO_TAG, std::to_string(m_configItems.size()));
 
-   os << std::endl;
+   writer.endSection();
 
    //write side info section
    for (std::size_t config_item_index = 0; config_item_index < m_configItems.size(); config_item_index++)
@@ -92,7 +93,7 @@ void MacauPriorConfig::save(std::ofstream& os, std::size_t prior_index) const
       auto& ci = m_configItems.at(config_item_index);
       THROWERROR_ASSERT(ci);
 
-      ci->save(os, prior_index, config_item_index);
+      ci->save(writer, prior_index, config_item_index);
    }
 }
 

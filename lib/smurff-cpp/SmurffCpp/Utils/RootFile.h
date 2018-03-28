@@ -34,7 +34,7 @@ private:
    std::string getOptionsFileName() const;
 
 private:
-   void appendToRootFile(std::string tag, std::string value) const;
+   void appendToRootFile(std::string section, std::string tag, std::string value) const;
 
    void appendCommentToRootFile(std::string comment) const;
 
