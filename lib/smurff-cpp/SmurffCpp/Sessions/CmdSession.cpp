@@ -401,7 +401,7 @@ bool CmdSession::parse_options(int argc, char* argv[])
       if (std::string(argv[1]) == "--" + std::string(ROOT_NAME))
       {
          std::string root_file(argv[2]);
-         setFromRootPath(root_file);
+         setRestoreFromRootPath(root_file);
          return true;
       }
       //create new session from config (passing command line arguments)
@@ -417,7 +417,7 @@ bool CmdSession::parse_options(int argc, char* argv[])
             return false;
          }
 
-         setFromConfig(config);
+         setCreateFromConfig(config);
          return true;
       }
       else
