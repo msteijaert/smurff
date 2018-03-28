@@ -35,6 +35,7 @@ addons:
 #      - libeigen3-dev # too old :(
 #      - cmake3
 #      - cmake3-data
+      - python-numpy
 script:
     - cd "${TRAVIS_BUILD_DIR}"
     - cd lib/smurff-cpp/cmake
