@@ -15,10 +15,10 @@ class TestSmurff(unittest.TestCase):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
         results = smurff.smurff(Y,
+                                Ynoise=('fixed', 1.0, None, None, None),
                                 Ytest=Ytest,
                                 priors=['normal', 'normal'],
                                 num_latent=4,
-                                precision=1.0,
                                 verbose=False,
                                 burnin=50,
                                 nsamples=50)
@@ -34,7 +34,6 @@ class TestSmurff(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_macau(self):
@@ -47,8 +46,8 @@ class TestSmurff(unittest.TestCase):
                                 Ytest=Ytest,
                                 priors=['macau', 'macau'],
                                 side_info=[side1, side2],
+                                side_info_noises=[('fixed', 1.0, None, None, None), ('adaptive', None, 0.5, 1.0, None)],
                                 num_latent=4,
-                                precision=1.0,
                                 verbose=False,
                                 burnin=50,
                                 nsamples=50)
@@ -67,7 +66,6 @@ class TestSmurff(unittest.TestCase):
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
-                      precision=1.0,
                       verbose=False)
 
     def test_macau_dense(self):
@@ -75,13 +73,12 @@ class TestSmurff(unittest.TestCase):
         Yt = scipy.sparse.rand(15, 10, 0.1)
         F  = np.random.randn(15, 2)
         smurff.smurff(Y,
-                      Yt,
+                      Ytest=Yt,
                       priors=['macau', 'normal'],
                       side_info=[F, None],
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
-                      precision=1.0,
                       verbose=False)
 
     @unittest.skip
@@ -95,13 +92,14 @@ class TestSmurff(unittest.TestCase):
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
         results = smurff.smurff(Y=Ytrain,
+                                Ynoise=('probit', None, None, None, 0.5),
                                 Ytest=Ytest,
                                 priors=['macau', 'normal'],
+                                prior_noises=[('probit', None, None, None, 0.5), ('fixed', 1.0, None, None, None)],
                                 side_info=[A, None],
                                 num_latent=4,
                                 burnin=20,
                                 nsamples=20,
-                                threshold=0.5,
                                 verbose=False)
 
         self.assertTrue(results.rmse > 0.55,
@@ -119,7 +117,6 @@ class TestSmurff(unittest.TestCase):
                                 side_info=[side1, side2],
                                 num_latent=4,
                                 verbose=False,
-                                precision=1.0,
                                 burnin=50,
                                 nsamples=50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
@@ -131,7 +128,6 @@ class TestSmurff(unittest.TestCase):
                           priors=['normal', 'normal', 'normal'],
                           side_info=[None, None, None],
                           aux_data=[[], [], []],
-                          precision=1.0,
                           verbose = False)
 
     def test_bpmf_emptytest(self):
@@ -141,18 +137,17 @@ class TestSmurff(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_bpmf_emptytest_probit(self):
         X = scipy.sparse.rand(15, 10, 0.2)
         X.data = X.data > 0.5
         smurff.smurff(X,
+                      Ynoise=('probit', None, None, None, 0.5),
                       priors=['normal', 'normal'],
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      threshold=0.5,
                       verbose=False)
 
     def test_make_train_test(self):
@@ -198,7 +193,6 @@ class TestSmurff(unittest.TestCase):
                                 Ytest=Ytest,
                                 priors=['normal', 'normal', 'normal'],
                                 num_latent=4,
-                                precision=1.0,
                                 verbose=False,
                                 burnin=50,
                                 nsamples=50)
@@ -244,18 +238,16 @@ class TestSmurff(unittest.TestCase):
                                               data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,
-                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
                                               seed=1234)
 
         sparse_tensor_results = smurff.smurff(train_sparse_tensor,
-                                              test_sparse_tensor,
+                                              Ytest=test_sparse_tensor,
                                               data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,
-                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
@@ -304,7 +296,6 @@ class TestSmurff(unittest.TestCase):
                                               priors=['normal', 'normal'],
                                               data_shape=train_shape,
                                               num_latent=4,
-                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
@@ -315,7 +306,6 @@ class TestSmurff(unittest.TestCase):
                                               data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,
-                                              precision=1.0,
                                               verbose=False,
                                               burnin=50,
                                               nsamples=50,
@@ -342,13 +332,13 @@ class TestSmurff(unittest.TestCase):
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
         results = smurff.smurff(Y=Ytrain,
+                                Ynoise=('fixed', 50, None, None, None),
                                 Ytest=Ytest,
                                 priors=['normal', 'normal', 'normal'],
                                 num_latent=4,
                                 verbose=False,
                                 burnin=20,
-                                nsamples=20,
-                                precision=50)
+                                nsamples=20)
 
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
@@ -369,8 +359,7 @@ class TestSmurff(unittest.TestCase):
                                 num_latent=4,
                                 verbose=False,
                                 burnin=20,
-                                nsamples=20,
-                                precision=50)
+                                nsamples=20)
 
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
@@ -384,8 +373,7 @@ class TestSmurff(unittest.TestCase):
                                     num_latent=4,
                                     verbose=False,
                                     burnin=20,
-                                    nsamples=20,
-                                    precision=50)
+                                    nsamples=20)
 
     @unittest.skip
     def test_macau_tensor(self):
@@ -401,8 +389,7 @@ class TestSmurff(unittest.TestCase):
         Acoo = scipy.sparse.coo_matrix(A)
 
         results = smurff.smurff(Y = Ytrain, Ytest = Ytest, side=[('macau', [Acoo]), ('normal', []), ('normal', [])],
-                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20,
-                                precision = 50)
+                                num_latent = 4, verbose = False, burnin = 20, nsamples = 20)
 
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
@@ -428,8 +415,7 @@ class TestSmurff(unittest.TestCase):
                                 num_latent=4,
                                 verbose=False,
                                 burnin=20,
-                                nsamples=20,
-                                precision=50)
+                                nsamples=20)
 
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
@@ -449,7 +435,6 @@ class TestSmurff(unittest.TestCase):
                            num_latent=2,
                            burnin=5,
                            nsamples=5,
-                           precision=1.0,
                            verbose=False)
 
         self.assertTrue( np.isnan(r0.rmse) )

@@ -1,108 +1,58 @@
 #!/usr/bin/env python
 
-from make import download
 import smurff
 import matrix_io as mio
 import pandas as pd
 import unittest
 import os
+import sys
 import tempfile
 from subprocess import call
 from time import time
-import sys
 
+global_verbose = False
 
-def smurff_cmd(args):
-    args["side_info_string"] = " ".join(args["side_info_files"])
-    args["aux_data_string"] = " ".join(args["aux_data_files"])
-    args["prior_string"] = " ".join(args["priors"])
-    args["direct_string"] = "--direct" if args["direct"] else ""
-
-    cmd = (  "smurff"
-             + " --train={datadir}/{train_file}"
-             + " --test={datadir}/{test_file}" 
-             + " --prior={prior_string}"
-             + " --side-info={side_info_string}"
-             + " --aux-data={aux_data_string}"
-             + " {direct_string}"
-             + " --num-latent={num_latent} --burnin={burnin} --nsamples={nsamples}"
-             + " --noise_model=\"fixed;{precision};1;1;1\" --verbose={verbose} --status=stats.csv"
-             ).format(**args)
-
-    class Result:
-         pass
-
-    result = Result()
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        for f in [ args["train_file"], args["test_file"] ] + args["side_info_files"] + args["aux_data_files"]:
-            if f != "none":
-                os.symlink(os.path.join(args["datadir"], f), os.path.join(tmpdirname, f))
-    
-        result.retcode = call(cmd, shell=True, cwd=tmpdirname)
-        result.rmse = float("nan")
-        try:
-            stats = pd.read_csv(os.path.join(tmpdirname, "stats.csv"), sep=";")
-            last_row = stats.tail(1)
-            result.rmse = float(last_row['rmse_avg'])
-        except:
-            pass
-
-    return result
-        
-def load_data():
-    # download()
-
-    files = [
-            "train.sdm",
-            "test.sdm",
-            "side_c2v.ddm",
-            "side_ecfp6_counts_var005.sdm",
-            "side_ecfp6_folded_dense.ddm"
-            ]
-
-    data = dict()
-    for f in files:
-        data[f] = mio.read_matrix(f)
-
-    return data
-
-class TestExCAPE(unittest.TestCase):
-    verbose = 0
-
+class TestExCAPE_py(unittest.TestCase):
     def get_default_opts(self):
         return {
-                "datadir"         : os.getcwd(),
-                "test_file"       : "test.sdm",
-                "train_file"      : "train.sdm",
+                "Ytest"           : TestExCAPE_py.data["test.sdm"],
+                "priors"          : [ "normal", "normal" ],
                 "num_latent"      : 16,
-                "burnin"          : 100,
+                "burnin"          : 400,
                 "nsamples"        : 200,
-                "precision"       : 1.0,
-                "verbose"         : TestExCAPE.verbose, 
-                "aux_data_files"  : [ "none", "none" ],
-                "side_info_files" : [ "none", "none" ],
-                "direct"          : True,
+                "Ynoise"          : ("fixed", 1.0, 0.0, 0.0, 0.0),
+                "verbose"         : global_verbose, 
+                "aux_data"        : [ [], [] ],
+                "side_info"       : [ None, None ],
+                "side_info_noises": [ ("fixed", 10.0, 0.0, 0.0, 0.0), ("fixed", 10.0, 0.0, 0.0, 0.0) ],
                 }
 
-    def files_to_data(self, args):
-        args["train"] = TestExCAPE.data[args["train_file"]]
-        args["Ytest"] = TestExCAPE.data[args["test_file"]]
+    @classmethod
+    def setUpClass(cls):
+        files = [
+                "train.sdm",
+                "test.sdm",
+                "side_c2v.ddm",
+                "side_ecfp6_counts_var005.sdm",
+                "side_ecfp6_folded_dense.ddm"
+                ]
 
-        for t in ["side_info", "aux_data"]:
-            args[t] = []
-            for f in args[t + "_files"]:
-                if f != "none":
-                    args[t].append(TestExCAPE.data[f])
-                else:
-                    args[t].append(None)
+        cls.data = { f : mio.read_matrix(f) for f in files }
 
-        return args
+    def macau(self, side_info, direct, expected):
+        args = self.get_default_opts()
+        args["direct"] = direct
 
-    def time_smurff(self, args, expected):
-        args = self.files_to_data(args)
+        for d in range(2):
+            if side_info[d] != None:
+                args["side_info"][d] = TestExCAPE_py.data[side_info[d]]
+                args["priors"][d] = 'macau'
+            else:
+                args["side_info"][d] = None
+
 
         start = time()
-        result = smurff_method(args)
+        result = smurff.smurff(TestExCAPE_py.data["train.sdm"], **args)
         stop = time()
         elapsed = stop - start
 
@@ -110,62 +60,86 @@ class TestExCAPE(unittest.TestCase):
         self.assertGreater(result.rmse, expected[1])
         self.assertLess(elapsed, expected[2])
 
-    def bpmf(self, args, expected):
-        args["priors"] = ["normal", "normal"]
-        args["side_info_files"] = [ "none", "none" ]
-        self.time_smurff(args, expected)
-
-    def macau(self, side_info_files, args, expected):
-        priors = [ 'normal', 'normal' ]
-        for d in range(2):
-            if side_info_files[d] != "none":
-                priors[d] = 'macau'
-
-        args["priors"] = priors
-        args["side_info_files"] = side_info_files
-        args["aux_data"] =  [ [], [] ]
-
-        self.time_smurff(args, expected)
-
     def test_bpmf(self):
-        params = self.get_default_opts()
-        self.bpmf(params, [ 1.22, 1.10, 120. ])
+        side_info = [ None, None ]
+        self.macau(side_info, True, [ 1.22, 1.10, 120. ])
 
     def test_macau_c2v(self):
-        params = self.get_default_opts()
-        side_info = [ "side_c2v.ddm", "none" ]
-        self.macau(side_info, params, [1.1, 1.0, 240. ])
+        side_info = [ "side_c2v.ddm", None ]
+        self.macau(side_info, True, [1.1, 1.0, 240. ])
 
     def test_macau_ecfp_sparse_direct(self):
-        params = self.get_default_opts()
-        side_info = [ "side_ecfp6_counts_var005.sdm", "none" ]
-        self.macau(side_info, params, [1.19, 1.0, 900. ])
+        side_info = [ "side_ecfp6_counts_var005.sdm", None ]
+        self.macau(side_info, True, [1.19, 1.0, 1500. ])
 
     def test_macau_ecfp_sparse_cg(self):
-        params = self.get_default_opts()
-        params["direct"] = False
-        side_info = [ "side_ecfp6_counts_var005.sdm", "none" ]
-        self.macau(side_info, params, [1.19, 1.0, 480. ])
+        side_info = [ "side_ecfp6_counts_var005.sdm", None ]
+        self.macau(side_info, False, [1.19, 1.0, 480. ])
 
     def test_macau_ecfp_dense(self):
-        params = self.get_default_opts()
-        side_info = [ "side_ecfp6_folded_dense.ddm", "none" ]
-        self.macau(side_info, params, [ 1.08, 1.0, 240. ])
+        side_info = [ "side_ecfp6_folded_dense.ddm", None ]
+        self.macau(side_info, True, [ 1.08, 1.0, 240. ])
 
 
-class TestExCAPE(TestExCAPE):
-    smurff_method = smurff_cmd
+#
+##### run tests through ini files
+#
 
-    @classmethod
-    def setUpClass(cls):
-        cls.data = load_data()
 
-    def smurff(args):
-        allowed_args = [ "Ytest", "num_latent", "burnin", "nsamples", "precision", "verbose",
-                "aux_data", "side_info", "direct", "priors"]
-        filtered_args = { k: args[k] for k in allowed_args}
-        return smurff.smurff(args["train"], **filtered_args)
 
+def extract_rmse(stats_file):
+    rmse = float("nan")
+    try:
+        stats = pd.read_csv(stats_file, sep=";")
+        last_row = stats.tail(1)
+        rmse = float(last_row['rmse_avg'])
+    except Exception as e:
+        print(e)
+
+    return rmse
+
+class TestExCAPE_ini(unittest.TestCase):
+    def ini(self, ini, expected):
+            from_dir = os.getcwd()
+            link_files = [
+                    "bpmf.ini",
+                    "macau-c2v.ini",
+                    "macau-ecfp-dense.ini",
+                    "macau-ecfp-sparse-cg.ini",
+                    "macau-ecfp-sparse-direct.ini",
+                    "side_c2v.ddm",
+                    "side_ecfp6_counts_var005.sdm",
+                    "side_ecfp6_folded_dense.ddm",
+                    "test.sdm",
+                    "train.sdm",
+                ]
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                for f in link_files:
+                    os.symlink(os.path.join(from_dir, f), os.path.join(tmpdirname, f))
+
+                start = time()
+                call("smurff --ini=" + ini, shell=True, cwd=tmpdirname)
+                stop = time()
+                elapsed = stop - start
+                rmse = extract_rmse(os.path.join(tmpdirname, "stats.csv"))
+
+            self.assertLess(rmse, expected[0])
+            self.assertGreater(rmse, expected[1])
+            self.assertLess(elapsed, expected[2])
+
+    def test_bpmf(self):
+        self.ini("bpmf.ini", [ 1.22, 1.10, 120. ])
+    def test_macau_c2v(self):
+        self.ini("macau-c2v.ini", [1.1, 1.0, 240. ])
+    def test_macau_ecfp_sparse_direct(self):
+        self.ini("macau-ecfp-sparse-direct.ini", [1.19, 1.0, 1500. ])
+    def test_macau_ecfp_sparse_cg(self):
+        self.ini("macau-ecfp-sparse-cg.ini", [1.19, 1.0, 900. ])
+    def test_macau_ecfp_dense(self):
+        self.ini("macau-ecfp-dense.ini", [1.08, 1.0, 240. ])
+ 
 if __name__ == "__main__":
-    if ("-v" in sys.argv): TestExCAPE.verbose = 1
+    for arg in sys.argv:
+        if (arg == "-v" or arg == "--verbose"):
+            global_verbose = True
     unittest.main()

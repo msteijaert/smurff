@@ -11,7 +11,7 @@ from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 
-from Config cimport Config, PriorTypes, stringToPriorType, stringToModelInitType
+from Config cimport *
 from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
@@ -41,7 +41,7 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef MatrixConfig* prepare_sparse_matrix(X, is_scarse):
+cdef MatrixConfig* prepare_sparse_matrix(X, NoiseConfig noise_config, is_scarse):
     if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
 
@@ -72,32 +72,32 @@ cdef MatrixConfig* prepare_sparse_matrix(X, is_scarse):
     cdef shared_ptr[vector[uint32_t]] cols_vector_shared_ptr = shared_ptr[vector[uint32_t]](cols_vector_ptr)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
 
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, NoiseConfig(), is_scarse)
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, noise_config, is_scarse)
     return matrix_config_ptr
 
-cdef MatrixConfig* prepare_dense_matrix(X):
+cdef MatrixConfig* prepare_dense_matrix(X, NoiseConfig noise_config):
     cdef np.ndarray[np.double_t] vals = np.squeeze(np.asarray(X.flatten(order='F')))
     cdef double* vals_begin = &vals[0]
     cdef double* vals_end = vals_begin + vals.shape[0]
     cdef vector[double]* vals_vector_ptr = new vector[double]()
     vals_vector_ptr.assign(vals_begin, vals_end)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, NoiseConfig())
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, noise_config)
     return matrix_config_ptr
 
-cdef MatrixConfig* prepare_sideinfo(in_matrix):
+cdef MatrixConfig* prepare_sideinfo(in_matrix, NoiseConfig noise_config):
     if type(in_matrix) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
-        return prepare_sparse_matrix(in_matrix, False)
+        return prepare_sparse_matrix(in_matrix, noise_config, False)
     else:
-        return prepare_dense_matrix(in_matrix)
+        return prepare_dense_matrix(in_matrix, noise_config)
 
-cdef TensorConfig* prepare_dense_tensor(tensor):
+cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config):
     if type(tensor) not in DENSE_TENSOR_TYPES:
         error_msg = "Unsupported dense tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
     raise NotImplementedError()
 
-cdef TensorConfig* prepare_sparse_tensor(tensor, shape, is_scarse):
+cdef TensorConfig* prepare_sparse_tensor(tensor, shape, NoiseConfig noise_config, is_scarse):
     if type(tensor) not in SPARSE_TENSOR_TYPES:
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
@@ -130,16 +130,16 @@ cdef TensorConfig* prepare_sparse_tensor(tensor, shape, is_scarse):
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
 
-cdef TensorConfig* prepare_auxdata(in_tensor, shape):
+cdef TensorConfig* prepare_auxdata(in_tensor, shape, NoiseConfig noise_config):
     if type(in_tensor) in DENSE_TENSOR_TYPES:
-        return prepare_dense_tensor(in_tensor)
+        return prepare_dense_tensor(in_tensor, noise_config)
     elif type(in_tensor) in SPARSE_TENSOR_TYPES:
-        return prepare_sparse_tensor(in_tensor, shape, True)
+        return prepare_sparse_tensor(in_tensor, shape, noise_config, True)
     else:
         error_msg = "Unsupported tensor type: {}".format(type(in_tensor))
         raise ValueError(error_msg)
 
-cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape):
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape, NoiseConfig noise_config):
     # Check train data type
     if (type(train) not in DENSE_MATRIX_TYPES and
         type(train) not in SPARSE_MATRIX_TYPES and
@@ -173,27 +173,27 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
 
     # Prepare train data
     if type(train) in DENSE_MATRIX_TYPES and len(train.shape) == 2:
-        train_config = prepare_dense_matrix(train)
+        train_config = prepare_dense_matrix(train, noise_config)
     elif type(train) in SPARSE_MATRIX_TYPES:
-        train_config = prepare_sparse_matrix(train, True)
+        train_config = prepare_sparse_matrix(train, noise_config, True)
     elif type(train) in DENSE_TENSOR_TYPES and len(train.shape) > 2:
-        train_config = prepare_dense_tensor(train)
+        train_config = prepare_dense_tensor(train, noise_config)
     elif type(train) in SPARSE_TENSOR_TYPES:
-        train_config = prepare_sparse_tensor(train, shape, True)
+        train_config = prepare_sparse_tensor(train, shape, noise_config, True)
     else:
         error_msg = "Unsupported train data type: {}".format(type(train))
         raise ValueError(error_msg)
+    train_config.setNoiseConfig(noise_config)
 
     # Prepare test data
     if test is not None:
         if type(test) in DENSE_MATRIX_TYPES and len(test.shape) == 2:
-            test_config = prepare_dense_matrix(test)
+            test_config = prepare_dense_matrix(test, noise_config)
         elif type(test) in SPARSE_MATRIX_TYPES:
-            test_config = prepare_sparse_matrix(test, True)
+            test_config = prepare_sparse_matrix(test, noise_config, True)
         elif type(test) in DENSE_TENSOR_TYPES and len(test.shape) > 2:
-            test_config = prepare_dense_tensor(test)
-        elif type(test) in SPARSE_TENSOR_TYPES:
-            test_config = prepare_sparse_tensor(test, shape, True)
+            test_config = prepare_dense_tensor(test, noise_config)
+            test_config = prepare_sparse_tensor(test, shape, noise_config, True)
         else:
             error_msg = "Unsupported test data type: {}".format(type(test))
             raise ValueError(error_msg)
@@ -209,7 +209,6 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig](test_config)
     else:
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
-
 
 cdef class PySession:
     cdef shared_ptr[ISession] ptr;
@@ -275,28 +274,65 @@ cdef class PySession:
         cdef shared_ptr[PVec] pos
         cdef string prior_type_str
 
+def smurff(Y                = None,
+           Ynoise           = None,
+           Ytest            = None,
+           data_shape       = None,
+           priors           = [],
+           side_info        = [],
+           side_info_noises = [],
+           aux_data         = [],
+           aux_data_noises  = [],
+           num_latent       = NUM_LATENT_DEFAULT_VALUE,
+           burnin           = BURNIN_DEFAULT_VALUE,
+           nsamples         = NSAMPLES_DEFAULT_VALUE,
+           tol              = TOL_DEFAULT_VALUE,
+           direct           = True,
+           seed             = RANDOM_SEED_DEFAULT_VALUE,
+           verbose          = VERBOSE_DEFAULT_VALUE,
+           quite            = False,
+           init_model       = None,
+           save_prefix      = SAVE_PREFIX_DEFAULT_VALUE,
+           save_extension   = SAVE_EXTENSION_DEFAULT_VALUE,
+           save_freq        = SAVE_FREQ_DEFAULT_VALUE,
+           csv_status       = STATUS_DEFAULT_VALUE,
+           root_path        = None,
+           ini_path         = None):
 
-        if precision is not None:
-            nc.setNoiseType(fixed)
-            nc.setPrecision(precision)
+    cdef Config config
+    cdef NoiseConfig noise_config
+    cdef shared_ptr[ISession] session
+    cdef shared_ptr[PVec] pos
 
-        if sn_init is not None and sn_max is not None:
-            nc.setNoiseType(adaptive)
-            nc.setSnInit(sn_init)
-            nc.setSnMax(sn_max)
+    if root_path is not None:
+        session = SessionFactory.create_py_session_from_root_path(root_path)
+    elif ini_path is not None:
+        success = config.restore(ini_path)
+        if not success:
+            raise f"Could not load init file '{ini_path}'"
+        session = SessionFactory.create_py_session_from_config(config)
+    else:
+        # Create and initialize smurff-cpp Config instance
 
-        if threshold is not None:
-            nc.setNoiseType(probit)
-            nc.setThreshold(threshold)
-            config.setThreshold(threshold)
-            config.setClassify(True)
+        if Ynoise is not None:
+            noise_config.setNoiseType(stringToNoiseType(Ynoise[0]))
 
-        train, test = prepare_data(Y, Ytest, data_shape)
-        train.get().setNoiseConfig(nc)
+            if Ynoise[1] is not None:
+                noise_config.setPrecision(Ynoise[1])
+            if Ynoise[2] is not None:
+                noise_config.setSnInit(Ynoise[2])
+            if Ynoise[3] is not None:
+                noise_config.setSnMax(Ynoise[3])
+            if Ynoise[4] is not None:
+                noise_config.setThreshold(Ynoise[4])
+        else:
+            noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
 
+        train, test = prepare_data(Y, Ytest, data_shape, noise_config)
+        train.get().setNoiseConfig(noise_config)
         config.setTrain(train)
+
         if Ytest is not None:
-            test.get().setNoiseConfig(nc)
             config.setTest(test)
 
         if len(side_info) == 0:
@@ -305,23 +341,34 @@ cdef class PySession:
         if len(aux_data) == 0:
             aux_data = [None] * len(priors)
 
-        cdef shared_ptr[MatrixConfig] side_info_config
-        for i in range(len(priors)):
-            prior_type_str = priors[i].encode('UTF-8')
-            config.getPriorTypes().push_back(stringToPriorType(prior_type_str))
+        for prior_type_str in priors:
+            config.getPriorTypes().push_back(stringToPriorType(prior_type_str.encode('UTF-8')))
 
-            prior_side_info = side_info[i]
-            if prior_side_info is None:
+        for i in range(len(side_info)):
+            if len(side_info_noises) > 0 and side_info_noises[i] is not None:
+                noise_config.setNoiseType(stringToNoiseType(side_info_noises[i][0]))
+                if side_info_noises[i][1] is not None:
+                    noise_config.setPrecision(side_info_noises[i][1])
+                if side_info_noises[i][2] is not None:
+                    noise_config.setSnInit(side_info_noises[i][2])
+                if side_info_noises[i][3] is not None:
+                    noise_config.setSnMax(side_info_noises[i][3])
+                if side_info_noises[i][4] is not None:
+                    noise_config.setThreshold(side_info_noises[i][4])
+            else:
+                noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
+
+            if side_info[i] is None:
                 config.getSideInfo().push_back(shared_ptr[MatrixConfig]())
             else:
-                side_info_config = shared_ptr[MatrixConfig](prepare_sideinfo(prior_side_info))
-                side_info_config.get().setNoiseConfig(nc)
-                config.getSideInfo().push_back(side_info_config)
+                config.getSideInfo().push_back(shared_ptr[MatrixConfig](prepare_sideinfo(side_info[i], noise_config)))
 
-            prior_aux_data = aux_data[i]
-            if prior_aux_data is not None:
+        for i in range(len(aux_data)):
+            aux_data_list = aux_data[i]
+            if aux_data_list is not None:
                 pos = make_shared[PVec](len(priors))
-                for ad in prior_aux_data:
+                for j in range(len(aux_data_list)):
+                    ad = aux_data_list[j]
                     if ad is not None:
                         if i == 0:
                             (&pos.get()[0].at(1))[0] += 1
@@ -329,8 +376,20 @@ cdef class PySession:
                             (&pos.get()[0].at(0))[0] += 1
                         else:
                             (&pos.get()[0].at(i))[0] += 1
-                        config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape)))
-                        config.getAuxData().back().get().setPos(pos.get()[0])
+                    if len(aux_data_noises) > 0 and aux_data_noises[i] is not None and len(aux_data_noises[i]) > 0 and aux_data_noises[i][j] is not None:
+                        noise_config.setNoiseType(stringToNoiseType(aux_data_noises[i][j][0]))
+                        if aux_data_noises[i][j][1] is not None:
+                            noise_config.setPrecision(aux_data_noises[i][j][1])
+                        if aux_data_noises[i][j][2] is not None:
+                            noise_config.setSnInit(aux_data_noises[i][j][2])
+                        if aux_data_noises[i][j][3] is not None:
+                            noise_config.setSnMax(aux_data_noises[i][j][3])
+                        if aux_data_noises[i][j][4] is not None:
+                            noise_config.setThreshold(aux_data_noises[i][j][4])
+                    else:
+                        noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
+                    config.getAuxData().push_back(shared_ptr[TensorConfig](prepare_auxdata(ad, data_shape, noise_config)))
+                    config.getAuxData().back().get().setPos(pos.get()[0])
 
         config.setNumLatent(num_latent)
         config.setBurnin(burnin)
@@ -343,14 +402,52 @@ cdef class PySession:
             config.setRandomSeed(seed)
 
         config.setVerbose(verbose)
-        if init_model:     config.setModelInitType(stringToModelInitType(init_model))
-        if save_prefix:    config.setSavePrefix(save_prefix)
-        if save_extension: config.setSaveExtension(save_extension)
-        if save_freq:      config.setSaveFreq(save_freq)
-        if csv_status:     config.setCsvStatus(csv_status)
 
-        
-        session = PySession()
-        session.ptr = SessionFactory.create_py_session_from_config(config)
-        return session
+        if quite:
+            config.setVerbose(False)
 
+        if init_model:
+            config.setModelInitType(stringToModelInitType(init_model))
+        else:
+            config.setModelInitType(INIT_MODEL_DEFAULT_VALUE)
+
+        if save_prefix:
+            config.setSavePrefix(save_prefix)
+
+        if save_extension:
+            config.setSaveExtension(save_extension)
+
+        if save_freq:
+            config.setSaveFreq(save_freq)
+
+        if csv_status:
+            config.setCsvStatus(csv_status)
+
+        session = SessionFactory.create_py_session_from_config(config)
+
+    # Create and run session
+    session.get().init()
+    while session.get().step():
+        pass
+
+    # Create Python list of ResultItem from C++ vector of ResultItem
+    cpp_result_items_ptr = session.get().getResult()
+    py_result_items = []
+
+    if cpp_result_items_ptr:
+        for i in range(cpp_result_items_ptr.get().size()):
+            cpp_result_item_ptr = &(cpp_result_items_ptr.get().at(i))
+            py_result_item_coords = []
+            for coord_index in range(cpp_result_item_ptr.coords.size()):
+                coord = cpp_result_item_ptr.coords[coord_index]
+                py_result_item_coords.append(coord)
+            py_result_item = ResultItem( tuple(py_result_item_coords)
+                                       , cpp_result_item_ptr.val
+                                       , cpp_result_item_ptr.pred_1sample
+                                       , cpp_result_item_ptr.pred_avg
+                                       , cpp_result_item_ptr.var
+                                       , cpp_result_item_ptr.stds
+                                       )
+            py_result_items.append(py_result_item)
+
+    return Result(py_result_items, session.get().getRmseAvg())

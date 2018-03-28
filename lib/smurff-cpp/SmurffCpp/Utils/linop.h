@@ -86,7 +86,8 @@ void Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::Matr
 void Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 
 // Y = X[:,col]' * B'
-inline void At_mul_Bt(Eigen::VectorXd & Y, SparseFeat & X, const int col, Eigen::MatrixXd & B) {
+inline void At_mul_Bt(Eigen::VectorXd & Y, SparseFeat & X, const int col, Eigen::MatrixXd & B) 
+{
   const int* cols = X.Mt.cols;
   const int end   = X.Mt.row_ptr[col + 1];
   const int D     = Y.size();
@@ -100,58 +101,79 @@ inline void At_mul_Bt(Eigen::VectorXd & Y, SparseFeat & X, const int col, Eigen:
 }
 
 // Y = X[:,col]' * B'
-inline void At_mul_Bt(Eigen::VectorXd & Y, SparseDoubleFeat & X, const int col, Eigen::MatrixXd & B) {
-  const int* cols    = X.Mt.cols;
-  const double* vals = X.Mt.vals;
-  const int end      = X.Mt.row_ptr[col + 1];
-  const int D        = Y.size();
-  Y.setZero();
-  for (int i = X.Mt.row_ptr[col]; i < end; i++) {
-    int c    = cols[i];
-    double v = vals[i];
-    for (int d = 0; d < D; d++) {
-      Y(d) += v * B(d, c);
-    }
-  }
+inline void At_mul_Bt(Eigen::VectorXd & Y, SparseDoubleFeat & X, const int col, Eigen::MatrixXd & B) 
+{
+   const int* cols    = X.Mt.cols;
+   const double* vals = X.Mt.vals;
+   const int end      = X.Mt.row_ptr[col + 1];
+   const int D        = Y.size();
+   Y.setZero();
+
+   for (int i = X.Mt.row_ptr[col]; i < end; i++) 
+   {
+      int c    = cols[i];
+      double v = vals[i];
+      for (int d = 0; d < D; d++) 
+      {
+         Y(d) += v * B(d, c);
+      }
+   }
 }
 
-inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) {
-   THROWERROR_NOTIMPL();
-}
+inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) 
+{
+   Y.setZero();
 
-// computes Z += A[:,col] * b', where a and b are vectors
-inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseFeat & A, const int col, Eigen::VectorXd & b) {
-  const int* cols = A.Mt.cols;
-  int i           = A.Mt.row_ptr[col];
-  const int end   = A.Mt.row_ptr[col + 1];
-  const int D     = b.size();
-  for (; i < end; i++) {
-    int c = cols[i];
-    for (int d = 0; d < D; d++) {
-      Z(d, c) += b(d);
-    }
-  }
+   for (int row = 0; row < B.rows(); row++)
+   {
+      Y(row) = X.col(col).dot(B.row(row));
+   }
 }
 
 // computes Z += A[:,col] * b', where a and b are vectors
-inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseDoubleFeat & A, const int col, Eigen::VectorXd & b) {
-  const int*    cols = A.Mt.cols;
-  const double* vals = A.Mt.vals;
-  const int D        = b.size();
-  int i              = A.Mt.row_ptr[col];
-  const int end      = A.Mt.row_ptr[col + 1];
-  for (; i < end; i++) {
-    int c    = cols[i];
-    double v = vals[i];
-    for (int d = 0; d < D; d++) {
-      Z(d, c) += v * b(d);
-    }
-  }
+inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseFeat & A, const int col, Eigen::VectorXd & b) 
+{
+   const int* cols = A.Mt.cols;
+   int i           = A.Mt.row_ptr[col];
+   const int end   = A.Mt.row_ptr[col + 1];
+   const int D     = b.size();
+   for (; i < end; i++) 
+   {
+      int c = cols[i];
+      for (int d = 0; d < D; d++) 
+      {
+         Z(d, c) += b(d);
+      }
+   }
 }
+
+// computes Z += A[:,col] * b', where a and b are vectors
+inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseDoubleFeat & A, const int col, Eigen::VectorXd & b) 
+{
+   const int*    cols = A.Mt.cols;
+   const double* vals = A.Mt.vals;
+   const int D        = b.size();
+   int i              = A.Mt.row_ptr[col];
+   const int end      = A.Mt.row_ptr[col + 1];
+   for (; i < end; i++) 
+   {
+      int c    = cols[i];
+      double v = vals[i];
+      for (int d = 0; d < D; d++) 
+      {
+         Z(d, c) += v * b(d);
+      }
+   }
+}
+
 //
 // computes Z += A[:,col] * b', where a and b are vectors
-inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int col, Eigen::VectorXd & b) {
-   THROWERROR_NOTIMPL();
+inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int col, Eigen::VectorXd & b) 
+{
+   for (int row = 0; row < b.size(); row++)
+   {
+      Z.row(row) += (A.col(col) * b(row)).transpose();
+   }
 }
 
 ///////////////////////////////////

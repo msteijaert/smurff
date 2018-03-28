@@ -14,7 +14,6 @@ class TestBPMF(unittest.TestCase):
                       num_latent = 10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_bpmf2(self):
@@ -28,7 +27,6 @@ class TestBPMF(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_bpmf_numerictest(self):
@@ -43,7 +41,6 @@ class TestBPMF(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      precision=1.0,
                       verbose=False)
 
     def test_macau_sparse(self):
@@ -58,7 +55,6 @@ class TestBPMF(unittest.TestCase):
                        num_latent=5,
                        burnin=10,
                        nsamples=5,
-                       precision=1.0,
                        verbose=False)
 
     def test_macau_binsparse(self):
@@ -74,7 +70,6 @@ class TestBPMF(unittest.TestCase):
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
-                      precision=1.0,
                       verbose=False)
 
     def test_make_train_test(self):

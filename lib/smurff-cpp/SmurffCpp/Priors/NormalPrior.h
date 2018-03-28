@@ -44,8 +44,5 @@ public:
 
   void update_prior() override;
   std::ostream &status(std::ostream &os, std::string indent) const override;
-
-private:
-  void initUU();
 };
 }

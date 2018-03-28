@@ -70,25 +70,30 @@ macro(configure_openblas)
 endmacro(configure_openblas)
 
 macro(configure_mkl)
-  message ("Dependency check for MKL...")
-  set(BLA_VENDOR "Intel")
-  find_package( LAPACK REQUIRED )
+  message ("Dependency check for MKL (using MKL SDL)...")
+  find_library (MKL_LIBRARIES "mkl_rt" HINTS ENV LD_LIBRARY_PATH)
 
   # since we mix OpenMP and mkl we need to link this
   if(${OPENMP_FOUND})
+      add_definitions(-DMKL_THREAD_LIBRARY )
       list(FIND OpenMP_CXX_LIB_NAMES "gomp" GNU_OPENMP)
       list(FIND OpenMP_CXX_LIB_NAMES "iomp5" INTEL_OPENMP)
+      list(FIND OpenMP_CXX_LIB_NAMES "omp" LLVM_OPENMP)
       if(NOT GNU_OPENMP EQUAL -1)
-          find_library(INTEL_THREAD_LIBRARY "mkl_gnu_thread"  HINTS ENV LD_LIBRARY_PATH)
+          add_definitions(-DMKL_THREAD_LIBRARY_GNU )
       elseif(NOT INTEL_OPENMP EQUAL -1)
-          find_library(INTEL_THREAD_LIBRARY "mkl_intel_thread"  HINTS ENV LD_LIBRARY_PATH)
+          add_definitions(-DMKL_THREAD_LIBRARY_INTEL )
+      elseif(NOT LLVM_OPENMP EQUAL -1)
+          add_definitions(-DMKL_THREAD_LIBRARY_LLVM )
       else()
           message(ERROR "Unknown threading library ${OpenMP_CXX_LIB_NAMES}")
       endif()
       set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES} ${INTEL_THREAD_LIBRARY})
+  else()
+      add_definitions(-DMKL_THREAD_LIBRARY_SEQUENTIAL )
   endif()
   
-  message(STATUS MKL: ${LAPACK_LIBRARIES} )
+  message(STATUS MKL: ${MKL_LIBRARIES} )
 endmacro(configure_mkl)
 
 macro(configure_eigen)
@@ -109,7 +114,7 @@ macro(configure_boost)
   if(${ENABLE_BOOST})
       message ("Dependency check for boost...")
       
-      set (Boost_USE_STATIC_LIBS ON)
+      set (Boost_USE_STATIC_LIBS OFF)
       set (Boost_USE_MULTITHREADED ON)
 
       # find boost random library - optional
@@ -145,6 +150,16 @@ macro(configure_boost)
                             program_options)
 
       FIND_PACKAGE(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
+      
+      #see https://stackoverflow.com/questions/28887680/linking-boost-library-with-boost-use-static-lib-off-on-windows
+      if (MSVC)
+         # disable autolinking in boost
+         add_definitions(-DBOOST_ALL_NO_LIB)
+
+         # force all boost libraries to dynamic link (we already disabled
+         # autolinking, so I don't know why we need this, but we do!)
+         add_definitions(-DBOOST_ALL_DYN_LINK)
+      endif()
   endif()
 
   if(Boost_FOUND)

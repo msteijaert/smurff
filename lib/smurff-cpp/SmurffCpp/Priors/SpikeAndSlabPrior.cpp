@@ -1,6 +1,7 @@
 #include "SpikeAndSlabPrior.h"
 
 #include <SmurffCpp/IO/MatrixIO.h>
+#include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
@@ -27,40 +28,66 @@ void SpikeAndSlabPrior::init()
 
    //-- prior params
    alpha = ArrayXXd::Ones(K,nview);
-   Zkeep = MatrixXd::Constant(K, nview, D);
+   Zkeep = ArrayXXd::Constant(K, nview, D);
    r = ArrayXXd::Constant(K,nview,.5);
 
-   // derived prior parameters
    log_alpha = alpha.log();
    log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
-
 }
 
 void SpikeAndSlabPrior::update_prior()
 {
-   const int K = num_latent();
    const int nview = data()->nview(m_mode);
+   const int K = num_latent();
    
-   auto Zc = Zcol.combine();
+   Zkeep = Zcol.combine();
    auto W2c = W2col.combine();
 
-   // update hyper params (per view)
+   // update hyper params (alpha and r) (per view)
    for(int v=0; v<nview; ++v) {
        const int D = data()->view_size(m_mode, v);
-       r.col(v) = ( Zc.col(v).array() + prior_beta ) / ( D + prior_beta * D ) ;
+       r.col(v) = ( Zkeep.col(v).array() + prior_beta ) / ( D + prior_beta * D ) ;
        auto ww = W2c.col(v).array() / 2 + prior_beta_0;
-       auto tmpz = Zc.col(v).array() / 2 + prior_alpha_0 ;
+       auto tmpz = Zkeep.col(v).array() / 2 + prior_alpha_0 ;
        alpha.col(v) = tmpz.binaryExpr(ww, [](double a, double b)->double {
                return rgamma(a, 1/b) + 1e-7;
        });
    }
 
+   Zcol.reset();
+   W2col.reset(); 
+
    log_alpha = alpha.log();
    log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
+}
 
-   Zkeep = Zc.array();
-   Zcol.reset();
-   W2col.reset();
+void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
+{
+  const int K = num_latent();
+  const int nview = data()->nview(m_mode);
+
+  NormalOnePrior::restore(sf);
+
+  //compute Zcol
+  int d = 0;
+  ArrayXXd Z(ArrayXXd::Zero(K,nview));
+  ArrayXXd W2(ArrayXXd::Zero(K,nview));
+  for(int v=0; v<data()->nview(m_mode); ++v) 
+  {
+      for(int i=0; i<data()->view_size(m_mode, v); ++i, ++d)
+      {
+        for(int k=0; k<K; ++k) if (U()(k,d) != 0) Z(k,v)++;
+        W2.col(v) += U().col(d).array().square(); 
+      }
+  }
+  THROWERROR_ASSERT(d == num_cols());
+
+  Zcol.reset();
+  W2col.reset();
+  Zcol.local() = Z;
+  W2col.local() = W2;
+
+  update_prior();
 }
 
 std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)

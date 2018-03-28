@@ -11,7 +11,7 @@
 #include <SmurffCpp/Version.h>
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/TensorUtils.h>
-#include <SmurffCpp/IO/INIReader.h>
+#include <SmurffCpp/IO/INIFile.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
@@ -203,19 +203,6 @@ bool Config::validate() const
 
    if (m_train->getNModes() > 2)
    {
-      for (auto& sideInfo : m_sideInfo)
-      {
-         if (sideInfo)
-         {
-            //it is advised to check macau and macauone priors implementation
-            //as well as code in PriorFactory that creates macau priors
-
-            //this check does not directly check that input data is Tensor (it only checks number of dimensions)
-            //however TensorDataFactory will do an additional check throwing an exception
-            THROWERROR("Side info is not supported for TensorData");
-         }
-      }
-
       if (!m_auxData.empty())
       {
          //it is advised to check macau and macauone priors implementation
@@ -236,6 +223,10 @@ bool Config::validate() const
 
    for (std::size_t i = 0; i < m_sideInfo.size(); i++)
    {
+      //FIXME: is this a correct behavior?
+      if (i > 2)
+         break;
+
       const std::shared_ptr<MatrixConfig>& sideInfo = m_sideInfo[i];
       if (sideInfo && sideInfo->getDims()[0] != m_train->getDims()[i])
       {
@@ -341,6 +332,7 @@ bool Config::validate() const
 void Config::save(std::string fname) const
 {
    std::ofstream os(fname);
+   THROWERROR_ASSERT_MSG(os.is_open(), "Error opening file: " + fname);
 
    auto print_tensor_config = [&os](const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg) -> void
    {
@@ -454,7 +446,8 @@ bool Config::restore(std::string fname)
 {
    THROWERROR_FILE_NOT_EXIST(fname);
 
-   INIReader reader(fname);
+   INIFile reader;
+   reader.open(fname);
 
    if (reader.getParseError() < 0)
    {
@@ -575,7 +568,8 @@ bool Config::restoreSaveInfo(std::string fname, std::string& save_prefix, std::s
 {
    THROWERROR_FILE_NOT_EXIST(fname);
 
-   INIReader reader(fname);
+   INIFile reader;
+   reader.open(fname);
 
    if (reader.getParseError() < 0)
    {
