@@ -123,18 +123,18 @@ void Result::savePredState(std::shared_ptr<const StepFile> sf) const
       return;
 
    std::string predStateName = sf->getPredStateFileName();
-   std::ofstream predStatefile;
-   predStatefile.open(predStateName);
-   THROWERROR_ASSERT_MSG(predStatefile.is_open(), "Error opening file: " + predStateName);
 
-   predStatefile << RMSE_AVG_TAG << " = " << rmse_avg << std::endl;
-   predStatefile << RMSE_1SAMPLE_TAG << " = " << rmse_1sample << std::endl;
-   predStatefile << AUC_AVG_TAG << " = " << auc_avg << std::endl;
-   predStatefile << AUC_1SAMPLE_TAG << " = " << auc_1sample << std::endl;
-   predStatefile << SAMPLE_ITER_TAG << " = " << sample_iter << std::endl;
-   predStatefile << BURNIN_ITER_TAG << " = " << burnin_iter << std::endl;
+   INIFile predStatefile;
+   predStatefile.create(predStateName);
+
+   predStatefile.appendItem(std::string(), RMSE_AVG_TAG, std::to_string(rmse_avg));
+   predStatefile.appendItem(std::string(), RMSE_1SAMPLE_TAG, std::to_string(rmse_1sample));
+   predStatefile.appendItem(std::string(), AUC_AVG_TAG, std::to_string(auc_avg));
+   predStatefile.appendItem(std::string(), AUC_1SAMPLE_TAG, std::to_string(auc_1sample));
+   predStatefile.appendItem(std::string(), SAMPLE_ITER_TAG, std::to_string(sample_iter));
+   predStatefile.appendItem(std::string(), BURNIN_ITER_TAG, std::to_string(burnin_iter));
    
-   predStatefile.close();
+   predStatefile.flush();
 }
 
 void Result::restore(std::shared_ptr<const StepFile> sf)

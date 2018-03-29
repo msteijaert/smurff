@@ -420,55 +420,59 @@ std::string TensorConfig::info() const
     return ss.str();
 }
 
-std::ostream& TensorConfig::save_tensor_config(std::ostream& os, const std::string sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg)
+void TensorConfig::save_tensor_config(INIFile& writer, const std::string& sec_name, int sec_idx, const std::shared_ptr<TensorConfig> &cfg)
 {
-   //write section name
-   os << "[" << sec_name;
-   if (sec_idx >= 0)
-      os << "_" << sec_idx;
-   os << "]" << std::endl;
-
-   //write tensor config and noise config
+   std::string section_name = (sec_idx >= 0) ? sec_name + "_" + std::to_string(sec_idx) : sec_name;
+   
    if (cfg)
    {
-      cfg->save(os);
+      //save tensor config and noise config internally
+      cfg->save(writer, section_name);
    }
    else
    {
-      os << "file = " << NONE_TAG << std::endl;
+      //save a placeholder since config can not serialize itself
+      writer.startSection(section_name);
+      writer.appendItem(section_name, FILE_TAG, NONE_TAG);
+      writer.endSection();
    }
-
-   return os;
 }
 
-std::ostream& TensorConfig::save(std::ostream& os) const
+void TensorConfig::save(INIFile& writer, const std::string& section_name) const
 {
+   //write section name
+   writer.startSection(section_name);
+
    //write tensor config position
    if (this->hasPos())
-      os << POS_TAG << " = " << this->getPos() << std::endl;
+   {
+      std::stringstream ss;
+      ss << this->getPos();
+      writer.appendItem(section_name, POS_TAG, ss.str());
+   }
 
    //write tensor config filename
-   os << FILE_TAG << " = " << this->getFilename() << std::endl;
+   writer.appendItem(section_name, FILE_TAG, this->getFilename());
 
    //write tensor config type
    std::string type_str = this->isDense() ? DENSE_TAG : this->isScarce() ? SCARCE_TAG : SPARSE_TAG;
-   os << TYPE_TAG << " = " << type_str << std::endl;
+   writer.appendItem(section_name, TYPE_TAG, type_str);
 
    //write noise config
    auto &noise_config = this->getNoiseConfig();
    if (noise_config.getNoiseType() != NoiseTypes::unset)
    {
-      os << NOISE_MODEL_TAG << "  = " << smurff::noiseTypeToString(noise_config.getNoiseType()) << std::endl;
-      os << PRECISION_TAG << " = " << noise_config.getPrecision() << std::endl;
-      os << SN_INIT_TAG << " = " << noise_config.getSnInit() << std::endl;
-      os << SN_MAX_TAG << " = " << noise_config.getSnMax() << std::endl;
-      os << NOISE_THRESHOLD_TAG << " = " << noise_config.getThreshold() << std::endl;
+      writer.appendItem(section_name, NOISE_MODEL_TAG, smurff::noiseTypeToString(noise_config.getNoiseType()));
+      writer.appendItem(section_name, PRECISION_TAG, std::to_string(noise_config.getPrecision()));
+      writer.appendItem(section_name, SN_INIT_TAG, std::to_string(noise_config.getSnInit()));
+      writer.appendItem(section_name, SN_MAX_TAG, std::to_string(noise_config.getSnMax()));
+      writer.appendItem(section_name, NOISE_THRESHOLD_TAG, std::to_string(noise_config.getThreshold()));
    }
 
-   return os;
+   writer.endSection();
 }
 
-std::shared_ptr<TensorConfig> TensorConfig::restore_tensor_config(const INIFile& reader, const std::string sec_name)
+std::shared_ptr<TensorConfig> TensorConfig::restore_tensor_config(const INIFile& reader, const std::string& sec_name)
 {
    //restore filename
    std::string filename = reader.get(sec_name, FILE_TAG, NONE_TAG);
@@ -487,7 +491,7 @@ std::shared_ptr<TensorConfig> TensorConfig::restore_tensor_config(const INIFile&
    return cfg;
 }
 
-bool TensorConfig::restore(const INIFile& reader, const std::string sec_name)
+bool TensorConfig::restore(const INIFile& reader, const std::string& sec_name)
 {
    //restore position
    std::string pos_str = reader.get(sec_name, POS_TAG, NONE_TAG);
