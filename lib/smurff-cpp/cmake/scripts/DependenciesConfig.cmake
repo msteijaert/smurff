@@ -71,7 +71,9 @@ endmacro(configure_openblas)
 
 macro(configure_mkl)
   message ("Dependency check for MKL (using MKL SDL)...")
-  find_library (MKL_LIBRARIES "mkl_rt" HINTS ENV LD_LIBRARY_PATH)
+  find_library (MKL_LIBRARIES "mkl_rt" HINTS ENV LD_LIBRARY_PATH REQUIRED)
+  find_PATH (MKL_INCLUDE_DIR "mkl.h" HINTS ENV CPATH REQUIRED)
+  include_directories(${MKL_INCLUDE_DIR})
   add_definitions(-DEIGEN_USE_MKL_ALL )
 
   # since we mix OpenMP and mkl we need to link this
@@ -89,7 +91,6 @@ macro(configure_mkl)
       else()
           message(ERROR "Unknown threading library ${OpenMP_CXX_LIB_NAMES}")
       endif()
-      set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES} ${INTEL_THREAD_LIBRARY})
   else()
       add_definitions(-DMKL_THREAD_LIBRARY_SEQUENTIAL )
   endif()
