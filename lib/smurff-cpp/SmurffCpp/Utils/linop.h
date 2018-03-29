@@ -224,6 +224,13 @@ inline void solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixX
   }
 }
 
+//
+//-- Solves the system (K' * K + reg * I) * X = B for X for m right-hand sides
+//   K = d x n matrix
+//   I = n x n identity
+//   X = n x m matrix
+//   B = n x m matrix
+//
 template<typename T>
 inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd & B, double tol) {
   // initialize
@@ -287,10 +294,14 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
 
     //A_mul_Bt_blas(PtKP, P, KP); // TODO: use KPtmp with dsyrk two save 2x time
     A_mul_Bt_omp_sym(PtKP, P, KP);
-    Eigen::LLT<Eigen::MatrixXd> chol = PtKP.llt();
-    A = chol.solve(*RtR);
+
+    auto chol_PtKP = PtKP.ldlt();
+    THROWERROR_ASSERT_MSG(chol_PtKP.info() == Eigen::Success, "Cholesky Decomposition failed!");
+    A = chol_PtKP.solve(*RtR);
+
     A.transposeInPlace();
     ////double t3 = tick();
+
     
     #pragma omp parallel for schedule(dynamic, 4)
     for (int block = 0; block < nblocks; block++) 
@@ -314,8 +325,9 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
       break;
     }
     // Psi = (R R') \ R2 R2'
-    chol = RtR->llt();
-    Psi  = chol.solve(*RtR2);
+    auto chol_RtR = RtR->llt();
+    THROWERROR_ASSERT_MSG(chol_RtR.info() == Eigen::Success, "Cholesky Decomposition failed!");
+    Psi  = chol_RtR.solve(*RtR2);
     Psi.transposeInPlace();
     ////double t5 = tick();
 
