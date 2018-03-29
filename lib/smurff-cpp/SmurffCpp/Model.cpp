@@ -83,7 +83,7 @@ const Eigen::MatrixXd &Model::U(uint32_t f) const
 
 Eigen::MatrixXd &Model::U(uint32_t f)
 {
-   return *m_samples.at(f);
+   return *m_samples[f];
 }
 
 VMatrixIterator<Eigen::MatrixXd> Model::Vbegin(std::uint32_t mode)
