@@ -19,7 +19,7 @@ class VMatrixExprIterator : public std::iterator<
 >
 {
 private:
-   std::shared_ptr<Model> m_model;
+   const Model& m_model;
    PVec<> m_off;
    PVec<> m_dims;
 	std::uint32_t m_mode;
@@ -27,14 +27,14 @@ private:
 
 public:
 	//begin constructor
-   VMatrixExprIterator(std::shared_ptr<Model> model, PVec<> off, PVec<> dims, std::uint32_t mode, std::uint32_t num)
+   VMatrixExprIterator(const Model& model, PVec<> off, PVec<> dims, std::uint32_t mode, std::uint32_t num)
       : m_model(model), m_off(off), m_dims(dims), m_mode(mode), m_num(num == mode ? num + 1 : num)
    {
    }
 
 	//end constructor
    VMatrixExprIterator(std::uint32_t num)
-      : m_model(std::shared_ptr<Model>()), m_off(1), m_dims(1), m_mode(-1), m_num(num)
+      : m_model(Model::no_model), m_off(1), m_dims(1), m_mode(-1), m_num(num)
    {
    }
 
@@ -77,7 +77,7 @@ public:
 
    T operator*()
    {
-      return m_model->U(m_num).block(0, m_off.at(m_num), m_model->nlatent(), m_dims.at(m_num));
+      return m_model.U(m_num).block(0, m_off[m_num], m_model.nlatent(), m_dims[m_num]);
    }
 
    T operator->()

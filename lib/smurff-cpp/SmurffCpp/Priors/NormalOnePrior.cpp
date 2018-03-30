@@ -49,7 +49,7 @@ void NormalOnePrior::sample_latent(int d)
    MatrixXd XX = MatrixXd::Zero(K, K);
    VectorXd yX = VectorXd::Zero(K);
 
-   data()->getMuLambda(model(), m_mode, d, yX, XX);
+   data().getMuLambda(model(), m_mode, d, yX, XX);
 
    // add hyperparams
    yX.noalias() += Lambda * mu;

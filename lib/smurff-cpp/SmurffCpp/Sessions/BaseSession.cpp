@@ -26,17 +26,17 @@ bool BaseSession::step()
 {
    for(auto &p : m_priors)
       p->sample_latents();
-   data()->update(m_model);
+   data().update(model());
    return true;
 }
 
 std::ostream &BaseSession::info(std::ostream &os, std::string indent)
 {
    os << indent << "  Data: {" << std::endl;
-   data()->info(os, indent + "    ");
+   data().info(os, indent + "    ");
    os << indent << "  }" << std::endl;
    os << indent << "  Model: {" << std::endl;
-   m_model->info(os, indent + "    ");
+   model().info(os, indent + "    ");
    os << indent << "  }" << std::endl;
    os << indent << "  Priors: {" << std::endl;
    for( auto &p : m_priors)

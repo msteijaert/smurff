@@ -18,11 +18,12 @@
 
 using namespace smurff;
 
-void Session::setFromRootPath(std::string rootPath)
+void Session::setRestoreFromRootPath(std::string rootPath)
 {
-   // assign config
-
+   // open root file
    m_rootFile = std::make_shared<RootFile>(rootPath);
+
+   //restore config
    m_rootFile->restoreConfig(m_config);
 
    m_config.validate();
@@ -31,14 +32,31 @@ void Session::setFromRootPath(std::string rootPath)
    setFromBase();
 }
 
-void Session::setFromConfig(const Config& cfg)
+void Session::setRestoreFromConfig(const Config& cfg, std::string rootPath)
 {
-   // assign config
-
    cfg.validate();
+
+   // assign config
    m_config = cfg;
 
+   // open root file
+   m_rootFile = std::make_shared<RootFile>(rootPath);
+
+   //base functionality
+   setFromBase();
+}
+
+void Session::setCreateFromConfig(const Config& cfg)
+{
+   cfg.validate();
+
+   // assign config
+   m_config = cfg;
+
+   // create root file
    m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+
+   //save config
    m_rootFile->saveConfig(m_config);
 
    //base functionality
@@ -80,10 +98,10 @@ void Session::init()
    initRng();
 
    //initialize train matrix (centring and noise model)
-   data()->init();
+   data().init();
 
    //initialize model (samples)
-   m_model->init(m_config.getNumLatent(), data()->dim(), m_config.getModelInitType());
+   model().init(m_config.getNumLatent(), data().dim(), m_config.getModelInitType());
 
    //initialize priors
    for(auto &p : m_priors)
@@ -313,14 +331,14 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
       !m_config.getCsvStatus().size())
       return;
 
-   double snorm0 = m_model->U(0).norm();
-   double snorm1 = m_model->U(1).norm();
+   double snorm0 = model().U(0).norm();
+   double snorm1 = model().U(1).norm();
 
    // avoid computing train_rmse twice
    double train_rmse = NAN;
 
-   double nnz_per_sec =  (double)(data()->nnz()) / elapsedi;
-   double samples_per_sec = (double)(m_model->nsamples()) / elapsedi;
+   double nnz_per_sec =  (double)(data().nnz()) / elapsedi;
+   double samples_per_sec = (double)(model().nsamples()) / elapsedi;
 
    std::string resumeString = resume ? "Continue from " : std::string();
 
@@ -393,7 +411,7 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
 
        if (m_config.getVerbose() > 1)
        {
-           train_rmse = data()->train_rmse(m_model);
+           train_rmse = data().train_rmse(model());
            output << std::fixed << std::setprecision(4) << "  RMSE train: " << train_rmse << std::endl;
            output << "  Priors:" << std::endl;
 
@@ -401,9 +419,9 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
                p->status(output, "     ");
 
            output << "  Model:" << std::endl;
-           m_model->status(output, "    ");
+           model().status(output, "    ");
            output << "  Noise:" << std::endl;
-           data()->status(output, "    ");
+           data().status(output, "    ");
        }
 
        if (m_config.getVerbose() > 2)

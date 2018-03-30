@@ -149,7 +149,7 @@ std::ostream& MatricesData::status(std::ostream& os, std::string indent) const
    {
        os << indent << "  ";
        p.pos().info(os);
-       os << ": " << p.data()->noise()->getStatus() << "\n";
+       os << ": " << p.data()->noise().getStatus() << "\n";
    }
    return os;
 }

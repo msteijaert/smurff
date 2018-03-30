@@ -134,12 +134,12 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    //save models
 
    appendCommentToStepFile("models");
-   appendToStepFile(NUM_MODELS_TAG, std::to_string(model->nmodes()));
+   appendToStepFile(std::string(), NUM_MODELS_TAG, std::to_string(model->nmodes()));
 
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
       std::string path = getModelFileName(mIndex);
-      appendToStepFile(MODEL_PREFIX + std::to_string(mIndex), path);
+      appendToStepFile(std::string(), MODEL_PREFIX + std::to_string(mIndex), path);
    }
 }
 
@@ -153,8 +153,8 @@ void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
    //save predictions
 
    appendCommentToStepFile("predictions");
-   appendToStepFile(PRED_TAG, getPredFileName());
-   appendToStepFile(PRED_STATE_TAG, getPredStateFileName());
+   appendToStepFile(std::string(), PRED_TAG, getPredFileName());
+   appendToStepFile(std::string(), PRED_STATE_TAG, getPredStateFileName());
 }
 
 void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
@@ -167,12 +167,12 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
    //save priors
 
    appendCommentToStepFile("priors");
-   appendToStepFile(NUM_PRIORS_TAG, std::to_string(priors.size()));
+   appendToStepFile(std::string(), NUM_PRIORS_TAG, std::to_string(priors.size()));
 
    for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
    {
       std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
-      appendToStepFile(PRIOR_PREFIX + std::to_string(pIndex), priorPath);
+      appendToStepFile(std::string(), PRIOR_PREFIX + std::to_string(pIndex), priorPath);
    }
 }
 
@@ -338,9 +338,9 @@ std::pair<bool, std::string> StepFile::tryGetIniValueBase(const std::string& tag
    return m_iniReader->tryGet(std::string(), tag);
 }
 
-void StepFile::appendToStepFile(std::string tag, std::string value) const
+void StepFile::appendToStepFile(std::string section, std::string tag, std::string value) const
 {
-   m_iniReader->appendItem(tag, value);
+   m_iniReader->appendItem(section, tag, value);
    
    flushLast();
 }

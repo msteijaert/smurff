@@ -82,7 +82,7 @@ namespace smurff {
 
       std::pair<bool, std::string> tryGetIniValueBase(const std::string& tag) const;
 
-      void appendToStepFile(std::string tag, std::string value) const;
+      void appendToStepFile(std::string section, std::string tag, std::string value) const;
 
       void appendCommentToStepFile(std::string comment) const;
 

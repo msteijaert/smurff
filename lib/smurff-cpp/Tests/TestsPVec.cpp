@@ -11,23 +11,23 @@ TEST_CASE("PVec<>::PVec(size_t n) | PVec<>::size() | PVec<>::operator[](size_t p
    PVec<> p1(1);
    REQUIRE(p1.size() == 1);
    REQUIRE(p1[0] == 0);
-   REQUIRE_THROWS_AS(p1[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p1[1], std::out_of_range);
+   REQUIRE_THROWS_AS(p1.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p1.at(1), std::out_of_range);
 
    PVec<> p2(2);
    REQUIRE(p2.size() == 2);
    REQUIRE(p2[0] == 0);
    REQUIRE(p2[1] == 0);
-   REQUIRE_THROWS_AS(p2[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p2[2], std::out_of_range);
+   REQUIRE_THROWS_AS(p2.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p2.at(2), std::out_of_range);
 
    PVec<> p3(3);
    REQUIRE(p3.size() == 3);
    REQUIRE(p3[0] == 0);
    REQUIRE(p3[1] == 0);
    REQUIRE(p3[2] == 0);
-   REQUIRE_THROWS_AS(p3[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p3[3], std::out_of_range);
+   REQUIRE_THROWS_AS(p3.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p3.at(3), std::out_of_range);
 
    PVec<4> p4(4);
    REQUIRE(p4.size() == 4);
@@ -35,8 +35,8 @@ TEST_CASE("PVec<>::PVec(size_t n) | PVec<>::size() | PVec<>::operator[](size_t p
    REQUIRE(p4[1] == 0);
    REQUIRE(p4[2] == 0);
    REQUIRE(p4[3] == 0);
-   REQUIRE_THROWS_AS(p4[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p4[4], std::out_of_range);
+   REQUIRE_THROWS_AS(p4.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p4.at(4), std::out_of_range);
 }
 
 TEST_CASE("PVec<>::PVec(const std::initializer_list<int> &l) | PVec<>::size() | PVec<>::operator[](size_t p)")
@@ -46,23 +46,23 @@ TEST_CASE("PVec<>::PVec(const std::initializer_list<int> &l) | PVec<>::size() | 
    PVec<> p1({ 1 });
    REQUIRE(p1.size() == 1);
    REQUIRE(p1[0] == 1);
-   REQUIRE_THROWS_AS(p1[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p1[1], std::out_of_range);
+   REQUIRE_THROWS_AS(p1.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p1.at(1), std::out_of_range);
 
    PVec<> p2({ 1, 2 });
    REQUIRE(p2.size() == 2);
    REQUIRE(p2[0] == 1);
    REQUIRE(p2[1] == 2);
-   REQUIRE_THROWS_AS(p2[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p2[2], std::out_of_range);
+   REQUIRE_THROWS_AS(p2.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p2.at(2), std::out_of_range);
 
    PVec<> p3({ 1, 2, 3 });
    REQUIRE(p3.size() == 3);
    REQUIRE(p3[0] == 1);
    REQUIRE(p3[1] == 2);
    REQUIRE(p3[2] == 3);
-   REQUIRE_THROWS_AS(p3[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p3[3], std::out_of_range);
+   REQUIRE_THROWS_AS(p3.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p3.at(3), std::out_of_range);
 
    PVec<4> p4({ 1, 2, 3, 4 });
    REQUIRE(p4.size() == 4);
@@ -70,8 +70,8 @@ TEST_CASE("PVec<>::PVec(const std::initializer_list<int> &l) | PVec<>::size() | 
    REQUIRE(p4[1] == 2);
    REQUIRE(p4[2] == 3);
    REQUIRE(p4[3] == 4);
-   REQUIRE_THROWS_AS(p4[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p4[4], std::out_of_range);
+   REQUIRE_THROWS_AS(p4.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p4.at(4), std::out_of_range);
 }
 
 TEST_CASE("PVec<>::PVec(const T<int, V...>& v) | PVec<>::size() | PVec<>::operator[](size_t p)")
@@ -83,16 +83,16 @@ TEST_CASE("PVec<>::PVec(const T<int, V...>& v) | PVec<>::size() | PVec<>::operat
    PVec<> p1(v1);
    REQUIRE(p1.size() == 1);
    REQUIRE(p1[0] == 1);
-   REQUIRE_THROWS_AS(p1[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p1[1], std::out_of_range);
+   REQUIRE_THROWS_AS(p1.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p1.at(1), std::out_of_range);
 
    std::vector<int> v2 = { 1, 2 };
    PVec<> p2(v2);
    REQUIRE(p2.size() == 2);
    REQUIRE(p2[0] == 1);
    REQUIRE(p2[1] == 2);
-   REQUIRE_THROWS_AS(p2[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p2[2], std::out_of_range);
+   REQUIRE_THROWS_AS(p2.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p2.at(2), std::out_of_range);
 
    std::vector<int> v3 = { 1, 2, 3 };
    PVec<> p3(v3);
@@ -100,8 +100,8 @@ TEST_CASE("PVec<>::PVec(const T<int, V...>& v) | PVec<>::size() | PVec<>::operat
    REQUIRE(p3[0] == 1);
    REQUIRE(p3[1] == 2);
    REQUIRE(p3[2] == 3);
-   REQUIRE_THROWS_AS(p3[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p3[3], std::out_of_range);
+   REQUIRE_THROWS_AS(p3.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p3.at(3), std::out_of_range);
 
    std::vector<int> v4 = { 1, 2, 3, 4 };
    PVec<4> p4(v4);
@@ -110,8 +110,8 @@ TEST_CASE("PVec<>::PVec(const T<int, V...>& v) | PVec<>::size() | PVec<>::operat
    REQUIRE(p4[1] == 2);
    REQUIRE(p4[2] == 3);
    REQUIRE(p4[3] == 4);
-   REQUIRE_THROWS_AS(p4[-1], std::out_of_range);
-   REQUIRE_THROWS_AS(p4[4], std::out_of_range);
+   REQUIRE_THROWS_AS(p4.at(-1), std::out_of_range);
+   REQUIRE_THROWS_AS(p4.at(4), std::out_of_range);
 }
 
 TEST_CASE("PVec<>::operator==(const PVec& other) | PVec<>::operator!=(const PVec& other)")

@@ -14,7 +14,7 @@ void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, V
 {
     auto &Y = this->Y(mode).col(d);
     auto Vf = *model.CVbegin(mode);
-    auto &ns = *noise();
+    auto &ns = noise();
 
     for(int r = 0; r<Y.rows(); ++r) 
     {

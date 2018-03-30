@@ -43,9 +43,9 @@ std::string RootFile::getOptionsFileName() const
    return m_prefix + "-options.ini";
 }
 
-void RootFile::appendToRootFile(std::string tag, std::string value) const
+void RootFile::appendToRootFile(std::string section, std::string tag, std::string value) const
 {
-   m_iniReader->appendItem(tag, value);
+   m_iniReader->appendItem(section, tag, value);
 
    //this function should be used here when it is required to write to root file immediately
    //currently we call flushLast method separately
@@ -62,7 +62,7 @@ void RootFile::saveConfig(Config& config)
 {
    std::string configPath = getOptionsFileName();
    config.save(configPath);
-   appendToRootFile(OPTIONS_TAG, configPath);
+   appendToRootFile(std::string(), OPTIONS_TAG, configPath);
 }
 
 std::string RootFile::restoreGetOptionsFileName() const
@@ -109,7 +109,7 @@ std::shared_ptr<StepFile> RootFile::createStepFileInternal(std::int32_t isample,
    std::string stepFileName = stepFile->getStepFileName();
    std::string tagPrefix = checkpoint ? CHECKPOINT_STEP_PREFIX : SAMPLE_STEP_PREFIX;
    std::string stepTag = tagPrefix + std::to_string(isample);
-   appendToRootFile(stepTag, stepFileName);
+   appendToRootFile(std::string(), stepTag, stepFileName);
 
    return stepFile;
 }

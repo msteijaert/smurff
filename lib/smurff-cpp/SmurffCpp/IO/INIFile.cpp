@@ -31,10 +31,10 @@ void INIFile::create(const std::string& filename)
 {
    m_filePath = filename;
 
-   std::ofstream stepFile;
-   stepFile.open(filename, std::ios::trunc);
-   THROWERROR_ASSERT_MSG(stepFile.is_open(), "Error opening file: " + filename);
-   stepFile.close();
+   std::ofstream file;
+   file.open(filename, std::ios::trunc);
+   THROWERROR_ASSERT_MSG(file.is_open(), "Error opening file: " + filename);
+   file.close();
 }
 
 int INIFile::getParseError() const
@@ -176,25 +176,25 @@ bool INIFile::empty() const
    return m_values.empty() && m_sections.empty() && m_fields.empty();
 }
 
-void INIFile::appendItem(const std::string& tag, const std::string& value)
+void INIFile::appendItem(const std::string& section, const std::string& tag, const std::string& value)
 {
    m_writeBuffer.push_back(std::make_pair(tag, value));
 
-   insertItem(std::string(), tag, value);
+   insertItem(section, tag, value);
 }
 
 void INIFile::flush()
 {
-   std::ofstream stepFile;
-   stepFile.open(m_filePath, std::ios::app);
-   THROWERROR_ASSERT_MSG(stepFile.is_open(), "Error opening file: " + m_filePath);
+   std::ofstream file;
+   file.open(m_filePath, std::ios::app);
+   THROWERROR_ASSERT_MSG(file.is_open(), "Error opening file: " + m_filePath);
 
    for (auto& item : m_writeBuffer)
    {
-      stepFile << item.first << " = " << item.second << std::endl;
+      file << item.first << " = " << item.second << std::endl;
    }
 
-   stepFile.close();
+   file.close();
 
    m_writeBuffer.clear();
 }
@@ -238,11 +238,35 @@ void INIFile::removeItem(const std::string& section, const std::string& tag)
    }
 }
 
-void INIFile::appendComment(std::string comment)
+void INIFile::appendComment(const std::string& comment)
 {
-   std::ofstream stepFile;
-   stepFile.open(m_filePath, std::ios::app);
-   THROWERROR_ASSERT_MSG(stepFile.is_open(), "Error opening file: " + m_filePath);
-   stepFile << "#" << comment << std::endl;
-   stepFile.close();
+   //flush everything that is buffered before comment is written directly to file
+   flush();
+
+   std::ofstream file;
+   file.open(m_filePath, std::ios::app);
+   THROWERROR_ASSERT_MSG(file.is_open(), "Error opening file: " + m_filePath);
+   file << "#" << comment << std::endl;
+   file.close();
+}
+
+void INIFile::startSection(const std::string& section)
+{
+   //flush everything that is buffered before section header is written directly to file
+   flush();
+
+   std::ofstream file;
+   file.open(m_filePath, std::ios::app);
+   THROWERROR_ASSERT_MSG(file.is_open(), "Error opening file: " + m_filePath);
+   file << std::endl << "[" << section << "]" << std::endl;
+   file.close();
+
+   m_sections.insert(section);
+}
+
+void INIFile::endSection()
+{
+   //header of section on startSecion is written to file without buffering
+   //before starting new section - we need to flush all current buffered content to the file
+   flush();
 }
