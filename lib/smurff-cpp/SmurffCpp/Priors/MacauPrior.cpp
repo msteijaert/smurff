@@ -37,6 +37,7 @@ void MacauPrior::init()
    if (use_FtF)
    {
       FtF.resize(Features->cols(), Features->cols());
+      K.resize(Features->cols(), Features->cols());
       Features->At_mul_A(FtF);
    }
 
@@ -171,14 +172,20 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 // direct method
 void MacauPrior::sample_beta_direct()
 {
-   this->compute_Ft_y_omp(Ft_y);
+   #pragma omp parallel
+   {
+       #pragma omp task
+       this->compute_Ft_y_omp(Ft_y);
 
-   Eigen::MatrixXd K(FtF.rows(), FtF.cols());
-   K.triangularView<Eigen::Lower>() = FtF;
-   K.diagonal().array() += beta_precision;
-   chol_decomp(K);
+       #pragma omp task
+       {
+           K.triangularView<Eigen::Lower>() = FtF;
+           K.diagonal().array() += beta_precision;
+           chol_decomp(K);
+       }
+   }
    chol_solve_t(K, Ft_y);
-   beta = Ft_y;
+   std::swap(beta, Ft_y);
 }
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
@@ -201,15 +208,8 @@ double MacauPrior::sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd
 
 void MacauPrior::sample_beta_cg()
 {
-   if (Features->is_dense())
-   {
-      THROWERROR_NOTIMPL_MSG("Dense Matrix requires direct method");
-   }
-   else
-   {
-      Eigen::MatrixXd Ft_y;
-      this->compute_Ft_y_omp(Ft_y);
+    Eigen::MatrixXd Ft_y;
+    this->compute_Ft_y_omp(Ft_y);
 
-      Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8);
-   }
+    Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8);
 }
