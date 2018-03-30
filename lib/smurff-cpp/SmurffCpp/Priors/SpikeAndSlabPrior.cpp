@@ -19,7 +19,7 @@ void SpikeAndSlabPrior::init()
 
    const int K = num_latent();
    const int D = num_cols();
-   const int nview = data()->nview(m_mode);
+   const int nview = data().nview(m_mode);
    
    THROWERROR_ASSERT(D > 0);
 
@@ -37,7 +37,7 @@ void SpikeAndSlabPrior::init()
 
 void SpikeAndSlabPrior::update_prior()
 {
-   const int nview = data()->nview(m_mode);
+   const int nview = data().nview(m_mode);
    const int K = num_latent();
    
    Zkeep = Zcol.combine();
@@ -45,7 +45,7 @@ void SpikeAndSlabPrior::update_prior()
 
    // update hyper params (alpha and r) (per view)
    for(int v=0; v<nview; ++v) {
-       const int D = data()->view_size(m_mode, v);
+       const int D = data().view_size(m_mode, v);
        r.col(v) = ( Zkeep.col(v).array() + prior_beta ) / ( D + prior_beta * D ) ;
        auto ww = W2c.col(v).array() / 2 + prior_beta_0;
        auto tmpz = Zkeep.col(v).array() / 2 + prior_alpha_0 ;
@@ -64,7 +64,7 @@ void SpikeAndSlabPrior::update_prior()
 void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
 {
   const int K = num_latent();
-  const int nview = data()->nview(m_mode);
+  const int nview = data().nview(m_mode);
 
   NormalOnePrior::restore(sf);
 
@@ -72,9 +72,9 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
   int d = 0;
   ArrayXXd Z(ArrayXXd::Zero(K,nview));
   ArrayXXd W2(ArrayXXd::Zero(K,nview));
-  for(int v=0; v<data()->nview(m_mode); ++v) 
+  for(int v=0; v<data().nview(m_mode); ++v) 
   {
-      for(int i=0; i<data()->view_size(m_mode, v); ++i, ++d)
+      for(int i=0; i<data().view_size(m_mode, v); ++i, ++d)
       {
         for(int k=0; k<K; ++k) if (U()(k,d) != 0) Z(k,v)++;
         W2.col(v) += U().col(d).array().square(); 
@@ -92,7 +92,7 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
 
 std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)
 {
-    const int v = data()->view(m_mode, d);
+    const int v = data().view(m_mode, d);
     double mu, lambda;
 
     MatrixXd aXX = alpha.matrix().col(v).asDiagonal();
@@ -115,7 +115,7 @@ std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const M
 
 std::ostream &SpikeAndSlabPrior::status(std::ostream &os, std::string indent) const
 {
-   const int V = data()->nview(m_mode);
+   const int V = data().nview(m_mode);
    for(int v=0; v<V; ++v) 
    {
        int Zcount = (Zkeep.col(v).array() > 0).count();

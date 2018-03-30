@@ -39,13 +39,13 @@ public:
    virtual void init();
 
    // utility
-   std::shared_ptr<const Model> model() const;
-   std::shared_ptr<Model> model();
+   const Model& model() const;
+   Model& model();
 
-   std::shared_ptr<Data> data() const;
+   Data& data() const;
    double predict(const PVec<> &) const;
 
-   std::shared_ptr<INoiseModel> noise();
+   INoiseModel& noise();
 
    Eigen::MatrixXd &U();
    const Eigen::MatrixXd &U() const;

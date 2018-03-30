@@ -43,6 +43,8 @@ private:
 public:
    Model();
 
+   static Model no_model;
+
 public:
    //initialize U matrices in the model (random/zero)
    void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
@@ -97,23 +99,25 @@ public:
    std::ostream& status(std::ostream &os, std::string indent) const;
 };
 
+
+
 // SubModel is a proxy class that allows to access i'th column of each U matrix in the model
 class SubModel
 {
 private:
-   std::shared_ptr<Model> m_model;
+   Model &m_model;
    PVec<> m_off;
    PVec<> m_dims;
 
 public:
-   SubModel(const std::shared_ptr<Model> &m, const PVec<> o, const PVec<> d)
+   SubModel( Model &m, const PVec<> o, const PVec<> d)
       : m_model(m), m_off(o), m_dims(d) {}
 
    SubModel(const SubModel &m, const PVec<> o, const PVec<> d)
       : m_model(m.m_model), m_off(o + m.m_off), m_dims(d) {}
 
-   SubModel(const std::shared_ptr<Model> &m)
-      : m_model(m), m_off(m->nmodes()), m_dims(m->getDims()) {}
+   SubModel(Model &m)
+      : m_model(m), m_off(m.nmodes()), m_dims(m.getDims()) {}
 
 public:
    Eigen::MatrixXd::BlockXpr U(int f);
@@ -132,19 +136,19 @@ public:
    //dot product of i'th columns in each U matrix
    double predict(const PVec<> &pos) const
    {
-      return m_model->predict(m_off + pos);
+      return m_model.predict(m_off + pos);
    }
 
    //size of latent dimention
    int nlatent() const
    {
-      return m_model->nlatent();
+      return m_model.nlatent();
    }
 
    //number of dimentions in train data
    std::uint64_t nmodes() const
    {
-      return m_model->nmodes();
+      return m_model.nmodes();
    }
 };
 

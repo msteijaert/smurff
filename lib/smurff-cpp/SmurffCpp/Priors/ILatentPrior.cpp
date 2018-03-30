@@ -19,70 +19,70 @@ void ILatentPrior::init()
    init_Usum();
 }
 
-std::shared_ptr<const Model> ILatentPrior::model() const
+const Model& ILatentPrior::model() const
 {
    return m_session->model();
 }
 
-std::shared_ptr<Model> ILatentPrior::model()
+Model& ILatentPrior::model()
 {
    return m_session->model();
 }
 
 double ILatentPrior::predict(const PVec<> &pos) const
 {
-    return model()->predict(pos);
+    return model().predict(pos);
 }
 
-std::shared_ptr<Data> ILatentPrior::data() const
+Data& ILatentPrior::data() const
 {
    return m_session->data();
 }
 
-std::shared_ptr<INoiseModel> ILatentPrior::noise()
+INoiseModel& ILatentPrior::noise()
 {
-   return data()->noise();
+   return data().noise();
 }
 
 MatrixXd &ILatentPrior::U()
 {
-   return model()->U(m_mode);
+   return model().U(m_mode);
 }
 
 const MatrixXd &ILatentPrior::U() const
 {
-   return model()->U(m_mode);
+   return model().U(m_mode);
 }
 
 //return V matrices in the model opposite to mode
 VMatrixIterator<Eigen::MatrixXd> ILatentPrior::Vbegin()
 {
-   return model()->Vbegin(m_mode);
+   return model().Vbegin(m_mode);
 }
 
 VMatrixIterator<Eigen::MatrixXd> ILatentPrior::Vend()
 {
-   return model()->Vend();
+   return model().Vend();
 }
 
 ConstVMatrixIterator<Eigen::MatrixXd> ILatentPrior::CVbegin() const
 {
-   return model()->CVbegin(m_mode);
+   return model().CVbegin(m_mode);
 }
 
 ConstVMatrixIterator<Eigen::MatrixXd> ILatentPrior::CVend() const
 {
-   return model()->CVend();
+   return model().CVend();
 }
 
 int ILatentPrior::num_latent() const
 {
-   return model()->nlatent();
+   return model().nlatent();
 }
 
 int ILatentPrior::num_cols() const
 {
-   return model()->U(m_mode).cols();
+   return model().U(m_mode).cols();
 }
 
 std::ostream &ILatentPrior::info(std::ostream &os, std::string indent)
@@ -99,7 +99,7 @@ bool ILatentPrior::run_slave()
 void ILatentPrior::sample_latents()
 {
    COUNTER("sample_latents");
-   data()->update_pnm(model(), m_mode);
+   data().update_pnm(model(), m_mode);
 
    // for effiency, we keep + update Ucol and UUcol by every thread
    thread_vector<VectorXd> Ucol(VectorXd::Zero(num_latent()));

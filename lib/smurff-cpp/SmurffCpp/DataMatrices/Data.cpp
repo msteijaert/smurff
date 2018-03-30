@@ -17,12 +17,12 @@ void Data::init()
 
 void Data::init_post()
 {
-   noise()->init(this);
+   noise().init(this);
 }
 
 void Data::update(const SubModel& model)
 {
-   noise()->update(model);
+   noise().update(model);
 }
 
 //#### dimention functions ####
@@ -56,11 +56,11 @@ int Data::view_size(int m, int v) const
 
 //#### noise, precision, mean functions ####
 
-std::shared_ptr<INoiseModel> Data::noise() const
+INoiseModel &Data::noise() const
 {
    THROWERROR_ASSERT(noise_ptr != 0);
    
-   return noise_ptr;
+   return *noise_ptr;
 }
 
 void Data::setNoiseModel(std::shared_ptr<INoiseModel> nm)
@@ -78,12 +78,12 @@ std::ostream& Data::info(std::ostream& os, std::string indent)
    os << indent << "Component-wise mean: " << cwise_mean << std::endl;
    os << indent << "Component-wise variance: " << var_total() << std::endl;
    os << indent << "Noise: ";
-   noise()->info(os, "");
+   noise().info(os, "");
    return os;
 }
 
 std::ostream& Data::status(std::ostream& os, std::string indent) const
 {
-   os << indent << noise()->getStatus() << std::endl;
+   os << indent << noise().getStatus() << std::endl;
    return os;
 }

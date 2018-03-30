@@ -13,7 +13,7 @@ void SparseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, 
 {
     const auto& Y = this->Y(mode);
     auto Vf = *model.CVbegin(mode);
-    auto &ns = *noise();
+    auto &ns = noise();
 
     for (SparseMatrix<double>::InnerIterator it(Y, d); it; ++it) 
     {

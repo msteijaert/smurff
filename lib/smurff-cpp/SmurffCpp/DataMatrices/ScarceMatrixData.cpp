@@ -60,7 +60,7 @@ void ScarceMatrixData::getMuLambda(const SubModel& model, std::uint32_t mode, in
    {
        auto &Y = this->Y(mode);
        auto Vf = *model.CVbegin(mode);
-       auto &ns = *noise();
+       auto &ns = noise();
 
        for(int i = from; i < to; ++i)
        {

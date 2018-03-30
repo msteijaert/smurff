@@ -30,6 +30,9 @@ using namespace std;
 using namespace Eigen;
 using namespace smurff;
 
+
+Model smurff::Model::no_model;
+
 Model::Model()
    : m_num_latent(-1)
 {
@@ -98,7 +101,7 @@ VMatrixIterator<Eigen::MatrixXd> Model::Vend()
 
 ConstVMatrixIterator<Eigen::MatrixXd> Model::CVbegin(std::uint32_t mode) const
 {
-   return ConstVMatrixIterator<Eigen::MatrixXd>(shared_from_this(), mode, 0);
+   return ConstVMatrixIterator<Eigen::MatrixXd>(*this, mode, 0);
 }
 
 ConstVMatrixIterator<Eigen::MatrixXd> Model::CVend() const
@@ -134,8 +137,7 @@ const PVec<>& Model::getDims() const
 
 SubModel Model::full()
 {
-   std::shared_ptr<Model> this_model = shared_from_this();
-   return this_model;
+   return SubModel(*this);
 }
 
 void Model::save(std::shared_ptr<const StepFile> sf) const
@@ -180,13 +182,13 @@ std::ostream& Model::status(std::ostream &os, std::string indent) const
 
 Eigen::MatrixXd::BlockXpr SubModel::U(int f)
 {
-   return m_model->U(f).block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
+   return m_model.U(f).block(0, m_off.at(f), m_model.nlatent(), m_dims.at(f));
 }
 
 Eigen::MatrixXd::ConstBlockXpr SubModel::U(int f) const
 {
-   const Eigen::MatrixXd &u = m_model->U(f); //force const
-   return u.block(0, m_off.at(f), m_model->nlatent(), m_dims.at(f));
+   const Eigen::MatrixXd &u = m_model.U(f); //force const
+   return u.block(0, m_off.at(f), m_model.nlatent(), m_dims.at(f));
 }
 
 VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vbegin(std::uint32_t mode)
@@ -196,7 +198,7 @@ VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vbegin(std::uint32_t mo
 
 VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vend()
 {
-   return VMatrixExprIterator<Eigen::MatrixXd::BlockXpr>(m_model->nmodes());
+   return VMatrixExprIterator<Eigen::MatrixXd::BlockXpr>(m_model.nmodes());
 }
 
 ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVbegin(std::uint32_t mode) const
@@ -206,5 +208,5 @@ ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVbegin(std::
 
 ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVend() const
 {
-   return ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr>(m_model->nmodes());
+   return ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr>(m_model.nmodes());
 }

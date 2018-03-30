@@ -42,21 +42,20 @@ public:
    virtual ~BaseSession() {}
 
 public:
-   std::shared_ptr<Data> data() const
+   Data &data() const
    {
       THROWERROR_ASSERT(data_ptr != 0);
-
-      return data_ptr;
+      return *data_ptr;
    }
 
-   std::shared_ptr<const Model> model() const
+   const Model& model() const
    {
-      return m_model;
+      return *m_model;
    }
 
-   std::shared_ptr<Model> model()
+   Model& model()
    {
-      return m_model;
+      return *m_model;
    }
 
 public:
