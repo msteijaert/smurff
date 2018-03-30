@@ -77,7 +77,7 @@ public:
 
    T operator*() const
    {
-      return m_model.U(m_num).block(0, m_off.at(m_num), m_model.nlatent(), m_dims.at(m_num));
+      return m_model.U(m_num).block(0, m_off[m_num], m_model.nlatent(), m_dims[m_num]);
    }
 
    T operator->() const
