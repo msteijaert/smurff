@@ -31,11 +31,17 @@ import numbers
 from .prepare import make_train_test, make_train_test_df
 from .result import Result, ResultItem
 
-DENSE_MATRIX_TYPES  = [np.ndarray, np.matrix]
-SPARSE_MATRIX_TYPES = [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]
+DENSE_MATRIX_TYPES  = (np.ndarray, np.matrix, )
+SPARSE_MATRIX_TYPES = (sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix, )
 
-DENSE_TENSOR_TYPES  = [np.ndarray]
-SPARSE_TENSOR_TYPES = [pd.DataFrame]
+MATRIX_TYPES = DENSE_MATRIX_TYPES + SPARSE_MATRIX_TYPES
+
+DENSE_TENSOR_TYPES  = (np.ndarray, )
+SPARSE_TENSOR_TYPES = (pd.DataFrame, )
+
+TENSOR_TYPES = DENSE_TENSOR_TYPES + SPARSE_TENSOR_TYPES
+
+ALL_TYPES = MATRIX_TYPES + TENSOR_TYPES
 
 def remove_nan(Y):
     if not np.any(np.isnan(Y.data)):
@@ -44,7 +50,7 @@ def remove_nan(Y):
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
 cdef MatrixConfig* prepare_sparse_matrix(X, NoiseConfig noise_config, is_scarse):
-    if type(X) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+    if not isinstance(X, SPARSE_MATRIX_TYPES):
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
 
     X = X.tocoo(copy = False)
@@ -88,7 +94,7 @@ cdef MatrixConfig* prepare_dense_matrix(X, NoiseConfig noise_config):
     return matrix_config_ptr
 
 cdef shared_ptr[MacauPriorConfigItem] prepare_sideinfo(side_info, NoiseConfig noise_config):
-    if type(side_info[0]) in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
+    if isinstance(side_info[0], SPARSE_MATRIX_TYPES):
         macau_prior_config_item_matrix = prepare_sparse_matrix(side_info[0], noise_config, False)
     else:
         macau_prior_config_item_matrix = prepare_dense_matrix(side_info[0], noise_config)
@@ -108,13 +114,13 @@ cdef shared_ptr[MacauPriorConfigItem] prepare_sideinfo(side_info, NoiseConfig no
     return macau_prior_config_item_ptr
 
 cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config):
-    if type(tensor) not in DENSE_TENSOR_TYPES:
+    if not isinstance(tensor, DENSE_TENSOR_TYPES):
         error_msg = "Unsupported dense tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
     raise NotImplementedError()
 
 cdef TensorConfig* prepare_sparse_tensor(tensor, shape, NoiseConfig noise_config, is_scarse):
-    if type(tensor) not in SPARSE_TENSOR_TYPES:
+    if not isinstance(tensor, SPARSE_TENSOR_TYPES):
         error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
         raise ValueError(error_msg)
 
@@ -147,9 +153,9 @@ cdef TensorConfig* prepare_sparse_tensor(tensor, shape, NoiseConfig noise_config
         raise ValueError(error_msg)
 
 cdef TensorConfig* prepare_auxdata(in_tensor, shape, NoiseConfig noise_config):
-    if type(in_tensor) in DENSE_TENSOR_TYPES:
+    if isinstance(in_tensor, DENSE_TENSOR_TYPES):
         return prepare_dense_tensor(in_tensor, noise_config)
-    elif type(in_tensor) in SPARSE_TENSOR_TYPES:
+    elif isinstance(in_tensor, SPARSE_TENSOR_TYPES):
         return prepare_sparse_tensor(in_tensor, shape, noise_config, True)
     else:
         error_msg = "Unsupported tensor type: {}".format(type(in_tensor))
@@ -157,44 +163,37 @@ cdef TensorConfig* prepare_auxdata(in_tensor, shape, NoiseConfig noise_config):
 
 cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape, NoiseConfig noise_config):
     # Check train data type
-    if (type(train) not in DENSE_MATRIX_TYPES and
-        type(train) not in SPARSE_MATRIX_TYPES and
-        type(train) not in DENSE_TENSOR_TYPES and
-        type(train) not in SPARSE_TENSOR_TYPES):
+    if (not isinstance(train, ALL_TYPES)):
         error_msg = "Unsupported train data type: {}".format(type(train))
         raise ValueError(error_msg)
 
     # Check test data type
     if test is not None:
-        if (type(test) not in DENSE_MATRIX_TYPES and
-            type(test) not in SPARSE_MATRIX_TYPES and
-            type(test) not in DENSE_TENSOR_TYPES and
-            type(test) not in SPARSE_TENSOR_TYPES):
+        if (not isinstance(test, ALL_TYPES)):
             error_msg = "Unsupported test data type: {}".format(type(test))
             raise ValueError(error_msg)
 
     # Check train and test data for mismatch
     if test is not None:
-        if ((type(train) in DENSE_MATRIX_TYPES or type(train) in SPARSE_MATRIX_TYPES) and
-            (type(test) not in DENSE_MATRIX_TYPES and type(test) not in SPARSE_MATRIX_TYPES)):
+        if isinstance(train, MATRIX_TYPES) and (not isinstance(test, MATRIX_TYPES)):
             error_msg = "Train and test data must be the same type: {} != {}".format(type(train), type(test))
             raise ValueError(error_msg)
-        if (type(train) in DENSE_MATRIX_TYPES or type(train) in SPARSE_MATRIX_TYPES) and train.shape != test.shape:
+        if isinstance(train, MATRIX_TYPES) and train.shape != test.shape:
             raise ValueError("Train and test data must be the same shape: {} != {}".format(train.shape, test.shape))
-        if type(train) in SPARSE_TENSOR_TYPES and train.ndim != test.ndim:
+        if isinstance(train, SPARSE_TENSOR_TYPES) and train.ndim != test.ndim:
             raise ValueError("Train and test data must have the same number of dimensions: {} != {}".format(train.ndim, test.ndim))
 
     cdef TensorConfig* train_config
     cdef TensorConfig* test_config
 
     # Prepare train data
-    if type(train) in DENSE_MATRIX_TYPES and len(train.shape) == 2:
+    if isinstance(train, DENSE_MATRIX_TYPES) and len(train.shape) == 2:
         train_config = prepare_dense_matrix(train, noise_config)
-    elif type(train) in SPARSE_MATRIX_TYPES:
+    elif isinstance(train, SPARSE_MATRIX_TYPES):
         train_config = prepare_sparse_matrix(train, noise_config, True)
-    elif type(train) in DENSE_TENSOR_TYPES and len(train.shape) > 2:
+    elif isinstance(train, DENSE_TENSOR_TYPES) and len(train.shape) > 2:
         train_config = prepare_dense_tensor(train, noise_config)
-    elif type(train) in SPARSE_TENSOR_TYPES:
+    elif isinstance(train, SPARSE_TENSOR_TYPES):
         train_config = prepare_sparse_tensor(train, shape, noise_config, True)
     else:
         error_msg = "Unsupported train data type: {}".format(type(train))
@@ -203,15 +202,16 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
 
     # Prepare test data
     if test is not None:
-        if type(test) in DENSE_MATRIX_TYPES and len(test.shape) == 2:
+        if isinstance(test, DENSE_MATRIX_TYPES) and len(test.shape) == 2:
             test_config = prepare_dense_matrix(test, noise_config)
-        elif type(test) in SPARSE_MATRIX_TYPES:
+        elif isinstance(test, SPARSE_MATRIX_TYPES):
             test_config = prepare_sparse_matrix(test, noise_config, True)
-        elif type(test) in DENSE_TENSOR_TYPES and len(test.shape) > 2:
+        elif isinstance(test, DENSE_TENSOR_TYPES) and len(test.shape) > 2:
             test_config = prepare_dense_tensor(test, noise_config)
+        elif isinstance(test, SPARSE_TENSOR_TYPES):
             test_config = prepare_sparse_tensor(test, shape, noise_config, True)
         else:
-            error_msg = "Unsupported test data type: {}".format(type(test))
+            error_msg = "Unsupported test data type: {} or shape {}".format(type(test), test.shape)
             raise ValueError(error_msg)
 
     if test is not None:
@@ -289,7 +289,7 @@ cdef class PySession:
 
         # Create and initialize smurff-cpp Config instance
         if Ynoise is not None:
-            noise_config.setNoiseType(stringToNoiseType(Ynoise[0]))
+            noise_config.setNoiseType(stringToNoiseType(Ynoise[0].encode('UTF-8')))
 
             if Ynoise[1] is not None:
                 noise_config.setPrecision(Ynoise[1])
@@ -326,7 +326,7 @@ cdef class PySession:
                     si = side_info_list[j]
                     if si is not None:
                         if len(side_info_noises) > 0 and side_info_noises[i] is not None and len(side_info_noises[i]) > 0 and side_info_noises[i][j] is not None:
-                            noise_config.setNoiseType(stringToNoiseType(side_info_noises[i][j][0]))
+                            noise_config.setNoiseType(stringToNoiseType(side_info_noises[i][j][0].encode('UTF-8')))
                             if side_info_noises[i][j][1] is not None:
                                 noise_config.setPrecision(side_info_noises[i][j][1])
                             if side_info_noises[i][j][2] is not None:
