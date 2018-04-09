@@ -46,7 +46,7 @@ class TestBPMF(unittest.TestCase):
     def test_macau_sparse(self):
          X = scipy.sparse.rand(15, 10, 0.2)
          Xt = scipy.sparse.rand(15, 10, 0.1)
-         F = scipy.sparse.rand(15, 2, 0.5)
+         F = X.copy()
          smurff.smurff(X,
                        Ytest=Xt,
                        priors=['macau', 'normal'],
@@ -60,7 +60,7 @@ class TestBPMF(unittest.TestCase):
     def test_macau_binsparse(self):
         X = scipy.sparse.rand(15, 10, 0.2)
         Xt = scipy.sparse.rand(15, 10, 0.1)
-        F = scipy.sparse.rand(15, 2, 0.5)
+        F = X.copy()
         F.data[:] = 1
         smurff.smurff(X,
                       Ytest=Xt,
