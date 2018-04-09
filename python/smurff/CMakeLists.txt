@@ -29,3 +29,4 @@ add_subdirectory( smurff )
 install(CODE "MESSAGE(WARNING \"Python wrapper needs ot be installed manually. \\
 Please run '${PYTHON_EXECUTABLE} setup.py install' in ${CMAKE_CURRENT_BINARY_DIR}\")")
 
+# install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} setup.py install WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})")
