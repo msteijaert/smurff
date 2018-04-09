@@ -295,7 +295,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     //A_mul_Bt_blas(PtKP, P, KP); // TODO: use KPtmp with dsyrk two save 2x time
     A_mul_Bt_omp_sym(PtKP, P, KP);
 
-    auto chol_PtKP = PtKP.ldlt();
+    auto chol_PtKP = PtKP.llt();
     THROWERROR_ASSERT_MSG(chol_PtKP.info() == Eigen::Success, "Cholesky Decomposition failed!");
     A = chol_PtKP.solve(*RtR);
 
