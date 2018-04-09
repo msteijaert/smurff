@@ -182,13 +182,13 @@ void MacauPrior::sample_beta_direct()
        {
            K.triangularView<Eigen::Lower>() = FtF;
            K.diagonal().array() += beta_precision;
-           chol_decomp(K);
        }
 
-       #pragma omp taskwait
-       chol_solve_t(K, Ft_y);
-       std::swap(beta, Ft_y);
    }
+
+   chol_decomp(K);
+   chol_solve_t(K, Ft_y);
+   std::swap(beta, Ft_y);
 }
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)

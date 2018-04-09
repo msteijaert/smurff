@@ -74,7 +74,6 @@ macro(configure_mkl)
   find_library (MKL_LIBRARIES "mkl_rt" HINTS ENV LD_LIBRARY_PATH REQUIRED)
   find_PATH (MKL_INCLUDE_DIR "mkl.h" HINTS ENV CPATH REQUIRED)
   include_directories(${MKL_INCLUDE_DIR})
-  add_definitions(-DEIGEN_USE_MKL_ALL )
 
   # since we mix OpenMP and mkl we need to link this
   if(${OPENMP_FOUND})
@@ -109,6 +108,7 @@ macro(configure_eigen)
   
   message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
 
+  add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endmacro(configure_eigen)
 
 macro(configure_boost)
