@@ -261,76 +261,33 @@ cdef class PySession:
     # Create and initialize smurff-cpp Config instance
     @classmethod
     def fromConfig(cls,
-               Y              = None,
-               Ytest          = None,
-               data_shape     = None,
-               priors         = [],
-               side_info      = [],
-               aux_data       = [],
-               beta_precision = 10.0,
-               num_latent     = 10,
-               precision      = None,
-               sn_init        = None,
-               sn_max         = None,
-               burnin         = 50,
-               nsamples       = 400,
-               tol            = 1e-6,
-               direct         = True,
-               seed           = None,
-               threshold      = None,
-               verbose        = True,
-               init_model     = None,
-               save_prefix    = None,
-               save_extension = None,
-               save_freq      = None,
-               csv_status     = None):
+            Y                = None,
+            Ynoise           = None,
+            Ytest            = None,
+            data_shape       = None,
+            priors           = [],
+            side_info        = [],
+            side_info_noises = [],
+            aux_data         = [],
+            aux_data_noises  = [],
+            num_latent       = NUM_LATENT_DEFAULT_VALUE,
+            burnin           = BURNIN_DEFAULT_VALUE,
+            nsamples         = NSAMPLES_DEFAULT_VALUE,
+            tol              = TOL_DEFAULT_VALUE,
+            direct           = True,
+            seed             = RANDOM_SEED_DEFAULT_VALUE,
+            verbose          = VERBOSE_DEFAULT_VALUE,
+            save_prefix      = SAVE_PREFIX_DEFAULT_VALUE,
+            save_extension   = SAVE_EXTENSION_DEFAULT_VALUE,
+            save_freq        = SAVE_FREQ_DEFAULT_VALUE,
+            csv_status       = STATUS_DEFAULT_VALUE):
 
         cdef Config config
-        cdef NoiseConfig nc
+        cdef NoiseConfig noise_config
+        cdef shared_ptr[MacauPriorConfig] macau_prior_config_ptr
         cdef shared_ptr[PVec] pos
-        cdef string prior_type_str
 
-def smurff(Y                = None,
-           Ynoise           = None,
-           Ytest            = None,
-           data_shape       = None,
-           priors           = [],
-           side_info        = [],
-           side_info_noises = [],
-           aux_data         = [],
-           aux_data_noises  = [],
-           num_latent       = NUM_LATENT_DEFAULT_VALUE,
-           burnin           = BURNIN_DEFAULT_VALUE,
-           nsamples         = NSAMPLES_DEFAULT_VALUE,
-           tol              = TOL_DEFAULT_VALUE,
-           direct           = True,
-           seed             = RANDOM_SEED_DEFAULT_VALUE,
-           verbose          = VERBOSE_DEFAULT_VALUE,
-           quite            = False,
-           init_model       = None,
-           save_prefix      = SAVE_PREFIX_DEFAULT_VALUE,
-           save_extension   = SAVE_EXTENSION_DEFAULT_VALUE,
-           save_freq        = SAVE_FREQ_DEFAULT_VALUE,
-           csv_status       = STATUS_DEFAULT_VALUE,
-           root_path        = None,
-           ini_path         = None):
-
-    cdef Config config
-    cdef NoiseConfig noise_config
-    cdef shared_ptr[MacauPriorConfig] macau_prior_config_ptr
-    cdef shared_ptr[ISession] session
-    cdef shared_ptr[PVec] pos
-
-    if root_path is not None:
-        session = SessionFactory.create_py_session_from_root_path(root_path)
-    elif ini_path is not None:
-        success = config.restore(ini_path)
-        if not success:
-            raise f"Could not load init file '{ini_path}'"
-        session = SessionFactory.create_py_session_from_config(config)
-    else:
         # Create and initialize smurff-cpp Config instance
-
         if Ynoise is not None:
             noise_config.setNoiseType(stringToNoiseType(Ynoise[0]))
 
@@ -425,14 +382,6 @@ def smurff(Y                = None,
 
         config.setVerbose(verbose)
 
-        if quite:
-            config.setVerbose(False)
-
-        if init_model:
-            config.setModelInitType(stringToModelInitType(init_model))
-        else:
-            config.setModelInitType(INIT_MODEL_DEFAULT_VALUE)
-
         if save_prefix:
             config.setSavePrefix(save_prefix)
 
@@ -445,31 +394,6 @@ def smurff(Y                = None,
         if csv_status:
             config.setCsvStatus(csv_status)
 
-        session = SessionFactory.create_py_session_from_config(config)
-
-    # Create and run session
-    session.get().init()
-    while session.get().step():
-        pass
-
-    # Create Python list of ResultItem from C++ vector of ResultItem
-    cpp_result_items_ptr = session.get().getResult()
-    py_result_items = []
-
-    if cpp_result_items_ptr:
-        for i in range(cpp_result_items_ptr.get().size()):
-            cpp_result_item_ptr = &(cpp_result_items_ptr.get().at(i))
-            py_result_item_coords = []
-            for coord_index in range(cpp_result_item_ptr.coords.size()):
-                coord = cpp_result_item_ptr.coords[coord_index]
-                py_result_item_coords.append(coord)
-            py_result_item = ResultItem( tuple(py_result_item_coords)
-                                       , cpp_result_item_ptr.val
-                                       , cpp_result_item_ptr.pred_1sample
-                                       , cpp_result_item_ptr.pred_avg
-                                       , cpp_result_item_ptr.var
-                                       , cpp_result_item_ptr.stds
-                                       )
-            py_result_items.append(py_result_item)
-
-    return Result(py_result_items, session.get().getRmseAvg())
+        session = PySession()
+        session.ptr = SessionFactory.create_py_session_from_config(config)
+        return session
