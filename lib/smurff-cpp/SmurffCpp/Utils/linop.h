@@ -12,9 +12,9 @@
 namespace smurff { namespace linop {
 
 template<typename T>
-void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess);
+void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error = false);
 template<typename T>
-int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol);
+int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error = false);
 
 void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A);
 void At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A);
@@ -203,9 +203,9 @@ template<> inline void compute_uhat(Eigen::MatrixXd & uhat, Eigen::MatrixXd & de
 
 /** good values for solve_blockcg are blocksize=32 an excess=8 */
 template<typename T>
-inline void solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess) {
+inline void solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error) {
   if (B.rows() <= excess + blocksize) {
-    solve_blockcg(X, K, reg, B, tol);
+    solve_blockcg(X, K, reg, B, tol, throw_on_cholesky_error);
     return;
   }
   // split B into blocks of size <blocksize> (+ excess if needed)
@@ -219,7 +219,7 @@ inline void solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixX
     Xblock.resize(nrows, X.cols());
 
     Bblock = B.block(i, 0, nrows, B.cols());
-    solve_blockcg(Xblock, K, reg, Bblock, tol);
+    solve_blockcg(Xblock, K, reg, Bblock, tol, throw_on_cholesky_error);
     X.block(i, 0, nrows, X.cols()) = Xblock;
   }
 }
@@ -232,7 +232,7 @@ inline void solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixX
 //   B = n x m matrix
 //
 template<typename T>
-inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd & B, double tol) {
+inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error) {
   // initialize
   const int nfeat = B.cols();
   const int nrhs  = B.rows();
@@ -296,8 +296,8 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     A_mul_Bt_omp_sym(PtKP, P, KP);
 
     auto chol_PtKP = PtKP.llt();
-    THROWERROR_ASSERT_MSG(chol_PtKP.info() != Eigen::NumericalIssue, "Cholesky Decomposition failed! (Numerical Issue)");
-    THROWERROR_ASSERT_MSG(chol_PtKP.info() != Eigen::InvalidInput, "Cholesky Decomposition failed! (Invalid Input)");
+    THROWERROR_ASSERT_MSG(!throw_on_cholesky_error || chol_PtKP.info() != Eigen::NumericalIssue, "Cholesky Decomposition failed! (Numerical Issue)");
+    THROWERROR_ASSERT_MSG(!throw_on_cholesky_error || chol_PtKP.info() != Eigen::InvalidInput, "Cholesky Decomposition failed! (Invalid Input)");
     A = chol_PtKP.solve(*RtR);
 
     A.transposeInPlace();
@@ -327,8 +327,8 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     }
     // Psi = (R R') \ R2 R2'
     auto chol_RtR = RtR->llt();
-    THROWERROR_ASSERT_MSG(chol_RtR.info() != Eigen::NumericalIssue, "Cholesky Decomposition failed! (Numerical Issue)");
-    THROWERROR_ASSERT_MSG(chol_RtR.info() != Eigen::InvalidInput, "Cholesky Decomposition failed! (Invalid Input)");
+    THROWERROR_ASSERT_MSG(!throw_on_cholesky_error || chol_RtR.info() != Eigen::NumericalIssue, "Cholesky Decomposition failed! (Numerical Issue)");
+    THROWERROR_ASSERT_MSG(!throw_on_cholesky_error || chol_RtR.info() != Eigen::InvalidInput, "Cholesky Decomposition failed! (Invalid Input)");
     Psi  = chol_RtR.solve(*RtR2);
     Psi.transposeInPlace();
     ////double t5 = tick();

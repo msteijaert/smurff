@@ -97,7 +97,7 @@ void MacauPrior::sample_beta()
       sample_beta_cg();
 }
 
-void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a)
+void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a)
 {
    //FIXME: remove old code
 
@@ -109,6 +109,7 @@ void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, doub
    tol = tolerance_a;
    use_FtF = direct_a;
    enable_beta_precision_sampling = enable_beta_precision_sampling_a;
+   throw_on_cholesky_error = throw_on_cholesky_error_a;
 
    // new code
 
@@ -118,6 +119,7 @@ void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, doub
    tol_values.push_back(tolerance_a);
    direct_values.push_back(direct_a);
    enable_beta_precision_sampling_values.push_back(enable_beta_precision_sampling_a);
+   throw_on_cholesky_error_values.push_back(throw_on_cholesky_error_a);
 
    // other code
 
@@ -214,5 +216,5 @@ void MacauPrior::sample_beta_cg()
     Eigen::MatrixXd Ft_y;
     this->compute_Ft_y_omp(Ft_y);
 
-    Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8);
+    Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
 }

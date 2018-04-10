@@ -38,6 +38,7 @@ public:
    std::vector<double> tol_values;
    std::vector<bool> direct_values;
    std::vector<bool> enable_beta_precision_sampling_values;
+   std::vector<bool> throw_on_cholesky_error_values;
 
    //FIXME: these must be removed
 
@@ -48,6 +49,7 @@ public:
    double tol = 1e-6;
    bool use_FtF;
    bool enable_beta_precision_sampling;
+   bool throw_on_cholesky_error;
 
 private:
    MacauPrior();
@@ -70,7 +72,7 @@ public:
 
 public:
 
-   void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a);
+   void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a);
 
 public:
 

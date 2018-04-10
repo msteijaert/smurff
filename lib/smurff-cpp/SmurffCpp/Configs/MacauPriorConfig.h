@@ -17,6 +17,7 @@ namespace smurff
    private:
       double m_tol;
       bool m_direct;
+      bool m_throw_on_cholesky_error;
 
       std::shared_ptr<MatrixConfig> m_sideInfo; //side info matrix for macau and macauone prior
 
@@ -52,6 +53,16 @@ namespace smurff
       void setDirect(bool value)
       {
          m_direct = value;
+      }
+
+      bool getThrowOnCholeskyError() const
+      {
+         return m_throw_on_cholesky_error;
+      }
+
+      void setThrowOnCholeskyError(bool value)
+      {
+         m_throw_on_cholesky_error = value;
       }
 
    public:
