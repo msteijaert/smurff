@@ -195,7 +195,7 @@ TEST_CASE( "linop/solve_blockcg_dense/fail", "BlockCG solver for dense (3rhs sep
         0.09,  0.51, -0.63,  1.59;
  
    // this system is unsolvable
-   REQUIRE_THROWS(smurff::linop::solve_blockcg(X, sf, 0.5, B, 1e-6));
+   REQUIRE_THROWS(smurff::linop::solve_blockcg(X, sf, 0.5, B, 1e-6, true));
 }
 
 TEST_CASE( "linop/solve_blockcg_dense/ok", "BlockCG solver for dense (3rhs separately)" ) 
@@ -223,7 +223,7 @@ TEST_CASE( "linop/solve_blockcg_dense/ok", "BlockCG solver for dense (3rhs separ
    Eigen::MatrixXd X(3, 6);
 
    //-- Solves the system (K' * K + reg * I) * X = B for X for m right-hand sides
-   smurff::linop::solve_blockcg(X, K, 0.5, B, 1e-6);
+   smurff::linop::solve_blockcg(X, K, 0.5, B, 1e-6, true);
 
    for (int i = 0; i < X.rows(); i++) {
      for (int j = 0; j < X.cols(); j++) {
