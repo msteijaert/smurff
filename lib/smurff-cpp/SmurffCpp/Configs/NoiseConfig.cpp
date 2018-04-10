@@ -72,6 +72,16 @@ std::string smurff::noiseTypeToString(NoiseTypes type)
    }
 }
 
+std::string NoiseConfig::getNoiseTypeAsString() const
+{
+   return noiseTypeToString(m_noise_type);
+}
+
+void NoiseConfig::setNoiseType(std::string value)
+{
+    m_noise_type = stringToNoiseType(value);
+}
+
 bool NoiseConfig::validate() const 
 {
    return true;

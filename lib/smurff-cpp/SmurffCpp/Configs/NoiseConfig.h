@@ -72,6 +72,10 @@ namespace smurff
          m_noise_type = value;
       }
 
+      std::string getNoiseTypeAsString() const;
+
+      void setNoiseType(std::string);
+
       double getPrecision() const;
 
       void setPrecision(double value);

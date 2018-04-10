@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <SmurffCpp/Utils/PVec.hpp>
+#include <SmurffCpp/Utils/Error.h>
 #include "MatrixConfig.h"
 #include "MacauPriorConfig.h"
 
@@ -169,6 +170,12 @@ public:
       return m_prior_types;
    }
 
+   std::vector<PriorTypes>& addPriorType(std::string value)
+   {
+      m_prior_types.push_back(stringToPriorType(value));
+      return m_prior_types;
+   }
+
    ModelInitTypes getModelInitType() const
    {
       return m_model_init_type;
@@ -177,6 +184,16 @@ public:
    void setModelInitType(ModelInitTypes value)
    {
       m_model_init_type = value;
+   }
+
+   std::string getModelInitTypeAsString() const
+   {
+      return modelInitTypeToString(m_model_init_type);
+   }
+
+   void setModelInitType(std::string value)
+   {
+      m_model_init_type = stringToModelInitType(value);
    }
 
    std::string getSavePrefix() const
@@ -224,18 +241,15 @@ public:
       return m_random_seed_set;
    }
 
-   void setRandomSeedSet(bool value)
-   {
-      m_random_seed_set = value;
-   }
-
    int getRandomSeed() const
    {
+      THROWERROR_ASSERT_MSG(getRandomSeedSet(), "Random seed is unset");
       return m_random_seed;
    }
 
    void setRandomSeed(int value)
    {
+      m_random_seed_set = true;
       m_random_seed = value;
    }
 

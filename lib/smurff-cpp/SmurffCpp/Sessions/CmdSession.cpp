@@ -292,7 +292,6 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(SEED_NAME) && !vm[SEED_NAME].defaulted())
    {
-      config.setRandomSeedSet(true);
       config.setRandomSeed(vm[SEED_NAME].as<int>());
    }
 
