@@ -35,13 +35,13 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1372"
-     inkscape:window-height="855"
+     inkscape:window-width="2492"
+     inkscape:window-height="1395"
      id="namedview500"
      showgrid="false"
-     inkscape:zoom="0.82844734"
-     inkscape:cx="467.94288"
-     inkscape:cy="160"
+     inkscape:zoom="1.8110476"
+     inkscape:cx="541.82774"
+     inkscape:cy="145.91881"
      inkscape:window-x="0"
      inkscape:window-y="1"
      inkscape:window-maximized="1"
@@ -1511,6 +1511,19 @@
       <tspan
          sodipodi:role="line"
          id="tspan3857">M</tspan>
+    </text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text3971"
+       writing-mode="lr"
+       font-size="16"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:48px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr;text-anchor:start;"
+       transform="matrix(1,0,-0.34432761,-1,0,0)"
+       x="699.44342"
+       y="-92">
+      <tspan
+         sodipodi:role="line"
+         id="tspan3977">+ α</tspan>
     </text>
   </g>
 </svg>
