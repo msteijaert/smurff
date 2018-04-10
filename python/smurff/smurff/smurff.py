@@ -1,8 +1,8 @@
-from .wrapper import PySession
+from .wrapper import PySession, sessionFromConfig
 
 def smurff(Y, **args):
     args["Y"] = Y
-    session = PySession.fromConfig(**args)
+    session = sessionFromConfig(**args)
 
     session.init()
     while session.step():
