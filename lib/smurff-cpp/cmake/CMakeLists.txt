@@ -97,6 +97,12 @@ elseif (CMAKE_COMPILER_IS_GNUCXX OR APPLE)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -fPIC")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -fPIC")
 
+   if (${ENABLE_ASAN})
+       # use address sanitizer in Debug mode
+       set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+       set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+   endif()
+
 else()
    message ("Using untested/unconfigured compiler, only Microsoft and g++ toolchain has been tested/established.")
 
