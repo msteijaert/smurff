@@ -8,8 +8,8 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1"
-   width="921"
-   height="320"
+   width="1005.678"
+   height="297.33008"
    id="svg2"
    inkscape:version="0.91 r13725"
    sodipodi:docname="matrix_factorization.svg">
@@ -21,6 +21,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -40,29 +41,32 @@
      id="namedview500"
      showgrid="false"
      inkscape:zoom="1.8110476"
-     inkscape:cx="541.82774"
-     inkscape:cy="145.91881"
+     inkscape:cx="1094.1181"
+     inkscape:cy="-104.2845"
      inkscape:window-x="0"
      inkscape:window-y="1"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="g4" />
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g4"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
   <g
-     transform="matrix(1.25 0 0 -1.25 0 320)"
+     transform="matrix(1.25,0,0,-1.25,-21.962891,304.58008)"
      id="g4">
     <text
        y="-92"
        x="301"
-       transform="skewX(19) scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="matrix(1,0,-0.34432761,-1,0,0)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
        id="text14"
        sodipodi:linespacing="125%">
       <tspan
          x="301"
          y="-92"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan16">=</tspan>
     </text>
     <g
@@ -1237,10 +1241,10 @@
       </text>
     </g>
     <path
-       d="M461 146h224v57H461v-57z"
-       fill="#fff"
+       d="m 461,146 224,0 0,57 -224,0 0,-57 z"
        id="path430"
-       style="" />
+       style="fill:#ffffff"
+       inkscape:connector-curvature="0" />
     <g
        id="g3807"
        transform="translate(205.68597,47.317431)">
@@ -1270,105 +1274,96 @@
       </g>
     </g>
     <path
-       d="M36 198l1-187h-1l-1 186 1 1zm-4-2l3 7 3-6-6-1zm8-184l-3-6-3 6h6z"
-       fill="#5b9bd5"
+       d="m 36,198 1,-187 -1,0 -1,186 1,1 z m -4,-2 3,7 3,-6 -6,-1 z m 8,-184 -3,-6 -3,6 6,0 z"
        id="path438"
-       style="" />
+       style="fill:#5b9bd5"
+       inkscape:connector-curvature="0" />
     <text
        y="-106"
        x="16"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
-       transform="scale(1 -1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
+       transform="scale(1,-1)"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text440"
        sodipodi:linespacing="125%">
       <tspan
          id="tspan442"
-         style="-inkscape-font-specification:'sans-serif, Normal';font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%;">N</tspan>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start">N</tspan>
     </text>
     <path
-       d="M466 224l215-2v-1l-215 2v1zm1-4l-6 4 6 2v-6zm213 5l6-3-6-3v6z"
-       fill="#5b9bd5"
+       d="m 466,224 215,-2 0,-1 -215,2 0,1 z m 1,-4 -6,4 6,2 0,-6 z m 213,5 6,-3 -6,-3 0,6 z"
        id="path444"
-       style="" />
+       style="fill:#5b9bd5"
+       inkscape:connector-curvature="0" />
     <text
        y="-232"
        x="565"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text446"
        sodipodi:linespacing="125%">
       <tspan
          x="565"
          y="-232"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan448">M</tspan>
     </text>
     <path
-       d="M62 222h250v-1H62v1zm1-3l-6 3 6 3v-6zm248 5l6-3-6-3v6z"
-       fill="#5b9bd5"
+       d="m 62,222 250,0 0,-1 -250,0 0,1 z m 1,-3 -6,3 6,3 0,-6 z m 248,5 6,-3 -6,-3 0,6 z"
        id="path450"
-       style="" />
+       style="fill:#5b9bd5"
+       inkscape:connector-curvature="0" />
     <text
        y="-232"
        x="394"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text452"
        sodipodi:linespacing="125%">
       <tspan
          x="394"
          y="-232"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan454">K</tspan>
     </text>
     <path
-       d="M373 223h47v-1h-47v1zm1-3l-6 3 6 3v-6zm45 5l6-3-6-3v6zm282-26v-48h1v48h-1zm3-1l-3 6-3-6h6zm-6-46l3-6 3 6h-6z"
-       fill="#5b9bd5"
+       d="m 373,223 47,0 0,-1 -47,0 0,1 z m 1,-3 -6,3 6,3 0,-6 z m 45,5 6,-3 -6,-3 0,6 z m 282,-26 0,-48 1,0 0,48 -1,0 z m 3,-1 -3,6 -3,-6 6,0 z m -6,-46 3,-6 3,6 -6,0 z"
        id="path456"
-       style="" />
+       style="fill:#5b9bd5"
+       inkscape:connector-curvature="0" />
     <text
        y="-169"
        x="712"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text458"
        sodipodi:linespacing="125%">
       <tspan
          x="712"
          y="-169"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan460">K</tspan>
     </text>
     <text
        y="-168"
        x="437"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
        id="text462"
        sodipodi:linespacing="125%">
       <tspan
          x="437"
          y="-168"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan464">x</tspan>
     </text>
     <text
@@ -1389,18 +1384,16 @@
     <text
        y="-99"
        x="488"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text470"
        sodipodi:linespacing="125%">
       <tspan
          x="488"
          y="-99"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan472">≪</tspan>
     </text>
     <text
@@ -1436,18 +1429,16 @@
     <text
        y="-69"
        x="489"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text482"
        sodipodi:linespacing="125%">
       <tspan
          x="489"
          y="-69"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan484">≪</tspan>
     </text>
     <text
@@ -1468,62 +1459,62 @@
     <text
        y="-38"
        x="472"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text490"
        sodipodi:linespacing="125%">
       <tspan
          x="472"
          y="-38"
-         style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
          id="tspan492">R</tspan>
     </text>
     <text
        y="-38"
        x="488"
-       transform="scale(1 -1)"
-       style="-inkscape-font-specification:'sans-serif, Normal';text-align:start;line-height:125%;font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;writing-mode:lr;"
+       transform="scale(1,-1)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        font-size="16"
-       font-family="Sans"
        writing-mode="lr"
-       fill="#5b9bd5"
        id="text494"
        sodipodi:linespacing="125%">
       <tspan
          x="488.20862 493.20901 500.20923 504.20883 513.20886 521.20801 527.20734 536.20734 541.2077 548.20795 557.20795 565.20715 571.20654 578.20673"
          y="-38"
          id="tspan496"
-         style="-inkscape-font-specification:'sans-serif, Normal';font-family:sans-serif;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:16px;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%;">is very sparse</tspan>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start">is very sparse</tspan>
     </text>
     <text
        id="text3853"
        writing-mode="lr"
        font-size="16"
        transform="scale(1,-1)"
-       style="font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr;fill:#5b9bd5;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-anchor:start;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#5b9bd5"
        x="187.88782"
        y="-228.63905"
        sodipodi:linespacing="125%">
       <tspan
          sodipodi:role="line"
-         id="tspan3857">M</tspan>
+         id="tspan3857"
+         x="187.88782"
+         y="-228.63905">M</tspan>
     </text>
     <text
        sodipodi:linespacing="125%"
        id="text3971"
        writing-mode="lr"
        font-size="16"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:48px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr;text-anchor:start;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start"
        transform="matrix(1,0,-0.34432761,-1,0,0)"
        x="699.44342"
        y="-92">
       <tspan
          sodipodi:role="line"
-         id="tspan3977">+ α</tspan>
+         id="tspan3977"
+         x="699.44342"
+         y="-92">+ noise</tspan>
     </text>
   </g>
 </svg>
