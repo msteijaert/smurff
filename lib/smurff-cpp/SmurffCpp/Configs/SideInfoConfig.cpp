@@ -2,7 +2,7 @@
 #include <fstream>
 #include <memory>
 
-#include "MacauPriorConfig.h"
+#include "SideInfoConfig.h"
 
 #include "TensorConfig.h"
 

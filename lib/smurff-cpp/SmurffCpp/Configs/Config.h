@@ -7,7 +7,7 @@
 #include <SmurffCpp/Utils/PVec.hpp>
 #include <SmurffCpp/Utils/Error.h>
 #include "MatrixConfig.h"
-#include "MacauPriorConfig.h"
+#include "SideInfoConfig.h"
 
 #define PRIOR_NAME_DEFAULT "default"
 #define PRIOR_NAME_MACAU "macau"

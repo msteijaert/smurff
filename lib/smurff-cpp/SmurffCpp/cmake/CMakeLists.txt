@@ -57,13 +57,13 @@ FILE (GLOB CONFIG_FILES "../Configs/Config.h"
                         "../Configs/MatrixConfig.h"
                         "../Configs/TensorConfig.h"
                         "../Configs/NoiseConfig.h"
-                        "../Configs/MacauPriorConfig.h"
+                        "../Configs/SideInfoConfig.h"
 
                         "../Configs/Config.cpp"
                         "../Configs/MatrixConfig.cpp"
                         "../Configs/TensorConfig.cpp"
                         "../Configs/NoiseConfig.cpp"
-                        "../Configs/MacauPriorConfig.cpp"
+                        "../Configs/SideInfoConfig.cpp"
                         )
 
 source_group ("Configs" FILES ${CONFIG_FILES})
@@ -215,7 +215,7 @@ install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
-install (FILES ../Configs/MacauPriorConfig.h DESTINATION include/SmurffCpp/Configs)
+install (FILES ../Configs/SideInfoConfig.h DESTINATION include/SmurffCpp/Configs)
 install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../Sessions/ISession.h DESTINATION include/SmurffCpp/Sessions)
 install (FILES ../IO/INIFile.h DESTINATION include/SmurffCpp/IO)

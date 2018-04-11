@@ -6,7 +6,7 @@
 #include <SmurffCpp/Priors/MacauPrior.h>
 #include <SmurffCpp/Sessions/Session.h>
 #include <SmurffCpp/Configs/MatrixConfig.h>
-#include <SmurffCpp/Configs/MacauPriorConfig.h>
+#include <SmurffCpp/Configs/SideInfoConfig.h>
 
 #include <SmurffCpp/SideInfo/ISideInfo.h>
 
