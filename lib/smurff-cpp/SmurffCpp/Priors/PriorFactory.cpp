@@ -79,7 +79,7 @@ std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_features(std
 
 std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type,
    const std::vector<std::shared_ptr<ISideInfo> >& side_infos,
-   const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items)
+   const std::vector<std::shared_ptr<SideInfoConfig> >& config_items)
 {
    if(prior_type == PriorTypes::macau || prior_type == PriorTypes::default_prior)
    {
@@ -110,7 +110,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_prior(std::shared_ptr<Session
       return std::shared_ptr<NormalOnePrior>(new NormalOnePrior(session, -1));
    case PriorTypes::macau:
    case PriorTypes::macauone:
-      return create_macau_prior<PriorFactory>(session, mode, priorType, session->getConfig().getMacauPriorConfigs().at(mode));
+      return create_macau_prior<PriorFactory>(session, mode, priorType, session->getConfig().getSideInfoConfigs(mode));
    default:
       {
          THROWERROR("Unknown prior: " + priorTypeToString(priorType));

@@ -70,10 +70,11 @@ private:
    std::shared_ptr<TensorConfig> m_train;
    std::shared_ptr<TensorConfig> m_test;
 
-   //-- sideinfo and aux_data
+   //-- aux_data (contains pos)
    std::vector<std::shared_ptr<TensorConfig> > m_auxData; //set of aux data matrices for normal and spikeandslab priors
 
-   std::vector<std::shared_ptr<MacauPriorConfig> > m_macauPriorConfigs;
+   //-- sideinfo per mode
+   std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > > m_sideInfoConfigs;
 
    // -- priors
    std::vector<PriorTypes> m_prior_types;
@@ -144,15 +145,17 @@ public:
       return m_auxData;
    }
 
-   const std::vector<std::shared_ptr<MacauPriorConfig> >& getMacauPriorConfigs() const
+   const std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > >& getSideInfoConfigs() const
    {
-      return m_macauPriorConfigs;
+      return m_sideInfoConfigs;
    }
 
-   const std::vector<std::shared_ptr<MacauPriorConfig> >& addMacauPriorConfig(std::shared_ptr<MacauPriorConfig> c)
+   const std::vector<std::shared_ptr<SideInfoConfig> >& getSideInfoConfigs(int mode) const;
+
+   const std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > >& addSideInfoConfig(int mode, std::shared_ptr<SideInfoConfig> c)
    {
-      m_macauPriorConfigs.push_back(c);
-      return m_macauPriorConfigs;
+      m_sideInfoConfigs[mode].push_back(c);
+      return m_sideInfoConfigs;
    }
 
    std::vector< std::shared_ptr<TensorConfig> > getData() const

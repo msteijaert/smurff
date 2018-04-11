@@ -10,10 +10,11 @@
 
 namespace smurff
 {
-   class MacauPriorConfig;
-
-   class MacauPriorConfigItem
+   class SideInfoConfig
    {
+   public:
+      static double BETA_PRECISION_DEFAULT_VALUE;
+      static double TOL_DEFAULT_VALUE;
    private:
       double m_tol;
       bool m_direct;
@@ -22,7 +23,7 @@ namespace smurff
       std::shared_ptr<MatrixConfig> m_sideInfo; //side info matrix for macau and macauone prior
 
    public:
-      MacauPriorConfigItem();
+      SideInfoConfig();
 
    public:
       std::shared_ptr<MatrixConfig> getSideInfo() const
@@ -69,34 +70,5 @@ namespace smurff
       void save(INIFile& writer, std::size_t prior_index, std::size_t config_item_index) const;
 
       bool restore(const INIFile& reader, std::size_t prior_index, std::size_t config_item_index);
-   };
-
-   class MacauPriorConfig
-   {
-   public:
-      static double BETA_PRECISION_DEFAULT_VALUE;
-      static double TOL_DEFAULT_VALUE;
-
-   private:
-      std::vector<std::shared_ptr<MacauPriorConfigItem> > m_configItems; //set of side info configs for macau and macauone priors
-
-   public:
-      MacauPriorConfig();
-
-   public:
-      void save(INIFile& writer, std::size_t prior_index) const;
-
-      bool restore(const INIFile& reader, std::size_t prior_index);
-
-   public:
-      const std::vector<std::shared_ptr<MacauPriorConfigItem> >& getConfigItems() const
-      {
-         return m_configItems;
-      }
-
-      std::vector<std::shared_ptr<MacauPriorConfigItem> >& getConfigItems()
-      {
-         return m_configItems;
-      }
    };
 }

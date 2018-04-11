@@ -108,20 +108,13 @@ void set_noise_configs(Config& config, const NoiseConfig nc)
       config.getTrain()->setNoiseConfig(nc);
 
    //set for side info
-   for (auto& mpc : config.getMacauPriorConfigs())
+   for (auto p :  config.getSideInfoConfigs())
    {
-      if (mpc)
+      for (auto configItem : p.second)
       {
-         for (auto& item : mpc->getConfigItems())
-         {
-            if (item)
-            {
-               const auto& sideInfo = item->getSideInfo();
-
-               if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
-                  sideInfo->setNoiseConfig(nc);
-            }
-         }
+          const auto& sideInfo = configItem->getSideInfo();
+          if (sideInfo && sideInfo->getNoiseConfig().getNoiseType() == NoiseTypes::unset)
+              sideInfo->setNoiseConfig(nc);
       }
    }
 
@@ -167,46 +160,34 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(SIDE_INFO_NAME) && !vm[SIDE_INFO_NAME].defaulted())
    {
-      //parse each group of tokens into MacauPriorConfig
+      //parse each group of tokens into SideInfoConfig
+      int mode = 0;
       for (auto sideInfoString : vm[SIDE_INFO_NAME].as<std::vector<std::string> >())
       {
          std::vector<std::string> tokens;
          smurff::split(sideInfoString, tokens, ',');
 
-         auto mpc = std::make_shared<MacauPriorConfig>();
-
-         //parse each token into MacauPriorConfigItem
+         //parse each token into SideInfoConfig
          for (auto token : tokens)
          {
-            if (token == NONE_TOKEN)
-            {
-               mpc = std::shared_ptr<MacauPriorConfig>();
-               break;
-            }
+            if (token == NONE_TOKEN) break;
 
             std::vector<std::string> properties;
             smurff::split(token, properties, ';');
 
             THROWERROR_ASSERT_MSG(properties.size() == 3, "Wrong number of options specified for side info token");
 
-            auto mpci = std::make_shared<MacauPriorConfigItem>();
+            auto mpci = std::make_shared<SideInfoConfig>();
 
             mpci->setTol(stod(properties.at(0)));
             mpci->setDirect(stoi(properties.at(1)));
             mpci->setSideInfo(matrix_io::read_matrix(properties.at(2), false));
 
-            mpc->getConfigItems().push_back(mpci);
+            config.addSideInfoConfig(mode, mpci);
          }
 
-         config.addMacauPriorConfig(mpc);
+         mode++;
       }
-   }
-   else
-   {
-      // "none none ..."
-      auto num_priors = config.getPriorTypes().size();
-      for(unsigned i=0; i<num_priors; ++i)
-          config.addMacauPriorConfig(std::shared_ptr<MacauPriorConfig>());
    }
 
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())

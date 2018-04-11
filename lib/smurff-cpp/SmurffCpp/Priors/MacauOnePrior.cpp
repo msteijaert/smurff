@@ -10,7 +10,7 @@ using namespace smurff;
 MacauOnePrior::MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
    : NormalOnePrior(session, mode, "MacauOnePrior")
 {
-   bp0 = MacauPriorConfig::BETA_PRECISION_DEFAULT_VALUE;
+   bp0 = SideInfoConfig::BETA_PRECISION_DEFAULT_VALUE;
 
    enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
 }

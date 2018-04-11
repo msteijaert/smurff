@@ -14,7 +14,7 @@ namespace smurff {
    public:
       std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type,
                                                        const std::vector<std::shared_ptr<ISideInfo> >& side_infos,
-                                                       const std::vector<std::shared_ptr<MacauPriorConfigItem> >& config_items);
+                                                       const std::vector<std::shared_ptr<SideInfoConfig> >& config_items);
 
       std::shared_ptr<ILatentPrior> create_prior(std::shared_ptr<Session> session, int mode) override;
    };
