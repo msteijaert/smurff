@@ -137,9 +137,10 @@ public:
    {
       return m_auxData;
    }
-   
-   std::vector< std::shared_ptr<TensorConfig> >& getAuxData()
+
+   const std::vector< std::shared_ptr<TensorConfig> >& addAuxData(std::shared_ptr<TensorConfig> c)
    {
+      m_auxData.push_back(c);
       return m_auxData;
    }
 
@@ -148,8 +149,9 @@ public:
       return m_macauPriorConfigs;
    }
 
-   std::vector<std::shared_ptr<MacauPriorConfig> >& getMacauPriorConfigs()
+   const std::vector<std::shared_ptr<MacauPriorConfig> >& addMacauPriorConfig(std::shared_ptr<MacauPriorConfig> c)
    {
+      m_macauPriorConfigs.push_back(c);
       return m_macauPriorConfigs;
    }
 
@@ -165,12 +167,13 @@ public:
       return m_prior_types;
    }
 
-   std::vector<PriorTypes>& getPriorTypes()
+   const std::vector<PriorTypes>& addPriorType(const PriorTypes value)
    {
+      m_prior_types.push_back(value);
       return m_prior_types;
    }
 
-   std::vector<PriorTypes>& addPriorType(std::string value)
+   const std::vector<PriorTypes>& addPriorType(std::string value)
    {
       m_prior_types.push_back(stringToPriorType(value));
       return m_prior_types;

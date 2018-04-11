@@ -163,7 +163,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
    //create new session from command line options or override options from ini file
    if (vm.count(PRIOR_NAME) && !vm[PRIOR_NAME].defaulted())
       for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
-         config.getPriorTypes().push_back(stringToPriorType(pr));
+         config.addPriorType(pr);
 
    if (vm.count(SIDE_INFO_NAME) && !vm[SIDE_INFO_NAME].defaulted())
    {
@@ -198,14 +198,15 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
             mpc->getConfigItems().push_back(mpci);
          }
 
-         config.getMacauPriorConfigs().push_back(mpc);
+         config.addMacauPriorConfig(mpc);
       }
    }
    else
    {
-      // same as "none none ..."
+      // "none none ..."
       auto num_priors = config.getPriorTypes().size();
-      config.getMacauPriorConfigs().resize(num_priors);
+      for(unsigned i=0; i<num_priors; ++i)
+          config.addMacauPriorConfig(std::shared_ptr<MacauPriorConfig>());
    }
 
    if (vm.count(AUX_DATA_NAME) && !vm[AUX_DATA_NAME].defaulted())
@@ -244,7 +245,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
             auto cfg = matrix_io::read_matrix(token, false);
             cfg->setPos(pos);
-            config.getAuxData().push_back(cfg);
+            config.addAuxData(cfg);
          }
 
          dim++;
