@@ -16,8 +16,7 @@ from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
 from TensorConfig cimport TensorConfig
-from MacauPriorConfig cimport *
-from MacauPriorConfigItem cimport *
+from SideInfoConfig cimport *
 from SessionFactory cimport SessionFactory
 from PVec cimport PVec
 
@@ -93,28 +92,20 @@ cdef MatrixConfig* prepare_dense_matrix(X, NoiseConfig noise_config) except +:
     cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), vals_vector_shared_ptr, noise_config)
     return matrix_config_ptr
 
-cdef shared_ptr[MacauPriorConfigItem] prepare_sideinfo(side_info, NoiseConfig noise_config) except +:
+cdef shared_ptr[SideInfoConfig] prepare_sideinfo(side_info, NoiseConfig noise_config, tol, direct) except +:
     if isinstance(side_info[0], SPARSE_MATRIX_TYPES):
-        macau_prior_config_item_matrix = prepare_sparse_matrix(side_info[0], noise_config, False)
+        side_info_config_matrix = prepare_sparse_matrix(side_info[0], noise_config, False)
     elif isinstance(side_info[0], DENSE_MATRIX_TYPES) and len(side_info[0].shape) == 2:
-        macau_prior_config_item_matrix = prepare_dense_matrix(side_info[0], noise_config)
+        side_info_config_matrix = prepare_dense_matrix(side_info[0], noise_config)
     else:
         error_msg = "Unsupported side info matrix type: {}".format(side_info[0])
         raise ValueError(error_msg)
 
-    macau_prior_config_item_matrix_tol = TOL_DEFAULT_VALUE
-    if side_info[1] is not None:
-        macau_prior_config_item_matrix_tol = side_info[1]
-
-    macau_prior_config_item_matrix_direct = False
-    if side_info[2] is not None:
-        macau_prior_config_item_matrix_direct = side_info[2]
-
-    cdef shared_ptr[MacauPriorConfigItem] macau_prior_config_item_ptr = make_shared[MacauPriorConfigItem]()
-    macau_prior_config_item_ptr.get().setSideInfo(shared_ptr[MatrixConfig](macau_prior_config_item_matrix))
-    macau_prior_config_item_ptr.get().setTol(macau_prior_config_item_matrix_tol)
-    macau_prior_config_item_ptr.get().setDirect(macau_prior_config_item_matrix_direct)
-    return macau_prior_config_item_ptr
+    cdef shared_ptr[SideInfoConfig] side_info_config_ptr = make_shared[SideInfoConfig]()
+    side_info_config_ptr.get().setSideInfo(shared_ptr[MatrixConfig](side_info_config_matrix))
+    side_info_config_ptr.get().setTol(tol)
+    side_info_config_ptr.get().setDirect(direct)
+    return side_info_config_ptr
 
 cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config) except +:
     if not isinstance(tensor, DENSE_TENSOR_TYPES):
@@ -229,10 +220,65 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
     else:
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
 
+class PyNoiseConfig:
+    def __init__(self, noise_type = "fixed", precision = 5.0, sn_init = 1.0, sn_max = 10.0, probit_threshold = 0.5): 
+        self.noise_type = noise_type
+        self.precision = precision
+        self.sn_init = sn_init
+        self.probit_threshold = probit_threshold
+
+cdef NoiseConfig prepare_noise_config(py_noise_config):
+    cdef NoiseConfig n
+    n.setNoiseType(py_noise_config.noise_type.encode('UTF-8'))
+    return n
+
+
 cdef class PySession:
     cdef shared_ptr[ISession] ptr;
+    cdef Config config
+    cdef NoiseConfig noise_config
+
+    def __init__(self,
+        priors           = [ "normal", "normal" ],
+        num_latent       = NUM_LATENT_DEFAULT_VALUE,
+        burnin           = BURNIN_DEFAULT_VALUE,
+        nsamples         = NSAMPLES_DEFAULT_VALUE,
+        tol              = TOL_DEFAULT_VALUE,
+        direct           = True,
+        seed             = RANDOM_SEED_DEFAULT_VALUE,
+        verbose          = VERBOSE_DEFAULT_VALUE,
+        save_prefix      = SAVE_PREFIX_DEFAULT_VALUE,
+        save_extension   = SAVE_EXTENSION_DEFAULT_VALUE,
+        save_freq        = SAVE_FREQ_DEFAULT_VALUE,
+        csv_status       = STATUS_DEFAULT_VALUE):
+
+        for p in priors:
+            self.config.addPriorType(p.encode('UTF-8'))
+        self.config.setNumLatent(num_latent)
+        self.config.setBurnin(burnin)
+        self.config.setNSamples(nsamples)
+        self.config.setVerbose(verbose)
+
+        if seed:           self.config.setRandomSeed(seed)
+        if save_prefix:    self.config.setSavePrefix(save_prefix)
+        if save_extension: self.config.setSaveExtension(save_extension)
+        if save_freq:      self.config.setSaveFreq(save_freq)
+        if csv_status:     self.config.setCsvStatus(csv_status)
+
+    def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig()):
+        self.noise_config = prepare_noise_config(noise)
+        train, test = prepare_data(Y, Ytest, None, self.noise_config)
+        self.config.setTrain(train)
+
+        if Ytest is not None:
+            self.config.setTest(test)
+
+    def addSideInfo(self, mode, Y, noise = PyNoiseConfig(), tol = 1e-6, direct = False):
+        self.noise_config = prepare_noise_config(noise)
+        self.config.addSideInfoConfig(mode, prepare_sideinfo(Y, self.noise_config, tol, direct))
 
     def init(self):
+        self.ptr = SessionFactory.create_py_session_from_config(self.config)
         return self.ptr.get().init()
 
     def step(self):
@@ -260,100 +306,3 @@ cdef class PySession:
                 py_result_items.append(py_result_item)
 
         return Result(py_result_items, self.ptr.get().getRmseAvg())
-
-# Create and initialize smurff-cpp Config instance
-cpdef sessionFromConfig(
-        Y                = None,
-        Ynoise           = None,
-        Ytest            = None,
-        data_shape       = None,
-        priors           = [],
-        side_info        = [],
-        side_info_noises = [],
-        aux_data         = [],
-        aux_data_noises  = [],
-        num_latent       = NUM_LATENT_DEFAULT_VALUE,
-        burnin           = BURNIN_DEFAULT_VALUE,
-        nsamples         = NSAMPLES_DEFAULT_VALUE,
-        tol              = TOL_DEFAULT_VALUE,
-        direct           = True,
-        seed             = RANDOM_SEED_DEFAULT_VALUE,
-        verbose          = VERBOSE_DEFAULT_VALUE,
-        save_prefix      = SAVE_PREFIX_DEFAULT_VALUE,
-        save_extension   = SAVE_EXTENSION_DEFAULT_VALUE,
-        save_freq        = SAVE_FREQ_DEFAULT_VALUE,
-        csv_status       = STATUS_DEFAULT_VALUE) except +:
-
-    cdef Config config
-    cdef NoiseConfig noise_config
-    cdef shared_ptr[MacauPriorConfig] macau_prior_config_ptr
-    cdef shared_ptr[PVec] pos
-    cdef string noise_type_str
-
-    # Create and initialize smurff-cpp Config instance
-    if Ynoise is not None:
-        noise_config.setNoiseType(stringToNoiseType(Ynoise[0].encode('UTF-8')))
-
-        if Ynoise[1] is not None:
-            noise_config.setPrecision(Ynoise[1])
-        if Ynoise[2] is not None:
-            noise_config.setSnInit(Ynoise[2])
-        if Ynoise[3] is not None:
-            noise_config.setSnMax(Ynoise[3])
-        if Ynoise[4] is not None:
-            noise_config.setThreshold(Ynoise[4])
-    else:
-        noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
-
-    train, test = prepare_data(Y, Ytest, data_shape, noise_config)
-    train.get().setNoiseConfig(noise_config)
-    config.setTrain(train)
-
-    if Ytest is not None:
-        config.setTest(test)
-
-    for prior_type_str in priors:
-        config.addPriorType(prior_type_str.encode('UTF-8'))
-
-    if len(side_info) == 0:
-        side_info = [None] * len(priors)
-    for i in range(len(priors)):
-        side_info_list = side_info[i]
-        if side_info_list is not None:
-            macau_prior_config_ptr = make_shared[MacauPriorConfig]()
-            for j in range(len(side_info_list)):
-                si = side_info_list[j]
-                if si is not None:
-                    noise_config = NoiseConfig(NOISE_TYPE_DEFAULT_VALUE)
-                    macau_prior_config_ptr.get().getConfigItems().push_back(prepare_sideinfo(si, noise_config))
-                else:
-                    macau_prior_config_ptr.get().getConfigItems().push_back(make_shared[MacauPriorConfigItem]())
-        else:
-            macau_prior_config_ptr = shared_ptr[MacauPriorConfig]()
-
-        config.getMacauPriorConfigs().push_back(macau_prior_config_ptr)
-
-    config.setNumLatent(num_latent)
-    config.setBurnin(burnin)
-    config.setNSamples(nsamples)
-
-    if seed:
-        config.setRandomSeed(seed)
-
-    config.setVerbose(verbose)
-
-    # if save_prefix:
-    #     config.setSavePrefix(save_prefix)
-
-    # if save_extension:
-    #     config.setSaveExtension(save_extension)
-
-    # if save_freq:
-    #     config.setSaveFreq(save_freq)
-
-    # if csv_status:
-    #     config.setCsvStatus(csv_status)
-
-    session = PySession()
-    session.ptr = SessionFactory.create_py_session_from_config(config)
-    return session

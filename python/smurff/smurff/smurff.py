@@ -1,8 +1,8 @@
-from .wrapper import PySession, sessionFromConfig
+from .wrapper import PySession
 
-def smurff(Y, **args):
-    args["Y"] = Y
-    session = sessionFromConfig(**args)
+def smurff(Ytrain, Ytest = None, side_info = None, aux_data = None, **args):
+    session = PySession(**args)
+    session.addTrainAndTest(Ytrain, Ytest)
 
     session.init()
     while session.step():
@@ -10,9 +10,8 @@ def smurff(Y, **args):
 
     return session.getResult()
 
-def bpmf(Y, **args):
+def bpmf(Y, Ytest = None, **args):
     args["priors"] = ["normal", "normal"]
-    args["side_info_files"] = [ "none", "none" ]
     return smurff(Y, **args)
 
 def macau(train, side_info, **args):
@@ -22,7 +21,6 @@ def macau(train, side_info, **args):
             priors[d] = 'macau'
 
     args["priors"] = priors
-    args["side_info_files"] = side_info_files
     args["aux_data"] =  [ [], [] ]
  
     return smurff(**args)

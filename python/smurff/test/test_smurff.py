@@ -34,7 +34,7 @@ class TestSmurff(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      verbose=False)
+                      verbose=True)
 
     def test_macau(self):
         Ydense  = np.random.rand(10, 20)
