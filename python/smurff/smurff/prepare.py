@@ -45,9 +45,13 @@ def make_train_test_df(Y, ntest, shape = None):
     ## randomly spliting train-test
     if ntest < 1:
         ntest = Y.shape[0] * ntest
+
     ntest  = int(round(ntest))
     rperm  = np.random.permutation(Y.shape[0])
     train  = rperm[ntest:]
     test   = rperm[0:ntest]
 
-    return SparseTensor(Y.iloc[train], shape), SparseTensor(Y.iloc[test], shape)
+    Ytrain = SparseTensor(Y.iloc[train], shape)
+    Ytest = SparseTensor(Y.iloc[test], Ytrain.shape)
+
+    return Ytrain, Ytest

@@ -17,18 +17,21 @@ def smurff(Ytrain, priors, Ytest = None, side_info = None, **args):
 
     return session.getResult()
 
-def bpmf(Ytrain, Ytest = None, **args):
-    return macau(Ytrain, Ytest, **args)
+def bpmf(Ytrain, Ytest = None, univariate = False ,**args):
+    return macau(Ytrain, Ytest, univariate, **args)
 
-def macau(Ytrain, Ytest = None, side_info = None, **args):
+def macau(Ytrain, Ytest = None, side_info = None, univariate = False, **args):
     nmodes = len(Ytrain.shape)
 
     priors = ['normal'] * nmodes
     if side_info is not None:
-        assert len(side_info) == session.nmodes
+        assert len(side_info) == nmodes
         for d in range(nmodes):
             if side_info[d] is not None:
                 priors[d] = 'macau'
+
+    if univariate:
+        priors = [ p + "one" for p in priors ]
 
     return smurff(Ytrain, priors, Ytest, side_info,  **args)
 
