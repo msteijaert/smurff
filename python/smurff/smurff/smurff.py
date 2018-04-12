@@ -1,7 +1,7 @@
 from .wrapper import PySession
 
-def smurff(Ytrain, Ytest = None, side_info = None, **args):
-    session = PySession(**args)
+def smurff(Ytrain, priors, Ytest = None, side_info = None, **args):
+    session = PySession(priors = priors, **args)
     session.addTrainAndTest(Ytrain, Ytest)
 
     if side_info is not None:
@@ -17,11 +17,11 @@ def smurff(Ytrain, Ytest = None, side_info = None, **args):
 
     return session.getResult()
 
-def bpmf(Y, Ytest = None, **args):
-    return macau(Y, Ytest, **args)
+def bpmf(Ytrain, Ytest = None, **args):
+    return macau(Ytrain, Ytest, **args)
 
-def macau(train, Ytest = None, side_info = None, **args):
-    nmodes = len(train.shape)
+def macau(Ytrain, Ytest = None, side_info = None, **args):
+    nmodes = len(Ytrain.shape)
 
     priors = ['normal'] * nmodes
     if side_info is not None:
@@ -30,6 +30,5 @@ def macau(train, Ytest = None, side_info = None, **args):
             if side_info[d] is not None:
                 priors[d] = 'macau'
 
-
-    return smurff(Ytrain, Ytest, side_info, priors, **args)
+    return smurff(Ytrain, priors, Ytest, side_info,  **args)
 

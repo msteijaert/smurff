@@ -2,8 +2,15 @@ import pandas as pd
 import numpy as np
 
 class SparseTensor:
-    def __init__(self, data, shape = None):
+    """Wrapper around a pandas DataFrame to represent a sparse tensor
 
+       The DataFrame should have N index columns (int type) and 1 value column (float type)
+       N is the dimensionality of the tensor
+
+       You can also specify the shape of the tensor. If you don't it is detected automatically.
+    """
+       
+    def __init__(self, data, shape = None):
         if type(data) == SparseTensor:
             self.data = data.data
             if shape is not None:

@@ -37,7 +37,7 @@ SPARSE_MATRIX_TYPES = (sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sp
 MATRIX_TYPES = DENSE_MATRIX_TYPES + SPARSE_MATRIX_TYPES
 
 DENSE_TENSOR_TYPES  = (np.ndarray, )
-SPARSE_TENSOR_TYPES = (SparseTensor, pd.DataFrame, )
+SPARSE_TENSOR_TYPES = (SparseTensor, )
 
 TENSOR_TYPES = DENSE_TENSOR_TYPES + SPARSE_TENSOR_TYPES
 
@@ -115,8 +115,6 @@ cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config) except
     raise NotImplementedError()
 
 cdef TensorConfig* prepare_sparse_tensor(tensor, NoiseConfig noise_config, is_scarse) except +:
-    tensor = SparseTensor(tensor)
-
     shape = tensor.shape
     df = tensor.data
 
