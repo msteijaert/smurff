@@ -6,6 +6,8 @@ import smurff
 import itertools
 import collections
 
+verbose = 0
+
 class TestBPMF(unittest.TestCase):
 
     # Python 2.7 @unittest.skip fix
@@ -17,7 +19,7 @@ class TestBPMF(unittest.TestCase):
         results = smurff.bpmf(Y,
                                 Ytest=Ytest,
                                 num_latent=4,
-                                verbose=False,
+                                verbose=verbose,
                                 burnin=50,
                                 nsamples=50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
@@ -31,7 +33,7 @@ class TestBPMF(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      verbose=False)
+                      verbose=verbose)
 
     def test_bpmf_emptytest(self):
         X = scipy.sparse.rand(15, 10, 0.2)
@@ -39,7 +41,7 @@ class TestBPMF(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      verbose=False)
+                      verbose=verbose)
 
     def test_bpmf_tensor(self):
         np.random.seed(1234)
@@ -59,7 +61,7 @@ class TestBPMF(unittest.TestCase):
         results = smurff.bpmf(Y,
                                 Ytest=Ytest,
                                 num_latent=4,
-                                verbose=False,
+                                verbose=verbose,
                                 burnin=50,
                                 nsamples=50)
 
@@ -102,7 +104,7 @@ class TestBPMF(unittest.TestCase):
         sparse_matrix_results = smurff.bpmf(train_sparse_matrix,
                                               Ytest=test_sparse_matrix,
                                               num_latent=4,
-                                              verbose=False,
+                                              verbose=verbose,
                                               burnin=50,
                                               nsamples=50,
                                               seed=1234)
@@ -110,7 +112,7 @@ class TestBPMF(unittest.TestCase):
         sparse_tensor_results = smurff.bpmf(train_sparse_tensor,
                                               Ytest=test_sparse_tensor,
                                               num_latent=4,
-                                              verbose=False,
+                                              verbose=verbose,
                                               burnin=50,
                                               nsamples=50,
                                               seed=1234)
@@ -156,7 +158,7 @@ class TestBPMF(unittest.TestCase):
         sparse_matrix_results = smurff.bpmf(train_dense_matrix,
                                               Ytest=test_sparse_matrix,
                                               num_latent=4,
-                                              verbose=False,
+                                              verbose=verbose,
                                               burnin=50,
                                               nsamples=50,
                                               seed=1234)
@@ -164,7 +166,7 @@ class TestBPMF(unittest.TestCase):
         sparse_tensor_results = smurff.bpmf(train_sparse_tensor,
                                               Ytest=test_sparse_tensor,
                                               num_latent=4,
-                                              verbose=False,
+                                              verbose=verbose,
                                               burnin=50,
                                               nsamples=50,
                                               seed=1234)
@@ -192,7 +194,7 @@ class TestBPMF(unittest.TestCase):
         results = smurff.bpmf(Ytrain,
                                 Ytest=Ytest,
                                 num_latent=4,
-                                verbose=False,
+                                verbose=verbose,
                                 burnin=20,
                                 nsamples=20)
 
@@ -212,7 +214,7 @@ class TestBPMF(unittest.TestCase):
         results = smurff.bpmf(Ytrain,
                                 Ytest=Ytest,
                                 num_latent=4,
-                                verbose=False,
+                                verbose=verbose,
                                 burnin=20,
                                 nsamples=20)
 
@@ -227,7 +229,7 @@ class TestBPMF(unittest.TestCase):
         results_mat = smurff.bpmf(Ytrain_sp,
                                     Ytest=Ytest_sp,
                                     num_latent=4,
-                                    verbose=False,
+                                    verbose=verbose,
                                     burnin=20,
                                     nsamples=20)
 

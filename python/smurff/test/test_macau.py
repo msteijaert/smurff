@@ -6,10 +6,12 @@ import smurff
 import itertools
 import collections
 
-class TestSmurff(unittest.TestCase):
+verbose=0
+
+class TestMacau(unittest.TestCase):
 
     # Python 2.7 @unittest.skip fix
-    __name__ = "TestSmurff"
+    __name__ = "TestMacau"
 
     def test_macau(self):
         Ydense  = np.random.rand(10, 20)
@@ -24,7 +26,7 @@ class TestSmurff(unittest.TestCase):
                                 Ytest=Ytest,
                                 side_info=[side1, side2],
                                 num_latent=4,
-                                verbose=False,
+                                verbose=verbose,
                                 burnin=50,
                                 nsamples=50)
 
@@ -41,7 +43,7 @@ class TestSmurff(unittest.TestCase):
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
-                      verbose=False)
+                      verbose=verbose)
 
     def test_macau_dense(self):
         Y  = scipy.sparse.rand(15, 10, 0.2)
@@ -53,7 +55,7 @@ class TestSmurff(unittest.TestCase):
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
-                      verbose=False)
+                      verbose=verbose)
 
     def test_macau_univariate(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
@@ -66,7 +68,7 @@ class TestSmurff(unittest.TestCase):
                                 side_info=[side1, side2],
                                 univariate = True,
                                 num_latent=4,
-                                verbose=False,
+                                verbose=verbose,
                                 burnin=50,
                                 nsamples=50)
         self.assertEqual(Ytest.nnz, len(results.predictions))
@@ -87,7 +89,7 @@ class TestSmurff(unittest.TestCase):
 			 Ytest = Ytest,
 			 side_info=[Acoo, None, None],
 			 num_latent = 4,
-			 verbose = False,
+			 verbose=verbose,
 			 burnin = 20,
 			 nsamples = 20)
 
@@ -111,7 +113,7 @@ class TestSmurff(unittest.TestCase):
                                 side_info=[Acoo, None, None],
                                 univariate = True,
                                 num_latent=4,
-                                verbose=False,
+                                verbose=verbose,
                                 burnin=20,
                                 nsamples=20)
 
