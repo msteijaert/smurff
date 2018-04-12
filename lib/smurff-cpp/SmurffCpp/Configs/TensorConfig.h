@@ -106,6 +106,7 @@ namespace smurff
       const std::string &getFilename() const;
 
       void setPos(const PVec<>& p);
+      void setPos(const std::vector<int> &p) { setPos(PVec<>(p)); }
       bool hasPos() const;
       const PVec<> &getPos() const;
 
