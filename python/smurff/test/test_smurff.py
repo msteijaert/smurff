@@ -15,7 +15,6 @@ class TestSmurff(unittest.TestCase):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
         results = smurff.smurff(Y,
-                                Ynoise=('fixed', 1.0, None, None, None),
                                 Ytest=Ytest,
                                 priors=['normal', 'normal'],
                                 num_latent=4,
@@ -95,7 +94,6 @@ class TestSmurff(unittest.TestCase):
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
         results = smurff.smurff(Y=Ytrain,
-                                Ynoise=('probit', None, None, None, 0.5),
                                 Ytest=Ytest,
                                 priors=['macau', 'normal'],
                                 prior_noises=[('probit', None, None, None, 0.5), ('fixed', 1.0, None, None, None)],
@@ -146,7 +144,6 @@ class TestSmurff(unittest.TestCase):
         X = scipy.sparse.rand(15, 10, 0.2)
         X.data = X.data > 0.5
         smurff.smurff(X,
-                      Ynoise=('probit', None, None, None, 0.5),
                       priors=['normal', 'normal'],
                       num_latent=10,
                       burnin=10,
@@ -224,21 +221,20 @@ class TestSmurff(unittest.TestCase):
         test_sparse_matrix.count_nonzero()
 
         # Create train and test sparse tensors
-        train_sparse_tensor = pd.DataFrame({
+        train_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
             '0': train_sparse_matrix.row,
             '1': train_sparse_matrix.col,
             'v': train_sparse_matrix.data
-        })
-        test_sparse_tensor = pd.DataFrame({
+        }))
+        test_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
             '0': test_sparse_matrix.row,
             '1': test_sparse_matrix.col,
             'v': test_sparse_matrix.data
-        })
+        }))
 
         # Run SMURFF
         sparse_matrix_results = smurff.smurff(train_sparse_matrix,
                                               Ytest=test_sparse_matrix,
-                                              data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,
                                               verbose=False,
@@ -248,7 +244,6 @@ class TestSmurff(unittest.TestCase):
 
         sparse_tensor_results = smurff.smurff(train_sparse_tensor,
                                               Ytest=test_sparse_tensor,
-                                              data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,
                                               verbose=False,
@@ -282,22 +277,21 @@ class TestSmurff(unittest.TestCase):
         test_sparse_matrix = scipy.sparse.coo_matrix((test_vals, (test_rows, test_cols)), test_shape)
 
         # Create train and test sparse tensors
-        train_sparse_tensor = pd.DataFrame({
+        train_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
             '0': train_sparse_matrix.row,
             '1': train_sparse_matrix.col,
             'v': train_sparse_matrix.data
-        })
-        test_sparse_tensor = pd.DataFrame({
+        }))
+        test_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
             '0': test_sparse_matrix.row,
             '1': test_sparse_matrix.col,
             'v': test_sparse_matrix.data
-        })
+        }))
 
         # Run SMURFF
         sparse_matrix_results = smurff.smurff(train_dense_matrix,
                                               Ytest=test_sparse_matrix,
                                               priors=['normal', 'normal'],
-                                              data_shape=train_shape,
                                               num_latent=4,
                                               verbose=False,
                                               burnin=50,
@@ -306,7 +300,6 @@ class TestSmurff(unittest.TestCase):
 
         sparse_tensor_results = smurff.smurff(train_sparse_tensor,
                                               Ytest=test_sparse_tensor,
-                                              data_shape=train_shape,
                                               priors=['normal', 'normal'],
                                               num_latent=4,
                                               verbose=False,
@@ -335,7 +328,6 @@ class TestSmurff(unittest.TestCase):
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
         results = smurff.smurff(Y=Ytrain,
-                                Ynoise=('fixed', 50, None, None, None),
                                 Ytest=Ytest,
                                 priors=['normal', 'normal', 'normal'],
                                 num_latent=4,

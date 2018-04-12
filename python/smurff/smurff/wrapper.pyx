@@ -27,6 +27,7 @@ import pandas as pd
 import scipy.sparse
 import numbers
 
+from .helper import SparseTensor, PyNoiseConfig
 from .prepare import make_train_test, make_train_test_df
 from .result import Result, ResultItem
 
@@ -36,7 +37,8 @@ SPARSE_MATRIX_TYPES = (sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sp
 MATRIX_TYPES = DENSE_MATRIX_TYPES + SPARSE_MATRIX_TYPES
 
 DENSE_TENSOR_TYPES  = (np.ndarray, )
-SPARSE_TENSOR_TYPES = (pd.DataFrame, )
+SPARSE_TENSOR_TYPES = (SparseTensor, )
+SPARSE_TENSOR_DATA_TYPES = (pd.DataFrame, )
 
 TENSOR_TYPES = DENSE_TENSOR_TYPES + SPARSE_TENSOR_TYPES
 
@@ -113,15 +115,11 @@ cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config) except
         raise ValueError(error_msg)
     raise NotImplementedError()
 
-class SparseTensor:
-    def __init__(self, shape, data):
-        self.shape = shape
-        self.data = data
-
 cdef TensorConfig* prepare_sparse_tensor(tensor, NoiseConfig noise_config, is_scarse) except +:
     shape = tensor.shape
     data = tensor.data
-    if not isinstance(data, SPARSE_TENSOR_TYPES):
+
+    if not isinstance(data, SPARSE_TENSOR_DATA_TYPES):
         error_msg = "Unsupported sparse tensor data type: {}".format(data)
         raise ValueError(error_msg)
 
@@ -148,7 +146,12 @@ cdef TensorConfig* prepare_sparse_tensor(tensor, NoiseConfig noise_config, is_sc
         cpp_columns_vector = idx
         cpp_values_vector = val
 
-        return new TensorConfig(make_shared[vector[uint64_t]](cpp_dims_vector), make_shared[vector[uint32_t]](cpp_columns_vector), make_shared[vector[double]](cpp_values_vector), NoiseConfig(), is_scarse)
+        return new TensorConfig(
+                make_shared[vector[uint64_t]](cpp_dims_vector),
+                make_shared[vector[uint32_t]](cpp_columns_vector),
+                make_shared[vector[double]](cpp_values_vector),
+                noise_config,
+                is_scarse)
     else:
         error_msg = "Unsupported sparse tensor data type: {}".format(data)
         raise ValueError(error_msg)
@@ -169,7 +172,7 @@ cdef shared_ptr[TensorConfig] prepare_auxdata(in_tensor, pos, is_scarce, NoiseCo
 
     return shared_ptr[TensorConfig](aux_data_config)
 
-cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test(train, test, shape, NoiseConfig noise_config) except +:
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test(train, test, NoiseConfig noise_config) except +:
 
     # Check train data type
     if (not isinstance(train, ALL_TYPES)):
@@ -192,8 +195,8 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test
         if isinstance(train, SPARSE_TENSOR_TYPES) and train.ndim != test.ndim:
             raise ValueError("Train and test data must have the same number of dimensions: {} != {}".format(train.ndim, test.ndim))
 
-    cdef TensorConfig* train_config
-    cdef TensorConfig* test_config
+    cdef TensorConfig* train_config = NULL
+    cdef TensorConfig* test_config = NULL
 
     # Prepare train data
     if isinstance(train, DENSE_MATRIX_TYPES) and len(train.shape) == 2:
@@ -222,37 +225,7 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test
             error_msg = "Unsupported test data type: {} or shape {}".format(type(test), test.shape)
             raise ValueError(error_msg)
 
-    if test is not None:
-        # Adjust train and test dims. Makes sense only for sparse tensors
-        # It does not have any effect in other case
-        if shape is None:
-            for i in range(train_config.getDimsPtr().get().size()):
-                max_dim = max(train_config.getDimsPtr().get().at(i), test_config.getDimsPtr().get().at(i))
-                train_config.getDimsPtr().get()[0][i] = max_dim
-                test_config.getDimsPtr().get()[0][i] = max_dim
-        return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig](test_config)
-    else:
-        return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
-
-class PyNoiseConfig:
-    def __init__(self, noise_type = "fixed", precision = 5.0, sn_init = 1.0, sn_max = 10.0, threshold = 0.5): 
-        self.noise_type = noise_type
-        self.precision = precision
-        self.sn_init = sn_init
-        self.sn_max = sn_max
-        self.threshold = threshold
-
-class FixedNoise(PyNoiseConfig):
-    def __init__(self, precision = 5.0): 
-        PyNoiseConfig.__init__(self, "fixed", precision)
-
-class AdaptiveNoise(PyNoiseConfig):
-    def __init__(self, sn_init = 5.0, sn_max = 10.0): 
-        PyNoiseConfig.__init__(self, "adaptive", sn_init = sn_init, sn_max = sn_max)
-
-class ProbitNoise(PyNoiseConfig):
-    def __init__(self, threshold = 0.): 
-        PyNoiseConfig.__init__(self, "probit", threshold = threshold)
+    return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig](test_config)
 
 cdef NoiseConfig prepare_noise_config(py_noise_config):
     """converts a PyNoiseConfig object to a C++ NoiseConfig object"""
@@ -299,7 +272,7 @@ cdef class PySession:
 
     def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig()):
         self.noise_config = prepare_noise_config(noise)
-        train, test = prepare_train_and_test(Y, Ytest, None, self.noise_config)
+        train, test = prepare_train_and_test(Y, Ytest, self.noise_config)
         self.config.setTrain(train)
 
         if Ytest is not None:
