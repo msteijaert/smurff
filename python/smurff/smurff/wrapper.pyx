@@ -93,12 +93,12 @@ cdef MatrixConfig* prepare_dense_matrix(X, NoiseConfig noise_config) except +:
     return matrix_config_ptr
 
 cdef shared_ptr[SideInfoConfig] prepare_sideinfo(side_info, NoiseConfig noise_config, tol, direct) except +:
-    if isinstance(side_info[0], SPARSE_MATRIX_TYPES):
-        side_info_config_matrix = prepare_sparse_matrix(side_info[0], noise_config, False)
-    elif isinstance(side_info[0], DENSE_MATRIX_TYPES) and len(side_info[0].shape) == 2:
-        side_info_config_matrix = prepare_dense_matrix(side_info[0], noise_config)
+    if isinstance(side_info, SPARSE_MATRIX_TYPES):
+        side_info_config_matrix = prepare_sparse_matrix(side_info, noise_config, False)
+    elif isinstance(side_info, DENSE_MATRIX_TYPES) and len(side_info.shape) == 2:
+        side_info_config_matrix = prepare_dense_matrix(side_info, noise_config)
     else:
-        error_msg = "Unsupported side info matrix type: {}".format(side_info[0])
+        error_msg = "Unsupported side info matrix type: {}".format(side_info)
         raise ValueError(error_msg)
 
     cdef shared_ptr[SideInfoConfig] side_info_config_ptr = make_shared[SideInfoConfig]()
@@ -113,49 +113,64 @@ cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config) except
         raise ValueError(error_msg)
     raise NotImplementedError()
 
-cdef TensorConfig* prepare_sparse_tensor(tensor, shape, NoiseConfig noise_config, is_scarse) except +:
-    if not isinstance(tensor, SPARSE_TENSOR_TYPES):
-        error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
+class SparseTensor:
+    def __init__(self, shape, data):
+        self.shape = shape
+        self.data = data
+
+cdef TensorConfig* prepare_sparse_tensor(tensor, NoiseConfig noise_config, is_scarse) except +:
+    shape = tensor.shape
+    data = tensor.data
+    if not isinstance(data, SPARSE_TENSOR_TYPES):
+        error_msg = "Unsupported sparse tensor data type: {}".format(data)
         raise ValueError(error_msg)
 
     cdef vector[uint64_t] cpp_dims_vector
     cdef vector[uint32_t] cpp_columns_vector
     cdef vector[double] cpp_values_vector
 
-    if type(tensor) == pd.DataFrame:
-        idx_column_names = list(filter(lambda c: tensor[c].dtype==np.int64 or tensor[c].dtype==np.int32, tensor.columns))
-        val_column_names = list(filter(lambda c: tensor[c].dtype==np.float32 or tensor[c].dtype==np.float64, tensor.columns))
+    if type(data) == pd.DataFrame:
+        idx_column_names = list(filter(lambda c: data[c].dtype==np.int64 or data[c].dtype==np.int32, data.columns))
+        val_column_names = list(filter(lambda c: data[c].dtype==np.float32 or data[c].dtype==np.float64, data.columns))
 
         if len(val_column_names) != 1:
             error_msg = "tensor has {} float columns but must have exactly 1 value column.".format(len(val_column_names))
             raise ValueError(error_msg)
 
-        idx = [i for c in idx_column_names for i in np.array(tensor[c], dtype=np.int32)]
-        val = np.array(tensor[val_column_names[0]],dtype=np.float64)
+        idx = [i for c in idx_column_names for i in np.array(data[c], dtype=np.int32)]
+        val = np.array(data[val_column_names[0]],dtype=np.float64)
 
         if shape is not None:
             cpp_dims_vector = shape
         else:
-            cpp_dims_vector = [tensor[c].max() + 1 for c in idx_column_names]
+            cpp_dims_vector = [data[c].max() + 1 for c in idx_column_names]
 
         cpp_columns_vector = idx
         cpp_values_vector = val
 
         return new TensorConfig(make_shared[vector[uint64_t]](cpp_dims_vector), make_shared[vector[uint32_t]](cpp_columns_vector), make_shared[vector[double]](cpp_values_vector), NoiseConfig(), is_scarse)
     else:
-        error_msg = "Unsupported sparse tensor data type: {}".format(tensor)
+        error_msg = "Unsupported sparse tensor data type: {}".format(data)
         raise ValueError(error_msg)
 
-cdef TensorConfig* prepare_auxdata(in_tensor, shape, NoiseConfig noise_config) except +:
+cdef shared_ptr[TensorConfig] prepare_auxdata(in_tensor, pos, is_scarce, NoiseConfig noise_config) except +:
+    cdef TensorConfig* aux_data_config
+    cdef vector[int] cpos = pos
+
     if isinstance(in_tensor, DENSE_TENSOR_TYPES):
-        return prepare_dense_tensor(in_tensor, noise_config)
+        aux_data_config = prepare_dense_tensor(in_tensor, noise_config)
     elif isinstance(in_tensor, SPARSE_TENSOR_TYPES):
-        return prepare_sparse_tensor(in_tensor, shape, noise_config, True)
+        aux_data_config = prepare_sparse_tensor(in_tensor, noise_config, is_scarce)
     else:
         error_msg = "Unsupported tensor type: {}".format(type(in_tensor))
         raise ValueError(error_msg)
 
-cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, test, shape, NoiseConfig noise_config) except +:
+    aux_data_config.setPos(cpos)
+
+    return shared_ptr[TensorConfig](aux_data_config)
+
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test(train, test, shape, NoiseConfig noise_config) except +:
+
     # Check train data type
     if (not isinstance(train, ALL_TYPES)):
         error_msg = "Unsupported train data type: {}".format(type(train))
@@ -188,11 +203,10 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
     elif isinstance(train, DENSE_TENSOR_TYPES) and len(train.shape) > 2:
         train_config = prepare_dense_tensor(train, noise_config)
     elif isinstance(train, SPARSE_TENSOR_TYPES):
-        train_config = prepare_sparse_tensor(train, shape, noise_config, True)
+        train_config = prepare_sparse_tensor(train, noise_config, True)
     else:
         error_msg = "Unsupported train data type or shape: {}".format(type(train))
         raise ValueError(error_msg)
-    train_config.setNoiseConfig(noise_config)
 
     # Prepare test data
     if test is not None:
@@ -203,7 +217,7 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
         elif isinstance(test, DENSE_TENSOR_TYPES) and len(test.shape) > 2:
             test_config = prepare_dense_tensor(test, noise_config)
         elif isinstance(test, SPARSE_TENSOR_TYPES):
-            test_config = prepare_sparse_tensor(test, shape, noise_config, True)
+            test_config = prepare_sparse_tensor(test, noise_config, True)
         else:
             error_msg = "Unsupported test data type: {} or shape {}".format(type(test), test.shape)
             raise ValueError(error_msg)
@@ -221,15 +235,33 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_data(train, te
         return shared_ptr[TensorConfig](train_config), shared_ptr[TensorConfig]()
 
 class PyNoiseConfig:
-    def __init__(self, noise_type = "fixed", precision = 5.0, sn_init = 1.0, sn_max = 10.0, probit_threshold = 0.5): 
+    def __init__(self, noise_type = "fixed", precision = 5.0, sn_init = 1.0, sn_max = 10.0, threshold = 0.5): 
         self.noise_type = noise_type
         self.precision = precision
         self.sn_init = sn_init
-        self.probit_threshold = probit_threshold
+        self.sn_max = sn_max
+        self.threshold = threshold
+
+class FixedNoise(PyNoiseConfig):
+    def __init__(self, precision = 5.0): 
+        PyNoiseConfig.__init__(self, "fixed", precision)
+
+class AdaptiveNoise(PyNoiseConfig):
+    def __init__(self, sn_init = 5.0, sn_max = 10.0): 
+        PyNoiseConfig.__init__(self, "adaptive", sn_init = sn_init, sn_max = sn_max)
+
+class ProbitNoise(PyNoiseConfig):
+    def __init__(self, threshold = 0.): 
+        PyNoiseConfig.__init__(self, "probit", threshold = threshold)
 
 cdef NoiseConfig prepare_noise_config(py_noise_config):
+    """converts a PyNoiseConfig object to a C++ NoiseConfig object"""
     cdef NoiseConfig n
     n.setNoiseType(py_noise_config.noise_type.encode('UTF-8'))
+    n.setPrecision(py_noise_config.precision)
+    n.setSnInit(py_noise_config.sn_init)
+    n.setSnMax(py_noise_config.sn_max)
+    n.setThreshold(py_noise_config.threshold)
     return n
 
 
@@ -237,14 +269,13 @@ cdef class PySession:
     cdef shared_ptr[ISession] ptr;
     cdef Config config
     cdef NoiseConfig noise_config
+    cdef readonly int nmodes
 
     def __init__(self,
         priors           = [ "normal", "normal" ],
         num_latent       = NUM_LATENT_DEFAULT_VALUE,
         burnin           = BURNIN_DEFAULT_VALUE,
         nsamples         = NSAMPLES_DEFAULT_VALUE,
-        tol              = TOL_DEFAULT_VALUE,
-        direct           = True,
         seed             = RANDOM_SEED_DEFAULT_VALUE,
         verbose          = VERBOSE_DEFAULT_VALUE,
         save_prefix      = SAVE_PREFIX_DEFAULT_VALUE,
@@ -252,8 +283,9 @@ cdef class PySession:
         save_freq        = SAVE_FREQ_DEFAULT_VALUE,
         csv_status       = STATUS_DEFAULT_VALUE):
 
-        for p in priors:
-            self.config.addPriorType(p.encode('UTF-8'))
+        self.nmodes = len(priors)
+
+        for p in priors: self.config.addPriorType(p.encode('UTF-8'))
         self.config.setNumLatent(num_latent)
         self.config.setBurnin(burnin)
         self.config.setNSamples(nsamples)
@@ -267,7 +299,7 @@ cdef class PySession:
 
     def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig()):
         self.noise_config = prepare_noise_config(noise)
-        train, test = prepare_data(Y, Ytest, None, self.noise_config)
+        train, test = prepare_train_and_test(Y, Ytest, None, self.noise_config)
         self.config.setTrain(train)
 
         if Ytest is not None:
@@ -276,6 +308,10 @@ cdef class PySession:
     def addSideInfo(self, mode, Y, noise = PyNoiseConfig(), tol = 1e-6, direct = False):
         self.noise_config = prepare_noise_config(noise)
         self.config.addSideInfoConfig(mode, prepare_sideinfo(Y, self.noise_config, tol, direct))
+
+    def addData(self, pos, ad, is_scarce = False, noise = PyNoiseConfig()):
+        self.noise_config = prepare_noise_config(noise)
+        self.config.addAuxData(prepare_auxdata(ad, pos, is_scarce, self.noise_config))
 
     def init(self):
         self.ptr = SessionFactory.create_py_session_from_config(self.config)

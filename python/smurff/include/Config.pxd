@@ -39,7 +39,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         vector[shared_ptr[SideInfoConfig]]& addSideInfoConfig(int mode, shared_ptr[SideInfoConfig] config)
 
         #-- aux data
-        vector[shared_ptr[TensorConfig]]& getAuxData()
+        vector[shared_ptr[TensorConfig]]& addAuxData(shared_ptr[TensorConfig])
 
         #-- priors
         vector[PriorTypes]& addPriorType(string)

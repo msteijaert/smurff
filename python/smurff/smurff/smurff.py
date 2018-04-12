@@ -1,8 +1,15 @@
 from .wrapper import PySession
 
-def smurff(Ytrain, Ytest = None, side_info = None, aux_data = None, **args):
+def smurff(Ytrain, Ytest = None, side_info = None, **args):
     session = PySession(**args)
     session.addTrainAndTest(Ytrain, Ytest)
+
+    if side_info is not None:
+        assert len(side_info) == session.nmodes
+        for mode in range(session.nmodes):
+            si = side_info[mode]
+            if si is not None:
+                session.addSideInfo(mode, si)
 
     session.init()
     while session.step():
@@ -11,17 +18,18 @@ def smurff(Ytrain, Ytest = None, side_info = None, aux_data = None, **args):
     return session.getResult()
 
 def bpmf(Y, Ytest = None, **args):
-    args["priors"] = ["normal", "normal"]
-    return smurff(Y, **args)
+    return macau(Y, Ytest, **args)
 
-def macau(train, side_info, **args):
-    priors = [ 'normal', 'normal' ]
-    for d in range(2):
-        if side_info[d] != "none":
-            priors[d] = 'macau'
+def macau(train, Ytest = None, side_info = None, **args):
+    nmodes = len(train.shape)
 
-    args["priors"] = priors
-    args["aux_data"] =  [ [], [] ]
- 
-    return smurff(**args)
+    priors = ['normal'] * nmodes
+    if side_info is not None:
+        assert len(side_info) == session.nmodes
+        for d in range(nmodes):
+            if side_info[d] is not None:
+                priors[d] = 'macau'
+
+
+    return smurff(Ytrain, Ytest, side_info, priors, **args)
 
