@@ -1,8 +1,34 @@
+import pandas as pd
+import numpy as np
+
 class SparseTensor:
-    def __init__(self, shape, data):
-        self.shape = shape
-        self.ndim = len(shape)
-        self.data = data
+    def __init__(self, data, shape = None):
+
+        if type(data) == SparseTensor:
+            self.data = data.data
+            if shape is not None:
+                self.shape = shape
+            else:
+                self.shape = data.shape
+        elif type(data) == pd.DataFrame:
+            self.data = data
+
+            idx_column_names = list(filter(lambda c: data[c].dtype==np.int64 or data[c].dtype==np.int32, data.columns))
+            val_column_names = list(filter(lambda c: data[c].dtype==np.float32 or data[c].dtype==np.float64, data.columns))
+
+            if len(val_column_names) != 1:
+                error_msg = "tensor has {} float columns but must have exactly 1 value column.".format(len(val_column_names))
+                raise ValueError(error_msg)
+
+            if shape is not None:
+                self.shape = shape
+            else:
+                self.shape = [data[c].max() + 1 for c in idx_column_names]
+        else:
+            error_msg = "Unsupported sparse tensor data type: {}".format(data)
+            raise ValueError(error_msg)
+
+        self.ndim = len(self.shape)
 
 class PyNoiseConfig:
     def __init__(self, noise_type = "fixed", precision = 5.0, sn_init = 1.0, sn_max = 10.0, threshold = 0.5): 

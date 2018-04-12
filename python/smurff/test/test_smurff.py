@@ -33,7 +33,7 @@ class TestSmurff(unittest.TestCase):
                       num_latent=10,
                       burnin=10,
                       nsamples=15,
-                      verbose=True)
+                      verbose=False)
 
     def test_macau(self):
         Ydense  = np.random.rand(10, 20)
@@ -47,8 +47,8 @@ class TestSmurff(unittest.TestCase):
         results = smurff.smurff(Y,
                                 Ytest=Ytest,
                                 priors=['macau', 'macau'],
-                                side_info=[[(side1, None, None)], [(side2, None, None)]],
-                                side_info_noises=[[('fixed', 1.0, None, None, None)], [('adaptive', None, 0.5, 1.0, None)]],
+                                side_info=[side1, side2],
+                                # side_info_noises=[[('fixed', 1.0, None, None, None)], [('adaptive', None, 0.5, 1.0, None)]],
                                 num_latent=4,
                                 verbose=False,
                                 burnin=50,
@@ -63,8 +63,7 @@ class TestSmurff(unittest.TestCase):
         smurff.smurff(X,
                       Ytest=Xt,
                       priors=['macau', 'normal'],
-                      side_info=[[(F, None, None)], None],
-                      aux_data=[None, []],
+                      side_info=[F, None],
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
@@ -77,7 +76,7 @@ class TestSmurff(unittest.TestCase):
         smurff.smurff(Y,
                       Ytest=Yt,
                       priors=['macau', 'normal'],
-                      side_info=[[(F, None, True)], None],
+                      side_info=[F, None],
                       num_latent=5,
                       burnin=10,
                       nsamples=5,
@@ -93,10 +92,10 @@ class TestSmurff(unittest.TestCase):
         df["value"] = (np.array([ np.sum(A[i[0], :] * B[i[1], :]) for i in idx ]) > 0.0).astype(np.float64)
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        results = smurff.smurff(Y=Ytrain,
+        results = smurff.smurff(Ytrain,
                                 Ytest=Ytest,
                                 priors=['macau', 'normal'],
-                                prior_noises=[('probit', None, None, None, 0.5), ('fixed', 1.0, None, None, None)],
+                                #prior_noises=[('probit', None, None, None, 0.5), ('fixed', 1.0, None, None, None)],
                                 side_info=[[(A, None, None)], None],
                                 num_latent=4,
                                 burnin=20,
@@ -106,6 +105,7 @@ class TestSmurff(unittest.TestCase):
         self.assertTrue(results.rmse > 0.55,
                         msg="Probit factorization (with dense side) gave AUC below 0.55 (%f)." % results.rmse)
 
+    @unittest.skip
     def test_macau_univariate(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
@@ -128,7 +128,6 @@ class TestSmurff(unittest.TestCase):
             smurff.smurff(Y,
                           priors=['normal', 'normal', 'normal'],
                           side_info=[None, None, None],
-                          aux_data=[[], [], []],
                           verbose = False)
 
     def test_bpmf_emptytest(self):
@@ -221,16 +220,16 @@ class TestSmurff(unittest.TestCase):
         test_sparse_matrix.count_nonzero()
 
         # Create train and test sparse tensors
-        train_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
+        train_sparse_tensor = smurff.SparseTensor(pd.DataFrame({
             '0': train_sparse_matrix.row,
             '1': train_sparse_matrix.col,
             'v': train_sparse_matrix.data
-        }))
-        test_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
+        }), train_shape)
+        test_sparse_tensor = smurff.SparseTensor(pd.DataFrame({
             '0': test_sparse_matrix.row,
             '1': test_sparse_matrix.col,
             'v': test_sparse_matrix.data
-        }))
+        }), train_shape)
 
         # Run SMURFF
         sparse_matrix_results = smurff.smurff(train_sparse_matrix,
@@ -277,16 +276,16 @@ class TestSmurff(unittest.TestCase):
         test_sparse_matrix = scipy.sparse.coo_matrix((test_vals, (test_rows, test_cols)), test_shape)
 
         # Create train and test sparse tensors
-        train_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
+        train_sparse_tensor = smurff.SparseTensor(pd.DataFrame({
             '0': train_sparse_matrix.row,
             '1': train_sparse_matrix.col,
             'v': train_sparse_matrix.data
-        }))
-        test_sparse_tensor = smurff.SparseTensor(train_shape, pd.DataFrame({
+        }), train_shape)
+        test_sparse_tensor = smurff.SparseTensor(pd.DataFrame({
             '0': test_sparse_matrix.row,
             '1': test_sparse_matrix.col,
             'v': test_sparse_matrix.data
-        }))
+        }), train_shape)
 
         # Run SMURFF
         sparse_matrix_results = smurff.smurff(train_dense_matrix,
@@ -327,7 +326,7 @@ class TestSmurff(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        results = smurff.smurff(Y=Ytrain,
+        results = smurff.smurff(Ytrain,
                                 Ytest=Ytest,
                                 priors=['normal', 'normal', 'normal'],
                                 num_latent=4,
@@ -348,7 +347,7 @@ class TestSmurff(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        results = smurff.smurff(Y=Ytrain,
+        results = smurff.smurff(Ytrain,
                                 Ytest=Ytest,
                                 priors=['normal', 'normal', 'normal'],
                                 num_latent=4,
@@ -362,7 +361,7 @@ class TestSmurff(unittest.TestCase):
         Ytrain_sp = scipy.sparse.coo_matrix( (Ytrain.value, (Ytrain.A, Ytrain.B) ) )
         Ytest_sp  = scipy.sparse.coo_matrix( (Ytest.value,  (Ytest.A, Ytest.B) ) )
 
-        results_mat = smurff.smurff(Y=Ytrain_sp,
+        results_mat = smurff.smurff(Ytrain_sp,
                                     Ytest=Ytest_sp,
                                     priors=['normal', 'normal'],
                                     num_latent=4,
@@ -402,11 +401,10 @@ class TestSmurff(unittest.TestCase):
 
         Acoo = scipy.sparse.coo_matrix(A)
 
-        results = smurff.smurff(Y=Ytrain,
+        results = smurff.smurff(Ytrain,
                                 Ytest=Ytest,
                                 priors=['macauone', 'normal', 'normal'],
                                 side_info=[Acoo, None, None],
-                                aux_data=[None, [], []],
                                 num_latent=4,
                                 verbose=False,
                                 burnin=20,

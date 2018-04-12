@@ -37,8 +37,7 @@ SPARSE_MATRIX_TYPES = (sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sp
 MATRIX_TYPES = DENSE_MATRIX_TYPES + SPARSE_MATRIX_TYPES
 
 DENSE_TENSOR_TYPES  = (np.ndarray, )
-SPARSE_TENSOR_TYPES = (SparseTensor, )
-SPARSE_TENSOR_DATA_TYPES = (pd.DataFrame, )
+SPARSE_TENSOR_TYPES = (SparseTensor, pd.DataFrame, )
 
 TENSOR_TYPES = DENSE_TENSOR_TYPES + SPARSE_TENSOR_TYPES
 
@@ -116,45 +115,35 @@ cdef TensorConfig* prepare_dense_tensor(tensor, NoiseConfig noise_config) except
     raise NotImplementedError()
 
 cdef TensorConfig* prepare_sparse_tensor(tensor, NoiseConfig noise_config, is_scarse) except +:
-    shape = tensor.shape
-    data = tensor.data
+    tensor = SparseTensor(tensor)
 
-    if not isinstance(data, SPARSE_TENSOR_DATA_TYPES):
-        error_msg = "Unsupported sparse tensor data type: {}".format(data)
-        raise ValueError(error_msg)
+    shape = tensor.shape
+    df = tensor.data
 
     cdef vector[uint64_t] cpp_dims_vector
     cdef vector[uint32_t] cpp_columns_vector
     cdef vector[double] cpp_values_vector
 
-    if type(data) == pd.DataFrame:
-        idx_column_names = list(filter(lambda c: data[c].dtype==np.int64 or data[c].dtype==np.int32, data.columns))
-        val_column_names = list(filter(lambda c: data[c].dtype==np.float32 or data[c].dtype==np.float64, data.columns))
+    idx_column_names = list(filter(lambda c: df[c].dtype==np.int64 or df[c].dtype==np.int32, df.columns))
+    val_column_names = list(filter(lambda c: df[c].dtype==np.float32 or df[c].dtype==np.float64, df.columns))
 
-        if len(val_column_names) != 1:
-            error_msg = "tensor has {} float columns but must have exactly 1 value column.".format(len(val_column_names))
-            raise ValueError(error_msg)
-
-        idx = [i for c in idx_column_names for i in np.array(data[c], dtype=np.int32)]
-        val = np.array(data[val_column_names[0]],dtype=np.float64)
-
-        if shape is not None:
-            cpp_dims_vector = shape
-        else:
-            cpp_dims_vector = [data[c].max() + 1 for c in idx_column_names]
-
-        cpp_columns_vector = idx
-        cpp_values_vector = val
-
-        return new TensorConfig(
-                make_shared[vector[uint64_t]](cpp_dims_vector),
-                make_shared[vector[uint32_t]](cpp_columns_vector),
-                make_shared[vector[double]](cpp_values_vector),
-                noise_config,
-                is_scarse)
-    else:
-        error_msg = "Unsupported sparse tensor data type: {}".format(data)
+    if len(val_column_names) != 1:
+        error_msg = "tensor has {} float columns but must have exactly 1 value column.".format(len(val_column_names))
         raise ValueError(error_msg)
+
+    idx = [i for c in idx_column_names for i in np.array(df[c], dtype=np.int32)]
+    val = np.array(df[val_column_names[0]],dtype=np.float64)
+
+    cpp_dims_vector = shape
+    cpp_columns_vector = idx
+    cpp_values_vector = val
+
+    return new TensorConfig(
+            make_shared[vector[uint64_t]](cpp_dims_vector),
+            make_shared[vector[uint32_t]](cpp_columns_vector),
+            make_shared[vector[double]](cpp_values_vector),
+            noise_config,
+            is_scarse)
 
 cdef shared_ptr[TensorConfig] prepare_auxdata(in_tensor, pos, is_scarce, NoiseConfig noise_config) except +:
     cdef TensorConfig* aux_data_config
