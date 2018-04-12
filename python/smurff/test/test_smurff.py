@@ -96,7 +96,7 @@ class TestSmurff(unittest.TestCase):
                                 Ytest=Ytest,
                                 priors=['macau', 'normal'],
                                 #prior_noises=[('probit', None, None, None, 0.5), ('fixed', 1.0, None, None, None)],
-                                side_info=[[(A, None, None)], None],
+                                side_info=[A, None],
                                 num_latent=4,
                                 burnin=20,
                                 nsamples=20,
@@ -105,7 +105,6 @@ class TestSmurff(unittest.TestCase):
         self.assertTrue(results.rmse > 0.55,
                         msg="Probit factorization (with dense side) gave AUC below 0.55 (%f)." % results.rmse)
 
-    @unittest.skip
     def test_macau_univariate(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
@@ -115,7 +114,7 @@ class TestSmurff(unittest.TestCase):
         results = smurff.smurff(Y,
                                 Ytest=Ytest,
                                 priors=['macauone', 'macauone'],
-                                side_info=[[(side1, None, None)], [(side2, None, None)]],
+                                side_info=[side1, side2],
                                 num_latent=4,
                                 verbose=False,
                                 burnin=50,
