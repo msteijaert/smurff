@@ -270,7 +270,6 @@ bool Config::validate() const
 
    for(std::size_t i = 0; i < m_prior_types.size(); i++)
    {
-      bool hasSideInfo = m_sideInfoConfigs.find(i) != m_sideInfoConfigs.end();
       PriorTypes pt = m_prior_types[i];
       switch (pt)
       {
@@ -278,26 +277,14 @@ bool Config::validate() const
          case PriorTypes::normalone:
          case PriorTypes::spikeandslab:
          case PriorTypes::default_prior:
-            if (hasSideInfo)
-            {
-               std::stringstream ss;
-               ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have side info";
-               THROWERROR(ss.str());
-            }
+            THROWERROR_ASSERT_MSG(!hasSideInfo(i), priorTypeToString(pt) + " prior in dimension " + std::to_string(i) + " cannot have side info");
             break;
          case PriorTypes::macau:
          case PriorTypes::macauone:
-            if (!hasSideInfo)
-            {
-               std::stringstream ss;
-               ss << "Side info is always needed when using macau prior in dimension " << i;
-               THROWERROR(ss.str());
-            }
+            THROWERROR_ASSERT_MSG(hasSideInfo(i), priorTypeToString(pt) + " prior in dimension " + std::to_string(i) + " needs side info");
             break;
          default:
-            {
-               THROWERROR("Unknown prior");
-            }
+            THROWERROR("Unknown prior");
             break;
       }
    }

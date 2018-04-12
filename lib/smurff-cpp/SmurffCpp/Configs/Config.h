@@ -158,6 +158,11 @@ public:
       return m_sideInfoConfigs;
    }
 
+   bool hasSideInfo(int mode) const
+   {
+       return m_sideInfoConfigs.find(mode) != m_sideInfoConfigs.end();
+   }
+
    std::vector< std::shared_ptr<TensorConfig> > getData() const
    {
        auto data = m_auxData;
@@ -167,6 +172,16 @@ public:
 
    const std::vector<PriorTypes>& getPriorTypes() const
    {
+      return m_prior_types;
+   }
+
+   const std::vector<PriorTypes>& setPriorTypes(std::vector<std::string> values)
+   {
+      m_prior_types.clear();
+      for(auto &value : values)
+      {
+          m_prior_types.push_back(stringToPriorType(value));
+      }
       return m_prior_types;
    }
 
