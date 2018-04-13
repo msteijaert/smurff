@@ -22,8 +22,8 @@ def bpmf(Ytrain, Ytest = None, univariate = False ,**args):
 
 def macau(Ytrain, Ytest = None, side_info = None, univariate = False, **args):
     nmodes = len(Ytrain.shape)
-
     priors = ['normal'] * nmodes
+
     if side_info is not None:
         assert len(side_info) == nmodes
         for d in range(nmodes):
