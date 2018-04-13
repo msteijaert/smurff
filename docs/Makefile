@@ -5,7 +5,7 @@
 .PHONY: help clean html 
 
 html: 
-	jupyter nbconvert --to rst --output-dir=source ../python/jupyter-notebook/smurff.ipynb
+	jupyter nbconvert --to rst --output-dir=notebooks ../python/jupyter-notebook/smurff.ipynb
 	sphinx-build -b html .  _build/html
 
 clean:

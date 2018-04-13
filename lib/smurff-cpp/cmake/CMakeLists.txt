@@ -12,6 +12,7 @@ OPTION(ENABLE_OPENBLAS "Look only for OPENBLAS library" OFF)
 OPTION(ENABLE_MKL "Look only for MKL library" OFF)
 
 OPTION(ENABLE_PROFILING "Enable performance counters" OFF)
+OPTION(ENABLE_ASAN "Enable address sanitizer in Debug mode" OFF)
 
 OPTION(ENABLE_VERBOSE_COMPILER_LOG "Enable verbose compilation log" OFF)
 OPTION(ENABLE_VERBOSE_LINKER_LOG "Enable verbose linker log" OFF)

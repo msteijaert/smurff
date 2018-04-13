@@ -149,6 +149,13 @@ Config::Config()
    m_classify = false;
 }
 
+const std::vector<std::shared_ptr<SideInfoConfig> >& Config::getSideInfoConfigs(int mode) const
+{
+  auto iter = m_sideInfoConfigs.find(mode);
+  THROWERROR_ASSERT(iter != m_sideInfoConfigs.end());
+  return iter->second;
+}
+
 bool Config::validate() const
 {
    if (!m_train || !m_train->getNNZ())
@@ -195,36 +202,21 @@ bool Config::validate() const
       }
    }
 
-   //for simplicity we store empty shared_ptr if side info is not specified for dimension
-   //this way we can whether that size equals to getNModes
-   if (m_macauPriorConfigs.size() != m_train->getNModes())
+   for (auto p : m_sideInfoConfigs)
    {
-      THROWERROR("Number of side info should equal to number of dimensions in train data");
-   }
-
-   for (std::size_t i = 0; i < m_macauPriorConfigs.size(); i++)
-   {
-      //FIXME: is this a correct behavior?
-      if (i > 2)
-         break;
-      if (m_macauPriorConfigs.at(i))
-
+      int mode = p.first;
+      auto &configItems = p.second;
+      for (auto configItem : configItems)
       {
-         const auto& configItems = m_macauPriorConfigs.at(i)->getConfigItems();
-         THROWERROR_ASSERT(!configItems.empty());
+          const auto& sideInfo = configItem->getSideInfo();
+          THROWERROR_ASSERT(sideInfo);
 
-         for (auto configItem : configItems)
-         {
-            const auto& sideInfo = configItem->getSideInfo();
-            THROWERROR_ASSERT(sideInfo);
-
-            if (sideInfo->getDims()[0] != m_train->getDims()[i])
-            {
-               std::stringstream ss;
-               ss << "Side info should have the same number of rows as size of dimension " << i << " in train data";
-               THROWERROR(ss.str());
-            }
-         }
+          if (sideInfo->getDims()[0] != m_train->getDims()[mode])
+          {
+              std::stringstream ss;
+              ss << "Side info should have the same number of rows as size of dimension " << mode << " in train data";
+              THROWERROR(ss.str());
+          }
       }
    }
 
@@ -285,26 +277,14 @@ bool Config::validate() const
          case PriorTypes::normalone:
          case PriorTypes::spikeandslab:
          case PriorTypes::default_prior:
-            if (m_macauPriorConfigs[i])
-            {
-               std::stringstream ss;
-               ss << priorTypeToString(pt) << " prior in dimension " << i << " cannot have side info";
-               THROWERROR(ss.str());
-            }
+            THROWERROR_ASSERT_MSG(!hasSideInfo(i), priorTypeToString(pt) + " prior in dimension " + std::to_string(i) + " cannot have side info");
             break;
          case PriorTypes::macau:
          case PriorTypes::macauone:
-            if (!m_macauPriorConfigs[i])
-            {
-               std::stringstream ss;
-               ss << "Side info is always needed when using macau prior in dimension " << i;
-               THROWERROR(ss.str());
-            }
+            THROWERROR_ASSERT_MSG(hasSideInfo(i), priorTypeToString(pt) + " prior in dimension " + std::to_string(i) + " needs side info");
             break;
          default:
-            {
-               THROWERROR("Unknown prior");
-            }
+            THROWERROR("Unknown prior");
             break;
       }
    }
@@ -383,12 +363,14 @@ void Config::save(std::string fname) const
    TensorConfig::save_tensor_config(ini, TEST_SECTION_TAG, -1, m_test);
 
    //write macau prior configs section
-   for (std::size_t mIndex = 0; mIndex < m_macauPriorConfigs.size(); mIndex++)
+   for (auto p : m_sideInfoConfigs)
    {
-      if (m_macauPriorConfigs.at(mIndex))
-      {
-         m_macauPriorConfigs.at(mIndex)->save(ini, mIndex);
-      }
+       int mode = p.first;
+       auto &configItems = p.second;
+       for (std::size_t mIndex = 0; mIndex < configItems.size(); mIndex++)
+       {
+           configItems.at(mIndex)->save(ini, mode, mIndex);
+       }
    }
 
    //write aux data section
@@ -431,18 +413,23 @@ bool Config::restore(std::string fname)
    for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
    {
       std::string pName = reader.get(GLOBAL_SECTION_TAG, add_index(PRIOR_PREFIX, pIndex),  PRIOR_NAME_DEFAULT);
-      m_prior_types.push_back(stringToPriorType(pName));
+      addPriorType(pName);
    }
 
    //restore macau prior configs section
-   for (std::size_t mIndex = 0; mIndex < num_priors; mIndex++)
+   for (std::size_t mPriorIndex = 0; mPriorIndex < num_priors; mPriorIndex++)
    {
-      auto macauPriorConfig = std::make_shared<MacauPriorConfig>();
+      int mSideInfoIndex = 0;
+      while (true) {
+          auto sideInfoConfig = std::make_shared<SideInfoConfig>();
 
-      if (macauPriorConfig->restore(reader, mIndex))
-         m_macauPriorConfigs.push_back(macauPriorConfig);
-      else
-         m_macauPriorConfigs.push_back(std::shared_ptr<MacauPriorConfig>());
+          if (sideInfoConfig->restore(reader, mPriorIndex, mSideInfoIndex))
+             m_sideInfoConfigs[mPriorIndex].push_back(sideInfoConfig);
+          else
+             break;
+
+          mSideInfoIndex++;
+      }
    }
 
    //restore aux data

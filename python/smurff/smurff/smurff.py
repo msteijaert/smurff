@@ -1,8 +1,15 @@
-from .wrapper import PySession, sessionFromConfig
+from .wrapper import PySession
 
-def smurff(Y, **args):
-    args["Y"] = Y
-    session = sessionFromConfig(**args)
+def smurff(Ytrain, priors, Ytest = None, side_info = None, **args):
+    session = PySession(priors = priors, **args)
+    session.addTrainAndTest(Ytrain, Ytest)
+
+    if side_info is not None:
+        assert len(side_info) == session.nmodes
+        for mode in range(session.nmodes):
+            si = side_info[mode]
+            if si is not None:
+                session.addSideInfo(mode, si)
 
     session.init()
     while session.step():
@@ -10,20 +17,39 @@ def smurff(Y, **args):
 
     return session.getResult()
 
-def bpmf(Y, **args):
-    args["priors"] = ["normal", "normal"]
-    args["side_info_files"] = [ "none", "none" ]
-    return smurff(Y, **args)
+def bpmf(Ytrain, Ytest = None, univariate = False ,**args):
+    return macau(Ytrain, Ytest, None, univariate, **args)
 
-def macau(train, side_info, **args):
-    priors = [ 'normal', 'normal' ]
-    for d in range(2):
-        if side_info[d] != "none":
-            priors[d] = 'macau'
+def macau(Ytrain, Ytest = None, side_info = None, univariate = False, **args):
+    nmodes = len(Ytrain.shape)
+    priors = ['normal'] * nmodes
 
-    args["priors"] = priors
-    args["side_info_files"] = side_info_files
-    args["aux_data"] =  [ [], [] ]
- 
-    return smurff(**args)
+    if side_info is not None:
+        assert len(side_info) == nmodes
+        for d in range(nmodes):
+            if side_info[d] is not None:
+                priors[d] = 'macau'
+
+    if univariate:
+        priors = [ p + "one" for p in priors ]
+
+    return smurff(Ytrain, priors, Ytest, side_info,  **args)
+
+def gfa(Views, Ytest = None, **args):
+    Ytrain = Views[0]
+    nmodes = len(Ytrain.shape)
+    assert nmodes == 2
+    priors = ['normal', 'spikeandslab']
+
+    session = PySession(priors = priors, **args)
+    session.addTrainAndTest(Ytrain, Ytest)
+
+    for p in range(1, len(Views)):
+        session.addData([0,p], Views[p])
+
+    session.init()
+    while session.step():
+        pass
+
+    return session.getResult()
 

@@ -17,4 +17,4 @@ cdef extern from "<SmurffCpp/Configs/TensorConfig.h>" namespace "smurff":
 
         void setNoiseConfig(const NoiseConfig& value)
         shared_ptr[vector[uint64_t]] getDimsPtr();
-        void setPos(const PVec& p);
+        void setPos(const vector[int]& p);

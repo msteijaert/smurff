@@ -1,6 +1,6 @@
 
-SMURFF Tutorial
-===============
+Downloading the Data Files
+--------------------------
 
 In these examples we use ChEMBL dataset for compound-proteins activities
 (IC50). The IC50 values and ECFP fingerprints can be downloaded from
@@ -11,19 +11,6 @@ these two urls:
     %%bash
     wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
     wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-compound-feat.mm
-
-Matrix Factorization Model
---------------------------
-
-The matrix factorization models cell :math:`Y_{ij}` by the inner product
-of the latents
-
-.. math::  Y_{ij} ∼ N(\textbf{u}_{i} \textbf{v}_{j} + mean, \alpha^{-1}) 
-
-where :math:`\textbf{u}_{i}` and :math:`\textbf{v}_{j}` are the latent
-vector for i-th row and j-th column, and :math:`\alpha` is the precision
-of the observation noise. The model also uses a fixed global mean for
-the whole matrix.
 
 Matrix Factorization with Side Information
 ------------------------------------------
@@ -49,15 +36,15 @@ information on the compounds.
 
 .. code:: ipython3
 
+    %load_ext wurlitzer
     ## running factorization (Macau)
     result = smurff.smurff(Y          = ic50_train,
                            Ytest      = ic50_test,
                            priors     = ['macau', 'normal'],
-                           side_info  = [ecfp, None],
-                           aux_data   = [[], []],
-                           verbose    = 2,
+                           side_info    = [[(ecfp, 1.5, None)], None],
+                           aux_data     = [[], []],
+                           verbose    = 1,
                            num_latent = 2,
-                           precision  = 5.0,
                            burnin     = 40,
                            save_freq  = 10,
                            nsamples   = 100)
@@ -101,7 +88,7 @@ samples each individually. An example:
     result = smurff.smurff(Y          = ic50_train,
                            Ytest      = ic50_test,
                            priors     = ['macauone', 'normal'],
-                           side_info  = [ecfp, None],
+                           side_info  = [[(ecfp, None, None)], None],
                            aux_data   = [[], []],
                            num_latent = 32,
                            precision  = 5.0,

@@ -4,6 +4,8 @@ import pandas as pd
 import scipy.sparse
 import numbers
 
+from .helper import SparseTensor
+
 def make_train_test(Y, ntest):
     """Splits a sparse matrix Y into a train and a test matrix.
        Y      scipy sparse matrix (coo_matrix, csr_matrix or csc_matrix)
@@ -27,7 +29,7 @@ def make_train_test(Y, ntest):
     Ytest  = sp.sparse.coo_matrix( (Y.data[test],  (Y.row[test],  Y.col[test])),  shape=Y.shape )
     return Ytrain, Ytest
 
-def make_train_test_df(Y, ntest):
+def make_train_test_df(Y, ntest, shape = None):
     """Splits rows of dataframe Y into a train and a test dataframe.
        Y      pandas dataframe
        ntest  either a float below 1.0 or integer.
@@ -43,8 +45,13 @@ def make_train_test_df(Y, ntest):
     ## randomly spliting train-test
     if ntest < 1:
         ntest = Y.shape[0] * ntest
+
     ntest  = int(round(ntest))
     rperm  = np.random.permutation(Y.shape[0])
     train  = rperm[ntest:]
     test   = rperm[0:ntest]
-    return Y.iloc[train], Y.iloc[test]
+
+    Ytrain = SparseTensor(Y.iloc[train], shape)
+    Ytest = SparseTensor(Y.iloc[test], Ytrain.shape)
+
+    return Ytrain, Ytest

@@ -18,8 +18,8 @@ MacauPrior::MacauPrior()
 MacauPrior::MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
    : NormalPrior(session, mode, "MacauPrior")
 {
-   beta_precision = MacauPriorConfig::BETA_PRECISION_DEFAULT_VALUE;
-   tol = MacauPriorConfig::TOL_DEFAULT_VALUE;
+   beta_precision = SideInfoConfig::BETA_PRECISION_DEFAULT_VALUE;
+   tol = SideInfoConfig::TOL_DEFAULT_VALUE;
 
    enable_beta_precision_sampling = Config::ENABLE_BETA_PRECISION_SAMPLING_DEFAULT_VALUE;
 }

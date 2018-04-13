@@ -218,79 +218,64 @@ std::shared_ptr<MatrixConfig> getRowSideInfoDenseMatrix3dConfig()
 }
 
 
-std::shared_ptr<MacauPriorConfig> getRowSideInfoDenseMacauPriorConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getRowSideInfoDenseConfig(bool direct = true, double tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getRowSideInfoDenseMatrixConfig();
    
-   std::shared_ptr<MacauPriorConfigItem> picfg = std::make_shared<MacauPriorConfigItem>();
+   std::shared_ptr<SideInfoConfig> picfg = std::make_shared<SideInfoConfig>();
    picfg->setSideInfo(mcfg);
    picfg->setDirect(direct);
    picfg->setTol(tol);
 
-   std::shared_ptr<MacauPriorConfig> pcfg = std::make_shared<MacauPriorConfig>();
-   pcfg->getConfigItems().push_back(picfg);
-
-   return pcfg;
+   return picfg;
 }
 
-std::shared_ptr<MacauPriorConfig> getColSideInfoDenseMacauPriorConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getColSideInfoDenseConfig(bool direct = true, double tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getColSideInfoDenseMatrixConfig();
 
-   std::shared_ptr<MacauPriorConfigItem> picfg = std::make_shared<MacauPriorConfigItem>();
+   std::shared_ptr<SideInfoConfig> picfg = std::make_shared<SideInfoConfig>();
    picfg->setSideInfo(mcfg);
    picfg->setDirect(direct);
    picfg->setTol(tol);
 
-   std::shared_ptr<MacauPriorConfig> pcfg = std::make_shared<MacauPriorConfig>();
-   pcfg->getConfigItems().push_back(picfg);
-
-   return pcfg;
+   return picfg;
 }
 
-std::shared_ptr<MacauPriorConfig> getRowSideInfoSparseMacauPriorConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getRowSideInfoSparseConfig(bool direct = true, double tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getRowSideInfoSparseMatrixConfig();
 
-   std::shared_ptr<MacauPriorConfigItem> picfg = std::make_shared<MacauPriorConfigItem>();
+   std::shared_ptr<SideInfoConfig> picfg = std::make_shared<SideInfoConfig>();
    picfg->setSideInfo(mcfg);
    picfg->setDirect(direct);
    picfg->setTol(tol);
 
-   std::shared_ptr<MacauPriorConfig> pcfg = std::make_shared<MacauPriorConfig>();
-   pcfg->getConfigItems().push_back(picfg);
-
-   return pcfg;
+   return picfg;
 }
 
-std::shared_ptr<MacauPriorConfig> getColSideInfoSparseMacauPriorConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getColSideInfoSparseConfig(bool direct = true, double tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getColSideInfoSparseMatrixConfig();
 
-   std::shared_ptr<MacauPriorConfigItem> picfg = std::make_shared<MacauPriorConfigItem>();
+   std::shared_ptr<SideInfoConfig> picfg = std::make_shared<SideInfoConfig>();
    picfg->setSideInfo(mcfg);
    picfg->setDirect(direct);
    picfg->setTol(tol);
 
-   std::shared_ptr<MacauPriorConfig> pcfg = std::make_shared<MacauPriorConfig>();
-   pcfg->getConfigItems().push_back(picfg);
-
-   return pcfg;
+   return picfg;
 }
 
-std::shared_ptr<MacauPriorConfig> getRowSideInfoDenseMacauPrior3dConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getRowSideInfoDenseMacauPrior3dConfig(bool direct = true, double tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getRowSideInfoDenseMatrix3dConfig();
 
-   std::shared_ptr<MacauPriorConfigItem> picfg = std::make_shared<MacauPriorConfigItem>();
+   std::shared_ptr<SideInfoConfig> picfg = std::make_shared<SideInfoConfig>();
    picfg->setSideInfo(mcfg);
    picfg->setDirect(direct);
    picfg->setTol(tol);
 
-   std::shared_ptr<MacauPriorConfig> pcfg = std::make_shared<MacauPriorConfig>();
-   pcfg->getConfigItems().push_back(picfg);
-
-   return pcfg;
+   return picfg;
 }
 
 //result comparison
@@ -332,10 +317,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -386,10 +369,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -442,12 +423,10 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
-   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
+   config.addAuxData({ rowAuxDataDenseMatrixConfig });
+   config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -500,12 +479,10 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
-   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
+   config.addAuxData({ rowAuxDataDenseMatrixConfig });
+   config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -558,10 +535,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -612,10 +587,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -668,12 +641,10 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
-   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addAuxData({ rowAuxDataDenseMatrixConfig });
+   config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -726,12 +697,10 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
-   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addAuxData({ rowAuxDataDenseMatrixConfig });
+   config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -784,10 +753,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normalone);
+   config.addPriorType(PriorTypes::normalone);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -838,10 +805,8 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normalone);
+   config.addPriorType(PriorTypes::normalone);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -894,12 +859,10 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
-   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::normalone);
+   config.addPriorType(PriorTypes::normalone);
+   config.addAuxData({ rowAuxDataDenseMatrixConfig });
+   config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -952,12 +915,10 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
-   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::normalone);
+   config.addPriorType(PriorTypes::normalone);
+   config.addAuxData({ rowAuxDataDenseMatrixConfig });
+   config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1007,16 +968,16 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::macau);
+   config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1064,16 +1025,16 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
 {
    std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::macau);
+   config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1124,16 +1085,16 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
 
-   std::shared_ptr<MacauPriorConfig> rowSideInfoSparseMatrixConfig = getRowSideInfoSparseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoSparseMatrixConfig = getColSideInfoSparseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoSparseMatrixConfig = getRowSideInfoSparseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoSparseMatrixConfig = getColSideInfoSparseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macauone);
-   config.getPriorTypes().push_back(PriorTypes::macauone);
-   config.getMacauPriorConfigs().push_back(rowSideInfoSparseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(colSideInfoSparseMatrixConfig);
+   config.addPriorType(PriorTypes::macauone);
+   config.addPriorType(PriorTypes::macauone);
+   config.addSideInfoConfig(0, rowSideInfoSparseMatrixConfig);
+   config.addSideInfoConfig(1, colSideInfoSparseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1182,16 +1143,16 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
 
-   std::shared_ptr<MacauPriorConfig> rowSideInfoSparseMatrixConfig = getRowSideInfoSparseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoSparseMatrixConfig = getColSideInfoSparseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoSparseMatrixConfig = getRowSideInfoSparseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoSparseMatrixConfig = getColSideInfoSparseConfig();
 
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macauone);
-   config.getPriorTypes().push_back(PriorTypes::macauone);
-   config.getMacauPriorConfigs().push_back(rowSideInfoSparseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(colSideInfoSparseMatrixConfig);
+   config.addPriorType(PriorTypes::macauone);
+   config.addPriorType(PriorTypes::macauone);
+   config.addSideInfoConfig(0, rowSideInfoSparseMatrixConfig);
+   config.addSideInfoConfig(1, colSideInfoSparseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1241,15 +1202,14 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::normal);
+   config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1297,15 +1257,14 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::macau);
+   config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1355,16 +1314,16 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::normal);
+   config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
+   config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1393,15 +1352,14 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::normal);
+   config.addSideInfoConfig(1, rowSideInfoDenseMatrixConfig); // added to wrong mode
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1430,15 +1388,14 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::normal);
+   config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1470,10 +1427,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::spikeandslab);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1524,10 +1479,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::normal);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1579,11 +1532,9 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ colAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::normal);
+   config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1635,11 +1586,9 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getAuxData().push_back({ rowAuxDataDenseMatrixConfig });
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::normal);
+   config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1689,15 +1638,14 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1745,15 +1693,14 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::macau);
+   config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1806,10 +1753,8 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1860,10 +1805,8 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1916,10 +1859,8 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1970,10 +1911,8 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2026,10 +1965,8 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normalone);
+   config.addPriorType(PriorTypes::normalone);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2080,10 +2017,8 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getPriorTypes().push_back(PriorTypes::normalone);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normalone);
+   config.addPriorType(PriorTypes::normalone);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2136,12 +2071,9 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2194,12 +2126,9 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
+   config.addPriorType(PriorTypes::spikeandslab);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2250,17 +2179,15 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
 {
    std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor3dConfig();
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor3dConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrix3dConfig = getRowSideInfoDenseMacauPrior3dConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrix3dConfig = getRowSideInfoDenseMacauPrior3dConfig();
 
    Config config;
    config.setTrain(trainDenseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::macau);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrix3dConfig);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::macau);
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
+   config.addSideInfoConfig(0, rowSideInfoDenseMatrix3dConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2311,17 +2238,15 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
 {
    std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor3dConfig();
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor3dConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrix3dConfig = getRowSideInfoDenseMacauPrior3dConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrix3dConfig = getRowSideInfoDenseMacauPrior3dConfig();
 
    Config config;
    config.setTrain(trainDenseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.getPriorTypes().push_back(PriorTypes::macauone);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getPriorTypes().push_back(PriorTypes::normal);
-   config.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrix3dConfig);
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   config.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   config.addPriorType(PriorTypes::macauone);
+   config.addPriorType(PriorTypes::normal);
+   config.addPriorType(PriorTypes::normal);
+   config.addSideInfoConfig(0, rowSideInfoDenseMatrix3dConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2385,10 +2310,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2400,10 +2323,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2444,10 +2365,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2459,10 +2378,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2503,10 +2420,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2518,10 +2433,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2562,10 +2475,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2577,10 +2488,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2621,10 +2530,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2636,10 +2543,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2680,10 +2585,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2695,10 +2598,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2739,10 +2640,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2754,10 +2653,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2798,10 +2695,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2813,10 +2708,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::spikeandslab);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2859,10 +2752,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2874,10 +2765,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2918,10 +2807,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2933,10 +2820,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2977,10 +2862,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2992,10 +2875,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -3036,10 +2917,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.addPriorType(PriorTypes::normal);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -3051,10 +2930,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normal);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.addPriorType(PriorTypes::normal);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -3095,10 +2972,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -3110,10 +2985,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -3154,10 +3027,8 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   matrixSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.addPriorType(PriorTypes::normalone);
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -3169,10 +3040,8 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getPriorTypes().push_back(PriorTypes::normalone);
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
-   tensorSessionConfig.getMacauPriorConfigs().push_back(std::shared_ptr<MacauPriorConfig>());
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.addPriorType(PriorTypes::normalone);
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -3213,16 +3082,16 @@ TEST_CASE(
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainDenseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   tensorRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   tensorRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   tensorRunConfig.addPriorType(PriorTypes::macau);
+   tensorRunConfig.addPriorType(PriorTypes::macau);
+   tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
    tensorRunConfig.setBurnin(50);
    tensorRunConfig.setNSamples(50);
@@ -3232,10 +3101,10 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainDenseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   matrixRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   matrixRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   matrixRunConfig.addPriorType(PriorTypes::macau);
+   matrixRunConfig.addPriorType(PriorTypes::macau);
+   matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
    matrixRunConfig.setBurnin(50);
    matrixRunConfig.setNSamples(50);
@@ -3281,16 +3150,16 @@ TEST_CASE(
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
    std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainSparseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   tensorRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   tensorRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   tensorRunConfig.addPriorType(PriorTypes::macau);
+   tensorRunConfig.addPriorType(PriorTypes::macau);
+   tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
    tensorRunConfig.setBurnin(50);
    tensorRunConfig.setNSamples(50);
@@ -3300,10 +3169,10 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainSparseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macau);
-   matrixRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   matrixRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   matrixRunConfig.addPriorType(PriorTypes::macau);
+   matrixRunConfig.addPriorType(PriorTypes::macau);
+   matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
    matrixRunConfig.setBurnin(50);
    matrixRunConfig.setNSamples(50);
@@ -3349,16 +3218,16 @@ TEST_CASE(
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainDenseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   tensorRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   tensorRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   tensorRunConfig.addPriorType(PriorTypes::macauone);
+   tensorRunConfig.addPriorType(PriorTypes::macauone);
+   tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
    tensorRunConfig.setBurnin(50);
    tensorRunConfig.setNSamples(50);
@@ -3368,10 +3237,10 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainDenseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   matrixRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   matrixRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   matrixRunConfig.addPriorType(PriorTypes::macauone);
+   matrixRunConfig.addPriorType(PriorTypes::macauone);
+   matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
    matrixRunConfig.setBurnin(50);
    matrixRunConfig.setNSamples(50);
@@ -3417,16 +3286,16 @@ TEST_CASE(
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
    std::shared_ptr<MatrixConfig> trainSparseMatrixConfig = getTrainSparseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
-   std::shared_ptr<MacauPriorConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseMacauPriorConfig();
-   std::shared_ptr<MacauPriorConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseMacauPriorConfig();
+   std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+   std::shared_ptr<SideInfoConfig> colSideInfoDenseMatrixConfig = getColSideInfoDenseConfig();
 
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainSparseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   tensorRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   tensorRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   tensorRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   tensorRunConfig.addPriorType(PriorTypes::macauone);
+   tensorRunConfig.addPriorType(PriorTypes::macauone);
+   tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
    tensorRunConfig.setBurnin(50);
    tensorRunConfig.setNSamples(50);
@@ -3436,10 +3305,10 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainSparseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   matrixRunConfig.getPriorTypes().push_back(PriorTypes::macauone);
-   matrixRunConfig.getMacauPriorConfigs().push_back(rowSideInfoDenseMatrixConfig);
-   matrixRunConfig.getMacauPriorConfigs().push_back(colSideInfoDenseMatrixConfig);
+   matrixRunConfig.addPriorType(PriorTypes::macauone);
+   matrixRunConfig.addPriorType(PriorTypes::macauone);
+   matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
    matrixRunConfig.setBurnin(50);
    matrixRunConfig.setNSamples(50);
