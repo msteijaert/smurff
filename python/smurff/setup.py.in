@@ -24,12 +24,24 @@ CLASSIFIERS = [
     "Operating System :: MacOS"
 ]
 
+
+prefix = None
+for p in ["--prefix=", "--exec-prefix="]:
+    for arg in sys.argv:
+        if (arg.startswith(p)):
+            prefix=arg[len(p):]
+
+if prefix:
+    so_dir = get_python_lib(plat_specific = True, standard_lib = False, prefix = prefix)
+else:
+    so_dir = get_python_lib()
+
 setup(
     name = 'smurff',
     packages = [ 'smurff' ],
     version = '@SMURFF_VERSION@',
     data_files = [
-        (os.path.join(get_python_lib(), "smurff"), glob.glob('smurff/*.so')),
+        (os.path.join(so_dir, "smurff"), glob.glob('smurff/*.so')),
     ],
     url = "http://github.com/ExaScience/smurff",
     zip_safe = False,

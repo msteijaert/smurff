@@ -10,7 +10,7 @@ import tempfile
 from subprocess import call
 from time import time
 
-global_verbose = 1
+global_verbose = 0
 
 class TestExCAPE_py(unittest.TestCase):
     def get_default_opts(self):
