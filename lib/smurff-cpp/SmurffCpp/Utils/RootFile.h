@@ -67,6 +67,8 @@ private:
 public:
    std::shared_ptr<StepFile> openLastStepFile() const;
 
+   std::vector<std::shared_ptr<StepFile>> openSampleStepFiles() const;
+
 /*
 public:
    std::shared_ptr<StepFile> openSampleStepFile(std::int32_t isample) const;

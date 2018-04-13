@@ -71,6 +71,11 @@ private:
 public:
    virtual std::shared_ptr<IPriorFactory> create_prior_factory() const;
 
+   std::shared_ptr<RootFile> getRootFile() const override
+   {
+       return m_rootFile;
+   }
+
 public:
    const Config& getConfig()
    {

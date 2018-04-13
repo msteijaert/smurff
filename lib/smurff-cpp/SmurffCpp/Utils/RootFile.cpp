@@ -173,6 +173,31 @@ std::shared_ptr<StepFile> RootFile::openLastStepFile() const
    }   
 }
 
+
+std::vector<std::shared_ptr<StepFile>> RootFile::openSampleStepFiles() const
+{
+   std::vector<std::shared_ptr<StepFile>> samples;
+
+   for (auto& section : m_iniReader->getSections())
+   {
+      auto fieldsIt = m_iniReader->getFields(section);
+      for (auto& field : fieldsIt->second)
+      {
+         if (!startsWith(field, SAMPLE_STEP_PREFIX))
+            continue;
+
+         std::string stepItem = m_iniReader->get(section, field);
+
+         if (stepItem.empty())
+             continue;
+
+         samples.push_back(std::make_shared<StepFile>(stepItem, m_prefix, m_extension));
+      }
+   }
+
+   return samples;
+}
+
 /*
 std::shared_ptr<StepFile> RootFile::openSampleStepFile(std::int32_t isample) const
 {
