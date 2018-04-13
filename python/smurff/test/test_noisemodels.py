@@ -16,9 +16,6 @@ class TestNoiseModels():
         Ytrain, Ytest = self.train_test()
         si = self.side_info();
 
-        if isinstance(noise_model, smurff.ProbitNoise) and si is not None:
-            return
-
         nmodes = len(Ytrain.shape)
         priors = ['normal'] * nmodes
         if si is not None:
@@ -26,11 +23,14 @@ class TestNoiseModels():
 
         session = smurff.PySession(priors = priors, num_latent=10, burnin=10, nsamples=15, verbose=verbose)
 
-        if si is not None:
+        if si is None:
+            session.addTrainAndTest(Ytrain, Ytest, noise_model)
+        elif isinstance(noise_model, smurff.ProbitNoise):
+            session.addSideInfo(0, si)
+            session.addTrainAndTest(Ytrain, Ytest, noise_model)
+        else:
             session.addSideInfo(0, si, noise_model)
             session.addTrainAndTest(Ytrain, Ytest)
-        else:
-            session.addTrainAndTest(Ytrain, Ytest, noise_model)
 
         session.init()
         while session.step():
