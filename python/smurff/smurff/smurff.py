@@ -35,3 +35,22 @@ def macau(Ytrain, Ytest = None, side_info = None, univariate = False, **args):
 
     return smurff(Ytrain, priors, Ytest, side_info,  **args)
 
+def gfa(Views, Ytest = None, **args):
+    Ytrain = Views[0]
+    nmodes = len(Ytrain.shape)
+    assert nmodes == 2
+    priors = ['normal', 'spikeandslab']
+
+    session = PySession(priors = priors, **args)
+    session.addTrainAndTest(Ytrain, Ytest)
+
+    for p in range(1, len(Views)):
+        print(p)
+        session.addData([0,p], Views[p])
+
+    session.init()
+    while session.step():
+        pass
+
+    return session.getResult()
+

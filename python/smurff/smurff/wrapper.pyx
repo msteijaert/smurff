@@ -144,16 +144,20 @@ cdef TensorConfig* prepare_sparse_tensor(tensor, NoiseConfig noise_config, is_sc
             noise_config,
             is_scarse)
 
-cdef shared_ptr[TensorConfig] prepare_auxdata(in_tensor, pos, is_scarce, NoiseConfig noise_config) except +:
+cdef shared_ptr[TensorConfig] prepare_auxdata(data, pos, is_scarce, NoiseConfig noise_config) except +:
     cdef TensorConfig* aux_data_config
     cdef vector[int] cpos = pos
 
-    if isinstance(in_tensor, DENSE_TENSOR_TYPES):
-        aux_data_config = prepare_dense_tensor(in_tensor, noise_config)
-    elif isinstance(in_tensor, SPARSE_TENSOR_TYPES):
-        aux_data_config = prepare_sparse_tensor(in_tensor, noise_config, is_scarce)
+    if isinstance(data, DENSE_MATRIX_TYPES) and len(data.shape) == 2:
+        aux_data_config = prepare_dense_matrix(data, noise_config)
+    elif isinstance(data, SPARSE_MATRIX_TYPES):
+        aux_data_config = prepare_sparse_matrix(data, noise_config, is_scarce)
+    elif isinstance(data, DENSE_TENSOR_TYPES):
+        aux_data_config = prepare_dense_tensor(data, noise_config)
+    elif isinstance(data, SPARSE_TENSOR_TYPES):
+        aux_data_config = prepare_sparse_tensor(data, noise_config, is_scarce)
     else:
-        error_msg = "Unsupported tensor type: {}".format(type(in_tensor))
+        error_msg = "Unsupported tensor type: {}".format(type(data))
         raise ValueError(error_msg)
 
     aux_data_config.setPos(cpos)
