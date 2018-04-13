@@ -18,7 +18,7 @@ def smurff(Ytrain, priors, Ytest = None, side_info = None, **args):
     return session.getResult()
 
 def bpmf(Ytrain, Ytest = None, univariate = False ,**args):
-    return macau(Ytrain, Ytest, univariate, **args)
+    return macau(Ytrain, Ytest, None, univariate, **args)
 
 def macau(Ytrain, Ytest = None, side_info = None, univariate = False, **args):
     nmodes = len(Ytrain.shape)

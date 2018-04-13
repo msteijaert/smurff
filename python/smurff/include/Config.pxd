@@ -70,4 +70,4 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setClassify(bool value)
         void setThreshold(double value)
 
-        bool restore(string fname)
+        void save(string fname)

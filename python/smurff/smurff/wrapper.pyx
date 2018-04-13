@@ -27,6 +27,7 @@ import pandas as pd
 import scipy.sparse
 import numbers
 import tempfile
+import os
 
 from .helper import SparseTensor, PyNoiseConfig
 from .prepare import make_train_test, make_train_test_df
@@ -290,6 +291,19 @@ cdef class PySession:
         if self.ptr.get().interrupted():
             raise KeyboardInterrupt
         return not_done
+
+    def getConfig(self):
+        config_filename = tempfile.mkstemp()[1]
+        self.config.save(config_filename.encode('UTF-8'))
+        
+        with open(config_filename, 'r') as f:
+            ini_string = "".join(f.readlines())
+
+        os.unlink(config_filename)
+
+        return ini_string
+
+
 
     def getResult(self):
         """ Create Python list of ResultItem from C++ vector of ResultItem """
