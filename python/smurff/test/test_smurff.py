@@ -161,31 +161,34 @@ class TestSmurff(unittest.TestCase):
         df["value"] = np.arange(10.0 * 8.0 * 3.0)
 
         Ytr, Yte = smurff.make_train_test_df(df, 0.4)
-        self.assertEqual(Ytr.shape[0], df.shape[0] * 0.6)
-        self.assertEqual(Yte.shape[0], df.shape[0] * 0.4)
+        self.assertEqual(Ytr.data.shape[0], df.shape[0] * 0.6)
+        self.assertEqual(Yte.data.shape[0], df.shape[0] * 0.4)
 
         A1 = np.zeros( (10, 8, 3) )
         A2 = np.zeros( (10, 8, 3) )
         A1[df.A, df.B, df.C] = df.value
-        A2[Ytr.A, Ytr.B, Ytr.C] = Ytr.value
-        A2[Yte.A, Yte.B, Yte.C] = Yte.value
+        A2[Ytr.data.A, Ytr.data.B, Ytr.data.C] = Ytr.data.value
+        A2[Yte.data.A, Yte.data.B, Yte.data.C] = Yte.data.value
 
         self.assertTrue(np.allclose(A1, A2))
 
     def test_bpmf_tensor(self):
         np.random.seed(1234)
-        Y = pd.DataFrame({
+        shape = [5,4,3]
+
+        Y = smurff.SparseTensor(pd.DataFrame({
             "A": np.random.randint(0, 5, 7),
             "B": np.random.randint(0, 4, 7),
             "C": np.random.randint(0, 3, 7),
             "value": np.random.randn(7)
-        })
-        Ytest = pd.DataFrame({
+        }),shape)
+
+        Ytest = smurff.SparseTensor(pd.DataFrame({
             "A": np.random.randint(0, 5, 5),
             "B": np.random.randint(0, 4, 5),
             "C": np.random.randint(0, 3, 5),
             "value": np.random.randn(5)
-        })
+        }),shape)
 
         results = smurff.smurff(Y,
                                 Ytest=Ytest,
@@ -357,8 +360,8 @@ class TestSmurff(unittest.TestCase):
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
-        Ytrain_sp = scipy.sparse.coo_matrix( (Ytrain.value, (Ytrain.A, Ytrain.B) ) )
-        Ytest_sp  = scipy.sparse.coo_matrix( (Ytest.value,  (Ytest.A, Ytest.B) ) )
+        Ytrain_sp = scipy.sparse.coo_matrix( (Ytrain.data.value, (Ytrain.data.A, Ytrain.data.B) ) )
+        Ytest_sp  = scipy.sparse.coo_matrix( (Ytest.data.value,  (Ytest.data.A, Ytest.data.B) ) )
 
         results_mat = smurff.smurff(Ytrain_sp,
                                     Ytest=Ytest_sp,
@@ -422,7 +425,7 @@ class TestSmurff(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
 
         Acoo = scipy.sparse.coo_matrix(A)
-        r0 = smurff.smurff(df,
+        r0 = smurff.smurff(smurff.SparseTensor(df),
                            priors=['normal', 'normal', 'normal'],
                            num_latent=2,
                            burnin=5,

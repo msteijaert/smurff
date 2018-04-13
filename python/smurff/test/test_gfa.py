@@ -6,7 +6,7 @@ import smurff
 import itertools
 import collections
 
-verbose = 1
+verbose = 0
 
 class TestGFA(unittest.TestCase):
 

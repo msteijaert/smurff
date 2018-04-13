@@ -45,7 +45,6 @@ def gfa(Views, Ytest = None, **args):
     session.addTrainAndTest(Ytrain, Ytest)
 
     for p in range(1, len(Views)):
-        print(p)
         session.addData([0,p], Views[p])
 
     session.init()
