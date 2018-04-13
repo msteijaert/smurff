@@ -10,22 +10,23 @@ import tempfile
 from subprocess import call
 from time import time
 
-global_verbose = False
+global_verbose = 1
 
 class TestExCAPE_py(unittest.TestCase):
     def get_default_opts(self):
         return {
-                "Ytest"           : TestExCAPE_py.data["test.sdm"],
                 "priors"          : [ "normal", "normal" ],
                 "num_latent"      : 16,
                 "burnin"          : 400,
                 "nsamples"        : 200,
-                "Ynoise"          : ("fixed", 1.0, 0.0, 0.0, 0.0),
                 "verbose"         : global_verbose, 
-                "aux_data"        : [ [], [] ],
-                "side_info"       : [ None, None ],
-                "side_info_noises": [ ("fixed", 10.0, 0.0, 0.0, 0.0), ("fixed", 10.0, 0.0, 0.0, 0.0) ],
                 }
+
+    def get_train_noise(self):
+        return smurff.FixedNoise(1.0)
+
+    def get_side_noise(self):
+        return smurff.FixedNoise(10.)
 
     @classmethod
     def setUpClass(cls):
@@ -41,18 +42,25 @@ class TestExCAPE_py(unittest.TestCase):
 
     def macau(self, side_info, direct, expected):
         args = self.get_default_opts()
-        args["direct"] = direct
 
         for d in range(2):
             if side_info[d] != None:
-                args["side_info"][d] = TestExCAPE_py.data[side_info[d]]
                 args["priors"][d] = 'macau'
-            else:
-                args["side_info"][d] = None
 
+        session = smurff.PySession(**args)
+        Ytrain = TestExCAPE_py.data["train.sdm"]
+        Ytest = TestExCAPE_py.data["test.sdm"]
+        session.addTrainAndTest(Ytrain, Ytest, self.get_train_noise())
+
+        for d in range(2):
+            if side_info[d] != None:
+                session.addSideInfo(d, TestExCAPE_py.data[side_info[d]], self.get_side_noise(), direct = direct)
+
+        session.init()
 
         start = time()
-        result = smurff.smurff(TestExCAPE_py.data["train.sdm"], **args)
+        while session.step(): pass
+        result = session.getResult()
         stop = time()
         elapsed = stop - start
 
