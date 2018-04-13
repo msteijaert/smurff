@@ -26,6 +26,7 @@ import  scipy as sp
 import pandas as pd
 import scipy.sparse
 import numbers
+import tempfile
 
 from .helper import SparseTensor, PyNoiseConfig
 from .prepare import make_train_test, make_train_test_df
@@ -238,12 +239,15 @@ cdef class PySession:
         nsamples         = NSAMPLES_DEFAULT_VALUE,
         seed             = RANDOM_SEED_DEFAULT_VALUE,
         verbose          = VERBOSE_DEFAULT_VALUE,
-        save_prefix      = SAVE_PREFIX_DEFAULT_VALUE,
+        save_prefix      = None,
         save_extension   = SAVE_EXTENSION_DEFAULT_VALUE,
         save_freq        = SAVE_FREQ_DEFAULT_VALUE,
         csv_status       = STATUS_DEFAULT_VALUE):
 
         self.nmodes = len(priors)
+
+        if save_prefix is None:
+            save_prefix = tempfile.mkdtemp().encode('UTF-8')
 
         for p in priors: self.config.addPriorType(p.encode('UTF-8'))
         self.config.setNumLatent(num_latent)
@@ -278,7 +282,10 @@ cdef class PySession:
         return self.ptr.get().init()
 
     def step(self):
-        return self.ptr.get().step()
+        not_done = self.ptr.get().step()
+        if self.ptr.get().interrupted():
+            raise KeyboardInterrupt
+        return not_done
 
     def getResult(self):
         """ Create Python list of ResultItem from C++ vector of ResultItem """

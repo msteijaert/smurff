@@ -12,6 +12,7 @@ class PythonSession : public Session
 
 private:
    static bool keepRunning;
+   static bool keepRunningVerbose;
 
 protected:
    PythonSession()
@@ -21,6 +22,11 @@ protected:
    }
 
 protected:
+   bool interrupted() override
+   {
+       return !keepRunning;
+   }
+
    bool step() override;
 
 private:
