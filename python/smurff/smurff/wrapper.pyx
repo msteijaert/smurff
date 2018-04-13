@@ -231,6 +231,9 @@ cdef NoiseConfig prepare_noise_config(py_noise_config):
     return n
 
 
+class StepItem:
+    pass
+
 cdef class PySession:
     cdef shared_ptr[ISession] ptr;
     cdef Config config
@@ -245,14 +248,14 @@ cdef class PySession:
         seed             = RANDOM_SEED_DEFAULT_VALUE,
         verbose          = VERBOSE_DEFAULT_VALUE,
         save_prefix      = None,
-        save_extension   = SAVE_EXTENSION_DEFAULT_VALUE,
-        save_freq        = SAVE_FREQ_DEFAULT_VALUE,
-        csv_status       = STATUS_DEFAULT_VALUE):
+        save_extension   = None,
+        save_freq        = None,
+        csv_status       = None):
 
         self.nmodes = len(priors)
 
         if save_prefix is None:
-            save_prefix = tempfile.mkdtemp().encode('UTF-8')
+            save_prefix = tempfile.mkdtemp()
 
         for p in priors: self.config.addPriorType(p.encode('UTF-8'))
         self.config.setNumLatent(num_latent)
@@ -261,10 +264,10 @@ cdef class PySession:
         self.config.setVerbose(verbose)
 
         if seed:           self.config.setRandomSeed(seed)
-        if save_prefix:    self.config.setSavePrefix(save_prefix)
-        if save_extension: self.config.setSaveExtension(save_extension)
+        if save_prefix:    self.config.setSavePrefix(save_prefix.encode('UTF-8'))
+        if save_extension: self.config.setSaveExtension(save_extension.encode('UTF-8'))
         if save_freq:      self.config.setSaveFreq(save_freq)
-        if csv_status:     self.config.setCsvStatus(csv_status)
+        if csv_status:     self.config.setCsvStatus(csv_status.encode('UTF-8'))
 
     def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig()):
         self.noise_config = prepare_noise_config(noise)
@@ -303,6 +306,17 @@ cdef class PySession:
 
         return ini_string
 
+    def getSamples(self):
+        models = []
+        rf = self.ptr.get().getRootFile()
+        steps = rf.get().openSampleStepFiles()
+        for i in range(steps.size()):
+            step_item = StepItem()
+            step_item.filename = steps.at(i).get().getStepFileName()
+
+            models.append(step_item)
+        
+        return models
 
 
     def getResult(self):
