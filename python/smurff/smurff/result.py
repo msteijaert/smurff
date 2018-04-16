@@ -16,7 +16,7 @@ class ResultItem:
         return str(self)
 
 class Result:
-    def __init__(self, predictions, iter = -1, rmse = float("nan")):
+    def __init__(self, predictions, rmse = float("nan"), iteration = -1):
         if sparse.issparse(predictions):
             test_matrix = predictions
             (I,J,V) = sparse.find(test_matrix)
@@ -28,5 +28,5 @@ class Result:
         else:
             self.predictions = predictions
 
-        self.iter = iter
+        self.iter = iteration
         self.rmse = rmse
