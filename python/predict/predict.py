@@ -39,10 +39,10 @@ def predict_some(sample_iter, Us, old_results):
     results = []
     for r in old_results:
         pred = np.dot(Us[0][:,r[0]], Us[1][:,r[1]])
-        delta = pred - r.pred_avg;
-        pred_avg = (r.pred_avg + delta / (sample_iter + 1));
-        var = r.var + delta * (pred - pred_avg);
-        stds = float("nan") if sample_iter == 0  else sqrt ( var / sample_iter );
+        delta = pred - r.pred_avg
+        pred_avg = (r.pred_avg + delta / (sample_iter + 1))
+        var = r.var + delta * (pred - pred_avg)
+        stds = float("nan") if sample_iter == 0  else sqrt ( var / sample_iter )
         r = ResultItem(r.c0, r.c1, r.y, pred, pred_avg, var, stds)
         results.append(r)
 
@@ -100,4 +100,3 @@ else:
     mio.write_matrix("%s-final-mean.ddm" % ( args.pred_prefix ), final_pred)
     final_std = np.std(models, axis=0)
     mio.write_matrix("%s-final-std.ddm" % ( args.pred_prefix ), final_std)
-

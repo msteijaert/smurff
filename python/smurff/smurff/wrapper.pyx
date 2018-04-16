@@ -234,7 +234,7 @@ cdef NoiseConfig prepare_noise_config(py_noise_config):
 class StepItem:
     pass
 
-cdef class PySession:
+cdef class TrainSession:
     cdef shared_ptr[ISession] ptr;
     cdef Config config
     cdef NoiseConfig noise_config
@@ -254,8 +254,9 @@ cdef class PySession:
 
         self.nmodes = len(priors)
 
-        if save_prefix is None:
+        if save_prefix is None and save_freq:
             save_prefix = tempfile.mkdtemp()
+            print("Saving models in tempory directory: ", save_prefix)
 
         for p in priors: self.config.addPriorType(p.encode('UTF-8'))
         self.config.setNumLatent(num_latent)

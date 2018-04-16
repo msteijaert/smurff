@@ -21,7 +21,7 @@ class TestNoiseModels(unittest.TestCase):
         nmodes = len(Ytrain.shape)
         priors = ['normal'] * nmodes
 
-        session = smurff.PySession(priors = priors, num_latent=10,
+        session = smurff.TrainSession(priors = priors, num_latent=10,
                 burnin=10, nsamples=15, verbose=verbose,
                 save_freq = 1, save_prefix = 'test-')
 

@@ -21,7 +21,7 @@ class TestNoiseModels():
         if si is not None:
             priors[0] = 'macau'
 
-        session = smurff.PySession(priors = priors, num_latent=10, burnin=10, nsamples=15, verbose=verbose)
+        session = smurff.TrainSession(priors = priors, num_latent=10, burnin=10, nsamples=15, verbose=verbose)
 
         if si is None:
             session.addTrainAndTest(Ytrain, Ytest, noise_model)

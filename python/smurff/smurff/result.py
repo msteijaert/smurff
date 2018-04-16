@@ -1,3 +1,5 @@
+from scipy import sparse
+
 class ResultItem:
     def __init__(self, coords, val, pred_1sample, pred_avg, var, stds):
         self.coords = coords
@@ -14,6 +16,17 @@ class ResultItem:
         return str(self)
 
 class Result:
-    def __init__(self, predictions, rmse):
-        self.predictions = predictions
+    def __init__(self, predictions, iter = -1, rmse = float("nan")):
+        if sparse.issparse(predictions):
+            test_matrix = predictions
+            (I,J,V) = sparse.find(test_matrix)
+            self.predictions = []
+            for r in range(len(I)):
+                r = ResultItem((I[r], J[r]), V[r], .0, .0, .0, .0)
+                self.predictions.append(r)
+
+        else:
+            self.predictions = predictions
+
+        self.iter = iter
         self.rmse = rmse

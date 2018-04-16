@@ -1,7 +1,7 @@
-from .wrapper import PySession
+from .wrapper import TrainSession
 
 def smurff(Ytrain, priors, Ytest = None, side_info = None, **args):
-    session = PySession(priors = priors, **args)
+    session = TrainSession(priors = priors, **args)
     session.addTrainAndTest(Ytrain, Ytest)
 
     if side_info is not None:
@@ -41,7 +41,7 @@ def gfa(Views, Ytest = None, **args):
     assert nmodes == 2
     priors = ['normal', 'spikeandslab']
 
-    session = PySession(priors = priors, **args)
+    session = TrainSession(priors = priors, **args)
     session.addTrainAndTest(Ytrain, Ytest)
 
     for p in range(1, len(Views)):
