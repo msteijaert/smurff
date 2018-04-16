@@ -5,6 +5,7 @@ import scipy.sparse
 import smurff
 import itertools
 import collections
+import sys
 
 verbose=0
 
@@ -27,8 +28,8 @@ class TestMacau(unittest.TestCase):
                                 side_info=[side1, side2],
                                 num_latent=4,
                                 verbose=verbose,
-                                burnin=50,
-                                nsamples=50)
+                                burnin=200,
+                                nsamples=200)
 
         self.assertEqual(Ytest.nnz, len(results.predictions))
 
@@ -41,8 +42,8 @@ class TestMacau(unittest.TestCase):
                       Ytest=Xt,
                       side_info=[F, None],
                       num_latent=5,
-                      burnin=10,
-                      nsamples=5,
+                      burnin=200,
+                      nsamples=200,
                       verbose=verbose)
 
     def test_macau_dense(self):
@@ -53,8 +54,8 @@ class TestMacau(unittest.TestCase):
                       Ytest=Yt,
                       side_info=[F, None],
                       num_latent=5,
-                      burnin=10,
-                      nsamples=5,
+                      burnin=200,
+                      nsamples=200,
                       verbose=verbose)
 
     def test_macau_univariate(self):
@@ -69,19 +70,21 @@ class TestMacau(unittest.TestCase):
                                 univariate = True,
                                 num_latent=4,
                                 verbose=verbose,
-                                burnin=50,
-                                nsamples=50)
+                                burnin=200,
+                                nsamples=200)
         self.assertEqual(Ytest.nnz, len(results.predictions))
 
     def test_macau_tensor(self):
-        A = np.random.randn(15, 2)
-        B = np.random.randn(3, 2)
-        C = np.random.randn(2, 2)
+        shape = [30, 4, 2]
+        
+        A = np.random.randn(shape[0], 2)
+        B = np.random.randn(shape[1], 2)
+        C = np.random.randn(shape[2], 2)
 
-        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
+        idx = list( itertools.product(np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2])) )
         df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
-        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
+        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2, shape = shape)
 
         Acoo = scipy.sparse.coo_matrix(A)
 
@@ -89,22 +92,24 @@ class TestMacau(unittest.TestCase):
 			 Ytest = Ytest,
 			 side_info=[Acoo, None, None],
 			 num_latent = 4,
-			 verbose=verbose,
-			 burnin = 20,
-			 nsamples = 20)
+			 verbose=1,
+			 burnin=200,
+			 nsamples=200)
 
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
     def test_macau_tensor_univariate(self):
-        A = np.random.randn(30, 2)
-        B = np.random.randn(4, 2)
-        C = np.random.randn(2, 2)
 
-        idx = list( itertools.product(np.arange(A.shape[0]), np.arange(B.shape[0]), np.arange(C.shape[0])) )
+        shape = [30, 4, 2]
+        A = np.random.randn(shape[0], 2)
+        B = np.random.randn(shape[1], 2)
+        C = np.random.randn(shape[2], 2)
+
+        idx = list( itertools.product(np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2])) )
         df  = pd.DataFrame( np.asarray(idx), columns=["A", "B", "C"])
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
-        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
+        Ytrain, Ytest = smurff.make_train_test_df(df, 0.2, shape)
 
         Acoo = scipy.sparse.coo_matrix(A)
 
@@ -114,11 +119,15 @@ class TestMacau(unittest.TestCase):
                                 univariate = True,
                                 num_latent=4,
                                 verbose=verbose,
-                                burnin=20,
-                                nsamples=20)
+                                burnin=200,
+                                nsamples=200)
 
         self.assertTrue(results.rmse < 0.5,
                         msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
 
 if __name__ == '__main__':
+    for arg in sys.argv:
+        if (arg == "-v" or arg == "--verbose"):
+            verbose = 1
+
     unittest.main()

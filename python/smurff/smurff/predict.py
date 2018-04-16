@@ -18,13 +18,17 @@ from .result import ResultItem
 class OptionsFile(configparser.ConfigParser):
     def __init__(self, file_name):
         configparser.ConfigParser.__init__(self) 
-        self.read_file(open(file_name), file_name)
+        with open(file_name) as f:
+            self.read_file(f, file_name)
+
 
 
 class HeadlessConfigParser:
     def __init__(self, file_name):
         self.cp = configparser.ConfigParser()
-        self.cp.read_string("[top-level]\n" + open(file_name).read())
+        with  open(file_name) as f:
+            content = "[top-level]\n" + f.read()
+            self.cp.read_string(content)
 
     def __getitem__(self, key):
         return self.cp["top-level"][key]
@@ -32,14 +36,21 @@ class HeadlessConfigParser:
     def items(self):
         return self.cp.items("top-level")
 
+
+def make_abs(basedir, filename):
+    if not os.path.isabs(filename):
+        return os.path.join(basedir, filename)
+    return filename
+
+    
 class TrainStep:
     @classmethod
     def fromStepFile(cls, basedir, file_name, iter):
-        cp = HeadlessConfigParser(os.path.join(basedir, file_name))
+        cp = HeadlessConfigParser(make_abs(basedir, file_name))
         step = cls(int(cp["num_models"]), iter)
-        step.predictions = pd.read_csv(os.path.join(basedir, cp["pred"]), sep=";")
+        step.predictions = pd.read_csv(make_abs(basedir, cp["pred"]), sep=";")
         for i in range(step.nmodes):
-            step.addU(mio.read_matrix(os.path.join(basedir, cp["model_" + str(i)])))
+            step.addU(mio.read_matrix(make_abs(basedir, cp["model_" + str(i)])))
 
         return step
 
@@ -85,9 +96,12 @@ class TrainStep:
 class PredictSession:
     @classmethod
     def fromRootFile(cls, root_file):
+        print("root_file = ", root_file)
         cp = HeadlessConfigParser(root_file)
         basedir = os.path.dirname(root_file)
-        options = OptionsFile(os.path.join(basedir, cp["options"]))
+        print("basedir = ", basedir)
+        print("options = ", cp["options"])
+        options = OptionsFile(make_abs(basedir, cp["options"]))
 
         session = cls(options.getint("global", "num_priors"))
         for step_name, step_file in cp.items():

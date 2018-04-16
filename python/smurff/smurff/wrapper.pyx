@@ -32,6 +32,7 @@ import os
 from .helper import SparseTensor, PyNoiseConfig
 from .prepare import make_train_test, make_train_test_df
 from .result import Result, ResultItem
+from .predict import PredictSession
 
 DENSE_MATRIX_TYPES  = (np.ndarray, np.matrix, )
 SPARSE_MATRIX_TYPES = (sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix, )
@@ -255,7 +256,7 @@ cdef class TrainSession:
         self.nmodes = len(priors)
 
         if save_prefix is None and save_freq:
-            save_prefix = tempfile.mkdtemp()
+            save_prefix = os.path.join(tempfile.mkdtemp(), "save")
             print("Saving models in tempory directory: ", save_prefix)
 
         for p in priors: self.config.addPriorType(p.encode('UTF-8'))
@@ -307,18 +308,9 @@ cdef class TrainSession:
 
         return ini_string
 
-    def getSamples(self):
-        models = []
-        rf = self.ptr.get().getRootFile()
-        steps = rf.get().openSampleStepFiles()
-        for i in range(steps.size()):
-            step_item = StepItem()
-            step_item.filename = steps.at(i).get().getStepFileName()
-
-            models.append(step_item)
-        
-        return models
-
+    def makePredictSession(self):
+        rf = self.ptr.get().getRootFile().get().getRootFileName()
+        return PredictSession.fromRootFile(rf)
 
     def getResult(self):
         """ Create Python list of ResultItem from C++ vector of ResultItem """

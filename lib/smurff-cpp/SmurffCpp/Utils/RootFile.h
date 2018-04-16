@@ -29,7 +29,7 @@ public:
    //items are then appended to it when createStepFile is called
    RootFile(std::string prefix, std::string extension);
 
-private:
+public:
    std::string getRootFileName() const;
    std::string getOptionsFileName() const;
 
