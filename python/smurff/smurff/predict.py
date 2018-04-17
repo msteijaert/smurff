@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from functools import reduce
 from math import sqrt
 import numpy as np
 from scipy import sparse
@@ -13,7 +14,7 @@ import re
 import csv
 import configparser
 
-from .result import ResultItem
+from .result import Prediction
 
 class OptionsFile(configparser.ConfigParser):
     def __init__(self, file_name):
@@ -21,9 +22,8 @@ class OptionsFile(configparser.ConfigParser):
         with open(file_name) as f:
             self.read_file(f, file_name)
 
-
-
 class HeadlessConfigParser:
+    """A ConfigParser with support for raw items, not in a section"""
     def __init__(self, file_name):
         self.cp = configparser.ConfigParser()
         with  open(file_name) as f:
@@ -61,7 +61,6 @@ class TrainStep:
         self.num_latent = None
         self.shape = []
         self.Us = []
-        self.predictions = None
 
     def addU(self, U):
         self.Us.append(U)
@@ -76,31 +75,17 @@ class TrainStep:
     def predict_one(self, coords):
         return np.dot(self.Us[0][:,coords[0]], self.Us[1][:,coords[1]])
 
-    def update_predictions(self, old_predictions):
-        new_predictions = []
-
-        for r in old_predictions:
-            pred = self.predict_one(r.coords)
-            delta = pred - r.pred_avg
-            pred_avg = (r.pred_avg + delta / (self.iter + 1))
-            var = r.var + delta * (pred - pred_avg)
-            stds = float("nan") if self.iter == 0  else sqrt ( var / self.iter )
-            r = ResultItem(r.coords, r.y, pred, pred_avg, var, stds)
-            new_predictions.append(r)
-
-        return new_predictions
+    def average(self, pred_item):
+        pred_item.average(self.predict_one(pred_item.coords))
 
     def predict_all(self):
-        return self.Us[0] * self.Us[1]
+        return np.tensordot(self.Us[0],self.Us[1],axes=(0,0))
 
 class PredictSession:
     @classmethod
     def fromRootFile(cls, root_file):
-        print("root_file = ", root_file)
         cp = HeadlessConfigParser(root_file)
         basedir = os.path.dirname(root_file)
-        print("basedir = ", basedir)
-        print("options = ", cp["options"])
         options = OptionsFile(make_abs(basedir, cp["options"]))
 
         session = cls(options.getint("global", "num_priors"))
@@ -134,5 +119,16 @@ class PredictSession:
         else:
             assert self.shape == step.shape
     
+    def predict_all(self):
+        return np.stack([ step.predict_all() for step in self.steps ])
+    
+    def predict_some(self, test_matrix):
+        predictions = Prediction.fromTestMatrix(test_matrix)
+        for s in self.steps:
+            for p in predictions:
+                s.average(p)
+
+        return predictions
+
     def __str__(self):
         return "PredictSession with %d models\n  Data shape = %s\n  Num latent: %d" % (len(self.steps), self.shape, self.num_latent)

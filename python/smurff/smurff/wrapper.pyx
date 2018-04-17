@@ -11,14 +11,17 @@ from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 
+from cython.operator cimport dereference as deref, preincrement as inc
+
 from Config cimport *
-from ISession cimport ISession
 from NoiseConfig cimport *
 from MatrixConfig cimport MatrixConfig
 from TensorConfig cimport TensorConfig
 from SideInfoConfig cimport *
 from SessionFactory cimport SessionFactory
-from PVec cimport PVec
+
+from ISession cimport ISession
+from ResultItem cimport ResultItem
 
 cimport numpy as np
 import  numpy as np
@@ -31,7 +34,7 @@ import os
 
 from .helper import SparseTensor, PyNoiseConfig
 from .prepare import make_train_test, make_train_test_df
-from .result import Result, ResultItem
+from .result import Prediction
 from .predict import PredictSession
 
 DENSE_MATRIX_TYPES  = (np.ndarray, np.matrix, )
@@ -231,6 +234,8 @@ cdef NoiseConfig prepare_noise_config(py_noise_config):
     n.setThreshold(py_noise_config.threshold)
     return n
 
+cdef prepare_result_item(ResultItem item):
+    return Prediction(tuple(item.coords.as_vector()), item.val, item.pred_1sample, item.pred_avg , item.var)
 
 class StepItem:
     pass
@@ -257,7 +262,6 @@ cdef class TrainSession:
 
         if save_prefix is None and save_freq:
             save_prefix = os.path.join(tempfile.mkdtemp(), "save")
-            print("Saving models in tempory directory: ", save_prefix)
 
         for p in priors: self.config.addPriorType(p.encode('UTF-8'))
         self.config.setNumLatent(num_latent)
@@ -297,6 +301,9 @@ cdef class TrainSession:
             raise KeyboardInterrupt
         return not_done
 
+    def getCurrentSample(self):
+        not_done = self.ptr.get().step()
+
     def getConfig(self):
         config_filename = tempfile.mkstemp()[1]
         self.config.save(config_filename.encode('UTF-8'))
@@ -312,25 +319,17 @@ cdef class TrainSession:
         rf = self.ptr.get().getRootFile().get().getRootFileName()
         return PredictSession.fromRootFile(rf)
 
-    def getResult(self):
-        """ Create Python list of ResultItem from C++ vector of ResultItem """
-        cpp_result_items_ptr = self.ptr.get().getResult()
-        py_result_items = []
+    def getTestPredictions(self):
+        """ Create Python list of Prediction from C++ vector of Predictions """
+        py_items = []
 
-        if cpp_result_items_ptr:
-            for i in range(cpp_result_items_ptr.get().size()):
-                cpp_result_item_ptr = &(cpp_result_items_ptr.get().at(i))
-                py_result_item_coords = []
-                for coord_index in range(cpp_result_item_ptr.coords.size()):
-                    coord = cpp_result_item_ptr.coords[coord_index]
-                    py_result_item_coords.append(coord)
-                py_result_item = ResultItem( tuple(py_result_item_coords)
-                                           , cpp_result_item_ptr.val
-                                           , cpp_result_item_ptr.pred_1sample
-                                           , cpp_result_item_ptr.pred_avg
-                                           , cpp_result_item_ptr.var
-                                           , cpp_result_item_ptr.stds
-                                           )
-                py_result_items.append(py_result_item)
+        cpp_items = self.ptr.get().getResult().get()
+        it = cpp_items.begin()
+        while it != cpp_items.end():
+            py_items.append(prepare_result_item(deref(it)))
+            inc(it)
 
-        return Result(py_result_items, self.ptr.get().getRmseAvg())
+        return py_items
+    
+    def getRmseAvg(self): 
+        return self.ptr.get().getRmseAvg()

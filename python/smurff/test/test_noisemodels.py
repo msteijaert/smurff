@@ -14,7 +14,7 @@ class TestNoiseModels():
 
     def run_session(self, noise_model):
         Ytrain, Ytest = self.train_test()
-        si = self.side_info();
+        si = self.side_info()
 
         nmodes = len(Ytrain.shape)
         priors = ['normal'] * nmodes
@@ -43,19 +43,19 @@ class TestNoiseModels():
     # 5 different noise configs
 
     def test_fixed5(self):
-        result = self.run_session(smurff.FixedNoise(5.0))
+        self.run_session(smurff.FixedNoise(5.0))
 
     def test_fixed10(self):
-        result = self.run_session(smurff.FixedNoise(10.0))
+        self.run_session(smurff.FixedNoise(10.0))
 
     def test_adaptive1(self):
-        result = self.run_session(smurff.AdaptiveNoise(1.0, 10))
+        self.run_session(smurff.AdaptiveNoise(1.0, 10))
 
     def test_adaptive10(self):
-        result = self.run_session(smurff.AdaptiveNoise(10.0, 100.0))
+        self.run_session(smurff.AdaptiveNoise(10.0, 100.0))
 
     def test_probit(self):
-        result = self.run_session(smurff.ProbitNoise(0.0))
+        self.run_session(smurff.ProbitNoise(0.0))
 #
 # 2 different types of train&test
 #

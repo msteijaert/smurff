@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <array>
+#include <vector>
 #include <numeric>
 #include <algorithm>
 
@@ -201,6 +202,11 @@ namespace smurff
          return os;
       }
 
+      std::vector<int> as_vector() const
+      {
+            return std::vector<int>(m_v.begin(), m_v.begin()+m_size);
+      }
+          
    };
 
    template<size_t MaxSize>
