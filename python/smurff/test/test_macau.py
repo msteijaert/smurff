@@ -23,7 +23,7 @@ class TestMacau(unittest.TestCase):
         Y       = scipy.sparse.coo_matrix( (Y.data[r], (Y.row[r], Y.col[r])), shape=Y.shape )
         Y, Ytest = smurff.make_train_test(Y, 0.5)
 
-        results = smurff.macau(Y,
+        predictions = smurff.macau(Y,
                                 Ytest=Ytest,
                                 side_info=[side1, side2],
                                 num_latent=4,
@@ -31,7 +31,7 @@ class TestMacau(unittest.TestCase):
                                 burnin=200,
                                 nsamples=200)
 
-        self.assertEqual(Ytest.nnz, len(results.predictions))
+        self.assertEqual(Ytest.nnz, len(predictions))
 
     def test_macau_side_bin(self):
         X = scipy.sparse.rand(15, 10, 0.2)
@@ -64,7 +64,7 @@ class TestMacau(unittest.TestCase):
         side1   = scipy.sparse.coo_matrix( np.random.rand(10, 2) )
         side2   = scipy.sparse.coo_matrix( np.random.rand(20, 3) )
 
-        results = smurff.macau(Y,
+        predictions = smurff.macau(Y,
                                 Ytest=Ytest,
                                 side_info=[side1, side2],
                                 univariate = True,
@@ -72,7 +72,7 @@ class TestMacau(unittest.TestCase):
                                 verbose=verbose,
                                 burnin=200,
                                 nsamples=200)
-        self.assertEqual(Ytest.nnz, len(results.predictions))
+        self.assertEqual(Ytest.nnz, len(predictions))
 
     def test_macau_tensor(self):
         shape = [30, 4, 2]
@@ -88,16 +88,18 @@ class TestMacau(unittest.TestCase):
 
         Acoo = scipy.sparse.coo_matrix(A)
 
-        results = smurff.macau(Ytrain = Ytrain,
+        predictions = smurff.macau(Ytrain = Ytrain,
 			 Ytest = Ytest,
 			 side_info=[Acoo, None, None],
 			 num_latent = 4,
-			 verbose=1,
+			 verbose=verbose,
 			 burnin=200,
 			 nsamples=200)
 
-        self.assertTrue(results.rmse < 0.5,
-                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
+        rmse = smurff.calc_rmse(predictions)
+
+        self.assertTrue(rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % rmse)
 
     def test_macau_tensor_univariate(self):
 
@@ -113,7 +115,7 @@ class TestMacau(unittest.TestCase):
 
         Acoo = scipy.sparse.coo_matrix(A)
 
-        results = smurff.macau(Ytrain,
+        predictions = smurff.macau(Ytrain,
                                 Ytest=Ytest,
                                 side_info=[Acoo, None, None],
                                 univariate = True,
@@ -122,8 +124,10 @@ class TestMacau(unittest.TestCase):
                                 burnin=200,
                                 nsamples=200)
 
-        self.assertTrue(results.rmse < 0.5,
-                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
+        rmse = smurff.calc_rmse(predictions)
+
+        self.assertTrue(rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % rmse)
 
 if __name__ == '__main__':
     for arg in sys.argv:

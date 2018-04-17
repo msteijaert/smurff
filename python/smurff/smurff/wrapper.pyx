@@ -235,7 +235,7 @@ cdef NoiseConfig prepare_noise_config(py_noise_config):
     return n
 
 cdef prepare_result_item(ResultItem item):
-    return Prediction(tuple(item.coords.as_vector()), item.val, item.pred_1sample, item.pred_avg , item.var)
+    return Prediction(tuple(item.coords.as_vector()), item.val, item.pred_1sample, item.pred_avg, item.var)
 
 class StepItem:
     pass
@@ -323,11 +323,12 @@ cdef class TrainSession:
         """ Create Python list of Prediction from C++ vector of Predictions """
         py_items = []
 
-        cpp_items = self.ptr.get().getResult().get()
-        it = cpp_items.begin()
-        while it != cpp_items.end():
-            py_items.append(prepare_result_item(deref(it)))
-            inc(it)
+        if self.ptr.get().getResult():
+            cpp_items = self.ptr.get().getResult().get()
+            it = cpp_items.begin()
+            while it != cpp_items.end():
+                py_items.append(prepare_result_item(deref(it)))
+                inc(it)
 
         return py_items
     

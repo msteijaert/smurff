@@ -60,4 +60,3 @@ class AdaptiveNoise(PyNoiseConfig):
 class ProbitNoise(PyNoiseConfig):
     def __init__(self, threshold = 0.): 
         PyNoiseConfig.__init__(self, "probit", threshold = threshold)
-

@@ -4,9 +4,6 @@ import pandas as pd
 import scipy.sparse
 import smurff
 
-from sklearn.metrics import mean_squared_error
-import math
-
 verbose = 0
 
 class TestNoiseModels(unittest.TestCase):
@@ -51,8 +48,8 @@ class TestNoiseModels(unittest.TestCase):
         self.assertAlmostEqual(p1[0].pred_1sample, p2[0].pred_1sample, places = 2)
         self.assertAlmostEqual(p1[0].pred_avg, p2[0].pred_avg, places = 2)
 
-        p1_rmse_avg = math.sqrt(mean_squared_error([p.val for p in p1], [p.pred_avg for p in p1]))
-        p2_rmse_avg = math.sqrt(mean_squared_error([p.val for p in p2], [p.pred_avg for p in p2]))
+        p1_rmse_avg = smurff.calc_rmse(p1)
+        p2_rmse_avg = smurff.calc_rmse(p2)
 
         self.assertAlmostEqual(train_session.getRmseAvg(), p2_rmse_avg, places = 2)
         self.assertAlmostEqual(train_session.getRmseAvg(), p1_rmse_avg, places = 2)

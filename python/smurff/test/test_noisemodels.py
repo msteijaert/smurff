@@ -36,9 +36,10 @@ class TestNoiseModels():
         while session.step():
             pass
 
-        results = session.getResult()
-        self.assertEqual(Ytest.nnz, len(results.predictions))
-        return results
+        predictions = session.getTestPredictions()
+        self.assertEqual(Ytest.nnz, len(predictions))
+        self.assertLess(session.getRmseAvg(), 10.)
+        return predictions
 
     # 5 different noise configs
 

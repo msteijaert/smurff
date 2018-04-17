@@ -16,13 +16,13 @@ class TestBPMF(unittest.TestCase):
     def test_bpmf(self):
         Y = scipy.sparse.rand(10, 20, 0.2)
         Y, Ytest = smurff.make_train_test(Y, 0.5)
-        results = smurff.bpmf(Y,
+        predictions = smurff.bpmf(Y,
                                 Ytest=Ytest,
                                 num_latent=4,
                                 verbose=verbose,
                                 burnin=50,
                                 nsamples=50)
-        self.assertEqual(Ytest.nnz, len(results.predictions))
+        self.assertEqual(Ytest.nnz, len(predictions))
 
     def test_bpmf_numerictest(self):
         X = scipy.sparse.rand(15, 10, 0.2)
@@ -58,7 +58,7 @@ class TestBPMF(unittest.TestCase):
             "value": np.random.randn(5)
         }))
 
-        results = smurff.bpmf(Y,
+        predictions = smurff.bpmf(Y,
                                 Ytest=Ytest,
                                 num_latent=4,
                                 verbose=verbose,
@@ -101,7 +101,7 @@ class TestBPMF(unittest.TestCase):
         }), train_shape)
 
         # Run SMURFF
-        sparse_matrix_results = smurff.bpmf(train_sparse_matrix,
+        sparse_matrix_predictions = smurff.bpmf(train_sparse_matrix,
                                               Ytest=test_sparse_matrix,
                                               num_latent=4,
                                               verbose=verbose,
@@ -109,7 +109,7 @@ class TestBPMF(unittest.TestCase):
                                               nsamples=50,
                                               seed=1234)
 
-        sparse_tensor_results = smurff.bpmf(train_sparse_tensor,
+        sparse_tensor_predictions = smurff.bpmf(train_sparse_tensor,
                                               Ytest=test_sparse_tensor,
                                               num_latent=4,
                                               verbose=verbose,
@@ -118,13 +118,13 @@ class TestBPMF(unittest.TestCase):
                                               seed=1234)
 
         # Transfrom SMURFF results to dictionary of coords and predicted values
-        sparse_matrix_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_results.predictions)
-        sparse_tensor_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_tensor_results.predictions)
+        sparse_matrix_predictions_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_predictions)
+        sparse_tensor_predictions_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_tensor_predictions)
 
-        self.assertEqual(len(sparse_matrix_results_dict), len(sparse_tensor_results_dict))
-        self.assertEqual(sparse_tensor_results_dict.keys(), sparse_tensor_results_dict.keys())
-        for coords, matrix_pred_1sample in sparse_matrix_results_dict.items():
-            tensor_pred_1sample = sparse_tensor_results_dict[coords]
+        self.assertEqual(len(sparse_matrix_predictions_dict), len(sparse_tensor_predictions_dict))
+        self.assertEqual(sparse_tensor_predictions_dict.keys(), sparse_tensor_predictions_dict.keys())
+        for coords, matrix_pred_1sample in sparse_matrix_predictions_dict.items():
+            tensor_pred_1sample = sparse_tensor_predictions_dict[coords]
             self.assertAlmostEqual(matrix_pred_1sample, tensor_pred_1sample)
 
     def test_bpmf_dense_matrix_sparse_2d_tensor(self):
@@ -155,7 +155,7 @@ class TestBPMF(unittest.TestCase):
         }), train_shape)
 
         # Run SMURFF
-        sparse_matrix_results = smurff.bpmf(train_dense_matrix,
+        sparse_matrix_predictions = smurff.bpmf(train_dense_matrix,
                                               Ytest=test_sparse_matrix,
                                               num_latent=4,
                                               verbose=verbose,
@@ -163,7 +163,7 @@ class TestBPMF(unittest.TestCase):
                                               nsamples=50,
                                               seed=1234)
 
-        sparse_tensor_results = smurff.bpmf(train_sparse_tensor,
+        sparse_tensor_predictions = smurff.bpmf(train_sparse_tensor,
                                               Ytest=test_sparse_tensor,
                                               num_latent=4,
                                               verbose=verbose,
@@ -171,14 +171,14 @@ class TestBPMF(unittest.TestCase):
                                               nsamples=50,
                                               seed=1234)
 
-        # Transfrom SMURFF results to dictionary of coords and predicted values
-        sparse_matrix_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_results.predictions)
-        sparse_tensor_results_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_tensor_results.predictions)
+        # Transfrom SMURFF predictions to dictionary of coords and predicted values
+        sparse_matrix_predictions_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_matrix_predictions)
+        sparse_tensor_predictions_dict = collections.OrderedDict((p.coords, p.pred_1sample) for p in sparse_tensor_predictions)
 
-        self.assertEqual(len(sparse_matrix_results_dict), len(sparse_tensor_results_dict))
-        self.assertEqual(sparse_tensor_results_dict.keys(), sparse_tensor_results_dict.keys())
-        for coords, matrix_pred_1sample in sparse_matrix_results_dict.items():
-            tensor_pred_1sample = sparse_tensor_results_dict[coords]
+        self.assertEqual(len(sparse_matrix_predictions_dict), len(sparse_tensor_predictions_dict))
+        self.assertEqual(sparse_tensor_predictions_dict.keys(), sparse_tensor_predictions_dict.keys())
+        for coords, matrix_pred_1sample in sparse_matrix_predictions_dict.items():
+            tensor_pred_1sample = sparse_tensor_predictions_dict[coords]
             self.assertAlmostEqual(matrix_pred_1sample, tensor_pred_1sample)
 
     def test_bpmf_tensor2(self):
@@ -191,15 +191,17 @@ class TestBPMF(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        results = smurff.bpmf(Ytrain,
+        predictions = smurff.bpmf(Ytrain,
                                 Ytest=Ytest,
                                 num_latent=4,
                                 verbose=verbose,
                                 burnin=20,
                                 nsamples=20)
 
-        self.assertTrue(results.rmse < 0.5,
-                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
+        rmse = smurff.calc_rmse(predictions)
+
+        self.assertTrue(rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % rmse)
 
     def test_bpmf_tensor3(self):
         A = np.random.randn(15, 2)
@@ -211,15 +213,17 @@ class TestBPMF(unittest.TestCase):
         df["value"] = np.array([ np.sum(A[i[0], :] * B[i[1], :] * C[i[2], :]) for i in idx ])
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        results = smurff.bpmf(Ytrain,
+        predictions = smurff.bpmf(Ytrain,
                                 Ytest=Ytest,
                                 num_latent=4,
                                 verbose=verbose,
                                 burnin=20,
                                 nsamples=20)
 
-        self.assertTrue(results.rmse < 0.5,
-                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % results.rmse)
+        rmse = smurff.calc_rmse(predictions)
+
+        self.assertTrue(rmse < 0.5,
+                        msg="Tensor factorization gave RMSE above 0.5 (%f)." % rmse)
 
         Ytrain_df = Ytrain.data
         Ytest_df = Ytest.data

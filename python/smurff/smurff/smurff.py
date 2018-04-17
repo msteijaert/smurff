@@ -15,7 +15,7 @@ def smurff(Ytrain, priors, Ytest = None, side_info = None, **args):
     while session.step():
         pass
 
-    return session.getResult()
+    return session.getTestPredictions()
 
 def bpmf(Ytrain, Ytest = None, univariate = False ,**args):
     return macau(Ytrain, Ytest, None, univariate, **args)
@@ -51,5 +51,5 @@ def gfa(Views, Ytest = None, **args):
     while session.step():
         pass
 
-    return session.getResult()
+    return session.getTestPredictions()
 

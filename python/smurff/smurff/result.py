@@ -1,4 +1,9 @@
 from scipy import sparse
+import math
+from sklearn.metrics import mean_squared_error
+
+def calc_rmse(predictions):
+    return math.sqrt(mean_squared_error([p.val for p in predictions], [p.pred_avg for p in predictions]))
 
 class Prediction:
     @staticmethod
