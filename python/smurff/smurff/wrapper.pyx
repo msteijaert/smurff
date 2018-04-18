@@ -263,6 +263,9 @@ cdef class TrainSession:
         if save_prefix is None and save_freq:
             save_prefix = os.path.join(tempfile.mkdtemp(), "save")
 
+        if save_prefix and not os.path.isabs(save_prefix):
+            save_prefix = os.path.join(os.getcwd(), save_prefix)
+
         for p in priors: self.config.addPriorType(p.encode('UTF-8'))
         self.config.setNumLatent(num_latent)
         self.config.setBurnin(burnin)

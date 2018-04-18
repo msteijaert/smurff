@@ -27,6 +27,7 @@ class MacauSession(SmurffSession):
             priors = [ p + "one" for p in priors ]
 
         SmurffSession.__init__(self, Ytrain, priors, Ytest, side_info,  **args)
+ 
 class BPMFSession(MacauSession):
     def __init__(self, Ytrain, Ytest = None, univariate = False, **args):
          MacauSession.__init__(self, Ytrain, Ytest, None, univariate, **args)

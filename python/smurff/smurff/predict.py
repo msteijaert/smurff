@@ -37,20 +37,14 @@ class HeadlessConfigParser:
         return self.cp.items("top-level")
 
 
-def make_abs(basedir, filename):
-    if not os.path.isabs(filename):
-        return os.path.join(basedir, filename)
-    return filename
-
-    
 class TrainStep:
     @classmethod
-    def fromStepFile(cls, basedir, file_name, iter):
-        cp = HeadlessConfigParser(make_abs(basedir, file_name))
+    def fromStepFile(cls, file_name, iter):
+        cp = HeadlessConfigParser(file_name)
         step = cls(int(cp["num_models"]), iter)
-        step.predictions = pd.read_csv(make_abs(basedir, cp["pred"]), sep=";")
+        step.predictions = pd.read_csv(cp["pred"], sep=";")
         for i in range(step.nmodes):
-            step.addU(mio.read_matrix(make_abs(basedir, cp["model_" + str(i)])))
+            step.addU(mio.read_matrix(cp["model_" + str(i)]))
 
         return step
 
@@ -85,14 +79,13 @@ class PredictSession:
     @classmethod
     def fromRootFile(cls, root_file):
         cp = HeadlessConfigParser(root_file)
-        basedir = os.path.dirname(root_file)
-        options = OptionsFile(make_abs(basedir, cp["options"]))
+        options = OptionsFile(cp["options"])
 
         session = cls(options.getint("global", "num_priors"))
         for step_name, step_file in cp.items():
             if (step_name.startswith("sample_step")):
                 iter = int(step_name[len("sample_step_"):])
-                session.addStep(TrainStep.fromStepFile(basedir, step_file, iter))
+                session.addStep(TrainStep.fromStepFile(step_file, iter))
 
         assert len(session.steps) > 0
 
