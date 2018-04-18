@@ -80,6 +80,9 @@ public:
     // Returns all the section names from the INI file in alphabetical order
     const std::set<std::string>& getSections() const;
 
+    // Returns true is section with name exists
+    bool hasSection(const std::string &name) const;
+
     // Returns all the field names from a section in the INI file in original order
     // Returns end iterator if section name is not found
     std::map<std::string, std::vector<std::string> >::const_iterator getFields(const std::string& section) const;

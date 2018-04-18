@@ -113,6 +113,11 @@ const std::set<std::string>& INIFile::getSections() const
    return m_sections;
 }
 
+bool INIFile::hasSection(const std::string &name) const
+{
+   return m_sections.find(name) != m_sections.end();
+}
+
 std::map<std::string, std::vector<std::string> >::const_iterator INIFile::getFields(const std::string& section) const
 {
    auto fieldSetIt = m_fields.find(section);
