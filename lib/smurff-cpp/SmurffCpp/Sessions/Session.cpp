@@ -53,17 +53,21 @@ void Session::setCreateFromConfig(const Config& cfg)
    // assign config
    m_config = cfg;
 
-   // create root file
-   m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+   if (m_config.getSaveFreq() || m_config.getCheckpointFreq())
+   {
 
-   //save config
-   m_rootFile->saveConfig(m_config);
+       // create root file
+       m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
 
-   //base functionality
-   setFromBase();
+       //save config
+       m_rootFile->saveConfig(m_config);
 
-   //flush record about options.ini
-   m_rootFile->flushLast();
+       //flush record about options.ini
+       m_rootFile->flushLast();
+   }
+
+    //base functionality
+    setFromBase();
 }
 
 void Session::setFromBase()
@@ -283,7 +287,12 @@ void Session::saveInternal(std::shared_ptr<StepFile> stepFile)
 
 bool Session::restore(int& iteration)
 {
-   std::shared_ptr<StepFile> stepFile = m_rootFile->openLastStepFile();
+   std::shared_ptr<StepFile> stepFile = nullptr;
+   if (m_rootFile)
+   {
+       stepFile = m_rootFile->openLastStepFile();
+   }
+
    if (!stepFile)
    {
       //if there is nothing to restore - start from initial iteration

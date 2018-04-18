@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "BaseSession.h"
+#include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Priors/IPriorFactory.h>
 #include <SmurffCpp/Utils/RootFile.h>
@@ -73,6 +74,7 @@ public:
 
    std::shared_ptr<RootFile> getRootFile() const override
    {
+       THROWERROR_ASSERT(m_rootFile);
        return m_rootFile;
    }
 
