@@ -301,6 +301,13 @@ cdef class TrainSession:
             raise KeyboardInterrupt
         return not_done
 
+    def run(self):
+        self.init()
+        while self.step():
+            pass
+
+        return self.getTestPredictions()
+
     def getCurrentSample(self):
         not_done = self.ptr.get().step()
 
