@@ -175,13 +175,21 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
             std::vector<std::string> properties;
             smurff::split(token, properties, ';');
 
-            THROWERROR_ASSERT_MSG(properties.size() == 3, "Wrong number of options specified for side info token");
+            THROWERROR_ASSERT_MSG(properties.size() == 1 || properties.size() == 3,
+              "Wrong number of options specified for side info token");
 
             auto mpci = std::make_shared<SideInfoConfig>();
 
-            mpci->setTol(stod(properties.at(0)));
-            mpci->setDirect(stoi(properties.at(1)));
-            mpci->setSideInfo(matrix_io::read_matrix(properties.at(2), false));
+            if (properties.size() == 3)
+            {
+              mpci->setTol(stod(properties.at(0)));
+              mpci->setDirect(stoi(properties.at(1)));
+              mpci->setSideInfo(matrix_io::read_matrix(properties.at(2), false));
+            }
+            else
+            {
+              mpci->setSideInfo(matrix_io::read_matrix(properties.at(0), false));
+            }
 
             config.addSideInfoConfig(mode, mpci);
          }
