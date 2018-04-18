@@ -296,7 +296,6 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     A_mul_Bt_omp_sym(PtKP, P, KP);
 
     auto chol_PtKP = PtKP.llt();
-    THROWERROR_ASSERT_MSG(chol_PtKP.info() == Eigen::Success, "Cholesky Decomposition failed!");
     A = chol_PtKP.solve(*RtR);
 
     A.transposeInPlace();
@@ -326,7 +325,6 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     }
     // Psi = (R R') \ R2 R2'
     auto chol_RtR = RtR->llt();
-    THROWERROR_ASSERT_MSG(chol_RtR.info() == Eigen::Success, "Cholesky Decomposition failed!");
     Psi  = chol_RtR.solve(*RtR2);
     Psi.transposeInPlace();
     ////double t5 = tick();
