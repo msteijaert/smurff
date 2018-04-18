@@ -60,6 +60,11 @@ bool SideInfoConfig::restore(const INIFile& reader, std::size_t prior_index, std
    std::stringstream section;
    section << MACAU_PRIOR_CONFIG_ITEM_PREFIX_TAG << "_" << prior_index << "_" << config_item_index;
 
+   if (!reader.hasSection(section.str()))
+   {
+       return false;
+   }
+
    //restore side info properties
    m_tol = reader.getReal(section.str(), TOL_TAG, SideInfoConfig::TOL_DEFAULT_VALUE);
    m_direct = reader.getBoolean(section.str(), DIRECT_TAG, false);
