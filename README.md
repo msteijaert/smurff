@@ -38,7 +38,7 @@ Using [conda](http://anaconda.org):
 ```bash
 conda install -c vanderaa smurff 
 ```
-Compile from source code: see [INSTALL.md](docs/INSTALL.md)
+Compile from source code: see [INSTALL.rst](docs/INSTALL.rst)
 
 ## Contributors
 - Jaak Simm (Macau C++ version, Cython wrapper, Macau MPI version, Tensor factorization)
