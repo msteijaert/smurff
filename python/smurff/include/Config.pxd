@@ -42,7 +42,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         vector[shared_ptr[TensorConfig]]& addAuxData(shared_ptr[TensorConfig])
 
         #-- priors
-        vector[PriorTypes]& addPriorType(string)
+        vector[PriorTypes]& setPriorTypes(vector[string])
 
         #-- init model
         void setModelInitType(string)

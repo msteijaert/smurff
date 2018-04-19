@@ -245,6 +245,7 @@ cdef class TrainSession:
     cdef Config config
     cdef NoiseConfig noise_config
     cdef readonly int nmodes
+    cdef vector[string] prior_types
 
     def __init__(self,
         priors           = [ "normal", "normal" ],
@@ -266,7 +267,8 @@ cdef class TrainSession:
         if save_prefix and not os.path.isabs(save_prefix):
             save_prefix = os.path.join(os.getcwd(), save_prefix)
 
-        for p in priors: self.config.addPriorType(p.encode('UTF-8'))
+        prior_types = [ p.encode('UTF-8') for p in priors ]
+        self.config.setPriorTypes(prior_types)
         self.config.setNumLatent(num_latent)
         self.config.setBurnin(burnin)
         self.config.setNSamples(nsamples)
