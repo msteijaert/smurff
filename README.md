@@ -31,7 +31,7 @@ Macau and BPMF can also perform **tensor** factorization.
 Documentation is generated from Jupyter Notebooks. You can find the notebooks in [python/jupyter-notebook](python/jupyter-notebook)
 and the resulting documentation on [smurff.readthedocs.io](http://smurff.readthedocs.io)
 
-# Installation
+## Installation
 
 Using [conda](http://anaconda.org):
 
