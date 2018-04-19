@@ -45,6 +45,8 @@ class GFASession(SmurffSession):
         for p in range(1, len(Views)):
             self.addData([0,p], Views[p])
 
+# old API -- for compatibility reasons
+
 def smurff(*args, **kwargs):
     return SmurffSession(*args, **kwargs).run()
 
