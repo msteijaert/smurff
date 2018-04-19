@@ -317,8 +317,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -369,8 +368,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -423,8 +421,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
@@ -479,8 +476,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
@@ -535,8 +531,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -587,8 +582,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -641,8 +635,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
@@ -697,8 +690,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
@@ -753,8 +745,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normalone);
-   config.addPriorType(PriorTypes::normalone);
+   config.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -805,8 +796,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normalone);
-   config.addPriorType(PriorTypes::normalone);
+   config.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -859,8 +849,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normalone);
-   config.addPriorType(PriorTypes::normalone);
+   config.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
@@ -915,8 +904,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normalone);
-   config.addPriorType(PriorTypes::normalone);
+   config.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
@@ -974,8 +962,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::macau);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::macau});
    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
@@ -1031,8 +1018,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::macau);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::macau});
    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
@@ -1091,8 +1077,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macauone);
-   config.addPriorType(PriorTypes::macauone);
+   config.setPriorTypes({PriorTypes::macauone, PriorTypes::macauone});
    config.addSideInfoConfig(0, rowSideInfoSparseMatrixConfig);
    config.addSideInfoConfig(1, colSideInfoSparseMatrixConfig);
    config.setNumLatent(4);
@@ -1149,8 +1134,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    Config config;
    config.setTrain(trainSparseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macauone);
-   config.addPriorType(PriorTypes::macauone);
+   config.setPriorTypes({PriorTypes::macauone, PriorTypes::macauone});
    config.addSideInfoConfig(0, rowSideInfoSparseMatrixConfig);
    config.addSideInfoConfig(1, colSideInfoSparseMatrixConfig);
    config.setNumLatent(4);
@@ -1207,8 +1191,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1262,8 +1245,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::macau);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::macau});
    config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1320,8 +1302,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
@@ -1357,8 +1338,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.addSideInfoConfig(1, rowSideInfoDenseMatrixConfig); // added to wrong mode
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1393,8 +1373,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1427,8 +1406,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::spikeandslab});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1479,8 +1457,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1532,8 +1509,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::normal});
    config.addAuxData({ colAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1586,8 +1562,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::normal});
    config.addAuxData({ rowAuxDataDenseMatrixConfig });
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1643,8 +1618,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::spikeandslab});
    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1698,8 +1672,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::macau);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::macau});
    config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -1753,8 +1726,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1805,8 +1777,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1859,8 +1830,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1911,8 +1881,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1965,8 +1934,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::normalone);
-   config.addPriorType(PriorTypes::normalone);
+   config.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2017,8 +1985,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::normalone);
-   config.addPriorType(PriorTypes::normalone);
+   config.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2071,9 +2038,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2126,9 +2091,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    Config config;
    config.setTrain(trainSparseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
-   config.addPriorType(PriorTypes::spikeandslab);
+   config.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -2184,9 +2147,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    Config config;
    config.setTrain(trainDenseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::macau);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal, PriorTypes::normal});
    config.addSideInfoConfig(0, rowSideInfoDenseMatrix3dConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -2243,9 +2204,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    Config config;
    config.setTrain(trainDenseTensorConfig);
    config.setTest(testSparseTensorConfig);
-   config.addPriorType(PriorTypes::macauone);
-   config.addPriorType(PriorTypes::normal);
-   config.addPriorType(PriorTypes::normal);
+   config.setPriorTypes({PriorTypes::macauone, PriorTypes::normal, PriorTypes::normal});
    config.addSideInfoConfig(0, rowSideInfoDenseMatrix3dConfig);
    config.setNumLatent(4);
    config.setBurnin(50);
@@ -2310,8 +2269,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2323,8 +2281,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2365,8 +2322,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2378,8 +2334,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2420,8 +2375,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::spikeandslab});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2433,8 +2387,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::spikeandslab});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2475,8 +2428,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::spikeandslab});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2488,8 +2440,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::spikeandslab});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2530,8 +2481,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::normal});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2543,8 +2493,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::normal});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2585,8 +2534,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::normal});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2598,8 +2546,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::normal});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2640,8 +2587,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2653,8 +2599,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2695,8 +2640,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   matrixSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   matrixSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2708,8 +2652,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
-   tensorSessionConfig.addPriorType(PriorTypes::spikeandslab);
+   tensorSessionConfig.setPriorTypes({PriorTypes::spikeandslab, PriorTypes::spikeandslab});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2752,8 +2695,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normalone});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2765,8 +2707,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normalone});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2807,8 +2748,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normalone});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2820,8 +2760,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normal, PriorTypes::normalone});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2862,8 +2801,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normal});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2875,8 +2813,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normal});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2917,8 +2854,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
-   matrixSessionConfig.addPriorType(PriorTypes::normal);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normal});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2930,8 +2866,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
-   tensorSessionConfig.addPriorType(PriorTypes::normal);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normal});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -2972,8 +2907,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainDenseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -2985,8 +2919,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainDenseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -3027,8 +2960,7 @@ TEST_CASE(
    Config matrixSessionConfig;
    matrixSessionConfig.setTrain(trainSparseMatrixConfig);
    matrixSessionConfig.setTest(testSparseMatrixConfig);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
-   matrixSessionConfig.addPriorType(PriorTypes::normalone);
+   matrixSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    matrixSessionConfig.setNumLatent(4);
    matrixSessionConfig.setBurnin(50);
    matrixSessionConfig.setNSamples(50);
@@ -3040,8 +2972,7 @@ TEST_CASE(
    Config tensorSessionConfig;
    tensorSessionConfig.setTrain(trainSparseTensorConfig);
    tensorSessionConfig.setTest(testSparseTensorConfig);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
-   tensorSessionConfig.addPriorType(PriorTypes::normalone);
+   tensorSessionConfig.setPriorTypes({PriorTypes::normalone, PriorTypes::normalone});
    tensorSessionConfig.setNumLatent(4);
    tensorSessionConfig.setBurnin(50);
    tensorSessionConfig.setNSamples(50);
@@ -3088,8 +3019,7 @@ TEST_CASE(
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainDenseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.addPriorType(PriorTypes::macau);
-   tensorRunConfig.addPriorType(PriorTypes::macau);
+   tensorRunConfig.setPriorTypes({PriorTypes::macau, PriorTypes::macau});
    tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
@@ -3101,8 +3031,7 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainDenseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.addPriorType(PriorTypes::macau);
-   matrixRunConfig.addPriorType(PriorTypes::macau);
+   matrixRunConfig.setPriorTypes({PriorTypes::macau, PriorTypes::macau});
    matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
@@ -3156,8 +3085,7 @@ TEST_CASE(
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainSparseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.addPriorType(PriorTypes::macau);
-   tensorRunConfig.addPriorType(PriorTypes::macau);
+   tensorRunConfig.setPriorTypes({PriorTypes::macau, PriorTypes::macau});
    tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
@@ -3169,8 +3097,7 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainSparseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.addPriorType(PriorTypes::macau);
-   matrixRunConfig.addPriorType(PriorTypes::macau);
+   matrixRunConfig.setPriorTypes({PriorTypes::macau, PriorTypes::macau});
    matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
@@ -3224,8 +3151,7 @@ TEST_CASE(
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainDenseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.addPriorType(PriorTypes::macauone);
-   tensorRunConfig.addPriorType(PriorTypes::macauone);
+   tensorRunConfig.setPriorTypes({PriorTypes::macauone, PriorTypes::macauone});
    tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
@@ -3237,8 +3163,7 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainDenseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.addPriorType(PriorTypes::macauone);
-   matrixRunConfig.addPriorType(PriorTypes::macauone);
+   matrixRunConfig.setPriorTypes({PriorTypes::macauone, PriorTypes::macauone});
    matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);
@@ -3292,8 +3217,7 @@ TEST_CASE(
    Config tensorRunConfig;
    tensorRunConfig.setTrain(trainSparseTensorConfig);
    tensorRunConfig.setTest(testSparseTensorConfig);
-   tensorRunConfig.addPriorType(PriorTypes::macauone);
-   tensorRunConfig.addPriorType(PriorTypes::macauone);
+   tensorRunConfig.setPriorTypes({PriorTypes::macauone, PriorTypes::macauone});
    tensorRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    tensorRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    tensorRunConfig.setNumLatent(4);
@@ -3305,8 +3229,7 @@ TEST_CASE(
    Config matrixRunConfig;
    matrixRunConfig.setTrain(trainSparseMatrixConfig);
    matrixRunConfig.setTest(testSparseMatrixConfig);
-   matrixRunConfig.addPriorType(PriorTypes::macauone);
-   matrixRunConfig.addPriorType(PriorTypes::macauone);
+   matrixRunConfig.setPriorTypes({PriorTypes::macauone, PriorTypes::macauone});
    matrixRunConfig.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
    matrixRunConfig.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    matrixRunConfig.setNumLatent(4);

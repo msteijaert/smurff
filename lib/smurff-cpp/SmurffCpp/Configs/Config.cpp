@@ -183,7 +183,7 @@ bool Config::validate() const
       THROWERROR("Train and test data should have the same dimensions");
    }
 
-   if(m_prior_types.size() != m_train->getNModes())
+   if(getPriorTypes().size() != m_train->getNModes())
    {
       THROWERROR("Number of priors should equal to number of dimensions in train data");
    }
@@ -410,11 +410,12 @@ bool Config::restore(std::string fname)
 
    //restore priors
    std::size_t num_priors = reader.getInteger(GLOBAL_SECTION_TAG, NUM_PRIORS_TAG, 0);
+   std::vector<std::string> pNames;
    for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
    {
-      std::string pName = reader.get(GLOBAL_SECTION_TAG, add_index(PRIOR_PREFIX, pIndex),  PRIOR_NAME_DEFAULT);
-      addPriorType(pName);
+      pNames.push_back(reader.get(GLOBAL_SECTION_TAG, add_index(PRIOR_PREFIX, pIndex),  PRIOR_NAME_DEFAULT));
    }
+   setPriorTypes(pNames);
 
    //restore macau prior configs section
    for (std::size_t mPriorIndex = 0; mPriorIndex < num_priors; mPriorIndex++)

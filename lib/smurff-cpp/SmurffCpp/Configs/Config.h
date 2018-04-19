@@ -170,8 +170,19 @@ public:
        return data;
    }
 
-   const std::vector<PriorTypes>& getPriorTypes() const
+   const std::vector<PriorTypes> getPriorTypes() const
    {
+      if (m_prior_types.empty())
+      {
+          THROWERROR_ASSERT(getTrain())
+          return std::vector<PriorTypes>(getTrain()->getNModes(), PriorTypes::default_prior);
+      }
+      return m_prior_types;
+   }
+
+   const std::vector<PriorTypes>& setPriorTypes(std::vector<PriorTypes> values)
+   {
+      m_prior_types = values;
       return m_prior_types;
    }
 
@@ -182,18 +193,6 @@ public:
       {
           m_prior_types.push_back(stringToPriorType(value));
       }
-      return m_prior_types;
-   }
-
-   const std::vector<PriorTypes>& addPriorType(const PriorTypes value)
-   {
-      m_prior_types.push_back(value);
-      return m_prior_types;
-   }
-
-   const std::vector<PriorTypes>& addPriorType(std::string value)
-   {
-      m_prior_types.push_back(stringToPriorType(value));
       return m_prior_types;
    }
 

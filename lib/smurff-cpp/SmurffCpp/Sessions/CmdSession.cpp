@@ -155,8 +155,7 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    //create new session from command line options or override options from ini file
    if (vm.count(PRIOR_NAME) && !vm[PRIOR_NAME].defaulted())
-      for (auto& pr : vm[PRIOR_NAME].as<std::vector<std::string> >())
-         config.addPriorType(pr);
+      config.setPriorTypes(vm[PRIOR_NAME].as<std::vector<std::string> >());
 
    if (vm.count(SIDE_INFO_NAME) && !vm[SIDE_INFO_NAME].defaulted())
    {
