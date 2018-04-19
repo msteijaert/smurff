@@ -13,6 +13,8 @@ using namespace smurff;
 
 std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& filename, bool isScarce)
 {
+   THROWERROR_FILE_NOT_EXIST(filename);
+
    try
    {
       if(matrix_io::ExtensionToMatrixType(filename) == matrix_io::MatrixType::csv)
@@ -37,7 +39,10 @@ std::shared_ptr<TensorConfig> generic_io::read_data_config(const std::string& fi
       }
       catch(std::runtime_error& ex2)
       {
-         THROWERROR("Wrong file format " + filename + ". " + ex2.what());
+         THROWERROR("Could not read tensor/matrix file: " + filename + 
+                    "\n  Both Matrix and Tensor file formats tried. Both gave an error.\n  " +
+                     ex2.what() + "\n  " +
+                     ex1.what());
       }
    }
 }
