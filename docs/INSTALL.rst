@@ -9,27 +9,37 @@ The easiest way to install SMURFF is to use
 
 .. code:: bash
 
-    conda install -c vanderaa smurff 
+    conda install -c vanderaa smurff
 
-Source installation on Ubuntu using cmake
------------------------------------------
+Building and installing on Linux/MacOs
+---------------------------------------------
 
-Before continuing installation please check that - cmake version is at
-least 3.6 - eigen3 version 3.3.3 or later is installed.
+Building using cmake
+~~~~~~~~~~~~~~~~~~~~
+
+Before continuing installation please check that
+
+  - cmake version is at least 3.6
+  - eigen3 version 3.3.3 or later is installed.
 
 This is required due to the fixed Find scripts for BLAS libraries that
 are present in latest version.
 
-cmake has multiple switches:
+Next, cmake has multiple switches:
 
-Build type switches: \* CMAKE\_BUILD\_TYPE - Debug/Release
+- Build type switches:
+   - CMAKE\_BUILD\_TYPE - Debug/Release
 
-Algebra library switches (select only one): \* ENABLE\_BLAS - ON/OFF
-(only blas is not enough because currently smurff depends on some lapack
-functions) \* ENABLE\_LAPACK - ON/OFF (should include lapack and blas
-libraries when linking) \* ENABLE\_OPENBLAS - ON/OFF (should include
-openblas library when linking. openblas also contains implementation of
-lapack called relapack)
+- Algebra library switches (select only one):
+    - When no switches are specified, CMake will try to find
+      any LAPACK and BLAS library on your system.
+    - ENABLE\_OPENBLAS - ON/OFF (should include openblas
+      library when linking. openblas also contains
+      implementation of lapack called relapack)
+    - ENABLE\_MKL - ON/OFF: tries to find the `MKL single dynamic
+      library <https://software.intel.com/en-us/mkl-linux-developer-guide-using-the-single-dynamic-library>`_.
+
+Run CMake:
 
 .. code:: bash
 
@@ -45,26 +55,29 @@ lapack called relapack)
     make
     make test
 
-    # test Smurff:
+    # test the command-line program:
     wget http://homes.esat.kuleuven.be/~jsimm/chembl-IC50-346targets.mm
     Debug/smurff --train chembl-IC50-346targets.mm
 
-Python wrapper installation on Ubuntu
--------------------------------------
+The last command running smurff will be very slow, since we have compiled
+smurff in Debug mode.
 
-1. Build C++ SMURFF library using `Source installation on Ubuntu using
-   cmake <#source-installation-on-ubuntu-using-cmake>`__
-2. Go to SMURFF build directory that contains CMake generated Makefile
-   and run ``sudo make install``. By invoking this command you install
-   SMURFF static library and headers to ``/usr/local/``
-3. Go to
-   `python/smurff <https://github.com/ExaScience/smurff/tree/master/python/smurff>`__
-   directory
-4. Run ``python setup.py build install``
-5. Go to
-   `python/smurff/examples <https://github.com/ExaScience/smurff/tree/master/python/smurff/examples>`__
-   directory and run ``python smurff-mm.py`` to verify that SMUFF Python
-   module was installed correctly
+Install command line smurff and Python package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install:
+
+.. code:: bash
+
+    make install
+    cd python/Smurff
+    python setup.py install
+
+
+Test scripts for python are in `smurff/python/smurff/tests`.
+When the python package has been installed correctly, you can
+run `python -m unittest discover` in this directory.
+
 
 Source installation on Windows using Visual Studio and cmake
 ------------------------------------------------------------
