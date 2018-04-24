@@ -116,7 +116,7 @@ void Session::init()
    //write header to status file
    if (m_config.getCsvStatus().size())
    {
-      auto f = std::ofstream(m_config.getCsvStatus(), std::ofstream::out);
+      std::ofstream f(m_config.getCsvStatus(), std::ofstream::out);
       THROWERROR_ASSERT_MSG(f, "Could not open status csv file: " + m_config.getCsvStatus());
       f << StatusItem::getCsvHeader() << std::endl;
    }
@@ -457,7 +457,7 @@ void Session::printStatus(std::ostream& output, bool resume)
 
    if (m_config.getCsvStatus().size())
    {
-      auto f = std::ofstream(m_config.getCsvStatus(), std::ofstream::out | std::ofstream::app);
+      std::ofstream f(m_config.getCsvStatus(), std::ofstream::out | std::ofstream::app);
       THROWERROR_ASSERT_MSG(f, "Could not open status csv file: " + m_config.getCsvStatus());
       f << status_item->asCsvString() << std::endl;
    }
