@@ -105,31 +105,24 @@ public:
 class SubModel
 {
 private:
-   Model &m_model;
-   PVec<> m_off;
-   PVec<> m_dims;
+   const Model &m_model;
+   const PVec<> m_off;
+   const PVec<> m_dims;
 
 public:
-   SubModel( Model &m, const PVec<> o, const PVec<> d)
+   SubModel(const Model &m, const PVec<> o, const PVec<> d)
       : m_model(m), m_off(o), m_dims(d) {}
 
    SubModel(const SubModel &m, const PVec<> o, const PVec<> d)
       : m_model(m.m_model), m_off(o + m.m_off), m_dims(d) {}
 
-   SubModel(Model &m)
+   SubModel(const Model &m)
       : m_model(m), m_off(m.nmodes()), m_dims(m.getDims()) {}
 
 public:
-   Eigen::MatrixXd::BlockXpr U(int f);
-
    Eigen::MatrixXd::ConstBlockXpr U(int f) const;
 
-   VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> Vbegin(std::uint32_t mode);
-
-   VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> Vend();
-
    ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> CVbegin(std::uint32_t mode) const;
-
    ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> CVend() const;
 
 public:

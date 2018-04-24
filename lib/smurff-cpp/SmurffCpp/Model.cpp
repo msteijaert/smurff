@@ -180,25 +180,10 @@ std::ostream& Model::status(std::ostream &os, std::string indent) const
    return os;
 }
 
-Eigen::MatrixXd::BlockXpr SubModel::U(int f)
-{
-   return m_model.U(f).block(0, m_off.at(f), m_model.nlatent(), m_dims.at(f));
-}
-
 Eigen::MatrixXd::ConstBlockXpr SubModel::U(int f) const
 {
    const Eigen::MatrixXd &u = m_model.U(f); //force const
    return u.block(0, m_off.at(f), m_model.nlatent(), m_dims.at(f));
-}
-
-VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vbegin(std::uint32_t mode)
-{
-   return VMatrixExprIterator<Eigen::MatrixXd::BlockXpr>(m_model, m_off, m_dims, mode, 0);
-}
-
-VMatrixExprIterator<Eigen::MatrixXd::BlockXpr> SubModel::Vend()
-{
-   return VMatrixExprIterator<Eigen::MatrixXd::BlockXpr>(m_model.nmodes());
 }
 
 ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVbegin(std::uint32_t mode) const
