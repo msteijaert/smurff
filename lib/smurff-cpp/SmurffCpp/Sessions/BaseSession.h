@@ -72,9 +72,8 @@ public:
    void restore(std::shared_ptr<StepFile> stepFile);
 
 public:
-   std::shared_ptr<std::vector<ResultItem> > getResult() override;
-   MatrixConfig getSample(int dim) override;
-   double getRmseAvg() override;
+   std::shared_ptr<std::vector<ResultItem> > getResult() const override;
+   MatrixConfig getSample(int dim) const override;
 };
 
 }

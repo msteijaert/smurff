@@ -60,3 +60,27 @@ class AdaptiveNoise(PyNoiseConfig):
 class ProbitNoise(PyNoiseConfig):
     def __init__(self, threshold = 0.): 
         PyNoiseConfig.__init__(self, "probit", threshold = threshold)
+
+class StatusItem:
+    def __init__(self, phase, iter, phase_iter, model_norms, rmse_avg, rmse_1sample, train_rmse, auc_1sample, auc_avg, elapsed_iter, nnz_per_sec, samples_per_sec):
+        self.phase = phase
+        self.iter = iter
+        self.phase_iter = phase_iter
+        self.model_norms = model_norms
+        self.rmse_avg = rmse_avg
+        self.rmse_1sample = rmse_1sample
+        self.train_rmse = train_rmse
+        self.auc_1sample = auc_1sample
+        self.auc_avg = auc_avg
+        self.elapsed_iter = elapsed_iter
+        self.nnz_per_sec = nnz_per_sec
+        self.samples_per_sec = samples_per_sec
+
+    def __str__(self):
+        return "%s: %d/%d RMSE: %.4f (1samp: %.4f) AUC: %.4f (1sample: %.4f) U: [ %s ] took %.2s".format(
+            self.phase, self.iter, self.phase_iter, self.rmse_avg, self.rmse_1sample,
+            self.auc_avg, self.auc_1sample, self.model_norms.join( ), 
+            self.elapsed_iter)
+
+    def __repr__(self):
+        return str(self)

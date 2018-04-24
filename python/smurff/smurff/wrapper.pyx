@@ -22,6 +22,7 @@ from SessionFactory cimport SessionFactory
 
 from ISession cimport ISession
 from ResultItem cimport ResultItem
+from StatusItem cimport StatusItem
 
 cimport numpy as np
 import  numpy as np
@@ -32,7 +33,7 @@ import numbers
 import tempfile
 import os
 
-from .helper import SparseTensor, PyNoiseConfig
+from .helper import SparseTensor, PyNoiseConfig, StatusItem as PyStatusItem
 from .prepare import make_train_test, make_train_test_df
 from .result import Prediction
 from .predict import PredictSession
@@ -244,6 +245,7 @@ cdef class TrainSession:
     cdef shared_ptr[ISession] ptr;
     cdef Config config
     cdef NoiseConfig noise_config
+    cdef shared_ptr[StatusItem] status_item
     cdef readonly int nmodes
     cdef vector[string] prior_types
 
@@ -300,11 +302,33 @@ cdef class TrainSession:
         self.ptr = SessionFactory.create_py_session_from_config(self.config)
         return self.ptr.get().init()
 
+    def getStatus(self):
+        if self.ptr.get().getStatus():
+            self.status_item = self.ptr.get().getStatus()
+            return PyStatusItem(
+                self.status_item.get().phase,
+                self.status_item.get().iter,
+                self.status_item.get().phase_iter,
+                self.status_item.get().model_norms,
+                self.status_item.get().rmse_avg,
+                self.status_item.get().rmse_1sample,
+                self.status_item.get().train_rmse,
+                self.status_item.get().auc_1sample,
+                self.status_item.get().auc_avg,
+                self.status_item.get().elapsed_iter,
+                self.status_item.get().nnz_per_sec,
+                self.status_item.get().samples_per_sec)
+        else:
+            return None
+
     def step(self):
         not_done = self.ptr.get().step()
         if self.ptr.get().interrupted():
             raise KeyboardInterrupt
-        return not_done
+        if not_done:
+            return self.getStatus()
+        else:
+            return None
 
     def run(self):
         self.init()

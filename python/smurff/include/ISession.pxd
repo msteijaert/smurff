@@ -4,6 +4,7 @@ from libcpp.memory cimport shared_ptr
 
 from MatrixConfig cimport MatrixConfig
 from ResultItem cimport ResultItem
+from StatusItem cimport StatusItem
 from RootFile cimport RootFile
 
 cdef extern from "<SmurffCpp/Sessions/ISession.h>" namespace "smurff":
@@ -14,6 +15,7 @@ cdef extern from "<SmurffCpp/Sessions/ISession.h>" namespace "smurff":
         void init() except +
 
         shared_ptr[vector[ResultItem]] getResult()
+        shared_ptr[StatusItem] getStatus()
         MatrixConfig getSample(int mode)
         shared_ptr[RootFile] getRootFile()
 

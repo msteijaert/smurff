@@ -1,5 +1,6 @@
 #include "Session.h"
 
+#include <fstream>
 #include <string>
 #include <iomanip>
 
@@ -15,6 +16,7 @@
 #include <SmurffCpp/Priors/PriorFactory.h>
 
 #include <SmurffCpp/result.h>
+#include <SmurffCpp/StatusItem.h>
 
 using namespace smurff;
 
@@ -114,10 +116,9 @@ void Session::init()
    //write header to status file
    if (m_config.getCsvStatus().size())
    {
-      auto f = fopen(m_config.getCsvStatus().c_str(), "w");
+      auto f = std::ofstream(m_config.getCsvStatus(), std::ofstream::out);
       THROWERROR_ASSERT_MSG(f, "Could not open status csv file: " + m_config.getCsvStatus());
-      fprintf(f, "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;U0;U1;elapsed\n");
-      fclose(f);
+      f << StatusItem::getCsvHeader() << std::endl;
    }
 
    //write info to console
@@ -130,7 +131,7 @@ void Session::init()
    //print session status to console
    if (m_config.getVerbose())
    {
-      printStatus(std::cout, 0, resume, m_iter);
+      printStatus(std::cout, resume);
    }
 
    //restore will either start from initial iteration (-1) that should be printed with printStatus
@@ -165,7 +166,9 @@ bool Session::step()
       //WARNING: update is an expensive operation because of sort (when calculating AUC)
       m_pred->update(m_model, m_iter < m_config.getBurnin());
 
-      printStatus(std::cout, endi - starti, false, m_iter);
+      m_secs_per_iter = endi - starti;
+
+      printStatus(std::cout);
 
       save(m_iter);
 
@@ -334,94 +337,108 @@ bool Session::restore(int& iteration)
    }
 }
 
-void Session::printStatus(std::ostream& output, double elapsedi, bool resume, int iteration)
+std::shared_ptr<StatusItem> Session::getStatus() const
+{
+   std::shared_ptr<StatusItem> ret = std::make_shared<StatusItem>();
+
+   if (m_iter < 0)
+   {
+      ret->phase = "Initial";
+      ret->iter = m_iter + 1;
+      ret->phase_iter = 0;
+   }
+   else if (m_iter < m_config.getBurnin())
+   {
+      ret->phase = "Burnin";
+      ret->iter = m_iter + 1;
+      ret->phase_iter = m_config.getBurnin();
+   }
+   else
+   {
+      ret->phase = "Sample";
+      ret->iter = m_iter - m_config.getBurnin() + 1;
+      ret->phase_iter = m_config.getNSamples();
+   }
+
+   for(int i=0; i<model().nmodes(); ++i)
+   {
+       ret->model_norms.push_back(model().U(i).norm());
+   }
+    
+   ret->nnz_per_sec =  (double)(data().nnz()) / m_iter;
+   ret->samples_per_sec = (double)(model().nsamples()) / m_iter;
+   ret->iter = m_iter + 1;
+   ret->train_rmse = data().train_rmse(model());
+
+    ret->rmse_avg = m_pred->rmse_avg;
+    ret->rmse_1sample = m_pred->rmse_1sample;
+
+    ret->auc_avg = m_pred->auc_avg;
+    ret->auc_1sample = m_pred->auc_1sample;
+
+    return ret;
+}
+
+void Session::printStatus(std::ostream& output, bool resume)
 {
    if(!m_config.getVerbose() &&
       !m_config.getCsvStatus().size())
       return;
 
-   double snorm0 = model().U(0).norm();
-   double snorm1 = model().U(1).norm();
-
-   // avoid computing train_rmse twice
-   double train_rmse = NAN;
-
-   double nnz_per_sec =  (double)(data().nnz()) / elapsedi;
-   double samples_per_sec = (double)(model().nsamples()) / elapsedi;
+   auto status_item = getStatus();
 
    std::string resumeString = resume ? "Continue from " : std::string();
 
-   std::string phase;
-   int i, from;
-   if (iteration < 0)
-   {
-      phase = "Initial";
-      i = iteration + 1;
-      from = 0;
-   }
-   else if (iteration < m_config.getBurnin())
-   {
-      phase = "Burnin";
-      i = iteration + 1;
-      from = m_config.getBurnin();
-   }
-   else
-   {
-      phase = "Sample";
-      i = iteration - m_config.getBurnin() + 1;
-      from = m_config.getNSamples();
-   }
-
    if (m_config.getVerbose() > 0)
    {
-       if (iteration < 0)
+       if (m_iter < 0)
        {
            output << " ====== Initial phase ====== " << std::endl;
        }
-       else if (iteration < m_config.getBurnin() && iteration == 0)
+       else if (m_iter < m_config.getBurnin() && m_iter == 0)
        {
            output << " ====== Sampling (burning phase) ====== " << std::endl;
        }
-       else if (iteration == m_config.getBurnin())
+       else if (m_iter == m_config.getBurnin())
        {
            output << " ====== Burn-in complete, averaging samples ====== " << std::endl;
        }
 
        output << resumeString
-           << phase
+           << status_item->phase
            << " "
-           << std::setfill(' ') << std::setw(3) << i
+           << std::setfill(' ') << std::setw(3) << status_item->iter
            << "/"
-           << std::setfill(' ') << std::setw(3) << from
+           << std::setfill(' ') << std::setw(3) << status_item->phase_iter
            << ": RMSE: "
-           << std::fixed << std::setprecision(4) << m_pred->rmse_avg
+           << std::fixed << std::setprecision(4) << status_item->rmse_avg
            << " (1samp: "
-           << std::fixed << std::setprecision(4) << m_pred->rmse_1sample
+           << std::fixed << std::setprecision(4) << status_item->rmse_1sample
            << ")";
 
        if (m_config.getClassify())
        {
            output << " AUC:"
-               << std::fixed << std::setprecision(4) << m_pred->auc_avg
+               << std::fixed << std::setprecision(4) << status_item->auc_avg
                << " (1samp: "
-               << std::fixed << std::setprecision(4) << m_pred->auc_1sample
+               << std::fixed << std::setprecision(4) << status_item->auc_1sample
                << ")"
                << std::endl;
        }
 
-       output << "  U:["
-           << std::scientific << std::setprecision(2) << snorm0
-           << ", "
-           << std::scientific << std::setprecision(2) << snorm1
-           << "] [took: "
-           << std::fixed << std::setprecision(1) << elapsedi
+       output << "  U:[";
+       for(double n: status_item->model_norms)
+       {
+           output << std::scientific << std::setprecision(2) << n << ", ";
+       }
+       output << "] [took: "
+           << std::fixed << std::setprecision(1) << status_item->elapsed_iter
            << "s]"
            << std::endl;
 
        if (m_config.getVerbose() > 1)
        {
-           train_rmse = data().train_rmse(model());
-           output << std::fixed << std::setprecision(4) << "  RMSE train: " << train_rmse << std::endl;
+           output << std::fixed << std::setprecision(4) << "  RMSE train: " << status_item->train_rmse << std::endl;
            output << "  Priors:" << std::endl;
 
            for(const auto &p : m_priors)
@@ -435,20 +452,31 @@ void Session::printStatus(std::ostream& output, double elapsedi, bool resume, in
 
        if (m_config.getVerbose() > 2)
        {
-           output << "  Compute Performance: " << samples_per_sec << " samples/sec, " << nnz_per_sec << " nnz/sec" << std::endl;
+           output << "  Compute Performance: " << status_item->samples_per_sec << " samples/sec, " << status_item->nnz_per_sec << " nnz/sec" << std::endl;
        }
    }
 
    if (m_config.getCsvStatus().size())
    {
-      // train_rmse is printed as NAN, unless verbose > 1
-      auto f = fopen(m_config.getCsvStatus().c_str(), "a");
+      auto f = std::ofstream(m_config.getCsvStatus(), std::ofstream::out | std::ofstream::app);
       THROWERROR_ASSERT_MSG(f, "Could not open status csv file: " + m_config.getCsvStatus());
-      fprintf(f, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%1.2e;%1.2e;%0.1f\n",
-                  phase.c_str(), i, from,
-                  m_pred->rmse_avg, m_pred->rmse_1sample, train_rmse, m_pred->auc_1sample, m_pred->auc_avg, snorm0, snorm1, elapsedi);
-      fclose(f);
+      f << status_item->asCsvString() << std::endl;
    }
+}
+
+std::string StatusItem::getCsvHeader()
+{
+   return "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;elapsed";
+}
+
+std::string StatusItem::asCsvString() const
+{
+    char ret[1024];
+    snprintf(ret, 1024, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%0.1f",
+                  phase.c_str(), iter, phase_iter, rmse_avg, rmse_1sample, train_rmse,
+                  auc_1sample, auc_avg, elapsed_iter);
+
+    return ret;
 }
 
 void Session::initRng()

@@ -8,6 +8,7 @@
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Priors/IPriorFactory.h>
 #include <SmurffCpp/Utils/RootFile.h>
+#include <SmurffCpp/StatusItem.h>
 
 namespace smurff {
 
@@ -26,6 +27,7 @@ protected:
 
 private:
    int m_iter = -1; //index of step iteration
+   int m_secs_per_iter = .0; //time in seconds for last_iter
    double m_lastCheckpointTime;
    int m_lastCheckpointIter;
 
@@ -64,7 +66,10 @@ private:
    bool restore(int& iteration);
 
 private:
-   void printStatus(std::ostream& output, double elapsedi, bool resume, int isample);
+   void printStatus(std::ostream& output, bool resume = false);
+
+public:
+   std::shared_ptr<StatusItem> getStatus() const override;
 
 private:
    void initRng();
