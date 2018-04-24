@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 class SparseTensor:
     """Wrapper around a pandas DataFrame to represent a sparse tensor
@@ -63,7 +64,7 @@ class ProbitNoise(PyNoiseConfig):
 
 class StatusItem:
     def __init__(self, phase, iter, phase_iter, model_norms, rmse_avg, rmse_1sample, train_rmse, auc_1sample, auc_avg, elapsed_iter, nnz_per_sec, samples_per_sec):
-        self.phase = phase
+        self.phase = phase.decode('UTF-8')
         self.iter = iter
         self.phase_iter = phase_iter
         self.model_norms = model_norms
@@ -77,10 +78,16 @@ class StatusItem:
         self.samples_per_sec = samples_per_sec
 
     def __str__(self):
-        return "%s: %d/%d RMSE: %.4f (1samp: %.4f) AUC: %.4f (1sample: %.4f) U: [ %s ] took %.2s".format(
+        model_norms_str = ",".join("%d: %.2f" % (i,m) for i,m in enumerate(self.model_norms))
+
+        if  math.isnan(self.auc_1sample):
+            auc_str = ""
+        else:
+            auc_str = "AUC: %.2f (1sample: %.2f) " % (self.auc_avg, self.auc_1sample)
+
+        return "%7s: %3d/%d RMSE: %.2f (1samp: %.2f) %sU: [ %s ] took %.1fs" % (
             self.phase, self.iter, self.phase_iter, self.rmse_avg, self.rmse_1sample,
-            self.auc_avg, self.auc_1sample, self.model_norms.join( ), 
-            self.elapsed_iter)
+            auc_str, model_norms_str, self.elapsed_iter)
 
     def __repr__(self):
         return str(self)

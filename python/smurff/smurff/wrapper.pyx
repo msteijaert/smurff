@@ -255,13 +255,14 @@ cdef class TrainSession:
         burnin           = BURNIN_DEFAULT_VALUE,
         nsamples         = NSAMPLES_DEFAULT_VALUE,
         seed             = RANDOM_SEED_DEFAULT_VALUE,
-        verbose          = VERBOSE_DEFAULT_VALUE,
+        verbose          = 0,
         save_prefix      = None,
         save_extension   = None,
         save_freq        = None,
         csv_status       = None):
 
         self.nmodes = len(priors)
+        self.verbose = verbose
 
         if save_prefix is None and save_freq:
             save_prefix = os.path.join(tempfile.mkdtemp(), "save")
@@ -274,7 +275,7 @@ cdef class TrainSession:
         self.config.setNumLatent(num_latent)
         self.config.setBurnin(burnin)
         self.config.setNSamples(nsamples)
-        self.config.setVerbose(verbose)
+        self.config.setVerbose(verbose - 1)
 
         if seed:           self.config.setRandomSeed(seed)
         if save_prefix:    self.config.setSavePrefix(save_prefix.encode('UTF-8'))
@@ -300,12 +301,15 @@ cdef class TrainSession:
 
     def init(self):
         self.ptr = SessionFactory.create_py_session_from_config(self.config)
-        return self.ptr.get().init()
+        self.ptr.get().init()
+        if (self.verbose):
+            print(self)
+        return self.getStatus()
 
     def getStatus(self):
         if self.ptr.get().getStatus():
             self.status_item = self.ptr.get().getStatus()
-            return PyStatusItem(
+            status =  PyStatusItem(
                 self.status_item.get().phase,
                 self.status_item.get().iter,
                 self.status_item.get().phase_iter,
@@ -318,13 +322,20 @@ cdef class TrainSession:
                 self.status_item.get().elapsed_iter,
                 self.status_item.get().nnz_per_sec,
                 self.status_item.get().samples_per_sec)
+
+            if (self.verbose):
+                print(status, flush = True)
+            
+            return status
         else:
             return None
 
     def step(self):
         not_done = self.ptr.get().step()
+        
         if self.ptr.get().interrupted():
             raise KeyboardInterrupt
+
         if not_done:
             return self.getStatus()
         else:
@@ -337,8 +348,8 @@ cdef class TrainSession:
 
         return self.getTestPredictions()
 
-    def getCurrentSample(self):
-        not_done = self.ptr.get().step()
+    def __str__(self):
+        return self.ptr.get().infoAsString().decode('UTF-8')
 
     def getConfig(self):
         config_filename = tempfile.mkstemp()[1]

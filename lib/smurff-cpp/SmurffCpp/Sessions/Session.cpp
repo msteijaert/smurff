@@ -134,11 +134,6 @@ void Session::init()
       printStatus(std::cout, resume);
    }
 
-   //restore will either start from initial iteration (-1) that should be printed with printStatus
-   //or it will start with last iteration that was previously saved
-   //in any case - we have to move to next iteration
-   m_iter++; //go to next iteration
-
    is_init = true;
 }
 
@@ -150,6 +145,11 @@ void Session::run()
 
 bool Session::step()
 {
+   THROWERROR_ASSERT_MSG(is_init, "Session::init() needs to be called before ::step()")
+
+   // go to the next iteration
+   m_iter++;
+
    bool isStep = m_iter < m_config.getBurnin() + m_config.getNSamples();
 
    if (isStep)
@@ -171,8 +171,6 @@ bool Session::step()
       printStatus(std::cout);
 
       save(m_iter);
-
-      m_iter++;
 
       threads_disable(m_config.getVerbose());
    }
@@ -339,42 +337,43 @@ bool Session::restore(int& iteration)
 
 std::shared_ptr<StatusItem> Session::getStatus() const
 {
-   std::shared_ptr<StatusItem> ret = std::make_shared<StatusItem>();
+    std::shared_ptr<StatusItem> ret = std::make_shared<StatusItem>();
 
-   if (m_iter < 0)
-   {
-      ret->phase = "Initial";
-      ret->iter = m_iter + 1;
-      ret->phase_iter = 0;
-   }
-   else if (m_iter < m_config.getBurnin())
-   {
-      ret->phase = "Burnin";
-      ret->iter = m_iter + 1;
-      ret->phase_iter = m_config.getBurnin();
-   }
-   else
-   {
-      ret->phase = "Sample";
-      ret->iter = m_iter - m_config.getBurnin() + 1;
-      ret->phase_iter = m_config.getNSamples();
-   }
+    if (m_iter < 0)
+    {
+        ret->phase = "Initial";
+        ret->iter = m_iter + 1;
+        ret->phase_iter = 0;
+    }
+    else if (m_iter < m_config.getBurnin())
+    {
+        ret->phase = "Burnin";
+        ret->iter = m_iter + 1;
+        ret->phase_iter = m_config.getBurnin();
+    }
+    else
+    {
+        ret->phase = "Sample";
+        ret->iter = m_iter - m_config.getBurnin() + 1;
+        ret->phase_iter = m_config.getNSamples();
+    }
 
-   for(int i=0; i<model().nmodes(); ++i)
-   {
-       ret->model_norms.push_back(model().U(i).norm());
-   }
-    
-   ret->nnz_per_sec =  (double)(data().nnz()) / m_iter;
-   ret->samples_per_sec = (double)(model().nsamples()) / m_iter;
-   ret->iter = m_iter + 1;
-   ret->train_rmse = data().train_rmse(model());
+    for (int i = 0; i < model().nmodes(); ++i)
+    {
+        ret->model_norms.push_back(model().U(i).norm());
+    }
+
+    ret->train_rmse = data().train_rmse(model());
 
     ret->rmse_avg = m_pred->rmse_avg;
     ret->rmse_1sample = m_pred->rmse_1sample;
 
     ret->auc_avg = m_pred->auc_avg;
     ret->auc_1sample = m_pred->auc_1sample;
+
+    ret->elapsed_iter = m_secs_per_iter;
+    ret->nnz_per_sec = (double)(data().nnz()) / m_secs_per_iter;
+    ret->samples_per_sec = (double)(model().nsamples()) / m_secs_per_iter;
 
     return ret;
 }

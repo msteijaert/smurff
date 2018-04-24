@@ -1,6 +1,7 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.memory cimport shared_ptr
+from libcpp.string cimport string
 
 from MatrixConfig cimport MatrixConfig
 from ResultItem cimport ResultItem
@@ -18,5 +19,7 @@ cdef extern from "<SmurffCpp/Sessions/ISession.h>" namespace "smurff":
         shared_ptr[StatusItem] getStatus()
         MatrixConfig getSample(int mode)
         shared_ptr[RootFile] getRootFile()
+
+        string infoAsString() 
 
         double getRmseAvg()
