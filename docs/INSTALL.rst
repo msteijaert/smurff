@@ -11,8 +11,8 @@ The easiest way to install SMURFF is to use
 
     conda install -c vanderaa smurff
 
-Building and installing on Linux/MacOs
----------------------------------------------
+From source on Linux or MacOs
+-----------------------------
 
 Building using cmake
 ~~~~~~~~~~~~~~~~~~~~
@@ -79,12 +79,13 @@ When the python package has been installed correctly, you can
 run `python -m unittest discover` in this directory.
 
 
-Source installation on Windows using Visual Studio and cmake
-------------------------------------------------------------
+From source on Windows
+----------------------
 
-Before continuing installation please check that - cmake version is at
-least 3.6 - Visual Studio version is 2013 or better 2015 because code
-uses some c++11 features
+Before continuing installation please check that
+ - cmake version is at least 3.6
+ - Visual Studio version is 2013 or better 2015 because code
+   uses some c++11 features
 
 Install boost
 ~~~~~~~~~~~~~
