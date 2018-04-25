@@ -1,7 +1,5 @@
 import numpy as np
 from scipy import sparse
-import scipy.io as sio
-import itertools
 
 def avg_sparse_cols(m):
     m = m.tocsc(copy=False)
@@ -9,7 +7,6 @@ def avg_sparse_cols(m):
     counts = np.diff(m.indptr)
     assert all(t > 0 for t in counts)
     mean = sums / counts
-    sio.mmwrite("col_avg", np.expand_dims(mean, 0))
     return mean
 
 def center_sparse_cols(m, mean):
@@ -50,19 +47,25 @@ def mean(m, mode):
     return mean
 
 
-def center(m, mode, mean):
-    """center matrix m according to mode and computed mean"""
+def center(m, mode, computed_mean = None):
+    """Center matrix m according to mode and computed mean.
+       If computed_mean is None, compute mean first.
+    """
+
+    if computed_mean is None:
+        computed_mean = mean(m, mode)
+
     if (sparse.issparse(m)):
-        if (mode == "rows"):     m = center_sparse_rows(m,mean)
-        elif (mode == "cols"):   m = center_sparse_cols(m,mean)
-        elif (mode == "global"): m.data = m.data - mean
+        if (mode == "rows"):     m = center_sparse_rows(m,computed_mean)
+        elif (mode == "cols"):   m = center_sparse_cols(m,computed_mean)
+        elif (mode == "global"): m.data = m.data - computed_mean
         elif (mode == "none"):   pass
         else:
             raise ValueError("Unknown centering mode: %s" % ( mode ) )
     else:
-        if (mode == "cols"):     m = m - np.broadcast_to(np.expand_dims(mean, 0), m.shape)
-        elif (mode == "rows"):   m = m - np.broadcast_to(np.expand_dims(mean, 1), m.shape)
-        elif (mode == "global"): m = m - mean
+        if (mode == "cols"):     m = m - np.broadcast_to(np.expand_dims(computed_mean, 0), m.shape)
+        elif (mode == "rows"):   m = m - np.broadcast_to(np.expand_dims(computed_mean, 1), m.shape)
+        elif (mode == "global"): m = m - computed_mean
         elif (mode == "none"):   pass
         elif (mode != "none"):
             raise ValueError("Unknown centering mode: %s" % ( mode ) )
@@ -116,19 +119,23 @@ def std(m, mode):
     else:
         raise ValueError("Unknown std mode: %s" % ( mode ) )
 
-def scale(m, mode, std):
+def scale(m, mode, computed_std = None):
     """scale matrix m according to mode and computed std"""
+
+    if computed_std is None:
+        computed_std = std(m, mode)
+
     if (sparse.issparse(m)):
-        if (mode == "rows"):     m = scale_sparse_rows(m, std)
-        elif (mode == "cols"):   m = scale_sparse_cols(m, std)
-        elif (mode == "global"): m.data = m.data / std
+        if (mode == "rows"):     m = scale_sparse_rows(m, computed_std)
+        elif (mode == "cols"):   m = scale_sparse_cols(m, computed_std)
+        elif (mode == "global"): m.data = m.data / computed_std
         elif (mode == "none"):   pass
         else:
             raise ValueError("Unknown std mode: %s" % ( mode ) )
     else:
-        if (mode == "cols"):     m = m / np.broadcast_to(np.expand_dims(std, 0), m.shape)
-        elif (mode == "rows"):   m = m / np.broadcast_to(np.expand_dims(std, 1), m.shape)
-        elif (mode == "global"): m = m / std
+        if (mode == "cols"):     m = m / np.broadcast_to(np.expand_dims(computed_std, 0), m.shape)
+        elif (mode == "rows"):   m = m / np.broadcast_to(np.expand_dims(computed_std, 1), m.shape)
+        elif (mode == "global"): m = m / computed_std
         elif (mode == "none"):   pass
         elif (mode != "none"):
             raise ValueError("Unknown std mode: %s" % ( mode ) )
