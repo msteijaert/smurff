@@ -6,12 +6,12 @@ source:
   url: https://github.com/ExaScience/smurff/archive/b4d3fb311aa3539d40b7dc255b01e554d6d6bbd4.zip
 
 build:
-    number: 1
+    number: 2
     noarch: python
 
 requirements:
-    build:
-        - python
+    host:
+        - python {{ python }}
         - setuptools
     run:
         - python

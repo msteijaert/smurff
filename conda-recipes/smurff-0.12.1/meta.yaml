@@ -1,13 +1,13 @@
 package:
-  name: smurff-rc
-  version: 0.11.2
+  name: smurff
+  version: 0.12.1
 
 source:
   git_url: https://github.com/ExaScience/smurff
-  git_rev: master
+  git_rev: v0.12.1
 
 build:
-  number: 1
+    number: 1
 
 requirements:
   build:
@@ -21,7 +21,7 @@ requirements:
     - eigen3
     - boost
     - cython >=0.25
-    - python
+    - python {{ python }}
     - setuptools
     - numpy >=1.13
   run:
@@ -32,6 +32,8 @@ requirements:
     - numpy
     - scipy
     - pandas
+    - scikit-learn
+    - matrix_io
 
 test:
     commands:
