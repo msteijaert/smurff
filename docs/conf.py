@@ -55,7 +55,7 @@ nbsphinx_prolog = r"""
 
 .. note:: This page was generated from `{{ docname }}`__.
 
-.. __: https://github.com/ExaScience/smurff/blob/master/docs/notebooks/{{ docname }}
+.. __: https://github.com/ExaScience/smurff/blob/master/docs/{{ docname }}
 
 """
 
