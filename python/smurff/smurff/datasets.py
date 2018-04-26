@@ -1,9 +1,13 @@
 from .prepare import make_train_test
 
 import tempfile
-import urllib.request
 import scipy.io as sio
 from hashlib import sha256
+
+try:
+    import urllib.request as urllib_request  # for Python 3
+except ImportError:
+    import urllib2 as urllib_request  # for Python 2
 
 urls = [
         (
@@ -20,7 +24,7 @@ urls = [
 def download_chembl():
     with tempfile.TemporaryDirectory() as tmpdirname:
         for url, expected_sha, output in urls:
-            urllib.request.urlretrieve(url, output)
+            urllib_request.urlretrieve(url, output)
             actual_sha = sha256(open(output, "rb").read()).hexdigest()
             assert actual_sha == expected_sha
 

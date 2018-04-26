@@ -12,26 +12,37 @@ import matrix_io as mio
 from glob import glob
 import re
 import csv
-import configparser
+
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import SafeConfigParser as ConfigParser
 
 from .result import Prediction
 
-class OptionsFile(configparser.ConfigParser):
+def read_string(cp,str):
+    try:
+        return cp.read_string(str)
+    except AttributeError:
+        import StringIO
+        return cp.readfp(StringIO.StringIO(str))
+
+class OptionsFile(ConfigParser):
     def __init__(self, file_name):
-        configparser.ConfigParser.__init__(self) 
+        ConfigParser.__init__(self) 
         with open(file_name) as f:
-            self.read_file(f, file_name)
+            self.readfp(f, file_name)
 
 class HeadlessConfigParser:
     """A ConfigParser with support for raw items, not in a section"""
     def __init__(self, file_name):
-        self.cp = configparser.ConfigParser()
+        self.cp = ConfigParser()
         with  open(file_name) as f:
             content = "[top-level]\n" + f.read()
-            self.cp.read_string(content)
+            read_string(self.cp, content)
 
     def __getitem__(self, key):
-        return self.cp["top-level"][key]
+        return self.cp.get("top-level", key)
 
     def items(self):
         return self.cp.items("top-level")

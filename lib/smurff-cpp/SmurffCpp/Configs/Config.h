@@ -280,6 +280,7 @@ public:
 
    void setVerbose(int value)
    {
+      if (value < 0) value = 0;
       m_verbose = value;
    }
 
