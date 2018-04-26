@@ -247,6 +247,7 @@ cdef class TrainSession:
     cdef NoiseConfig noise_config
     cdef shared_ptr[StatusItem] status_item
     cdef readonly int nmodes
+    cdef readonly int verbose
     cdef vector[string] prior_types
 
     def __init__(self,
@@ -302,7 +303,7 @@ cdef class TrainSession:
     def init(self):
         self.ptr = SessionFactory.create_py_session_from_config(self.config)
         self.ptr.get().init()
-        if (self.verbose):
+        if (self.verbose > 0):
             print(self)
         return self.getStatus()
 
@@ -324,7 +325,7 @@ cdef class TrainSession:
                 self.status_item.get().samples_per_sec)
 
             if (self.verbose):
-                print(status, flush = True)
+                print(status)
             
             return status
         else:
