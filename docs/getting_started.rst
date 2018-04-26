@@ -2,12 +2,15 @@
 .. _getting_started:
 
 
-Getting Started
-===============
+Getting Started using IPython Notebooks
+=======================================
 
-.. contents:: :local:
+This section contains documentation generated from IPython
+notebooks that discuss different aspects of SMURFF.
 
-.. include:: notebooks/a_first_example.rst
+.. toctree::
+   :maxdepth: 4
 
-.. include:: notebooks/different_methods.rst
+   notebooks/a_first_example.ipynb
+   notebooks/different_methods.ipynb
 
