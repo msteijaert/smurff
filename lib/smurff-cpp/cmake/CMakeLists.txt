@@ -234,7 +234,6 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCRIPT_DIR}")
 include(scripts/DependenciesConfig.cmake)
 
 if(MSVC)
-configure_openmp()
 configure_eigen()
 configure_boost()
 else()
