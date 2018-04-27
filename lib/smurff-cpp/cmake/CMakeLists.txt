@@ -236,14 +236,12 @@ include(scripts/DependenciesConfig.cmake)
 if(MSVC)
   configure_eigen()
   configure_boost()
-  configure_python()
 else()
   configure_pthreads()
   configure_mpi()
   configure_openmp()
   configure_eigen()
   configure_boost()
-  configure_python()
 endif()
 
 set(ALGEBRA_LIB_FOUND OFF)
@@ -343,6 +341,7 @@ add_subdirectory (../BenchWishart/cmake tests/BenchWishart)
 # python
 
 if(ENABLE_PYTHON)
+    configure_python()
     add_subdirectory (../../../python/smurff python/Smurff)
 endif()
 
