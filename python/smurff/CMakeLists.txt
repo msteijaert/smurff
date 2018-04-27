@@ -21,9 +21,12 @@ add_custom_target( ReplicatePythonSourceTree ALL ${CMAKE_COMMAND} -P
   ${CMAKE_CURRENT_BINARY_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
+add_subdirectory( smurff )
+
+message(WARNING $<TARGET_FILE:wrapper> )
+
 configure_file(setup.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
 
-add_subdirectory( smurff )
 
 # run python setup.py on install
 install(CODE "MESSAGE(WARNING \"Python wrapper needs ot be installed manually. \\
