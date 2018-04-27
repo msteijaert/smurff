@@ -30,8 +30,12 @@ bool PythonSession::step()
     // run step
     bool not_done = Session::step();
 
+#ifdef _WINDOWS
+    // can't do this on windows
+#else
     // restore old handler
     sigaction(SIGINT, &oldHandler, NULL );
+#endif
 
     return not_done;
 }
