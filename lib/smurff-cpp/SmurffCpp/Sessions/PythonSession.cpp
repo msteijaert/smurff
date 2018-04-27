@@ -11,9 +11,13 @@ bool PythonSession::keepRunningVerbose = false;
 
 bool PythonSession::step()
 {
+    
     keepRunning = true;
     keepRunningVerbose = m_config.getVerbose();
 
+#ifdef _WINDOWS
+    signal(SIGINT, intHandler);
+#else
     // save old handler, add our handler
     struct sigaction newHandler;
     struct sigaction oldHandler;
@@ -21,6 +25,7 @@ bool PythonSession::step()
     sigemptyset( &newHandler.sa_mask );
     newHandler.sa_handler = intHandler;
     sigaction(SIGINT, &newHandler, &oldHandler );
+#endif
 
     // run step
     bool not_done = Session::step();
