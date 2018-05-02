@@ -42,7 +42,7 @@ setup(
     version = '@SMURFF_VERSION@',
     data_files = [
         (os.path.join(so_dir, "smurff"), glob.glob('smurff/*.so')),  # unix, mac
-        (os.path.join(so_dir, "smurff"), glob.glob('smurff/*.lib')), # windows
+        (os.path.join(so_dir, "smurff"), glob.glob('smurff/*.pyd')), # windows
     ],
     url = "http://github.com/ExaScience/smurff",
     zip_safe = False,
