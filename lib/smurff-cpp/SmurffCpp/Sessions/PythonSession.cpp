@@ -29,10 +29,12 @@ bool PythonSession::step()
 
     // run step
     bool not_done = Session::step();
-
+    
+#ifdef _WINDOWS
+#else
     // restore old handler
     sigaction(SIGINT, &oldHandler, NULL );
-
+#endif
     return not_done;
 }
 
