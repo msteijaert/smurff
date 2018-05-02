@@ -4,12 +4,10 @@ SMURFF - Scalable Matrix Factorization Framework
 Welcome to SMURFF's documentation. SMURFF is a highly optimized and
 parallelized framework for Bayesian Matrix and Tensors Factorization.
 
-The easiest way to install SMURFF is to use
-`Conda <https://conda.io>`__:
+The easiest way to install SMURFF is to use conda: |AnacondaBadge|
 
-.. code:: bash
-
-    conda install -c vanderaa smurff
+.. |AnacondaBadge| image:: https://anaconda.org/vanderaa/smurff/badges/version.svg
+                   :target: https://anaconda.org/vanderaa/smurff
 
 To get started with SMURFF using IPython notebooks, have a look at our
 :doc:`getting_started`. To learn more about Matrix Factorization, have a

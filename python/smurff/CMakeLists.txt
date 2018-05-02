@@ -3,10 +3,6 @@ set (PROJECT python_smurff)
 message("Configuring " ${PROJECT} "...")
 project (${PROJECT})
 
-# Include the CMake script UseCython.cmake.  This defines add_cython_module().
-# Instruction for use can be found at the top of cmake/UseCython.cmake.
-include( UseCython )
-
 include_directories(${NUMPY_INCLUDE_DIR})
 include_directories(../../lib/smurff-cpp)
 include_directories(include)
@@ -21,9 +17,10 @@ add_custom_target( ReplicatePythonSourceTree ALL ${CMAKE_COMMAND} -P
   ${CMAKE_CURRENT_BINARY_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
+add_subdirectory( smurff )
+
 configure_file(setup.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
 
-add_subdirectory( smurff )
 
 # run python setup.py on install
 install(CODE "MESSAGE(WARNING \"Python wrapper needs ot be installed manually. \\
