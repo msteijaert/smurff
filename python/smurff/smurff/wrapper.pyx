@@ -256,7 +256,7 @@ cdef class TrainSession:
         burnin           = BURNIN_DEFAULT_VALUE,
         nsamples         = NSAMPLES_DEFAULT_VALUE,
         seed             = RANDOM_SEED_DEFAULT_VALUE,
-        verbose          = 0,
+        verbose          = 1,
         save_prefix      = None,
         save_extension   = None,
         save_freq        = None,
