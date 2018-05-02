@@ -25,7 +25,7 @@ urls = {
 }
 
 def load_one(filename):
-    (url, expected_sha) =  urls["filename"]
+    (url, expected_sha) =  urls[filename]
 
     with tempfile.TemporaryDirectory() as tmpdirname:
             output = os.path.join(tmpdirname, filename)
