@@ -350,7 +350,7 @@ void smurff::linop::A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   for (int i = 0; i < n; i++) {
     for (int j = i; j < n; j++) {
       double tmp = 0;
-      for (int k = 0; k <thread_limit(); k++) {
+      for (int k = 0; k < thread_limit(); k++) {
         tmp += Ys[k](j, i);
       }
       out(j, i) = tmp;

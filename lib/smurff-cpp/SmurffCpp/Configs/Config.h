@@ -347,6 +347,10 @@ public:
       m_threshold = value;
    }
 
+   int getNumThreads() const
+   {
+       return m_num_threads;
+   }
 
    void setNumThreads(int value)
    {

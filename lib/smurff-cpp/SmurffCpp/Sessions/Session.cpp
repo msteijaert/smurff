@@ -98,7 +98,7 @@ void Session::setFromBase()
 void Session::init()
 {
    //init omp
-   threads_init(m_config.getVerbose());
+   threads_init(m_config.getVerbose(), m_config.getNumThreads());
 
    //initialize random generator
    initRng();
@@ -155,7 +155,7 @@ bool Session::step()
    if (isStep)
    {
       //init omp
-      threads_enable(m_config.getVerbose());
+      threads_enable();
 
       THROWERROR_ASSERT(is_init);
 
@@ -172,7 +172,7 @@ bool Session::step()
 
       save(m_iter);
 
-      threads_disable(m_config.getVerbose());
+      threads_disable();
    }
 
    return isStep;
