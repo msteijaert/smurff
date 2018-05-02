@@ -54,6 +54,7 @@ public:
    static int BURNIN_DEFAULT_VALUE;
    static int NSAMPLES_DEFAULT_VALUE;
    static int NUM_LATENT_DEFAULT_VALUE;
+   static int NUM_THREADS_DEFAULT_VALUE;
    static ModelInitTypes INIT_MODEL_DEFAULT_VALUE;
    static const char* SAVE_PREFIX_DEFAULT_VALUE;
    static const char* SAVE_EXTENSION_DEFAULT_VALUE;
@@ -96,6 +97,8 @@ private:
    int m_burnin;
    int m_nsamples;
    int m_num_latent;
+   int m_num_threads; 
+
 
    //-- binary classification
    bool m_classify;
@@ -342,6 +345,12 @@ public:
    void setThreshold(double value)
    {
       m_threshold = value;
+   }
+
+
+   void setNumThreads(int value)
+   {
+       m_num_threads = value;
    }
 };
 

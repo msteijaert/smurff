@@ -33,6 +33,7 @@
 #define BURNING_TAG "burnin"
 #define NSAMPLES_TAG "nsamples"
 #define NUM_LATENT_TAG "num_latent"
+#define NUM_THREADS_TAG "num_threads"
 #define RANDOM_SEED_SET_TAG "random_seed_set"
 #define RANDOM_SEED_TAG "random_seed"
 #define CSV_STATUS_TAG "csv_status"
@@ -116,6 +117,7 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
 int Config::BURNIN_DEFAULT_VALUE = 200;
 int Config::NSAMPLES_DEFAULT_VALUE = 800;
 int Config::NUM_LATENT_DEFAULT_VALUE = 96;
+int Config::NUM_THREADS_DEFAULT_VALUE = 0; // as many as you want
 ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
 const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "save";
 const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".csv";
@@ -144,6 +146,7 @@ Config::Config()
    m_burnin = Config::BURNIN_DEFAULT_VALUE;
    m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
    m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
+   m_num_threads = Config::NUM_THREADS_DEFAULT_VALUE;
 
    m_threshold = Config::THRESHOLD_DEFAULT_VALUE;
    m_classify = false;
@@ -344,6 +347,7 @@ void Config::save(std::string fname) const
    ini.appendItem(GLOBAL_SECTION_TAG, BURNING_TAG, std::to_string(m_burnin));
    ini.appendItem(GLOBAL_SECTION_TAG, NSAMPLES_TAG, std::to_string(m_nsamples));
    ini.appendItem(GLOBAL_SECTION_TAG, NUM_LATENT_TAG, std::to_string(m_num_latent));
+   ini.appendItem(GLOBAL_SECTION_TAG, NUM_THREADS_TAG, std::to_string(m_num_threads));
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG, std::to_string(m_random_seed_set));
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, std::to_string(m_random_seed));
    ini.appendItem(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, m_csv_status);
@@ -451,6 +455,7 @@ bool Config::restore(std::string fname)
    m_burnin = reader.getInteger(GLOBAL_SECTION_TAG, BURNING_TAG, Config::BURNIN_DEFAULT_VALUE);
    m_nsamples = reader.getInteger(GLOBAL_SECTION_TAG, NSAMPLES_TAG, Config::NSAMPLES_DEFAULT_VALUE);
    m_num_latent = reader.getInteger(GLOBAL_SECTION_TAG, NUM_LATENT_TAG, Config::NUM_LATENT_DEFAULT_VALUE);
+   m_num_threads = reader.getInteger(GLOBAL_SECTION_TAG, NUM_THREADS_TAG, Config::NUM_THREADS_DEFAULT_VALUE);
    m_random_seed_set = reader.getBoolean(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG,  false);
    m_random_seed = reader.getInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
    m_csv_status = reader.get(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, Config::STATUS_DEFAULT_VALUE);

@@ -26,6 +26,7 @@
 #define BURNIN_NAME "burnin"
 #define NSAMPLES_NAME "nsamples"
 #define NUM_LATENT_NAME "num-latent"
+#define NUM_THREADS_NAME "num-threads"
 #define INIT_MODEL_NAME "init-model"
 #define SAVE_PREFIX_NAME "save-prefix"
 #define SAVE_EXTENSION_NAME "save-extension"
@@ -72,6 +73,7 @@ boost::program_options::options_description get_desc()
       (BURNIN_NAME, boost::program_options::value<int>()->default_value(Config::BURNIN_DEFAULT_VALUE), "number of samples to discard")
       (NSAMPLES_NAME, boost::program_options::value<int>()->default_value(Config::NSAMPLES_DEFAULT_VALUE), "number of samples to collect")
       (NUM_LATENT_NAME, boost::program_options::value<int>()->default_value(Config::NUM_LATENT_DEFAULT_VALUE), "number of latent dimensions")
+      (NUM_THREADS_NAME, boost::program_options::value<int>()->default_value(Config::NUM_THREADS_DEFAULT_VALUE), "number of threads (0 = default by OpenMP)")
       (INIT_MODEL_NAME, boost::program_options::value<std::string>()->default_value(modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)), "Initialize model using <random|zero> values")
       (SAVE_PREFIX_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_PREFIX_DEFAULT_VALUE), "prefix for result files")
       (SAVE_EXTENSION_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")
@@ -248,6 +250,9 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(NUM_LATENT_NAME) && !vm[NUM_LATENT_NAME].defaulted())
       config.setNumLatent(vm[NUM_LATENT_NAME].as<int>());
+
+   if (vm.count(NUM_THREADS_NAME) && !vm[NUM_THREADS_NAME].defaulted())
+     config.setNumThreads(vm[NUM_THREADS_NAME].as<int>());
 
    if(vm.count(INIT_MODEL_NAME))
       config.setModelInitType(stringToModelInitType(vm[INIT_MODEL_NAME].as<std::string>()));

@@ -253,6 +253,7 @@ cdef class TrainSession:
     def __init__(self,
         priors           = [ "normal", "normal" ],
         num_latent       = NUM_LATENT_DEFAULT_VALUE,
+        num_threads      = NUM_THREADS_DEFAULT_VALUE,
         burnin           = BURNIN_DEFAULT_VALUE,
         nsamples         = NSAMPLES_DEFAULT_VALUE,
         seed             = RANDOM_SEED_DEFAULT_VALUE,
@@ -274,6 +275,7 @@ cdef class TrainSession:
         prior_types = [ p.encode('UTF-8') for p in priors ]
         self.config.setPriorTypes(prior_types)
         self.config.setNumLatent(num_latent)
+        self.config.setNumThreads(num_threads)
         self.config.setBurnin(burnin)
         self.config.setNSamples(nsamples)
         self.config.setVerbose(verbose - 1)

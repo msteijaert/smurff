@@ -14,6 +14,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
     int BURNIN_DEFAULT_VALUE "smurff::Config::BURNIN_DEFAULT_VALUE"
     int NSAMPLES_DEFAULT_VALUE "smurff::Config::NSAMPLES_DEFAULT_VALUE"
     int NUM_LATENT_DEFAULT_VALUE "smurff::Config::NUM_LATENT_DEFAULT_VALUE"
+    int NUM_THREADS_DEFAULT_VALUE "smurff::Config::NUM_THREADS_DEFAULT_VALUE"
     const char* SAVE_PREFIX_DEFAULT_VALUE "smurff::Config::SAVE_PREFIX_DEFAULT_VALUE"
     const char* SAVE_EXTENSION_DEFAULT_VALUE "smurff::Config::SAVE_EXTENSION_DEFAULT_VALUE"
     int SAVE_FREQ_DEFAULT_VALUE "smurff::Config::SAVE_FREQ_DEFAULT_VALUE"
@@ -65,6 +66,7 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setNSamples(int value)
 
         void setNumLatent(int value)
+        void setNumThreads(int value)
 
         #-- binary classification
         void setClassify(bool value)
