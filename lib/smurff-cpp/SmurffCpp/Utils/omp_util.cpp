@@ -19,10 +19,10 @@ namespace threads
     #include <mkl.h>
     #endif
 
-
-    static int m_prev_threading_layer = -1;
-    static int m_verbose = 0;
-    static int m_num_threads = 1;
+    static bool m_is_init = false;
+    static int  m_prev_threading_layer = -1;
+    static int  m_verbose = 0;
+    static int  m_num_threads = 1;
 
     int get_num_threads()
     {
@@ -31,12 +31,16 @@ namespace threads
 
     int get_max_threads()
     {
-        return omp_get_max_threads();
+        int ret = omp_get_max_threads();
+        THROWERROR_ASSERT(m_num_threads <= ret);
+        return ret;
     }
 
     int get_thread_num()
     {
-        return omp_get_thread_num(); 
+        int ret = omp_get_thread_num(); 
+        THROWERROR_ASSERT(ret <= get_max_threads());
+        return ret;
     }
 
 
@@ -44,6 +48,7 @@ namespace threads
     {
         m_verbose = verbose;
         m_num_threads = num_threads;
+        bool m_is_init = true;
 
         if (num_threads > 0)
         {
