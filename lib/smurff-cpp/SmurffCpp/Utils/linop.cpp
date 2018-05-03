@@ -326,7 +326,7 @@ void smurff::linop::A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   }
 
   std::vector<MatrixXd> Ys;
-  Ys.resize(threads::get_thread_limit(), MatrixXd(n, n));
+  Ys.resize(threads::get_max_threads(), MatrixXd(n, n));
 
   #pragma omp parallel
   {
@@ -350,7 +350,7 @@ void smurff::linop::A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   for (int i = 0; i < n; i++) {
     for (int j = i; j < n; j++) {
       double tmp = 0;
-      for (int k = 0; k < threads::get_thread_limit(); k++) {
+      for (int k = 0; k < threads::get_max_threads(); k++) {
         tmp += Ys[k](j, i);
       }
       out(j, i) = tmp;
@@ -373,7 +373,7 @@ void smurff::linop::A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A,
   }
 
   std::vector<MatrixXd> Ys;
-  Ys.resize(threads::get_thread_limit(), MatrixXd(n, n));
+  Ys.resize(threads::get_max_threads(), MatrixXd(n, n));
   int actual_threads = -1;
 
   #pragma omp parallel

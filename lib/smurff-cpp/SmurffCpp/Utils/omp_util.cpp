@@ -29,9 +29,9 @@ namespace threads
         return omp_get_num_threads(); 
     }
 
-    int get_thread_limit()
+    int get_max_threads()
     {
-        return omp_get_thread_limit();
+        return omp_get_max_threads();
     }
 
     int get_thread_num()
@@ -52,7 +52,7 @@ namespace threads
 
         if (verbose)
         {
-            std::cout << "Using OpenMP with up to " << get_thread_limit() << " threads.\n";
+            std::cout << "Using OpenMP with up to " << get_max_threads() << " threads.\n";
         }
     }
 
@@ -101,7 +101,7 @@ namespace threads
 
     int num()      { return 0; }
     int get_num_threads() { return 1; }
-    int get_thread_limit()    { return 1; }
+    int get_max_threads()    { return 1; }
     void enable()  { }
     void disable() { }
 

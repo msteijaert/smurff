@@ -140,7 +140,7 @@ void smurff::init_bmrng()
 void smurff::init_bmrng(int seed) 
 {
     std::vector<MERSENNE_TWISTER> v;
-    for (int i = 0; i < threads::get_thread_limit(); i++)
+    for (int i = 0; i < threads::get_max_threads(); i++)
     {
         v.push_back(MERSENNE_TWISTER(seed + i * 1999));
     }

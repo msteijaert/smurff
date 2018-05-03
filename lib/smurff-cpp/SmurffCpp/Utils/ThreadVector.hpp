@@ -12,7 +12,7 @@ namespace smurff
    class thread_vector
    {
        public:
-           thread_vector(const T &t = T()) : _m(threads::get_thread_limit(), t), _i(t) {}
+           thread_vector(const T &t = T()) : _m(threads::get_max_threads(), t), _i(t) {}
            template<typename F>
            T combine(F f) const {
                return std::accumulate(_m.begin(), _m.end(), _i, f);
