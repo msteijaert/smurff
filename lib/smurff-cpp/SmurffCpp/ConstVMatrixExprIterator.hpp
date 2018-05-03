@@ -19,7 +19,7 @@ class ConstVMatrixExprIterator : public std::iterator<
 >
 {
 private:
-   const Model& m_model;
+   const Model* m_model;
    PVec<> m_off;
    PVec<> m_dims;
 	std::uint32_t m_mode;
@@ -27,14 +27,14 @@ private:
 
 public:
 	//begin constructor
-   ConstVMatrixExprIterator(const Model& model, PVec<> off, PVec<> dims, std::uint32_t mode, std::uint32_t num)
+   ConstVMatrixExprIterator(const Model* model, PVec<> off, PVec<> dims, std::uint32_t mode, std::uint32_t num)
       : m_model(model), m_off(off), m_dims(dims), m_mode(mode), m_num(num == mode ? num + 1 : num)
    {
    }
 
 	//end constructor
    ConstVMatrixExprIterator(std::uint32_t num)
-      : m_model(Model::no_model), m_off(1), m_dims(1), m_mode(-1), m_num(num)
+      : m_model(0), m_off(1), m_dims(1), m_mode(-1), m_num(num)
    {
    }
 
@@ -77,7 +77,7 @@ public:
 
    T operator*() const
    {
-      return m_model.U(m_num).block(0, m_off[m_num], m_model.nlatent(), m_dims[m_num]);
+      return m_model->U(m_num).block(0, m_off[m_num], m_model->nlatent(), m_dims[m_num]);
    }
 
    T operator->() const

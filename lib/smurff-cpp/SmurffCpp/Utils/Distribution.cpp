@@ -28,7 +28,7 @@ using namespace std::chrono;
 #define GAMMA_DISTRIBUTION std::gamma_distribution<double>
 #endif
 
-static smurff::thread_vector<MERSENNE_TWISTER> bmrngs;
+static smurff::thread_vector<MERSENNE_TWISTER> *bmrngs;
 
 double smurff::randn0()
 {
@@ -45,7 +45,7 @@ void smurff::bmrandn(double* x, long n)
    #pragma omp parallel 
    {
       UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
-      auto& bmrng = bmrngs.local();
+      auto& bmrng = bmrngs->local();
       
       #pragma omp for schedule(static)
       for (long i = 0; i < n; i += 2) 
@@ -79,7 +79,7 @@ double smurff::bmrandn_single()
 {
    //TODO: add bmrng as input
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
-   auto& bmrng = bmrngs.local();
+   auto& bmrng = bmrngs->local();
   
    double x1, x2, w;
    do 
@@ -97,7 +97,7 @@ double smurff::bmrandn_single()
 void smurff::bmrandn_single(double* x, long n) 
 {
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
-   auto& bmrng = bmrngs.local();
+   auto& bmrng = bmrngs->local();
 
    for (long i = 0; i < n; i += 2) 
    {
@@ -144,20 +144,21 @@ void smurff::init_bmrng(int seed)
     {
         v.push_back(MERSENNE_TWISTER(seed + i * 1999));
     }
-    bmrngs.init(v);
+    bmrngs = new smurff::thread_vector<MERSENNE_TWISTER>();
+    bmrngs->init(v);
 }
    
 double smurff::rand_unif() 
 {
    UNIFORM_REAL_DISTRIBUTION unif(0.0, 1.0);
-   auto& bmrng = bmrngs.local();
+   auto& bmrng = bmrngs->local();
    return unif(bmrng);
 }
  
 double smurff::rand_unif(double low, double high) 
 {
    UNIFORM_REAL_DISTRIBUTION unif(low, high);
-   auto& bmrng = bmrngs.local();
+   auto& bmrng = bmrngs->local();
    return unif(bmrng);
 }
 
@@ -166,7 +167,7 @@ double smurff::rand_unif(double low, double high)
 double smurff::rgamma(double shape, double scale) 
 {
    GAMMA_DISTRIBUTION gamma(shape, scale);
-   return gamma(bmrngs.local());
+   return gamma(bmrngs->local());
 }
 
 auto smurff::nrandn(int n) -> decltype(VectorXd::NullaryExpr(n, std::cref(randn))) 
@@ -184,7 +185,7 @@ MatrixXd WishartUnit(int m, int df)
 {
    MatrixXd c(m,m);
    c.setZero();
-   auto& rng = bmrngs.local();
+   auto& rng = bmrngs->local();
 
    for ( int i = 0; i < m; i++ ) 
    {

@@ -31,8 +31,6 @@ using namespace Eigen;
 using namespace smurff;
 
 
-Model smurff::Model::no_model;
-
 Model::Model()
    : m_num_latent(-1)
 {
@@ -101,7 +99,7 @@ VMatrixIterator<Eigen::MatrixXd> Model::Vend()
 
 ConstVMatrixIterator<Eigen::MatrixXd> Model::CVbegin(std::uint32_t mode) const
 {
-   return ConstVMatrixIterator<Eigen::MatrixXd>(*this, mode, 0);
+   return ConstVMatrixIterator<Eigen::MatrixXd>(this, mode, 0);
 }
 
 ConstVMatrixIterator<Eigen::MatrixXd> Model::CVend() const
@@ -188,7 +186,7 @@ Eigen::MatrixXd::ConstBlockXpr SubModel::U(int f) const
 
 ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVbegin(std::uint32_t mode) const
 {
-   return ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr>(m_model, m_off, m_dims, mode, 0);
+   return ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr>(&m_model, m_off, m_dims, mode, 0);
 }
 
 ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> SubModel::CVend() const

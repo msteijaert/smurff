@@ -43,8 +43,6 @@ private:
 public:
    Model();
 
-   static Model no_model;
-
 public:
    //initialize U matrices in the model (random/zero)
    void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);

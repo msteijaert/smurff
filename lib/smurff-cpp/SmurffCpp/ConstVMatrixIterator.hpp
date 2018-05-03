@@ -9,7 +9,6 @@
 
 namespace smurff {
 
-static Model no_model;
 template<class T>
 class ConstVMatrixIterator : public std::iterator<
 	std::input_iterator_tag,   // iterator_category
@@ -20,20 +19,20 @@ class ConstVMatrixIterator : public std::iterator<
 >
 {
 private:
-	const Model &m_model;
+	const Model* m_model;
 	std::uint32_t m_mode;
 	std::uint32_t m_num;
 
 public:
 	//begin constructor
-   ConstVMatrixIterator(const Model& model, std::uint32_t mode, std::uint32_t num)
+   ConstVMatrixIterator(const Model* model, std::uint32_t mode, std::uint32_t num)
       : m_model(model), m_mode(mode), m_num(num == mode ? num + 1 : num)
    {
    }
 
 	//end constructor
    ConstVMatrixIterator(std::uint32_t num)
-      : m_model(Model::no_model), m_mode(-1), m_num(num)
+      : m_model(0), m_mode(-1), m_num(num)
    {
    }
 
@@ -74,7 +73,7 @@ public:
 
    std::shared_ptr<const T> operator*() const
    {
-      return m_model.U(m_num);
+      return m_model->U(m_num);
    }
 
    std::shared_ptr<const T> operator->() const
