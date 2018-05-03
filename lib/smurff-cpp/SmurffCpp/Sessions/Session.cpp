@@ -358,7 +358,7 @@ std::shared_ptr<StatusItem> Session::getStatus() const
         ret->phase_iter = m_config.getNSamples();
     }
 
-    for (int i = 0; i < model().nmodes(); ++i)
+    for (int i = 0; i < (int)model().nmodes(); ++i)
     {
         ret->model_norms.push_back(model().U(i).norm());
     }
