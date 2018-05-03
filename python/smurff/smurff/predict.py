@@ -27,11 +27,17 @@ def read_string(cp,str):
         import StringIO
         return cp.readfp(StringIO.StringIO(str))
 
+def read_file(cp, file_name):
+    with open(file_name) as f:
+        try:
+            cp.read_file(f, file_name)
+        except AttributeError:
+            cp.readfp(f, file_name)
+
 class OptionsFile(ConfigParser):
     def __init__(self, file_name):
         ConfigParser.__init__(self) 
-        with open(file_name) as f:
-            self.readfp(f, file_name)
+        read_file(self, file_name)
 
 class HeadlessConfigParser:
     """A ConfigParser with support for raw items, not in a section"""
