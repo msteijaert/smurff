@@ -1,9 +1,18 @@
 #pragma once
-void threads_init(int verbose, int num_threads);
-int nthreads();
-int thread_limit();
-int thread_num();
-void threads_enable();
-void threads_disable();
+
+namespace smurff
+{
+    namespace threads 
+    {
+        void init(int verbose, int num_threads);
+        void enable();
+        void disable();
+
+        int  get_num_threads();
+        int  get_thread_limit();
+        int  get_thread_num();
+
+    }
+}
 
 

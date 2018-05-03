@@ -60,21 +60,21 @@ void hello2(double* x, double* y, int n, int k) {
     dsyrk_(&lower, &trans, &n, &k, &one, x, &n, &zero, y, &n);
     return;
   }
-  int nthreads = -1;
+  int threads::get_num_threads = -1;
   #pragma omp parallel
   {
     #pragma omp single
     {
-      nthreads = omp_get_num_threads();
+      threads::get_num_threads = omp_get_num_threads();
     }
   }
   std::vector<MatrixXd> Ys;
-  Ys.resize(nthreads, MatrixXd(n, n));
+  Ys.resize(threads::get_num_threads, MatrixXd(n, n));
 
   #pragma omp parallel
   {
-    const int ithread  = omp_get_thread_num();
-    int rows_per_thread = (int) 8 * ceil(k / 8.0 / nthreads);
+    const int ithread  = omp_get_threads::num();
+    int rows_per_thread = (int) 8 * ceil(k / 8.0 / threads::get_num_threads);
     int row_start = rows_per_thread * ithread;
     int row_end   = rows_per_thread * (ithread + 1);
     if (row_end > k) {
@@ -89,7 +89,7 @@ void hello2(double* x, double* y, int n, int k) {
   for (int i = 0; i < n; i++) {
     for (int j = i; j < n; j++) {
       double tmp = 0;
-      for (int k = 0; k < nthreads; k++) {
+      for (int k = 0; k < threads::get_num_threads; k++) {
         tmp += Ys[k](j, i);
       }
       y[i*n + j] = tmp;
