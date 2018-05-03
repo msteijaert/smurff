@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
+#include <cassert>
 
 #include "omp_util.h"
 
@@ -12,7 +13,10 @@ namespace smurff
    class thread_vector
    {
        public:
-           thread_vector(const T &t = T()) : _m(threads::get_max_threads(), t), _i(t) {}
+           thread_vector(const T &t = T())
+           {
+               init(t);
+           }
            template<typename F>
            T combine(F f) const {
                return std::accumulate(_m.begin(), _m.end(), _i, f);
@@ -25,6 +29,7 @@ namespace smurff
                return _m.at(threads::get_thread_num());
            }
            void reset() {
+               _m.resize(threads::get_max_threads());
                for(auto &t: _m) t = _i;
            }
            template<typename F>
@@ -43,6 +48,7 @@ namespace smurff
                reset();
            }
            void init(const std::vector<T> &v) {
+               assert(v.size() == threads::get_max_threads());
                _m = v;
            }
    
