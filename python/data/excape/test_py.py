@@ -47,7 +47,7 @@ class TestExCAPE_py(unittest.TestCase):
             if side_info[d] != None:
                 args["priors"][d] = 'macau'
 
-        session = smurff.PySession(**args)
+        session = smurff.TrainSession(**args)
         Ytrain = TestExCAPE_py.data["train.sdm"]
         Ytest = TestExCAPE_py.data["test.sdm"]
         session.addTrainAndTest(Ytrain, Ytest, self.get_train_noise())
@@ -60,12 +60,12 @@ class TestExCAPE_py(unittest.TestCase):
 
         start = time()
         while session.step(): pass
-        result = session.getResult()
+        rmse = session.getRmseAvg()
         stop = time()
         elapsed = stop - start
 
-        self.assertLess(result.rmse, expected[0])
-        self.assertGreater(result.rmse, expected[1])
+        self.assertLess(rmse, expected[0])
+        self.assertGreater(rmse, expected[1])
         self.assertLess(elapsed, expected[2])
 
     def test_bpmf(self):
