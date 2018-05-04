@@ -159,6 +159,22 @@ const std::vector<std::shared_ptr<SideInfoConfig> >& Config::getSideInfoConfigs(
   return iter->second;
 }
 
+const std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > >& Config::addSideInfoConfig(int mode, std::shared_ptr<SideInfoConfig> c)
+{
+    m_sideInfoConfigs[mode].push_back(c);
+
+    // automagically update prior type 
+    // normal(one) prior -> macau(one) prior
+    if (m_prior_types.size() > mode)
+    {
+      PriorTypes &pt = m_prior_types[mode];
+           if (pt == PriorTypes::normal) pt = PriorTypes::macau;
+      else if (pt == PriorTypes::normalone) pt = PriorTypes::macauone;
+    }
+
+    return m_sideInfoConfigs;
+}
+
 bool Config::validate() const
 {
    if (!m_train || !m_train->getNNZ())

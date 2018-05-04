@@ -1302,9 +1302,9 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.addSideInfoConfig(1, colSideInfoDenseMatrixConfig);
    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
@@ -1338,8 +1338,8 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    Config config;
    config.setTrain(trainDenseMatrixConfig);
    config.setTest(testSparseMatrixConfig);
-   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.addSideInfoConfig(1, rowSideInfoDenseMatrixConfig); // added to wrong mode
+   config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
    config.setNumLatent(4);
    config.setBurnin(50);
    config.setNSamples(50);
