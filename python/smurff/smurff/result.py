@@ -36,7 +36,7 @@ class Prediction:
         self.pred_all.append(pred)
             
     def __str__(self):
-        return "%s: %.2f | 1sample: %.2f | avg: %.2f | var: %.2f" % (self.coords, self.val, self.pred_1sample, self.pred_avg, self.var)
+        return "%s: %.2f | 1sample: %.2f | avg: %.2f | var: %.2f | all: %s " % (self.coords, self.val, self.pred_1sample, self.pred_avg, self.var, self.pred_all)
 
     def __repr__(self):
         return str(self)
