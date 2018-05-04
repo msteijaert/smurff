@@ -12,5 +12,6 @@ notebooks that discuss different aspects of SMURFF.
    :maxdepth: 4
 
    notebooks/a_first_example.ipynb
+   notebooks/inference_with_smurff.ipynb
    notebooks/different_methods.ipynb
 
