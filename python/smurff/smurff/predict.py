@@ -58,30 +58,46 @@ class TrainStep:
     @classmethod
     def fromStepFile(cls, file_name, iter):
         cp = HeadlessConfigParser(file_name)
-        step = cls(int(cp["num_models"]), iter)
+        nmodes = int(cp["num_models"])
+        step = cls(nmodes, iter)
         step.predictions = pd.read_csv(cp["pred"], sep=";")
-        for i in range(step.nmodes):
-            step.addU(mio.read_matrix(cp["model_" + str(i)]))
 
+        # latent matrices
+        for i in range(step.nmodes):
+            file_name = cp["model_" + str(i)]
+            step.addU(mio.read_matrix(file_name))
+
+        # link matrices (beta)
+        for i in range(step.nmodes):
+            file_name = cp["prior_" + str(i)]
+            try:
+                step.add_beta(mio.read_matrix(file_name))
+            except FileNotFoundError:
+                step.add_beta(np.ndarray((0, 0)))
+    
         return step
 
     def __init__(self, nmodes, iter):
         assert nmodes == 2
         self.nmodes = nmodes
         self.iter = iter
-        self.num_latent = None
-        self.shape = []
         self.Us = []
+        self.betas = []
+
+    def add_beta(self, b):
+        self.betas.append(b)
 
     def addU(self, U):
         self.Us.append(U)
 
-        if self.num_latent is None:
-            self.num_latent = U.shape[0]
-        else:
-            assert self.num_latent == U.shape[0]
+    def num_latent(self):
+       return self.Us[0].shape[0]
 
-        self.shape.append(U.shape[1])
+    def data_shape(self):
+       return [ u.shape[1] for u in self.Us ]
+
+    def beta_shape(self):
+       return [ b.shape[1] for b in self.betas ]
 
     def predict_one(self, coords):
         return np.dot(self.Us[0][:,coords[0]], self.Us[1][:,coords[1]])
@@ -108,24 +124,20 @@ class PredictSession:
     def __init__(self, nmodes):
         assert nmodes == 2
         self.nmodes = nmodes
-        self.num_latent = None
-        self.shape = None
-
         self.steps = []
 
     def addStep(self, step):
         self.steps.append(step)
 
-        if self.num_latent is None:
-            self.num_latent = step.num_latent
-        else:
-            assert self.num_latent == step.num_latent
+    def num_latent(self):
+        return self.steps[0].num_latent()
 
-        if self.shape is None:
-            self.shape = step.shape
-        else:
-            assert self.shape == step.shape
-    
+    def data_shape(self):
+        return self.steps[0].data_shape()
+
+    def beta_shape(self):
+        return self.steps[0].beta_shape()
+
     def predict_all(self):
         return np.stack([ step.predict_all() for step in self.steps ])
     
@@ -146,4 +158,4 @@ class PredictSession:
         return p
         
     def __str__(self):
-        return "PredictSession with %d samples\n  Data shape = %s\n  Num latent: %d" % (len(self.steps), self.shape, self.num_latent)
+        return "PredictSession with %d samples\n  Data shape = %s\n  Beta shape = %s\n  Num latent = %d" % (len(self.steps), self.data_shape(), self.beta_shape(), self.num_latent())
