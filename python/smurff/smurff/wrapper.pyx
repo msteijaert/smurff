@@ -238,9 +238,6 @@ cdef NoiseConfig prepare_noise_config(py_noise_config):
 cdef prepare_result_item(ResultItem item):
     return Prediction(tuple(item.coords.as_vector()), item.val, item.pred_1sample, item.pred_avg, item.var)
 
-class StepItem:
-    pass
-
 cdef class TrainSession:
     cdef shared_ptr[ISession] ptr;
     cdef Config config
@@ -250,6 +247,9 @@ cdef class TrainSession:
     cdef readonly int verbose
     cdef vector[string] prior_types
 
+    #
+    # construction functions
+    #
     def __init__(self,
         priors           = [ "normal", "normal" ],
         num_latent       = NUM_LATENT_DEFAULT_VALUE,
@@ -302,41 +302,27 @@ cdef class TrainSession:
         self.noise_config = prepare_noise_config(noise)
         self.config.addAuxData(prepare_auxdata(ad, pos, is_scarce, self.noise_config))
 
+    cdef ISession* ptr_get(self) except *:
+        if (not self.ptr.get()):
+            raise ValueError("Session not initialized")
+        return self.ptr.get()
+
+    # 
+    # running functions
+    #
+
     def init(self):
         self.ptr = SessionFactory.create_py_session_from_config(self.config)
-        self.ptr.get().init()
+        self.ptr_get().init()
         if (self.verbose > 0):
             print(self)
         return self.getStatus()
 
-    def getStatus(self):
-        if self.ptr.get().getStatus():
-            self.status_item = self.ptr.get().getStatus()
-            status =  PyStatusItem(
-                self.status_item.get().phase,
-                self.status_item.get().iter,
-                self.status_item.get().phase_iter,
-                self.status_item.get().model_norms,
-                self.status_item.get().rmse_avg,
-                self.status_item.get().rmse_1sample,
-                self.status_item.get().train_rmse,
-                self.status_item.get().auc_1sample,
-                self.status_item.get().auc_avg,
-                self.status_item.get().elapsed_iter,
-                self.status_item.get().nnz_per_sec,
-                self.status_item.get().samples_per_sec)
-
-            if (self.verbose):
-                print(status)
-            
-            return status
-        else:
-            return None
 
     def step(self):
-        not_done = self.ptr.get().step()
+        not_done = self.ptr_get().step()
         
-        if self.ptr.get().interrupted():
+        if self.ptr_get().interrupted():
             raise KeyboardInterrupt
 
         if not_done:
@@ -351,9 +337,40 @@ cdef class TrainSession:
 
         return self.getTestPredictions()
 
-    def __str__(self):
-        return self.ptr.get().infoAsString().decode('UTF-8')
+    #
+    # get state
+    #
 
+    def __str__(self):
+        try:
+            return self.ptr_get().infoAsString().decode('UTF-8')
+        except ValueError:
+            return "Uninitialized SMURFF Train Session (call .init())"
+
+
+    def getStatus(self):
+        if self.ptr_get().getStatus():
+            self.status_item = self.ptr_get().getStatus()
+            status =  PyStatusItem(
+                self.status_item.get().phase,
+                self.status_item.get().iter,
+                self.status_item.get().phase_iter,
+                self.status_item.get().model_norms,
+                self.status_item.get().rmse_avg,
+                self.status_item.get().rmse_1sample,
+                self.status_item.get().train_rmse,
+                self.status_item.get().auc_1sample,
+                self.status_item.get().auc_avg,
+                self.status_item.get().elapsed_iter,
+                self.status_item.get().nnz_per_sec,
+                self.status_item.get().samples_per_sec)
+
+            if (self.verbose > 0):
+                print(status)
+            
+            return status
+        else:
+            return None
     def getConfig(self):
         config_filename = tempfile.mkstemp()[1]
         self.config.save(config_filename.encode('UTF-8'))
@@ -366,15 +383,15 @@ cdef class TrainSession:
         return ini_string
 
     def makePredictSession(self):
-        rf = self.ptr.get().getRootFile().get().getRootFileName()
+        rf = self.ptr_get().getRootFile().get().getRootFileName()
         return PredictSession.fromRootFile(rf)
 
     def getTestPredictions(self):
         """ Create Python list of Prediction from C++ vector of Predictions """
         py_items = []
 
-        if self.ptr.get().getResult():
-            cpp_items = self.ptr.get().getResult().get()
+        if self.ptr_get().getResult():
+            cpp_items = self.ptr_get().getResult().get()
             it = cpp_items.begin()
             while it != cpp_items.end():
                 py_items.append(prepare_result_item(deref(it)))
@@ -383,4 +400,4 @@ cdef class TrainSession:
         return py_items
     
     def getRmseAvg(self): 
-        return self.ptr.get().getRmseAvg()
+        return self.ptr_get().getRmseAvg()

@@ -79,7 +79,7 @@ public:
 
    std::shared_ptr<RootFile> getRootFile() const override
    {
-       THROWERROR_ASSERT(m_rootFile);
+       THROWERROR_ASSERT_MSG(m_rootFile, "No root file found. Did you save any models?");
        return m_rootFile;
    }
 

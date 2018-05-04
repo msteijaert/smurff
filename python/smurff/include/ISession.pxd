@@ -15,11 +15,11 @@ cdef extern from "<SmurffCpp/Sessions/ISession.h>" namespace "smurff":
         bool interrupted() except +
         void init() except +
 
-        shared_ptr[vector[ResultItem]] getResult()
-        shared_ptr[StatusItem] getStatus()
-        MatrixConfig getSample(int mode)
-        shared_ptr[RootFile] getRootFile()
+        shared_ptr[vector[ResultItem]] getResult() except +
+        shared_ptr[StatusItem] getStatus() except +
+        MatrixConfig getSample(int mode) except +
+        shared_ptr[RootFile] getRootFile() except +
 
         string infoAsString() 
 
-        double getRmseAvg()
+        double getRmseAvg() except +
