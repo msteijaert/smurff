@@ -165,7 +165,7 @@ const std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > >& Config::add
 
     // automagically update prior type 
     // normal(one) prior -> macau(one) prior
-    if (m_prior_types.size() > mode)
+    if ((int)m_prior_types.size() > mode)
     {
       PriorTypes &pt = m_prior_types[mode];
            if (pt == PriorTypes::normal) pt = PriorTypes::macau;
