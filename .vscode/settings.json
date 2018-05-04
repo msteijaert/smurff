@@ -9,6 +9,7 @@
         "vector": "cpp",
         "*.ipp": "cpp",
         "__functional_03": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "stdexcept": "cpp"
     },
 }
