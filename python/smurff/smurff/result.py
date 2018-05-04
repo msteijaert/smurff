@@ -16,6 +16,7 @@ class Prediction:
         self.val = val
         self.pred_1sample = pred_1sample
         self.pred_avg = pred_avg
+        self.pred_all = []
         self.var = var
 
     def average(self, pred):
@@ -29,6 +30,10 @@ class Prediction:
             self.pred_avg = (self.pred_avg + delta / (self.iter + 1))
             self.var = self.var + delta * (pred - self.pred_avg)
             self.pred_1sample = pred
+    
+    def add_sample(self, pred):
+        self.average(pred)
+        self.pred_all.append(pred)
             
     def __str__(self):
         return "%s: %.2f | 1sample: %.2f | avg: %.2f | var: %.2f" % (self.coords, self.val, self.pred_1sample, self.pred_avg, self.var)

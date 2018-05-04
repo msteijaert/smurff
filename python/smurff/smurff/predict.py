@@ -86,9 +86,6 @@ class TrainStep:
     def predict_one(self, coords):
         return np.dot(self.Us[0][:,coords[0]], self.Us[1][:,coords[1]])
 
-    def average(self, pred_item):
-        pred_item.average(self.predict_one(pred_item.coords))
-
     def predict_all(self):
         return np.tensordot(self.Us[0],self.Us[1],axes=(0,0))
 
@@ -134,11 +131,19 @@ class PredictSession:
     
     def predict_some(self, test_matrix):
         predictions = Prediction.fromTestMatrix(test_matrix)
+
         for s in self.steps:
             for p in predictions:
-                s.average(p)
+                p.add_sample(s.predict_one(p.coords))
 
         return predictions
 
+    def predict_one(self, coords, value = float("nan")):
+        p = Prediction(coords, value)
+        for s in self.steps:
+            p.add_sample(s.predict_one(p.coords))
+
+        return p
+        
     def __str__(self):
-        return "PredictSession with %d models\n  Data shape = %s\n  Num latent: %d" % (len(self.steps), self.shape, self.num_latent)
+        return "PredictSession with %d samples\n  Data shape = %s\n  Num latent: %d" % (len(self.steps), self.shape, self.num_latent)

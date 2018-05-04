@@ -42,11 +42,19 @@ class TestNoiseModels(unittest.TestCase):
         p1 = sorted(p1)
         p2 = sorted(p2)
 
+        p3 = predict_session.predict_one(p1[0].coords, p1[0].val)
+
         self.assertEqual(len(p1), len(p2))
+
         self.assertEqual(p1[0].coords, p2[0].coords)
         self.assertAlmostEqual(p1[0].val, p2[0].val, places = 2)
         self.assertAlmostEqual(p1[0].pred_1sample, p2[0].pred_1sample, places = 2)
         self.assertAlmostEqual(p1[0].pred_avg, p2[0].pred_avg, places = 2)
+
+        self.assertEqual(p1[0].coords, p3.coords)
+        self.assertAlmostEqual(p1[0].val, p3.val, places = 2)
+        self.assertAlmostEqual(p1[0].pred_1sample, p3.pred_1sample, places = 2)
+        self.assertAlmostEqual(p1[0].pred_avg, p3.pred_avg, places = 2)
 
         p1_rmse_avg = smurff.calc_rmse(p1)
         p2_rmse_avg = smurff.calc_rmse(p2)
