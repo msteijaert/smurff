@@ -34,8 +34,6 @@ class TestNoiseModels(unittest.TestCase):
         train_session = self.run_train_session()
         predict_session = train_session.makePredictSession()
 
-        predict_session.predict_all()
-
         p1 = train_session.getTestPredictions()
         p2 = predict_session.predict_some(self.Ytest)
 
@@ -43,6 +41,7 @@ class TestNoiseModels(unittest.TestCase):
         p2 = sorted(p2)
 
         p3 = predict_session.predict_one(p1[0].coords, p1[0].val)
+        p4 = predict_session.predict_all()
 
         self.assertEqual(len(p1), len(p2))
 
@@ -56,11 +55,15 @@ class TestNoiseModels(unittest.TestCase):
         self.assertAlmostEqual(p1[0].pred_1sample, p3.pred_1sample, places = 2)
         self.assertAlmostEqual(p1[0].pred_avg, p3.pred_avg, places = 2)
 
+        ecoords = (Ellipsis,) + p2[0].coords
+        [ self.assertAlmostEqual(*p, places=2) for p in zip(p2[0].pred_all, p4[ecoords]) ]
+
         p1_rmse_avg = smurff.calc_rmse(p1)
         p2_rmse_avg = smurff.calc_rmse(p2)
 
         self.assertAlmostEqual(train_session.getRmseAvg(), p2_rmse_avg, places = 2)
         self.assertAlmostEqual(train_session.getRmseAvg(), p1_rmse_avg, places = 2)
+
 
 if __name__ == '__main__':
     unittest.main()
