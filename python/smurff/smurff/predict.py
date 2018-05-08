@@ -24,8 +24,8 @@ def read_string(cp,str):
     try:
         return cp.read_string(str)
     except AttributeError:
-        import StringIO
-        return cp.readfp(StringIO.StringIO(str))
+        from io import StringIO
+        return cp.readfp(StringIO(str))
 
 def read_file(cp, file_name):
     with open(file_name) as f:
@@ -53,57 +53,82 @@ class HeadlessConfigParser:
     def items(self):
         return self.cp.items("top-level")
 
-
-class TrainStep:
+class Sample:
     @classmethod
     def fromStepFile(cls, file_name, iter):
         cp = HeadlessConfigParser(file_name)
         nmodes = int(cp["num_models"])
-        step = cls(nmodes, iter)
-        step.predictions = pd.read_csv(cp["pred"], sep=";")
+        sample = cls(nmodes, iter)
+        sample.predictions = pd.read_csv(cp["pred"], sep=";")
 
         # latent matrices
-        for i in range(step.nmodes):
+        for i in range(sample.nmodes):
             file_name = cp["model_" + str(i)]
-            step.addU(mio.read_matrix(file_name))
+            sample.add_latent(mio.read_matrix(file_name))
 
         # link matrices (beta)
-        for i in range(step.nmodes):
+        for i in range(sample.nmodes):
             file_name = cp["prior_" + str(i)]
             try:
-                step.add_beta(mio.read_matrix(file_name))
+                sample.add_beta(mio.read_matrix(file_name))
             except FileNotFoundError:
-                step.add_beta(np.ndarray((0, 0)))
+                sample.add_beta(np.ndarray((0, 0)))
     
-        return step
+        return sample
 
     def __init__(self, nmodes, iter):
         assert nmodes == 2
         self.nmodes = nmodes
         self.iter = iter
-        self.Us = []
+        self.latents = []
         self.betas = []
+
+    def check(self):
+        for l,b in zip(self.latents, self.betas):
+            assert l.shape[0] == self.num_latent()
+            assert b.shape[0] == 0 or b.shape[0] == l.shape[1]
 
     def add_beta(self, b):
         self.betas.append(b)
+        self.check()
 
-    def addU(self, U):
-        self.Us.append(U)
+    def add_latent(self, U):
+        self.latents.append(U)
+        self.check()
 
     def num_latent(self):
-       return self.Us[0].shape[0]
+       return self.latents[0].shape[0]
 
     def data_shape(self):
-       return [ u.shape[1] for u in self.Us ]
+       return [ u.shape[1] for u in self.latents ]
 
     def beta_shape(self):
        return [ b.shape[1] for b in self.betas ]
 
     def predict_one(self, coords):
-        return np.dot(self.Us[0][:,coords[0]], self.Us[1][:,coords[1]])
+        # extract latent vector for each coord
+        # we want to call: einsum(U[:,coords[0]], [0], U[:,coords[1]], [0], ...)
+        operands = []
+        for U,c in zip(self.latents, coords):
+            operands += [ U[:,c], [0] ]
+        return np.einsum(*operands)
 
     def predict_all(self):
-        return np.tensordot(self.Us[0],self.Us[1],axes=(0,0))
+        # we want to call: einsum(U[0], [0, 0], U[1], [0, 1], U[2], [0, 2], ...)
+        operands = []
+        for c,l in enumerate(self.latents):
+            operands += [l, [0,c+1]]
+        return np.einsum(*operands)
+
+    def predict_side(self, mode, side_info):
+        ## predict latent vector from side_info 
+        uhat = side_info.dot(self.betas[mode].transpose())
+        # OTHER modes
+        other_modes = list(range(self.nmodes)).remove(mode)
+        ## use predicted latent vector to predict activities across columns
+        for m in other_modes:
+            uhat = uhat.dot(self.latents[m])
+        return uhat
 
 class PredictSession:
     @classmethod
@@ -115,7 +140,7 @@ class PredictSession:
         for step_name, step_file in cp.items():
             if (step_name.startswith("sample_step")):
                 iter = int(step_name[len("sample_step_"):])
-                session.addStep(TrainStep.fromStepFile(step_file, iter))
+                session.addStep(Sample.fromStepFile(step_file, iter))
 
         assert len(session.steps) > 0
 
@@ -126,8 +151,8 @@ class PredictSession:
         self.nmodes = nmodes
         self.steps = []
 
-    def addStep(self, step):
-        self.steps.append(step)
+    def addStep(self, sample):
+        self.steps.append(sample)
 
     def num_latent(self):
         return self.steps[0].num_latent()
@@ -139,7 +164,7 @@ class PredictSession:
         return self.steps[0].beta_shape()
 
     def predict_all(self):
-        return np.stack([ step.predict_all() for step in self.steps ])
+        return np.stack([ sample.predict_all() for sample in self.steps ])
     
     def predict_some(self, test_matrix):
         predictions = Prediction.fromTestMatrix(test_matrix)
@@ -158,4 +183,5 @@ class PredictSession:
         return p
         
     def __str__(self):
-        return "PredictSession with %d samples\n  Data shape = %s\n  Beta shape = %s\n  Num latent = %d" % (len(self.steps), self.data_shape(), self.beta_shape(), self.num_latent())
+        dat = (len(self.steps), self.data_shape(), self.beta_shape(), self.num_latent())
+        return "PredictSession with %d samples\n  Data shape = %s\n  Beta shape = %s\n  Num latent = %d" % dat
