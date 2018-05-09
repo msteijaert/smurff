@@ -81,12 +81,13 @@ class Sample:
         self.nmodes = nmodes
         self.iter = iter
         self.latents = []
+        self.latent_means = []
         self.betas = []
 
     def check(self):
         for l,b in zip(self.latents, self.betas):
             assert l.shape[0] == self.num_latent()
-            assert b.shape[0] == 0 or b.shape[0] == l.shape[1]
+            assert b.shape[0] == 0 or b.shape[0] == self.num_latent()
 
     def add_beta(self, b):
         self.betas.append(b)
@@ -94,6 +95,7 @@ class Sample:
 
     def add_latent(self, U):
         self.latents.append(U)
+        self.latent_means.append(np.mean(U, axis=1))
         self.check()
 
     def num_latent(self):
@@ -109,18 +111,18 @@ class Sample:
         # for one prediction: einsum(U[:,coords[0]], [0], U[:,coords[1]], [0], ...)
         # for all predictions: einsum(U[0], [0, 0], U[1], [0, 1], U[2], [0, 2], ...)
 
-        cs = coords_or_sideinfo if coords_or_sideinfo else [None] * self.nmodes 
+        cs = coords_or_sideinfo if coords_or_sideinfo is not None else [None] * self.nmodes 
 
         operands = []
-        for U,c,m in zip(self.latents, cs, range(self.nmodes)):
+        for U,Umean,c,m in zip(self.latents, self.latent_means, cs, range(self.nmodes)):
             # predict all in this dimension
             if c is None:
                 operands += [U, [0,m+1]]
             else:
                 # if side_info was specified for this dimension, we predict for this side_info
-                try: # try to compute c.dot(..)
+                try: # try to compute sideinfo * beta using dot
                     ## compute latent vector from side_info 
-                    uhat = c.dot(self.betas[m].transpose())
+                    uhat = c.dot(self.betas[m].transpose()) + Umean
                     operands += [ uhat, [0] ]
                 except AttributeError: # assume it is a coord
                     # if coords was specified for this dimension, we predict for this coord
