@@ -105,30 +105,28 @@ class Sample:
     def beta_shape(self):
        return [ b.shape[1] for b in self.betas ]
 
-    def predict_one(self, coords):
-        # extract latent vector for each coord
-        # we want to call: einsum(U[:,coords[0]], [0], U[:,coords[1]], [0], ...)
-        operands = []
-        for U,c in zip(self.latents, coords):
-            operands += [ U[:,c], [0] ]
-        return np.einsum(*operands)
+    def predict(self, coords_or_sideinfo = None):
+        # for one prediction: einsum(U[:,coords[0]], [0], U[:,coords[1]], [0], ...)
+        # for all predictions: einsum(U[0], [0, 0], U[1], [0, 1], U[2], [0, 2], ...)
 
-    def predict_all(self):
-        # we want to call: einsum(U[0], [0, 0], U[1], [0, 1], U[2], [0, 2], ...)
-        operands = []
-        for c,l in enumerate(self.latents):
-            operands += [l, [0,c+1]]
-        return np.einsum(*operands)
+        cs = coords_or_sideinfo if coords_or_sideinfo else [None] * self.nmodes 
 
-    def predict_side(self, mode, side_info):
-        ## predict latent vector from side_info 
-        uhat = side_info.dot(self.betas[mode].transpose())
-        # OTHER modes
-        other_modes = list(range(self.nmodes)).remove(mode)
-        ## use predicted latent vector to predict activities across columns
-        for m in other_modes:
-            uhat = uhat.dot(self.latents[m])
-        return uhat
+        operands = []
+        for U,c,m in zip(self.latents, cs, range(self.nmodes)):
+            # predict all in this dimension
+            if c is None:
+                operands += [U, [0,m+1]]
+            else:
+                # if side_info was specified for this dimension, we predict for this side_info
+                try: # try to compute c.dot(..)
+                    ## compute latent vector from side_info 
+                    uhat = c.dot(self.betas[m].transpose())
+                    operands += [ uhat, [0] ]
+                except AttributeError: # assume it is a coord
+                    # if coords was specified for this dimension, we predict for this coord
+                    operands += [ U[:,c], [0] ]
+
+        return np.einsum(*operands)
 
 class PredictSession:
     @classmethod
@@ -163,22 +161,25 @@ class PredictSession:
     def beta_shape(self):
         return self.steps[0].beta_shape()
 
+    def predict(self, coords_or_sideinfo = None):
+        return np.stack([ sample.predict(coords_or_sideinfo) for sample in self.steps ])
+
     def predict_all(self):
-        return np.stack([ sample.predict_all() for sample in self.steps ])
+        return self.predict()
     
     def predict_some(self, test_matrix):
         predictions = Prediction.fromTestMatrix(test_matrix)
 
         for s in self.steps:
             for p in predictions:
-                p.add_sample(s.predict_one(p.coords))
+                p.add_sample(s.predict(p.coords))
 
         return predictions
 
     def predict_one(self, coords, value = float("nan")):
         p = Prediction(coords, value)
         for s in self.steps:
-            p.add_sample(s.predict_one(p.coords))
+            p.add_sample(s.predict(p.coords))
 
         return p
         
