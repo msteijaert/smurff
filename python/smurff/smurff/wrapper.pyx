@@ -294,7 +294,7 @@ cdef class TrainSession:
         if Ytest is not None:
             self.config.setTest(test)
 
-    def addSideInfo(self, mode, Y, noise = PyNoiseConfig(), tol = 1e-6, direct = False):
+    def addSideInfo(self, mode, Y, noise = PyNoiseConfig(), tol = 1e-6, direct = True):
         self.noise_config = prepare_noise_config(noise)
         self.config.addSideInfoConfig(mode, prepare_sideinfo(Y, self.noise_config, tol, direct))
 
