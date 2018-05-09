@@ -23,3 +23,5 @@ Contents
    what_is_smurff.rst
    getting_started.rst
    INSTALL.rst
+
+   saving_models.rst

@@ -155,11 +155,7 @@ public:
 
    const std::vector<std::shared_ptr<SideInfoConfig> >& getSideInfoConfigs(int mode) const;
 
-   const std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > >& addSideInfoConfig(int mode, std::shared_ptr<SideInfoConfig> c)
-   {
-      m_sideInfoConfigs[mode].push_back(c);
-      return m_sideInfoConfigs;
-   }
+   const std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > >& addSideInfoConfig(int mode, std::shared_ptr<SideInfoConfig> c);
 
    bool hasSideInfo(int mode) const
    {

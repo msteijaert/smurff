@@ -334,9 +334,6 @@ endif()
 # tests
 
 add_subdirectory (../Tests/cmake tests/Tests)
-add_subdirectory (../BenchMvnormal/cmake tests/BenchMvnormal)
-add_subdirectory (../BenchNrandn/cmake tests/BenchNrandn)
-add_subdirectory (../BenchWishart/cmake tests/BenchWishart)
 
 # python
 

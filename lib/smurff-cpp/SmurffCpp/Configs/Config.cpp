@@ -120,7 +120,7 @@ int Config::NUM_LATENT_DEFAULT_VALUE = 96;
 int Config::NUM_THREADS_DEFAULT_VALUE = 0; // as many as you want
 ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
 const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "save";
-const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".csv";
+const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".ddm";
 int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
 int Config::CHECKPOINT_FREQ_DEFAULT_VALUE = 0;
 int Config::VERBOSE_DEFAULT_VALUE = 1;
@@ -157,6 +157,22 @@ const std::vector<std::shared_ptr<SideInfoConfig> >& Config::getSideInfoConfigs(
   auto iter = m_sideInfoConfigs.find(mode);
   THROWERROR_ASSERT(iter != m_sideInfoConfigs.end());
   return iter->second;
+}
+
+const std::map<int, std::vector<std::shared_ptr<SideInfoConfig> > >& Config::addSideInfoConfig(int mode, std::shared_ptr<SideInfoConfig> c)
+{
+    m_sideInfoConfigs[mode].push_back(c);
+
+    // automagically update prior type 
+    // normal(one) prior -> macau(one) prior
+    if ((int)m_prior_types.size() > mode)
+    {
+      PriorTypes &pt = m_prior_types[mode];
+           if (pt == PriorTypes::normal) pt = PriorTypes::macau;
+      else if (pt == PriorTypes::normalone) pt = PriorTypes::macauone;
+    }
+
+    return m_sideInfoConfigs;
 }
 
 bool Config::validate() const

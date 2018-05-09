@@ -95,7 +95,6 @@ copyright = u'2016-2017, Jaak Simm -- 2016-2018, imec'
 # built documents.
 #
 
-
 try:
     from subprocess import check_output
     release = check_output(['git', 'describe', '--tags', '--always'])

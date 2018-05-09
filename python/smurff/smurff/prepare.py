@@ -15,7 +15,7 @@ def make_train_test(Y, ntest):
        returns Ytrain, Ytest (type coo_matrix)
     """
     if type(Y) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
-        raise TypeError("Unsupported Y type: %s" + type(Y))
+        raise TypeError("Unsupported Y type: " + str(type(Y)))
     if not isinstance(ntest, numbers.Real) or ntest < 0:
         raise TypeError("ntest has to be a non-negative number (number or ratio of test samples).")
     Y = Y.tocoo(copy = False)
