@@ -137,11 +137,47 @@ def scale(m, mode, computed_std = None):
         elif (mode == "rows"):   m = m / np.broadcast_to(np.expand_dims(computed_std, 1), m.shape)
         elif (mode == "global"): m = m / computed_std
         elif (mode == "none"):   pass
-        elif (mode != "none"):
+        else:
             raise ValueError("Unknown std mode: %s" % ( mode ) )
     return m
 
 def center_and_scale(m, mode, with_mean=True, with_std=True):
+
+    """Center and/or scale the matrix m to the mean and/or standard deviation.
+
+    Parameters
+    ----------
+    m : {array-like, sparse matrix}
+        The data to center and scale.
+    mode : str 
+        "rows": center/scale each row indepently
+        "cols": center/scale each column idependently
+        "global": center/scale using global meand and/or standard deviation/
+    with_mean : boolean, True by default
+        If True, center the data before scaling.
+    with_std : boolean, True by default
+        If True, scale the data to unit variance (or equivalently,
+        unit standard deviation).
+
+    Returns
+    -------
+    m : array-like
+        Transformed array.
+
+    mean : array-like or double or None
+        Computed mean depending on mode
+        
+    std : array-like or double or None
+        Computed standard deviation depending on mode
+    """
+
+    Notes
+    -----
+    Also supports scaling of sparse matrices. This makes sense only when the
+    matrix is scarce, i.e. when the zero-elements represent unknown values.
+    """
+
+
     mean_m = None
     std_m = None
 
