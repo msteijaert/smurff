@@ -12,7 +12,9 @@
                 "/usr/local/Cellar/eigen/3.3.4/include/eigen3",
                 "${workspaceRoot}/lib/smurff-cpp"
             ],
-            "defines": [ "HAVE_BOOST"],
+            "defines": [
+                "HAVE_BOOST"
+            ],
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
@@ -50,7 +52,10 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
         },
         {
             "name": "Win32",
@@ -71,8 +76,11 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
         }
     ],
-    "version": 3
+    "version": 4
 }
