@@ -28,13 +28,14 @@ What is SMURFF
 
 SMURFF is a highly optimized and parallelized framework for Bayesian
 Matrix and Tensors Factorization. SMURFF supports multiple matrix
-factorization methods: 
- * `BPMF <https://www.cs.toronto.edu/~amnih/papers/bpmf.pdf>`__, the basic
-   version; 
- * `Macau <https://arxiv.org/abs/1509.04610>`__, adding support
-   for high-dimensional side information to the factorization; 
- * `GFA <https://arxiv.org/pdf/1411.5799.pdf>`__, doing Group Factor
-   Anaysis.
+factorization methods:
+
+* `BPMF <https://www.cs.toronto.edu/~amnih/papers/bpmf.pdf>`__, the basic
+  version;
+* `Macau <https://arxiv.org/abs/1509.04610>`__, adding support
+  for high-dimensional side information to the factorization;
+* `GFA <https://arxiv.org/pdf/1411.5799.pdf>`__, doing Group Factor
+  Anaysis.
 
 Macau and BPMF can also perform **tensor** factorization.
 
@@ -53,7 +54,7 @@ Using `conda <http://anaconda.org>`__:
 
 .. code:: bash
 
-    conda install -c vanderaa smurff 
+    conda install -c vanderaa smurff
 
 Compile from source code: see `INSTALL.rst <docs/INSTALL.rst>`__
 
