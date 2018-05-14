@@ -123,6 +123,7 @@ class Sample:
                 try: # try to compute sideinfo * beta using dot
                     ## compute latent vector from side_info 
                     uhat = c.dot(self.betas[m].transpose()) + Umean
+                    uhat = np.squeeze(uhat)
                     operands += [ uhat, [0] ]
                 except AttributeError: # assume it is a coord
                     # if coords was specified for this dimension, we predict for this coord
@@ -140,31 +141,31 @@ class PredictSession:
         for step_name, step_file in cp.items():
             if (step_name.startswith("sample_step")):
                 iter = int(step_name[len("sample_step_"):])
-                session.addStep(Sample.fromStepFile(step_file, iter))
+                session.add_sample(Sample.fromStepFile(step_file, iter))
 
-        assert len(session.steps) > 0
+        assert len(session.samples) > 0
 
         return session
 
     def __init__(self, nmodes):
         assert nmodes == 2
         self.nmodes = nmodes
-        self.steps = []
+        self.samples = []
 
-    def addStep(self, sample):
-        self.steps.append(sample)
+    def add_sample(self, sample):
+        self.samples.append(sample)
 
     def num_latent(self):
-        return self.steps[0].num_latent()
+        return self.samples[0].num_latent()
 
     def data_shape(self):
-        return self.steps[0].data_shape()
+        return self.samples[0].data_shape()
 
     def beta_shape(self):
-        return self.steps[0].beta_shape()
+        return self.samples[0].beta_shape()
 
     def predict(self, coords_or_sideinfo = None):
-        return np.stack([ sample.predict(coords_or_sideinfo) for sample in self.steps ])
+        return np.stack([ sample.predict(coords_or_sideinfo) for sample in self.samples ])
 
     def predict_all(self):
         return self.predict()
@@ -172,7 +173,7 @@ class PredictSession:
     def predict_some(self, test_matrix):
         predictions = Prediction.fromTestMatrix(test_matrix)
 
-        for s in self.steps:
+        for s in self.samples:
             for p in predictions:
                 p.add_sample(s.predict(p.coords))
 
@@ -180,11 +181,11 @@ class PredictSession:
 
     def predict_one(self, coords, value = float("nan")):
         p = Prediction(coords, value)
-        for s in self.steps:
+        for s in self.samples:
             p.add_sample(s.predict(p.coords))
 
         return p
         
     def __str__(self):
-        dat = (len(self.steps), self.data_shape(), self.beta_shape(), self.num_latent())
+        dat = (len(self.samples), self.data_shape(), self.beta_shape(), self.num_latent())
         return "PredictSession with %d samples\n  Data shape = %s\n  Beta shape = %s\n  Num latent = %d" % dat
