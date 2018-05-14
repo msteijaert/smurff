@@ -56,7 +56,7 @@ def remove_nan(Y):
     idx = np.where(np.isnan(Y.data) == False)[0]
     return sp.sparse.coo_matrix( (Y.data[idx], (Y.row[idx], Y.col[idx])), shape = Y.shape )
 
-cdef MatrixConfig* prepare_sparse_matrix(X, NoiseConfig noise_config, is_scarse) except +:
+cdef MatrixConfig* prepare_sparse_matrix(X, NoiseConfig noise_config, is_scarce) except +:
     if not isinstance(X, SPARSE_MATRIX_TYPES):
         raise ValueError("Matrix must be either coo, csr or csc (from scipy.sparse)")
 
@@ -87,7 +87,7 @@ cdef MatrixConfig* prepare_sparse_matrix(X, NoiseConfig noise_config, is_scarse)
     cdef shared_ptr[vector[uint32_t]] cols_vector_shared_ptr = shared_ptr[vector[uint32_t]](cols_vector_ptr)
     cdef shared_ptr[vector[double]] vals_vector_shared_ptr = shared_ptr[vector[double]](vals_vector_ptr)
 
-    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, noise_config, is_scarse)
+    cdef MatrixConfig* matrix_config_ptr = new MatrixConfig(<uint64_t>(X.shape[0]), <uint64_t>(X.shape[1]), rows_vector_shared_ptr, cols_vector_shared_ptr, vals_vector_shared_ptr, noise_config, is_scarce)
     return matrix_config_ptr
 
 cdef MatrixConfig* prepare_dense_matrix(X, NoiseConfig noise_config) except +:
@@ -170,7 +170,7 @@ cdef shared_ptr[TensorConfig] prepare_auxdata(data, pos, is_scarce, NoiseConfig 
 
     return shared_ptr[TensorConfig](aux_data_config)
 
-cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test(train, test, NoiseConfig noise_config) except +:
+cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test(train, test, NoiseConfig noise_config, bool is_scarce) except +:
 
     # Check train data type
     if (not isinstance(train, ALL_TYPES)):
@@ -200,11 +200,11 @@ cdef (shared_ptr[TensorConfig], shared_ptr[TensorConfig]) prepare_train_and_test
     if isinstance(train, DENSE_MATRIX_TYPES) and len(train.shape) == 2:
         train_config = prepare_dense_matrix(train, noise_config)
     elif isinstance(train, SPARSE_MATRIX_TYPES):
-        train_config = prepare_sparse_matrix(train, noise_config, True)
+        train_config = prepare_sparse_matrix(train, noise_config, is_scarce)
     elif isinstance(train, DENSE_TENSOR_TYPES) and len(train.shape) > 2:
         train_config = prepare_dense_tensor(train, noise_config)
     elif isinstance(train, SPARSE_TENSOR_TYPES):
-        train_config = prepare_sparse_tensor(train, noise_config, True)
+        train_config = prepare_sparse_tensor(train, noise_config, is_scarce)
     else:
         error_msg = "Unsupported train data type or shape: {}".format(type(train))
         raise ValueError(error_msg)
@@ -271,6 +271,11 @@ cdef class TrainSession:
 
         if save_prefix and not os.path.isabs(save_prefix):
             save_prefix = os.path.join(os.getcwd(), save_prefix)
+        
+        if save_prefix:
+            dir = os.path.dirname(save_prefix)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
 
         prior_types = [ p.encode('UTF-8') for p in priors ]
         self.config.setPriorTypes(prior_types)
@@ -286,9 +291,9 @@ cdef class TrainSession:
         if save_freq:      self.config.setSaveFreq(save_freq)
         if csv_status:     self.config.setCsvStatus(csv_status.encode('UTF-8'))
 
-    def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig()):
+    def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig(), is_scarce = True):
         self.noise_config = prepare_noise_config(noise)
-        train, test = prepare_train_and_test(Y, Ytest, self.noise_config)
+        train, test = prepare_train_and_test(Y, Ytest, self.noise_config, is_scarce)
         self.config.setTrain(train)
 
         if Ytest is not None:
