@@ -155,7 +155,7 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
    os << indent << " SideInfo: ";
    Features->print(os);
    os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << std::endl;
-   os << indent << " Tol: " << std::scientific << tol << std::endl;
+   os << indent << " Tol: " << std::scientific << tol << std::fixed << std::endl;
    os << indent << " BetaPrecision: " << beta_precision << std::endl;
    return os;
 }

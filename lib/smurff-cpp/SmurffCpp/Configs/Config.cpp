@@ -312,7 +312,7 @@ bool Config::validate() const
 
    if (save_extensions.find(m_save_extension) == save_extensions.end())
    {
-      THROWERROR("Unknown output extension: " + m_save_extension);
+      THROWERROR("Unknown output extension: " + m_save_extension + " (expected \".csv\" or \".ddm\")");
    }
 
    m_train->getNoiseConfig().validate();
