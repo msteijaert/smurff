@@ -169,7 +169,6 @@ def center_and_scale(m, mode, with_mean=True, with_std=True):
         
     std : array-like or double or None
         Computed standard deviation depending on mode
-    """
 
     Notes
     -----
