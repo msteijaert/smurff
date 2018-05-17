@@ -82,3 +82,10 @@ def download():
 
 if __name__ == "__main__":
     download()
+
+# shapes:
+# side_c2v.ddm : (46738, 469)
+# side_ecfp6_counts_var005.sdm : (46738, 13132) nnz: 1663083 (0.27%)
+# side_ecfp6_folded_dense.ddm : (46738, 1024)
+# test.sdm : (46738, 114) 21740
+# train.sdm : (46738, 114) 37640
