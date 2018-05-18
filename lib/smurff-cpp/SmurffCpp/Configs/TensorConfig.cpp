@@ -325,6 +325,28 @@ std::uint64_t TensorConfig::getNModes() const
    return m_nmodes;
 }
 
+std::pair<PVec<>, double> TensorConfig::get(std::uint64_t pos) const
+{
+    std::vector<int> coords;
+    for(int j=0; j<getNModes(); ++j) 
+    {
+        coords.push_back(getColumns()[pos]);
+        pos += getNNZ();
+    }
+
+    return std::make_pair(PVec<>(coords), getValues()[pos]);
+}
+
+void TensorConfig::set(std::uint64_t pos, PVec<> coords, double value)
+{
+    (*m_values)[pos] = value;
+    for(int j=0; j<getNModes(); ++j) 
+    {
+        (*m_columns)[pos] = coords[j];
+        pos += getNNZ();
+    }
+}
+
 const std::vector<std::uint64_t>& TensorConfig::getDims() const
 {
    return *m_dims;

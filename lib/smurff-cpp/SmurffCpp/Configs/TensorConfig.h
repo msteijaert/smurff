@@ -94,6 +94,9 @@ namespace smurff
       std::uint64_t getNModes() const;
       std::uint64_t getNNZ() const;
 
+      std::pair<PVec<>, double> get(std::uint64_t) const;
+      void set(std::uint64_t, PVec<>, double);
+
       const std::vector<std::uint64_t>& getDims() const;
       const std::vector<std::uint32_t>& getColumns() const;
       const std::vector<double>& getValues() const;
