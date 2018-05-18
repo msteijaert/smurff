@@ -88,6 +88,43 @@ void Result::save(std::shared_ptr<const StepFile> sf) const
    savePredState(sf);
 }
 
+std::shared_ptr<TensorConfig> Result::toSparseTensor() const
+{
+      // tensor of 1 dimension higher than Ytest
+      // in the extra dimension we store val, pred_1sample, pred_avg and var
+      std::vector<std::uint64_t> dims = m_dims;
+      dims.push_back(ResultItem::size);
+
+      const std::uint64_t num_values =  getNNZ() * ResultItem::size;
+      const std::uint64_t num_coords =  num_values * getNModes();
+
+      std::vector<std::uint32_t> columns(num_coords);
+      std::vector<double>        values(num_values);
+
+      for (std::uint64_t i = 0; i<m_predictions->size(); ++i)
+      {
+            auto push = [&columns, &values, num_values, i](const PVec<> &coords, double value, int off) {
+                  std::uint64_t pos = (i * ResultItem::size) + off;
+                  values[pos] = value;
+
+                  for (auto c : coords.as_vector())
+                  {
+                        columns[pos] = c;
+                        pos += num_values;
+                  }
+                  columns[pos] = off;
+            };
+
+            const auto &item = (*m_predictions)[i];
+            push(item.coords, item.val, 0);
+            push(item.coords, item.pred_1sample, 1);
+            push(item.coords, item.pred_avg, 2);
+            push(item.coords, item.var, 3);
+      }
+
+      return std::make_shared<TensorConfig>(dims, columns, values, NoiseConfig(), true);
+}
+
 void Result::savePred(std::shared_ptr<const StepFile> sf) const
 {
    if (isEmpty())
@@ -339,4 +376,14 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
 bool Result::isEmpty() const
 {
    return !m_predictions || m_predictions->empty();
+}
+
+std::uint64_t Result::getNNZ() const
+{
+   return m_predictions->size();
+}
+
+std::uint64_t Result::getNModes() const
+{
+   return m_dims.size();
 }

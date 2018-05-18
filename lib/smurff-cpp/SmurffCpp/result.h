@@ -83,6 +83,8 @@ private:
    void restorePred(std::shared_ptr<const StepFile> sf);
    void restoreState(std::shared_ptr<const StepFile> sf);
 
+   std::shared_ptr<TensorConfig> toSparseTensor() const;
+
 private:
    void init();
 
@@ -101,6 +103,9 @@ public:
 
 public:
    bool isEmpty() const;
+
+   std::uint64_t getNModes() const;
+   std::uint64_t getNNZ() const;
 };
 
 };

@@ -12,6 +12,8 @@ struct ResultItem
    double pred_1sample;
    double pred_avg;
    double var;
+
+   static const int size = 4;
 };
 
 }
