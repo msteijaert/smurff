@@ -20,7 +20,6 @@
 //             << std::fixed << actualResultItem.pred_1sample << ", "
 //             << actualResultItem.pred_avg << ", "
 //             << actualResultItem.var << ", "
-//             << actualResultItem.stds
 //             << " }" << std::endl;
 // }
 //
@@ -292,7 +291,6 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
       REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample).epsilon(APPROX_EPSILON));
       REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg).epsilon(APPROX_EPSILON));
       REQUIRE(actualResultItem.var == Approx(expectedResultItem.var).epsilon(APPROX_EPSILON));
-      REQUIRE(actualResultItem.stds == Approx(expectedResultItem.stds).epsilon(APPROX_EPSILON));
    }
 }
 

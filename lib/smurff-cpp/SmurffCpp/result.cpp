@@ -110,7 +110,6 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
          << "," << to_string(it->pred_1sample)
          << "," << to_string(it->pred_avg)
          << "," << to_string(it->var)
-         << "," << to_string(it->stds)
          << std::endl;
    }
 
@@ -188,10 +187,9 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
       double pred_1sample = stod(tokens.at(nCoords + 1).c_str());
       double pred_avg = stod(tokens.at(nCoords + 2).c_str());
       double var = stod(tokens.at(nCoords + 3).c_str());
-      double stds = stod(tokens.at(nCoords + 4).c_str());
 
       //construct result item
-      m_predictions->push_back({ smurff::PVec<>(coords), val, pred_1sample, pred_avg, var, stds });
+      m_predictions->push_back({ smurff::PVec<>(coords), val, pred_1sample, pred_avg, var });
    }
 
    //just a sanity check, not sure if it is needed
@@ -273,8 +271,6 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
          t.var += delta * (pred - pred_avg);
 
-         const double inorm = 1.0 / sample_iter;
-         t.stds = std::sqrt(t.var * inorm);
          t.pred_avg = pred_avg;
          t.pred_1sample = pred;
          se_avg += std::pow(t.val - pred_avg, 2);
