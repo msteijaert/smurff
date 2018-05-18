@@ -10,3 +10,5 @@ dist
 *.egg-info
 *.so
 *.csv
+.vscode
+SMURFF.code-workspace
