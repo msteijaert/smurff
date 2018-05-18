@@ -84,6 +84,7 @@ private:
    void restoreState(std::shared_ptr<const StepFile> sf);
 
    std::shared_ptr<TensorConfig> toSparseTensor() const;
+   void fromSparseTensor(const std::shared_ptr<TensorConfig> &);
 
 private:
    void init();
