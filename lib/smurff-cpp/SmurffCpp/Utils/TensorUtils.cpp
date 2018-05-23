@@ -16,8 +16,7 @@ Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig&
       THROWERROR("Invalid number of dimensions. Tensor can not be converted to matrix.");
    }
 
-   const std::vector<double>& Yvalues = tensorConfig.getValues(); //eigen map can not take const values pointer. have to make copy
-   return Eigen::Map<const Eigen::MatrixXd>(Yvalues.data(), tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
+   return Eigen::Map<const Eigen::MatrixXd>(tensorConfig.getValues().data(), tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
 }
 
 Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(smurff::TensorConfig& tensorConfig)
