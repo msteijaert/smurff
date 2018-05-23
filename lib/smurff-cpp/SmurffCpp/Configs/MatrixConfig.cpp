@@ -50,17 +50,7 @@ MatrixConfig::MatrixConfig( std::uint64_t nrow
 
    m_dims->push_back(nrow);
    m_dims->push_back(ncol);
-   m_columns->resize(m_nnz * m_nmodes);
    m_values = values;
-
-   for (std::uint64_t row = 0; row < nrow; row++)
-   {
-      for (std::uint64_t col = 0; col < ncol; col++)
-      {
-         m_columns->operator[](nrow * col + row) = row;
-         m_columns->operator[](nrow * col + row + m_nnz) = col;
-      }
-   }
 }
 
 //
