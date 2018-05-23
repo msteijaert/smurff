@@ -1,3 +1,4 @@
+set (CYTHON_FLAGS "--directive" "embedsignature=True")
 
 add_cython_target(wrapper CXX)
 add_library(wrapper MODULE ${wrapper})

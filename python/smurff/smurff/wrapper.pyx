@@ -294,6 +294,9 @@ cdef class TrainSession:
         if csv_status:     self.config.setCsvStatus(csv_status.encode('UTF-8'))
 
     def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig(), is_scarce = True):
+        """ Adds a train and optionally a test matrix as input data to this TrainSession
+        
+        """
         self.noise_config = prepare_noise_config(noise)
         train, test = prepare_train_and_test(Y, Ytest, self.noise_config, is_scarce)
         self.config.setTrain(train)

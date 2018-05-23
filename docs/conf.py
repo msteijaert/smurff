@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+
+import sys
+import os
+
 #
 # SMURFF documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr 12 18:48:29 2016.
@@ -15,13 +19,13 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+# sys.path.insert(0, os.path.abspath('../python/smurff'))
 
 # Exclude build directory and Jupyter backup files:
 exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # Default language for syntax highlighting in reST and Markdown cells
-highlight_language = 'none'
+highlight_language = 'python3'
 
 # Don't add .txt suffix to source files (available for Sphinx >= 1.5):
 html_sourcelink_suffix = ''
@@ -72,6 +76,10 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',
+
 ]
 
 # Add any paths that contain templates here, relative to this directory.

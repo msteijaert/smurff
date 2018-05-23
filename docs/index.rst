@@ -29,3 +29,5 @@ Contents
    what_is_smurff.rst
    getting_started.rst
    INSTALL.rst
+   python_api.rst
+
