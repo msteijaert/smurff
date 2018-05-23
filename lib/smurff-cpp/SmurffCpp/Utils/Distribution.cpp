@@ -282,8 +282,7 @@ MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int nn)
    LLT<MatrixXd> chol(Lambda);
 
    MatrixXd r = MatrixXd::NullaryExpr(size, nn, std::cref(randn));
-   chol.matrixU().solveInPlace(r);
-   return r;
+   return chol.solve(r);
 }
 
 MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, const VectorXd & mean, int nn)
@@ -300,9 +299,7 @@ MatrixXd smurff::MvNormal_prec_omp(const MatrixXd & Lambda, int nn)
 
    MatrixXd r(size, nn);
    smurff::bmrandn(r);
-   // TODO: check if solveInPlace is parallelized:
-   chol.matrixU().solveInPlace(r);
-   return r;
+   return chol.solve(r);
 }
 
 // Draw nn samples from a size-dimensional normal distribution
