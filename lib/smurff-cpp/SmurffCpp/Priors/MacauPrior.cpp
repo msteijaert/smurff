@@ -39,7 +39,6 @@ void MacauPrior::init()
    if (use_FtF)
    {
       FtF.resize(Features->cols(), Features->cols());
-      K.resize(Features->cols(), Features->cols());
       Features->At_mul_A(FtF);
       FtF.diagonal().array() += beta_precision;
    }
@@ -182,16 +181,7 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 void MacauPrior::sample_beta_direct()
 {
     this->compute_Ft_y_omp(Ft_y);
-
-#if 0
-    K.triangularView<Eigen::Lower>() = FtF;
-    chol_decomp(K);
-    chol_solve_t(K, Ft_y);
-    std::swap(beta, Ft_y);
-#else
     beta = FtF.llt().solve(Ft_y.transpose()).transpose();
-#endif
-    
 }
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)

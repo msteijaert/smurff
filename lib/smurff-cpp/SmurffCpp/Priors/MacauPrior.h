@@ -21,7 +21,6 @@ class MacauPrior : public NormalPrior
 public:
    Eigen::MatrixXd Uhat;
    Eigen::MatrixXd FtF;       // F'F
-   Eigen::MatrixXd K;         // copy of FtF for cholesky
    Eigen::MatrixXd beta;      // link matrix
    Eigen::MatrixXd HyperU, HyperU2;
    Eigen::MatrixXd Ft_y;
