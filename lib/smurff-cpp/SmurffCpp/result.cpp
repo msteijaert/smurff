@@ -21,7 +21,6 @@
 #include <SmurffCpp/Utils/StringUtils.h>
 
 #include <SmurffCpp/IO/GenericIO.h>
-#include <SmurffCpp/IO/TensorIO.h>
 
 #define RMSE_AVG_TAG "rmse_avg"
 #define RMSE_1SAMPLE_TAG "rmse_1sample"
@@ -147,8 +146,6 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
    }
 
    predfile.close();
- 
-   smurff::tensor_io::write_tensor(fname_pred + ".sdt", toSparseTensor());
 }
 
 void Result::savePredState(std::shared_ptr<const StepFile> sf) const
@@ -175,36 +172,6 @@ void Result::restore(std::shared_ptr<const StepFile> sf)
 {
    restorePred(sf);
    restoreState(sf);
-}
-
-void Result::fromSparseTensor(const std::shared_ptr<TensorConfig> &tc)
-{
-      const auto &columns = tc->getColumns();
-      const auto &values = tc->getValues();
-      
-      assert(tc->getNNZ() % ResultItem::size == 0);
-      assert(ResultItem::size == 4);
-
-      for(std::uint64_t i = 0; i < tc->getNNZ(); i+=ResultItem::size)
-      {
-            std::vector<int> coords;
-            std::uint64_t pos = i;
-            
-            double val          = values[pos];
-            double pred_1sample = values[pos+1];
-            double pred_avg     = values[pos+2];
-            double var          = values[pos+3];
-
-            for(int j=0; j<tc->getNModes() - 1; ++j) 
-            {
-                  coords.push_back(columns[pos]);
-                  pos += tc->getNNZ();
-            }
-
-            assert(columns[pos] == 0);
-
-            m_predictions->push_back({smurff::PVec<>(coords), val, pred_1sample, pred_avg, var});
-      }
 }
 
 void Result::restorePred(std::shared_ptr<const StepFile> sf)
