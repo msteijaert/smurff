@@ -279,11 +279,18 @@ void Session::saveInternal(std::shared_ptr<StepFile> stepFile)
    {
       std::cout << "-- Saving model, predictions,... into '" << stepFile->getStepFileName() << "'." << std::endl;
    }
+   double start = tick();
 
    BaseSession::save(stepFile);
 
    //flush last item in a root file
    m_rootFile->flushLast();
+
+   double stop = tick();
+   if (m_config.getVerbose())
+   {
+      std::cout << "-- Done saving model. Took " << stop - start << " seconds." << std::endl;
+   }
 }
 
 bool Session::restore(int& iteration)
