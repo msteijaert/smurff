@@ -116,7 +116,7 @@ std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 std::string StepFile::getPredFileName() const
 {
    std::string prefix = getStepPrefix();
-   return prefix + "-predictions.sdt";
+   return prefix + "-predictions.csv";
 }
 
 std::string StepFile::getPredStateFileName() const

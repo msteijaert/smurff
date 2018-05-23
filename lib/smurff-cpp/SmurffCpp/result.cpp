@@ -91,9 +91,8 @@ std::shared_ptr<TensorConfig> Result::toSparseTensor() const
       std::vector<std::uint64_t> dims = m_dims;
       dims.push_back(ResultItem::size);
 
-      const std::uint64_t num_modes  =  getNModes() + 1;
       const std::uint64_t num_values =  getNNZ() * ResultItem::size;
-      const std::uint64_t num_coords =  num_values * num_modes;
+      const std::uint64_t num_coords =  num_values * getNModes();
 
       std::vector<std::uint32_t> columns(num_coords);
       std::vector<double>        values(num_values);
@@ -128,8 +127,28 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
       return;
 
    std::string fname_pred = sf->getPredFileName();
-   const auto &st = toSparseTensor();
-   smurff::tensor_io::write_tensor(fname_pred, st);
+   std::ofstream predfile;
+   predfile.open(fname_pred);
+   THROWERROR_ASSERT_MSG(predfile.is_open(), "Error opening file: " + fname_pred);
+
+   for (std::size_t d = 0; d < m_dims.size(); d++)
+      predfile << "coord" << d << ",";
+
+   predfile << "y,pred_1samp,pred_avg,var,std" << std::endl;
+
+   for (std::vector<ResultItem>::const_iterator it = m_predictions->begin(); it != m_predictions->end(); it++)
+   {
+      it->coords.save(predfile)
+         << "," << to_string(it->val)
+         << "," << to_string(it->pred_1sample)
+         << "," << to_string(it->pred_avg)
+         << "," << to_string(it->var)
+         << std::endl;
+   }
+
+   predfile.close();
+ 
+   smurff::tensor_io::write_tensor(fname_pred + ".sdt", toSparseTensor());
 }
 
 void Result::savePredState(std::shared_ptr<const StepFile> sf) const
@@ -190,16 +209,58 @@ void Result::fromSparseTensor(const std::shared_ptr<TensorConfig> &tc)
 
 void Result::restorePred(std::shared_ptr<const StepFile> sf)
 {
+   std::string fname_pred = sf->getPredFileName();
+
+   THROWERROR_FILE_NOT_EXIST(fname_pred);
+
    //since predictions were set in set method - clear them
    std::size_t oldSize = m_predictions->size();
    m_predictions->clear();
 
-   std::string fname_pred = sf->getPredFileName();
-   const auto &st = smurff::tensor_io::read_tensor(fname_pred, true);
-   fromSparseTensor(st);
+   //open file with predictions
+   std::ifstream predFile;
+   predFile.open(fname_pred);
+   THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
+
+   //parse header
+   std::string header;
+   getline(predFile, header);
+
+   std::vector<std::string> headerTokens;
+   smurff::split(header, headerTokens, ',');
+
+   //parse all lines
+   std::vector<std::string> tokens;
+   std::vector<int> coords;
+   std::string line;
+
+   while (getline(predFile, line))
+   {
+      //split line
+      smurff::split(line, tokens, ',');
+
+      //construct coordinates
+      coords.clear();
+
+      std::size_t nCoords = m_dims.size();
+
+      for (std::size_t c = 0; c < nCoords; c++)
+         coords.push_back(stoi(tokens[c].c_str()));
+
+      //parse other values
+      double val = stod(tokens.at(nCoords).c_str());
+      double pred_1sample = stod(tokens.at(nCoords + 1).c_str());
+      double pred_avg = stod(tokens.at(nCoords + 2).c_str());
+      double var = stod(tokens.at(nCoords + 3).c_str());
+
+      //construct result item
+      m_predictions->push_back({ smurff::PVec<>(coords), val, pred_1sample, pred_avg, var });
+   }
 
    //just a sanity check, not sure if it is needed
    THROWERROR_ASSERT_MSG(oldSize == m_predictions->size(), "Incorrect predictions size after restore");
+
+   predFile.close();
 }
 
 void Result::restoreState(std::shared_ptr<const StepFile> sf)
