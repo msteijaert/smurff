@@ -41,6 +41,7 @@ void MacauPrior::init()
       FtF.resize(Features->cols(), Features->cols());
       K.resize(Features->cols(), Features->cols());
       Features->At_mul_A(FtF);
+      FtF.diagonal().array() += beta_precision;
    }
 
    Uhat.resize(this->num_latent(), Features->rows());
@@ -62,7 +63,11 @@ void MacauPrior::update_prior()
    Features->compute_uhat(Uhat, beta);
 
    if (enable_beta_precision_sampling)
+   {
+      double old_beta = beta_precision;
       beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
+      FtF.diagonal().array() += beta_precision - old_beta;
+   }
 }
 
 const Eigen::VectorXd MacauPrior::getMu(int n) const
@@ -176,23 +181,17 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 // direct method
 void MacauPrior::sample_beta_direct()
 {
-   #pragma omp parallel
-   #pragma omp single nowait
-   {
-       #pragma omp task
-       this->compute_Ft_y_omp(Ft_y);
+    this->compute_Ft_y_omp(Ft_y);
 
-       #pragma omp task
-       {
-           K.triangularView<Eigen::Lower>() = FtF;
-           K.diagonal().array() += beta_precision;
-       }
-
-   }
-
-   chol_decomp(K);
-   chol_solve_t(K, Ft_y);
-   std::swap(beta, Ft_y);
+#if 0
+    K.triangularView<Eigen::Lower>() = FtF;
+    chol_decomp(K);
+    chol_solve_t(K, Ft_y);
+    std::swap(beta, Ft_y);
+#else
+    beta = FtF.llt().solve(Ft_y.transpose()).transpose();
+#endif
+    
 }
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
