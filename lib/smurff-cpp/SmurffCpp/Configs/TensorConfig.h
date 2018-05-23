@@ -101,9 +101,10 @@ namespace smurff
       const std::vector<std::uint32_t>& getColumns() const;
       const std::vector<double>& getValues() const;
 
-      std::shared_ptr<std::vector<std::uint64_t> > getDimsPtr() const;
-      std::shared_ptr<std::vector<std::uint32_t> > getColumnsPtr() const;
-      std::shared_ptr<std::vector<double> > getValuesPtr() const;
+     // std::shared_ptr<std::vector<std::uint64_t> > getDimsPtr() const;
+     // std::shared_ptr<std::vector<std::uint32_t> > getColumnsPtr() const;
+     // std::shared_ptr<std::vector<std::uint32_t> > getCoordsPtr(int mode) const;
+     // std::shared_ptr<std::vector<double> > getValuesPtr() const;
 
       void setFilename(const std::string& f);
       const std::string &getFilename() const;

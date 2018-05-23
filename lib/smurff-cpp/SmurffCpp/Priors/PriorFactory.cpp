@@ -55,9 +55,9 @@ std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_features(std
    std::uint64_t ncol = sideinfoConfig->getNCol();
    std::uint64_t nnz = sideinfoConfig->getNNZ();
 
-   std::shared_ptr<std::vector<std::uint32_t> > rows = sideinfoConfig->getRowsPtr();
-   std::shared_ptr<std::vector<std::uint32_t> > cols = sideinfoConfig->getColsPtr();
-   std::shared_ptr<std::vector<double> > values = sideinfoConfig->getValuesPtr();
+   const auto& rows   = sideinfoConfig->getRows();
+   const auto& cols   = sideinfoConfig->getCols();
+   const auto& values = sideinfoConfig->getValues();
 
    // Temporary solution. As soon as SparseDoubleFeat works with vectorsor shared pointers instead of raw pointers,
    // we will remove these extra memory allocation and manipulation
@@ -66,9 +66,9 @@ std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_features(std
    double* valuesRawPtr = new double[nnz];
    for (size_t i = 0; i < nnz; i++)
    {
-      rowsRawPtr[i] = rows->operator[](i);
-      colsRawPtr[i] = cols->operator[](i);
-      valuesRawPtr[i] = values->operator[](i);
+      rowsRawPtr[i] = rows[i];
+      colsRawPtr[i] = cols[i];
+      valuesRawPtr[i] = values[i];
    }
 
    auto side_info_ptr = std::make_shared<SparseDoubleFeat>(nrow, ncol, nnz, rowsRawPtr, colsRawPtr, valuesRawPtr);

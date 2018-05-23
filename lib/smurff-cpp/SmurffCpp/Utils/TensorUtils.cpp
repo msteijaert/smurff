@@ -39,17 +39,17 @@ Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<const smurff::
       THROWERROR("Invalid number of dimensions. Tensor can not be converted to matrix.");
    }
 
-   std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = tensorConfig.getColumnsPtr();
-   std::shared_ptr<std::vector<double> > valuesPtr = tensorConfig.getValuesPtr();
+   const auto &columns = tensorConfig.getColumns();
+   const auto &values = tensorConfig.getValues();
 
    Eigen::SparseMatrix<double> out(tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
 
    std::vector<Eigen::Triplet<double> > triplets;
    for(std::uint64_t i = 0; i < tensorConfig.getNNZ(); i++)
    {
-      double val = valuesPtr->operator[](i);
-      std::uint32_t row = columnsPtr->operator[](i);
-      std::uint32_t col = columnsPtr->operator[](i + tensorConfig.getNNZ());
+      double val = values[i];
+      std::uint32_t row = columns[i];
+      std::uint32_t col = columns[i + tensorConfig.getNNZ()];
       triplets.push_back(Eigen::Triplet<double>(row, col, val));
    }
 

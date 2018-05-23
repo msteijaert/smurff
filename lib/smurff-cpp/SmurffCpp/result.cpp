@@ -48,17 +48,12 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
       THROWERROR("test data should be sparse");
    }
 
-   std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
-   std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();
-
-   std::vector<int> coords(Y->getNModes());
    m_predictions = std::make_shared<std::vector<ResultItem>>();
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
-      for(std::uint64_t m = 0; m < Y->getNModes(); m++)
-         coords[m] = static_cast<int>(columnsPtr->operator[](Y->getNNZ() * m + i));
-
-      m_predictions->push_back({smurff::PVec<>(coords), valuesPtr->operator[](i)});
+      const auto p = Y->get(i);
+      ResultItem r = {p.first, p.second};
+      m_predictions->push_back(r);
    }
 
    m_dims = Y->getDims();
