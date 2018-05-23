@@ -85,12 +85,6 @@ namespace smurff
 
       const int& operator[](size_t p) const
       {
-         if (p >= m_size)
-         {
-            std::stringstream ss;
-            ss << "Cannot access m_v[" << p << "]";
-            THROWERROR_SPEC(std::out_of_range, ss.str());
-         }
          return m_v[p];
       }
 
