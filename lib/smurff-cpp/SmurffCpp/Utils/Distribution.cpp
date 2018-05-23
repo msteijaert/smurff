@@ -175,7 +175,7 @@ auto smurff::nrandn(int n) -> decltype(VectorXd::NullaryExpr(n, std::cref(randn)
    return VectorXd::NullaryExpr(n, std::cref(randn));
 }
 
-auto smurff::nrandn(int n, int m) -> decltype(ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)))
+auto smurff::nrandn(int n, int m) -> decltype(ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)))
 {
    return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); 
 }
@@ -275,31 +275,19 @@ std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const MatrixXd &U, const
 }
 
 // Normal(0, Lambda^-1) for nn columns
-MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int nn)
+MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int ncols)
 {
-   int size = Lambda.rows(); // Dimensionality (rows)
-
+   int nrows = Lambda.rows(); // Dimensionality (rows)
    LLT<MatrixXd> chol(Lambda);
 
-   MatrixXd r = MatrixXd::NullaryExpr(size, nn, std::cref(randn));
-   return chol.solve(r);
+   auto r = MatrixXd::NullaryExpr(nrows, ncols, std::cref(randn));
+   return chol.matrixU().solve(r);
 }
 
 MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, const VectorXd & mean, int nn)
 {
    MatrixXd r = MvNormal_prec(Lambda, nn);
    return r.colwise() + mean;
-}
-
-MatrixXd smurff::MvNormal_prec_omp(const MatrixXd & Lambda, int nn)
-{
-   int size = Lambda.rows(); // Dimensionality (rows)
-
-   LLT<MatrixXd> chol(Lambda);
-
-   MatrixXd r(size, nn);
-   smurff::bmrandn(r);
-   return chol.solve(r);
 }
 
 // Draw nn samples from a size-dimensional normal distribution

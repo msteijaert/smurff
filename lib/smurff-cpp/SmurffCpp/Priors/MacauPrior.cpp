@@ -80,10 +80,10 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
    // Ft_y is [ D x F ] matrix
-   HyperU = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
+   HyperU = (U() + MvNormal_prec(Lambda, num_cols())).colwise() - mu;
 
    Ft_y = Features->A_mul_B(HyperU);
-   HyperU2 = MvNormal_prec_omp(Lambda, num_feat);
+   HyperU2 = MvNormal_prec(Lambda, num_feat);
 
    #pragma omp parallel for schedule(static)
    for (int f = 0; f < num_feat; f++)

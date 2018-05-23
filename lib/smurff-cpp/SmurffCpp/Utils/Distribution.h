@@ -41,6 +41,5 @@ namespace smurff
 
    Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, int nn = 1);
    Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn = 1);
-   Eigen::MatrixXd MvNormal_prec_omp(const Eigen::MatrixXd & Lambda, int nn = 1);
    Eigen::MatrixXd MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn = 1);
 }
