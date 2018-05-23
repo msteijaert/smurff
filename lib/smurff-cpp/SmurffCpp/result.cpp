@@ -104,9 +104,9 @@ std::shared_ptr<TensorConfig> Result::toSparseTensor() const
                   std::uint64_t pos = (i * ResultItem::size) + off;
                   values[pos] = value;
 
-                  for (auto c : coords.as_vector())
+                  for (unsigned i=0; i<coords.size(); ++i)
                   {
-                        columns[pos] = c;
+                        columns[pos] = coords[i];
                         pos += num_values;
                   }
                   columns[pos] = off;
