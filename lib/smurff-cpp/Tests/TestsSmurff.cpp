@@ -37,7 +37,9 @@ void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std:
     os << "      };\n";
 }
 
-#define PRINT_ACTUAL_RESULTS(nr) printActualResults(nr, actualRmseAvg, actualResults);
+
+#define PRINT_ACTUAL_RESULTS(nr)
+// #define PRINT_ACTUAL_RESULTS(nr) printActualResults(nr, actualRmseAvg, actualResults);
 
 // https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
 // By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
