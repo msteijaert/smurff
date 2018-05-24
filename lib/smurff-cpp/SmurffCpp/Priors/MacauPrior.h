@@ -20,7 +20,7 @@ class MacauPrior : public NormalPrior
 {
 public:
    Eigen::MatrixXd Uhat;
-   Eigen::MatrixXd FtF;       // F'F
+   Eigen::MatrixXd FtF_plus_beta;       // F'F
    Eigen::MatrixXd beta;      // link matrix
    Eigen::MatrixXd HyperU, HyperU2;
    Eigen::MatrixXd Ft_y;
