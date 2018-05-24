@@ -38,7 +38,8 @@ void MacauPrior::init()
 
    if (use_FtF)
    {
-      FtF_plus_beta.resize(Features->cols(), Features->cols());
+      std::uint64_t dim = Features->cols();
+      FtF_plus_beta.resize(dim, dim);
       Features->At_mul_A(FtF_plus_beta);
       FtF_plus_beta.diagonal().array() += beta_precision;
    }
@@ -158,8 +159,15 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
    NormalPrior::info(os, indent);
    os << indent << " SideInfo: ";
    Features->print(os);
-   os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << std::endl;
-   os << indent << " Tol: " << std::scientific << tol << std::fixed << std::endl;
+   os << indent << " Method: ";
+   if (use_FtF)
+   {
+      double needs_gb = (double)Features->cols() / 1024. * (double)Features->cols() / 1024. / 1024.;
+      os << "Cholesky Decomposition (needs " << needs_gb << " GB of memory)" << std::endl;
+   } else {
+      os << "CG Solver" << std::endl;
+      os << indent << "  with tolerance: " << std::scientific << tol << std::fixed << std::endl;
+   }
    os << indent << " BetaPrecision: " << beta_precision << std::endl;
    return os;
 }
