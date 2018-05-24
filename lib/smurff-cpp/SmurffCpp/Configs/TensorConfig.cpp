@@ -329,7 +329,7 @@ std::pair<PVec<>, double> TensorConfig::get(std::uint64_t pos) const
 {
     double val = getValues()[pos];
     std::vector<int> coords;
-    for(int j=0; j<getNModes(); ++j) 
+    for(unsigned j=0; j<getNModes(); ++j) 
     {
         coords.push_back(getColumns()[pos]);
         pos += getNNZ();
@@ -341,7 +341,7 @@ std::pair<PVec<>, double> TensorConfig::get(std::uint64_t pos) const
 void TensorConfig::set(std::uint64_t pos, PVec<> coords, double value)
 {
     (*m_values)[pos] = value;
-    for(int j=0; j<getNModes(); ++j) 
+    for(unsigned j=0; j<getNModes(); ++j) 
     {
         (*m_columns)[pos] = coords[j];
         pos += getNNZ();
