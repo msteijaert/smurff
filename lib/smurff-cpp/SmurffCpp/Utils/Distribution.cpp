@@ -33,12 +33,12 @@ static smurff::thread_vector<MERSENNE_TWISTER> *bmrngs;
 
 double smurff::randn0()
 {
-   return smurff::bmrandn_single();
+   return smurff::bmrandn_single_thread();
 }
 
 double smurff::randn(double) 
 {
-   return smurff::bmrandn_single();
+   return smurff::bmrandn_single_thread();
 }
 
 void smurff::bmrandn(double* x, long n) 
@@ -76,7 +76,7 @@ void smurff::bmrandn(MatrixXd & X)
    smurff::bmrandn(X.data(), n);
 }
 
-double smurff::bmrandn_single() 
+double smurff::bmrandn_single_thread() 
 {
    //TODO: add bmrng as input
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
@@ -95,7 +95,7 @@ double smurff::bmrandn_single()
 }
 
 // to be called within OpenMP parallel loop (also from serial code is fine)
-void smurff::bmrandn_single(double* x, long n) 
+void smurff::bmrandn_single_thread(double* x, long n) 
 {
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
    auto& bmrng = bmrngs->local();
@@ -121,15 +121,15 @@ void smurff::bmrandn_single(double* x, long n)
    }
 }
   
-void smurff::bmrandn_single(Eigen::VectorXd & x) 
+void smurff::bmrandn_single_thread(Eigen::VectorXd & x) 
 {
-   smurff::bmrandn_single(x.data(), x.size());
+   smurff::bmrandn_single_thread(x.data(), x.size());
 }
  
-void smurff::bmrandn_single(MatrixXd & X) 
+void smurff::bmrandn_single_thread(MatrixXd & X) 
 {
    long n = X.rows() * (long)X.cols();
-   smurff::bmrandn_single(X.data(), n);
+   smurff::bmrandn_single_thread(X.data(), n);
 }
 
 void smurff::init_bmrng() 
@@ -281,7 +281,9 @@ MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int ncols)
    int nrows = Lambda.rows(); // Dimensionality (rows)
    LLT<MatrixXd> chol(Lambda);
 
-   auto r = MatrixXd::NullaryExpr(nrows, ncols, std::cref(randn));
+   MatrixXd r(nrows, ncols);
+   smurff::bmrandn(r);
+
    return chol.matrixU().solve(r);
 }
 

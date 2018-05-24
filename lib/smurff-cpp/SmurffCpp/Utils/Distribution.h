@@ -13,10 +13,10 @@ namespace smurff
    void bmrandn(double* x, long n);
    void bmrandn(Eigen::MatrixXd & X);
    
-   double bmrandn_single();
-   void bmrandn_single(double* x, long n);
-   void bmrandn_single(Eigen::VectorXd & x);
-   void bmrandn_single(Eigen::MatrixXd & X);
+   double bmrandn_single_thread();
+   void bmrandn_single_thread(double* x, long n);
+   void bmrandn_single_thread(Eigen::VectorXd & x);
+   void bmrandn_single_thread(Eigen::MatrixXd & X);
    
    void init_bmrng();
    void init_bmrng(int seed);
