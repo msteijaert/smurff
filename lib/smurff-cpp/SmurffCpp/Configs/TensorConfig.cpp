@@ -328,10 +328,10 @@ std::uint64_t TensorConfig::getNModes() const
 std::pair<PVec<>, double> TensorConfig::get(std::uint64_t pos) const
 {
     double val = getValues()[pos];
-    std::vector<int> coords;
+    PVec<> coords(getNModes());
     for(unsigned j=0; j<getNModes(); ++j) 
     {
-        coords.push_back(getColumns()[pos]);
+        coords[j] = getColumns()[pos];
         pos += getNNZ();
     }
 
