@@ -27,7 +27,7 @@ void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std:
       const smurff::ResultItem &actualResultItem = actualResults->operator[](i);
       os << std::setprecision(16);
       os << "         { { " << actualResultItem.coords << " }, "
-         << std::defaultfloat << actualResultItem.val << ", "
+         << actualResultItem.val << ", "
          << std::fixed << actualResultItem.pred_1sample << ", "
          << actualResultItem.pred_avg << ", "
          << actualResultItem.var << ", "
