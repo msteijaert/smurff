@@ -124,8 +124,7 @@ void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
 }
 
 void smurff::linop::At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
-  // TODO: use blas
-  out.triangularView<Eigen::Lower>() = A.transpose() * A;
+  At_mul_A_blas(A, out.data());
 }
 
 void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
