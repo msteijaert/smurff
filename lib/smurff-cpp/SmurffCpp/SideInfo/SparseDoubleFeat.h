@@ -43,6 +43,11 @@ public:
    {
       return M.nrow;
    }
+
+   int nnz() const
+   {
+      return M.nnz;
+   }
 };
 
 }

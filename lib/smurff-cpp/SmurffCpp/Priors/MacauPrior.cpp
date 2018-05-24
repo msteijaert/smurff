@@ -162,8 +162,10 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
    os << indent << " Method: ";
    if (use_FtF)
    {
+      os << "Cholesky Decomposition";
       double needs_gb = (double)Features->cols() / 1024. * (double)Features->cols() / 1024. / 1024.;
-      os << "Cholesky Decomposition (needs " << needs_gb << " GB of memory)" << std::endl;
+      if (needs_gb > 1.0) os << " (needing " << needs_gb << " GB of memory)";
+      os << std::endl;
    } else {
       os << "CG Solver" << std::endl;
       os << indent << "  with tolerance: " << std::scientific << tol << std::fixed << std::endl;
