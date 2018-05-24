@@ -13,8 +13,7 @@ Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig&
       THROWERROR("matrix config should be dense");
    }
 
-   std::vector<double> Yvalues = matrixConfig.getValues(); //eigen map can not take const values pointer. have to make copy
-   return Eigen::Map<Eigen::MatrixXd>(Yvalues.data(), matrixConfig.getNRow(), matrixConfig.getNCol());
+   return Eigen::Map<const Eigen::MatrixXd>(matrixConfig.getValues().data(), matrixConfig.getNRow(), matrixConfig.getNCol());
 }
 
 Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(smurff::MatrixConfig& matrixConfig)
