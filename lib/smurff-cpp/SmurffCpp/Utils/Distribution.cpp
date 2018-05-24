@@ -5,6 +5,7 @@
  
 #include <iostream>
 #include <chrono>
+#include <functional>
 
 #include <Eigen/Dense>
 
@@ -177,7 +178,7 @@ auto smurff::nrandn(int n) -> decltype(VectorXd::NullaryExpr(n, std::cref(randn)
 
 auto smurff::nrandn(int n, int m) -> decltype(ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)))
 {
-   return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); 
+   return ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)); 
 }
 
 
