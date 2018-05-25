@@ -101,7 +101,7 @@ void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
   out.setZero();
   const int nfeat = A.M.ncol;
 
-  #pragma omp parallel for schedule(dynamic, 8)
+  #pragma omp parallel for schedule(guided)
   for (int f1 = 0; f1 < nfeat; f1++) 
   {
     int end = A.Mt.row_ptr[f1 + 1];
@@ -137,7 +137,7 @@ void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
   out.setZero();
   const int nfeat = A.M.ncol;
 
-  #pragma omp parallel for schedule(dynamic, 8)
+  #pragma omp parallel for schedule(guided)
   for (int f1 = 0; f1 < nfeat; f1++) 
   {
     // looping over all non-zero rows of f1
@@ -429,7 +429,7 @@ Eigen::VectorXd smurff::linop::col_square_sum(SparseDoubleFeat & A)
    const double* vals = A.Mt.vals;
    VectorXd out(ncol);
 
-   #pragma omp parallel for schedule(dynamic, 256)
+   #pragma omp parallel for schedule(guided)
    for (int col = 0; col < ncol; col++) 
    {
       double tmp = 0;
