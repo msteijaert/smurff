@@ -52,7 +52,7 @@ double DenseMatrixData::sumsq(const SubModel& model) const
 {
    double sumsq = 0.0;
 
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   #pragma omp parallel for schedule(guided) reduction(+:sumsq)
    for (int j = 0; j < this->ncol(); j++) 
    {
       for (int i = 0; i < this->nrow(); i++) 

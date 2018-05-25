@@ -304,7 +304,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////double t3 = tick();
 
     
-    #pragma omp parallel for schedule(dynamic, 4)
+    #pragma omp parallel for schedule(guided)
     for (int block = 0; block < nblocks; block++) 
     {
       int col = block * 64;
@@ -334,7 +334,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////double t5 = tick();
 
     // P = R + Psi' * P (P and R are already transposed)
-    #pragma omp parallel for schedule(dynamic, 8)
+    #pragma omp parallel for schedule(guided)
     for (int block = 0; block < nblocks; block++) 
     {
       int col = block * 64;
@@ -587,7 +587,7 @@ inline void A_mul_B_omp(
   const int nblocks = (int)ceil(out.cols() / 64.0);
   const int nrow = out.rows();
   const int ncol = out.cols();
-  #pragma omp parallel for schedule(dynamic, 8)
+  #pragma omp parallel for schedule(guided)
   for (int block = 0; block < nblocks; block++) 
   {
     int col = block * 64;
