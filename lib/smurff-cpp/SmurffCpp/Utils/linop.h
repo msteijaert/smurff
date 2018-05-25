@@ -375,7 +375,7 @@ void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B) {
   const int nrow = A.nrow;
   double* Y = out.data();
   double* X = B.data();
-  #pragma omp parallel for schedule(dynamic, 256)
+  #pragma omp parallel for schedule(guided)
   for (int row = 0; row < nrow; row++) 
   {
     double tmp[N] = { 0 };
@@ -409,7 +409,7 @@ void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B) {
   const int nrow = A.nrow;
   double* Y = out.data();
   double* X = B.data();
-  #pragma omp parallel for schedule(dynamic, 256)
+  #pragma omp parallel for schedule(guided)
   for (int row = 0; row < nrow; row++) 
   {
     double tmp[N] = { 0 };
@@ -514,7 +514,7 @@ void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::Matrix
   double* Y      = out.data();
   double* X      = inner.data();
   double* Braw   = B.data();
-  #pragma omp parallel for schedule(dynamic, 256)
+  #pragma omp parallel for schedule(guided)
   for (int row = 0; row < nrow; row++) 
   {
     double tmp[N] = { 0 };
@@ -552,7 +552,7 @@ void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::
   double* Y      = out.data();
   double* X      = inner.data();
   double* Braw   = B.data();
-  #pragma omp parallel for schedule(dynamic, 256)
+  #pragma omp parallel for schedule(guided)
   for (int row = 0; row < nrow; row++) 
   {
     double tmp[N] = { 0 };
