@@ -286,7 +286,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
 
   // CG iteration:
   int iter = 0;
-  for (iter = 0; iter < 100000; iter++) {
+  for (iter = 0; iter < 10; iter++) {
     // KP = K * P
     ////double t1 = tick();
     AtA_mul_B_switch(KP, K, reg, P, KPtmp);
@@ -321,10 +321,11 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     makeSymmetric(*RtR2);
 
     Eigen::VectorXd d = RtR2->diagonal();
-    //std::cout << "[ iter " << iter << "] " << d.cwiseSqrt() << "\n";
+    //std::cout << "[ iter " << iter << "] " << std::scientific << d.transpose() << " (max: " << d.maxCoeff() << " > " << tolsq << ")" << std::endl;
     if ( (d.array() < tolsq).all()) {
       break;
-    }
+    } 
+
     // Psi = (R R') \ R2 R2'
     auto chol_RtR = RtR->llt();
     THROWERROR_ASSERT_MSG(!throw_on_cholesky_error || chol_RtR.info() != Eigen::NumericalIssue, "Cholesky Decomposition failed! (Numerical Issue)");
