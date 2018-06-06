@@ -1,4 +1,4 @@
-Helper Classes
+Sparse Tensors
 ~~~~~~~~~~~~~~
 
 .. autoclass:: smurff.SparseTensor

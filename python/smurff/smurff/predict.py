@@ -167,9 +167,10 @@ class PredictSession:
 
         Returns
         -------
-        A :class:`numpy.ndarray` of shape `[ N x T1 x T2 x ... ]` where
-        N is the number of samples in this `PredictSession` and `T1 x T2 x ...` 
-        is the shape of the train data.
+        numpy.ndarray
+            A :class:`numpy.ndarray` of shape `[ N x T1 x T2 x ... ]` where
+            N is the number of samples in this `PredictSession` and `T1 x T2 x ...` 
+            is the shape of the train data.
 
         """        
         return self.predict()
@@ -184,7 +185,8 @@ class PredictSession:
 
         Returns
         -------
-        A list of :class:`Prediction` objects.
+        list 
+            list of :class:`Prediction` objects.
 
         """        
         predictions = Prediction.fromTestMatrix(test_matrix)
@@ -195,19 +197,19 @@ class PredictSession:
 
         return predictions
 
-    def predict_one(self, coords, value=float("nan")):
+    def predict_one(self, coords_or_sideinfo, value=float("nan")):
         """Computes prediction for one point in the matrix/tensor
 
         Parameters
         ----------
-        coords : shape
-            The position of the desired point
+        coords_or_sideinfo : tuple of coordinates and/or feature vectors
         value : float, optional
             The *true* value for this point
 
         Returns
         -------
-        A :class:`Prediction` object
+        :class:`Prediction`
+            The prediction
 
         """
         p = Prediction(coords, value)
