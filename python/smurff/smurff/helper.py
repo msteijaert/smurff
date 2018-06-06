@@ -63,6 +63,13 @@ class ProbitNoise(PyNoiseConfig):
         PyNoiseConfig.__init__(self, "probit", threshold = threshold)
 
 class StatusItem:
+    """Short set of paramters indicative for the training progress.
+    
+    Attributes
+    ----------
+
+
+    
     def __init__(self, phase, iter, phase_iter, model_norms, rmse_avg, rmse_1sample, train_rmse, auc_1sample, auc_avg, elapsed_iter, nnz_per_sec, samples_per_sec):
         self.phase = phase.decode('UTF-8')
         self.iter = iter

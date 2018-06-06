@@ -239,6 +239,59 @@ cdef prepare_result_item(ResultItem item):
     return Prediction(tuple(item.coords.as_vector()), item.val, item.pred_1sample, item.pred_avg, item.var)
 
 cdef class TrainSession:
+    """Class for doing a training run in smurff
+
+    A simple use case could be:
+
+    >>> session = smurff.TrainSession(burnin = 5, nsamples = 5)
+    >>> session.addTrainAndTest(Ydense)
+    >>> session.run()
+
+        
+    Parameters
+    ----------
+
+    priors: list, where element is one of { "normal", "normalone", "macau", "macauone", "spikeandslab" }
+        The type of prior to use for each dimension
+
+    num_latent: int
+        Number of latent dimensions in the model
+
+    burnin: int
+        Number of burnin samples to discard
+    
+    nsamples: int
+        Number of samples to keep
+
+    num_threads: int
+        Number of OpenMP threads to use for model building
+
+    verbose: {0, 1, 2}
+        Verbosity level
+
+    seed: float
+        Random seed to use for sampling
+
+    save_prefix: path
+        Path where to store the samples. The path includes the directory name, as well
+        as the initial part of the file names.
+
+    save_freq: int
+        - N>0: save every Nth sample
+        - N==0: never save a sample
+        - N==-1: save only the last sample
+
+    save_extension: { ".csv", ".ddm" }
+        - .csv: save in textual csv file format
+        - .ddm: save in binary file format
+
+    checkpoint_freq: int
+        Save the state of the session every N seconds.
+
+    csv_status: filepath
+        Stores limited set of parameters, indicative for training progress in this file. See :class:`StatusItem`
+
+    """
     cdef shared_ptr[ISession] ptr;
     cdef Config config
     cdef NoiseConfig noise_config
@@ -263,6 +316,7 @@ cdef class TrainSession:
         save_freq        = None,
         checkpoint_freq  = None,
         csv_status       = None):
+
 
         self.nmodes = len(priors)
         self.verbose = verbose

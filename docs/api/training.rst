@@ -3,9 +3,11 @@ Training
 
 .. autoclass:: smurff.TrainSession
    :members:
+   
+.. autoclass::  MacauSession
 
- MacauSession
- BPMFSession
- GFASession
+.. autoclass::  BPMFSession
+
+.. autoclass::  GFASession
 
 
