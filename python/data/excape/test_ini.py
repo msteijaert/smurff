@@ -41,7 +41,7 @@ class TestExCAPE_ini(unittest.TestCase):
                     os.symlink(os.path.join(from_dir, f), os.path.join(tmpdirname, f))
 
                 start = time()
-                call("smurff --ini=" + ini, shell=True, cwd=tmpdirname)
+                call("smurff --ini " + ini, shell=True, cwd=tmpdirname)
                 stop = time()
                 elapsed = stop - start
                 rmse = extract_rmse(os.path.join(tmpdirname, "stats.csv"))
