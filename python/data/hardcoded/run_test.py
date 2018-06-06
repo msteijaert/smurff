@@ -74,7 +74,7 @@ class TestSaveRestore(unittest.TestCase):
         args["priors"] = priors
         args["aux_data"] = aux_data
         args["side_info"] = side_info
-        nsamples = 100
+        nsamples = 200
 
         with tempfile.TemporaryDirectory() as tmpdirname:
              pfx_aswhole = os.path.join(tmpdirname, "aswhole")

@@ -17,13 +17,6 @@ except ImportError:
 
 from .result import Prediction
 
-def read_string(cp,str):
-    try:
-        return cp.read_string(str)
-    except AttributeError:
-        from io import StringIO
-        return cp.readfp(StringIO(str))
-
 def read_file(cp, file_name):
     with open(file_name) as f:
         try:
@@ -33,43 +26,29 @@ def read_file(cp, file_name):
 
 class OptionsFile(ConfigParser):
     def __init__(self, file_name):
-        ConfigParser.__init__(self) 
+        ConfigParser.__init__(self)
         read_file(self, file_name)
-
-class HeadlessConfigParser:
-    """A ConfigParser with support for raw items, not in a section"""
-    def __init__(self, file_name):
-        self.cp = ConfigParser()
-        with  open(file_name) as f:
-            content = "[top-level]\n" + f.read()
-            read_string(self.cp, content)
-
-    def __getitem__(self, key):
-        return self.cp.get("top-level", key)
-
-    def items(self):
-        return self.cp.items("top-level")
 
 class Sample:
     @classmethod
     def fromStepFile(cls, file_name, iter):
-        cp = HeadlessConfigParser(file_name)
-        nmodes = int(cp["num_models"])
+        cp = ConfigParser(file_name)
+        nmodes = int(cp["models"]["num_models"])
         sample = cls(nmodes, iter)
 
         # latent matrices
         for i in range(sample.nmodes):
-            file_name = cp["model_" + str(i)]
+            file_name = cp["models"]["model_" + str(i)]
             sample.add_latent(mio.read_matrix(file_name))
 
         # link matrices (beta)
         for i in range(sample.nmodes):
-            file_name = cp["prior_" + str(i)]
+            file_name = cp["priors"]["prior_" + str(i)]
             try:
                 sample.add_beta(mio.read_matrix(file_name))
             except FileNotFoundError:
                 sample.add_beta(np.ndarray((0, 0)))
-    
+
         return sample
 
     def __init__(self, nmodes, iter):
@@ -81,7 +60,7 @@ class Sample:
         self.betas = []
 
     def check(self):
-        for l,b in zip(self.latents, self.betas):
+        for l, b in zip(self.latents, self.betas):
             assert l.shape[0] == self.num_latent()
             assert b.shape[0] == 0 or b.shape[0] == self.num_latent()
 
@@ -98,43 +77,64 @@ class Sample:
        return self.latents[0].shape[0]
 
     def data_shape(self):
-       return [ u.shape[1] for u in self.latents ]
+       return [u.shape[1] for u in self.latents]
 
     def beta_shape(self):
-       return [ b.shape[1] for b in self.betas ]
+       return [b.shape[1] for b in self.betas]
 
-    def predict(self, coords_or_sideinfo = None):
+    def predict(self, coords_or_sideinfo=None):
         # for one prediction: einsum(U[:,coords[0]], [0], U[:,coords[1]], [0], ...)
         # for all predictions: einsum(U[0], [0, 0], U[1], [0, 1], U[2], [0, 2], ...)
 
-        cs = coords_or_sideinfo if coords_or_sideinfo is not None else [None] * self.nmodes 
+        cs = coords_or_sideinfo if coords_or_sideinfo is not None else [
+            None] * self.nmodes
 
         operands = []
-        for U,Umean,c,m in zip(self.latents, self.latent_means, cs, range(self.nmodes)):
+        for U, Umean, c, m in zip(self.latents, self.latent_means, cs, range(self.nmodes)):
             # predict all in this dimension
             if c is None:
-                operands += [U, [0,m+1]]
+                operands += [U, [0, m+1]]
             else:
                 # if side_info was specified for this dimension, we predict for this side_info
-                try: # try to compute sideinfo * beta using dot
-                    ## compute latent vector from side_info 
+                try:  # try to compute sideinfo * beta using dot
+                    # compute latent vector from side_info
                     uhat = c.dot(self.betas[m].transpose()) + Umean
                     uhat = np.squeeze(uhat)
-                    operands += [ uhat, [0] ]
-                except AttributeError: # assume it is a coord
+                    operands += [uhat, [0]]
+                except AttributeError:  # assume it is a coord
                     # if coords was specified for this dimension, we predict for this coord
-                    operands += [ U[:,c], [0] ]
+                    operands += [U[:, c], [0]]
 
         return np.einsum(*operands)
 
+
 class PredictSession:
+    """Session for making predictions using a model generated using a :class:`TrainSession`.
+
+    A :class:`PredictSession` can be made directly from a :class:`TrainSession`
+
+    >>> predict_session  = train_session.makePredictSession()
+
+    or from a root file
+
+    >>> predict_session = PredictSession.fromRootFile("save-root.ini")
+
+    """
     @classmethod
     def fromRootFile(cls, root_file):
-        cp = HeadlessConfigParser(root_file)
-        options = OptionsFile(cp["options"])
+        """Creates a :class:`PredictSession` from a give root file
+ 
+        Parameters
+        ----------
+        root_file : string
+           Name of the root file.
+ 
+        """
+        cp = ConfigParser(root_file)
+        options = OptionsFile(cp["options"]["options"])
 
         session = cls(options.getint("global", "num_priors"))
-        for step_name, step_file in cp.items():
+        for step_name, step_file in cp["steps"].items():
             if (step_name.startswith("sample_step")):
                 iter = int(step_name[len("sample_step_"):])
                 session.add_sample(Sample.fromStepFile(step_file, iter))
@@ -160,13 +160,34 @@ class PredictSession:
     def beta_shape(self):
         return self.samples[0].beta_shape()
 
-    def predict(self, coords_or_sideinfo = None):
-        return np.stack([ sample.predict(coords_or_sideinfo) for sample in self.samples ])
+    def predict(self, coords_or_sideinfo=None):
+        return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples])
 
     def predict_all(self):
+        """Computes the full prediction matrix/tensor.
+
+        Returns
+        -------
+        A :class:`numpy.ndarray` of shape `[ N x T1 x T2 x ... ]` where
+        N is the number of samples in this `PredictSession` and `T1 x T2 x ...` 
+        is the shape of the train data.
+
+        """        
         return self.predict()
-    
+
     def predict_some(self, test_matrix):
+        """Computes prediction for all elements in a sparse test matrix
+
+        Parameters
+        ----------
+        test_matrix : scipy sparse matrix
+            Coordinates and true values to make predictions for
+
+        Returns
+        -------
+        A list of :class:`Prediction` objects.
+
+        """        
         predictions = Prediction.fromTestMatrix(test_matrix)
 
         for s in self.samples:
@@ -175,13 +196,28 @@ class PredictSession:
 
         return predictions
 
-    def predict_one(self, coords, value = float("nan")):
+    def predict_one(self, coords, value=float("nan")):
+        """Computes prediction for one point in the matrix/tensor
+
+        Parameters
+        ----------
+        coords : shape
+            The position of the desired point
+        value : float, optional
+            The *true* value for this point
+
+        Returns
+        -------
+        A :class:`Prediction` object
+
+        """
         p = Prediction(coords, value)
         for s in self.samples:
             p.add_sample(s.predict(p.coords))
 
         return p
-        
+
     def __str__(self):
-        dat = (len(self.samples), self.data_shape(), self.beta_shape(), self.num_latent())
+        dat = (len(self.samples), self.data_shape(),
+               self.beta_shape(), self.num_latent())
         return "PredictSession with %d samples\n  Data shape = %s\n  Beta shape = %s\n  Num latent = %d" % dat

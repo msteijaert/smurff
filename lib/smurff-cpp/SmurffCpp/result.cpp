@@ -22,6 +22,7 @@
 
 #include <SmurffCpp/IO/GenericIO.h>
 
+#define GLOBAL_TAG "global"
 #define RMSE_AVG_TAG "rmse_avg"
 #define RMSE_1SAMPLE_TAG "rmse_1sample"
 #define AUC_AVG_TAG "auc_avg"
@@ -132,12 +133,13 @@ void Result::savePredState(std::shared_ptr<const StepFile> sf) const
    INIFile predStatefile;
    predStatefile.create(predStateName);
 
-   predStatefile.appendItem(std::string(), RMSE_AVG_TAG, std::to_string(rmse_avg));
-   predStatefile.appendItem(std::string(), RMSE_1SAMPLE_TAG, std::to_string(rmse_1sample));
-   predStatefile.appendItem(std::string(), AUC_AVG_TAG, std::to_string(auc_avg));
-   predStatefile.appendItem(std::string(), AUC_1SAMPLE_TAG, std::to_string(auc_1sample));
-   predStatefile.appendItem(std::string(), SAMPLE_ITER_TAG, std::to_string(sample_iter));
-   predStatefile.appendItem(std::string(), BURNIN_ITER_TAG, std::to_string(burnin_iter));
+   predStatefile.startSection(GLOBAL_TAG);
+   predStatefile.appendItem(GLOBAL_TAG, RMSE_AVG_TAG, std::to_string(rmse_avg));
+   predStatefile.appendItem(GLOBAL_TAG, RMSE_1SAMPLE_TAG, std::to_string(rmse_1sample));
+   predStatefile.appendItem(GLOBAL_TAG, AUC_AVG_TAG, std::to_string(auc_avg));
+   predStatefile.appendItem(GLOBAL_TAG, AUC_1SAMPLE_TAG, std::to_string(auc_1sample));
+   predStatefile.appendItem(GLOBAL_TAG, SAMPLE_ITER_TAG, std::to_string(sample_iter));
+   predStatefile.appendItem(GLOBAL_TAG, BURNIN_ITER_TAG, std::to_string(burnin_iter));
    
    predStatefile.flush();
 }
@@ -220,22 +222,22 @@ void Result::restoreState(std::shared_ptr<const StepFile> sf)
    INIFile iniReader;
    iniReader.open(predStateName);
 
-   auto value = iniReader.get(std::string(), RMSE_AVG_TAG);
+   auto value = iniReader.get(GLOBAL_TAG, RMSE_AVG_TAG);
    rmse_avg = stod(value.c_str());
    
-   value = iniReader.get(std::string(), RMSE_1SAMPLE_TAG);
+   value = iniReader.get(GLOBAL_TAG, RMSE_1SAMPLE_TAG);
    rmse_1sample = stod(value.c_str());
    
-   value = iniReader.get(std::string(), AUC_AVG_TAG);
+   value = iniReader.get(GLOBAL_TAG, AUC_AVG_TAG);
    auc_avg = stod(value.c_str());
    
-   value = iniReader.get(std::string(), AUC_1SAMPLE_TAG);
+   value = iniReader.get(GLOBAL_TAG, AUC_1SAMPLE_TAG);
    auc_1sample = stod(value.c_str());
    
-   value = iniReader.get(std::string(), SAMPLE_ITER_TAG);
+   value = iniReader.get(GLOBAL_TAG, SAMPLE_ITER_TAG);
    sample_iter = stoi(value.c_str());
    
-   value = iniReader.get(std::string(), BURNIN_ITER_TAG);
+   value = iniReader.get(GLOBAL_TAG, BURNIN_ITER_TAG);
    burnin_iter = stoi(value.c_str());
 }
 

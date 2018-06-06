@@ -21,6 +21,8 @@ namespace smurff {
       std::string m_extension;
       bool m_checkpoint;
 
+      mutable std::string m_cur_section;
+
       //preserves order of elements in the file
       mutable std::shared_ptr<INIFile> m_iniReader;
 
@@ -79,9 +81,9 @@ namespace smurff {
       std::int32_t getNPriors() const;
 
    public:
-      std::string getIniValueBase(const std::string& tag) const;
+      std::string getIniValueBase(const std::string& section, const std::string& tag) const;
 
-      std::pair<bool, std::string> tryGetIniValueBase(const std::string& tag) const;
+      std::pair<bool, std::string> tryGetIniValueBase(const std::string& section, const std::string& tag) const;
 
       void appendToStepFile(std::string section, std::string tag, std::string value) const;
 
