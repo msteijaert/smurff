@@ -17,22 +17,21 @@ except ImportError:
 
 from .result import Prediction
 
-def read_file(cp, file_name):
+def read_config_file(file_name):
+    cp = ConfigParser()
+
     with open(file_name) as f:
         try:
             cp.read_file(f, file_name)
         except AttributeError:
             cp.readfp(f, file_name)
 
-class OptionsFile(ConfigParser):
-    def __init__(self, file_name):
-        ConfigParser.__init__(self)
-        read_file(self, file_name)
+    return cp
 
 class Sample:
     @classmethod
     def fromStepFile(cls, file_name, iter):
-        cp = ConfigParser(file_name)
+        cp = read_config_file(file_name)
         nmodes = int(cp["models"]["num_models"])
         sample = cls(nmodes, iter)
 
@@ -130,8 +129,8 @@ class PredictSession:
            Name of the root file.
  
         """
-        cp = ConfigParser(root_file)
-        options = OptionsFile(cp["options"]["options"])
+        cp = read_config_file(root_file)
+        options = read_config_file(cp["options"]["options"])
 
         session = cls(options.getint("global", "num_priors"))
         for step_name, step_file in cp["steps"].items():
