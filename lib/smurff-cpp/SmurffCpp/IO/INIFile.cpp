@@ -183,6 +183,7 @@ bool INIFile::empty() const
 
 void INIFile::appendItem(const std::string& section, const std::string& tag, const std::string& value)
 {
+   THROWERROR_ASSERT_MSG(section.size(), "Empty section in INI file");
    m_writeBuffer.push_back(std::make_pair(tag, value));
 
    insertItem(section, tag, value);

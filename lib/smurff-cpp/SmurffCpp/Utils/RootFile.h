@@ -16,6 +16,8 @@ private:
    std::string m_prefix;
    std::string m_extension;
 
+   mutable std::string m_cur_section;
+
    //preserves order of elements in the file
    mutable std::shared_ptr<INIFile> m_iniReader;
 

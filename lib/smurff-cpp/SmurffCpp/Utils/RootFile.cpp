@@ -7,6 +7,7 @@
 #include <SmurffCpp/IO/GenericIO.h>
 
 #define OPTIONS_TAG "options"
+#define STEPS_TAG "steps"
 #define CHECKPOINT_STEP_PREFIX "checkpoint_step_"
 #define SAMPLE_STEP_PREFIX "sample_step_"
 
@@ -45,6 +46,11 @@ std::string RootFile::getOptionsFileName() const
 
 void RootFile::appendToRootFile(std::string section, std::string tag, std::string value) const
 {
+    if (m_cur_section != section) {
+      m_iniReader->startSection(section);
+      m_cur_section = section;
+   }
+   
    m_iniReader->appendItem(section, tag, value);
 
    //this function should be used here when it is required to write to root file immediately
@@ -62,14 +68,14 @@ void RootFile::saveConfig(Config& config)
 {
    std::string configPath = getOptionsFileName();
    config.save(configPath);
-   appendToRootFile(std::string(), OPTIONS_TAG, configPath);
+   appendToRootFile(OPTIONS_TAG, OPTIONS_TAG, configPath);
 }
 
 std::string RootFile::restoreGetOptionsFileName() const
 {
    THROWERROR_ASSERT_MSG(m_iniReader, "Root ini file is not loaded");
 
-   return m_iniReader->get(std::string(), OPTIONS_TAG);
+   return m_iniReader->get(OPTIONS_TAG, OPTIONS_TAG);
 }
 
 void RootFile::restoreConfig(Config& config)
@@ -109,7 +115,7 @@ std::shared_ptr<StepFile> RootFile::createStepFileInternal(std::int32_t isample,
    std::string stepFileName = stepFile->getStepFileName();
    std::string tagPrefix = checkpoint ? CHECKPOINT_STEP_PREFIX : SAMPLE_STEP_PREFIX;
    std::string stepTag = tagPrefix + std::to_string(isample);
-   appendToRootFile(std::string(), stepTag, stepFileName);
+   appendToRootFile(STEPS_TAG, stepTag, stepFileName);
 
    return stepFile;
 }
@@ -142,6 +148,8 @@ std::shared_ptr<StepFile> RootFile::openLastStepFile() const
 
    for (auto& section : m_iniReader->getSections())
    {
+      m_cur_section = section;
+
       auto fieldsIt = m_iniReader->getFields(section);
       for (auto& field : fieldsIt->second)
       {
@@ -152,6 +160,7 @@ std::shared_ptr<StepFile> RootFile::openLastStepFile() const
             lastStepItem = m_iniReader->get(section, field);
       }
    }
+
 
    //try open sample file
    //if no sample file then try open checkpoint file
@@ -180,6 +189,7 @@ std::vector<std::shared_ptr<StepFile>> RootFile::openSampleStepFiles() const
 
    for (auto& section : m_iniReader->getSections())
    {
+      m_cur_section = section;
       auto fieldsIt = m_iniReader->getFields(section);
       for (auto& field : fieldsIt->second)
       {
@@ -194,6 +204,7 @@ std::vector<std::shared_ptr<StepFile>> RootFile::openSampleStepFiles() const
          samples.push_back(std::make_shared<StepFile>(stepItem, m_prefix, m_extension));
       }
    }
+
 
    return samples;
 }

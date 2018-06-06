@@ -16,6 +16,10 @@
 #define MODEL_PREFIX "model_"
 #define PRIOR_PREFIX "prior_"
 
+#define MODELS_SEC_TAG "models"
+#define PRED_SEC_TAG "predictions"
+#define PRIORS_SEC_TAG "priors"
+
 #define NUM_MODELS_TAG "num_models"
 #define NUM_PRIORS_TAG "num_priors"
 #define PRED_TAG "pred"
@@ -146,14 +150,12 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    model->save(shared_from_this());
 
    //save models
-
-   appendCommentToStepFile("models");
-   appendToStepFile(std::string(), NUM_MODELS_TAG, std::to_string(model->nmodes()));
+   appendToStepFile(MODELS_SEC_TAG, NUM_MODELS_TAG, std::to_string(model->nmodes()));
 
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
       std::string path = getModelFileName(mIndex);
-      appendToStepFile(std::string(), MODEL_PREFIX + std::to_string(mIndex), path);
+      appendToStepFile(MODELS_SEC_TAG, MODEL_PREFIX + std::to_string(mIndex), path);
    }
 }
 
@@ -166,9 +168,8 @@ void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
 
    //save predictions
 
-   appendCommentToStepFile("predictions");
-   appendToStepFile(std::string(), PRED_TAG, getPredFileName());
-   appendToStepFile(std::string(), PRED_STATE_TAG, getPredStateFileName());
+   appendToStepFile(PRED_SEC_TAG, PRED_TAG, getPredFileName());
+   appendToStepFile(PRED_SEC_TAG, PRED_STATE_TAG, getPredStateFileName());
 }
 
 void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
@@ -180,13 +181,12 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
 
    //save priors
 
-   appendCommentToStepFile("priors");
-   appendToStepFile(std::string(), NUM_PRIORS_TAG, std::to_string(priors.size()));
+   appendToStepFile(PRIORS_SEC_TAG, NUM_PRIORS_TAG, std::to_string(priors.size()));
 
    for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
    {
       std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
-      appendToStepFile(std::string(), PRIOR_PREFIX + std::to_string(pIndex), priorPath);
+      appendToStepFile(PRIORS_SEC_TAG, PRIOR_PREFIX + std::to_string(pIndex), priorPath);
    }
 }
 
@@ -202,7 +202,7 @@ void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Re
 void StepFile::restoreModel(std::shared_ptr<Model> model) const
 {
    //it is enough to check presence of num tag
-   auto nmodels = tryGetIniValueBase(NUM_MODELS_TAG);
+   auto nmodels = tryGetIniValueBase(MODELS_SEC_TAG, NUM_MODELS_TAG);
    if (!nmodels.first)
       return;
 
@@ -211,11 +211,11 @@ void StepFile::restoreModel(std::shared_ptr<Model> model) const
 
 void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
 {
-   auto predIt = tryGetIniValueBase(PRED_TAG);
+   auto predIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_TAG);
    if (!predIt.first)
       return;
 
-   auto predStateIt = tryGetIniValueBase(PRED_STATE_TAG);
+   auto predStateIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_STATE_TAG);
    if (!predStateIt.first)
       return;
 
@@ -225,7 +225,7 @@ void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
 void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
    //it is enough to check presence of num tag
-   auto npriors = tryGetIniValueBase(NUM_PRIORS_TAG);
+   auto npriors = tryGetIniValueBase(PRIORS_SEC_TAG, NUM_PRIORS_TAG);
    if (!npriors.first)
       return;
 
@@ -328,32 +328,37 @@ bool StepFile::getCheckpoint() const
 
 std::int32_t StepFile::getNSamples() const
 {
-   return std::stoi(getIniValueBase(NUM_MODELS_TAG));
+   return std::stoi(getIniValueBase(PRIORS_SEC_TAG, NUM_MODELS_TAG));
 }
 
 std::int32_t StepFile::getNPriors() const
 {
-   return std::stoi(getIniValueBase(NUM_PRIORS_TAG));
+   return std::stoi(getIniValueBase(PRIORS_SEC_TAG, NUM_PRIORS_TAG));
 }
 
 //ini methods
 
-std::string StepFile::getIniValueBase(const std::string& tag) const
+std::string StepFile::getIniValueBase(const std::string& section, const std::string& tag) const
 {
    THROWERROR_ASSERT_MSG(m_iniReader, "Step ini file is not loaded");
 
-   return m_iniReader->get(std::string(), tag);
+   return m_iniReader->get(section, tag);
 }
 
-std::pair<bool, std::string> StepFile::tryGetIniValueBase(const std::string& tag) const
+std::pair<bool, std::string> StepFile::tryGetIniValueBase(const std::string& section, const std::string& tag) const
 {
    THROWERROR_ASSERT_MSG(m_iniReader, "Step ini file is not loaded");
 
-   return m_iniReader->tryGet(std::string(), tag);
+   return m_iniReader->tryGet(section, tag);
 }
 
 void StepFile::appendToStepFile(std::string section, std::string tag, std::string value) const
 {
+   if (m_cur_section != section) {
+      m_iniReader->startSection(section);
+      m_cur_section = section;
+   }
+
    m_iniReader->appendItem(section, tag, value);
    
    flushLast();
