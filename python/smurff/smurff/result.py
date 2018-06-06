@@ -6,6 +6,9 @@ def calc_rmse(predictions):
     return math.sqrt(mean_squared_error([p.val for p in predictions], [p.pred_avg for p in predictions]))
 
 class Prediction:
+    """Stores predictions for a single point in the matrix/tensor
+
+    """
     @staticmethod
     def fromTestMatrix(test_matrix):
         return [ Prediction((i, j), v) for i,j,v in zip(*sparse.find(test_matrix)) ]

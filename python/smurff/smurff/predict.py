@@ -17,15 +17,6 @@ except ImportError:
 
 from .result import Prediction
 
-
-def read_string(cp, str):
-    try:
-        return cp.read_string(str)
-    except AttributeError:
-        from io import StringIO
-        return cp.readfp(StringIO(str))
-
-
 def read_file(cp, file_name):
     with open(file_name) as f:
         try:
@@ -33,44 +24,26 @@ def read_file(cp, file_name):
         except AttributeError:
             cp.readfp(f, file_name)
 
-
 class OptionsFile(ConfigParser):
     def __init__(self, file_name):
         ConfigParser.__init__(self)
         read_file(self, file_name)
 
-
-class HeadlessConfigParser:
-    """A ConfigParser with support for raw items, not in a section"""
-
-    def __init__(self, file_name):
-        self.cp = ConfigParser()
-        with open(file_name) as f:
-            content = "[top-level]\n" + f.read()
-            read_string(self.cp, content)
-
-    def __getitem__(self, key):
-        return self.cp.get("top-level", key)
-
-    def items(self):
-        return self.cp.items("top-level")
-
-
 class Sample:
     @classmethod
     def fromStepFile(cls, file_name, iter):
-        cp = HeadlessConfigParser(file_name)
-        nmodes = int(cp["num_models"])
+        cp = ConfigParser(file_name)
+        nmodes = int(cp["models"]["num_models"])
         sample = cls(nmodes, iter)
 
         # latent matrices
         for i in range(sample.nmodes):
-            file_name = cp["model_" + str(i)]
+            file_name = cp["models"]["model_" + str(i)]
             sample.add_latent(mio.read_matrix(file_name))
 
         # link matrices (beta)
         for i in range(sample.nmodes):
-            file_name = cp["prior_" + str(i)]
+            file_name = cp["priors"]["prior_" + str(i)]
             try:
                 sample.add_beta(mio.read_matrix(file_name))
             except FileNotFoundError:
@@ -136,9 +109,9 @@ class Sample:
 
 
 class PredictSession:
-    """Session for making predictions using a model generated using a TrainSession.
+    """Session for making predictions using a model generated using a :class:`TrainSession`.
 
-    A PredictSession can be made directly from a TrainSession
+    A :class:`PredictSession` can be made directly from a :class:`TrainSession`
 
     >>> predict_session  = train_session.makePredictSession()
 
@@ -149,7 +122,7 @@ class PredictSession:
     """
     @classmethod
     def fromRootFile(cls, root_file):
-        """Creates a PredictSession from a give root file
+        """Creates a :class:`PredictSession` from a give root file
  
         Parameters
         ----------
@@ -157,11 +130,11 @@ class PredictSession:
            Name of the root file.
  
         """
-        cp = HeadlessConfigParser(root_file)
-        options = OptionsFile(cp["options"])
+        cp = ConfigParser(root_file)
+        options = OptionsFile(cp["options"]["options"])
 
         session = cls(options.getint("global", "num_priors"))
-        for step_name, step_file in cp.items():
+        for step_name, step_file in cp["steps"].items():
             if (step_name.startswith("sample_step")):
                 iter = int(step_name[len("sample_step_"):])
                 session.add_sample(Sample.fromStepFile(step_file, iter))
@@ -191,9 +164,30 @@ class PredictSession:
         return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples])
 
     def predict_all(self):
+        """Computes the full prediction matrix/tensor.
+
+        Returns
+        -------
+        A :class:`numpy.ndarray` of shape `[ N x T1 x T2 x ... ]` where
+        N is the number of samples in this `PredictSession` and `T1 x T2 x ...` 
+        is the shape of the train data.
+
+        """        
         return self.predict()
 
     def predict_some(self, test_matrix):
+        """Computes prediction for all elements in a sparse test matrix
+
+        Parameters
+        ----------
+        test_matrix : scipy sparse matrix
+            Coordinates and true values to make predictions for
+
+        Returns
+        -------
+        A list of :class:`Prediction` objects.
+
+        """        
         predictions = Prediction.fromTestMatrix(test_matrix)
 
         for s in self.samples:
@@ -214,7 +208,7 @@ class PredictSession:
 
         Returns
         -------
-        A Prediction object
+        A :class:`Prediction` object
 
         """
         p = Prediction(coords, value)
