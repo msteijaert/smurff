@@ -94,6 +94,8 @@ macro(configure_mkl)
       add_definitions(-DMKL_THREAD_LIBRARY_SEQUENTIAL )
   endif()
   
+  add_definitions(-DEIGEN_USE_MKL_ALL)
+  
   message(STATUS MKL: ${MKL_LIBRARIES} )
 endmacro(configure_mkl)
 
@@ -105,10 +107,9 @@ macro(configure_eigen)
   else()
   find_package(Eigen3 REQUIRED)
   endif()
+
   
   message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
-
-  add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endmacro(configure_eigen)
 
 macro(configure_boost)

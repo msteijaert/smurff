@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-from functools import reduce
-from math import sqrt
 import numpy as np
 from scipy import sparse
-import scipy.io as sio
 import pandas as pd
 import os
 import os.path
@@ -65,7 +62,6 @@ class Sample:
         cp = HeadlessConfigParser(file_name)
         nmodes = int(cp["num_models"])
         sample = cls(nmodes, iter)
-        sample.predictions = pd.read_csv(cp["pred"], sep=";")
 
         # latent matrices
         for i in range(sample.nmodes):

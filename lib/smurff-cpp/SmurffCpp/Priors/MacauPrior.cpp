@@ -38,9 +38,10 @@ void MacauPrior::init()
 
    if (use_FtF)
    {
-      FtF.resize(Features->cols(), Features->cols());
-      K.resize(Features->cols(), Features->cols());
-      Features->At_mul_A(FtF);
+      std::uint64_t dim = Features->cols();
+      FtF_plus_beta.resize(dim, dim);
+      Features->At_mul_A(FtF_plus_beta);
+      FtF_plus_beta.diagonal().array() += beta_precision;
    }
 
    Uhat.resize(this->num_latent(), Features->rows());
@@ -62,7 +63,11 @@ void MacauPrior::update_prior()
    Features->compute_uhat(Uhat, beta);
 
    if (enable_beta_precision_sampling)
+   {
+      double old_beta = beta_precision;
       beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
+      FtF_plus_beta.diagonal().array() += beta_precision - old_beta;
+   }
 }
 
 const Eigen::VectorXd MacauPrior::getMu(int n) const
@@ -76,10 +81,10 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
    // Ft_y is [ D x F ] matrix
-   HyperU = (U() + MvNormal_prec_omp(Lambda, num_cols())).colwise() - mu;
+   HyperU = (U() + MvNormal_prec(Lambda, num_cols())).colwise() - mu;
 
    Ft_y = Features->A_mul_B(HyperU);
-   HyperU2 = MvNormal_prec_omp(Lambda, num_feat);
+   HyperU2 = MvNormal_prec(Lambda, num_feat);
 
    #pragma omp parallel for schedule(static)
    for (int f = 0; f < num_feat; f++)
@@ -154,8 +159,17 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
    NormalPrior::info(os, indent);
    os << indent << " SideInfo: ";
    Features->print(os);
-   os << indent << " Method: " << (use_FtF ? "Cholesky Decomposition" : "CG Solver") << std::endl;
-   os << indent << " Tol: " << std::scientific << tol << std::fixed << std::endl;
+   os << indent << " Method: ";
+   if (use_FtF)
+   {
+      os << "Cholesky Decomposition";
+      double needs_gb = (double)Features->cols() / 1024. * (double)Features->cols() / 1024. / 1024.;
+      if (needs_gb > 1.0) os << " (needing " << needs_gb << " GB of memory)";
+      os << std::endl;
+   } else {
+      os << "CG Solver" << std::endl;
+      os << indent << "  with tolerance: " << std::scientific << tol << std::fixed << std::endl;
+   }
    os << indent << " BetaPrecision: " << beta_precision << std::endl;
    return os;
 }
@@ -164,7 +178,7 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 {
    os << indent << m_name << ": " << std::endl;
    indent += "  ";
-   os << indent << "FtF          = " << FtF.norm() << std::endl;
+   os << indent << "FtF_plus_beta          = " << FtF_plus_beta.norm() << std::endl;
    os << indent << "HyperU       = " << HyperU.norm() << std::endl;
    os << indent << "HyperU2      = " << HyperU2.norm() << std::endl;
    os << indent << "Beta         = " << beta.norm() << std::endl;
@@ -176,23 +190,8 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 // direct method
 void MacauPrior::sample_beta_direct()
 {
-   #pragma omp parallel
-   #pragma omp single nowait
-   {
-       #pragma omp task
-       this->compute_Ft_y_omp(Ft_y);
-
-       #pragma omp task
-       {
-           K.triangularView<Eigen::Lower>() = FtF;
-           K.diagonal().array() += beta_precision;
-       }
-
-   }
-
-   chol_decomp(K);
-   chol_solve_t(K, Ft_y);
-   std::swap(beta, Ft_y);
+    this->compute_Ft_y_omp(Ft_y);
+    beta = FtF_plus_beta.llt().solve(Ft_y.transpose()).transpose();
 }
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)

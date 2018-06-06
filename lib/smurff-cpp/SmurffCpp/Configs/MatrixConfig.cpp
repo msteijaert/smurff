@@ -338,16 +338,6 @@ std::uint64_t MatrixConfig::getNCol() const
 
 const std::vector<std::uint32_t>& MatrixConfig::getRows() const
 {
-   return *getRowsPtr();
-}
-
-const std::vector<std::uint32_t>& MatrixConfig::getCols() const
-{
-   return *getColsPtr();
-}
-
-std::shared_ptr<std::vector<std::uint32_t> > MatrixConfig::getRowsPtr() const
-{
    if (!m_rows)
    {
       m_rows = std::make_shared<std::vector<std::uint32_t> >();
@@ -358,10 +348,10 @@ std::shared_ptr<std::vector<std::uint32_t> > MatrixConfig::getRowsPtr() const
             m_rows->push_back(m_columns->operator[](i));
       }
    }
-   return m_rows;
+   return *m_rows;
 }
 
-std::shared_ptr<std::vector<std::uint32_t> > MatrixConfig::getColsPtr() const
+const std::vector<std::uint32_t>& MatrixConfig::getCols() const
 {
    if (!m_cols)
    {
@@ -373,7 +363,7 @@ std::shared_ptr<std::vector<std::uint32_t> > MatrixConfig::getColsPtr() const
             m_cols->push_back(m_columns->operator[](i + m_nnz));
       }
    }
-   return m_cols;
+   return *m_cols;
 }
 
 std::shared_ptr<Data> MatrixConfig::create(std::shared_ptr<IDataCreator> creator) const

@@ -13,10 +13,10 @@ namespace smurff
    void bmrandn(double* x, long n);
    void bmrandn(Eigen::MatrixXd & X);
    
-   double bmrandn_single();
-   void bmrandn_single(double* x, long n);
-   void bmrandn_single(Eigen::VectorXd & x);
-   void bmrandn_single(Eigen::MatrixXd & X);
+   double bmrandn_single_thread();
+   void bmrandn_single_thread(double* x, long n);
+   void bmrandn_single_thread(Eigen::VectorXd & x);
+   void bmrandn_single_thread(Eigen::MatrixXd & X);
    
    void init_bmrng();
    void init_bmrng(int seed);
@@ -41,6 +41,5 @@ namespace smurff
 
    Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, int nn = 1);
    Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn = 1);
-   Eigen::MatrixXd MvNormal_prec_omp(const Eigen::MatrixXd & Lambda, int nn = 1);
    Eigen::MatrixXd MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn = 1);
 }

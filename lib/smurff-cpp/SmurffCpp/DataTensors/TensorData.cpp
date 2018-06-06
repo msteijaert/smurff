@@ -57,7 +57,7 @@ double TensorData::sum() const
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:esum)
+   #pragma omp parallel for schedule(guided) reduction(+:esum)
    for(std::uint64_t n = 0; n < sview->getNPlanes(); n++) //go through each hyperplane
    {
       for(std::uint64_t j = sview->beginPlane(n); j < sview->endPlane(n); j++) //go through each item in the plane
@@ -136,7 +136,7 @@ double TensorData::sumsq(const SubModel& model) const
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   #pragma omp parallel for schedule(guided) reduction(+:sumsq)
    for(std::uint64_t h = 0; h < sview->getNPlanes(); h++) //go through each hyperplane
    {
       for(std::uint64_t n = 0; n < sview->nItemsOnPlane(h); n++) //go through each item in the hyperplane
@@ -157,7 +157,7 @@ double TensorData::var_total() const
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   #pragma omp parallel for schedule(guided) reduction(+:se)
    for(std::uint64_t h = 0; h < sview->getNPlanes(); h++) //go through each hyperplane
    {
       for(std::uint64_t n = 0; n < sview->nItemsOnPlane(h); n++) //go through each item in the hyperplane

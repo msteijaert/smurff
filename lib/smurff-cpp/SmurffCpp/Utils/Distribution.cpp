@@ -5,6 +5,7 @@
  
 #include <iostream>
 #include <chrono>
+#include <functional>
 
 #include <Eigen/Dense>
 
@@ -32,12 +33,12 @@ static smurff::thread_vector<MERSENNE_TWISTER> *bmrngs;
 
 double smurff::randn0()
 {
-   return smurff::bmrandn_single();
+   return smurff::bmrandn_single_thread();
 }
 
 double smurff::randn(double) 
 {
-   return smurff::bmrandn_single();
+   return smurff::bmrandn_single_thread();
 }
 
 void smurff::bmrandn(double* x, long n) 
@@ -75,7 +76,7 @@ void smurff::bmrandn(MatrixXd & X)
    smurff::bmrandn(X.data(), n);
 }
 
-double smurff::bmrandn_single() 
+double smurff::bmrandn_single_thread() 
 {
    //TODO: add bmrng as input
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
@@ -94,7 +95,7 @@ double smurff::bmrandn_single()
 }
 
 // to be called within OpenMP parallel loop (also from serial code is fine)
-void smurff::bmrandn_single(double* x, long n) 
+void smurff::bmrandn_single_thread(double* x, long n) 
 {
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
    auto& bmrng = bmrngs->local();
@@ -120,15 +121,15 @@ void smurff::bmrandn_single(double* x, long n)
    }
 }
   
-void smurff::bmrandn_single(Eigen::VectorXd & x) 
+void smurff::bmrandn_single_thread(Eigen::VectorXd & x) 
 {
-   smurff::bmrandn_single(x.data(), x.size());
+   smurff::bmrandn_single_thread(x.data(), x.size());
 }
  
-void smurff::bmrandn_single(MatrixXd & X) 
+void smurff::bmrandn_single_thread(MatrixXd & X) 
 {
    long n = X.rows() * (long)X.cols();
-   smurff::bmrandn_single(X.data(), n);
+   smurff::bmrandn_single_thread(X.data(), n);
 }
 
 void smurff::init_bmrng() 
@@ -175,9 +176,9 @@ auto smurff::nrandn(int n) -> decltype(VectorXd::NullaryExpr(n, std::cref(randn)
    return VectorXd::NullaryExpr(n, std::cref(randn));
 }
 
-auto smurff::nrandn(int n, int m) -> decltype(ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)))
+auto smurff::nrandn(int n, int m) -> decltype(ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)))
 {
-   return ArrayXXd::NullaryExpr(n, m, ptr_fun(randn)); 
+   return ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)); 
 }
 
 
@@ -275,34 +276,21 @@ std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const MatrixXd &U, const
 }
 
 // Normal(0, Lambda^-1) for nn columns
-MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int nn)
+MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int ncols)
 {
-   int size = Lambda.rows(); // Dimensionality (rows)
-
+   int nrows = Lambda.rows(); // Dimensionality (rows)
    LLT<MatrixXd> chol(Lambda);
 
-   MatrixXd r = MatrixXd::NullaryExpr(size, nn, std::cref(randn));
-   chol.matrixU().solveInPlace(r);
-   return r;
+   MatrixXd r(nrows, ncols);
+   smurff::bmrandn(r);
+
+   return chol.matrixU().solve(r);
 }
 
 MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, const VectorXd & mean, int nn)
 {
    MatrixXd r = MvNormal_prec(Lambda, nn);
    return r.colwise() + mean;
-}
-
-MatrixXd smurff::MvNormal_prec_omp(const MatrixXd & Lambda, int nn)
-{
-   int size = Lambda.rows(); // Dimensionality (rows)
-
-   LLT<MatrixXd> chol(Lambda);
-
-   MatrixXd r(size, nn);
-   smurff::bmrandn(r);
-   // TODO: check if solveInPlace is parallelized:
-   chol.matrixU().solveInPlace(r);
-   return r;
 }
 
 // Draw nn samples from a size-dimensional normal distribution

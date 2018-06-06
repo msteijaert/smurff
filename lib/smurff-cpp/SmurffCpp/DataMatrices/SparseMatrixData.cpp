@@ -37,7 +37,7 @@ double SparseMatrixData::var_total() const
    const double cwise_mean_squared = std::pow(cwise_mean, 2);
    double se = 0.0;
 
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   #pragma omp parallel for schedule(guided) reduction(+:se)
    for(int c = 0; c < Y().cols(); ++c)
    {
       int r = 0;
@@ -65,7 +65,7 @@ double SparseMatrixData::sumsq(const SubModel& model) const
 {
    double sumsq = 0.0;
    
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   #pragma omp parallel for schedule(guided) reduction(+:sumsq)
    for(int c = 0; c < Y().cols(); ++c)
    {
       int r = 0;

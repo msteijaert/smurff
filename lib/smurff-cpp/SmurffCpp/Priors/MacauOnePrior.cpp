@@ -97,7 +97,7 @@ void MacauOnePrior::sample_beta(const Eigen::MatrixXd &U)
          // zx = Z[dstart : dstart + dcount, :] * F[:, f]
          Features->At_mul_Bt(zx, f, Z);
          // TODO: check if sampling randvals for whole [nfeat x dcount] matrix works faster
-         bmrandn_single(randvals);
+         bmrandn_single_thread(randvals);
 
          for (int d = 0; d < dcount; d++)
          {
