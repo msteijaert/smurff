@@ -5,3 +5,4 @@ nbsphinx
 pandas
 numpy
 scipy
+scikit-learn
