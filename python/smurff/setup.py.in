@@ -11,13 +11,12 @@ if os.path.exists('CMakeLists.txt'):
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: C++",
     "Programming Language :: Python",
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
-    "Topic :: Machine Learning",
-    "Topic :: Matrix Factorization",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX",
     "Operating System :: Unix",
@@ -39,7 +38,7 @@ else:
 setup(
     name = 'smurff',
     packages = [ 'smurff' ],
-    version = '@SMURFF_VERSION@',
+    version = '@SMURFF_VERSION_CLEAN@',
     data_files = [
         (os.path.join(so_dir, "smurff"), glob.glob('smurff/*.so')),  # unix, mac
         (os.path.join(so_dir, "smurff"), glob.glob('smurff/*.pyd')), # windows
