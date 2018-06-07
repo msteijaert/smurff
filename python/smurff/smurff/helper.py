@@ -63,12 +63,50 @@ class ProbitNoise(PyNoiseConfig):
         PyNoiseConfig.__init__(self, "probit", threshold = threshold)
 
 class StatusItem:
-    """Short set of paramters indicative for the training progress.
+    """Short set of parameters indicative for the training progress.
     
     Attributes
     ----------
 
+    phase : { "Burnin", "Sampling" }
 
+    iter : int
+        Current iteration in current phase
+
+    phase_iter : int
+        Number of iterations in this phase
+
+    model_norms : list of float
+        Norm of each U/V matrix
+
+    rmse_avg : float
+        Averag RMSE for test matrix across all samples
+
+    rmse_1sample : float
+        RMSE for test matrix of last sample
+
+    train_rmse : float
+        RMSE for train matrix of last sample
+
+    auc_1sample : float
+        ROC AUC of the test matrix of the last sample
+        Only available if you provided a threshold.
+
+    auc_avg : float
+        Averag ROC AUC of the test matrix accross all samples
+        Only available if you provided a threshold.
+
+    elapsed_iter : float
+        Number of seconds the last sampling iteration took
+
+    nnz_per_sec : float
+        Compute performance indicator; number of non-zero elements in train processed per second
+
+    samples_per_sec : float
+        Compute performance indicator; number of rows and columns in U/V processed per second
+
+
+    """
     
     def __init__(self, phase, iter, phase_iter, model_norms, rmse_avg, rmse_1sample, train_rmse, auc_1sample, auc_avg, elapsed_iter, nnz_per_sec, samples_per_sec):
         self.phase = phase.decode('UTF-8')

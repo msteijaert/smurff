@@ -37,6 +37,21 @@ def load_one(filename):
     return matrix
 
 def load_chembl():
+    """Downloads a small subset of the ChEMBL dataset.
+
+    Returns
+    -------
+    ic50_train: sparse matrix
+        sparse train matrix
+
+    ic50_test: sparse matrix
+        sparse test matrix
+
+    feat: sparse matrix
+        sparse row features
+
+    """
+
     # load bioactivity and features
     ic50 = load_one("chembl-IC50-346targets.mm")
     feat = load_one("chembl-IC50-compound-feat.mm")

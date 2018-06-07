@@ -8,11 +8,23 @@ from .helper import SparseTensor
 
 def make_train_test(Y, ntest):
     """Splits a sparse matrix Y into a train and a test matrix.
-       Y      scipy sparse matrix (coo_matrix, csr_matrix or csc_matrix)
-       ntest  either a float below 1.0 or integer.
-              if float, then indicates the ratio of test cells
-              if integer, then indicates the number of test cells
-       returns Ytrain, Ytest (type coo_matrix)
+
+    Parameters
+    ----------
+        Y : scipy sparse matrix (coo_matrix, csr_matrix or csc_matrix)
+            Matrix to split
+
+        ntest : float <1.0 or integer.
+           - if float, then indicates the ratio of test cells
+           - if integer, then indicates the number of test cells
+
+    Returns
+    -------
+        Ytrain : coo_matrix
+            train part
+
+        Ytest : coo_matrix
+            test part
     """
     if type(Y) not in [sp.sparse.coo.coo_matrix, sp.sparse.csr.csr_matrix, sp.sparse.csc.csc_matrix]:
         raise TypeError("Unsupported Y type: " + str(type(Y)))

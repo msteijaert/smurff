@@ -1,13 +1,34 @@
 Training
-~~~~~~~~
+========
+
+.. contents::
+
+
+The most versatile class is :class:`TrainSession`.
+:class:`MacauSession` and :class:`BPMFSession` provide a simpler interface.
+
+
+TrainSession
+~~~~~~~~~~~~
 
 .. autoclass:: smurff.TrainSession
    :members:
-   
-.. autoclass::  MacauSession
 
-.. autoclass::  BPMFSession
+MacauSession
+~~~~~~~~~~~~
 
-.. autoclass::  GFASession
+.. autoclass:: smurff.MacauSession
+   :members:
 
+BPMFSession
+~~~~~~~~~~~
+
+.. autoclass:: smurff.BPMFSession
+   :members:
+
+StatusItem
+~~~~~~~~~~
+
+.. autoclass:: smurff.StatusItem
+   :members:
 
