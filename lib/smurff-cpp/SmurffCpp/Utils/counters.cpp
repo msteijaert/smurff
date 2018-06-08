@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <sstream>
 #include <unistd.h>
+#include <cmath>
 
 #include "counters.h"
 
