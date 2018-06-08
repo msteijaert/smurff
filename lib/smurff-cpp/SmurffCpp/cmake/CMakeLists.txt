@@ -206,16 +206,4 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${BOOST_RANDOM_INCLUDE_DIRS})
 
-#INSTALL
-install (TARGETS ${PROJECT} ARCHIVE DESTINATION lib)
-install (FILES ../ResultItem.h DESTINATION include/SmurffCpp)
-install (FILES ../Utils/Error.h DESTINATION include/SmurffCpp/Utils)
-install (FILES ../Utils/PVec.hpp DESTINATION include/SmurffCpp/Utils)
-install (FILES ../Configs/Config.h DESTINATION include/SmurffCpp/Configs)
-install (FILES ../Configs/MatrixConfig.h DESTINATION include/SmurffCpp/Configs)
-install (FILES ../Configs/TensorConfig.h DESTINATION include/SmurffCpp/Configs)
-install (FILES ../Configs/NoiseConfig.h DESTINATION include/SmurffCpp/Configs)
-install (FILES ../Configs/SideInfoConfig.h DESTINATION include/SmurffCpp/Configs)
-install (FILES ../Sessions/SessionFactory.h DESTINATION include/SmurffCpp/Sessions)
-install (FILES ../Sessions/ISession.h DESTINATION include/SmurffCpp/Sessions)
-install (FILES ../IO/INIFile.h DESTINATION include/SmurffCpp/IO)
+
