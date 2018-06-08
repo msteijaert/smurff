@@ -1,5 +1,4 @@
 #include "ScarceMatrixData.h"
-#include "Utils/counters.h"
 
 #include <SmurffCpp/VMatrixExprIterator.hpp>
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
@@ -47,8 +46,6 @@ std::ostream& ScarceMatrixData::info(std::ostream& os, std::string indent)
 
 void ScarceMatrixData::getMuLambda(const SubModel& model, std::uint32_t mode, int n, VectorXd& rr, MatrixXd& MM) const
 {
-   COUNTER("getMuLambda");
-
    auto &Y = this->Y(mode);
    const int num_latent = model.nlatent();
    const std::int64_t local_nnz = Y.col(n).nonZeros();

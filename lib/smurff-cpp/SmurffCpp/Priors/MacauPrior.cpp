@@ -5,6 +5,7 @@
 
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/counters.h>
 
 #include <SmurffCpp/Utils/linop.h>
 
@@ -53,20 +54,21 @@ void MacauPrior::init()
 
 void MacauPrior::update_prior()
 {
-   // residual (Uhat is later overwritten):
-   Uhat.noalias() = U() - Uhat;
-   Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
+    COUNTER("update_prior");
+    // residual (Uhat is later overwritten):
+    Uhat.noalias() = U() - Uhat;
+    Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
 
-   // sampling Gaussian
-   std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + beta.cols());
-   sample_beta();
-   Features->compute_uhat(Uhat, beta);
+    // sampling Gaussian
+    std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + beta.cols());
+    sample_beta();
+    Features->compute_uhat(Uhat, beta);
 
-   if (enable_beta_precision_sampling)
-   {
-      double old_beta = beta_precision;
-      beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
-      FtF_plus_beta.diagonal().array() += beta_precision - old_beta;
+    if (enable_beta_precision_sampling)
+    {
+        double old_beta = beta_precision;
+        beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
+        FtF_plus_beta.diagonal().array() += beta_precision - old_beta;
    }
 }
 
@@ -98,6 +100,7 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 
 void MacauPrior::sample_beta()
 {
+   COUNTER("sample_beta");
    if (use_FtF)
       sample_beta_direct();
    else
