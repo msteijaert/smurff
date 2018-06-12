@@ -183,6 +183,12 @@ FILE (GLOB SIDE_INFO_FILES "../SideInfo/ISideInfo.h"
                         )
 source_group ("Side Info" FILES ${SIDE_INFO_FILES})
 
+FILE (GLOB PREDICT_FILES "../Predict/PredictSession.h"
+                         "../Predict/PredictSession.cpp"
+                        )
+                        
+source_group ("Side Info" FILES ${SIDE_INFO_FILES})
+
 #SETUP OUTPUT
 add_library (${PROJECT} STATIC ${HEADER_FILES}
                                ${SOURCE_FILES}
@@ -195,6 +201,7 @@ add_library (${PROJECT} STATIC ${HEADER_FILES}
                                ${TENSOR_FILES}
                                ${SESSION_FILES}
                                ${SIDE_INFO_FILES}
+                               ${PREDICT_FILES}
                                )
 set_property(TARGET ${PROJECT} PROPERTY FOLDER "Libraries")
 
