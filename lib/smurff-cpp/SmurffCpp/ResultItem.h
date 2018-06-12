@@ -12,6 +12,8 @@ struct ResultItem
    double pred_1sample;
    double pred_avg;
    double var;
+
+   std::vector<double> pred_all;
 };
 
 }
