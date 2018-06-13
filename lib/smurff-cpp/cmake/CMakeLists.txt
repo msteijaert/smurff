@@ -22,6 +22,8 @@ OPTION(ENABLE_BOOST_RANDOM "Enable usage of Boost random library" OFF)
 
 OPTION(ENABLE_PYTHON "Enable Python Wrapper" ON)
 
+OPTION(ENABLE_MPI "Enable MPI Support" ON)
+
 # INIT CMAKE
 
 message("Initializing cmake ...")
@@ -334,7 +336,9 @@ if(MSVC)
 add_subdirectory (../Smurff/cmake utils/Smurff)
 else()
 add_subdirectory (../Smurff/cmake utils/Smurff)
+if(ENABLE_MPI)
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
+endif()
 endif()
 
 
