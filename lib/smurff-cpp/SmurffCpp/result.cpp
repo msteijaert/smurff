@@ -47,17 +47,12 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
       THROWERROR("test data should be sparse");
    }
 
-   std::shared_ptr<std::vector<std::uint32_t> > columnsPtr = Y->getColumnsPtr();
-   std::shared_ptr<std::vector<double> > valuesPtr = Y->getValuesPtr();
-
-   std::vector<int> coords(Y->getNModes());
    m_predictions = std::make_shared<std::vector<ResultItem>>();
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
-      for(std::uint64_t m = 0; m < Y->getNModes(); m++)
-         coords[m] = static_cast<int>(columnsPtr->operator[](Y->getNNZ() * m + i));
-
-      m_predictions->push_back({smurff::PVec<>(coords), valuesPtr->operator[](i)});
+      const auto p = Y->get(i);
+      ResultItem r = {p.first, p.second};
+      m_predictions->push_back(r);
    }
 
    m_dims = Y->getDims();
@@ -94,27 +89,37 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
       return;
 
    std::string fname_pred = sf->getPredFileName();
-   std::ofstream predfile;
-   predfile.open(fname_pred);
-   THROWERROR_ASSERT_MSG(predfile.is_open(), "Error opening file: " + fname_pred);
+   std::ofstream predFile;
 
-   for (std::size_t d = 0; d < m_dims.size(); d++)
-      predfile << "coord" << d << ",";
-
-   predfile << "y,pred_1samp,pred_avg,var,std" << std::endl;
-
-   for (std::vector<ResultItem>::const_iterator it = m_predictions->begin(); it != m_predictions->end(); it++)
+   if (sf->isBinary())
    {
-      it->coords.save(predfile)
-         << "," << to_string(it->val)
-         << "," << to_string(it->pred_1sample)
-         << "," << to_string(it->pred_avg)
-         << "," << to_string(it->var)
-         << "," << to_string(it->stds)
-         << std::endl;
+      predFile.open(fname_pred, std::ios::out | std::ios::binary);
+      THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
+      predFile.write((const char *)(&(*m_predictions)[0]), m_predictions->size() * sizeof((*m_predictions)[0]));  
+   }
+   else
+   {
+
+      predFile.open(fname_pred, std::ios::out);
+      THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
+
+      for (std::size_t d = 0; d < m_dims.size(); d++)
+         predFile << "coord" << d << ",";
+
+      predFile << "y,pred_1samp,pred_avg,var,std" << std::endl;
+
+      for (std::vector<ResultItem>::const_iterator it = m_predictions->begin(); it != m_predictions->end(); it++)
+      {
+         it->coords.save(predFile)
+             << "," << to_string(it->val)
+             << "," << to_string(it->pred_1sample)
+             << "," << to_string(it->pred_avg)
+             << "," << to_string(it->var)
+             << std::endl;
+      }
    }
 
-   predfile.close();
+   predFile.close();
 }
 
 void Result::savePredState(std::shared_ptr<const StepFile> sf) const
@@ -149,53 +154,61 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
 
    THROWERROR_FILE_NOT_EXIST(fname_pred);
 
-   //since predictions were set in set method - clear them
-   std::size_t oldSize = m_predictions->size();
-   m_predictions->clear();
-
    //open file with predictions
    std::ifstream predFile;
-   predFile.open(fname_pred);
-   THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
 
-   //parse header
-   std::string header;
-   getline(predFile, header);
-
-   std::vector<std::string> headerTokens;
-   smurff::split(header, headerTokens, ',');
-
-   //parse all lines
-   std::vector<std::string> tokens;
-   std::vector<int> coords;
-   std::string line;
-
-   while (getline(predFile, line))
-   {
-      //split line
-      smurff::split(line, tokens, ',');
-
-      //construct coordinates
-      coords.clear();
-
-      std::size_t nCoords = m_dims.size();
-
-      for (std::size_t c = 0; c < nCoords; c++)
-         coords.push_back(stoi(tokens[c].c_str()));
-
-      //parse other values
-      double val = stod(tokens.at(nCoords).c_str());
-      double pred_1sample = stod(tokens.at(nCoords + 1).c_str());
-      double pred_avg = stod(tokens.at(nCoords + 2).c_str());
-      double var = stod(tokens.at(nCoords + 3).c_str());
-      double stds = stod(tokens.at(nCoords + 4).c_str());
-
-      //construct result item
-      m_predictions->push_back({ smurff::PVec<>(coords), val, pred_1sample, pred_avg, var, stds });
+   if (sf->isBinary()) {
+      predFile.open(fname_pred, std::ios::in | std::ios::binary);
+      THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
+      predFile.read((char *)(&(*m_predictions)[0]), m_predictions->size() * sizeof((*m_predictions)[0]));  
    }
+   else
+   {
+      //since predictions were set in set method - clear them
+      std::size_t oldSize = m_predictions->size();
+      m_predictions->clear();
 
-   //just a sanity check, not sure if it is needed
-   THROWERROR_ASSERT_MSG(oldSize == m_predictions->size(), "Incorrect predictions size after restore");
+      predFile.open(fname_pred);
+      THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
+
+      //parse header
+      std::string header;
+      getline(predFile, header);
+
+      std::vector<std::string> headerTokens;
+      smurff::split(header, headerTokens, ',');
+
+      //parse all lines
+      std::vector<std::string> tokens;
+      std::vector<int> coords;
+      std::string line;
+
+      while (getline(predFile, line))
+      {
+         //split line
+         smurff::split(line, tokens, ',');
+
+         //construct coordinates
+         coords.clear();
+
+         std::size_t nCoords = m_dims.size();
+
+         for (std::size_t c = 0; c < nCoords; c++)
+            coords.push_back(stoi(tokens[c].c_str()));
+
+         //parse other values
+         double val = stod(tokens.at(nCoords).c_str());
+         double pred_1sample = stod(tokens.at(nCoords + 1).c_str());
+         double pred_avg = stod(tokens.at(nCoords + 2).c_str());
+         double var = stod(tokens.at(nCoords + 3).c_str());
+
+         //construct result item
+         m_predictions->push_back({smurff::PVec<>(coords), val, pred_1sample, pred_avg, var});
+      }
+
+      //just a sanity check, not sure if it is needed
+      THROWERROR_ASSERT_MSG(oldSize == m_predictions->size(), "Incorrect predictions size after restore");
+   }
 
    predFile.close();
 }
@@ -273,8 +286,6 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
          double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
          t.var += delta * (pred - pred_avg);
 
-         const double inorm = 1.0 / sample_iter;
-         t.stds = std::sqrt(t.var * inorm);
          t.pred_avg = pred_avg;
          t.pred_1sample = pred;
          se_avg += std::pow(t.val - pred_avg, 2);

@@ -75,6 +75,19 @@ std::string StepFile::getStepFileName() const
    return prefix + STEP_INI_SUFFIX;
 }
 
+bool StepFile::isBinary() const
+{
+    if (m_extension == ".ddm")
+    {
+        return true;
+    }
+    else
+    {
+        THROWERROR_ASSERT_MSG(m_extension == ".csv", "Invalid save_extension: " + m_extension);
+    }
+    return false;
+}
+
 std::int32_t StepFile::tryGetIsampleFromPathInternal(const std::string& path, const std::string& prefix, const std::string& suffix) const
 {
    std::size_t idx0 = path.find(prefix);
@@ -116,7 +129,8 @@ std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 std::string StepFile::getPredFileName() const
 {
    std::string prefix = getStepPrefix();
-   return prefix + "-predictions.csv";
+   std::string extension = isBinary() ? ".bin" : ".csv";
+   return prefix + "-predictions" + extension;
 }
 
 std::string StepFile::getPredStateFileName() const

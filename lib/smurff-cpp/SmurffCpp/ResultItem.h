@@ -12,7 +12,6 @@ struct ResultItem
    double pred_1sample;
    double pred_avg;
    double var;
-   double stds;
 };
 
 }

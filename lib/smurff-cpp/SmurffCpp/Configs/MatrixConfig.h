@@ -107,9 +107,6 @@ namespace smurff
       const std::vector<std::uint32_t>& getRows() const;
       const std::vector<std::uint32_t>& getCols() const;
 
-      std::shared_ptr<std::vector<std::uint32_t> > getRowsPtr() const;
-      std::shared_ptr<std::vector<std::uint32_t> > getColsPtr() const;
-
    public:
       std::shared_ptr<Data> create(std::shared_ptr<IDataCreator> creator) const override;
 

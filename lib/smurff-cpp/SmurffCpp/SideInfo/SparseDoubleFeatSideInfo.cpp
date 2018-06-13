@@ -22,7 +22,9 @@ int SparseDoubleFeatSideInfo::rows() const
 
 std::ostream& SparseDoubleFeatSideInfo::print(std::ostream &os) const
 {
-   os << "SparseDouble [" << m_side_info->rows() << ", " << m_side_info->cols() << "]" << std::endl;
+   double percent = 100.8 * (double)m_side_info->nnz() / (double)m_side_info->rows() / (double) m_side_info->cols();
+   os << "SparseDouble " << m_side_info->nnz() << " [" << m_side_info->rows() << ", " << m_side_info->cols() << "] ("
+      << percent << "%)" << std::endl;
    return os;
 }
 

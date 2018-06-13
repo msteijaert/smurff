@@ -10,4 +10,3 @@ cdef extern from "<SmurffCpp/ResultItem.h>" namespace "smurff":
         double pred_1sample
         double pred_avg
         double var
-        double stds

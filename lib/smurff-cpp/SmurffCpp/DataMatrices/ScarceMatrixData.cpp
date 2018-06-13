@@ -125,7 +125,7 @@ double ScarceMatrixData::var_total() const
    double cwise_mean = this->sum() / this->nnz();
    double se = 0.0;
 
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:se)
+   #pragma omp parallel for schedule(guided) reduction(+:se)
    for (int k = 0; k < Y().outerSize(); ++k)
    {
       for (SparseMatrix<double>::InnerIterator it(Y(), k); it; ++it)
@@ -148,7 +148,7 @@ double ScarceMatrixData::sumsq(const SubModel& model) const
 {
    double sumsq = 0.0;
 
-   #pragma omp parallel for schedule(dynamic, 4) reduction(+:sumsq)
+   #pragma omp parallel for schedule(guided) reduction(+:sumsq)
    for (int j = 0; j < Y().outerSize(); j++) 
    {
       for (SparseMatrix<double>::InnerIterator it(Y(), j); it; ++it) 

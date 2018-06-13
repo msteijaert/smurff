@@ -53,6 +53,9 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setSaveExtension(string value)
         void setSaveFreq(int value)
 
+        #-- checkpoint
+        void setCheckpointFreq(int value)
+
         #-- general
         void setRandomSeedSet(bool value)
         void setRandomSeed(int value)

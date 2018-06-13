@@ -220,8 +220,8 @@ MacauPrior* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, boo
    std::shared_ptr<Eigen::MatrixXd> Fmat_ptr = std::shared_ptr<MatrixXd>(Fmat);
    std::shared_ptr<DenseDoubleFeatSideInfo> side_info = std::make_shared<DenseDoubleFeatSideInfo>(Fmat_ptr);
    ret->addSideInfo(side_info, 10.0, 1e-6, comp_FtF, true, false);
-   ret->FtF.resize(Fmat->cols(), Fmat->cols());
-   ret->Features->At_mul_A(ret->FtF);
+   ret->FtF_plus_beta.resize(Fmat->cols(), Fmat->cols());
+   ret->Features->At_mul_A(ret->FtF_plus_beta);
    return ret;
 }
 
@@ -236,7 +236,7 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
     auto features_downcast1 = std::dynamic_pointer_cast<DenseDoubleFeatSideInfo>(prior->Features); //for the purpose of the test
     REQUIRE( (*(features_downcast1->get_features()) - Ftrue).norm() == Approx(0) );
     Eigen::MatrixXd tmp = Eigen::MatrixXd::Zero(2, 2);
-    tmp.triangularView<Eigen::Lower>()  = prior->FtF;
+    tmp.triangularView<Eigen::Lower>()  = prior->FtF_plus_beta;
     tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
     REQUIRE( tmp.norm() == Approx(0) );
 
@@ -250,7 +250,7 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
     auto features_downcast2 = std::dynamic_pointer_cast<DenseDoubleFeatSideInfo>(prior2->Features); //for the purpose of the test
     REQUIRE( (*(features_downcast2->get_features()) - Ftrue2).norm() == Approx(0) );
     Eigen::MatrixXd tmp2 = Eigen::MatrixXd::Zero(2, 2);
-    tmp2.triangularView<Eigen::Lower>()  = prior2->FtF;
+    tmp2.triangularView<Eigen::Lower>()  = prior2->FtF_plus_beta;
     tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;
     REQUIRE( tmp2.norm() == Approx(0) );
 }

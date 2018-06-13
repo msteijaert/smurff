@@ -325,6 +325,29 @@ std::uint64_t TensorConfig::getNModes() const
    return m_nmodes;
 }
 
+std::pair<PVec<>, double> TensorConfig::get(std::uint64_t pos) const
+{
+    double val = getValues()[pos];
+    PVec<> coords(getNModes());
+    for(unsigned j=0; j<getNModes(); ++j) 
+    {
+        coords[j] = getColumns()[pos];
+        pos += getNNZ();
+    }
+
+    return std::make_pair(PVec<>(coords), val);
+}
+
+void TensorConfig::set(std::uint64_t pos, PVec<> coords, double value)
+{
+    (*m_values)[pos] = value;
+    for(unsigned j=0; j<getNModes(); ++j) 
+    {
+        (*m_columns)[pos] = coords[j];
+        pos += getNNZ();
+    }
+}
+
 const std::vector<std::uint64_t>& TensorConfig::getDims() const
 {
    return *m_dims;
@@ -340,6 +363,7 @@ const std::vector<double>& TensorConfig::getValues() const
    return *m_values;
 }
 
+/*
 std::shared_ptr<std::vector<std::uint64_t> > TensorConfig::getDimsPtr() const
 {
    return m_dims;
@@ -350,10 +374,17 @@ std::shared_ptr<std::vector<std::uint32_t> > TensorConfig::getColumnsPtr() const
    return m_columns;
 }
 
+std::vector<std::uint32_t> &TensorConfig::getCoordsPtr(int mode) const
+{
+
+    
+}
+
 std::shared_ptr<std::vector<double> > TensorConfig::getValuesPtr() const
 {
    return m_values;
 }
+*/
 
 const NoiseConfig& TensorConfig::getNoiseConfig() const
 {

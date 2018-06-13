@@ -261,6 +261,7 @@ cdef class TrainSession:
         save_prefix      = None,
         save_extension   = None,
         save_freq        = None,
+        checkpoint_freq  = None,
         csv_status       = None):
 
         self.nmodes = len(priors)
@@ -289,9 +290,13 @@ cdef class TrainSession:
         if save_prefix:    self.config.setSavePrefix(save_prefix.encode('UTF-8'))
         if save_extension: self.config.setSaveExtension(save_extension.encode('UTF-8'))
         if save_freq:      self.config.setSaveFreq(save_freq)
+        if checkpoint_freq:self.config.setCheckpointFreq(checkpoint_freq)
         if csv_status:     self.config.setCsvStatus(csv_status.encode('UTF-8'))
 
     def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig(), is_scarce = True):
+        """ Adds a train and optionally a test matrix as input data to this TrainSession
+        
+        """
         self.noise_config = prepare_noise_config(noise)
         train, test = prepare_train_and_test(Y, Ytest, self.noise_config, is_scarce)
         self.config.setTrain(train)
