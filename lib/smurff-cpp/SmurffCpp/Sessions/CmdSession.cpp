@@ -384,7 +384,8 @@ bool CmdSession::parse_options(int argc, char* argv[])
 
    if (argc != 3)
    {
-      std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
+      std::cerr << "Usage:\n\tsmurff --[ini|root] <ini_file.ini>\n\n"
+                << "(Limited smurff compiled w/o boost program options)" << std::endl;
       return false;
    }
 
@@ -415,7 +416,8 @@ bool CmdSession::parse_options(int argc, char* argv[])
       }
       else
       {
-         std::cerr << "Usage:\n\tsmurff --ini <ini_file.ini>\n\n(Limited smurff compiled w/o boost program options)" << std::endl;
+         std::cerr << "Usage:\n\tsmurff --[ini|root] <ini_file.ini>\n\n"
+                << "(Limited smurff compiled w/o boost program options)" << std::endl;
          return false;
       }
    }
