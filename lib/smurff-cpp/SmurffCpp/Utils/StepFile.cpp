@@ -293,6 +293,9 @@ void StepFile::removePriors() const
 
 void StepFile::remove(bool model, bool pred, bool priors) const
 {
+   if (m_iniReader->empty()) 
+       return;
+
    //remove all model files
    if(model)
       removeModel();

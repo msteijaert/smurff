@@ -239,6 +239,59 @@ cdef prepare_result_item(ResultItem item):
     return Prediction(tuple(item.coords.as_vector()), item.val, item.pred_1sample, item.pred_avg, item.var)
 
 cdef class TrainSession:
+    """Class for doing a training run in smurff
+
+    A simple use case could be:
+
+    >>> session = smurff.TrainSession(burnin = 5, nsamples = 5)
+    >>> session.addTrainAndTest(Ydense)
+    >>> session.run()
+
+        
+    Attributes
+    ----------
+
+    priors: list, where element is one of { "normal", "normalone", "macau", "macauone", "spikeandslab" }
+        The type of prior to use for each dimension
+
+    num_latent: int
+        Number of latent dimensions in the model
+
+    burnin: int
+        Number of burnin samples to discard
+    
+    nsamples: int
+        Number of samples to keep
+
+    num_threads: int
+        Number of OpenMP threads to use for model building
+
+    verbose: {0, 1, 2}
+        Verbosity level
+
+    seed: float
+        Random seed to use for sampling
+
+    save_prefix: path
+        Path where to store the samples. The path includes the directory name, as well
+        as the initial part of the file names.
+
+    save_freq: int
+        - N>0: save every Nth sample
+        - N==0: never save a sample
+        - N==-1: save only the last sample
+
+    save_extension: { ".csv", ".ddm" }
+        - .csv: save in textual csv file format
+        - .ddm: save in binary file format
+
+    checkpoint_freq: int
+        Save the state of the session every N seconds.
+
+    csv_status: filepath
+        Stores limited set of parameters, indicative for training progress in this file. See :class:`StatusItem`
+
+    """
     cdef shared_ptr[ISession] ptr;
     cdef Config config
     cdef NoiseConfig noise_config
@@ -263,6 +316,7 @@ cdef class TrainSession:
         save_freq        = None,
         checkpoint_freq  = None,
         csv_status       = None):
+
 
         self.nmodes = len(priors)
         self.verbose = verbose
@@ -294,8 +348,25 @@ cdef class TrainSession:
         if csv_status:     self.config.setCsvStatus(csv_status.encode('UTF-8'))
 
     def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig(), is_scarce = True):
-        """ Adds a train and optionally a test matrix as input data to this TrainSession
-        
+        """Adds a train and optionally a test matrix as input data to this TrainSession
+
+        Parameters
+        ----------
+
+        Y : :class: `numpy.ndarray`, :mod:`scipy.sparse` matrix or :class: `SparseTensor`
+            Train matrix/tensor 
+       
+        Ytest : :mod:`scipy.sparse` matrix or :class: `SparseTensor`
+            Test matrix/tensor. Mainly used for calculating RMSE.
+
+        noise : :class: `PyNoiseConfig`
+            Noise model to use for `Y`
+
+        is_scarce : bool
+            When `Y` is sparse, and `is_scarce` is *True* the missing values are considered as *unknown*.
+            When `Y` is sparse, and `is_scarce` is *False* the missing values are considered as *zero*.
+            When `Y` is dense, this parameter is ignored.
+
         """
         self.noise_config = prepare_noise_config(noise)
         train, test = prepare_train_and_test(Y, Ytest, self.noise_config, is_scarce)
@@ -305,12 +376,53 @@ cdef class TrainSession:
             self.config.setTest(test)
 
     def addSideInfo(self, mode, Y, noise = PyNoiseConfig(), tol = 1e-6, direct = False):
+        """Adds fully known side info, for use in with the macau or macauone prior
+
+        mode : int
+            dimension to add side info (rows = 0, cols = 1)
+
+        Y : :class: `numpy.ndarray`, :mod:`scipy.sparse` matrix
+            Side info matrix/tensor 
+            Y should have as many rows in Y as you have elemnts in the dimension selected using `mode`.
+            Columns in Y are features for each element.
+
+        noise : :class: `PyNoiseConfig`
+            Noise model to use for `Y`
+        
+        direct : boolean
+            - When True, uses a direct inversion method. 
+            - When False, uses a CG solver 
+
+            The direct method is only feasible for a small (< 100K) number of features.
+
+        tol : float
+            Tolerance for the CG solver.
+
+        """
         self.noise_config = prepare_noise_config(noise)
         self.config.addSideInfoConfig(mode, prepare_sideinfo(Y, self.noise_config, tol, direct))
 
-    def addData(self, pos, ad, is_scarce = False, noise = PyNoiseConfig()):
+    def addData(self, pos, Y, is_scarce = False, noise = PyNoiseConfig()):
+        """Stacks more matrices/tensors next to the main train matrix.
+
+        pos : shape
+            Block position of the data with respect to train. The train matrix/tensor
+            has implicit block position (0, 0). 
+
+        Y : :class: `numpy.ndarray`, :mod:`scipy.sparse` matrix or :class: `SparseTensor`
+            Data matrix/tensor to add
+
+        is_scarce : bool
+            When `Y` is sparse, and `is_scarce` is *True* the missing values are considered as *unknown*.
+            When `Y` is sparse, and `is_scarce` is *False* the missing values are considered as *zero*.
+            When `Y` is dense, this parameter is ignored.
+
+        noise : :class: `PyNoiseConfig`
+            Noise model to use for `Y`
+        
+        """
         self.noise_config = prepare_noise_config(noise)
-        self.config.addAuxData(prepare_auxdata(ad, pos, is_scarce, self.noise_config))
+        self.config.addAuxData(prepare_auxdata(Y, pos, is_scarce, self.noise_config))
 
     cdef ISession* ptr_get(self) except *:
         if (not self.ptr.get()):
@@ -322,6 +434,16 @@ cdef class TrainSession:
     #
 
     def init(self):
+        """Initializes the `TrainSession` after all data has been added.
+
+        You need to call this method befor calling :meth:`step`, unless you call :meth:`run`
+
+        Returns
+        -------
+        :class:`StatusItem` of the session.
+
+        """
+
         self.ptr = SessionFactory.create_py_session_from_config(self.config)
         self.ptr_get().init()
         if (self.verbose > 0):
@@ -330,6 +452,14 @@ cdef class TrainSession:
 
 
     def step(self):
+        """Does on sampling or burnin iteration.
+
+        Returns
+        -------
+        - When a step was executed: :class:`StatusItem` of the session.
+        - After the last iteration, when no step was executed: `None`.
+
+        """
         not_done = self.ptr_get().step()
         
         if self.ptr_get().interrupted():
@@ -341,6 +471,14 @@ cdef class TrainSession:
             return None
 
     def run(self):
+        """Equivalent to:
+
+        .. code-block:: python
+        
+            self.init()
+            while self.step():
+                pass
+        """
         self.init()
         while self.step():
             pass
@@ -359,6 +497,9 @@ cdef class TrainSession:
 
 
     def getStatus(self):
+        """ Returns :class:`StatusItem` with current state of the session
+
+        """
         if self.ptr_get().getStatus():
             self.status_item = self.ptr_get().getStatus()
             status =  PyStatusItem(
@@ -381,7 +522,11 @@ cdef class TrainSession:
             return status
         else:
             return None
+
     def getConfig(self):
+        """Get this `TrainSession`'s configuration in ini-file format
+
+        """
         config_filename = tempfile.mkstemp()[1]
         self.config.save(config_filename.encode('UTF-8'))
         
@@ -393,11 +538,22 @@ cdef class TrainSession:
         return ini_string
 
     def makePredictSession(self):
+        """Makes a :class:`PredictSession` based on the model
+           that as built in this `TrainSession`.
+
+        """
         rf = self.ptr_get().getRootFile().get().getRootFileName()
         return PredictSession.fromRootFile(rf)
 
     def getTestPredictions(self):
-        """ Create Python list of Prediction from C++ vector of Predictions """
+        """Get predictions for test matrix.
+
+        Returns
+        -------
+        list 
+            list of :class:`Prediction`
+
+        """
         py_items = []
 
         if self.ptr_get().getResult():
@@ -410,4 +566,7 @@ cdef class TrainSession:
         return py_items
     
     def getRmseAvg(self): 
+        """Average RMSE across all samples for the test matrix
+
+        """
         return self.ptr_get().getRmseAvg()

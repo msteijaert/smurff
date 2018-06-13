@@ -338,12 +338,6 @@ function(add_cython_target _name)
     set(annotate_arg "--annotate")
   endif()
 
-  set(no_docstrings_arg "")
-  if(CMAKE_BUILD_TYPE STREQUAL "Release" OR
-     CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-    set(no_docstrings_arg "--no-docstrings")
-  endif()
-
   set(cython_debug_arg "")
   set(embed_pos_arg "")
   set(line_directives_arg "")
@@ -369,7 +363,7 @@ function(add_cython_target _name)
   add_custom_command(OUTPUT ${generated_file}
                      COMMAND ${CYTHON_EXECUTABLE}
                      ARGS ${cxx_arg} ${include_directory_arg} ${py_version_arg}
-                          ${embed_arg} ${annotate_arg} ${no_docstrings_arg}
+                          ${embed_arg} ${annotate_arg} 
                           ${cython_debug_arg} ${embed_pos_arg}
                           ${line_directives_arg} ${CYTHON_FLAGS} ${pyx_location}
                           --output-file ${generated_file}

@@ -59,7 +59,6 @@ void NormalPrior::update_prior()
 //n is an index of column in U matrix
 void  NormalPrior::sample_latent(int n)
 {
-   COUNTER("NormalPrior::sample_latent");
    const auto &mu_u = getMu(n);
 
    VectorXd &rr = rrs.local();
@@ -80,7 +79,6 @@ void  NormalPrior::sample_latent(int n)
 
    Eigen::LLT<MatrixXd> chol;
    {
-      COUNTER("cholesky");
       chol = MM.llt(); // compute the Cholesky decomposition X = L * U
       if(chol.info() != Eigen::Success)
       {

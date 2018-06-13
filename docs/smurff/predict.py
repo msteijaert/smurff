@@ -1,0 +1,1 @@
+../../python/smurff/smurff/predict.py

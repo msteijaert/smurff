@@ -145,6 +145,7 @@ void Session::run()
 
 bool Session::step()
 {
+   COUNTER("step");
    THROWERROR_ASSERT_MSG(is_init, "Session::init() needs to be called before ::step()")
 
    // go to the next iteration
