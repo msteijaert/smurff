@@ -178,7 +178,8 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 {
    os << indent << m_name << ": " << std::endl;
    indent += "  ";
-   os << indent << "FtF_plus_beta          = " << FtF_plus_beta.norm() << std::endl;
+   os << indent << "blockcg iter = " << blockcg_iter << std::endl;
+   os << indent << "FtF_plus_beta= " << FtF_plus_beta.norm() << std::endl;
    os << indent << "HyperU       = " << HyperU.norm() << std::endl;
    os << indent << "HyperU2      = " << HyperU2.norm() << std::endl;
    os << indent << "Beta         = " << beta.norm() << std::endl;
