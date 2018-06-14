@@ -7,6 +7,7 @@
 
 #ifdef PROFILING
 
+#include <cmath>
 #include <mutex>
 #include <iostream>
 #include <iomanip>
