@@ -157,12 +157,14 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
    //open file with predictions
    std::ifstream predFile;
 
-   if (sf->isBinary()) {
+   std::string fname_ext = fname_pred.substr(fname_pred.find_last_of("."));
+
+   if (fname_ext == ".bin") {
       predFile.open(fname_pred, std::ios::in | std::ios::binary);
       THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
       predFile.read((char *)(&(*m_predictions)[0]), m_predictions->size() * sizeof((*m_predictions)[0]));  
    }
-   else
+   else if (fname_ext == ".csv")
    {
       //since predictions were set in set method - clear them
       std::size_t oldSize = m_predictions->size();
@@ -208,7 +210,12 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
 
       //just a sanity check, not sure if it is needed
       THROWERROR_ASSERT_MSG(oldSize == m_predictions->size(), "Incorrect predictions size after restore");
+   } 
+   else 
+   {
+      THROWERROR("Unknown extension: " + fname_pred);
    }
+
 
    predFile.close();
 }
