@@ -120,18 +120,30 @@ std::string StepFile::getStepPrefix() const
 
 std::string StepFile::getModelFileName(std::uint64_t index) const
 {
+   auto modelIt = tryGetIniValueBase(MODELS_SEC_TAG, MODEL_PREFIX + std::to_string(index));
+   if (modelIt.first)
+      return modelIt.second; 
+
    std::string prefix = getStepPrefix();
    return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
 }
 
 std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 {
+   auto linkMatrixIt = tryGetIniValueBase(PRIORS_SEC_TAG, PRIOR_PREFIX + std::to_string(mode));
+   if (linkMatrixIt.first)
+      return linkMatrixIt.second; 
+
    std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
 }
 
 std::string StepFile::getPredFileName() const
 {
+   auto predIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_TAG);
+   if (predIt.first)
+      return predIt.second; 
+
    std::string prefix = getStepPrefix();
    std::string extension = isBinary() ? ".bin" : ".csv";
    return prefix + "-predictions" + extension;
@@ -139,6 +151,10 @@ std::string StepFile::getPredFileName() const
 
 std::string StepFile::getPredStateFileName() const
 {
+   auto predStateIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_STATE_TAG);
+   if (predStateIt.first)
+      return predStateIt.second; 
+
    std::string prefix = getStepPrefix();
    return prefix + "-predictions-state.ini";
 }
@@ -202,8 +218,7 @@ void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Re
 void StepFile::restoreModel(std::shared_ptr<Model> model) const
 {
    //it is enough to check presence of num tag
-   auto nmodels = tryGetIniValueBase(MODELS_SEC_TAG, NUM_MODELS_TAG);
-   if (!nmodels.first)
+   if (!hasIniValueBase(MODELS_SEC_TAG, NUM_MODELS_TAG))
       return;
 
    model->restore(shared_from_this());
@@ -211,12 +226,10 @@ void StepFile::restoreModel(std::shared_ptr<Model> model) const
 
 void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
 {
-   auto predIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_TAG);
-   if (!predIt.first)
+   if (!hasIniValueBase(PRED_SEC_TAG, PRED_TAG))
       return;
 
-   auto predStateIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_STATE_TAG);
-   if (!predStateIt.first)
+   if (!hasIniValueBase(PRED_SEC_TAG, PRED_STATE_TAG))
       return;
 
    m_pred->restore(shared_from_this());
@@ -225,8 +238,7 @@ void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
 void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
    //it is enough to check presence of num tag
-   auto npriors = tryGetIniValueBase(PRIORS_SEC_TAG, NUM_PRIORS_TAG);
-   if (!npriors.first)
+   if (!hasIniValueBase(PRIORS_SEC_TAG,NUM_PRIORS_TAG))
       return;
 
    for (auto &p : priors)
@@ -348,11 +360,17 @@ std::string StepFile::getIniValueBase(const std::string& section, const std::str
    return m_iniReader->get(section, tag);
 }
 
+bool StepFile::hasIniValueBase(const std::string& section, const std::string& tag) const
+{
+   return tryGetIniValueBase(section, tag).first;
+}
+
 std::pair<bool, std::string> StepFile::tryGetIniValueBase(const std::string& section, const std::string& tag) const
 {
-   THROWERROR_ASSERT_MSG(m_iniReader, "Step ini file is not loaded");
+   if (m_iniReader)
+      return m_iniReader->tryGet(section, tag);
 
-   return m_iniReader->tryGet(section, tag);
+   return std::make_pair(false, std::string());
 }
 
 void StepFile::appendToStepFile(std::string section, std::string tag, std::string value) const
