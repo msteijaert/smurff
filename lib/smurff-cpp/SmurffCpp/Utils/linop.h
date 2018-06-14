@@ -12,7 +12,7 @@
 namespace smurff { namespace linop {
 
 template<typename T>
-void  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error = false);
+int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error = false);
 template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error = false);
 
@@ -203,13 +203,13 @@ template<> inline void compute_uhat(Eigen::MatrixXd & uhat, Eigen::MatrixXd & de
 
 /** good values for solve_blockcg are blocksize=32 an excess=8 */
 template<typename T>
-inline void solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error) {
+inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error) {
   if (B.rows() <= excess + blocksize) {
-    solve_blockcg(X, K, reg, B, tol, throw_on_cholesky_error);
-    return;
+    return solve_blockcg(X, K, reg, B, tol, throw_on_cholesky_error);
   }
   // split B into blocks of size <blocksize> (+ excess if needed)
   Eigen::MatrixXd Xblock, Bblock;
+  int max_iter = 0;
   for (int i = 0; i < B.rows(); i += blocksize) {
     int nrows = blocksize;
     if (i + blocksize + excess >= B.rows()) {
@@ -219,9 +219,12 @@ inline void solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixX
     Xblock.resize(nrows, X.cols());
 
     Bblock = B.block(i, 0, nrows, B.cols());
-    solve_blockcg(Xblock, K, reg, Bblock, tol, throw_on_cholesky_error);
+    int niter = solve_blockcg(Xblock, K, reg, Bblock, tol, throw_on_cholesky_error);
+    max_iter = std::max(niter, max_iter);
     X.block(i, 0, nrows, X.cols()) = Xblock;
   }
+
+  return max_iter;
 }
 
 //
