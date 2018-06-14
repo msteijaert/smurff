@@ -217,5 +217,5 @@ void MacauPrior::sample_beta_cg()
     Eigen::MatrixXd Ft_y;
     this->compute_Ft_y_omp(Ft_y);
 
-    Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
+    blockcg_iter = Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
 }
