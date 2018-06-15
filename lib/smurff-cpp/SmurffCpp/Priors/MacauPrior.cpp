@@ -181,7 +181,8 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 {
    os << indent << m_name << ": " << std::endl;
    indent += "  ";
-   os << indent << "FtF_plus_beta          = " << FtF_plus_beta.norm() << std::endl;
+   os << indent << "blockcg iter = " << blockcg_iter << std::endl;
+   os << indent << "FtF_plus_beta= " << FtF_plus_beta.norm() << std::endl;
    os << indent << "HyperU       = " << HyperU.norm() << std::endl;
    os << indent << "HyperU2      = " << HyperU2.norm() << std::endl;
    os << indent << "Beta         = " << beta.norm() << std::endl;
@@ -220,5 +221,5 @@ void MacauPrior::sample_beta_cg()
     Eigen::MatrixXd Ft_y;
     this->compute_Ft_y_omp(Ft_y);
 
-    Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
+    blockcg_iter = Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
 }

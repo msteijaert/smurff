@@ -24,6 +24,8 @@ public:
    Eigen::MatrixXd beta;      // link matrix
    Eigen::MatrixXd HyperU, HyperU2;
    Eigen::MatrixXd Ft_y;
+
+   int blockcg_iter;
    
    double beta_precision_mu0; // Hyper-prior for beta_precision
    double beta_precision_nu0; // Hyper-prior for beta_precision
