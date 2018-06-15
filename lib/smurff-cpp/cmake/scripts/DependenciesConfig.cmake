@@ -50,6 +50,7 @@ endmacro(configure_openmp)
 macro(configure_lapack)
   message ("Dependency check for lapack...")
   find_package(LAPACK REQUIRED)
+  add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKEyy)
   message(STATUS LAPACK: ${LAPACK_LIBRARIES})
 endmacro(configure_lapack)
 
@@ -64,7 +65,9 @@ macro(configure_openblas)
   set(BLA_VENDOR "OpenBLAS")
   find_package( BLAS REQUIRED )
   endif()
-  
+
+  add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKEyy)
+
   message(STATUS BLAS: ${BLAS_LIBRARIES} )
  
 endmacro(configure_openblas)

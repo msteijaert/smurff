@@ -15,19 +15,6 @@
 using namespace Eigen;
 using namespace std;
 
-#ifndef EIGEN_USE_MKL_ALL
-extern "C" void dsyrk_(char *uplo, char *trans, int *m, int *n, double *alpha, double a[],
-            int *lda, double *beta, double c[], int *ldc);
-extern "C" void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha,
-            double a[], int *lda, double b[], int *ldb, double *beta, double c[],
-            int *ldc);
-
-/*
-extern "C" void dsymm_(char *side, char *uplo, int *m, int *n, double *alpha, double a[],
-            int *lda, double b[], int *ldb, double *beta, double c[], int *ldc);
-*/
-#endif
-
 // out = bcsr * b (for vectors)
 void smurff::linop::A_mul_B(Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b) 
 {
