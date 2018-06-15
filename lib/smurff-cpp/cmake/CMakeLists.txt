@@ -247,10 +247,13 @@ if(MSVC)
   configure_boost()
 else()
   configure_pthreads()
-  configure_mpi()
   configure_openmp()
   configure_eigen()
   configure_boost()
+endif()
+
+if(ENABLE_MPI)
+  configure_mpi()
 endif()
 
 set(ALGEBRA_LIB_FOUND OFF)
@@ -331,14 +334,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_subdirectory (../SmurffCpp/cmake libraries/SmurffCpp)
 
 # utils
+add_subdirectory (../Smurff/cmake utils/Smurff)
 
-if(MSVC)
-add_subdirectory (../Smurff/cmake utils/Smurff)
-else()
-add_subdirectory (../Smurff/cmake utils/Smurff)
+# MPI
+
 if(ENABLE_MPI)
 add_subdirectory (../SmurffMPI/cmake utils/SmurffMPI)
-endif()
 endif()
 
 
