@@ -144,8 +144,15 @@ void Result::savePredState(std::shared_ptr<const StepFile> sf) const
 
 void Result::restore(std::shared_ptr<const StepFile> sf)
 {
-   restorePred(sf);
-   restoreState(sf);
+      try
+      {
+            restorePred(sf);
+            restoreState(sf);
+      }
+      catch (const std::exception &e)
+      {
+            std::cerr << "Warning: Unable to restore predictions:\n" << e.what() << std::endl;
+      }
 }
 
 void Result::restorePred(std::shared_ptr<const StepFile> sf)
