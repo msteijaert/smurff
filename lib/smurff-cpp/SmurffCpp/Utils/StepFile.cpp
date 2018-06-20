@@ -225,6 +225,14 @@ void StepFile::restoreModel(std::shared_ptr<Model> model) const
    model->restore(shared_from_this());
 }
 
+  //-- used in PredictSession
+std::shared_ptr<Model> StepFile::restoreModel() const
+{
+    auto model = std::make_shared<Model>();
+    model->restore(shared_from_this());
+    return model;
+}
+
 void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
 {
    if (!hasIniValueBase(PRED_SEC_TAG, PRED_TAG))
