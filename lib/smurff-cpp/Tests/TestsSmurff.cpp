@@ -7,6 +7,9 @@
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Sessions/SessionFactory.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/Utils/RootFile.h>
+#include <SmurffCpp/Predict/PredictSession.h>
+#include <SmurffCpp/result.h>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Code for printing test results that can then be copy-pasted into tests as expected results
@@ -2892,4 +2895,38 @@ TEST_CASE(
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*tensorRunResults, *matrixRunResults);
+}
+
+TEST_CASE("PredictSession")
+{
+   std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+   std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+
+   Config config;
+   config.setTrain(trainDenseMatrixConfig);
+   config.setTest(testSparseMatrixConfig);
+   config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
+   config.setNumLatent(4);
+   config.setBurnin(50);
+   config.setNSamples(50);
+   config.setVerbose(false);
+   config.setRandomSeed(1234);
+   config.setSaveFreq(1);
+
+   std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+   session->run();
+
+   std::string root_fname =  session->getRootFile()->getRootFileName();
+   std::cout << "RootFile: " << root_fname << std::endl;
+
+   auto rf = std::make_shared<RootFile>(root_fname);
+   PredictSession s(rf);
+   
+   // test predict from TensorConfig
+   auto result = s.predict(config.getTest());
+
+   std::cout << "Prediction from Session RMSE: " << session->getRmseAvg() << std::endl;
+   std::cout << "Prediction from RootFile RMSE: " << result->rmse_avg << std::endl;
+
+
 }
