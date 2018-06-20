@@ -38,6 +38,12 @@ enum class ModelInitTypes
    zero
 };
 
+enum class ActionTypes
+{
+   train,
+   predict
+};
+
 PriorTypes stringToPriorType(std::string name);
 
 std::string priorTypeToString(PriorTypes type);
@@ -46,11 +52,14 @@ ModelInitTypes stringToModelInitType(std::string name);
 
 std::string modelInitTypeToString(ModelInitTypes type);
 
+ActionTypes stringToActionType(std::string name);
+
 struct Config
 {
 public:
 
    //config
+   static ActionTypes ACTION_DEFAULT_VALUE;
    static int BURNIN_DEFAULT_VALUE;
    static int NSAMPLES_DEFAULT_VALUE;
    static int NUM_LATENT_DEFAULT_VALUE;
@@ -67,6 +76,8 @@ public:
    static int RANDOM_SEED_DEFAULT_VALUE;
 
 private:
+   ActionTypes m_action;
+
    //-- train and test
    std::shared_ptr<TensorConfig> m_train;
    std::shared_ptr<TensorConfig> m_test;
@@ -99,7 +110,6 @@ private:
    int m_num_latent;
    int m_num_threads; 
 
-
    //-- binary classification
    bool m_classify;
    double m_threshold;
@@ -117,6 +127,16 @@ public:
    static bool restoreSaveInfo(std::string fname, std::string& save_prefix, std::string& save_extension);
 
 public:
+   void setActionPredict() 
+   {
+       m_action = ActionTypes::predict;
+   }
+
+   void setActionTrain() 
+   {
+       m_action = ActionTypes::train;
+   }
+
    std::shared_ptr<TensorConfig> getTrain() const
    {
       return m_train;

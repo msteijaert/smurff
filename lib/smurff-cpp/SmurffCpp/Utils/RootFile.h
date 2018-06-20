@@ -69,14 +69,9 @@ private:
 public:
    std::shared_ptr<StepFile> openLastStepFile() const;
 
+   std::shared_ptr<StepFile> openSampleStepFile(int isample) const;
+
    std::vector<std::shared_ptr<StepFile>> openSampleStepFiles() const;
-
-/*
-public:
-   std::shared_ptr<StepFile> openSampleStepFile(std::int32_t isample) const;
-
-   std::shared_ptr<StepFile> openSampleStepFile(std::string path) const;
-*/
 
 public:
    void flushLast() const;

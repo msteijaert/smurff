@@ -51,17 +51,18 @@ static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 
 // dense train data (matrix/tensor 2d/tensor 3d)
 
-//#define HIDE_MATRIX_TESTS "[!hide]"
+#ifdef TEST_RANDOM
 #define HIDE_MATRIX_TESTS ""
-
-//#define HIDE_TWO_DIMENTIONAL_TENSOR_TESTS "[!hide]"
 #define HIDE_TWO_DIMENTIONAL_TENSOR_TESTS ""
-
-//#define HIDE_THREE_DIMENTIONAL_TENSOR_TESTS "[!hide]"
 #define HIDE_THREE_DIMENTIONAL_TENSOR_TESTS ""
-
-//#define HIDE_VS_TESTS "[!hide]"
 #define HIDE_VS_TESTS ""
+#else
+#define HIDE_MATRIX_TESTS "[!hide]"
+#define HIDE_TWO_DIMENTIONAL_TENSOR_TESTS "[!hide]"
+#define HIDE_THREE_DIMENTIONAL_TENSOR_TESTS "[!hide]"
+#define HIDE_VS_TESTS "[!hide]"
+#endif
+
 
 std::shared_ptr<MatrixConfig> getTrainDenseMatrixConfig()
 {
@@ -310,7 +311,6 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
    }
 }
 
-#ifdef TEST_RANDOM
 //
 //      train: dense matrix
 //       test: sparse matrix
@@ -2893,5 +2893,3 @@ TEST_CASE(
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*tensorRunResults, *matrixRunResults);
 }
-
-#endif // TEST_RANDOM

@@ -114,6 +114,7 @@ std::string smurff::modelInitTypeToString(ModelInitTypes type)
 }
 
 //config
+ActionTypes Config::ACTION_DEFAULT_VALUE = ActionTypes::train;
 int Config::BURNIN_DEFAULT_VALUE = 200;
 int Config::NSAMPLES_DEFAULT_VALUE = 800;
 int Config::NUM_LATENT_DEFAULT_VALUE = 96;

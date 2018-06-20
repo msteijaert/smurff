@@ -44,6 +44,7 @@ std::string RootFile::getOptionsFileName() const
    return m_prefix + "-options.ini";
 }
 
+
 void RootFile::appendToRootFile(std::string section, std::string tag, std::string value) const
 {
     if (m_cur_section != section) {

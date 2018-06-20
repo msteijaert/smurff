@@ -8,6 +8,7 @@
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/IO/GenericIO.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 
 #define STEP_SAMPLE_PREFIX "-sample-"
 #define STEP_CHECKPOINT_PREFIX "-checkpoint-"
@@ -245,6 +246,25 @@ void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors
    {
       p->restore(shared_from_this());
    }
+}
+
+std::vector<std::shared_ptr<MatrixConfig>> StepFile::restoreLinkMatrices() const
+{
+   std::vector<std::shared_ptr<MatrixConfig>> betas;
+   
+   //it is enough to check presence of num tag
+   auto npriors = tryGetIniValueBase(PRIORS_SEC_TAG, NUM_PRIORS_TAG);
+   if (!npriors.first) return betas;
+   int nmodes = atoi(npriors.second.c_str());
+    
+   for(int i=0; i<nmodes; ++i)
+   {
+      std::string path = getLinkMatrixFileName(i);
+      THROWERROR_FILE_NOT_EXIST(path);
+      betas.push_back(smurff::matrix_io::read_matrix(path, false)); 
+   }
+
+   return betas;
 }
 
 void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const

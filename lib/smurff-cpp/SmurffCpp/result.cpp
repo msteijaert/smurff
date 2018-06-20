@@ -289,15 +289,10 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       {
          auto &t = m_predictions->operator[](k);
          const double pred = model->predict(t.coords); //dot product of i'th columns in each U matrix
+         t.update(pred);
+
          se_1sample += std::pow(t.val - pred, 2);
-
-         double delta = pred - t.pred_avg;
-         double pred_avg = (t.pred_avg + delta / (sample_iter + 1));
-         t.var += delta * (pred - pred_avg);
-
-         t.pred_avg = pred_avg;
-         t.pred_1sample = pred;
-         se_avg += std::pow(t.val - pred_avg, 2);
+         se_avg += std::pow(t.val - t.pred_avg, 2);
       }
 
       sample_iter++;

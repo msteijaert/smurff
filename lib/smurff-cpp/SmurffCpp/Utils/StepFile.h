@@ -12,6 +12,7 @@ namespace smurff {
    class Model;
    class Result;
    class ILatentPrior;
+   class MatrixConfig;
 
    class StepFile : public std::enable_shared_from_this<StepFile>
    {
@@ -60,6 +61,10 @@ namespace smurff {
       void restoreModel(std::shared_ptr<Model> model) const;
       void restorePred(std::shared_ptr<Result> m_pred) const;
       void restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
+      
+      //-- used in PredictSession
+      std::shared_ptr<Model> restoreModel() const;
+      std::vector<std::shared_ptr<MatrixConfig>> restoreLinkMatrices() const;
 
       void restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
