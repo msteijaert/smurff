@@ -32,7 +32,7 @@ using namespace smurff;
 
 
 Model::Model()
-   : m_num_latent(-1)
+   : m_num_latent(-1), m_dims(0)
 {
 }
 
@@ -42,7 +42,7 @@ Model::Model()
 void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type)
 {
    m_num_latent = num_latent;
-   m_dims = std::unique_ptr<PVec<> >(new PVec<>(dims));
+   m_dims = dims;
 
    for(size_t i = 0; i < dims.size(); ++i)
    {
@@ -130,7 +130,7 @@ int Model::nsamples() const
 
 const PVec<>& Model::getDims() const
 {
-   return *m_dims;
+   return m_dims;
 }
 
 SubModel Model::full()
@@ -152,7 +152,7 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
 {
    unsigned num = sf->getNSamples();
    m_samples.clear();
-   m_dims = std::unique_ptr<PVec<> >(new PVec<>(num));
+   m_dims = PVec<>(num);
    
    for(std::uint64_t i = 0; i<num; ++i)
    {
@@ -160,7 +160,7 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
       std::string path = sf->getModelFileName(i);
       THROWERROR_FILE_NOT_EXIST(path);
       smurff::matrix_io::eigen::read_matrix(path, *U);
-      m_dims->at(i) = U->cols();
+      m_dims.at(i) = U->cols();
       m_num_latent = U->rows();
       m_samples.push_back(U);
    }

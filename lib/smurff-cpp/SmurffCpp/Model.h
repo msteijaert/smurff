@@ -35,7 +35,7 @@ class Model : public std::enable_shared_from_this<Model>
 private:
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_samples; //vector of U matrices
    int m_num_latent; //size of latent dimention for U matrices
-   std::unique_ptr<PVec<> > m_dims; //dimentions of train data
+   PVec<> m_dims; //dimentions of train data
 
    // to make predictions faster
    mutable thread_vector<Eigen::ArrayXd> Pcache;
