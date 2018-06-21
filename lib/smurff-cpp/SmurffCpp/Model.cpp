@@ -150,15 +150,21 @@ void Model::save(std::shared_ptr<const StepFile> sf) const
 
 void Model::restore(std::shared_ptr<const StepFile> sf)
 {
-   std::uint64_t i = 0;
-   for (auto U : m_samples)
+   unsigned num = sf->getNSamples();
+   m_samples.clear();
+   m_dims = std::unique_ptr<PVec<> >(new PVec<>(num));
+   
+   for(std::uint64_t i = 0; i<num; ++i)
    {
-      std::string path = sf->getModelFileName(i++);
-
+      auto U = std::make_shared<Eigen::MatrixXd>();
+      std::string path = sf->getModelFileName(i);
       THROWERROR_FILE_NOT_EXIST(path);
-
       smurff::matrix_io::eigen::read_matrix(path, *U);
+      m_dims->at(i) = U->cols();
+      m_num_latent = U->rows();
+      m_samples.push_back(U);
    }
+   Pcache.init(ArrayXd::Ones(m_num_latent));
 }
 
 std::ostream& Model::info(std::ostream &os, std::string indent) const
