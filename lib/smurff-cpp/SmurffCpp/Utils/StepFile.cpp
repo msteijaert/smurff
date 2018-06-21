@@ -371,7 +371,7 @@ bool StepFile::getCheckpoint() const
 
 std::int32_t StepFile::getNSamples() const
 {
-   return std::stoi(getIniValueBase(PRIORS_SEC_TAG, NUM_MODELS_TAG));
+   return std::stoi(getIniValueBase(MODELS_SEC_TAG, NUM_MODELS_TAG));
 }
 
 std::int32_t StepFile::getNPriors() const
