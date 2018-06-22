@@ -13,6 +13,45 @@
 
 namespace smurff {
 
+PredictSession::PredictSession(std::shared_ptr<RootFile> rf)
+    : m_rootfile(rf), m_dims(PVec<>(0)), m_num_latent(-1)
+{
+   restore();
+}
+
+std::ostream& PredictSession::info(std::ostream &os, std::string indent) const
+{
+   os << indent << "PredictSession {\n";
+
+   //-- data
+
+
+   os << indent << "}\n";
+   return os;
+}
+
+void PredictSession::restore()
+{
+   auto stepfiles = m_rootfile->openSampleStepFiles(); 
+   for (const auto &sf : stepfiles)
+   {
+      int sample_number = sf->getIsample();
+      auto model = sf->restoreModel();
+      StepData step{model};
+      if (m_num_latent <= 0) {
+         m_num_latent = model->nlatent();
+         m_dims = model->getDims();
+      }
+      else
+      {
+         THROWERROR_ASSERT(m_num_latent == model->nlatent());
+         THROWERROR_ASSERT(m_dims == model->getDims());
+      }
+
+      m_stepdata.insert(std::make_pair(sample_number, step));
+   }
+}
+
 // predict one element
 ResultItem PredictSession::predict(PVec<> pos, const StepFile &sf) {
    ResultItem ret{pos};
@@ -29,7 +68,7 @@ void PredictSession::predict(ResultItem &res, const StepFile &sf) {
 
 // predict one element
 void PredictSession::predict(ResultItem &res) {
-   auto stepfiles = m_root_file->openSampleStepFiles();
+   auto stepfiles = m_rootfile->openSampleStepFiles();
 
    for(const auto &sf : stepfiles)
       predict(res, *sf);
@@ -44,15 +83,11 @@ ResultItem PredictSession::predict(PVec<> pos) {
 // predict all elements in Ytest
 std::shared_ptr<Result> PredictSession::predict(std::shared_ptr<TensorConfig> Y)
 {
-   auto res = std::make_shared<Result>();
-   res->set(Y);
+   auto res = std::make_shared<Result>(Y);
 
-   auto stepfiles = m_root_file->openSampleStepFiles();
-
-   for (const auto &sf : stepfiles)
+   for (const auto &s : m_stepdata)
    {
-      auto model = sf->restoreModel();
-      res->update(model, false);
+      res->update(s.second.m_model, false);
    }
 
    return res;
