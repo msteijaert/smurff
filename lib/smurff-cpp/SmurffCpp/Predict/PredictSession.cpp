@@ -14,7 +14,7 @@
 namespace smurff {
 
 PredictSession::PredictSession(std::shared_ptr<RootFile> rf)
-    : m_rootfile(rf), m_dims(PVec<>(0)), m_num_latent(-1)
+    : m_rootfile(rf), m_num_latent(-1), m_dims(PVec<>(0))
 {
    restore();
 }
@@ -22,10 +22,9 @@ PredictSession::PredictSession(std::shared_ptr<RootFile> rf)
 std::ostream& PredictSession::info(std::ostream &os, std::string indent) const
 {
    os << indent << "PredictSession {\n";
-
-   //-- data
-
-
+   os << indent << "  num-samples: " << getNumSteps() << "\n";
+   os << indent << "  num-latent : " << getNumLatent() << "\n";
+   os << indent << "  model size : " << getModelDims() << "\n";
    os << indent << "}\n";
    return os;
 }
@@ -50,6 +49,8 @@ void PredictSession::restore()
 
       m_stepdata.insert(std::make_pair(sample_number, step));
    }
+
+   info(std::cout, "");
 }
 
 // predict one element
