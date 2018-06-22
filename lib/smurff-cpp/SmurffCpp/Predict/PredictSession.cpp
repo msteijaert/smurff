@@ -48,6 +48,9 @@ bool PredictSession::step()
    m_pos++;
    double stop = tick();
    m_secs_per_iter = stop - start;
+
+   std::cout << getStatus()->asString() << std::endl;
+
    return m_pos != m_stepdata.end();
 }
 
@@ -67,6 +70,12 @@ std::shared_ptr<StatusItem> PredictSession::getStatus() const
    ret->auc_1sample = m_result->auc_1sample;
 
    ret->elapsed_iter = m_secs_per_iter;
+
+   auto model = m_pos->second.m_model;
+   for (int i = 0; i < model->nmodes(); ++i)
+   {
+      ret->model_norms.push_back(model->U(i).norm());
+    }
 
    return ret;
 }

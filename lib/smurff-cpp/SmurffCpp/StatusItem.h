@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace smurff {
 
@@ -26,5 +27,7 @@ struct StatusItem
     // to csv 
     static std::string getCsvHeader();
     std::string asCsvString() const;
+
+    std::string asString() const;
 };
 }
