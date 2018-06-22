@@ -37,8 +37,6 @@ namespace smurff {
    private:
       std::string getStepPrefix() const;
 
-      std::int32_t tryGetIsampleFromPathInternal(const std::string& path, const std::string& prefix, const std::string& suffix) const;
-
    public:
       bool isBinary() const;
       std::string getStepFileName() const;
@@ -78,7 +76,7 @@ namespace smurff {
    public:
       std::int32_t getIsample() const;
 
-      bool getCheckpoint() const;
+      bool isCheckpoint() const;
 
    public:
       std::int32_t getNSamples() const;

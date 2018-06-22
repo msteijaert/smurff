@@ -335,7 +335,7 @@ bool Session::restore(int& iteration)
       BaseSession::restore(stepFile);
 
       //restore last iteration index
-      if (stepFile->getCheckpoint())
+      if (stepFile->isCheckpoint())
       {
          iteration = stepFile->getIsample() - 1; //restore original state
 

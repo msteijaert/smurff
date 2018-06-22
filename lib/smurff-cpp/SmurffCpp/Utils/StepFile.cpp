@@ -17,10 +17,13 @@
 #define MODEL_PREFIX "model_"
 #define PRIOR_PREFIX "prior_"
 
+#define GLOBAL_SEC_TAG "global"
 #define MODELS_SEC_TAG "models"
 #define PRED_SEC_TAG "predictions"
 #define PRIORS_SEC_TAG "priors"
 
+#define IS_CHECKPOINT_TAG "is_checkpoint"
+#define NUMBER_TAG "number"
 #define NUM_MODELS_TAG "num_models"
 #define NUM_PRIORS_TAG "num_priors"
 #define PRED_TAG "pred"
@@ -47,29 +50,12 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
 StepFile::StepFile(const std::string& path, std::string prefix, std::string extension)
    : m_prefix(prefix), m_extension(extension)
 {
-   m_isample = tryGetIsampleFromPathInternal(path, STEP_CHECKPOINT_PREFIX, STEP_INI_SUFFIX);
-
-   if (m_isample < 0)
-   {
-      m_isample = tryGetIsampleFromPathInternal(path, STEP_SAMPLE_PREFIX, STEP_INI_SUFFIX);
-
-      if (m_isample < 0)
-      {
-         THROWERROR("Invalid step file name");
-      }
-      else
-      {
-         m_checkpoint = false;
-      }
-   }
-   else
-   {
-      m_checkpoint = true;
-   }
-
    //load all entries in ini file to be able to go through step file internals
    m_iniReader = std::make_shared<INIFile>();
    m_iniReader->open(path);
+
+   m_checkpoint = std::stoi(getIniValueBase(GLOBAL_SEC_TAG, IS_CHECKPOINT_TAG));
+   m_isample = std::stoi(getIniValueBase(GLOBAL_SEC_TAG, NUMBER_TAG));
 }
 
 //name methods
@@ -91,26 +77,6 @@ bool StepFile::isBinary() const
         THROWERROR_ASSERT_MSG(m_extension == ".csv", "Invalid save_extension: " + m_extension);
     }
     return false;
-}
-
-std::int32_t StepFile::tryGetIsampleFromPathInternal(const std::string& path, const std::string& prefix, const std::string& suffix) const
-{
-   std::size_t idx0 = path.find(prefix);
-   if (idx0 == std::string::npos)
-      return -1;
-
-   std::size_t idx1 = path.find(suffix);
-   THROWERROR_ASSERT_MSG(idx1 != std::string::npos, "Invalid step file name");
-
-   std::size_t start = idx0 + prefix.length();
-   std::string indexStr = path.substr(start, idx1 - start);
-
-   std::int32_t index;
-   std::stringstream ss;
-   ss << indexStr;
-   ss >> index;
-
-   return index;
 }
 
 std::string StepFile::getStepPrefix() const
@@ -209,9 +175,12 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
 
 void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
-   saveModel(model);
-   savePred(pred);
-   savePriors(priors);
+    appendToStepFile(GLOBAL_SEC_TAG, IS_CHECKPOINT_TAG, std::to_string(m_checkpoint));
+    appendToStepFile(GLOBAL_SEC_TAG, NUMBER_TAG, std::to_string(m_isample));
+
+    saveModel(model);
+    savePred(pred);
+    savePriors(priors);
 }
 
 //restore methods
@@ -364,7 +333,7 @@ std::int32_t StepFile::getIsample() const
    return m_isample;
 }
 
-bool StepFile::getCheckpoint() const
+bool StepFile::isCheckpoint() const
 {
    return m_checkpoint;
 }
