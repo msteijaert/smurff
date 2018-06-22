@@ -145,6 +145,7 @@ FILE (GLOB SESSION_FILES "../Sessions/ISession.h"
                          "../Sessions/PythonSession.h"
                          "../Sessions/SessionFactory.h"
 
+                         "../Sessions/ISession.cpp"
                          "../Sessions/BaseSession.cpp"
                          "../Sessions/Session.cpp"
                          "../Sessions/PythonSession.cpp"

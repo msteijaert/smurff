@@ -345,7 +345,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(359)
    #include "expected_results/TestsSmurff_359.h"
@@ -385,7 +385,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(411)
    #include "expected_results/TestsSmurff_411.h"
@@ -429,7 +429,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(467)
    #include "expected_results/TestsSmurff_467.h"
@@ -473,7 +473,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(523)
    #include "expected_results/TestsSmurff_523.h"
@@ -515,7 +515,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(577)
    #include "expected_results/TestsSmurff_577.h"
@@ -555,7 +555,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(629)
    #include "expected_results/TestsSmurff_629.h"
@@ -599,7 +599,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(685)
    #include "expected_results/TestsSmurff_685.h"
@@ -643,7 +643,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(741)
    #include "expected_results/TestsSmurff_741.h"
@@ -685,7 +685,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(795)
    #include "expected_results/TestsSmurff_795.h"
@@ -725,7 +725,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(847)
    #include "expected_results/TestsSmurff_847.h"
@@ -769,7 +769,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(903)
    #include "expected_results/TestsSmurff_903.h"
@@ -813,7 +813,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(959)
    #include "expected_results/TestsSmurff_959.h"
@@ -860,7 +860,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1018)
    #include "expected_results/TestsSmurff_1018.h"
@@ -905,7 +905,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1075)
    #include "expected_results/TestsSmurff_1075.h"
@@ -953,7 +953,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1135)
    #include "expected_results/TestsSmurff_1135.h"
@@ -999,7 +999,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1193)
    #include "expected_results/TestsSmurff_1193.h"
@@ -1044,7 +1044,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1250)
    #include "expected_results/TestsSmurff_1250.h"
@@ -1087,7 +1087,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1305)
    #include "expected_results/TestsSmurff_1305.h"
@@ -1236,7 +1236,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1466)
    #include "expected_results/TestsSmurff_1466.h"
@@ -1276,7 +1276,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1518)
    #include "expected_results/TestsSmurff_1518.h"
@@ -1318,7 +1318,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1572)
    #include "expected_results/TestsSmurff_1572.h"
@@ -1360,7 +1360,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1626)
    #include "expected_results/TestsSmurff_1626.h"
@@ -1405,7 +1405,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1683)
    #include "expected_results/TestsSmurff_1683.h"
@@ -1448,7 +1448,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1738)
    #include "expected_results/TestsSmurff_1738.h"
@@ -1490,7 +1490,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1792)
    #include "expected_results/TestsSmurff_1792.h"
@@ -1530,7 +1530,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1844)
    #include "expected_results/TestsSmurff_1844.h"
@@ -1572,7 +1572,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1898)
    #include "expected_results/TestsSmurff_1898.h"
@@ -1612,7 +1612,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1950)
    #include "expected_results/TestsSmurff_1950.h"
@@ -1654,7 +1654,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2004)
    #include "expected_results/TestsSmurff_2004.h"
@@ -1694,7 +1694,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2056)
    #include "expected_results/TestsSmurff_2056.h"
@@ -1736,7 +1736,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2110)
    #include "expected_results/TestsSmurff_2110.h"
@@ -1778,7 +1778,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2164)
    #include "expected_results/TestsSmurff_2164.h"
@@ -1824,7 +1824,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2222)
    #include "expected_results/TestsSmurff_2222.h"
@@ -1870,7 +1870,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    session->run();
 
    double actualRmseAvg = session->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResult();
+   std::shared_ptr<std::vector<ResultItem> > actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2280)
    #include "expected_results/TestsSmurff_2280.h"
@@ -1937,7 +1937,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -1990,7 +1990,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2043,7 +2043,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2096,7 +2096,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2149,7 +2149,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2202,7 +2202,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2255,7 +2255,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2308,7 +2308,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //==========================================================================
@@ -2363,7 +2363,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2416,7 +2416,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2469,7 +2469,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2522,7 +2522,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2575,7 +2575,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //
@@ -2628,7 +2628,7 @@ TEST_CASE(
    tensorSession->run();
 
    REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(*matrixSession->getResult(), *tensorSession->getResult());
+   REQUIRE_RESULT_ITEMS(*matrixSession->getResultItems(), *tensorSession->getResultItems());
 }
 
 //==========================================================================
@@ -2690,10 +2690,10 @@ TEST_CASE(
    matrixRunSession->run();
 
    double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResultItems();
 
    double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*tensorRunResults, *matrixRunResults);
@@ -2756,10 +2756,10 @@ TEST_CASE(
    matrixRunSession->run();
 
    double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResultItems();
 
    double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*tensorRunResults, *matrixRunResults);
@@ -2822,10 +2822,10 @@ TEST_CASE(
    matrixRunSession->run();
 
    double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResultItems();
 
    double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*tensorRunResults, *matrixRunResults);
@@ -2888,10 +2888,10 @@ TEST_CASE(
    matrixRunSession->run();
 
    double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > tensorRunResults = tensorRunSession->getResultItems();
 
    double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
-   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResult();
+   std::shared_ptr<std::vector<ResultItem> > matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
    REQUIRE_RESULT_ITEMS(*tensorRunResults, *matrixRunResults);

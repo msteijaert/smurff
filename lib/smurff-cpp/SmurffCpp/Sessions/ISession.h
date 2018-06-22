@@ -3,12 +3,13 @@
 #include <vector>
 #include <memory>
 
-#include <SmurffCpp/ResultItem.h>
 #include <SmurffCpp/StatusItem.h>
+#include <SmurffCpp/ResultItem.h>
 #include <SmurffCpp/Configs/MatrixConfig.h>
 
 namespace smurff {
    class RootFile;
+   class Result;
 
    class ISession
    {
@@ -25,11 +26,11 @@ namespace smurff {
       virtual void init() = 0;
 
       virtual std::shared_ptr<StatusItem> getStatus() const = 0;
-      virtual std::shared_ptr<std::vector<ResultItem> > getResult() const = 0;
-
+      virtual std::shared_ptr<Result> getResult() const = 0;
       virtual std::shared_ptr<RootFile> getRootFile() const = 0;
 
       double getRmseAvg() { return getStatus()->rmse_avg; }
+      std::shared_ptr<std::vector<ResultItem>> getResultItems() const;
 
     public:
       virtual std::ostream &info(std::ostream &, std::string indent) const = 0;

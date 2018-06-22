@@ -71,9 +71,9 @@ std::shared_ptr<StatusItem> PredictSession::getStatus() const
    return ret;
 }
 
-std::shared_ptr<std::vector<ResultItem> > PredictSession::getResult() const
+std::shared_ptr<Result> PredictSession::getResult() const
 {
-   return m_result->m_predictions;
+   return m_result;
 }
 
 std::ostream& PredictSession::info(std::ostream &os, std::string indent) const

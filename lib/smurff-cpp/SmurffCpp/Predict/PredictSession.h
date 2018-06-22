@@ -59,7 +59,7 @@ public:
 
     std::shared_ptr<StatusItem> getStatus() const override;
 
-    std::shared_ptr<std::vector<ResultItem> > getResult() const override;
+    std::shared_ptr<Result> getResult() const override;
 
     std::shared_ptr<RootFile> getRootFile() const override {
         return m_rootfile;

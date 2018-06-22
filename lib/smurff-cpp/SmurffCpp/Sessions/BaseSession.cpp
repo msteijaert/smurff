@@ -58,7 +58,8 @@ void BaseSession::restore(std::shared_ptr<StepFile> stepFile)
    stepFile->restore(m_model, m_pred, m_priors);
 }
 
-std::shared_ptr<std::vector<ResultItem> > BaseSession::getResult() const
+std::shared_ptr<Result> BaseSession::getResult() const
 {
-   return m_pred->m_predictions;
+   return m_pred;
 }
+
