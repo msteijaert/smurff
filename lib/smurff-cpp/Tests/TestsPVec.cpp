@@ -6,7 +6,8 @@ using namespace smurff;
 
 TEST_CASE("PVec<>::PVec(size_t n) | PVec<>::size() | PVec<>::operator[](size_t p)")
 {
-   REQUIRE_THROWS_AS(PVec<>(0), std::length_error);
+   PVec<>(0);
+   REQUIRE_THROWS_AS(PVec<>({}), std::length_error);
 
    PVec<> p1(1);
    REQUIRE(p1.size() == 1);

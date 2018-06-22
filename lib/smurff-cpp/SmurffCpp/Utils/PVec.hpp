@@ -23,11 +23,6 @@ namespace smurff
       PVec(size_t size)
          : m_size(size)
       {
-         if (m_size == 0)
-         {
-            THROWERROR_SPEC(std::length_error, "Cannot initialize PVec with zero length");
-         }
-
          if (m_size > MaxSize)
          {
             THROWERROR_SPEC(std::length_error, "Cannot initialize PVec with size greater than MaxSize");
