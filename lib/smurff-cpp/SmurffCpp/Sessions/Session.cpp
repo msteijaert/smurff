@@ -192,7 +192,7 @@ bool Session::step()
    return isStep;
 }
 
-std::ostream& Session::info(std::ostream &os, std::string indent)
+std::ostream& Session::info(std::ostream &os, std::string indent) const
 {
    os << indent << name << " {\n";
 

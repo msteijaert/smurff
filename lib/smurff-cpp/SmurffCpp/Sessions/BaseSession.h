@@ -65,7 +65,7 @@ public:
    bool step() override;
 
 public:
-   std::ostream &info(std::ostream &, std::string indent) override;
+   std::ostream &info(std::ostream &, std::string indent) const override;
 
    void save(std::shared_ptr<StepFile> stepFile);
 
@@ -73,7 +73,6 @@ public:
 
 public:
    std::shared_ptr<std::vector<ResultItem> > getResult() const override;
-   MatrixConfig getSample(int dim) const override;
 };
 
 }

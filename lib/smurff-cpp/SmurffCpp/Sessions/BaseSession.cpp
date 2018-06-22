@@ -30,7 +30,7 @@ bool BaseSession::step()
    return true;
 }
 
-std::ostream &BaseSession::info(std::ostream &os, std::string indent)
+std::ostream &BaseSession::info(std::ostream &os, std::string indent) const
 {
    os << indent << "  Data: {" << std::endl;
    data().info(os, indent + "    ");
@@ -61,9 +61,4 @@ void BaseSession::restore(std::shared_ptr<StepFile> stepFile)
 std::shared_ptr<std::vector<ResultItem> > BaseSession::getResult() const
 {
    return m_pred->m_predictions;
-}
-
-MatrixConfig BaseSession::getSample(int mode) const
-{
-   THROWERROR_NOTIMPL_MSG("getSample is unimplemented");
 }

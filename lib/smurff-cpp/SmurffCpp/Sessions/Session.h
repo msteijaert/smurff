@@ -54,7 +54,7 @@ public:
    bool step() override;
 
 public:
-   std::ostream &info(std::ostream &, std::string indent) override;
+   std::ostream &info(std::ostream &, std::string indent) const override;
 
 private:
    //save current iteration

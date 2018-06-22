@@ -3,6 +3,7 @@
 #include <Eigen/Sparse>
 #include <Eigen/Core>
 
+#include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Utils/RootFile.h>
 #include <SmurffCpp/result.h>
 #include <SmurffCpp/ResultItem.h>
@@ -14,14 +15,71 @@
 namespace smurff {
 
 PredictSession::PredictSession(std::shared_ptr<RootFile> rf)
-    : m_rootfile(rf), m_num_latent(-1), m_dims(PVec<>(0))
+    : m_rootfile(rf), m_has_config(false), m_num_latent(-1), m_dims(PVec<>(0))
 {
    restore();
+
+}
+
+PredictSession::PredictSession(std::shared_ptr<RootFile> rf, Config config)
+    : m_rootfile(rf), m_config(config), m_has_config(true), m_num_latent(-1), m_dims(PVec<>(0))
+{
+   restore();
+}
+
+void PredictSession::run()
+{
+   THROWERROR_ASSERT(m_has_config);
+   init();
+   while (step()) ;
+}
+
+void PredictSession::init()
+{
+   THROWERROR_ASSERT(m_config.getTest());
+   m_result = std::make_shared<Result>(m_config.getTest());
+   m_pos = m_stepdata.begin();
+}
+
+bool PredictSession::step() 
+{
+   double start = tick();
+   m_result->update(m_pos->second.m_model, false);
+   m_pos++;
+   double stop = tick();
+   m_secs_per_iter = stop - start;
+   return m_pos != m_stepdata.end();
+}
+
+std::shared_ptr<StatusItem> PredictSession::getStatus() const
+{
+   std::shared_ptr<StatusItem> ret = std::make_shared<StatusItem>();
+   ret->phase = "Predict";
+   ret->iter = m_result->sample_iter;
+   ret->phase_iter = m_stepdata.size();
+
+   ret->train_rmse = NAN;
+
+   ret->rmse_avg = m_result->rmse_avg;
+   ret->rmse_1sample = m_result->rmse_1sample;
+
+   ret->auc_avg = m_result->auc_avg;
+   ret->auc_1sample = m_result->auc_1sample;
+
+   ret->elapsed_iter = m_secs_per_iter;
+
+   return ret;
+}
+
+std::shared_ptr<std::vector<ResultItem> > PredictSession::getResult() const
+{
+   return m_result->m_predictions;
 }
 
 std::ostream& PredictSession::info(std::ostream &os, std::string indent) const
 {
    os << indent << "PredictSession {\n";
+   os << indent << "  root-file  : " << m_rootfile->getRootFileName() << "\n";
    os << indent << "  num-samples: " << getNumSteps() << "\n";
    os << indent << "  num-latent : " << getNumLatent() << "\n";
    os << indent << "  model size : " << getModelDims() << "\n";
@@ -50,7 +108,6 @@ void PredictSession::restore()
       m_stepdata.insert(std::make_pair(sample_number, step));
    }
 
-   info(std::cout, "");
 }
 
 // predict one element
