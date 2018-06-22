@@ -7,6 +7,7 @@
 #endif
 
 #include "CmdSession.h"
+#include <SmurffCpp/Predict/PredictSession.h>
 
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Utils/counters.h>
@@ -17,6 +18,7 @@
 #include <SmurffCpp/Utils/RootFile.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 
+#define PREDICT_NAME "predict"
 #define HELP_NAME "help"
 #define PRIOR_NAME "prior"
 #define SIDE_INFO_NAME "side-info"
@@ -51,6 +53,7 @@ boost::program_options::options_description get_desc()
 {
    boost::program_options::options_description basic_desc("Basic options");
    basic_desc.add_options()
+     (PREDICT_NAME, "only prediction, no training")
      (VERSION_NAME, "print version info")
      (HELP_NAME, "show this help information");
 
@@ -85,7 +88,7 @@ boost::program_options::options_description get_desc()
       (STATUS_NAME, boost::program_options::value<std::string>()->default_value(Config::STATUS_DEFAULT_VALUE), "output progress to csv file")
       (SEED_NAME, boost::program_options::value<int>()->default_value(Config::RANDOM_SEED_DEFAULT_VALUE), "random number generator seed");
 
-   boost::program_options::options_description noise_desc("Noise model.");
+   boost::program_options::options_description noise_desc("Noise model");
    noise_desc.add_options()
       (NOISE_MODEL_NAME, boost::program_options::value<std::string>()->default_value(NoiseConfig::get_default_string()), "set properties of noise model");
 
@@ -291,14 +294,10 @@ void fill_config(boost::program_options::variables_map& vm, Config& config)
 
    if (vm.count(NOISE_MODEL_NAME) && !vm[NOISE_MODEL_NAME].defaulted())
       set_noise_configs(config, parse_noise_arg(vm[NOISE_MODEL_NAME].as<std::string>()));
-   else
-      set_noise_configs(config, NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
 }
-#endif
 
-bool CmdSession::parse_options(int argc, char* argv[])
+bool parse_options(boost::program_options::variables_map& vm, int argc, char* argv[])
 {
-   #ifdef HAVE_BOOST
    try
    {
       boost::program_options::options_description desc = get_desc();
@@ -314,7 +313,6 @@ bool CmdSession::parse_options(int argc, char* argv[])
 
       boost::program_options::parsed_options parsed_options = parser.run();
 
-      boost::program_options::variables_map vm;
       store(parsed_options, vm);
       notify(vm);
 
@@ -330,43 +328,7 @@ bool CmdSession::parse_options(int argc, char* argv[])
          return false;
       }
 
-      //restore session from root file (command line arguments are already stored in file)
-      if (vm.count(ROOT_NAME))
-      {
-         Config config;
-
-         //restore config from root file
-         std::string root_name = vm[ROOT_NAME].as<std::string>();
-         auto root_file = std::make_shared<RootFile>(root_name);
-         root_file->restoreConfig(config);
-
-         //override root file config with options
-         fill_config(vm, config);
-
-         //create session from config, open root file
-         setRestoreFromConfig(config, root_name);
-         return true;
-      }
-      //create new session from config (passing command line arguments)
-      else
-      {
-         Config config;
-
-         //restore ini file if it was specified
-         if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted())
-         {
-            auto ini_file = vm[INI_NAME].as<std::string>();
-            bool success = config.restore(ini_file);
-            THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
-         }
-
-         //apply options or override ini file if it was specified
-         fill_config(vm, config);
-
-         //create session from config, create root file
-         setCreateFromConfig(config);
-         return true;
-      }
+      return true;
    }
    catch (const boost::program_options::error &ex)
    {
@@ -380,7 +342,59 @@ bool CmdSession::parse_options(int argc, char* argv[])
       std::cerr << ex.what() << std::endl;
       return false;
    }
-   #else
+}
+#endif
+
+
+bool CmdSession::parse_options(int argc, char* argv[])
+{
+#ifdef HAVE_BOOST
+   boost::program_options::variables_map vm;
+
+   if (!::parse_options(vm, argc, argv))
+   {
+      return false;
+   }
+
+   //restore session from root file (command line arguments are already stored in file)
+   if (vm.count(ROOT_NAME))
+   {
+      Config config;
+
+      //restore config from root file
+      std::string root_name = vm[ROOT_NAME].as<std::string>();
+      auto root_file = std::make_shared<RootFile>(root_name);
+      root_file->restoreConfig(config);
+
+      //override root file config with options
+      fill_config(vm, config);
+
+      //create session from config, open root file
+      setRestoreFromConfig(config, root_name);
+      return true;
+   }
+   //create new session from config (passing command line arguments)
+   else
+   {
+      Config config;
+
+      //restore ini file if it was specified
+      if (vm.count(INI_NAME) && !vm[INI_NAME].defaulted())
+      {
+         auto ini_file = vm[INI_NAME].as<std::string>();
+         bool success = config.restore(ini_file);
+         THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
+      }
+
+      //apply options or override ini file if it was specified
+      fill_config(vm, config);
+
+      //create session from config, create root file
+      setCreateFromConfig(config);
+      return true;
+   }
+
+#else
 
    if (argc != 3)
    {
@@ -428,7 +442,7 @@ bool CmdSession::parse_options(int argc, char* argv[])
       return false;
    }
 
-   #endif
+#endif
 }
 
 void CmdSession::setFromArgs(int argc, char** argv)
@@ -443,6 +457,35 @@ void CmdSession::setFromArgs(int argc, char** argv)
 //parses args with setFromArgs, then internally calls setFromConfig (to validate, save, set config)
 std::shared_ptr<ISession> smurff::create_cmd_session(int argc, char** argv)
 {
+
+#ifdef HAVE_BOOST
+   boost::program_options::variables_map vm;
+   ::parse_options(vm, argc, argv);
+   //-- prediction only
+   if (vm.count(PREDICT_NAME))
+   {
+      if (!vm.count(ROOT_NAME))
+      {
+         std::cerr << "Need --root option in predict mode" << std::endl;
+         exit(0);
+      }
+
+      if (!vm.count(TEST_NAME))
+      {
+         std::cerr << "Need --test option in predict mode" << std::endl;
+         exit(0);
+      }
+
+      std::string root_name = vm[ROOT_NAME].as<std::string>();
+      auto root_file = std::make_shared<RootFile>(root_name);
+      Config config;
+      fill_config(vm, config);
+      auto session = std::make_shared<PredictSession>(root_file, config);
+      return session;
+   }
+#endif
+
+   //-- training
    std::shared_ptr<CmdSession> session(new CmdSession());
    session->setFromArgs(argc, argv);
    return session;
