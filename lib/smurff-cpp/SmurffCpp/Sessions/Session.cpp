@@ -198,32 +198,9 @@ std::ostream& Session::info(std::ostream &os, std::string indent)
 
    BaseSession::info(os, indent);
 
-   os << indent << "  Version: " << smurff::SMURFF_VERSION << "\n" ;
-   os << indent << "  Iterations: " << m_config.getBurnin() << " burnin + " << m_config.getNSamples() << " samples\n";
-
-   if (m_config.getSaveFreq() != 0 || m_config.getCheckpointFreq() != 0)
-   {
-      if (m_config.getSaveFreq() > 0)
-      {
-          os << indent << "  Save model: every " << m_config.getSaveFreq() << " iteration\n";
-      }
-      else if (m_config.getSaveFreq() < 0)
-      {
-          os << indent << "  Save model after last iteration\n";
-      }
-
-      if (m_config.getCheckpointFreq() > 0)
-      {
-          os << indent << "  Checkpoint state: every " << m_config.getCheckpointFreq() << " seconds\n";
-      }
-
-      os << indent << "  Save prefix: " << m_config.getSavePrefix() << "\n";
-      os << indent << "  Save extension: " << m_config.getSaveExtension() << "\n";
-   }
-   else
-   {
-      os << indent << "  Save model: never\n";
-   }
+   os << indent << "  Config: {" << std::endl;
+   m_config.info(os, indent + "    ");
+   os << indent << "  }" << std::endl;
 
    os << indent << "}\n";
    return os;

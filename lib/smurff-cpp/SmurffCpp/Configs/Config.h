@@ -126,6 +126,8 @@ public:
 
    static bool restoreSaveInfo(std::string fname, std::string& save_prefix, std::string& save_extension);
 
+   std::ostream& info(std::ostream &os, std::string indent) const;
+
 public:
    void setActionPredict() 
    {

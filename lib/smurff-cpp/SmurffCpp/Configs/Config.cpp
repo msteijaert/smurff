@@ -503,3 +503,34 @@ bool Config::restoreSaveInfo(std::string fname, std::string& save_prefix, std::s
 
    return true;
 }
+
+std::ostream& Config::info(std::ostream &os, std::string indent) const
+{
+   os << indent << "  Iterations: " << getBurnin() << " burnin + " << getNSamples() << " samples\n";
+
+   if (getSaveFreq() != 0 || getCheckpointFreq() != 0)
+   {
+      if (getSaveFreq() > 0)
+      {
+          os << indent << "  Save model: every " << getSaveFreq() << " iteration\n";
+      }
+      else if (getSaveFreq() < 0)
+      {
+          os << indent << "  Save model after last iteration\n";
+      }
+
+      if (getCheckpointFreq() > 0)
+      {
+          os << indent << "  Checkpoint state: every " << getCheckpointFreq() << " seconds\n";
+      }
+
+      os << indent << "  Save prefix: " << getSavePrefix() << "\n";
+      os << indent << "  Save extension: " << getSaveExtension() << "\n";
+   }
+   else
+   {
+      os << indent << "  Save model: never\n";
+   }
+
+   return os;
+}
