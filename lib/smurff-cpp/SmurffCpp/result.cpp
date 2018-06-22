@@ -35,9 +35,17 @@ using namespace Eigen;
 
 using namespace smurff;
 
+Result::Result() {}
+
 //Y - test sparse matrix
+Result::Result(std::shared_ptr<TensorConfig> Y)
+{
+   set(Y);
+}
+
 void Result::set(std::shared_ptr<TensorConfig> Y)
 {
+
    if (!Y)
    {
       THROWERROR("test data is not initialized");

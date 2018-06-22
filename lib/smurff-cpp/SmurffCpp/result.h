@@ -49,6 +49,13 @@ double calc_auc(const std::vector<Item> &predictions, double threshold)
 class Result
 {
 public:
+   //c'tor with sparse TensorConfig
+   Result(std::shared_ptr<TensorConfig> Y);
+
+   //empty c'tor
+   Result();
+
+public:
    //sparse representation of test matrix
    std::shared_ptr<std::vector<ResultItem> > m_predictions;
 
