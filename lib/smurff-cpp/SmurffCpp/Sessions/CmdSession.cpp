@@ -36,11 +36,9 @@
 #define CHECKPOINT_FREQ_NAME "checkpoint-freq"
 #define THRESHOLD_NAME "threshold"
 #define VERBOSE_NAME "verbose"
-#define QUIET_NAME "quiet"
 #define VERSION_NAME "version"
 #define STATUS_NAME "status"
 #define SEED_NAME "seed"
-#define NOISE_MODEL_NAME "noise_model"
 #define INI_NAME "ini"
 #define ROOT_NAME "root"
 
@@ -77,27 +75,20 @@ boost::program_options::options_description get_desc()
       (NSAMPLES_NAME, boost::program_options::value<int>()->default_value(Config::NSAMPLES_DEFAULT_VALUE), "number of samples to collect")
       (NUM_LATENT_NAME, boost::program_options::value<int>()->default_value(Config::NUM_LATENT_DEFAULT_VALUE), "number of latent dimensions")
       (NUM_THREADS_NAME, boost::program_options::value<int>()->default_value(Config::NUM_THREADS_DEFAULT_VALUE), "number of threads (0 = default by OpenMP)")
-      (INIT_MODEL_NAME, boost::program_options::value<std::string>()->default_value(modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)), "Initialize model using <random|zero> values")
       (SAVE_PREFIX_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_PREFIX_DEFAULT_VALUE), "prefix for result files")
       (SAVE_EXTENSION_NAME, boost::program_options::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")
       (SAVE_FREQ_NAME, boost::program_options::value<int>()->default_value(Config::SAVE_FREQ_DEFAULT_VALUE), "save every n iterations (0 == never, -1 == final model)")
       (CHECKPOINT_FREQ_NAME, boost::program_options::value<int>()->default_value(Config::CHECKPOINT_FREQ_DEFAULT_VALUE), "save state every n seconds, only one checkpointing state is kept")
       (THRESHOLD_NAME, boost::program_options::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation")
       (VERBOSE_NAME, boost::program_options::value<int>()->default_value(Config::VERBOSE_DEFAULT_VALUE), "verbosity of output (0, 1, 2 or 3)")
-      (QUIET_NAME, "no output (equivalent to verbose=0)")
       (STATUS_NAME, boost::program_options::value<std::string>()->default_value(Config::STATUS_DEFAULT_VALUE), "output progress to csv file")
       (SEED_NAME, boost::program_options::value<int>()->default_value(Config::RANDOM_SEED_DEFAULT_VALUE), "random number generator seed");
-
-   boost::program_options::options_description noise_desc("Noise model");
-   noise_desc.add_options()
-      (NOISE_MODEL_NAME, boost::program_options::value<std::string>()->default_value(NoiseConfig::get_default_string()), "set properties of noise model");
 
    boost::program_options::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
    desc.add(basic_desc);
    desc.add(priors_desc);
    desc.add(train_test_desc);
    desc.add(general_desc);
-   desc.add(noise_desc);
 
    return desc;
 }
