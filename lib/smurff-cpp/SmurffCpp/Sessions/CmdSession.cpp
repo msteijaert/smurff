@@ -49,16 +49,37 @@ namespace po = boost::program_options;
 po::options_description get_desc()
 {
     po::options_description general_desc("General parameters");
-    general_desc.add_options()(VERSION_NAME, "print version info (and exit)")(HELP_NAME, "show this help information (and exit)")(INI_NAME, po::value<std::string>(), "read options from this .ini file")(NUM_THREADS_NAME, po::value<int>()->default_value(Config::NUM_THREADS_DEFAULT_VALUE), "number of threads (0 = default by OpenMP)")(VERBOSE_NAME, po::value<int>()->default_value(Config::VERBOSE_DEFAULT_VALUE), "verbosity of output (0, 1, 2 or 3)")(SEED_NAME, po::value<int>()->default_value(Config::RANDOM_SEED_DEFAULT_VALUE), "random number generator seed");
+    general_desc.add_options()
+	(VERSION_NAME, "print version info (and exit)")
+	(HELP_NAME, "show this help information (and exit)")
+	(INI_NAME, po::value<std::string>(), "read options from this .ini file")
+	(NUM_THREADS_NAME, po::value<int>()->default_value(Config::NUM_THREADS_DEFAULT_VALUE), "number of threads (0 = default by OpenMP)")
+	(VERBOSE_NAME, po::value<int>()->default_value(Config::VERBOSE_DEFAULT_VALUE), "verbosity of output (0, 1, 2 or 3)")
+	(SEED_NAME, po::value<int>()->default_value(Config::RANDOM_SEED_DEFAULT_VALUE), "random number generator seed");
 
     po::options_description train_desc("Used during training");
-    train_desc.add_options()(TRAIN_NAME, po::value<std::string>(), "train data file")(TEST_NAME, po::value<std::string>(), "test data")(PRIOR_NAME, po::value<std::vector<std::string>>()->multitoken(), "provide a prior-type for each dimension of train; prior-types:  <normal|normalone|spikeandslab|macau|macauone>")(BURNIN_NAME, po::value<int>()->default_value(Config::BURNIN_DEFAULT_VALUE), "number of samples to discard")(NSAMPLES_NAME, po::value<int>()->default_value(Config::NSAMPLES_DEFAULT_VALUE), "number of samples to collect")(NUM_LATENT_NAME, po::value<int>()->default_value(Config::NUM_LATENT_DEFAULT_VALUE), "number of latent dimensions")(THRESHOLD_NAME, po::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
+    train_desc.add_options()
+	(TRAIN_NAME, po::value<std::string>(), "train data file")
+	(TEST_NAME, po::value<std::string>(), "test data")
+	(PRIOR_NAME, po::value<std::vector<std::string>>()->multitoken(), "provide a prior-type for each dimension of train; prior-types:  <normal|normalone|spikeandslab|macau|macauone>")
+	(BURNIN_NAME, po::value<int>()->default_value(Config::BURNIN_DEFAULT_VALUE), "number of samples to discard")
+	(NSAMPLES_NAME, po::value<int>()->default_value(Config::NSAMPLES_DEFAULT_VALUE), "number of samples to collect")
+	(NUM_LATENT_NAME, po::value<int>()->default_value(Config::NUM_LATENT_DEFAULT_VALUE), "number of latent dimensions")
+	(THRESHOLD_NAME, po::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
 
     po::options_description predict_desc("Used during prediction");
-    predict_desc.add_options()(PREDICT_NAME, po::value<std::string>(), "sparse prediction matrix")(THRESHOLD_NAME, po::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
+    predict_desc.add_options()
+	(PREDICT_NAME, po::value<std::string>(), "sparse matrix with values to predict")
+	(THRESHOLD_NAME, po::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
 
-    po::options_description save_desc("Storing models and predictions:");
-    save_desc.add_options()(ROOT_NAME, po::value<std::string>(), "restore session from root .ini file")(SAVE_PREFIX_NAME, po::value<std::string>()->default_value(Config::SAVE_PREFIX_DEFAULT_VALUE), "prefix for result files")(STATUS_NAME, po::value<std::string>()->default_value(Config::STATUS_DEFAULT_VALUE), "output progress to csv file")(SAVE_EXTENSION_NAME, po::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")(SAVE_FREQ_NAME, po::value<int>()->default_value(Config::SAVE_FREQ_DEFAULT_VALUE), "save every n iterations (0 == never, -1 == final model)")(CHECKPOINT_FREQ_NAME, po::value<int>()->default_value(Config::CHECKPOINT_FREQ_DEFAULT_VALUE), "save state every n seconds, only one checkpointing state is kept");
+    po::options_description save_desc("Storing models and predictions");
+    save_desc.add_options()
+	(ROOT_NAME, po::value<std::string>(), "restore session from root .ini file")
+	(SAVE_PREFIX_NAME, po::value<std::string>()->default_value(Config::SAVE_PREFIX_DEFAULT_VALUE), "prefix for result files")
+	(STATUS_NAME, po::value<std::string>()->default_value(Config::STATUS_DEFAULT_VALUE), "output progress to csv file")
+	(SAVE_EXTENSION_NAME, po::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")
+	(SAVE_FREQ_NAME, po::value<int>()->default_value(Config::SAVE_FREQ_DEFAULT_VALUE), "save every n iterations (0 == never, -1 == final model)")
+	(CHECKPOINT_FREQ_NAME, po::value<int>()->default_value(Config::CHECKPOINT_FREQ_DEFAULT_VALUE), "save state every n seconds, only one checkpointing state is kept");
 
     po::options_description desc("SMURFF: Scalable Matrix Factorization Framework\n\thttp://github.com/ExaScience/smurff");
     desc.add(general_desc);
@@ -70,9 +91,11 @@ po::options_description get_desc()
 }
 
 // variables_map -> Config
-void fill_config(po::variables_map &vm, Config &config)
+Config fill_config(const po::variables_map &vm)
 {
-    auto count_and_not_defaulted = [&vm](std::string name) {
+    Config config;
+
+    auto cnd = [&vm](std::string name) {
         return (vm.count(name) && !vm[name].defaulted());
     };
 
@@ -94,64 +117,68 @@ void fill_config(po::variables_map &vm, Config &config)
         config.setIniName(ini_file);
     }
 
-    if (count_and_not_defaulted(PREDICT_NAME))
+    if (cnd(PREDICT_NAME))
     {
         config.setTest(generic_io::read_data_config(vm[PREDICT_NAME].as<std::string>(), true));
         config.setActionPredict();
     }
 
-    if (count_and_not_defaulted(TEST_NAME))
+    if (cnd(TEST_NAME))
         config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
 
-    if (count_and_not_defaulted(TRAIN_NAME))
+    if (cnd(TRAIN_NAME))
     {
         config.setTrain(generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true));
         config.setActionTrain();
     }
 
-    if (count_and_not_defaulted(PRIOR_NAME))
+    if (cnd(PRIOR_NAME))
         config.setPriorTypes(vm[PRIOR_NAME].as<std::vector<std::string>>());
 
-    if (count_and_not_defaulted(BURNIN_NAME))
+    if (cnd(BURNIN_NAME))
         config.setBurnin(vm[BURNIN_NAME].as<int>());
 
-    if (count_and_not_defaulted(NSAMPLES_NAME))
+    if (cnd(NSAMPLES_NAME))
         config.setNSamples(vm[NSAMPLES_NAME].as<int>());
 
-    if (count_and_not_defaulted(NUM_LATENT_NAME))
+    if (cnd(NUM_LATENT_NAME))
         config.setNumLatent(vm[NUM_LATENT_NAME].as<int>());
 
-    if (count_and_not_defaulted(NUM_THREADS_NAME))
+    if (cnd(NUM_THREADS_NAME))
         config.setNumThreads(vm[NUM_THREADS_NAME].as<int>());
 
-    if (count_and_not_defaulted(SAVE_PREFIX_NAME))
+    if (cnd(SAVE_PREFIX_NAME))
         config.setSavePrefix(vm[SAVE_PREFIX_NAME].as<std::string>());
 
-    if (count_and_not_defaulted(SAVE_EXTENSION_NAME))
+    if (cnd(SAVE_EXTENSION_NAME))
         config.setSaveExtension(vm[SAVE_EXTENSION_NAME].as<std::string>());
 
-    if (count_and_not_defaulted(SAVE_FREQ_NAME))
+    if (cnd(SAVE_FREQ_NAME))
         config.setSaveFreq(vm[SAVE_FREQ_NAME].as<int>());
 
-    if (count_and_not_defaulted(CHECKPOINT_FREQ_NAME))
+    if (cnd(CHECKPOINT_FREQ_NAME))
         config.setCheckpointFreq(vm[CHECKPOINT_FREQ_NAME].as<int>());
 
-    if (count_and_not_defaulted(THRESHOLD_NAME))
+    if (cnd(THRESHOLD_NAME))
         config.setThreshold(vm[THRESHOLD_NAME].as<double>());
 
-    if (count_and_not_defaulted(VERBOSE_NAME))
+    if (cnd(VERBOSE_NAME))
         config.setVerbose(vm[VERBOSE_NAME].as<int>());
 
-    if (count_and_not_defaulted(STATUS_NAME))
+    if (cnd(STATUS_NAME))
         config.setCsvStatus(vm[STATUS_NAME].as<std::string>());
 
-    if (count_and_not_defaulted(SEED_NAME))
+    if (cnd(SEED_NAME))
         config.setRandomSeed(vm[SEED_NAME].as<int>());
+
+    return config;
 }
 
-// argc/argv -> variables_map
-bool parse_options(po::variables_map &vm, int argc, char *argv[])
+// argc/argv -> variables_map -> Config
+Config parse_options(int argc, char *argv[])
 {
+    po::variables_map vm;
+
     try
     {
         po::options_description desc = get_desc();
@@ -159,7 +186,7 @@ bool parse_options(po::variables_map &vm, int argc, char *argv[])
         if (argc < 2)
         {
             std::cout << desc << std::endl;
-            return false;
+            return Config();
         }
 
         po::command_line_parser parser{argc, argv};
@@ -173,33 +200,27 @@ bool parse_options(po::variables_map &vm, int argc, char *argv[])
         if (vm.count(HELP_NAME))
         {
             std::cout << desc << std::endl;
-            return false;
+            return Config();
         }
 
         if (vm.count(VERSION_NAME))
         {
             std::cout << "SMURFF " << smurff::SMURFF_VERSION << std::endl;
-            return false;
+            return Config();
         }
-
-        return true;
     }
     catch (const po::error &ex)
     {
         std::cerr << "Failed to parse command line arguments: " << std::endl;
         std::cerr << ex.what() << std::endl;
-        return false;
+        throw(ex);
     }
     catch (std::runtime_error &ex)
     {
         std::cerr << "Failed to parse command line arguments: " << std::endl;
         std::cerr << ex.what() << std::endl;
-        return false;
+        throw(ex);
     }
-}
-
-void check_options(po::variables_map &vm)
-{
 
     const std::vector<std::string> train_only_options = {
         TRAIN_NAME, TEST_NAME, PRIOR_NAME, BURNIN_NAME, NSAMPLES_NAME, NUM_LATENT_NAME};
@@ -221,61 +242,47 @@ void check_options(po::variables_map &vm)
         if (!vm.count(TRAIN_NAME))
             THROWERROR("Need --train option in train mode");
     }
+
+    return fill_config(vm);
 }
 
-#endif
+#else // no BOOST
 
-#if 0
-// Config --> Session
-std::shared_ptr<Session> create_train_session(const Config &config)
+// argc/argv --> Config
+Config parse_options(int argc, char *argv[])
 {
-
-    if (argc != 3)
-    {
+    auto usage = []() {
         std::cerr << "Usage:\n\tsmurff --[ini|root] <ini_file.ini>\n\n"
                   << "(Limited smurff compiled w/o boost program options)" << std::endl;
-        return false;
-    }
+        THROWERROR();
+    };
 
-    try
+    if (argc != 3) usage();
+
+    Config config;
+
+    //restore session from root file (command line arguments are already stored in file)
+    if (std::string(argv[1]) == "--" + std::string(ROOT_NAME))
     {
-        //restore session from root file (command line arguments are already stored in file)
-        if (std::string(argv[1]) == "--" + std::string(ROOT_NAME))
-        {
-            std::string root_file(argv[2]);
-            setRestoreFromRootPath(root_file);
-            return true;
-        }
-        //create new session from config (passing command line arguments)
-        else if (std::string(argv[1]) == "--" + std::string(INI_NAME))
-        {
-            Config config;
+        std::string root_name(argv[2]);
+        RootFile(root_name).restoreConfig(config);
+        config.setRootName(root_name);
+     }
 
-            std::string ini_file(argv[2]);
-            bool success = config.restore(ini_file);
-            if (!success)
-            {
-                std::cout << "Could not load ini file '" << ini_file << "'" << std::endl;
-                return false;
-            }
-
-            setCreateFromConfig(config);
-            return true;
-        }
-        else
-        {
-            std::cerr << "Usage:\n\tsmurff --[ini|root] <ini_file.ini>\n\n"
-                      << "(Limited smurff compiled w/o boost program options)" << std::endl;
-            return false;
-        }
-    }
-    catch (std::runtime_error &ex)
+    //create new session from config (passing command line arguments)
+    else if (std::string(argv[1]) == "--" + std::string(INI_NAME))
     {
-        std::cerr << "Failed to parse command line arguments: " << std::endl;
-        std::cerr << ex.what() << std::endl;
-        return false;
+        std::string ini_file(argv[2]);
+        bool success = config.restore(ini_file);
+        THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + ini_file + "'");
+        config.setIniName(ini_file);
+    } 
+    else
+    {
+        usage();
     }
 
+    return config;
 }
 #endif
 
@@ -285,18 +292,13 @@ std::shared_ptr<ISession> smurff::create_cmd_session(int argc, char **argv)
 {
     std::shared_ptr<ISession> session;
 
-#ifdef HAVE_BOOST
-    Config config;
-    po::variables_map vm;
-
-    parse_options(vm, argc, argv);
-    fill_config(vm, config);
+    auto config = parse_options(argc, argv);
     if (config.isActionTrain())
         session = SessionFactory::create_session(config);
-    else
+    else if (config.isActionPredict())
         session = std::make_shared<PredictSession>(config);
-
-#endif
+    else
+        exit(0);
 
     return session;
 }

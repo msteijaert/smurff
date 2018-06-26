@@ -41,7 +41,8 @@ enum class ModelInitTypes
 enum class ActionTypes
 {
    train,
-   predict
+   predict,
+   none
 };
 
 PriorTypes stringToPriorType(std::string name);
@@ -51,8 +52,6 @@ std::string priorTypeToString(PriorTypes type);
 ModelInitTypes stringToModelInitType(std::string name);
 
 std::string modelInitTypeToString(ModelInitTypes type);
-
-ActionTypes stringToActionType(std::string name);
 
 struct Config
 {
