@@ -7,7 +7,7 @@
 
 namespace smurff {
 
-class MPISession : public CmdSession
+class MPISession : public Session
 {
 public:
    int world_rank;

@@ -21,9 +21,16 @@ PredictSession::PredictSession(std::shared_ptr<RootFile> rf)
 
 }
 
-PredictSession::PredictSession(Config config)
+PredictSession::PredictSession(std::shared_ptr<RootFile> rf, const Config &config)
+    : m_rootfile(rf), m_config(config), m_has_config(true), m_num_latent(-1), m_dims(PVec<>(0))
+{
+   restore();
+
+}
+PredictSession::PredictSession(const Config &config)
     : m_config(config), m_has_config(true), m_num_latent(-1), m_dims(PVec<>(0))
 {
+   THROWERROR_ASSERT(config.getRootName().size())
    m_rootfile = std::make_shared<RootFile>(config.getRootName());
    restore();
 }
@@ -46,12 +53,12 @@ bool PredictSession::step()
 {
    double start = tick();
    m_result->update(m_pos->second.m_model, false);
-   m_pos++;
    double stop = tick();
    m_secs_per_iter = stop - start;
 
    std::cout << getStatus()->asString() << std::endl;
 
+   m_pos++;
    return m_pos != m_stepdata.end();
 }
 
