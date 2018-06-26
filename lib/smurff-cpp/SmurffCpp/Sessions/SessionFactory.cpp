@@ -13,14 +13,14 @@ using namespace smurff;
 std::shared_ptr<ISession> SessionFactory::create_py_session(Config& cfg)
 {
    std::shared_ptr<PythonSession> session(new PythonSession());
-   session->setCreateFromConfig(cfg);
+   session->fromConfig(cfg);
    return session;
 }
 
 std::shared_ptr<ISession> SessionFactory::create_py_session(const std::string& rootPath)
 {
    std::shared_ptr<PythonSession> session(new PythonSession());
-   session->setRestoreFromRootPath(rootPath);
+   session->fromRootPath(rootPath);
    return session;
 }
 
@@ -28,6 +28,6 @@ std::shared_ptr<ISession> SessionFactory::create_py_session(const std::string& r
 std::shared_ptr<ISession> SessionFactory::create_session(Config& cfg)
 {
    std::shared_ptr<Session> session(new Session());
-   session->setCreateFromConfig(cfg);
+   session->fromConfig(cfg);
    return session;
 }

@@ -114,7 +114,11 @@ private:
    bool m_classify;
    double m_threshold;
 
-public:
+   //-- meta
+   std::string m_root_name;
+   std::string m_ini_name;
+
+ public:
    Config();
 
 public:
@@ -139,6 +143,15 @@ public:
        m_action = ActionTypes::train;
    }
 
+   bool isActionTrain()
+   {
+       return m_action == ActionTypes::train;
+   }
+
+   bool isActionPredict()
+   {
+       return m_action == ActionTypes::predict;
+   }
    std::shared_ptr<TensorConfig> getTrain() const
    {
       return m_train;
@@ -350,11 +363,6 @@ public:
       return m_classify;
    }
 
-   void setClassify(bool value)
-   {
-      m_classify = value;
-   }
-
    double getThreshold() const
    {
       return m_threshold;
@@ -363,6 +371,7 @@ public:
    void setThreshold(double value)
    {
       m_threshold = value;
+      m_classify = true;
    }
 
    int getNumThreads() const
@@ -374,6 +383,26 @@ public:
    {
        m_num_threads = value;
    }
+
+   std::string getRootName() const
+   {
+       return m_root_name;
+   }
+
+   void setRootName(std::string value)
+   {
+       m_root_name = value;
+   }
+
+   std::string getIniName() const
+   {
+       return m_ini_name;
+   }
+
+   void setIniName(std::string value)
+   {
+       m_ini_name = value;
+   } 
 };
 
 }

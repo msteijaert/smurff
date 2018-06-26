@@ -38,9 +38,8 @@ protected:
    }
 
 protected:
-   void setRestoreFromRootPath(std::string rootPath);
-   void setRestoreFromConfig(const Config& cfg, std::string rootPath);
-   void setCreateFromConfig(const Config& cfg);
+   void fromRootPath(std::string rootPath);
+   void fromConfig(const Config& cfg);
    void setFromBase();
 
    // execution of the sampler

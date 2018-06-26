@@ -21,9 +21,10 @@ PredictSession::PredictSession(std::shared_ptr<RootFile> rf)
 
 }
 
-PredictSession::PredictSession(std::shared_ptr<RootFile> rf, Config config)
-    : m_rootfile(rf), m_config(config), m_has_config(true), m_num_latent(-1), m_dims(PVec<>(0))
+PredictSession::PredictSession(Config config)
+    : m_config(config), m_has_config(true), m_num_latent(-1), m_dims(PVec<>(0))
 {
+   m_rootfile = std::make_shared<RootFile>(config.getRootName());
    restore();
 }
 

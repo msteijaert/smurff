@@ -66,7 +66,7 @@ public:
     }
 
   public:
-    PredictSession(std::shared_ptr<RootFile> rf, Config config);
+    PredictSession(Config config);
     PredictSession(std::shared_ptr<RootFile> rf);
 
     std::ostream& info(std::ostream &os, std::string indent) const override;

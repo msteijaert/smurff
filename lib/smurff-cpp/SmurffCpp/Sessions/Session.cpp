@@ -25,7 +25,7 @@
 
 using namespace smurff;
 
-void Session::setRestoreFromRootPath(std::string rootPath)
+void Session::fromRootPath(std::string rootPath)
 {
    // open root file
    m_rootFile = std::make_shared<RootFile>(rootPath);
@@ -39,47 +39,38 @@ void Session::setRestoreFromRootPath(std::string rootPath)
    setFromBase();
 }
 
-void Session::setRestoreFromConfig(const Config& cfg, std::string rootPath)
+void Session::fromConfig(const Config& cfg)
 {
-   cfg.validate();
+    cfg.validate();
 
-   // assign config
-   m_config = cfg;
+    // assign config
+    m_config = cfg;
 
-   // open root file
-   m_rootFile = std::make_shared<RootFile>(rootPath);
+    if (!cfg.getRootName().empty())
+    {
+        // open root file
+        m_rootFile = std::make_shared<RootFile>(cfg.getRootName());
+    }
+    else if (m_config.getSaveFreq() || m_config.getCheckpointFreq())
+    {
+#ifndef _WINDOWS
+        if (m_config.getSavePrefix() == Config::SAVE_PREFIX_DEFAULT_VALUE)
+        {
+            char templ[1024] = "/tmp/smurff.XXXXXX";
+            std::string tempdir(mkdtemp(templ));
+            m_config.setSavePrefix(tempdir + "/" + Config::SAVE_PREFIX_DEFAULT_VALUE);
+        }
+#endif
 
-   //base functionality
-   setFromBase();
-}
+        // create root file
+        m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
 
-void Session::setCreateFromConfig(const Config& cfg)
-{
-   cfg.validate();
+        //save config
+        m_rootFile->saveConfig(m_config);
 
-   // assign config
-   m_config = cfg;
-
-   if (m_config.getSaveFreq() || m_config.getCheckpointFreq())
-   {
-       #ifndef _WINDOWS
-       if (m_config.getSavePrefix() == Config::SAVE_PREFIX_DEFAULT_VALUE)
-       {
-           char templ[1024] = "/tmp/smurff.XXXXXX";
-           std::string tempdir(mkdtemp(templ));
-           m_config.setSavePrefix(tempdir + "/" + Config::SAVE_PREFIX_DEFAULT_VALUE);
-       }
-       #endif
-
-       // create root file
-       m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
-
-       //save config
-       m_rootFile->saveConfig(m_config);
-
-       //flush record about options.ini
-       m_rootFile->flushLast();
-   }
+        //flush record about options.ini
+        m_rootFile->flushLast();
+    }
 
     //base functionality
     setFromBase();
