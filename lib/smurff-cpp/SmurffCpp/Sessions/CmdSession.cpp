@@ -90,14 +90,40 @@ po::options_description get_desc()
     return desc;
 }
 
+
+struct ConfigFiller
+{
+    const po::variables_map &vm;
+    Config &config;
+
+    template <typename T, void (Config::*Func)(T)>
+    void set(std::string name)
+    {
+        if (vm.count(name) && !vm[name].defaulted())
+            (config.*Func)(vm[name].as<T>());
+    }
+
+    template <void (Config::*Func)(std::shared_ptr<TensorConfig>)>
+    void set_tensor(std::string name)
+    {
+        if (vm.count(name) && !vm[name].defaulted())
+            (this->config.*Func)(generic_io::read_data_config(vm[name].as<std::string>(), true)); 
+    }
+    
+    void set_priors(std::string name)
+    {
+        if (vm.count(name) && !vm[name].defaulted())
+            config.setPriorTypes(vm[name].as<std::vector<std::string>>());
+    }
+};
+
 // variables_map -> Config
-Config fill_config(const po::variables_map &vm)
+Config
+fill_config(const po::variables_map &vm)
 {
     Config config;
+    ConfigFiller filler = {vm, config};
 
-    auto cnd = [&vm](std::string name) {
-        return (vm.count(name) && !vm[name].defaulted());
-    };
 
     //restore session from root file (command line arguments are already stored in file)
     if (vm.count(ROOT_NAME))
@@ -117,59 +143,25 @@ Config fill_config(const po::variables_map &vm)
         config.setIniName(ini_file);
     }
 
-    if (cnd(PREDICT_NAME))
-    {
-        config.setTest(generic_io::read_data_config(vm[PREDICT_NAME].as<std::string>(), true));
-        config.setActionPredict();
-    }
+    filler.set_tensor<&Config::setPredict>(PREDICT_NAME);
+    filler.set_tensor<&Config::setTest>(TEST_NAME);
+    filler.set_tensor<&Config::setTrain>(TRAIN_NAME);
 
-    if (cnd(TEST_NAME))
-        config.setTest(generic_io::read_data_config(vm[TEST_NAME].as<std::string>(), true));
+    filler.set_priors(PRIOR_NAME);
 
-    if (cnd(TRAIN_NAME))
-    {
-        config.setTrain(generic_io::read_data_config(vm[TRAIN_NAME].as<std::string>(), true));
-        config.setActionTrain();
-    }
-
-    if (cnd(PRIOR_NAME))
-        config.setPriorTypes(vm[PRIOR_NAME].as<std::vector<std::string>>());
-
-    if (cnd(BURNIN_NAME))
-        config.setBurnin(vm[BURNIN_NAME].as<int>());
-
-    if (cnd(NSAMPLES_NAME))
-        config.setNSamples(vm[NSAMPLES_NAME].as<int>());
-
-    if (cnd(NUM_LATENT_NAME))
-        config.setNumLatent(vm[NUM_LATENT_NAME].as<int>());
-
-    if (cnd(NUM_THREADS_NAME))
-        config.setNumThreads(vm[NUM_THREADS_NAME].as<int>());
-
-    if (cnd(SAVE_PREFIX_NAME))
-        config.setSavePrefix(vm[SAVE_PREFIX_NAME].as<std::string>());
-
-    if (cnd(SAVE_EXTENSION_NAME))
-        config.setSaveExtension(vm[SAVE_EXTENSION_NAME].as<std::string>());
-
-    if (cnd(SAVE_FREQ_NAME))
-        config.setSaveFreq(vm[SAVE_FREQ_NAME].as<int>());
-
-    if (cnd(CHECKPOINT_FREQ_NAME))
-        config.setCheckpointFreq(vm[CHECKPOINT_FREQ_NAME].as<int>());
-
-    if (cnd(THRESHOLD_NAME))
-        config.setThreshold(vm[THRESHOLD_NAME].as<double>());
-
-    if (cnd(VERBOSE_NAME))
-        config.setVerbose(vm[VERBOSE_NAME].as<int>());
-
-    if (cnd(STATUS_NAME))
-        config.setCsvStatus(vm[STATUS_NAME].as<std::string>());
-
-    if (cnd(SEED_NAME))
-        config.setRandomSeed(vm[SEED_NAME].as<int>());
+    filler.set<double,                    &Config::setThreshold>(THRESHOLD_NAME);
+    filler.set<int,                       &Config::setBurnin>(BURNIN_NAME);
+    filler.set<int,                       &Config::setNSamples>(NSAMPLES_NAME);
+    filler.set<int,                       &Config::setNumLatent>(NUM_LATENT_NAME);
+    filler.set<int,                       &Config::setNumThreads>(NUM_THREADS_NAME);
+    filler.set<std::string,               &Config::setSavePrefix>(SAVE_PREFIX_NAME);
+    filler.set<std::string,               &Config::setSaveExtension>(SAVE_EXTENSION_NAME);
+    filler.set<int,                       &Config::setSaveFreq>(SAVE_FREQ_NAME);
+    filler.set<int,                       &Config::setCheckpointFreq>(CHECKPOINT_FREQ_NAME);
+    filler.set<double,                    &Config::setThreshold>(THRESHOLD_NAME);
+    filler.set<int,                       &Config::setVerbose>(VERBOSE_NAME);
+    filler.set<std::string,               &Config::setCsvStatus>(STATUS_NAME);
+    filler.set<int,                       &Config::setRandomSeed>(SEED_NAME);
 
     return config;
 }

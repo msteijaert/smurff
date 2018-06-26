@@ -132,16 +132,6 @@ public:
    std::ostream& info(std::ostream &os, std::string indent) const;
 
 public:
-   void setActionPredict() 
-   {
-       m_action = ActionTypes::predict;
-   }
-
-   void setActionTrain() 
-   {
-       m_action = ActionTypes::train;
-   }
-
    bool isActionTrain()
    {
        return m_action == ActionTypes::train;
@@ -151,6 +141,7 @@ public:
    {
        return m_action == ActionTypes::predict;
    }
+
    std::shared_ptr<TensorConfig> getTrain() const
    {
       return m_train;
@@ -159,6 +150,7 @@ public:
    void setTrain(std::shared_ptr<TensorConfig> value)
    {
       m_train = value;
+      m_action = ActionTypes::train;
    }
 
    std::shared_ptr<TensorConfig> getTest() const
@@ -169,6 +161,12 @@ public:
    void setTest(std::shared_ptr<TensorConfig> value)
    {
       m_test = value;
+   }
+
+   void setPredict(std::shared_ptr<TensorConfig> value)
+   {
+      m_test = value;
+      m_action = ActionTypes::predict;
    }
 
    const std::vector< std::shared_ptr<TensorConfig> >& getAuxData() const
