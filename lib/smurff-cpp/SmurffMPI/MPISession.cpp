@@ -44,6 +44,6 @@ std::shared_ptr<IPriorFactory> MPISession::create_prior_factory() const
 std::shared_ptr<ISession> smurff::create_mpi_session(int argc, char** argv)
 {
    std::shared_ptr<MPISession> session(new MPISession());
-  session->setFromArgs(argc, argv);
+   session->fromConfig(parse_options(argc, argv));
    return session;
 }

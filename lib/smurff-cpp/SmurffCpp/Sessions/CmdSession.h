@@ -4,5 +4,6 @@
 #include <SmurffCpp/Predict/PredictSession.h>
 
 namespace smurff {
-   std::shared_ptr<ISession> create_cmd_session(int argc, char** argv);
+    Config parse_options(int argc, char *argv[]);
+    std::shared_ptr<ISession> create_cmd_session(int argc, char **argv);
 }

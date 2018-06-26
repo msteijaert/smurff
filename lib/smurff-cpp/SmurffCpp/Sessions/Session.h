@@ -37,9 +37,11 @@ protected:
       name = "Session";
    }
 
-protected:
+public:
    void fromRootPath(std::string rootPath);
    void fromConfig(const Config& cfg);
+
+protected:
    void setFromBase();
 
    // execution of the sampler

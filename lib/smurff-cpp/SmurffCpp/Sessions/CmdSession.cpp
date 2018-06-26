@@ -167,7 +167,7 @@ fill_config(const po::variables_map &vm)
 }
 
 // argc/argv -> variables_map -> Config
-Config parse_options(int argc, char *argv[])
+Config smurff::parse_options(int argc, char *argv[])
 {
     po::variables_map vm;
 
@@ -241,7 +241,7 @@ Config parse_options(int argc, char *argv[])
 #else // no BOOST
 
 // argc/argv --> Config
-Config parse_options(int argc, char *argv[])
+Config smurff::parse_options(int argc, char *argv[])
 {
     auto usage = []() {
         std::cerr << "Usage:\n\tsmurff --[ini|root] <ini_file.ini>\n\n"
