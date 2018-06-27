@@ -60,7 +60,6 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         void setRandomSeedSet(bool value)
         void setRandomSeed(int value)
         void setVerbose(int value)
-        void setCsvStatus(string value)
 
         int getBurnin()
         void setBurnin(int value)

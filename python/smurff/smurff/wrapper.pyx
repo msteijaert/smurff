@@ -345,7 +345,6 @@ cdef class TrainSession:
         if save_extension: self.config.setSaveExtension(save_extension.encode('UTF-8'))
         if save_freq:      self.config.setSaveFreq(save_freq)
         if checkpoint_freq:self.config.setCheckpointFreq(checkpoint_freq)
-        if csv_status:     self.config.setCsvStatus(csv_status.encode('UTF-8'))
 
     def addTrainAndTest(self, Y, Ytest = None, noise = PyNoiseConfig(), is_scarce = True):
         """Adds a train and optionally a test matrix as input data to this TrainSession

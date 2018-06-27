@@ -103,7 +103,6 @@ private:
    bool m_random_seed_set;
    int m_random_seed;
    int m_verbose;
-   std::string m_csv_status;
    int m_burnin;
    int m_nsamples;
    int m_num_latent;
@@ -313,16 +312,6 @@ public:
    {
       if (value < 0) value = 0;
       m_verbose = value;
-   }
-
-   std::string getCsvStatus() const
-   {
-      return m_csv_status;
-   }
-
-   void setCsvStatus(std::string value)
-   {
-      m_csv_status = value;
    }
 
    int getBurnin() const

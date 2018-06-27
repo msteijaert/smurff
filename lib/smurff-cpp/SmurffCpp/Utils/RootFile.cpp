@@ -1,13 +1,16 @@
 #include "RootFile.h"
 
 #include <iostream>
+#include <fstream>
 
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 #include <SmurffCpp/IO/GenericIO.h>
+#include <SmurffCpp/StatusItem.h>
 
 #define OPTIONS_TAG "options"
 #define STEPS_TAG "steps"
+#define STATUS_TAG "status"
 #define CHECKPOINT_STEP_PREFIX "checkpoint_step_"
 #define SAMPLE_STEP_PREFIX "sample_step_"
 
@@ -32,6 +35,7 @@ RootFile::RootFile(std::string prefix, std::string extension)
    //create root file
    m_iniReader = std::make_shared<INIFile>();
    m_iniReader->create(m_path);
+
 }
 
 std::string RootFile::getRootFileName() const
@@ -43,6 +47,12 @@ std::string RootFile::getOptionsFileName() const
 {
    return m_prefix + "-options.ini";
 }
+
+std::string RootFile::getCsvStatusFileName() const
+{
+   return m_prefix + "-status.csv";
+}
+
 
 
 void RootFile::appendToRootFile(std::string section, std::string tag, std::string value) const
@@ -63,6 +73,23 @@ void RootFile::appendToRootFile(std::string section, std::string tag, std::strin
 void RootFile::appendCommentToRootFile(std::string comment) const
 {
    m_iniReader->appendComment(comment);
+}
+
+void RootFile::createCsvStatusFile() const
+{
+    //write header to status file
+    const std::string statusPath = getCsvStatusFileName();
+    std::ofstream csv_out(getCsvStatusFileName(), std::ofstream::out);
+    csv_out << StatusItem::getCsvHeader() << std::endl;
+    appendToRootFile(STATUS_TAG, STATUS_TAG, statusPath);
+}
+
+void RootFile::addCsvStatusLine(const StatusItem &status_item) const
+{
+    const std::string statusPath = getCsvStatusFileName();
+    std::ofstream csv_out(statusPath, std::ofstream::out | std::ofstream::app);
+    THROWERROR_ASSERT_MSG(csv_out, "Could not open status csv file: " + statusPath);;
+    csv_out << status_item.asCsvString() << std::endl;
 }
 
 void RootFile::saveConfig(Config& config)
@@ -209,6 +236,7 @@ std::vector<std::shared_ptr<StepFile>> RootFile::openSampleStepFiles() const
 
    return samples;
 }
+
 
 /*
 std::shared_ptr<StepFile> RootFile::openSampleStepFile(std::int32_t isample) const

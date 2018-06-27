@@ -36,7 +36,6 @@
 #define NUM_THREADS_TAG "num_threads"
 #define RANDOM_SEED_SET_TAG "random_seed_set"
 #define RANDOM_SEED_TAG "random_seed"
-#define CSV_STATUS_TAG "csv_status"
 #define INIT_MODEL_TAG "init_model"
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
@@ -144,7 +143,6 @@ Config::Config()
    m_random_seed = Config::RANDOM_SEED_DEFAULT_VALUE;
 
    m_verbose = Config::VERBOSE_DEFAULT_VALUE;
-   m_csv_status = Config::STATUS_DEFAULT_VALUE;
    m_burnin = Config::BURNIN_DEFAULT_VALUE;
    m_nsamples = Config::NSAMPLES_DEFAULT_VALUE;
    m_num_latent = Config::NUM_LATENT_DEFAULT_VALUE;
@@ -368,7 +366,6 @@ void Config::save(std::string fname) const
    ini.appendItem(GLOBAL_SECTION_TAG, NUM_THREADS_TAG, std::to_string(m_num_threads));
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG, std::to_string(m_random_seed_set));
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, std::to_string(m_random_seed));
-   ini.appendItem(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, m_csv_status);
    ini.appendItem(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(m_model_init_type));
 
    //probit prior data
@@ -476,7 +473,6 @@ bool Config::restore(std::string fname)
    m_num_threads = reader.getInteger(GLOBAL_SECTION_TAG, NUM_THREADS_TAG, Config::NUM_THREADS_DEFAULT_VALUE);
    m_random_seed_set = reader.getBoolean(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG,  false);
    m_random_seed = reader.getInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
-   m_csv_status = reader.get(GLOBAL_SECTION_TAG, CSV_STATUS_TAG, Config::STATUS_DEFAULT_VALUE);
    m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
 
    //restore probit prior data

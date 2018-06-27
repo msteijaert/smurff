@@ -9,6 +9,8 @@
 
 namespace smurff {
 
+struct StatusItem;
+
 class RootFile
 {
 private:
@@ -34,6 +36,7 @@ public:
 public:
    std::string getRootFileName() const;
    std::string getOptionsFileName() const;
+   std::string getCsvStatusFileName() const;
 
 private:
    void appendToRootFile(std::string section, std::string tag, std::string value) const;
@@ -76,7 +79,11 @@ public:
 public:
    void flushLast() const;
 
-/*
+public:
+  void createCsvStatusFile() const;
+  void addCsvStatusLine(const StatusItem &status_item) const;
+
+  /*
 public:
    std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesBegin() const;
    std::vector<std::pair<std::string, std::string> >::const_iterator stepFilesEnd() const;
