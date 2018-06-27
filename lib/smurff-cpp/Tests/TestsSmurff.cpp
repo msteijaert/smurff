@@ -2916,7 +2916,7 @@ TEST_CASE("PredictSession")
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   std::cout << "Prediction from Session RMSE: " << session->getRmseAvg() << std::endl;
+   //std::cout << "Prediction from Session RMSE: " << session->getRmseAvg() << std::endl;
 
    std::string root_fname =  session->getRootFile()->getRootFileName();
    auto rf = std::make_shared<RootFile>(root_fname);
@@ -2927,7 +2927,8 @@ TEST_CASE("PredictSession")
        // test predict from TensorConfig
        auto result = s.predict(config.getTest());
 
-       std::cout << "Prediction from RootFile RMSE: " << result->rmse_avg << std::endl;
+       // std::cout << "Prediction from RootFile RMSE: " << result->rmse_avg << std::endl;
+       REQUIRE(session->getRmseAvg()  == Approx(result->rmse_avg).epsilon(APPROX_EPSILON));
     }
 
     {
@@ -2935,6 +2936,7 @@ TEST_CASE("PredictSession")
         s.run();
         auto result = s.getResult();
 
-        std::cout << "Prediction from RootFile+Config RMSE: " << result->rmse_avg << std::endl;
+        //std::cout << "Prediction from RootFile+Config RMSE: " << result->rmse_avg << std::endl;
+        REQUIRE(session->getRmseAvg()  == Approx(result->rmse_avg).epsilon(APPROX_EPSILON));
     }
 }
