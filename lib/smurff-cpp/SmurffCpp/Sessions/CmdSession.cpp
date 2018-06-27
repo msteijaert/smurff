@@ -232,11 +232,6 @@ Config smurff::parse_options(int argc, char *argv[])
                 THROWERROR("You're not allowed to mix train options (--" + to + ") with --predict");
         }
     }
-    else
-    {
-        if (!vm.count(TRAIN_NAME))
-            THROWERROR("Need --train option in train mode");
-    }
 
     return fill_config(vm);
 }
