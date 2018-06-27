@@ -62,7 +62,11 @@ void PredictSession::init()
         // create root file
         m_pred_rootfile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
         m_pred_rootfile->createCsvStatusFile();
+        m_pred_rootfile->flushLast();
     }
+
+    if (m_config.getVerbose())
+        info(std::cout, "");
 }
 
 bool PredictSession::step()
@@ -82,14 +86,14 @@ bool PredictSession::step()
     if (m_config.getSaveFreq() > 0 && (iter % m_config.getSaveFreq()) == 0)
         save();
 
-    m_pos++;
-
-    bool last_iter = m_pos == m_stepdata.end();
+    auto next_pos = m_pos; next_pos++;
+    bool last_iter = next_pos == m_stepdata.end();
 
     //save last iter
     if (last_iter && m_config.getSaveFreq() == -1)
         save();
 
+    m_pos++;
     return !last_iter;
 }
 
@@ -98,8 +102,16 @@ void PredictSession::save()
     //save this iteration
     const auto iter = m_result->sample_iter;
     std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(iter);
-    m_result->save(stepFile);
+
+    if (m_config.getVerbose())
+    {
+        std::cout << "-- Saving predictions into '" << stepFile->getStepFileName() << "'." << std::endl;
+    }
+
+    stepFile->savePred(m_result);
+
     m_pred_rootfile->addCsvStatusLine(*getStatus());
+    m_pred_rootfile->flushLast();
 }
 
 std::shared_ptr<StatusItem> PredictSession::getStatus() const
@@ -137,15 +149,31 @@ std::ostream& PredictSession::info(std::ostream &os, std::string indent) const
 {
    os << indent << "PredictSession {\n";
    os << indent << "  Model {\n";
-   os << indent << "    root-file : " << getModelRoot()->getRootFileName() << "\n";
+   os << indent << "    model root-file: " << getModelRoot()->getRootFileName() << "\n";
    os << indent << "    num-samples: " << getNumSteps() << "\n";
-   os << indent << "    num-latent : " << getNumLatent() << "\n";
-   os << indent << "    dimensions : " << getModelDims() << "\n";
+   os << indent << "    num-latent: " << getNumLatent() << "\n";
+   os << indent << "    dimensions: " << getModelDims() << "\n";
    os << indent << "  }\n";
    os << indent << "  Predictions {\n";
    m_result->info(os, indent + "    ");
+   if (m_config.getSaveFreq() > 0)
+   {
+       os << indent << "    Save predictions: every " << m_config.getSaveFreq() << " iteration\n";
+       os << indent << "    Save extension: " << m_config.getSaveExtension() << "\n";
+       os << indent << "    Output root-file: " << getRootFile()->getRootFileName() << "\n";
+   }
+   else if (m_config.getSaveFreq() < 0)
+   {
+       os << indent << "    Save predictions after last iteration\n";
+       os << indent << "    Save extension: " << m_config.getSaveExtension() << "\n";
+       os << indent << "    Output root-file: " << getRootFile()->getRootFileName() << "\n";
+   }
+   else 
+   {
+       os << indent << "    Don't save predictions\n";
+   }
    os << indent << "  }" << std::endl;
-    os << indent << "}\n";
+   os << indent << "}\n";
    return os;
 }
 
