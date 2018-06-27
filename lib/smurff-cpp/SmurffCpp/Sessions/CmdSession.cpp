@@ -134,8 +134,10 @@ fill_config(const po::variables_map &vm)
     {
         //restore config from root file
         std::string root_name = vm[ROOT_NAME].as<std::string>();
-        RootFile(root_name).restoreConfig(config);
         config.setRootName(root_name);
+
+        if (!vm.count(PREDICT_NAME))
+            RootFile(root_name).restoreConfig(config);
     }
 
     //restore ini file if it was specified
@@ -153,18 +155,18 @@ fill_config(const po::variables_map &vm)
 
     filler.set_priors(PRIOR_NAME);
 
-    filler.set<double,                    &Config::setThreshold>(THRESHOLD_NAME);
-    filler.set<int,                       &Config::setBurnin>(BURNIN_NAME);
-    filler.set<int,                       &Config::setNSamples>(NSAMPLES_NAME);
-    filler.set<int,                       &Config::setNumLatent>(NUM_LATENT_NAME);
-    filler.set<int,                       &Config::setNumThreads>(NUM_THREADS_NAME);
-    filler.set<std::string,               &Config::setSavePrefix>(SAVE_PREFIX_NAME);
-    filler.set<std::string,               &Config::setSaveExtension>(SAVE_EXTENSION_NAME);
-    filler.set<int,                       &Config::setSaveFreq>(SAVE_FREQ_NAME);
-    filler.set<int,                       &Config::setCheckpointFreq>(CHECKPOINT_FREQ_NAME);
-    filler.set<double,                    &Config::setThreshold>(THRESHOLD_NAME);
-    filler.set<int,                       &Config::setVerbose>(VERBOSE_NAME);
-    filler.set<int,                       &Config::setRandomSeed>(SEED_NAME);
+    filler.set<double,      &Config::setThreshold>(THRESHOLD_NAME);
+    filler.set<int,         &Config::setBurnin>(BURNIN_NAME);
+    filler.set<int,         &Config::setNSamples>(NSAMPLES_NAME);
+    filler.set<int,         &Config::setNumLatent>(NUM_LATENT_NAME);
+    filler.set<int,         &Config::setNumThreads>(NUM_THREADS_NAME);
+    filler.set<std::string, &Config::setSavePrefix>(SAVE_PREFIX_NAME);
+    filler.set<std::string, &Config::setSaveExtension>(SAVE_EXTENSION_NAME);
+    filler.set<int,         &Config::setSaveFreq>(SAVE_FREQ_NAME);
+    filler.set<int,         &Config::setCheckpointFreq>(CHECKPOINT_FREQ_NAME);
+    filler.set<double,      &Config::setThreshold>(THRESHOLD_NAME);
+    filler.set<int,         &Config::setVerbose>(VERBOSE_NAME);
+    filler.set<int,         &Config::setRandomSeed>(SEED_NAME);
 
     return config;
 }
@@ -226,10 +228,10 @@ Config smurff::parse_options(int argc, char *argv[])
         if (!vm.count(ROOT_NAME))
             THROWERROR("Need --root option in predict mode");
 
-        for (auto to : train_only_options)
+        for (auto name : train_only_options)
         {
-            if (vm.count(to))
-                THROWERROR("You're not allowed to mix train options (--" + to + ") with --predict");
+            if (vm.count(name) && !vm[name].defaulted())
+                THROWERROR("You're not allowed to mix train options (--" + name + ") with --predict");
         }
     }
 
