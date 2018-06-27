@@ -38,6 +38,11 @@ RootFile::RootFile(std::string prefix, std::string extension)
 
 }
 
+std::string RootFile::getPrefix() const
+{
+   return m_prefix;
+}
+
 std::string RootFile::getRootFileName() const
 {
    return m_prefix + "-root.ini";

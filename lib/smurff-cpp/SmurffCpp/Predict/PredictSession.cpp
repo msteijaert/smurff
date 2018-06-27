@@ -15,23 +15,27 @@
 namespace smurff {
 
 PredictSession::PredictSession(std::shared_ptr<RootFile> rf)
-    : m_rootfile(rf), m_has_config(false), m_num_latent(-1), m_dims(PVec<>(0))
+    : m_model_rootfile(rf), m_pred_rootfile(0),
+      m_has_config(false), m_num_latent(-1),
+      m_dims(PVec<>(0)), m_is_init(false)
 {
    restore();
 
 }
 
 PredictSession::PredictSession(std::shared_ptr<RootFile> rf, const Config &config)
-    : m_rootfile(rf), m_config(config), m_has_config(true), m_num_latent(-1), m_dims(PVec<>(0))
+    : m_model_rootfile(rf), m_pred_rootfile(0),
+      m_config(config), m_has_config(true), m_num_latent(-1),
+      m_dims(PVec<>(0)), m_is_init(false)
 {
    restore();
-
 }
 PredictSession::PredictSession(const Config &config)
-    : m_config(config), m_has_config(true), m_num_latent(-1), m_dims(PVec<>(0))
+    : m_pred_rootfile(0), m_config(config), m_has_config(true),
+      m_num_latent(-1), m_dims(PVec<>(0)), m_is_init(false)
 {
    THROWERROR_ASSERT(config.getRootName().size())
-   m_rootfile = std::make_shared<RootFile>(config.getRootName());
+   m_model_rootfile = std::make_shared<RootFile>(config.getRootName());
    restore();
 }
 
@@ -44,48 +48,84 @@ void PredictSession::run()
 
 void PredictSession::init()
 {
-   THROWERROR_ASSERT(m_config.getTest());
-   m_result = std::make_shared<Result>(m_config.getTest());
-   m_pos = m_stepdata.begin();
+    THROWERROR_ASSERT(m_has_config);
+    THROWERROR_ASSERT(m_config.getTest());
+    m_result = std::make_shared<Result>(m_config.getTest());
+    m_pos = m_stepdata.begin();
+    m_is_init = true;
+
+    THROWERROR_ASSERT_MSG(m_config.getSavePrefix() != getModelRoot()->getPrefix(),
+        "Cannot have same prefix for model and predictions - both have " + m_config.getSavePrefix());
+
+    if (m_config.getSaveFreq())
+    {
+        // create root file
+        m_pred_rootfile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+        m_pred_rootfile->createCsvStatusFile();
+    }
 }
 
-bool PredictSession::step() 
+bool PredictSession::step()
 {
-   double start = tick();
-   m_result->update(m_pos->second.m_model, false);
-   double stop = tick();
-   m_secs_per_iter = stop - start;
+    THROWERROR_ASSERT(m_has_config);
+    THROWERROR_ASSERT(m_is_init);
 
-   std::cout << getStatus()->asString() << std::endl;
+    double start = tick();
+    m_result->update(m_pos->second.m_model, false);
+    double stop = tick();
+    m_secs_per_iter = stop - start;
 
-   m_pos++;
-   return m_pos != m_stepdata.end();
+    if (m_config.getVerbose())
+        std::cout << getStatus()->asString() << std::endl;
+
+    const auto iter = m_result->sample_iter;
+    if (m_config.getSaveFreq() > 0 && (iter % m_config.getSaveFreq()) == 0)
+        save();
+
+    m_pos++;
+
+    bool last_iter = m_pos == m_stepdata.end();
+
+    //save last iter
+    if (last_iter && m_config.getSaveFreq() == -1)
+        save();
+
+    return !last_iter;
+}
+
+void PredictSession::save()
+{
+    //save this iteration
+    const auto iter = m_result->sample_iter;
+    std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(iter);
+    m_result->save(stepFile);
+    m_pred_rootfile->addCsvStatusLine(*getStatus());
 }
 
 std::shared_ptr<StatusItem> PredictSession::getStatus() const
 {
-   std::shared_ptr<StatusItem> ret = std::make_shared<StatusItem>();
-   ret->phase = "Predict";
-   ret->iter = m_result->sample_iter;
-   ret->phase_iter = m_stepdata.size();
+    std::shared_ptr<StatusItem> ret = std::make_shared<StatusItem>();
+    ret->phase = "Predict";
+    ret->iter = m_result->sample_iter;
+    ret->phase_iter = m_stepdata.size();
 
-   ret->train_rmse = NAN;
+    ret->train_rmse = NAN;
 
-   ret->rmse_avg = m_result->rmse_avg;
-   ret->rmse_1sample = m_result->rmse_1sample;
+    ret->rmse_avg = m_result->rmse_avg;
+    ret->rmse_1sample = m_result->rmse_1sample;
 
-   ret->auc_avg = m_result->auc_avg;
-   ret->auc_1sample = m_result->auc_1sample;
+    ret->auc_avg = m_result->auc_avg;
+    ret->auc_1sample = m_result->auc_1sample;
 
-   ret->elapsed_iter = m_secs_per_iter;
+    ret->elapsed_iter = m_secs_per_iter;
 
-   auto model = m_pos->second.m_model;
-   for (int i = 0; i < model->nmodes(); ++i)
-   {
-      ret->model_norms.push_back(model->U(i).norm());
+    auto model = m_pos->second.m_model;
+    for (int i = 0; i < model->nmodes(); ++i)
+    {
+        ret->model_norms.push_back(model->U(i).norm());
     }
 
-   return ret;
+    return ret;
 }
 
 std::shared_ptr<Result> PredictSession::getResult() const
@@ -96,17 +136,22 @@ std::shared_ptr<Result> PredictSession::getResult() const
 std::ostream& PredictSession::info(std::ostream &os, std::string indent) const
 {
    os << indent << "PredictSession {\n";
-   os << indent << "  root-file  : " << m_rootfile->getRootFileName() << "\n";
-   os << indent << "  num-samples: " << getNumSteps() << "\n";
-   os << indent << "  num-latent : " << getNumLatent() << "\n";
-   os << indent << "  model size : " << getModelDims() << "\n";
-   os << indent << "}\n";
+   os << indent << "  Model {\n";
+   os << indent << "    root-file : " << getModelRoot()->getRootFileName() << "\n";
+   os << indent << "    num-samples: " << getNumSteps() << "\n";
+   os << indent << "    num-latent : " << getNumLatent() << "\n";
+   os << indent << "    dimensions : " << getModelDims() << "\n";
+   os << indent << "  }\n";
+   os << indent << "  Predictions {\n";
+   m_result->info(os, indent + "    ");
+   os << indent << "  }" << std::endl;
+    os << indent << "}\n";
    return os;
 }
 
 void PredictSession::restore()
 {
-   auto stepfiles = m_rootfile->openSampleStepFiles(); 
+   auto stepfiles = getModelRoot()->openSampleStepFiles(); 
    for (const auto &sf : stepfiles)
    {
       int sample_number = sf->getIsample();
@@ -143,7 +188,7 @@ void PredictSession::predict(ResultItem &res, const StepFile &sf) {
 
 // predict one element
 void PredictSession::predict(ResultItem &res) {
-   auto stepfiles = m_rootfile->openSampleStepFiles();
+   auto stepfiles = getModelRoot()->openSampleStepFiles();
 
    for(const auto &sf : stepfiles)
       predict(res, *sf);

@@ -17,7 +17,8 @@ struct ResultItem;
 class PredictSession : public ISession
 {
 private:
-    std::shared_ptr<RootFile> m_rootfile;
+    std::shared_ptr<RootFile> m_model_rootfile;
+    std::shared_ptr<RootFile> m_pred_rootfile;
     Config m_config;
     bool m_has_config;
 
@@ -34,6 +35,7 @@ private:
 
     int m_num_latent;
     PVec<> m_dims;
+    bool m_is_init;
 
     void restore();
 
@@ -57,12 +59,19 @@ public:
     bool step() override;
     void init() override;
 
+    void save();
+
     std::shared_ptr<StatusItem> getStatus() const override;
 
     std::shared_ptr<Result> getResult() const override;
 
     std::shared_ptr<RootFile> getRootFile() const override {
-        return m_rootfile;
+        return m_pred_rootfile;
+    }
+
+
+    std::shared_ptr<RootFile> getModelRoot() const {
+        return m_model_rootfile;
     }
 
   public:

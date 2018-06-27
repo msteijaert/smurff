@@ -34,6 +34,7 @@ public:
    RootFile(std::string prefix, std::string extension);
 
 public:
+   std::string getPrefix() const;
    std::string getRootFileName() const;
    std::string getOptionsFileName() const;
    std::string getCsvStatusFileName() const;
