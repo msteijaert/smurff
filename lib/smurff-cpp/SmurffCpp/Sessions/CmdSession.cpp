@@ -104,10 +104,14 @@ struct ConfigFiller
     }
 
     template <void (Config::*Func)(std::shared_ptr<TensorConfig>)>
-    void set_tensor(std::string name)
+    void set_tensor(std::string name, bool set_noise)
     {
         if (vm.count(name) && !vm[name].defaulted())
-            (this->config.*Func)(generic_io::read_data_config(vm[name].as<std::string>(), true)); 
+        {
+            auto tensor_config = generic_io::read_data_config(vm[name].as<std::string>(), true);
+            tensor_config->setNoiseConfig(NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
+            (this->config.*Func)(tensor_config); 
+        }
     }
     
     void set_priors(std::string name)
@@ -143,9 +147,9 @@ fill_config(const po::variables_map &vm)
         config.setIniName(ini_file);
     }
 
-    filler.set_tensor<&Config::setPredict>(PREDICT_NAME);
-    filler.set_tensor<&Config::setTest>(TEST_NAME);
-    filler.set_tensor<&Config::setTrain>(TRAIN_NAME);
+    filler.set_tensor<&Config::setPredict>(PREDICT_NAME, false);
+    filler.set_tensor<&Config::setTest>(TEST_NAME, false);
+    filler.set_tensor<&Config::setTrain>(TRAIN_NAME, true);
 
     filler.set_priors(PRIOR_NAME);
 
@@ -160,7 +164,6 @@ fill_config(const po::variables_map &vm)
     filler.set<int,                       &Config::setCheckpointFreq>(CHECKPOINT_FREQ_NAME);
     filler.set<double,                    &Config::setThreshold>(THRESHOLD_NAME);
     filler.set<int,                       &Config::setVerbose>(VERBOSE_NAME);
-    filler.set<std::string,               &Config::setCsvStatus>(STATUS_NAME);
     filler.set<int,                       &Config::setRandomSeed>(SEED_NAME);
 
     return config;
@@ -246,7 +249,7 @@ Config smurff::parse_options(int argc, char *argv[])
     auto usage = []() {
         std::cerr << "Usage:\n\tsmurff --[ini|root] <ini_file.ini>\n\n"
                   << "(Limited smurff compiled w/o boost program options)" << std::endl;
-        THROWERROR();
+        exit(0);
     };
 
     if (argc != 3) usage();
