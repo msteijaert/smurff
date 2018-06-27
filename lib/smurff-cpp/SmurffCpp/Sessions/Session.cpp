@@ -1,8 +1,5 @@
 #include "Session.h"
 
-#ifndef _WINDOWS
-#include <unistd.h>
-#endif
 
 #include <fstream>
 #include <string>
@@ -53,14 +50,6 @@ void Session::fromConfig(const Config &cfg)
     }
     else if (m_config.getSaveFreq() || m_config.getCheckpointFreq())
     {
-#ifndef _WINDOWS
-        if (m_config.getSavePrefix() == Config::SAVE_PREFIX_DEFAULT_VALUE)
-        {
-            char templ[1024] = "/tmp/smurff.XXXXXX";
-            std::string tempdir(mkdtemp(templ));
-            m_config.setSavePrefix(tempdir + "/" + Config::SAVE_PREFIX_DEFAULT_VALUE);
-        }
-#endif
 
         // create root file
         m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());

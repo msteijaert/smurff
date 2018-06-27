@@ -94,7 +94,7 @@ private:
    ModelInitTypes m_model_init_type;
 
    //-- save
-   std::string m_save_prefix;
+   mutable std::string m_save_prefix;
    std::string m_save_extension;
    int m_save_freq;
    int m_checkpoint_freq;
@@ -246,10 +246,7 @@ public:
       m_model_init_type = stringToModelInitType(value);
    }
 
-   std::string getSavePrefix() const
-   {
-      return m_save_prefix;
-   }
+   std::string getSavePrefix() const;
 
    void setSavePrefix(std::string value)
    {

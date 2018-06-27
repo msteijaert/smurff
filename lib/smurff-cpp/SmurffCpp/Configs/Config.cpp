@@ -1,5 +1,9 @@
 #include "Config.h"
 
+#ifndef _WINDOWS
+#include <unistd.h>
+#endif
+
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -119,7 +123,7 @@ int Config::NSAMPLES_DEFAULT_VALUE = 800;
 int Config::NUM_LATENT_DEFAULT_VALUE = 96;
 int Config::NUM_THREADS_DEFAULT_VALUE = 0; // as many as you want
 ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
-const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "save";
+const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "";
 const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".ddm";
 int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
 int Config::CHECKPOINT_FREQ_DEFAULT_VALUE = 0;
@@ -150,6 +154,20 @@ Config::Config()
 
    m_threshold = Config::THRESHOLD_DEFAULT_VALUE;
    m_classify = false;
+}
+
+std::string Config::getSavePrefix() const
+{
+#ifndef _WINDOWS
+    if (m_save_prefix == Config::SAVE_PREFIX_DEFAULT_VALUE)
+    {
+        char templ[1024] = "/tmp/smurff.XXXXXX";
+        std::string tempdir(mkdtemp(templ));
+        m_save_prefix = tempdir + "/save";
+    }
+#endif
+
+    return m_save_prefix;
 }
 
 const std::vector<std::shared_ptr<SideInfoConfig> >& Config::getSideInfoConfigs(int mode) const
