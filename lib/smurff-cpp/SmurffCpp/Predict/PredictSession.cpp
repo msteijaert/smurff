@@ -51,7 +51,7 @@ void PredictSession::init()
     THROWERROR_ASSERT(m_has_config);
     THROWERROR_ASSERT(m_config.getTest());
     m_result = std::make_shared<Result>(m_config.getTest());
-    m_pos = m_stepdata.begin();
+    m_pos = m_stepdata.rbegin();
     m_is_init = true;
 
     THROWERROR_ASSERT_MSG(m_config.getSavePrefix() != getModelRoot()->getPrefix(),
@@ -73,9 +73,10 @@ bool PredictSession::step()
 {
     THROWERROR_ASSERT(m_has_config);
     THROWERROR_ASSERT(m_is_init);
+    THROWERROR_ASSERT(m_pos != m_stepdata.rend());
 
     double start = tick();
-    m_result->update(m_pos->second.m_model, false);
+    m_result->update(m_pos->m_model, false);
     double stop = tick();
     m_secs_per_iter = stop - start;
 
@@ -87,7 +88,7 @@ bool PredictSession::step()
         save();
 
     auto next_pos = m_pos; next_pos++;
-    bool last_iter = next_pos == m_stepdata.end();
+    bool last_iter = next_pos == m_stepdata.rend();
 
     //save last iter
     if (last_iter && m_config.getSaveFreq() == -1)
@@ -118,7 +119,7 @@ std::shared_ptr<StatusItem> PredictSession::getStatus() const
 {
     std::shared_ptr<StatusItem> ret = std::make_shared<StatusItem>();
     ret->phase = "Predict";
-    ret->iter = m_result->sample_iter;
+    ret->iter = m_pos->sample_no;
     ret->phase_iter = m_stepdata.size();
 
     ret->train_rmse = NAN;
@@ -131,7 +132,7 @@ std::shared_ptr<StatusItem> PredictSession::getStatus() const
 
     ret->elapsed_iter = m_secs_per_iter;
 
-    auto model = m_pos->second.m_model;
+    auto model = m_pos->m_model;
     for (int i = 0; i < model->nmodes(); ++i)
     {
         ret->model_norms.push_back(model->U(i).norm());
@@ -184,7 +185,7 @@ void PredictSession::restore()
    {
       int sample_number = sf->getIsample();
       auto model = sf->restoreModel();
-      StepData step{model};
+      StepData step{sample_number, model};
       if (m_num_latent <= 0) {
          m_num_latent = model->nlatent();
          m_dims = model->getDims();
@@ -195,7 +196,7 @@ void PredictSession::restore()
          THROWERROR_ASSERT(m_dims == model->getDims());
       }
 
-      m_stepdata.insert(std::make_pair(sample_number, step));
+      m_stepdata.push_back(step);
    }
 
 }
@@ -235,7 +236,7 @@ std::shared_ptr<Result> PredictSession::predict(std::shared_ptr<TensorConfig> Y)
 
    for (const auto &s : m_stepdata)
    {
-      res->update(s.second.m_model, false);
+      res->update(s.m_model, false);
    }
 
    return res;

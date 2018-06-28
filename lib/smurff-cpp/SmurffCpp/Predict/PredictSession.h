@@ -23,15 +23,16 @@ private:
     bool m_has_config;
 
     struct StepData {
+        int sample_no;
         std::shared_ptr<Model> m_model;
         std::vector<std::shared_ptr<Eigen::MatrixXd>> m_link_matrices;
     };
 
     std::shared_ptr<Result> m_result;
-    std::map<int, StepData>::iterator m_pos;
+    std::vector<StepData>::reverse_iterator m_pos;
     double m_secs_per_iter;
 
-    std::map<int, StepData> m_stepdata;
+    std::vector<StepData> m_stepdata;
 
     int m_num_latent;
     PVec<> m_dims;
