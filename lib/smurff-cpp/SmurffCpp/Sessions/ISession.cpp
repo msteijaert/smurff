@@ -4,6 +4,6 @@
 
 using namespace smurff;
 
-std::shared_ptr<std::vector<ResultItem>> ISession::getResultItems() const {
+const std::vector<ResultItem>& ISession::getResultItems() const {
     return getResult()->m_predictions;
 }

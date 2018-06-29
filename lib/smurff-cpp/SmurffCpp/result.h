@@ -50,20 +50,20 @@ class Result
 {
 public:
    //c'tor with sparse TensorConfig
-   Result(std::shared_ptr<TensorConfig> Y);
+   Result(std::shared_ptr<TensorConfig> Y, int nsamples = 0);
 
    //empty c'tor
    Result();
 
 public:
    //sparse representation of test matrix
-   std::shared_ptr<std::vector<ResultItem> > m_predictions;
+   std::vector<ResultItem> m_predictions;
 
    //dimensions of Ytest
    std::vector<std::uint64_t> m_dims;
 
    //Y - test sparse matrix
-   void set(std::shared_ptr<TensorConfig> Y);
+   void set(std::shared_ptr<TensorConfig> Y, int nsamples = 0);
 
    //-- prediction metrics
    void update(std::shared_ptr<const Model> model, bool burnin);

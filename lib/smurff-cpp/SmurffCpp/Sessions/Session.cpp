@@ -78,7 +78,9 @@ void Session::setFromBase()
         m_pred->setThreshold(m_config.getThreshold());
 
     if (m_config.getTest())
-        m_pred->set(m_config.getTest());
+    {
+        m_pred->set(m_config.getTest(), m_config.getNSamples());
+    }
 
     // initialize data
 

@@ -109,7 +109,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   data->init();
   model->init(2, PVec<>({1, 1}), ModelInitTypes::zero); //latent dimention has size 2
 
-  auto &t = p->m_predictions->at(0);
+  auto &t = p->m_predictions.at(0);
 
   // first iteration
   model->U(0) << 1.0, 0.0;

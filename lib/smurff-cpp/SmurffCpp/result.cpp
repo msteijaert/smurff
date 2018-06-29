@@ -38,12 +38,12 @@ using namespace smurff;
 Result::Result() {}
 
 //Y - test sparse matrix
-Result::Result(std::shared_ptr<TensorConfig> Y)
+Result::Result(std::shared_ptr<TensorConfig> Y, int nsamples)
 {
-   set(Y);
+   set(Y, nsamples);
 }
 
-void Result::set(std::shared_ptr<TensorConfig> Y)
+void Result::set(std::shared_ptr<TensorConfig> Y, int nsamples)
 {
 
    if (!Y)
@@ -56,12 +56,12 @@ void Result::set(std::shared_ptr<TensorConfig> Y)
       THROWERROR("test data should be sparse");
    }
 
-   m_predictions = std::make_shared<std::vector<ResultItem>>();
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
       const auto p = Y->get(i);
-      ResultItem r = {p.first, p.second};
-      m_predictions->push_back(r);
+      m_predictions.push_back({p.first, p.second});
+      if (nsamples > 0)
+            m_predictions.back().pred_all.reserve(nsamples);
    }
 
    m_dims = Y->getDims();
@@ -74,14 +74,11 @@ void Result::init()
    total_pos = 0;
    if (classify)
    {
-      if (m_predictions && !m_predictions->empty())
-      {
-         for(std::vector<ResultItem>::const_iterator it = m_predictions->begin(); it != m_predictions->end(); it++)
+         for (const auto &p : m_predictions)
          {
-            int is_positive = it->val > threshold;
-            total_pos += is_positive;
+               int is_positive = p.val > threshold;
+               total_pos += is_positive;
          }
-      }
    }
 }
 
@@ -104,7 +101,7 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
    {
       predFile.open(fname_pred, std::ios::out | std::ios::binary);
       THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
-      predFile.write((const char *)(&(*m_predictions)[0]), m_predictions->size() * sizeof((*m_predictions)[0]));  
+      predFile.write((const char *)(&m_predictions[0]), m_predictions.size() * sizeof(m_predictions[0]));  
    }
    else
    {
@@ -117,7 +114,7 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
 
       predFile << "y,pred_1samp,pred_avg,var,std" << std::endl;
 
-      for (std::vector<ResultItem>::const_iterator it = m_predictions->begin(); it != m_predictions->end(); it++)
+      for (std::vector<ResultItem>::const_iterator it = m_predictions.begin(); it != m_predictions.end(); it++)
       {
          it->coords.save(predFile)
              << "," << to_string(it->val)
@@ -172,13 +169,13 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
    if (fname_ext == ".bin") {
       predFile.open(fname_pred, std::ios::in | std::ios::binary);
       THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
-      predFile.read((char *)(&(*m_predictions)[0]), m_predictions->size() * sizeof((*m_predictions)[0]));  
+      predFile.read((char *)(&(m_predictions)[0]), m_predictions.size() * sizeof((m_predictions)[0]));  
    }
    else if (fname_ext == ".csv")
    {
       //since predictions were set in set method - clear them
-      std::size_t oldSize = m_predictions->size();
-      m_predictions->clear();
+      std::size_t oldSize = m_predictions.size();
+      m_predictions.clear();
 
       predFile.open(fname_pred);
       THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
@@ -215,11 +212,11 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
          double var = stod(tokens.at(nCoords + 3).c_str());
 
          //construct result item
-         m_predictions->push_back({smurff::PVec<>(coords), val, pred_1sample, pred_avg, var});
+         m_predictions.push_back({smurff::PVec<>(coords), val, pred_1sample, pred_avg, var});
       }
 
       //just a sanity check, not sure if it is needed
-      THROWERROR_ASSERT_MSG(oldSize == m_predictions->size(), "Incorrect predictions size after restore");
+      THROWERROR_ASSERT_MSG(oldSize == m_predictions.size(), "Incorrect predictions size after restore");
    } 
    else 
    {
@@ -261,19 +258,19 @@ void Result::restoreState(std::shared_ptr<const StepFile> sf)
 //model - holds samples (U matrices)
 void Result::update(std::shared_ptr<const Model> model, bool burnin)
 {
-   if (!m_predictions || m_predictions->empty())
+   if (m_predictions.empty())
       return;
 
-   const size_t NNZ = m_predictions->size();
+   const size_t NNZ = m_predictions.size();
 
    if (burnin)
    {
       double se_1sample = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
-      for(size_t k = 0; k < m_predictions->size(); ++k)
+      for(size_t k = 0; k < m_predictions.size(); ++k)
       {
-         auto &t = m_predictions->operator[](k);
+         auto &t = m_predictions.operator[](k);
          t.pred_1sample = model->predict(t.coords); //dot product of i'th columns in each U matrix
          se_1sample += std::pow(t.val - t.pred_1sample, 2);
       }
@@ -283,7 +280,7 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
 
       if (classify)
       {
-         auc_1sample = calc_auc(*m_predictions, threshold,
+         auc_1sample = calc_auc(m_predictions, threshold,
                [](const ResultItem &a, const ResultItem &b) { return a.pred_1sample < b.pred_1sample;});
       }
    }
@@ -293,9 +290,9 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       double se_avg = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
-      for(size_t k = 0; k < m_predictions->size(); ++k)
+      for(size_t k = 0; k < m_predictions.size(); ++k)
       {
-         auto &t = m_predictions->operator[](k);
+         auto &t = m_predictions.operator[](k);
          const double pred = model->predict(t.coords); //dot product of i'th columns in each U matrix
          t.update(pred);
 
@@ -309,10 +306,10 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
 
       if (classify)
       {
-         auc_1sample = calc_auc(*m_predictions, threshold,
+         auc_1sample = calc_auc(m_predictions, threshold,
                [](const ResultItem &a, const ResultItem &b) { return a.pred_1sample < b.pred_1sample;});
 
-         auc_avg = calc_auc(*m_predictions, threshold,
+         auc_avg = calc_auc(m_predictions, threshold,
                [](const ResultItem &a, const ResultItem &b) { return a.pred_avg < b.pred_avg;});
       }
    }
@@ -320,15 +317,15 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
 
 std::ostream &Result::info(std::ostream &os, std::string indent)
 {
-   if (m_predictions && !m_predictions->empty())
+   if (!m_predictions.empty())
    {
       std::uint64_t dtotal = 1;
       for(size_t d = 0; d < m_dims.size(); d++)
          dtotal *= m_dims[d];
 
-      double test_fill_rate = 100. * m_predictions->size() / dtotal;
+      double test_fill_rate = 100. * m_predictions.size() / dtotal;
 
-      os << indent << "Test data: " << m_predictions->size();
+      os << indent << "Test data: " << m_predictions.size();
 
       os << " [";
       for(size_t d = 0; d < m_dims.size(); d++)
@@ -344,7 +341,7 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
 
       if (classify)
       {
-         double pos = 100. * (double)total_pos / (double)m_predictions->size();
+         double pos = 100. * (double)total_pos / (double)m_predictions.size();
          os << indent << "Binary classification threshold: " << threshold << std::endl;
          os << indent << "  " << pos << "% positives in test data" << std::endl;
       }
@@ -365,5 +362,5 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
 
 bool Result::isEmpty() const
 {
-   return !m_predictions || m_predictions->empty();
+   return m_predictions.empty();
 }

@@ -555,8 +555,8 @@ cdef class TrainSession:
         """
         py_items = []
 
-        if self.ptr_get().getResultItems():
-            cpp_items = self.ptr_get().getResultItems().get()
+        if self.ptr_get().getResultItems().size():
+            cpp_items = self.ptr_get().getResultItems()
             it = cpp_items.begin()
             while it != cpp_items.end():
                 py_items.append(prepare_result_item(deref(it)))

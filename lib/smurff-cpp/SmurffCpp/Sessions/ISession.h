@@ -30,7 +30,7 @@ namespace smurff {
       virtual std::shared_ptr<RootFile> getRootFile() const = 0;
 
       double getRmseAvg() { return getStatus()->rmse_avg; }
-      std::shared_ptr<std::vector<ResultItem>> getResultItems() const;
+      const std::vector<ResultItem> & getResultItems() const;
 
     public:
       virtual std::ostream &info(std::ostream &, std::string indent) const = 0;
