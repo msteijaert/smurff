@@ -56,6 +56,20 @@ public:
    //pos - vector of column indices
    double predict(const PVec<>& pos) const;
 
+   // compute latent vector from feature vector
+   template<typename FeatVector>
+   std::shared_ptr<Eigen::VectorXd> predict_latent(int mode, const FeatVector& f);
+
+private:
+   // predict full column based on feature vector
+   template<typename FeatVector>
+   std::shared_ptr<Eigen::VectorXd> predict_internal(int mode, const FeatVector& f);
+
+public:
+   // predict full column based on feature vector - sparse and dense features
+   std::shared_ptr<Eigen::VectorXd> predict(int mode, const Eigen::VectorXd& f);
+   std::shared_ptr<Eigen::VectorXd> predict(int mode, const Eigen::SparseVector<double>& f);
+
 public:
    //return f'th U matrix in the model
    Eigen::MatrixXd &U(uint32_t f);
