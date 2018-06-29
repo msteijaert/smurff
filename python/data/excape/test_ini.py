@@ -44,7 +44,7 @@ class TestExCAPE_ini(unittest.TestCase):
                 call("smurff --ini " + ini, shell=True, cwd=tmpdirname)
                 stop = time()
                 elapsed = stop - start
-                rmse = extract_rmse(os.path.join(tmpdirname, "stats.csv"))
+                rmse = extract_rmse(os.path.join(tmpdirname, "save-status.csv"))
 
             self.assertLess(rmse, expected[0])
             self.assertGreater(rmse, expected[1])
