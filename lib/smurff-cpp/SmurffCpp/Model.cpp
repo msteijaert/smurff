@@ -70,6 +70,11 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
 
 double Model::predict(const PVec<> &pos) const
 {
+   if (nmodes() == 2)
+   {
+      return col(0, pos[0]).dot(col(1, pos[1]));
+   }
+
    auto &P = Pcache.local();
    P.setOnes();
    for(uint32_t d = 0; d < nmodes(); ++d)
