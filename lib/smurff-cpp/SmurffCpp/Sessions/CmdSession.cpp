@@ -35,7 +35,6 @@ static const char *CHECKPOINT_FREQ_NAME = "checkpoint-freq";
 static const char *THRESHOLD_NAME = "threshold";
 static const char *VERBOSE_NAME = "verbose";
 static const char *VERSION_NAME = "version";
-static const char *STATUS_NAME = "status";
 static const char *SEED_NAME = "seed";
 static const char *INI_NAME = "ini";
 static const char *ROOT_NAME = "root";
@@ -76,7 +75,6 @@ po::options_description get_desc()
     save_desc.add_options()
 	(ROOT_NAME, po::value<std::string>(), "restore session from root .ini file")
 	(SAVE_PREFIX_NAME, po::value<std::string>()->default_value(Config::SAVE_PREFIX_DEFAULT_VALUE), "prefix for result files")
-	(STATUS_NAME, po::value<std::string>()->default_value(Config::STATUS_DEFAULT_VALUE), "output progress to csv file")
 	(SAVE_EXTENSION_NAME, po::value<std::string>()->default_value(Config::SAVE_EXTENSION_DEFAULT_VALUE), "extension for result files (.csv or .ddm)")
 	(SAVE_FREQ_NAME, po::value<int>()->default_value(Config::SAVE_FREQ_DEFAULT_VALUE), "save every n iterations (0 == never, -1 == final model)")
 	(CHECKPOINT_FREQ_NAME, po::value<int>()->default_value(Config::CHECKPOINT_FREQ_DEFAULT_VALUE), "save state every n seconds, only one checkpointing state is kept");
