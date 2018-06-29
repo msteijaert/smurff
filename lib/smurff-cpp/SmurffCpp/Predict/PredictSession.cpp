@@ -81,6 +81,7 @@ bool PredictSession::step()
     m_result->update(model, false);
     double stop = tick();
     m_secs_per_iter = stop - start;
+    m_secs_total += m_secs_per_iter;
 
     if (m_config.getVerbose())
         std::cout << getStatus()->asString() << std::endl;
@@ -134,6 +135,7 @@ std::shared_ptr<StatusItem> PredictSession::getStatus() const
     ret->auc_1sample = m_result->auc_1sample;
 
     ret->elapsed_iter = m_secs_per_iter;
+    ret->elapsed_total = m_secs_total;
 
     return ret;
 }

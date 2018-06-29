@@ -21,6 +21,8 @@ struct StatusItem
     double auc_avg;
 
     double elapsed_iter;
+    double elapsed_total;
+
     double nnz_per_sec;
     double samples_per_sec;
 

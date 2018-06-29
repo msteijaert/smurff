@@ -157,6 +157,7 @@ bool Session::step()
         m_pred->update(m_model, m_iter < m_config.getBurnin());
 
         m_secs_per_iter = endi - starti;
+        m_secs_total += m_secs_per_iter;
 
         printStatus(std::cout);
 
@@ -347,6 +348,8 @@ std::shared_ptr<StatusItem> Session::getStatus() const
     ret->auc_1sample = m_pred->auc_1sample;
 
     ret->elapsed_iter = m_secs_per_iter;
+    ret->elapsed_total = m_secs_total;
+
     ret->nnz_per_sec = (double)(data().nnz()) / m_secs_per_iter;
     ret->samples_per_sec = (double)(model().nsamples()) / m_secs_per_iter;
 
@@ -377,37 +380,7 @@ void Session::printStatus(std::ostream &output, bool resume)
             output << " ====== Burn-in complete, averaging samples ====== " << std::endl;
         }
 
-        output << resumeString
-               << status_item->phase
-               << " "
-               << std::setfill(' ') << std::setw(3) << status_item->iter
-               << "/"
-               << std::setfill(' ') << std::setw(3) << status_item->phase_iter
-               << ": RMSE: "
-               << std::fixed << std::setprecision(4) << status_item->rmse_avg
-               << " (1samp: "
-               << std::fixed << std::setprecision(4) << status_item->rmse_1sample
-               << ")";
-
-        if (m_config.getClassify())
-        {
-            output << " AUC:"
-                   << std::fixed << std::setprecision(4) << status_item->auc_avg
-                   << " (1samp: "
-                   << std::fixed << std::setprecision(4) << status_item->auc_1sample
-                   << ")"
-                   << std::endl;
-        }
-
-        output << "  U:[";
-        for (double n : status_item->model_norms)
-        {
-            output << std::scientific << std::setprecision(2) << n << ", ";
-        }
-        output << "] [took: "
-               << std::fixed << std::setprecision(1) << status_item->elapsed_iter
-               << "s]"
-               << std::endl;
+        output << resumeString << status_item->asString() << std::endl;
 
         if (m_config.getVerbose() > 1)
         {
@@ -438,9 +411,9 @@ std::string StatusItem::getCsvHeader()
 std::string StatusItem::asCsvString() const
 {
     char ret[1024];
-    snprintf(ret, 1024, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%0.1f",
+    snprintf(ret, 1024, "%s;%d;%d;%.4f;%.4f;%.4f;%.4f;:%.4f;%0.1f;%0.1f",
              phase.c_str(), iter, phase_iter, rmse_avg, rmse_1sample, train_rmse,
-             auc_1sample, auc_avg, elapsed_iter);
+             auc_1sample, auc_avg, elapsed_iter, elapsed_total);
 
     return ret;
 }

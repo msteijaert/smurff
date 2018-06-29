@@ -24,7 +24,9 @@ private:
 
     std::shared_ptr<Result> m_result;
     std::vector<std::shared_ptr<StepFile>>::reverse_iterator m_pos;
+
     double m_secs_per_iter;
+    double m_secs_total;
 
     std::vector<std::shared_ptr<StepFile>> m_stepfiles;
 

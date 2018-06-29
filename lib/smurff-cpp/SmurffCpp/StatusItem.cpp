@@ -23,7 +23,8 @@ std::string StatusItem::asString() const
     {
         output << std::scientific << std::setprecision(2) << n << ", ";
     }
-    output << "] [took: " << std::fixed << std::setprecision(1) << elapsed_iter << "s]";
+    output << "] [took: " << std::fixed << std::setprecision(1) << elapsed_iter << "s, ";
+    output << "total: " << std::fixed << std::setprecision(1) << elapsed_total << "s]";
 
     return output.str();
 }
