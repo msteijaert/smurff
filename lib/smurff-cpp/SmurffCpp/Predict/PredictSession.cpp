@@ -240,10 +240,5 @@ std::shared_ptr<Result> PredictSession::predict(std::shared_ptr<TensorConfig> Y)
     return res;
 }
 
-// predict element or elements based on sideinfo
-template <class Feat>
-std::shared_ptr<Result> predict(std::vector<std::shared_ptr<Feat>>)
-{
-}
 
 } // end namespace smurff

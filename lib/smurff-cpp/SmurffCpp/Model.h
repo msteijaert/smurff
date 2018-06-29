@@ -33,9 +33,11 @@ class ConstVMatrixIterator;
 class Model : public std::enable_shared_from_this<Model>
 {
 private:
-   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_samples; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_factors; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_link_matrices; //vector of U matrices
+
    int m_num_latent; //size of latent dimention for U matrices
-   PVec<> m_dims; //dimentions of train data
+   PVec<> m_dims; //dimensions of train data
 
    // to make predictions faster
    mutable thread_vector<Eigen::ArrayXd> Pcache;
@@ -46,6 +48,8 @@ public:
 public:
    //initialize U matrices in the model (random/zero)
    void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
+
+   void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd>);
 
 public:
    //dot product of i'th columns in each U matrix
@@ -96,6 +100,7 @@ public:
    std::ostream& info(std::ostream &os, std::string indent) const;
    std::ostream& status(std::ostream &os, std::string indent) const;
 };
+
 
 
 
