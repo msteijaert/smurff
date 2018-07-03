@@ -140,12 +140,14 @@ void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, doub
    beta_precision_nu0 = 1e-3;
 }
 
-void MacauPrior::save(std::shared_ptr<const StepFile> sf) const
+bool MacauPrior::save(std::shared_ptr<const StepFile> sf) const
 {
    NormalPrior::save(sf);
 
    std::string path = sf->getLinkMatrixFileName(m_mode);
    smurff::matrix_io::eigen::write_matrix(path, *m_beta);
+
+   return true;
 }
 
 void MacauPrior::restore(std::shared_ptr<const StepFile> sf)

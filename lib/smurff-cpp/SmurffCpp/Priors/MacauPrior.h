@@ -78,7 +78,7 @@ public:
 
 public:
 
-   void save(std::shared_ptr<const StepFile> sf) const override;
+   bool save(std::shared_ptr<const StepFile> sf) const override;
 
    void restore(std::shared_ptr<const StepFile> sf) override;
 

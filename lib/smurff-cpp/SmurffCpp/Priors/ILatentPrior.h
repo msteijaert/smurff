@@ -65,7 +65,7 @@ public:
    const Eigen::VectorXd& getUsum() { return Usum; } 
    const Eigen::MatrixXd& getUUsum()  { return UUsum; }
 
-   virtual void save(std::shared_ptr<const StepFile> sf) const;
+   virtual bool save(std::shared_ptr<const StepFile> sf) const;
    virtual void restore(std::shared_ptr<const StepFile> sf);
    virtual std::ostream &info(std::ostream &os, std::string indent);
    virtual std::ostream &status(std::ostream &os, std::string indent) const = 0;
