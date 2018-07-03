@@ -10,22 +10,23 @@
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
 
+#define NONE_TAG "none"
+
 #define STEP_SAMPLE_PREFIX "-sample-"
 #define STEP_CHECKPOINT_PREFIX "-checkpoint-"
 #define STEP_INI_SUFFIX "-step.ini"
 
-#define MODEL_PREFIX "model_"
-#define PRIOR_PREFIX "prior_"
+#define LATENTS_PREFIX "model_"
+#define LINK_MATRIX_PREFIX "link_matrix_"
 
 #define GLOBAL_SEC_TAG "global"
-#define MODELS_SEC_TAG "models"
+#define LATENTS_SEC_TAG "latents"
 #define PRED_SEC_TAG "predictions"
-#define PRIORS_SEC_TAG "priors"
+#define LINK_MATRICES_TAG "link_matrices"
 
 #define IS_CHECKPOINT_TAG "is_checkpoint"
 #define NUMBER_TAG "number"
-#define NUM_MODELS_TAG "num_models"
-#define NUM_PRIORS_TAG "num_priors"
+#define NUM_MODES_TAG "num_modes"
 #define PRED_TAG "pred"
 #define PRED_STATE_TAG "pred_state"
 
@@ -87,7 +88,7 @@ std::string StepFile::getStepPrefix() const
 
 std::string StepFile::getModelFileName(std::uint64_t index) const
 {
-   auto modelIt = tryGetIniValueBase(MODELS_SEC_TAG, MODEL_PREFIX + std::to_string(index));
+   auto modelIt = tryGetIniValueBase(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(index));
    if (modelIt.first)
       return modelIt.second; 
 
@@ -97,7 +98,7 @@ std::string StepFile::getModelFileName(std::uint64_t index) const
 
 std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 {
-   auto linkMatrixIt = tryGetIniValueBase(PRIORS_SEC_TAG, PRIOR_PREFIX + std::to_string(mode));
+   auto linkMatrixIt = tryGetIniValueBase(LINK_MATRICES_TAG, LINK_MATRIX_PREFIX + std::to_string(mode));
    if (linkMatrixIt.first)
       return linkMatrixIt.second; 
 
@@ -133,12 +134,12 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    model->save(shared_from_this());
 
    //save models
-   appendToStepFile(MODELS_SEC_TAG, NUM_MODELS_TAG, std::to_string(model->nmodes()));
+   appendToStepFile(LATENTS_SEC_TAG, NUM_MODES_TAG, std::to_string(model->nmodes()));
 
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
       std::string path = getModelFileName(mIndex);
-      appendToStepFile(MODELS_SEC_TAG, MODEL_PREFIX + std::to_string(mIndex), path);
+      appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path);
    }
 }
 
@@ -157,19 +158,21 @@ void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
 
 void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
+   std::uint64_t pIndex = 0;
    for (auto &p : priors)
    {
-      p->save(shared_from_this());
+      if (p->save(shared_from_this()))
+      {
+          std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
+          appendToStepFile(LINK_MATRICES_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), priorPath);
+      }
+
+      pIndex++;
    }
 
    //save priors
-
-   appendToStepFile(PRIORS_SEC_TAG, NUM_PRIORS_TAG, std::to_string(priors.size()));
-
    for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
    {
-      std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
-      appendToStepFile(PRIORS_SEC_TAG, PRIOR_PREFIX + std::to_string(pIndex), priorPath);
    }
 }
 
@@ -188,17 +191,32 @@ void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Re
 void StepFile::restoreModel(std::shared_ptr<Model> model) const
 {
    //it is enough to check presence of num tag
-   if (!hasIniValueBase(MODELS_SEC_TAG, NUM_MODELS_TAG))
+   if (!hasIniValueBase(LATENTS_SEC_TAG, NUM_MODES_TAG))
       return;
 
    model->restore(shared_from_this());
+
+   int nmodes = model->nmodes();
+   for(int i=0; i<nmodes; ++i)
+   {
+       auto linkMatrixIt = tryGetIniValueBase(LINK_MATRICES_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
+       if (!linkMatrixIt.first)
+           continue;
+
+       std::string path = linkMatrixIt.second;
+       THROWERROR_FILE_NOT_EXIST(path);
+       auto beta = std::make_shared<Eigen::MatrixXd>();
+       matrix_io::eigen::read_matrix(path, *beta); 
+
+       model->setLinkMatrix(i, beta);
+   }
 }
 
   //-- used in PredictSession
 std::shared_ptr<Model> StepFile::restoreModel() const
 {
     auto model = std::make_shared<Model>();
-    model->restore(shared_from_this());
+    restoreModel(model);
     return model;
 }
 
@@ -215,33 +233,10 @@ void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
 
 void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const
 {
-   //it is enough to check presence of num tag
-   if (!hasIniValueBase(PRIORS_SEC_TAG,NUM_PRIORS_TAG))
-      return;
-
    for (auto &p : priors)
    {
       p->restore(shared_from_this());
    }
-}
-
-std::vector<std::shared_ptr<MatrixConfig>> StepFile::restoreLinkMatrices() const
-{
-   std::vector<std::shared_ptr<MatrixConfig>> betas;
-   
-   //it is enough to check presence of num tag
-   auto npriors = tryGetIniValueBase(PRIORS_SEC_TAG, NUM_PRIORS_TAG);
-   if (!npriors.first) return betas;
-   int nmodes = atoi(npriors.second.c_str());
-    
-   for(int i=0; i<nmodes; ++i)
-   {
-      std::string path = getLinkMatrixFileName(i);
-      THROWERROR_FILE_NOT_EXIST(path);
-      betas.push_back(smurff::matrix_io::read_matrix(path, false)); 
-   }
-
-   return betas;
 }
 
 void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const
@@ -265,11 +260,11 @@ void StepFile::removeModel() const
       std::remove(path.c_str());
    }
 
-   std::int32_t nModels = getNSamples();
+   std::int32_t nModels = getNModes();
    for(std::int32_t i = 0; i < nModels; i++)
-      removeFromStepFile(MODEL_PREFIX + std::to_string(i));
+      removeFromStepFile(LATENTS_PREFIX + std::to_string(i));
 
-   removeFromStepFile(NUM_MODELS_TAG);
+   removeFromStepFile(NUM_MODES_TAG);
 }
 
 void StepFile::removePred() const
@@ -287,17 +282,16 @@ void StepFile::removePriors() const
    while (true)
    {
       std::string path = getLinkMatrixFileName(mode++);
-      if (!generic_io::file_exists(path))
+      if (path == NONE_TAG)
          break;
 
       std::remove(path.c_str());
    }
 
-   std::int32_t nPriors = getNPriors();
-   for (std::int32_t i = 0; i < nPriors; i++)
-      removeFromStepFile(PRIOR_PREFIX + std::to_string(i));
+   for (std::int32_t i = 0; i < getNModes(); i++)
+      removeFromStepFile(LINK_MATRIX_PREFIX + std::to_string(i));
 
-   removeFromStepFile(NUM_PRIORS_TAG);
+   removeFromStepFile(NUM_MODES_TAG);
 }
 
 void StepFile::remove(bool model, bool pred, bool priors) const
@@ -338,14 +332,9 @@ bool StepFile::isCheckpoint() const
    return m_checkpoint;
 }
 
-std::int32_t StepFile::getNSamples() const
+std::int32_t StepFile::getNModes() const
 {
-   return std::stoi(getIniValueBase(MODELS_SEC_TAG, NUM_MODELS_TAG));
-}
-
-std::int32_t StepFile::getNPriors() const
-{
-   return std::stoi(getIniValueBase(PRIORS_SEC_TAG, NUM_PRIORS_TAG));
+   return std::stoi(getIniValueBase(LATENTS_SEC_TAG, NUM_MODES_TAG));
 }
 
 //ini methods

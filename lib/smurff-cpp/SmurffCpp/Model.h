@@ -7,6 +7,7 @@
 
 #include <SmurffCpp/Utils/PVec.hpp>
 #include <SmurffCpp/Utils/ThreadVector.hpp>
+#include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/Configs/Config.h>
 
@@ -60,15 +61,9 @@ public:
    template<typename FeatVector>
    std::shared_ptr<Eigen::VectorXd> predict_latent(int mode, const FeatVector& f);
 
-private:
    // predict full column based on feature vector
    template<typename FeatVector>
-   std::shared_ptr<Eigen::VectorXd> predict_internal(int mode, const FeatVector& f);
-
-public:
-   // predict full column based on feature vector - sparse and dense features
-   std::shared_ptr<Eigen::VectorXd> predict(int mode, const Eigen::VectorXd& f);
-   std::shared_ptr<Eigen::VectorXd> predict(int mode, const Eigen::SparseVector<double>& f);
+   std::shared_ptr<Eigen::VectorXd> predict(int mode, const FeatVector& f);
 
 public:
    //return f'th U matrix in the model
@@ -161,5 +156,34 @@ public:
       return m_model.nmodes();
    }
 };
+
+
+template<typename FeatVector>
+std::shared_ptr<Eigen::VectorXd> Model::predict_latent(int mode, const FeatVector& f)
+{
+   THROWERROR_ASSERT_MSG(m_link_matrices.at(mode),
+      "No link matrix available in mode " + std::to_string(mode));
+
+   const auto &beta = *m_link_matrices.at(mode);
+   auto ret = std::make_shared<Eigen::VectorXd>(nlatent());
+   *ret = (beta * f) + U(mode).colwise().mean();
+
+   return ret;
+}
+
+template<typename FeatVector>
+std::shared_ptr<Eigen::VectorXd> Model::predict(int mode, const FeatVector& f)
+{
+   THROWERROR_ASSERT_MSG(nmodes() == 2,
+      "Only implemented for modes == 2");
+
+   auto latent = predict_latent(mode, f);
+
+   int othermode = (mode+1) % 2;
+   auto ret = std::make_shared<Eigen::VectorXd>(getDims().at(othermode));
+   *ret = *latent * U(othermode).transpose();
+
+   return ret;
+}
 
 };

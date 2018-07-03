@@ -16,7 +16,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std::vector<smurff::ResultItem>> actualResults)
+void printActualResults(int nr, double actualRmseAvg, const std::vector<smurff::ResultItem>& actualResults)
 {
    std::ofstream os("expected_results/TestsSmurff_" + std::to_string(nr) + ".h", std::ofstream::out);
 
@@ -25,9 +25,8 @@ void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std:
       << "   std::vector<ResultItem> expectedResults = \n"
       << "      {\n";
 
-   for (std::vector<smurff::ResultItem>::size_type i = 0; i < actualResults->size(); i++)
+   for (const auto &actualResultItem : actualResults) 
    {
-      const smurff::ResultItem &actualResultItem = actualResults->operator[](i);
       os << std::setprecision(16);
       os << "         { { " << actualResultItem.coords << " }, "
          << actualResultItem.val << ", "
@@ -41,8 +40,8 @@ void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std:
 }
 
 
-#define PRINT_ACTUAL_RESULTS(nr)
-// #define PRINT_ACTUAL_RESULTS(nr) printActualResults(nr, actualRmseAvg, actualResults);
+//#define PRINT_ACTUAL_RESULTS(nr)
+#define PRINT_ACTUAL_RESULTS(nr) printActualResults(nr, actualRmseAvg, actualResults);
 
 // https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
 // By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
@@ -2897,7 +2896,7 @@ TEST_CASE(
    REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults);
 }
 
-TEST_CASE("PredictSession")
+TEST_CASE("PredictSession - BPMF")
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
@@ -2939,4 +2938,46 @@ TEST_CASE("PredictSession")
         //std::cout << "Prediction from RootFile+Config RMSE: " << result->rmse_avg << std::endl;
         REQUIRE(session->getRmseAvg()  == Approx(result->rmse_avg).epsilon(APPROX_EPSILON));
     }
+}
+
+//=================================================================
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: macau normal
+//   features: row_side_info_dense_matrix none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("PredictSession/Features"
+   , HIDE_MATRIX_TESTS)
+{
+    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+    std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+
+    Config config;
+    config.setTrain(trainDenseMatrixConfig);
+    config.setTest(testSparseMatrixConfig);
+    config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
+    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+    config.setNumLatent(4);
+    config.setBurnin(50);
+    config.setNSamples(50);
+    config.setVerbose(false);
+    config.setSaveFreq(1);
+
+    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+    session->run();
+
+    PredictSession predict_session(session->getRootFile());
+
+    auto sideInfoMatrix = matrix_utils::dense_to_eigen(*rowSideInfoDenseMatrixConfig->getSideInfo());
+
+    predict_session.predict(0, sideInfoMatrix.col(0));
 }

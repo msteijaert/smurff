@@ -7,6 +7,7 @@
 
 #include <SmurffCpp/Utils/PVec.hpp>
 #include <SmurffCpp/Sessions/ISession.h>
+#include <SmurffCpp/Model.h>
 
 namespace smurff {
 
@@ -34,38 +35,30 @@ private:
     PVec<> m_dims;
     bool m_is_init;
 
+private:
     std::shared_ptr<Model> restoreModel(const std::shared_ptr<StepFile> &);
+    std::shared_ptr<Model> restoreModel(int i);
 
 public:
-    int getNumSteps() const
-    {
-        return m_stepfiles.size();
-    }
+    int    getNumSteps()  const { return m_stepfiles.size(); } 
+    int    getNumLatent() const { return m_num_latent; } 
+    PVec<> getModelDims() const { return m_dims; } 
 
-    PVec<> getModelDims() const
-    {
-       return m_dims;
-    }
-
-    int getNumLatent() const
-    {
-        return m_num_latent;
-    }
-
+public:
+    // ISession interface 
     void run() override;
     bool step() override;
     void init() override;
 
-    void save();
-
     std::shared_ptr<StatusItem> getStatus() const override;
-
-    std::shared_ptr<Result> getResult() const override;
+    std::shared_ptr<Result>     getResult() const override;
 
     std::shared_ptr<RootFile> getRootFile() const override {
         return m_pred_rootfile;
     }
 
+private:
+    void save();
 
     std::shared_ptr<RootFile> getModelRoot() const {
         return m_model_rootfile;
@@ -92,11 +85,32 @@ public:
     void predict(Result &, const StepFile &);
 
     // predict element or elements based on sideinfo
-    template<class Feat>
-    std::shared_ptr<Result> predict(std::vector<std::shared_ptr<Feat>>);
-    template<class Feat>
-    std::shared_ptr<Result> predict(std::vector<std::shared_ptr<Feat>>, int sample);
-    
+    template <class Feat>
+    std::vector<std::shared_ptr<Eigen::VectorXd>> predict(int mode, const Feat &f);
+    template <class Feat>
+    std::shared_ptr<Eigen::VectorXd> predict(int mode, const Feat &f, int sample);
 };
 
+// predict element or elements based on sideinfo
+template <class Feat>
+std::vector<std::shared_ptr<Eigen::VectorXd>> PredictSession::predict(int mode, const Feat &f)
+{
+    std::vector<std::shared_ptr<Eigen::VectorXd>> ret;
+
+    for (const auto &sf : m_stepfiles)
+    {
+        auto model = restoreModel(sf);
+        ret.push_back(model->predict(mode, f));
+    }
+
+    return ret;
 }
+
+template<class Feat>
+std::shared_ptr<Eigen::VectorXd> PredictSession::predict(int mode, const Feat &f, int sample)
+{
+    auto model = restoreModel(sample);
+    return model->predict(mode, f);
+}
+
+} // end namespace smurff

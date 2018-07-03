@@ -62,7 +62,6 @@ namespace smurff {
       
       //-- used in PredictSession
       std::shared_ptr<Model> restoreModel() const;
-      std::vector<std::shared_ptr<MatrixConfig>> restoreLinkMatrices() const;
 
       void restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
@@ -79,9 +78,7 @@ namespace smurff {
       bool isCheckpoint() const;
 
    public:
-      std::int32_t getNSamples() const;
-
-      std::int32_t getNPriors() const;
+      std::int32_t getNModes() const;
 
    public:
       std::string getIniValueBase(const std::string& section, const std::string& tag) const;

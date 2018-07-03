@@ -180,6 +180,7 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
 std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFile> &sf)
 {
     auto model = sf->restoreModel();
+
     if (m_num_latent <= 0)
     {
         m_num_latent = model->nlatent();
@@ -192,6 +193,11 @@ std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFi
     }
 
     return model;
+}
+
+std::shared_ptr<Model> PredictSession::restoreModel(int i)
+{
+    return restoreModel(m_stepfiles.at(i));
 }
 
 // predict one element
@@ -239,6 +245,5 @@ std::shared_ptr<Result> PredictSession::predict(std::shared_ptr<TensorConfig> Y)
 
     return res;
 }
-
 
 } // end namespace smurff
