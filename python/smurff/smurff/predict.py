@@ -212,7 +212,7 @@ class PredictSession:
             The prediction
 
         """
-        p = Prediction(coords, value)
+        p = Prediction(coords_or_sideinfo, value)
         for s in self.samples:
             p.add_sample(s.predict(p.coords))
 
