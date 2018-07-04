@@ -158,14 +158,17 @@ Config::Config()
 
 std::string Config::getSavePrefix() const
 {
+    auto &pfx = m_save_prefix;
 #ifndef _WINDOWS
-    if (m_save_prefix == Config::SAVE_PREFIX_DEFAULT_VALUE)
+    if (pfx == Config::SAVE_PREFIX_DEFAULT_VALUE || pfx.empty())
     {
         char templ[1024] = "/tmp/smurff.XXXXXX";
-        std::string tempdir(mkdtemp(templ));
-        m_save_prefix = tempdir + "/save";
+        pfx = mkdtemp(templ);
     }
 #endif
+
+    if (*pfx.rbegin() != '/') 
+        pfx += "/";
 
     return m_save_prefix;
 }

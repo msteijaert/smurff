@@ -2896,7 +2896,7 @@ TEST_CASE(
    REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults);
 }
 
-TEST_CASE("PredictSession - BPMF")
+TEST_CASE("PredictSession/BPMF")
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
@@ -2917,7 +2917,7 @@ TEST_CASE("PredictSession - BPMF")
 
    //std::cout << "Prediction from Session RMSE: " << session->getRmseAvg() << std::endl;
 
-   std::string root_fname =  session->getRootFile()->getRootFileName();
+   std::string root_fname =  session->getRootFile()->getFullPath();
    auto rf = std::make_shared<RootFile>(root_fname);
 
    {

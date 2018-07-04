@@ -116,7 +116,7 @@ class PredictSession:
 
     or from a root file
 
-    >>> predict_session = PredictSession.fromRootFile("save-root.ini")
+    >>> predict_session = PredictSession.fromRootFile("root.ini")
 
     """
     @classmethod

@@ -7,22 +7,23 @@
 #include <SmurffCpp/Priors/ILatentPrior.h>
 
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/StringUtils.h>
 #include <SmurffCpp/IO/GenericIO.h>
 #include <SmurffCpp/IO/MatrixIO.h>
 
 #define NONE_TAG "none"
 
-#define STEP_SAMPLE_PREFIX "-sample-"
-#define STEP_CHECKPOINT_PREFIX "-checkpoint-"
+#define STEP_SAMPLE_PREFIX "sample-"
+#define STEP_CHECKPOINT_PREFIX "checkpoint-"
 #define STEP_INI_SUFFIX "-step.ini"
 
-#define LATENTS_PREFIX "model_"
+#define LATENTS_PREFIX "latents_"
 #define LINK_MATRIX_PREFIX "link_matrix_"
 
 #define GLOBAL_SEC_TAG "global"
 #define LATENTS_SEC_TAG "latents"
 #define PRED_SEC_TAG "predictions"
-#define LINK_MATRICES_TAG "link_matrices"
+#define LINK_MATRICES_SEC_TAG "link_matrices"
 
 #define IS_CHECKPOINT_TAG "is_checkpoint"
 #define NUMBER_TAG "number"
@@ -60,6 +61,15 @@ StepFile::StepFile(const std::string& path, std::string prefix, std::string exte
 }
 
 //name methods
+std::pair<bool, std::string> StepFile::tryGetIniValueFullPath(const std::string &section, const std::string &tag) const
+{
+   auto pair = tryGetIniValueBase(section, tag);
+
+   if (pair.first && !startsWith(pair.second, m_prefix))
+      pair.second = m_prefix + pair.second;
+
+   return pair;
+}
 
 std::string StepFile::getStepFileName() const
 {
@@ -88,7 +98,7 @@ std::string StepFile::getStepPrefix() const
 
 std::string StepFile::getModelFileName(std::uint64_t index) const
 {
-   auto modelIt = tryGetIniValueBase(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(index));
+   auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(index));
    if (modelIt.first)
       return modelIt.second; 
 
@@ -98,7 +108,7 @@ std::string StepFile::getModelFileName(std::uint64_t index) const
 
 std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 {
-   auto linkMatrixIt = tryGetIniValueBase(LINK_MATRICES_TAG, LINK_MATRIX_PREFIX + std::to_string(mode));
+   auto linkMatrixIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(mode));
    if (linkMatrixIt.first)
       return linkMatrixIt.second; 
 
@@ -108,7 +118,7 @@ std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 
 std::string StepFile::getPredFileName() const
 {
-   auto predIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_TAG);
+   auto predIt = tryGetIniValueFullPath(PRED_SEC_TAG, PRED_TAG);
    if (predIt.first)
       return predIt.second; 
 
@@ -119,7 +129,7 @@ std::string StepFile::getPredFileName() const
 
 std::string StepFile::getPredStateFileName() const
 {
-   auto predStateIt = tryGetIniValueBase(PRED_SEC_TAG, PRED_STATE_TAG);
+   auto predStateIt = tryGetIniValueFullPath(PRED_SEC_TAG, PRED_STATE_TAG);
    if (predStateIt.first)
       return predStateIt.second; 
 
@@ -164,7 +174,7 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
       if (p->save(shared_from_this()))
       {
           std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
-          appendToStepFile(LINK_MATRICES_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), priorPath);
+          appendToStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), priorPath);
       }
 
       pIndex++;
@@ -180,6 +190,7 @@ void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Re
 {
     appendToStepFile(GLOBAL_SEC_TAG, IS_CHECKPOINT_TAG, std::to_string(m_checkpoint));
     appendToStepFile(GLOBAL_SEC_TAG, NUMBER_TAG, std::to_string(m_isample));
+    appendToStepFile(GLOBAL_SEC_TAG, NUM_MODES_TAG, std::to_string(model->nmodes()));
 
     saveModel(model);
     savePred(pred);
@@ -199,7 +210,7 @@ void StepFile::restoreModel(std::shared_ptr<Model> model) const
    int nmodes = model->nmodes();
    for(int i=0; i<nmodes; ++i)
    {
-       auto linkMatrixIt = tryGetIniValueBase(LINK_MATRICES_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
+       auto linkMatrixIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
        if (!linkMatrixIt.first)
            continue;
 
@@ -262,18 +273,16 @@ void StepFile::removeModel() const
 
    std::int32_t nModels = getNModes();
    for(std::int32_t i = 0; i < nModels; i++)
-      removeFromStepFile(LATENTS_PREFIX + std::to_string(i));
-
-   removeFromStepFile(NUM_MODES_TAG);
+      removeFromStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(i));
 }
 
 void StepFile::removePred() const
 {
    std::remove(getPredFileName().c_str());
-   removeFromStepFile(PRED_TAG);
+   removeFromStepFile(PRED_SEC_TAG, PRED_TAG);
 
    std::remove(getPredStateFileName().c_str());
-   removeFromStepFile(PRED_STATE_TAG);
+   removeFromStepFile(PRED_SEC_TAG, PRED_STATE_TAG);
 }
 
 void StepFile::removePriors() const
@@ -289,9 +298,7 @@ void StepFile::removePriors() const
    }
 
    for (std::int32_t i = 0; i < getNModes(); i++)
-      removeFromStepFile(LINK_MATRIX_PREFIX + std::to_string(i));
-
-   removeFromStepFile(NUM_MODES_TAG);
+      removeFromStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
 }
 
 void StepFile::remove(bool model, bool pred, bool priors) const
@@ -366,6 +373,8 @@ void StepFile::appendToStepFile(std::string section, std::string tag, std::strin
       m_cur_section = section;
    }
 
+   value = stripPrefix(value, m_prefix);
+
    m_iniReader->appendItem(section, tag, value);
    
    flushLast();
@@ -376,10 +385,11 @@ void StepFile::appendCommentToStepFile(std::string comment) const
    m_iniReader->appendComment(comment);
 }
 
-void StepFile::removeFromStepFile(std::string tag) const
+void StepFile::removeFromStepFile(std::string section, std::string tag) const
 {
    m_iniReader->removeItem(std::string(), tag);
 }
+
 
 void StepFile::flushLast() const
 {

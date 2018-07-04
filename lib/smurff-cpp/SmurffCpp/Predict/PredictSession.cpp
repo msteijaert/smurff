@@ -149,7 +149,7 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
 {
     os << indent << "PredictSession {\n";
     os << indent << "  Model {\n";
-    os << indent << "    model root-file: " << getModelRoot()->getRootFileName() << "\n";
+    os << indent << "    model root-file: " << getModelRoot()->getFullPath() << "\n";
     os << indent << "    num-samples: " << getNumSteps() << "\n";
     os << indent << "    num-latent: " << getNumLatent() << "\n";
     os << indent << "    dimensions: " << getModelDims() << "\n";
@@ -160,13 +160,13 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
     {
         os << indent << "    Save predictions: every " << m_config.getSaveFreq() << " iteration\n";
         os << indent << "    Save extension: " << m_config.getSaveExtension() << "\n";
-        os << indent << "    Output root-file: " << getRootFile()->getRootFileName() << "\n";
+        os << indent << "    Output root-file: " << getRootFile()->getFullPath() << "\n";
     }
     else if (m_config.getSaveFreq() < 0)
     {
         os << indent << "    Save predictions after last iteration\n";
         os << indent << "    Save extension: " << m_config.getSaveExtension() << "\n";
-        os << indent << "    Output root-file: " << getRootFile()->getRootFileName() << "\n";
+        os << indent << "    Output root-file: " << getRootFile()->getFullPath() << "\n";
     }
     else
     {

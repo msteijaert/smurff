@@ -322,7 +322,7 @@ cdef class TrainSession:
         self.verbose = verbose
 
         if save_prefix is None and save_freq:
-            save_prefix = os.path.join(tempfile.mkdtemp(), "save")
+            save_prefix = tempfile.mkdtemp()
 
         if save_prefix and not os.path.isabs(save_prefix):
             save_prefix = os.path.join(os.getcwd(), save_prefix)
@@ -541,7 +541,7 @@ cdef class TrainSession:
            that as built in this `TrainSession`.
 
         """
-        rf = self.ptr_get().getRootFile().get().getRootFileName()
+        rf = self.ptr_get().getRootFile().get().getFullPath()
         return PredictSession.fromRootFile(rf)
 
     def getTestPredictions(self):

@@ -40,4 +40,10 @@ namespace smurff
    }
 
    bool startsWith(const std::string& str, const std::string& prefix);
+
+   std::string stripPrefix(const std::string& str, const std::string& prefix);
+   std::string fileName(const std::string& str);
+   std::string dirName(const std::string& str);
+
+   std::string addDirName(const std::string& str,  const std::string& prefix);
 }

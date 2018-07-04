@@ -17,24 +17,21 @@
 using namespace smurff;
 
 RootFile::RootFile(std::string path)
-   : m_path(path)
 {
+   m_prefix = dirName(path);
+   THROWERROR_ASSERT(fileName(path) == "root.ini");
+
    //load all entries in ini file to be able to go through step variables
    m_iniReader = std::make_shared<INIFile>();
-   m_iniReader->open(m_path);
-
-   //lightweight restore of prefix and extension
-   restoreState(m_prefix, m_extension);
+   m_iniReader->open(getFullPath());
 }
 
 RootFile::RootFile(std::string prefix, std::string extension)
    : m_prefix(prefix), m_extension(extension)
 {
-   m_path = getRootFileName();
-
    //create root file
    m_iniReader = std::make_shared<INIFile>();
-   m_iniReader->create(m_path);
+   m_iniReader->create(getFullPath());
 
 }
 
@@ -43,22 +40,20 @@ std::string RootFile::getPrefix() const
    return m_prefix;
 }
 
-std::string RootFile::getRootFileName() const
+std::string RootFile::getFullPath() const
 {
-   return m_prefix + "-root.ini";
+   return m_prefix + "root.ini";
 }
 
 std::string RootFile::getOptionsFileName() const
 {
-   return m_prefix + "-options.ini";
+   return m_prefix + "options.ini";
 }
 
 std::string RootFile::getCsvStatusFileName() const
 {
-   return m_prefix + "-status.csv";
+   return m_prefix + "status.csv";
 }
-
-
 
 void RootFile::appendToRootFile(std::string section, std::string tag, std::string value) const
 {
@@ -66,6 +61,8 @@ void RootFile::appendToRootFile(std::string section, std::string tag, std::strin
       m_iniReader->startSection(section);
       m_cur_section = section;
    }
+
+   value = stripPrefix(value, m_prefix);
    
    m_iniReader->appendItem(section, tag, value);
 
@@ -107,8 +104,7 @@ void RootFile::saveConfig(Config& config)
 std::string RootFile::restoreGetOptionsFileName() const
 {
    THROWERROR_ASSERT_MSG(m_iniReader, "Root ini file is not loaded");
-
-   return m_iniReader->get(OPTIONS_TAG, OPTIONS_TAG);
+   return getFullPathFromIni(OPTIONS_TAG, OPTIONS_TAG);
 }
 
 void RootFile::restoreConfig(Config& config)
@@ -118,16 +114,6 @@ void RootFile::restoreConfig(Config& config)
 
    //restore config
    bool success = config.restore(optionsFileName);
-   THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
-}
-
-void RootFile::restoreState(std::string& save_prefix, std::string& save_extension)
-{
-   //get options filename
-   std::string optionsFileName = restoreGetOptionsFileName();
-
-   //lightweight restore
-   bool success = Config::restoreSaveInfo(optionsFileName, save_prefix, save_extension);
    THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
 }
 
@@ -187,13 +173,12 @@ std::shared_ptr<StepFile> RootFile::openLastStepFile() const
       for (auto& field : fieldsIt->second)
       {
          if (startsWith(field, CHECKPOINT_STEP_PREFIX))
-            lastCheckpointItem = m_iniReader->get(section, field);
+            lastCheckpointItem = getFullPathFromIni(section, field);
 
          if (startsWith(field, SAMPLE_STEP_PREFIX))
-            lastStepItem = m_iniReader->get(section, field);
+            lastStepItem = getFullPathFromIni(section, field);
       }
    }
-
 
    //try open sample file
    //if no sample file then try open checkpoint file
@@ -229,7 +214,7 @@ std::vector<std::shared_ptr<StepFile>> RootFile::openSampleStepFiles() const
          if (!startsWith(field, SAMPLE_STEP_PREFIX))
             continue;
 
-         std::string stepItem = m_iniReader->get(section, field);
+         std::string stepItem = getFullPathFromIni(section, field);
 
          if (stepItem.empty())
              continue;
@@ -242,37 +227,16 @@ std::vector<std::shared_ptr<StepFile>> RootFile::openSampleStepFiles() const
    return samples;
 }
 
-
-/*
-std::shared_ptr<StepFile> RootFile::openSampleStepFile(std::int32_t isample) const
+std::string RootFile::getFullPathFromIni(const std::string &section, const std::string &field) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, false);
-   return stepFile;
-}
+   std::string item = m_iniReader->get(section, field);
+   if (startsWith(item, m_prefix))
+      return item;
 
-std::shared_ptr<StepFile> RootFile::openSampleStepFile(std::string path) const
-{
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(path, m_prefix, m_extension);
-   return stepFile;
+   return m_prefix + item;
 }
-*/
 
 void RootFile::flushLast() const
 {
    m_iniReader->flush();
 }
-
-//AGE: to properly implement this we need smth like boost::adaptors::filtered
-/*
-std::vector<std::pair<std::string, std::string> >::const_iterator RootFile::stepFilesBegin() const
-{
-   auto it = m_iniStorage.begin();
-   std::advance(it, 1);
-   return it;
-}
-
-std::vector<std::pair<std::string, std::string> >::const_iterator RootFile::stepFilesEnd() const
-{
-   return m_iniStorage.end();
-}
-*/
