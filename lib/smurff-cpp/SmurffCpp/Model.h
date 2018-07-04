@@ -166,7 +166,13 @@ std::shared_ptr<Eigen::VectorXd> Model::predict_latent(int mode, const FeatVecto
 
    const auto &beta = *m_link_matrices.at(mode);
    auto ret = std::make_shared<Eigen::VectorXd>(nlatent());
-   *ret = (beta * f) + U(mode).colwise().mean();
+   #if 0
+   std::cout << "beta =\n" << beta << std::endl;
+   std::cout << "f =\n" << f << std::endl;
+   std::cout << "beta * f =\n" << beta * f << std::endl;
+   std::cout << "Umean: " << U(mode).rowwise().mean() << std::endl;
+   #endif
+   *ret = (beta * f); // no need to add mean + U(mode).rowwise().mean();
 
    return ret;
 }
@@ -181,7 +187,7 @@ std::shared_ptr<Eigen::VectorXd> Model::predict(int mode, const FeatVector& f)
 
    int othermode = (mode+1) % 2;
    auto ret = std::make_shared<Eigen::VectorXd>(getDims().at(othermode));
-   *ret = *latent * U(othermode).transpose();
+   *ret = latent->transpose() * U(othermode);
 
    return ret;
 }

@@ -100,6 +100,11 @@ std::vector<std::shared_ptr<Eigen::VectorXd>> PredictSession::predict(int mode, 
     for (const auto &sf : m_stepfiles)
     {
         auto model = restoreModel(sf);
+        #if 0
+        int sample = sf->getIsample();
+        std::cout << " model " << sample << ":\n" << model->U(0) << "\n" << model->U(1) << "\n";
+        std::cout << " full " << sample << ":\n" << model->U(0).transpose() * model->U(1) << "\n";
+        #endif
         ret.push_back(model->predict(mode, f));
     }
 
@@ -110,6 +115,9 @@ template<class Feat>
 std::shared_ptr<Eigen::VectorXd> PredictSession::predict(int mode, const Feat &f, int sample)
 {
     auto model = restoreModel(sample);
+    #if 0
+    std::cout << " model " << sample << ":\n" << model->U(0) << "\n" << model->U(1) << "\n";
+    #endif 
     return model->predict(mode, f);
 }
 

@@ -2978,6 +2978,26 @@ TEST_CASE("PredictSession/Features"
     PredictSession predict_session(session->getRootFile());
 
     auto sideInfoMatrix = matrix_utils::dense_to_eigen(*rowSideInfoDenseMatrixConfig->getSideInfo());
+    auto trainMatrix = smurff::matrix_utils::dense_to_eigen(*trainDenseMatrixConfig);
 
-    predict_session.predict(0, sideInfoMatrix.col(0));
+    #if 0
+    std::cout << "sideInfo =\n" << sideInfoMatrix << std::endl;
+    std::cout << "train    =\n" << trainMatrix << std::endl;
+    #endif
+
+    for(int r = 0; r<sideInfoMatrix.rows(); r++)
+    {
+        #if 0
+        std::cout << "=== row " << r << " ===\n";
+        #endif
+
+        auto predictions = predict_session.predict(0, sideInfoMatrix.row(r));
+        #if 0
+        int i = 0;
+        for (auto P : predictions)
+        {
+            std::cout << "p[" << i++ << "] = " << P->transpose() << std::endl;
+        }
+        #endif
+    }
 }

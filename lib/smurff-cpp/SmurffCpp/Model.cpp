@@ -162,11 +162,11 @@ void Model::save(std::shared_ptr<const StepFile> sf) const
 
 void Model::restore(std::shared_ptr<const StepFile> sf)
 {
-   unsigned num = sf->getNModes();
+   unsigned nmodes = sf->getNModes();
    m_factors.clear();
-   m_dims = PVec<>(num);
+   m_dims = PVec<>(nmodes);
    
-   for(std::uint64_t i = 0; i<num; ++i)
+   for(std::uint64_t i = 0; i<nmodes; ++i)
    {
       auto U = std::make_shared<Eigen::MatrixXd>();
       std::string path = sf->getModelFileName(i);
@@ -176,6 +176,8 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
       m_num_latent = U->rows();
       m_factors.push_back(U);
    }
+
+   m_link_matrices.resize(nmodes);
    Pcache.init(ArrayXd::Ones(m_num_latent));
 }
 
