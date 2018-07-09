@@ -207,11 +207,11 @@ void StepFile::restoreModel(std::shared_ptr<Model> model) const
    int nmodes = model->nmodes();
    for(int i=0; i<nmodes; ++i)
    {
-       auto linkMatrixIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
-       if (!linkMatrixIt.first)
+       auto linkMatrixIt = tryGetIniValueBase(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
+       if (!linkMatrixIt.first || linkMatrixIt.second == "none")
            continue;
 
-       std::string path = linkMatrixIt.second;
+       std::string path = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i)).second;
        THROWERROR_FILE_NOT_EXIST(path);
        auto beta = std::make_shared<Eigen::MatrixXd>();
        matrix_io::eigen::read_matrix(path, *beta); 
