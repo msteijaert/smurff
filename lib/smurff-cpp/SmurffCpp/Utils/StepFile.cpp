@@ -199,7 +199,7 @@ void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Re
 void StepFile::restoreModel(std::shared_ptr<Model> model) const
 {
    //it is enough to check presence of num tag
-   if (!hasIniValueBase(LATENTS_SEC_TAG, NUM_MODES_TAG))
+   if (!hasIniValueBase(GLOBAL_SEC_TAG, NUM_MODES_TAG))
       return;
 
    model->restore(shared_from_this());
@@ -338,7 +338,7 @@ bool StepFile::isCheckpoint() const
 
 std::int32_t StepFile::getNModes() const
 {
-   return std::stoi(getIniValueBase(LATENTS_SEC_TAG, NUM_MODES_TAG));
+   return std::stoi(getIniValueBase(GLOBAL_SEC_TAG, NUM_MODES_TAG));
 }
 
 //ini methods
