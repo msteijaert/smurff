@@ -192,6 +192,8 @@ std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFi
         THROWERROR_ASSERT(m_dims == model->getDims());
     }
 
+    THROWERROR_ASSERT(m_num_latent > 0);
+
     return model;
 }
 
