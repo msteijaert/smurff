@@ -144,8 +144,6 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    model->save(shared_from_this());
 
    //save models
-   appendToStepFile(LATENTS_SEC_TAG, NUM_MODES_TAG, std::to_string(model->nmodes()));
-
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
       std::string path = getModelFileName(mIndex);
@@ -176,13 +174,12 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
           std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
           appendToStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), priorPath);
       }
+      else 
+      {
+          appendToStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), NONE_TAG);
+      }
 
       pIndex++;
-   }
-
-   //save priors
-   for (std::uint64_t pIndex = 0; pIndex < priors.size(); pIndex++)
-   {
    }
 }
 
