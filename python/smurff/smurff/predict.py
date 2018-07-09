@@ -17,35 +17,41 @@ except ImportError:
 
 from .result import Prediction
 
-def read_config_file(file_name):
+def read_config_file(file_name, dir_name = None):
     cp = ConfigParser()
 
-    with open(file_name) as f:
+    if dir_name:
+        full_name = os.path.join(dir_name, file_name)
+    else:
+        full_name = file_name
+
+    with open(full_name) as f:
         try:
-            cp.read_file(f, file_name)
+            cp.read_file(f, full_name)
         except AttributeError:
-            cp.readfp(f, file_name)
+            cp.readfp(f, full_name)
 
     return cp
 
 class Sample:
     @classmethod
-    def fromStepFile(cls, file_name, iter):
-        cp = read_config_file(file_name)
-        nmodes = int(cp["models"]["num_models"])
+    def fromStepFile(cls, file_name, dir_name):
+        cp = read_config_file(file_name, dir_name)
+        nmodes = int(cp["global"]["num_modes"])
+        iter = int(cp["global"]["number"])
         sample = cls(nmodes, iter)
 
         # latent matrices
         for i in range(sample.nmodes):
-            file_name = cp["models"]["model_" + str(i)]
+            file_name = os.path.join(dir_name, cp["latents"]["latents_" + str(i)])
             sample.add_latent(mio.read_matrix(file_name))
 
         # link matrices (beta)
         for i in range(sample.nmodes):
-            file_name = cp["priors"]["prior_" + str(i)]
-            try:
-                sample.add_beta(mio.read_matrix(file_name))
-            except FileNotFoundError:
+            file_name = cp["link_matrices"]["link_matrix_" + str(i)]
+            if (file_name != 'none'):
+                sample.add_beta(mio.read_matrix(os.path.join(dir_name, file_name)))
+            else:
                 sample.add_beta(np.ndarray((0, 0)))
 
         return sample
@@ -130,13 +136,13 @@ class PredictSession:
  
         """
         cp = read_config_file(root_file)
-        options = read_config_file(cp["options"]["options"])
+        root_dir = os.path.dirname(root_file)
+        options = read_config_file(cp["options"]["options"], root_dir)
 
         session = cls(options.getint("global", "num_priors"))
         for step_name, step_file in cp["steps"].items():
             if (step_name.startswith("sample_step")):
-                iter = int(step_name[len("sample_step_"):])
-                session.add_sample(Sample.fromStepFile(step_file, iter))
+                session.add_sample(Sample.fromStepFile(step_file, root_dir))
 
         assert len(session.samples) > 0
 
