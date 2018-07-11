@@ -122,11 +122,11 @@ class PredictSession:
 
     or from a root file
 
-    >>> predict_session = PredictSession.fromRootFile("root.ini")
+    >>> predict_session = PredictSession("root.ini")
 
     """
     @classmethod
-    def fromRootFile(cls, root_file):
+    def __init__(self, root_file):
         """Creates a :class:`PredictSession` from a give root file
  
         Parameters
@@ -135,26 +135,19 @@ class PredictSession:
            Name of the root file.
  
         """
-        cp = read_config_file(root_file)
-        root_dir = os.path.dirname(root_file)
-        options = read_config_file(cp["options"]["options"], root_dir)
+        self.root_config = cp = read_config_file(root_file)
+        self.root_dir = os.path.dirname(root_file)
+        self.options = read_config_file(cp["options"]["options"], self.root_dir)
 
-        session = cls(options.getint("global", "num_priors"))
-        for step_name, step_file in cp["steps"].items():
-            if (step_name.startswith("sample_step")):
-                session.add_sample(Sample.fromStepFile(step_file, root_dir))
-
-        assert len(session.samples) > 0
-
-        return session
-
-    def __init__(self, nmodes):
-        assert nmodes == 2
-        self.nmodes = nmodes
+        self.nmodes = self.options.getint("global", "num_priors")
+        assert self.nmodes == 2
         self.samples = []
 
-    def add_sample(self, sample):
-        self.samples.append(sample)
+        for step_name, step_file in cp["steps"].items():
+            if (step_name.startswith("sample_step")):
+                self.samples.append(Sample.fromStepFile(step_file, self.root_dir))
+
+        assert len(self.samples) > 0
 
     def num_latent(self):
         return self.samples[0].num_latent()
