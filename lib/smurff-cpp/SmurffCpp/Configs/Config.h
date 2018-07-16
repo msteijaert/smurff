@@ -67,6 +67,8 @@ public:
    static const char* SAVE_PREFIX_DEFAULT_VALUE;
    static const char* SAVE_EXTENSION_DEFAULT_VALUE;
    static int SAVE_FREQ_DEFAULT_VALUE;
+   static bool SAVE_PRED_DEFAULT_VALUE;
+   static bool SAVE_MODEL_DEFAULT_VALUE;
    static int CHECKPOINT_FREQ_DEFAULT_VALUE;
    static int VERBOSE_DEFAULT_VALUE;
    static const char* STATUS_DEFAULT_VALUE;
@@ -97,6 +99,8 @@ private:
    mutable std::string m_save_prefix;
    std::string m_save_extension;
    int m_save_freq;
+   bool m_save_pred;
+   bool m_save_model;
    int m_checkpoint_freq;
 
    //-- general
@@ -273,6 +277,26 @@ public:
       m_save_freq = value;
    }
 
+   bool getSavePred() const
+   {
+      return m_save_pred;
+   }
+
+   void setSavePred(bool value)
+   {
+      m_save_pred = value;
+   }
+
+   bool getSaveModel() const
+   {
+      return m_save_model;
+   }
+
+   void setSaveModel(bool value)
+   {
+      m_save_model = value;
+   }
+
    int getCheckpointFreq() const
    {
       return m_checkpoint_freq;
@@ -371,6 +395,8 @@ public:
    {
        return m_root_name;
    }
+
+   std::string getRootPrefix() const;
 
    void setRootName(std::string value)
    {
