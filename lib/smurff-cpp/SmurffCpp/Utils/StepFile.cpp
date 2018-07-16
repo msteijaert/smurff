@@ -38,6 +38,7 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
 {
    if (create)
    {
+      THROWERROR_ASSERT(!m_extension.empty());
       m_iniReader = std::make_shared<INIFile>();
       m_iniReader->create(getStepFileName());
    }
@@ -52,6 +53,7 @@ StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extensi
 StepFile::StepFile(const std::string& path, std::string prefix, std::string extension)
    : m_prefix(prefix), m_extension(extension)
 {
+
    //load all entries in ini file to be able to go through step file internals
    m_iniReader = std::make_shared<INIFile>();
    m_iniReader->open(path);
@@ -79,6 +81,7 @@ std::string StepFile::getStepFileName() const
 
 bool StepFile::isBinary() const
 {
+    THROWERROR_ASSERT(!m_extension.empty());
     if (m_extension == ".ddm")
     {
         return true;
@@ -96,24 +99,44 @@ std::string StepFile::getStepPrefix() const
    return m_prefix + prefix + std::to_string(m_isample);
 }
 
+bool StepFile::hasModel(std::uint64_t index) const
+{
+   auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(index));
+   return modelIt.first;
+}
+
 std::string StepFile::getModelFileName(std::uint64_t index) const
 {
    auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(index));
    if (modelIt.first)
-      return modelIt.second; 
+      return modelIt.second;
 
+   THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
    return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
+}
+
+bool StepFile::hasLinkMatrix(std::uint32_t mode) const
+{
+   auto linkMatrixIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(mode));
+   return linkMatrixIt.first;
 }
 
 std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 {
    auto linkMatrixIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(mode));
    if (linkMatrixIt.first)
-      return linkMatrixIt.second; 
+      return linkMatrixIt.second;
 
+   THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
+}
+
+bool StepFile::hasPred() const
+{
+   auto predIt = tryGetIniValueFullPath(PRED_SEC_TAG, PRED_TAG);
+   return predIt.first;
 }
 
 std::string StepFile::getPredFileName() const

@@ -42,6 +42,10 @@ namespace smurff {
       std::string getStepFileName() const;
 
    public:
+      bool hasModel(std::uint64_t index) const;
+      bool hasLinkMatrix(std::uint32_t mode) const;
+      bool hasPred() const;
+
       std::string getModelFileName(std::uint64_t index) const;
       std::string getLinkMatrixFileName(std::uint32_t mode) const;
       std::string getPredFileName() const;

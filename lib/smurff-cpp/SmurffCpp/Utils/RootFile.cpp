@@ -26,13 +26,14 @@ RootFile::RootFile(std::string path)
    m_iniReader->open(getFullPath());
 }
 
-RootFile::RootFile(std::string prefix, std::string extension)
+RootFile::RootFile(std::string prefix, std::string extension, bool create)
    : m_prefix(prefix), m_extension(extension)
 {
-   //create root file
-   m_iniReader = std::make_shared<INIFile>();
-   m_iniReader->create(getFullPath());
-
+    m_iniReader = std::make_shared<INIFile>();
+    if (create)
+        m_iniReader->create(getFullPath());
+    else
+        m_iniReader->open(getFullPath());
 }
 
 std::string RootFile::getPrefix() const
@@ -115,6 +116,9 @@ void RootFile::restoreConfig(Config& config)
    //restore config
    bool success = config.restore(optionsFileName);
    THROWERROR_ASSERT_MSG(success, "Could not load ini file '" + optionsFileName + "'");
+
+   THROWERROR_ASSERT(m_extension.empty() || m_extension == config.getSaveExtension());
+   m_extension = config.getSaveExtension();
 }
 
 std::shared_ptr<StepFile> RootFile::createSampleStepFile(std::int32_t isample) const

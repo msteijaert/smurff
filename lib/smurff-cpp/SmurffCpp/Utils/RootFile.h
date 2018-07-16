@@ -30,7 +30,7 @@ public:
 
    //this constructor should be used to create a new root file on the first run of session
    //items are then appended to it when createStepFile is called
-   RootFile(std::string prefix, std::string extension);
+   RootFile(std::string prefix, std::string extension, bool create);
 
 public:
    std::string getPrefix() const;

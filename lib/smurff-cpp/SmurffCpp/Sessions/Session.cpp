@@ -12,6 +12,7 @@
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/StringUtils.h>
 #include <SmurffCpp/Configs/Config.h>
 
 #include <SmurffCpp/DataMatrices/DataCreator.h>
@@ -46,13 +47,13 @@ void Session::fromConfig(const Config &cfg)
     if (!cfg.getRootName().empty())
     {
         // open root file
-        m_rootFile = std::make_shared<RootFile>(cfg.getRootName());
+        m_rootFile = std::make_shared<RootFile>(cfg.getRootPrefix(), cfg.getSaveExtension(), false);
     }
     else if (m_config.getSaveFreq() || m_config.getCheckpointFreq())
     {
 
         // create root file
-        m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+        m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension(), true);
 
         //save config
         m_rootFile->saveConfig(m_config);
