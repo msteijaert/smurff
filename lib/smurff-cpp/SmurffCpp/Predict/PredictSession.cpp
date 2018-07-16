@@ -215,7 +215,7 @@ void PredictSession::predict(ResultItem &res, const StepFile &sf)
 {
     auto model = sf.restoreModel();
     auto pred = model->predict(res.coords);
-    res.update(pred);
+    res.update(pred, 1);
 }
 
 // predict one element

@@ -13,11 +13,7 @@ struct ResultItem
    double pred_avg;
    double var;
 
-   std::vector<double> pred_all;
-
-   void update(double pred) {
-      pred_all.push_back(pred);
-      auto N = pred_all.size();
+   void update(double pred, int N) {
       double delta = pred - pred_avg;
 
       // update pred_1sample, pred_avg and var
