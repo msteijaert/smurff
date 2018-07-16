@@ -75,8 +75,8 @@ std::string smurff::fileName(const std::string& str)
 std::string smurff::dirName(const std::string& str)
 {
    auto pos = str.find_last_of("/");
-   if (std::string::npos == pos)
-      return str;
+   if (std::string::npos == pos) 
+      return std::string();
      
    return str.substr(0, pos+1);
 }
