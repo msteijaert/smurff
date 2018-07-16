@@ -412,7 +412,7 @@ void StepFile::appendCommentToStepFile(std::string comment) const
 
 void StepFile::removeFromStepFile(std::string section, std::string tag) const
 {
-   m_iniReader->removeItem(std::string(), tag);
+   m_iniReader->removeItem(section, tag);
 }
 
 
