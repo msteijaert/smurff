@@ -19,6 +19,13 @@
 #include <SmurffCpp/Utils/RootFile.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 
+using namespace smurff;
+
+static const char *INI_NAME = "ini";
+static const char *ROOT_NAME = "root";
+
+#ifdef HAVE_BOOST
+
 static const char *PREDICT_NAME = "predict";
 static const char *HELP_NAME = "help";
 static const char *PRIOR_NAME = "prior";
@@ -36,12 +43,6 @@ static const char *THRESHOLD_NAME = "threshold";
 static const char *VERBOSE_NAME = "verbose";
 static const char *VERSION_NAME = "version";
 static const char *SEED_NAME = "seed";
-static const char *INI_NAME = "ini";
-static const char *ROOT_NAME = "root";
-
-using namespace smurff;
-
-#ifdef HAVE_BOOST
 
 namespace po = boost::program_options;
 
