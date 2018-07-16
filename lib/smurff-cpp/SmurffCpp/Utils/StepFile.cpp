@@ -338,6 +338,11 @@ void StepFile::remove(bool model, bool pred, bool priors) const
    if(priors)
       removePriors();
 
+   // remove [global] header
+   removeFromStepFile(GLOBAL_SEC_TAG, IS_CHECKPOINT_TAG);
+   removeFromStepFile(GLOBAL_SEC_TAG, NUMBER_TAG);
+   removeFromStepFile(GLOBAL_SEC_TAG, NUM_MODES_TAG);
+
    //remove step file itself
    std::remove(getStepFileName().c_str());
 
