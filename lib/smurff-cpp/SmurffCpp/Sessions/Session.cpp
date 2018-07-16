@@ -270,7 +270,7 @@ bool Session::restore(int &iteration)
     std::shared_ptr<StepFile> stepFile = nullptr;
     if (m_rootFile)
     {
-        stepFile = m_rootFile->openLastStepFile();
+        stepFile = m_rootFile->openLastCheckpoint();
     }
 
     if (!stepFile)

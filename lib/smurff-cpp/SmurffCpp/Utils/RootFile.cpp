@@ -164,10 +164,9 @@ void RootFile::removeStepFileInternal(std::int32_t isample, bool checkpoint) con
    appendCommentToRootFile(stepTag + " " + stepFileName);
 }
 
-std::shared_ptr<StepFile> RootFile::openLastStepFile() const
+std::shared_ptr<StepFile> RootFile::openLastCheckpoint() const
 {
    std::string lastCheckpointItem;
-   std::string lastStepItem;
 
    for (auto& section : m_iniReader->getSections())
    {
@@ -178,32 +177,19 @@ std::shared_ptr<StepFile> RootFile::openLastStepFile() const
       {
          if (startsWith(field, CHECKPOINT_STEP_PREFIX))
             lastCheckpointItem = getFullPathFromIni(section, field);
-
-         if (startsWith(field, SAMPLE_STEP_PREFIX))
-            lastStepItem = getFullPathFromIni(section, field);
       }
    }
 
-   //try open sample file
-   //if no sample file then try open checkpoint file
    //if no checkpoint file then return empty file
-   if (lastStepItem.empty())
+   if (lastCheckpointItem.empty())
    {
-      if (lastCheckpointItem.empty())
-      {
-         return std::shared_ptr<StepFile>();
-      }
-      else
-      {
-         return std::make_shared<StepFile>(lastCheckpointItem, m_prefix, m_extension);
-      }  
+       return std::shared_ptr<StepFile>();
    }
    else
    {
-      return std::make_shared<StepFile>(lastStepItem, m_prefix, m_extension);
-   }   
+       return std::make_shared<StepFile>(lastCheckpointItem, m_prefix, m_extension);
+   }
 }
-
 
 std::vector<std::shared_ptr<StepFile>> RootFile::openSampleStepFiles() const
 {

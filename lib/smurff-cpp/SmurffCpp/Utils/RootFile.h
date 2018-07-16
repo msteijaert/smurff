@@ -71,7 +71,7 @@ private:
    void removeStepFileInternal(std::int32_t isample, bool burnin) const;
 
 public:
-   std::shared_ptr<StepFile> openLastStepFile() const;
+   std::shared_ptr<StepFile> openLastCheckpoint() const;
 
    std::shared_ptr<StepFile> openSampleStepFile(int isample) const;
 
