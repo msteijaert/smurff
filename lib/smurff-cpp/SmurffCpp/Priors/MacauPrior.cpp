@@ -174,8 +174,7 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
       if (needs_gb > 1.0) os << " (needing " << needs_gb << " GB of memory)";
       os << std::endl;
    } else {
-      os << "CG Solver" << std::endl;
-      os << indent << "  with tolerance: " << std::scientific << tol << std::fixed << std::endl;
+      os << "CG Solver with tolerance: " << std::scientific << tol << std::fixed << std::endl;
    }
    os << indent << " BetaPrecision: " << beta_precision << std::endl;
    return os;
