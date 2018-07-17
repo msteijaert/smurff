@@ -357,9 +357,9 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   
   if (iter == 1000)
   {
-    Eigen::VectorXd d = RtR2->diagonal().cwiseSqrt().transpose();
+    Eigen::VectorXd d = RtR2->diagonal().cwiseSqrt();
     std::cerr << "warning: block_cg: could not find a solution in 1000 iterations; residual: ["
-              << d << " ].all() > " << tol << std::endl;
+              << d.transpose() << " ].all() > " << tol << std::endl;
   }
 
 
