@@ -18,7 +18,7 @@ MacauPrior::MacauPrior()
 {
 }
 
-MacauPrior::MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
+MacauPrior::MacauPrior(std::shared_ptr<Session> session, uint32_t mode)
    : NormalPrior(session, mode, "MacauPrior")
 {
    beta_precision = SideInfoConfig::BETA_PRECISION_DEFAULT_VALUE;

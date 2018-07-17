@@ -29,7 +29,7 @@ private:
    Eigen::MatrixXd Ft_y;
 
 public:
-   MPIMacauPrior(std::shared_ptr<BaseSession> session, int mode);
+   MPIMacauPrior(std::shared_ptr<Session> session, int mode);
 
    virtual ~MPIMacauPrior();
 

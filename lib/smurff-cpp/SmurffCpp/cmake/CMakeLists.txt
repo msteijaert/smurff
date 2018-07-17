@@ -140,14 +140,12 @@ FILE (GLOB TENSOR_FILES "../DataTensors/TensorData.h"
 source_group ("DataTensors" FILES ${TENSOR_FILES})
 
 FILE (GLOB SESSION_FILES "../Sessions/ISession.h"
-                         "../Sessions/BaseSession.h"
                          "../Sessions/Session.h"
                          "../Sessions/CmdSession.h"
                          "../Sessions/PythonSession.h"
                          "../Sessions/SessionFactory.h"
 
                          "../Sessions/ISession.cpp"
-                         "../Sessions/BaseSession.cpp"
                          "../Sessions/Session.cpp"
                          "../Sessions/CmdSession.cpp"
                          "../Sessions/PythonSession.cpp"

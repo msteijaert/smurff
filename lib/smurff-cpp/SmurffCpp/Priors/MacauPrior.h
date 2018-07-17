@@ -57,7 +57,7 @@ private:
    MacauPrior();
 
 public:
-   MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode);
+   MacauPrior(std::shared_ptr<Session> session, uint32_t mode);
 
    virtual ~MacauPrior();
 

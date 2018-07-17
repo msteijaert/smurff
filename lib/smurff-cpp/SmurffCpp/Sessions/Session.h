@@ -3,21 +3,35 @@
 #include <iostream>
 #include <memory>
 
-#include "BaseSession.h"
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Configs/Config.h>
 #include <SmurffCpp/Priors/IPriorFactory.h>
 #include <SmurffCpp/Utils/RootFile.h>
 #include <SmurffCpp/StatusItem.h>
+#include <SmurffCpp/Sessions/ISession.h>
 
 namespace smurff {
 
 class SessionFactory;
 
-class Session : public BaseSession, public std::enable_shared_from_this<Session>
+class Session : public ISession, public std::enable_shared_from_this<Session>
 {
    //only session factory should call setFromConfig
    friend class SessionFactory;
+
+protected:
+   std::shared_ptr<Model> m_model;
+   std::shared_ptr<Result> m_pred;
+
+protected:
+   std::vector<std::shared_ptr<ILatentPrior> > m_priors;
+   std::string name;
+
+protected:
+   bool is_init = false;
+
+   //train data
+   std::shared_ptr<Data> data_ptr;
 
 private:
    std::shared_ptr<RootFile> m_rootFile;
@@ -33,11 +47,13 @@ private:
    int m_lastCheckpointIter;
 
 protected:
-   Session()
-   {
-      name = "Session";
-   }
+   Session();
 
+public:
+   void addPrior(std::shared_ptr<ILatentPrior> prior);
+
+public:
+   std::shared_ptr<Result> getResult() const override;
 public:
    void fromRootPath(std::string rootPath);
    void fromConfig(const Config& cfg);
@@ -90,6 +106,24 @@ public:
    {
       return m_config;
    }
+
+   Data &data() const
+   {
+      THROWERROR_ASSERT(data_ptr != 0);
+      return *data_ptr;
+   }
+
+   const Model& model() const
+   {
+      return *m_model;
+   }
+
+   Model& model()
+   {
+      return *m_model;
+   }
+
+
 };
 
-}
+} // end namespace

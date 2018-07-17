@@ -22,6 +22,11 @@
 #include <SmurffCpp/StatusItem.h>
 
 using namespace smurff;
+Session::Session()
+    : m_model(std::make_shared<Model>()), m_pred(std::make_shared<Result>())
+{
+    name = "Session";
+}
 
 void Session::fromRootPath(std::string rootPath)
 {
@@ -94,6 +99,12 @@ void Session::setFromBase()
         this->addPrior(priorFactory->create_prior(this_session, i));
 }
 
+void Session::addPrior(std::shared_ptr<ILatentPrior> prior)
+{
+   prior->setMode(m_priors.size());
+   m_priors.push_back(prior);
+}
+
 void Session::init()
 {
     //init omp
@@ -153,7 +164,9 @@ bool Session::step()
         THROWERROR_ASSERT(is_init);
 
         auto starti = tick();
-        BaseSession::step();
+        for (auto &p : m_priors)
+            p->sample_latents();
+        data().update(model());
         auto endi = tick();
 
         //WARNING: update is an expensive operation because of sort (when calculating AUC)
@@ -175,13 +188,22 @@ bool Session::step()
 std::ostream &Session::info(std::ostream &os, std::string indent) const
 {
     os << indent << name << " {\n";
-
-    BaseSession::info(os, indent);
-
+    os << indent << "  Data: {" << std::endl;
+    data().info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
+    os << indent << "  Model: {" << std::endl;
+    model().info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
+    os << indent << "  Priors: {" << std::endl;
+    for (auto &p : m_priors)
+        p->info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
+    os << indent << "  Result: {" << std::endl;
+    m_pred->info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
     os << indent << "  Config: {" << std::endl;
     m_config.info(os, indent + "    ");
     os << indent << "  }" << std::endl;
-
     os << indent << "}\n";
     return os;
 }
@@ -253,7 +275,8 @@ void Session::saveInternal(std::shared_ptr<StepFile> stepFile)
     }
     double start = tick();
 
-    BaseSession::save(stepFile);
+    stepFile->save(m_model, m_pred, m_priors);
+
 
     //flush last item in a root file
     m_rootFile->flushLast();
@@ -290,7 +313,7 @@ bool Session::restore(int &iteration)
             std::cout << "-- Restoring model, predictions,... from '" << stepFile->getStepFileName() << "'." << std::endl;
         }
 
-        BaseSession::restore(stepFile);
+        stepFile->restore(m_model, m_pred, m_priors);
 
         //restore last iteration index
         if (stepFile->isCheckpoint())
@@ -312,6 +335,11 @@ bool Session::restore(int &iteration)
 
         return true;
     }
+}
+
+std::shared_ptr<Result> Session::getResult() const
+{
+   return m_pred;
 }
 
 std::shared_ptr<StatusItem> Session::getStatus() const

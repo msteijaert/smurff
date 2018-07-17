@@ -4,7 +4,7 @@
 
 using namespace smurff;
 
-MPIMacauPrior::MPIMacauPrior(std::shared_ptr<BaseSession> session, int mode)
+MPIMacauPrior::MPIMacauPrior(std::shared_ptr<Session> session, int mode)
    : MacauPrior(session, mode)
 {
    MPI_Comm_size(MPI_COMM_WORLD, &world_size);

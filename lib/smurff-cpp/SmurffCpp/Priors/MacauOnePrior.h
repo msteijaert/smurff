@@ -44,7 +44,7 @@ public:
    bool enable_beta_precision_sampling;
 
 public:
-   MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode);
+   MacauOnePrior(std::shared_ptr<Session> session, uint32_t mode);
 
    void init() override;
 
