@@ -2954,7 +2954,7 @@ TEST_CASE("PredictSession/BPMF")
 //       seed: 1234
 //     direct: true
 //
-TEST_CASE("PredictSession/Features"
+TEST_CASE("PredictSession/Features/1"
    , HIDE_MATRIX_TESTS)
 {
     std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
@@ -2997,6 +2997,85 @@ TEST_CASE("PredictSession/Features"
         for (auto P : predictions)
         {
             std::cout << "p[" << i++ << "] = " << P->transpose() << std::endl;
+        }
+        #endif
+    }
+}
+
+#define DEBUG_OOM_PREDICT 1
+
+TEST_CASE("PredictSession/Features/2"
+   , HIDE_MATRIX_TESTS)
+{
+
+    std::shared_ptr<MatrixConfig> trainMatrixConfig;
+    {
+        std::vector<std::uint32_t> trainMatrixConfigRows = {0, 0, 0, 0, 2, 2, 2, 2};
+        std::vector<std::uint32_t> trainMatrixConfigCols = {0, 1, 2, 3, 0, 1, 2, 3};
+        std::vector<double> trainMatrixConfigVals = {1, 2, 3, 4, 9, 10, 11, 12};
+        trainMatrixConfig = std::make_shared<MatrixConfig>(4, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols), std::move(trainMatrixConfigVals), fixed_ncfg, true);
+    }
+
+    std::shared_ptr<MatrixConfig> testMatrixConfig;
+    {
+        std::vector<std::uint32_t> testMatrixConfigRows = {3, 3, 3, 3};
+        std::vector<std::uint32_t> testMatrixConfigCols = {0, 1, 2, 3};
+        std::vector<double> testMatrixConfigVals = {9, 10, 11, 12};
+        std::shared_ptr<MatrixConfig> testMatrixConfig =
+            std::make_shared<MatrixConfig>(4, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), fixed_ncfg, true);
+    }
+
+    std::shared_ptr<SideInfoConfig> rowSideInfoConfig;
+    {
+        NoiseConfig nc(NoiseTypes::adaptive);
+        nc.setPrecision(10.0);
+
+        std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigRows = {0, 1, 2, 3};
+        std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigCols = {0, 0, 0, 0};
+        std::vector<double> rowSideInfoSparseMatrixConfigVals = {1, 2, 3, 4};
+
+        auto mcfg =
+            std::make_shared<MatrixConfig>(4, 1, std::move(rowSideInfoSparseMatrixConfigRows), std::move(rowSideInfoSparseMatrixConfigCols), std::move(rowSideInfoSparseMatrixConfigVals), nc, true);
+
+        rowSideInfoConfig = std::make_shared<SideInfoConfig>();
+        rowSideInfoConfig->setSideInfo(mcfg);
+    }
+    Config config;
+    config.setTrain(trainMatrixConfig);
+    config.setTest(testMatrixConfig);
+    config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
+    config.addSideInfoConfig(0, rowSideInfoConfig);
+    config.setNumLatent(4);
+    config.setBurnin(50);
+    config.setNSamples(50);
+    config.setVerbose(false);
+    config.setSaveFreq(1);
+
+    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+    session->run();
+
+    PredictSession predict_session(session->getRootFile());
+
+    {
+        auto sideInfoMatrix = matrix_utils::sparse_to_eigen(*rowSideInfoConfig->getSideInfo());
+        auto trainMatrix = smurff::matrix_utils::sparse_to_eigen(*trainMatrixConfig);
+
+        #ifdef DEBUG_OOM_PREDICT
+            std::cout << "sideInfo =\n" << sideInfoMatrix << std::endl;
+            std::cout << "train    =\n" << trainMatrix << std::endl;
+        #endif
+
+        int r = 3;
+        #ifdef DEBUG_OOM_PREDICT
+            std::cout << "=== row " << r << " ===\n";
+        #endif
+
+        auto predictions = predict_session.predict(0, sideInfoMatrix.row(r));
+        #ifdef DEBUG_OOM_PREDICT
+            int i = 0;
+            for (auto P : predictions)
+            {
+                std::cout << "p[" << i++ << "] = " << P->transpose() << std::endl;
         }
         #endif
     }
