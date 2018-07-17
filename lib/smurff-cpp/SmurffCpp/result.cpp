@@ -59,7 +59,7 @@ void Result::set(std::shared_ptr<TensorConfig> Y, int nsamples)
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
       const auto p = Y->get(i);
-      m_predictions.push_back({p.first, p.second});
+      m_predictions.push_back(ResultItem(p.first, p.second, nsamples));
    }
 
    m_dims = Y->getDims();
@@ -210,7 +210,7 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
          double var = stod(tokens.at(nCoords + 3).c_str());
 
          //construct result item
-         m_predictions.push_back({smurff::PVec<>(coords), val, pred_1sample, pred_avg, var});
+         m_predictions.push_back(ResultItem(smurff::PVec<>(coords), val, pred_1sample, pred_avg, var, sample_iter));
       }
 
       //just a sanity check, not sure if it is needed
@@ -292,7 +292,7 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
       {
          auto &t = m_predictions.operator[](k);
          const double pred = model->predict(t.coords); //dot product of i'th columns in each U matrix
-         t.update(pred, sample_iter+1);
+         t.update(pred);
 
          se_1sample += std::pow(t.val - pred, 2);
          se_avg += std::pow(t.val - t.pred_avg, 2);
