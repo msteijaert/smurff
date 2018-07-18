@@ -31,4 +31,6 @@ TEST_CASE( "SparseDoubleFeatSideInfo/At_mul_A", "[At_mul_A] for SparseDoubleFeat
     REQUIRE( AA(3,1) == Approx(0.0714) );
     
     REQUIRE( AA(3,2) == 0 );
+
+    REQUIRE(si.cols() == 4);
 }

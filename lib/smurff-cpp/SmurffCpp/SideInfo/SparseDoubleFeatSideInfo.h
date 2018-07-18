@@ -5,6 +5,7 @@
 #include "SparseDoubleFeat.h"
 
 #include <memory>
+#include <Eigen/Sparse>
 
 namespace smurff {
 
@@ -12,6 +13,7 @@ class SparseDoubleFeatSideInfo : public ISideInfo
 {
 private:
    std::shared_ptr<SparseDoubleFeat> m_side_info;
+   Eigen::SparseMatrix<double, Eigen::RowMajor> m_eigen;
 
 public:
    SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info);

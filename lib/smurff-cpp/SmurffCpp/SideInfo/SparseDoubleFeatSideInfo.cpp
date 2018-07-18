@@ -7,12 +7,19 @@ using namespace smurff;
 SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info)
    : m_side_info(side_info)
 {
+    Eigen::Map<Eigen::SparseMatrix<double, Eigen::RowMajor>> sparse_map(side_info->M.nrow,
+                                                            side_info->M.ncol,
+                                                            side_info->M.nnz,
+                                                            side_info->M.row_ptr,
+                                                            side_info->M.cols,
+                                                            side_info->M.vals);
+    m_eigen = sparse_map;
 }
 
 
 int SparseDoubleFeatSideInfo::cols() const
 {
-   return m_side_info->cols();
+   return m_eigen.cols();
 }
 
 int SparseDoubleFeatSideInfo::rows() const
