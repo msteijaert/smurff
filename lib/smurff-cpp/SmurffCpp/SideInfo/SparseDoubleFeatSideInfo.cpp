@@ -1,30 +1,29 @@
 #include "SparseDoubleFeatSideInfo.h"
 
 #include <SmurffCpp/Utils/linop.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
 
 using namespace smurff;
 
 SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info)
    : m_side_info(side_info)
 {
-    Eigen::Map<Eigen::SparseMatrix<double, Eigen::RowMajor>> sparse_map(side_info->M.nrow,
-                                                            side_info->M.ncol,
-                                                            side_info->M.nnz,
-                                                            side_info->M.row_ptr,
-                                                            side_info->M.cols,
-                                                            side_info->M.vals);
-    m_eigen = sparse_map;
+    matrix_ptr = matrix_utils::csr_to_eigen(m_side_info->M);
+}
+
+SparseDoubleFeatSideInfo::~SparseDoubleFeatSideInfo() {
+    delete matrix_ptr;
 }
 
 
 int SparseDoubleFeatSideInfo::cols() const
 {
-   return m_eigen.cols();
+   return matrix_ptr->cols();
 }
 
 int SparseDoubleFeatSideInfo::rows() const
 {
-   return m_side_info->rows();
+   return matrix_ptr->rows();
 }
 
 std::ostream& SparseDoubleFeatSideInfo::print(std::ostream &os) const
@@ -47,12 +46,13 @@ void SparseDoubleFeatSideInfo::compute_uhat(Eigen::MatrixXd& uhat, Eigen::Matrix
 
 void SparseDoubleFeatSideInfo::At_mul_A(Eigen::MatrixXd& out)
 {
-   smurff::linop::At_mul_A(out, *m_side_info);
+    out = matrix_ptr->transpose() * (*matrix_ptr);
+    //smurff::linop::At_mul_A(out, *m_side_info);
 }
 
 Eigen::MatrixXd SparseDoubleFeatSideInfo::A_mul_B(Eigen::MatrixXd& A)
 {
-   return smurff::linop::A_mul_B(A, *m_side_info);
+    return (A * (*matrix_ptr));
 }
 
 int SparseDoubleFeatSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixXd& B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error)

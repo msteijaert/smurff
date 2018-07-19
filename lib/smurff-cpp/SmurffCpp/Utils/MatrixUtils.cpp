@@ -2,6 +2,7 @@
 
 #include <numeric>
 #include <set>
+#include <vector>
 #include <unsupported/Eigen/SparseExtra>
 
 #include <SmurffCpp/Utils/Error.h>
@@ -81,6 +82,21 @@ Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseDoubleMatrix& 
     Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
     for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
     return out;
+}
+
+Eigen::SparseMatrix<double, Eigen::RowMajor>* smurff::matrix_utils::csr_to_eigen(const CSR& csr) {
+    std::vector<Eigen::Triplet<double>>* triplet_list = new std::vector<Eigen::Triplet<double>>();
+    Eigen::SparseMatrix<double, Eigen::RowMajor>* sparse_matrix = new Eigen::SparseMatrix<double, Eigen::RowMajor>(csr.nrow, csr.ncol);
+
+    for (size_t row = 0; row < csr.nrow; row++) {
+        for (size_t i = csr.row_ptr[row]; i < csr.row_ptr[row + 1]; i++) {
+            triplet_list->push_back(Eigen::Triplet<double>(row, csr.cols[i], csr.vals[i]));
+        }
+    }
+    sparse_matrix->setFromTriplets(triplet_list->begin(), triplet_list->end());
+
+    delete triplet_list;
+    return sparse_matrix;
 }
 
 std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixConfig& mc)

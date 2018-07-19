@@ -28,6 +28,8 @@ namespace smurff { namespace matrix_utils {
 
    Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
 
+   Eigen::SparseMatrix<double, Eigen::RowMajor>* csr_to_eigen(const CSR& csr);
+
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 
    bool equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision = std::numeric_limits<double>::epsilon());
