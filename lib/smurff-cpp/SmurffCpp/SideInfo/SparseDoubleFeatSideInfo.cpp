@@ -65,9 +65,12 @@ Eigen::VectorXd SparseDoubleFeatSideInfo::col_square_sum()
    return smurff::linop::col_square_sum(*m_side_info);
 }
 
+// Y = X[:,col]' * B'
 void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B)
 {
-   smurff::linop::At_mul_Bt(Y, *m_side_info, col, B);
+   //smurff::linop::At_mul_Bt(Y, *m_side_info, col, B);
+   Eigen::MatrixXd out = matrix_ptr->block(0, col, matrix_ptr->rows(), col + 1).transpose() * B.transpose();
+   Y = out.transpose();
 }
 
 void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)

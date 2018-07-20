@@ -33,7 +33,7 @@ TEST_CASE( "SparseDoubleFeatSideInfo/At_mul_A", "[At_mul_A] for SparseDoubleFeat
     REQUIRE( AA(3,2) == 0 );
 }
 
-TEST_CASE( "SparseDoubleFeatSideInfo/A_mul_B", "[A_mul_B transposed] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseDoubleFeatSideInfo/A_mul_B", "[A_mul_B] for SparseDoubleFeatSideInfo" )
 {
     int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
     int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
@@ -70,4 +70,28 @@ TEST_CASE( "SparseDoubleFeatSideInfo/A_mul_B", "[A_mul_B transposed] for SparseD
     REQUIRE( AB(3,2) == 0);
 
     REQUIRE( AB(2,3) == Approx(0.0888) );
+}
+
+TEST_CASE( "SparseDoubleFeatSideInfo/At_mul_Bt", "[At_mul_Bt] for SparseDoubleFeatSideInfo" )
+{
+    int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+    int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+    double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
+    auto side_info_ptr = std::make_shared<SparseDoubleFeat>(6, 4, 9, rows, cols, vals);
+    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(side_info_ptr);
+
+    Eigen::MatrixXd X(4, 6);
+    X << 0., 0.6, 0., 0., 0., -0.82,
+        0., 0., 0., 1.19, 0., 0.06,
+        -0.76, 0., 1.48, 0., 1.95, 0.,
+        2.54, 0., 0., 0., 0., 2.44;
+    
+    Eigen::VectorXd Y(4);
+
+    si.At_mul_Bt(Y, 0, X);
+
+    REQUIRE( Y(0) == 0 );
+    REQUIRE( Y(1) == Approx(-0.9044));
+    REQUIRE( Y(2) == Approx(3.8025) );
+    REQUIRE( Y(3) == 0 );
 }
