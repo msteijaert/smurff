@@ -2,7 +2,7 @@ from .wrapper import TrainSession
 
 
 class SmurffSession(TrainSession):
-    def __init__(self, Ytrain, priors, Ytest=None, side_info=None, **args):
+    def __init__(self, Ytrain, priors, Ytest=None, side_info=None, direct=False, **args):
         TrainSession.__init__(self, priors=priors, **args)
         self.addTrainAndTest(Ytrain, Ytest)
 
@@ -11,7 +11,7 @@ class SmurffSession(TrainSession):
             for mode in range(self.nmodes):
                 si = side_info[mode]
                 if si is not None:
-                    self.addSideInfo(mode, si)
+                    self.addSideInfo(mode, si, direct=direct)
 
 
 class MacauSession(SmurffSession):
@@ -30,14 +30,17 @@ class MacauSession(SmurffSession):
              If there is no side info for a certain mode, pass `None`.
              Each side info should have as many rows as you have elemnts in corresponding dimension of `Ytrain`.
 
+         direct : bool
+             Use Cholesky instead of CG solver
+
          univariate : bool
              Use univariate or multivariate sampling.
 
-         \*\*args: 
+         **args: 
              Extra arguments are passed to the :class:`TrainSession`
     """
 
-    def __init__(self,  Ytrain, Ytest=None, side_info=None, univariate=False, **args):
+    def __init__(self,  Ytrain, Ytest=None, side_info=None, univariate=False, direct=False, **args):
         nmodes = len(Ytrain.shape)
         priors = ['normal'] * nmodes
 
@@ -50,7 +53,7 @@ class MacauSession(SmurffSession):
         if univariate:
             priors = [p + "one" for p in priors]
 
-        SmurffSession.__init__(self, Ytrain, priors, Ytest, side_info,  **args)
+        SmurffSession.__init__(self, Ytrain, priors, Ytest, side_info, direct, **args)
 
 
 class BPMFSession(MacauSession):

@@ -28,7 +28,7 @@ class TestPredictSession(unittest.TestCase):
                 save_freq = 1)
 
         session.addTrainAndTest(self.Ytrain, self.Ytest)
-        session.addSideInfo(0, self.side_info)
+        session.addSideInfo(0, self.side_info, direct=True)
         session.run()
         return session
 
