@@ -310,6 +310,7 @@ cdef class TrainSession:
         burnin           = BURNIN_DEFAULT_VALUE,
         nsamples         = NSAMPLES_DEFAULT_VALUE,
         seed             = RANDOM_SEED_DEFAULT_VALUE,
+        threshold        = None,
         verbose          = 1,
         save_prefix      = None,
         save_extension   = None,
@@ -341,6 +342,8 @@ cdef class TrainSession:
         self.config.setVerbose(verbose - 1)
 
         if seed:           self.config.setRandomSeed(seed)
+        if threshold is not None:
+                           self.config.setThreshold(threshold)
         if save_prefix:    self.config.setSavePrefix(save_prefix.encode('UTF-8'))
         if save_extension: self.config.setSaveExtension(save_extension.encode('UTF-8'))
         if save_freq:      self.config.setSaveFreq(save_freq)
