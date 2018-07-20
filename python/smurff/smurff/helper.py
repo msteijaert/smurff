@@ -54,6 +54,10 @@ class FixedNoise(PyNoiseConfig):
     def __init__(self, precision = 5.0): 
         PyNoiseConfig.__init__(self, "fixed", precision)
 
+class SampledNoise(PyNoiseConfig):
+    def __init__(self, precision = 5.0): 
+        PyNoiseConfig.__init__(self, "sampled", precision)
+
 class AdaptiveNoise(PyNoiseConfig):
     def __init__(self, sn_init = 5.0, sn_max = 10.0): 
         PyNoiseConfig.__init__(self, "adaptive", sn_init = sn_init, sn_max = sn_max)
