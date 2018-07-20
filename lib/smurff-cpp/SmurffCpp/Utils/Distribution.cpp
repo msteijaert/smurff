@@ -1,4 +1,3 @@
-#include "Distribution.h"
 
 // From:
 // http://stackoverflow.com/questions/6142576/sample-from-multivariate-normal-gaussian-distribution-in-c
@@ -7,15 +6,10 @@
 #include <chrono>
 #include <functional>
 
-#include <Eigen/Dense>
 
 #include "ThreadVector.hpp"
 
 #include "omp_util.h"
-
-using namespace std;
-using namespace Eigen;
-using namespace std::chrono;
 
 #ifdef USE_BOOST_RANDOM
 #include <boost/random.hpp>
@@ -28,6 +22,12 @@ using namespace std::chrono;
 #define UNIFORM_REAL_DISTRIBUTION std::uniform_real_distribution<double>
 #define GAMMA_DISTRIBUTION std::gamma_distribution<double>
 #endif
+
+#include <Eigen/Dense>
+
+#include "Distribution.h"
+
+using namespace Eigen;
 
 static smurff::thread_vector<MERSENNE_TWISTER> *bmrngs;
 
@@ -132,8 +132,10 @@ void smurff::bmrandn_single_thread(MatrixXd & X)
    smurff::bmrandn_single_thread(X.data(), n);
 }
 
+
 void smurff::init_bmrng() 
 {
+   using namespace std::chrono;
    auto ms = (duration_cast< milliseconds >(system_clock::now().time_since_epoch())).count();
    smurff::init_bmrng(ms);
 }
