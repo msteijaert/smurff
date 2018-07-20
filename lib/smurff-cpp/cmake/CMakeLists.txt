@@ -271,7 +271,7 @@ elseif(${ENABLE_MKL})
   set(ALGEBRA_LIB_NAME MKL)
 else()
   configure_lapack()
-  set(ALGEBRA_LIBS ${LAPACK_LIBRARIES})
+  set(ALGEBRA_LIBS ${LAPACKE_LIBRARIES} ${LAPACK_LIBRARIES})
   set(ALGEBRA_LIB_NAME LAPACK)
 endif()
 
