@@ -85,7 +85,6 @@ class TestSmurff(unittest.TestCase):
                       nsamples=5,
                       verbose=False)
 
-    @unittest.skip
     def test_macau_dense_probit(self):
         A = np.random.randn(25, 2)
         B = np.random.randn(3, 2)
@@ -95,17 +94,21 @@ class TestSmurff(unittest.TestCase):
         df["value"] = (np.array([ np.sum(A[i[0], :] * B[i[1], :]) for i in idx ]) > 0.0).astype(np.float64)
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        predictions = smurff.smurff(Ytrain,
-                                Ytest=Ytest,
-                                priors=['macau', 'normal'],
-                                #prior_noises=[('probit', None, None, None, 0.5), ('fixed', 1.0, None, None, None)],
-                                side_info=[A, None],
-                                direct=True,
+        threshold = 0.5  # since we sample from µ(0,1)
+        
+        session = smurff.TrainSession(priors=['macau', 'normal'],
                                 num_latent=4,
+                                threshold=threshold,
                                 burnin=20,
                                 nsamples=20,
-                                verbose=False)
+                                verbose=3)
 
+        session.addTrainAndTest(Ytrain, Ytest, smurff.ProbitNoise(threshold))
+        session.addSideInfo(0, A, direct=True)
+
+        predictions = session.run()
+
+        rmse = smurff.calc_rmse(predictions)
         self.assertTrue(rmse > 0.55,
                         msg="Probit factorization (with dense side) gave AUC below 0.55 (%f)." % rmse)
 
