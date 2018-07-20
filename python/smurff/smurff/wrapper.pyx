@@ -541,8 +541,8 @@ cdef class TrainSession:
            that as built in this `TrainSession`.
 
         """
-        rf = self.ptr_get().getRootFile().get().getFullPath()
-        return PredictSession.fromRootFile(rf)
+        rf = self.ptr_get().getRootFile().get().getFullPath().decode('UTF-8')
+        return PredictSession(rf)
 
     def getTestPredictions(self):
         """Get predictions for test matrix.
