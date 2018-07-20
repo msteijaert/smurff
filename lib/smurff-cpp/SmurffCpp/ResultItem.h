@@ -54,4 +54,16 @@ struct ResultItem
    }
 };
 
+inline std::ostream &operator<<(std::ostream& os, const ResultItem& r)
+{
+   os << r.coords << ": "
+      << r.val << ","
+      << r.pred_1sample << ","
+      << r.pred_avg << ","
+      << r.var << "[ ";
+      for (auto i: r.pred_all) os << i << ", ";
+      os << "]";
+      return os;
 }
+
+} //end namespace
