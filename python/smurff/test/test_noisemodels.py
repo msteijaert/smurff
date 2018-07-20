@@ -25,11 +25,13 @@ class TestNoiseModels():
 
         if si is None:
             session.addTrainAndTest(Ytrain, Ytest, noise_model)
-        elif isinstance(noise_model, smurff.ProbitNoise):
-            session.addSideInfo(0, si)
+        elif (isinstance(noise_model, smurff.ProbitNoise) or 
+             isinstance(noise_model, smurff.AdaptiveNoise)) and \
+             not isinstance(noise_model, smurff.SampledNoise) :
+            session.addSideInfo(0, si, direct=True)
             session.addTrainAndTest(Ytrain, Ytest, noise_model)
         else:
-            session.addSideInfo(0, si, noise_model)
+            session.addSideInfo(0, si, noise_model, direct=True)
             session.addTrainAndTest(Ytrain, Ytest)
 
         session.init()
