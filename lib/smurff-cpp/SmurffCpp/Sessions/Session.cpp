@@ -436,7 +436,7 @@ void Session::printStatus(std::ostream &output, bool resume)
 
 std::string StatusItem::getCsvHeader()
 {
-    return "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;elapsed";
+    return "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;elapsed_1samp;elapsed_total";
 }
 
 std::string StatusItem::asCsvString() const
