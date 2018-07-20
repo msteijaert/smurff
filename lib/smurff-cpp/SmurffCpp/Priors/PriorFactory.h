@@ -69,7 +69,7 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
          break;
       default:
          {
-            THROWERROR("Unexpected noise type " + smurff::noiseTypeToString(noise_config.getNoiseType()) + " specified for macau prior");
+            THROWERROR("Unexpected noise type " + smurff::noiseTypeToString(noise_config.getNoiseType()) + " specified for macau prior. Allowed are: fixed and sampled noise.");
          }
       }
    }
