@@ -101,7 +101,7 @@ class TestSmurff(unittest.TestCase):
                                 threshold=threshold,
                                 burnin=20,
                                 nsamples=20,
-                                verbose=3)
+                                verbose=False3)
 
         session.addTrainAndTest(Ytrain, Ytest, smurff.ProbitNoise(threshold))
         session.addSideInfo(0, A, direct=True)
@@ -124,7 +124,7 @@ class TestSmurff(unittest.TestCase):
                                 side_info=[side1, side2],
                                 direct=True,
                                 num_latent=4,
-                                verbose=False,
+                                verbse=False,
                                 burnin=50,
                                 nsamples=50)
         self.assertEqual(Ytest.nnz, len(predictions))
