@@ -2,16 +2,12 @@
 
 #include <string>
 
-#define NOISE_NAME_FIXED "fixed"
-#define NOISE_NAME_ADAPTIVE "adaptive"
-#define NOISE_NAME_PROBIT "probit"
-#define NOISE_NAME_UNUSED "unused"
-
 namespace smurff
 {
    enum class NoiseTypes
    {
       fixed,
+      sampled,
       adaptive,
       probit,
       unset,

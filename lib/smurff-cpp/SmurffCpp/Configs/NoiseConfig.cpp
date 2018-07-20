@@ -8,6 +8,7 @@
 using namespace smurff;
 
 #define NOISE_NAME_FIXED "fixed"
+#define NOISE_NAME_SAMPLED "sampled"
 #define NOISE_NAME_ADAPTIVE "adaptive"
 #define NOISE_NAME_PROBIT "probit"
 #define NOISE_NAME_UNUSED "unused"
@@ -37,6 +38,8 @@ NoiseTypes smurff::stringToNoiseType(std::string name)
 {
    if(name == NOISE_NAME_FIXED)
       return NoiseTypes::fixed;
+   else if(name == NOISE_NAME_SAMPLED)
+      return NoiseTypes::sampled;
    else if(name == NOISE_NAME_ADAPTIVE)
       return NoiseTypes::adaptive;
    else if(name == NOISE_NAME_PROBIT)
@@ -57,6 +60,8 @@ std::string smurff::noiseTypeToString(NoiseTypes type)
    {
       case NoiseTypes::fixed:
          return NOISE_NAME_FIXED;
+      case NoiseTypes::sampled:
+         return NOISE_NAME_SAMPLED;
       case NoiseTypes::adaptive:
          return NOISE_NAME_ADAPTIVE;
       case NoiseTypes::probit:
