@@ -30,6 +30,7 @@ addons:
 #      - libopenblas-dev
       - libblas-dev
       - liblapack-dev
+      - liblapacke-dev
       - libboost-all-dev
       - libopenmpi-dev
 #      - libeigen3-dev # too old :(
