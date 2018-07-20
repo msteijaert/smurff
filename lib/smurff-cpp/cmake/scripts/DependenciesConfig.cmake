@@ -50,7 +50,7 @@ endmacro(configure_openmp)
 macro(configure_lapack)
   message ("Dependency check for lapack...")
   find_package(LAPACK REQUIRED)
-  add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKEyy)
+  add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE)
   message(STATUS LAPACK: ${LAPACK_LIBRARIES})
 endmacro(configure_lapack)
 
