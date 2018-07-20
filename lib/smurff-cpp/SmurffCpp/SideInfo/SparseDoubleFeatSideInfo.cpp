@@ -73,9 +73,10 @@ void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eige
    Y = out.transpose();
 }
 
+// computes Z += A[:,col] * b', where a and b are vectors
 void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
 {
-   smurff::linop::add_Acol_mul_bt(Z, *m_side_info, col, b);
+    Z.noalias() += matrix_ptr->block(0, col, matrix_ptr->rows(), col + 1) * b; 
 }
 
 std::shared_ptr<SparseDoubleFeat> SparseDoubleFeatSideInfo::get_features()
