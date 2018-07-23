@@ -28,7 +28,12 @@ namespace smurff { namespace matrix_utils {
 
    Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
 
-   Eigen::SparseMatrix<double, Eigen::RowMajor>* csr_to_eigen(const CSR& csr);
+   typedef struct {
+       Eigen::SparseMatrix<double, Eigen::RowMajor>* row_major_sparse;
+       Eigen::SparseMatrix<double, Eigen::ColMajor>* column_major_sparse;
+   } sparse_eigen_struct;
+
+   sparse_eigen_struct csr_to_eigen(const CSR& csr);
 
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 

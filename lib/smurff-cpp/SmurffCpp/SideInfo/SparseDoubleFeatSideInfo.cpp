@@ -8,11 +8,14 @@ using namespace smurff;
 SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info)
    : m_side_info(side_info)
 {
-    matrix_ptr = matrix_utils::csr_to_eigen(m_side_info->M);
+    matrix_utils::sparse_eigen_struct str = matrix_utils::csr_to_eigen(m_side_info->M);
+    matrix_ptr = str.row_major_sparse;
+    matrix_trans_ptr = str.column_major_sparse;
 }
 
 SparseDoubleFeatSideInfo::~SparseDoubleFeatSideInfo() {
     delete matrix_ptr;
+    delete matrix_trans_ptr;
 }
 
 
@@ -76,7 +79,21 @@ void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eige
 // computes Z += A[:,col] * b', where a and b are vectors
 void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
 {
-    Z.noalias() += matrix_ptr->block(0, col, matrix_ptr->rows(), col + 1) * b; 
+    //smurff::linop::add_Acol_mul_bt(Z, *m_side_info, col, b);
+    Eigen::VectorXd bt = b.transpose();
+    const int* cols = matrix_trans_ptr->innerIndexPtr();
+    const double* vals = matrix_trans_ptr->valuePtr();
+    int i = matrix_trans_ptr->outerIndexPtr()[col];
+    const int end = matrix_trans_ptr->outerIndexPtr()[col + 1];
+    const int D = bt.size();
+   for (; i < end; i++) 
+   {
+      int c = cols[i];
+      for (int d = 0; d < D; d++) 
+      {
+         Z(d, c) += vals[i] * b(d);
+      }
+   }
 }
 
 std::shared_ptr<SparseDoubleFeat> SparseDoubleFeatSideInfo::get_features()

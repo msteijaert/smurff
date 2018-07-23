@@ -84,19 +84,21 @@ Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseDoubleMatrix& 
     return out;
 }
 
-Eigen::SparseMatrix<double, Eigen::RowMajor>* smurff::matrix_utils::csr_to_eigen(const CSR& csr) {
+smurff::matrix_utils::sparse_eigen_struct smurff::matrix_utils::csr_to_eigen(const CSR& csr) {
     std::vector<Eigen::Triplet<double>>* triplet_list = new std::vector<Eigen::Triplet<double>>();
-    Eigen::SparseMatrix<double, Eigen::RowMajor>* sparse_matrix = new Eigen::SparseMatrix<double, Eigen::RowMajor>(csr.nrow, csr.ncol);
+    Eigen::SparseMatrix<double, Eigen::RowMajor>* row_major = new Eigen::SparseMatrix<double, Eigen::RowMajor>(csr.nrow, csr.ncol);
+    Eigen::SparseMatrix<double, Eigen::ColMajor>* col_major = new Eigen::SparseMatrix<double, Eigen::ColMajor>(csr.nrow, csr.ncol);
 
     for (size_t row = 0; row < csr.nrow; row++) {
         for (size_t i = csr.row_ptr[row]; i < csr.row_ptr[row + 1]; i++) {
             triplet_list->push_back(Eigen::Triplet<double>(row, csr.cols[i], csr.vals[i]));
         }
     }
-    sparse_matrix->setFromTriplets(triplet_list->begin(), triplet_list->end());
+    row_major->setFromTriplets(triplet_list->begin(), triplet_list->end());
+    col_major->setFromTriplets(triplet_list->begin(), triplet_list->end());
 
     delete triplet_list;
-    return sparse_matrix;
+    return {row_major, col_major};
 }
 
 std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixConfig& mc)
