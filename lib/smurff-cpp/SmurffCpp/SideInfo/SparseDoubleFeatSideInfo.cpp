@@ -65,7 +65,22 @@ int SparseDoubleFeatSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eige
 
 Eigen::VectorXd SparseDoubleFeatSideInfo::col_square_sum()
 {
-   return smurff::linop::col_square_sum(*m_side_info);
+    const int ncol = matrix_ptr->cols();
+    Eigen::VectorXd out(ncol);
+    const int* column_ptr = matrix_trans_ptr->outerIndexPtr();
+    const double* vals = matrix_trans_ptr->valuePtr();
+
+    #pragma omp parallel for schedule(guided)
+    for (int col = 0; col < ncol; col++) {
+        double tmp = 0;
+        int i = column_ptr[col];
+        int end = column_ptr[col + 1];
+        for (; i < end; i++) {
+            tmp += vals[i] * vals[i];
+        }
+        out(col) = tmp;
+    }
+    return out;
 }
 
 // Y = X[:,col]' * B'

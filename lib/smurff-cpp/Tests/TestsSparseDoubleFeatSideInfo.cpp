@@ -143,3 +143,19 @@ TEST_CASE( "SparseDoubleFeatSideInfo/add_Acol_mul_bt", "[add_Acol_mul_bt] for Sp
     REQUIRE( Z(3,4) == Approx(0.3302) );
     REQUIRE( Z(3,5) == Approx(2.44) );
 }
+
+TEST_CASE( "SparseDoubleFeatSideInfo/col_square_sum", "[col_square_sum] for SparseDoubleFeatSideInfo" )
+{
+    int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+    int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+    double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
+    auto side_info_ptr = std::make_shared<SparseDoubleFeat>(6, 4, 9, rows, cols, vals);
+    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(side_info_ptr); 
+
+    Eigen::VectorXd out = si.col_square_sum();
+
+    REQUIRE( out(0) == Approx(4.3801) );
+    REQUIRE( out(1) == Approx(2.4485) );
+    REQUIRE( out(2) == Approx(8.642) );
+    REQUIRE( out(3) == Approx(5.9572) );
+}
