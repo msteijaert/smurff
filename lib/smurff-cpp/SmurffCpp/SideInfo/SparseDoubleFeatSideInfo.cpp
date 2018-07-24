@@ -44,13 +44,12 @@ bool SparseDoubleFeatSideInfo::is_dense() const
 
 void SparseDoubleFeatSideInfo::compute_uhat(Eigen::MatrixXd& uhat, Eigen::MatrixXd& beta)
 {
-   smurff::linop::compute_uhat(uhat, *m_side_info, beta);
+   uhat = (*matrix_ptr * beta.transpose()).transpose();
 }
 
 void SparseDoubleFeatSideInfo::At_mul_A(Eigen::MatrixXd& out)
 {
     out = matrix_ptr->transpose() * (*matrix_ptr);
-    //smurff::linop::At_mul_A(out, *m_side_info);
 }
 
 Eigen::MatrixXd SparseDoubleFeatSideInfo::A_mul_B(Eigen::MatrixXd& A)
@@ -86,7 +85,6 @@ Eigen::VectorXd SparseDoubleFeatSideInfo::col_square_sum()
 // Y = X[:,col]' * B'
 void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B)
 {
-   //smurff::linop::At_mul_Bt(Y, *m_side_info, col, B);
    Eigen::MatrixXd out = matrix_ptr->block(0, col, matrix_ptr->rows(), col + 1).transpose() * B.transpose();
    Y = out.transpose();
 }
@@ -94,7 +92,6 @@ void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eige
 // computes Z += A[:,col] * b', where a and b are vectors
 void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
 {
-    //smurff::linop::add_Acol_mul_bt(Z, *m_side_info, col, b);
     Eigen::VectorXd bt = b.transpose();
     const int* cols = matrix_trans_ptr->innerIndexPtr();
     const double* vals = matrix_trans_ptr->valuePtr();

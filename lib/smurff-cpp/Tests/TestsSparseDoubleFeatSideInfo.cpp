@@ -159,3 +159,37 @@ TEST_CASE( "SparseDoubleFeatSideInfo/col_square_sum", "[col_square_sum] for Spar
     REQUIRE( out(2) == Approx(8.642) );
     REQUIRE( out(3) == Approx(5.9572) );
 }
+
+TEST_CASE( "SparseDoubleFeatSideInfo/compute_uhat", "[compute_uhat] for SparseDoubleFeatSideInfo" )
+{
+    int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+    int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+    double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
+    auto side_info_ptr = std::make_shared<SparseDoubleFeat>(6, 4, 9, rows, cols, vals);
+    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(side_info_ptr); 
+    
+    Eigen::MatrixXd beta(6,4);
+    beta << 1.4, 0., 0.76, 1.34,
+            -2.32, 0.12, -1.3, 0.,
+            0.45, 0.19, -1.87, 2.34,
+            2.12, -1.43, -0.98, -2.71,
+            0., 0., 1.10, 2.13,
+            0.56, -1.3, 0, 0;
+
+    Eigen::MatrixXd true_uhat(6,6);
+    true_uhat << 0, 0, 0.0804, 0.0608, 4.6604, 3.2696,
+                0.072, -0.0984, 0.1428, -0.1608, -7.826, 0,
+                0.114, -0.1558, 0.3665, -3.1096, -3.8723, 5.7096,
+                -0.858, 1.1726, -1.8643, -3.0616, 1.6448, -6.6124,
+                0, 0, 0.1278, 1.628, 2.794, 5.1972,
+                -0.78, 1.066, -1.547, -0.4256, 1.092, 0;
+
+    Eigen::MatrixXd out(6,6);
+    si.compute_uhat(out, beta);
+    
+    for (int i = 0; i < true_uhat.rows(); i++) {
+        for (int j = 0; j < true_uhat.cols(); j++) {
+            REQUIRE( out(i,j) == Approx(true_uhat(i,j)) );
+        }
+    }
+}
