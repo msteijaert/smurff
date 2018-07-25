@@ -23,7 +23,7 @@
 
 using namespace smurff;
 Session::Session()
-    : m_model(std::make_shared<Model>()), m_pred(std::make_shared<Result>())
+    : m_model(std::make_shared<Model>()), m_pred()
 {
     name = "Session";
 }
@@ -79,13 +79,11 @@ void Session::setFromBase()
     std::shared_ptr<Session> this_session = shared_from_this();
 
     // initialize pred
-
-    if (m_config.getClassify())
-        m_pred->setThreshold(m_config.getThreshold());
-
     if (m_config.getTest())
     {
-        m_pred->set(m_config.getTest(), m_config.getNSamples());
+        m_pred = std::make_shared<Result>(m_config.getTest(), m_config.getNSamples());
+        if (m_config.getClassify())
+            m_pred->setThreshold(m_config.getThreshold());
     }
 
     // initialize data

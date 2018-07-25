@@ -69,13 +69,11 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   std::vector<std::uint32_t> cols = {0};
   std::vector<double>        vals = {4.5};
 
-  std::shared_ptr<Result> p(new Result());
   std::shared_ptr<Model> model(new Model());
   
   std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, fixed_ncfg, false));
   std::shared_ptr<Data> data(new ScarceMatrixData(smurff::matrix_utils::sparse_to_eigen(*S)));
-
-  p->set(S);
+  std::shared_ptr<Result> p(new Result(S));
 
   data->setNoiseModel(NoiseFactory::create_noise_model(fixed_ncfg));
 
