@@ -3005,9 +3005,6 @@ TEST_CASE("PredictSession/Features/1"
     }
 }
 
-#if 0
-
-#define DEBUG_OOM_PREDICT 1
 
 TEST_CASE("PredictSession/Features/2"
    , HIDE_MATRIX_TESTS)
@@ -3016,18 +3013,21 @@ TEST_CASE("PredictSession/Features/2"
          BetaPrecision: 1.00
     U = np.array([ [ 1, 2, -1, -2  ] ])
     V = np.array([ [ 2, 2, 1, 2 ] ])
-    U*V = array(
-(array([[-1, -1,  1, -1],
-        [-2, -2,  2, -2],
-        [ 1,  1, -1,  1],
-        [ 2,  2, -2,  2]]), 0.0)
+    U*V = 
+      [[ 2,  2,  1,  2],
+       [ 4,  4,  2,  4],
+       [-2, -2, -1, -2],
+       [-4, -4, -2, -4]])
     */
 
     std::shared_ptr<MatrixConfig> trainMatrixConfig;
     {
-        std::vector<std::uint32_t> trainMatrixConfigRows = {0, 0, 1, 1, 2, 2, 3, 3};
-        std::vector<std::uint32_t> trainMatrixConfigCols = {0, 1, 2, 3, 0, 1, 2, 3};
-        std::vector<double> trainMatrixConfigVals = {2, 2, 2, 4, 6, 6, 4, 8};
+        std::vector<std::uint32_t> trainMatrixConfigRows = {0, 0, 1, 1, 2, 2};
+        std::vector<std::uint32_t> trainMatrixConfigCols = {0, 1, 2, 3, 0, 1};
+        std::vector<double> trainMatrixConfigVals = {2, 2, 2, 4, -2, -2};
+        //std::vector<std::uint32_t> trainMatrixConfigRows = {0, 0, 1, 1, 2, 2, 3, 3};
+        //std::vector<std::uint32_t> trainMatrixConfigCols = {0, 1, 2, 3, 0, 1, 2, 3};
+        //std::vector<double> trainMatrixConfigVals = {2, 2, 2, 4, -2, -2, -2, -4};
         fixed_ncfg.setPrecision(1.);
         trainMatrixConfig = std::make_shared<MatrixConfig>(4, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols),
             std::move(trainMatrixConfigVals), fixed_ncfg, true);
@@ -3035,9 +3035,13 @@ TEST_CASE("PredictSession/Features/2"
 
     std::shared_ptr<MatrixConfig> testMatrixConfig;
     {
-        std::vector<std::uint32_t> testMatrixConfigRows = {3, 3, 3, 3};
-        std::vector<std::uint32_t> testMatrixConfigCols = {0, 1, 2, 3};
-        std::vector<double> testMatrixConfigVals = {-1, -2, 1, 2};
+        std::vector<std::uint32_t> testMatrixConfigRows = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
+        std::vector<std::uint32_t> testMatrixConfigCols = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3};
+        std::vector<double> testMatrixConfigVals = {
+            2, 2, 1, 2,
+            4, 4, 2, 4,
+            -2, -2, -1, -2,
+            -4, -4, -2, -4};
         testMatrixConfig =
             std::make_shared<MatrixConfig>(4, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), fixed_ncfg, true);
     }
@@ -3049,64 +3053,49 @@ TEST_CASE("PredictSession/Features/2"
 
         std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigRows = {0, 1, 2, 3};
         std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigCols = {0, 0, 0, 0};
-        std::vector<double> rowSideInfoSparseMatrixConfigVals = {1, 2, 3, 4};
+        std::vector<double> rowSideInfoSparseMatrixConfigVals = {2, 4, -2, -4};
 
         auto mcfg =
-            std::make_shared<MatrixConfig>(4, 1, std::move(rowSideInfoSparseMatrixConfigRows), std::move(rowSideInfoSparseMatrixConfigCols), std::move(rowSideInfoSparseMatrixConfigVals), nc, true);
+            std::make_shared<MatrixConfig>(4, 1, std::move(rowSideInfoSparseMatrixConfigRows),
+                std::move(rowSideInfoSparseMatrixConfigCols), std::move(rowSideInfoSparseMatrixConfigVals), nc, true);
 
         rowSideInfoConfig = std::make_shared<SideInfoConfig>();
         rowSideInfoConfig->setSideInfo(mcfg);
+        rowSideInfoConfig->setDirect(true);
     }
     Config config;
     config.setTrain(trainMatrixConfig);
     config.setTest(testMatrixConfig);
-    //config.setPriorTypes({PriorTypes::normal, PriorTypes::normal});
     config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
     config.addSideInfoConfig(0, rowSideInfoConfig);
-    config.setNumLatent(2);
-    config.setBurnin(500);
-    config.setNSamples(500);
-    config.setVerbose(2);
+    config.setNumLatent(4);
+    config.setBurnin(50);
+    config.setNSamples(50);
+    config.setVerbose(0);
     config.setSaveFreq(1);
 
     std::shared_ptr<ISession> session = SessionFactory::create_session(config);
     session->run();
 
     PredictSession predict_session(session->getRootFile());
+    auto in_matrix_predictions = predict_session.predict(config.getTest())->m_predictions;
+
+    auto sideInfoMatrix = matrix_utils::sparse_to_eigen(*rowSideInfoConfig->getSideInfo());
+    for (int r = 0; r < config.getTrain()->getDims()[0]; r++)
     {
-        auto predictions = predict_session.predict(config.getTest())->m_predictions;
-        for (auto p : predictions)
+        auto feat = sideInfoMatrix.row(r).transpose();
+        auto out_of_matrix_predictions = predict_session.predict(0, feat);
+        Eigen::VectorXd out_of_matrix_averages = out_of_matrix_predictions->colwise().mean();
+
+#undef DEBUG_OOM_PREDICT
+#ifdef DEBUG_OOM_PREDICT
+        for (auto p : in_matrix_predictions)
         {
-            std::cout << p << std::endl;
-        }
-    }
-
-    {
-        auto sideInfoMatrix = matrix_utils::sparse_to_eigen(*rowSideInfoConfig->getSideInfo());
-        auto trainMatrix = smurff::matrix_utils::sparse_to_eigen(*trainMatrixConfig);
-
-        #ifdef DEBUG_OOM_PREDICT
-            std::cout << "sideInfo =\n" << sideInfoMatrix << std::endl;
-            std::cout << "train    =\n" << trainMatrix << std::endl;
-        #endif
-
-        int r = 3;
-        #ifdef DEBUG_OOM_PREDICT
-            std::cout << "=== row " << r << " ===\n";
-        #endif
-
-        auto predictions = predict_session.predict(0, sideInfoMatrix.row(r).transpose());
-        #ifdef DEBUG_OOM_PREDICT
-            int i = 0;
-            Eigen::VectorXd sum = Eigen::VectorXd::Zero(config.getNumLatent());
-            for (auto P : predictions)
-            {
-                std::cout << "p[" << i++ << "] = " << P->transpose() << std::endl;
-                sum += *P;
+            if (p.coords[0] == r) {
+                std::cout << "in: " << p << std::endl;
+                std::cout << "  out: " << out_of_matrix_averages.row(p.coords[1]) << std::endl;
             }
-            auto p_avg = sum.array() / predictions.size();
-            std::cout << "average p = " << p_avg.transpose() << std::endl;
-        #endif
+        }
+#endif
     }
 }
-#endif
