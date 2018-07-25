@@ -86,39 +86,31 @@ private:
 
     // predict element or elements based on sideinfo
     template <class Feat>
-    std::vector<std::shared_ptr<Eigen::VectorXd>> predict(int mode, const Feat &f);
-    template <class Feat>
-    std::shared_ptr<Eigen::VectorXd> predict(int mode, const Feat &f, int sample);
+    std::shared_ptr<Eigen::MatrixXd> predict(int mode, const Feat &f);
 };
 
 // predict element or elements based on sideinfo
 template <class Feat>
-std::vector<std::shared_ptr<Eigen::VectorXd>> PredictSession::predict(int mode, const Feat &f)
+std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f)
 {
-    std::vector<std::shared_ptr<Eigen::VectorXd>> ret;
+    std::shared_ptr<Eigen::MatrixXd> ret(0);
 
-    for (const auto &sf : m_stepfiles)
+    for (int step=0; step<getNumSteps(); step++)
     {
-        auto model = restoreModel(sf);
+        const auto &sf = m_stepfiles.at(step);
+        auto predictions = restoreModel(sf)->predict(mode, f);
+        if (!ret) {
+            ret = std::make_shared<Eigen::MatrixXd>(predictions.rows(),getNumSteps());
+        }
+        ret->col(step) = predictions;
         #if 0
         int sample = sf->getIsample();
         std::cout << " model " << sample << ":\n" << model->U(0) << "\n" << model->U(1) << "\n";
         std::cout << " full " << sample << ":\n" << model->U(0).transpose() * model->U(1) << "\n";
         #endif
-        ret.push_back(model->predict(mode, f));
     }
 
     return ret;
-}
-
-template<class Feat>
-std::shared_ptr<Eigen::VectorXd> PredictSession::predict(int mode, const Feat &f, int sample)
-{
-    auto model = restoreModel(sample);
-    #if 0
-    std::cout << " model " << sample << ":\n" << model->U(0) << "\n" << model->U(1) << "\n";
-    #endif 
-    return model->predict(mode, f);
 }
 
 } // end namespace smurff
