@@ -63,7 +63,7 @@ public:
 
    // predict full column based on feature vector
    template<typename FeatVector>
-   std::shared_ptr<Eigen::VectorXd> predict(int mode, const FeatVector& f);
+   const Eigen::VectorXd predict(int mode, const FeatVector& f);
 
 public:
    //return f'th U matrix in the model
@@ -180,7 +180,7 @@ std::shared_ptr<Eigen::VectorXd> Model::predict_latent(int mode, const FeatVecto
 }
 
 template<typename FeatVector>
-std::shared_ptr<Eigen::VectorXd> Model::predict(int mode, const FeatVector& f)
+const Eigen::VectorXd Model::predict(int mode, const FeatVector& f)
 {
    THROWERROR_ASSERT_MSG(nmodes() == 2,
       "Only implemented for modes == 2");
@@ -188,10 +188,7 @@ std::shared_ptr<Eigen::VectorXd> Model::predict(int mode, const FeatVector& f)
    auto latent = predict_latent(mode, f);
 
    int othermode = (mode+1) % 2;
-   auto ret = std::make_shared<Eigen::VectorXd>(getDims().at(othermode));
-   *ret = latent->transpose() * U(othermode);
-
-   return ret;
+   return latent->transpose() * U(othermode);
 }
 
 };

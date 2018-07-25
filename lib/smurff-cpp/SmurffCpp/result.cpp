@@ -39,13 +39,8 @@ Result::Result() {}
 
 //Y - test sparse matrix
 Result::Result(std::shared_ptr<TensorConfig> Y, int nsamples)
+    : m_dims(Y->getDims())
 {
-   set(Y, nsamples);
-}
-
-void Result::set(std::shared_ptr<TensorConfig> Y, int nsamples)
-{
-
    if (!Y)
    {
       THROWERROR("test data is not initialized");
@@ -62,9 +57,17 @@ void Result::set(std::shared_ptr<TensorConfig> Y, int nsamples)
       m_predictions.push_back(ResultItem(p.first, p.second, nsamples));
    }
 
-   m_dims = Y->getDims();
-
    init();
+}
+
+Result::Result(PVec<> lo, PVec<> hi, double value, int nsamples)
+    : m_dims(hi - lo)
+{
+
+   for(auto it = PVecIterator(lo, hi); !it.done(); ++it)
+   {
+      m_predictions.push_back(ResultItem(*it, value, nsamples));
+   }
 }
 
 void Result::init()
