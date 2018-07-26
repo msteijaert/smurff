@@ -69,6 +69,7 @@ Contributors
 -  Tom Haber (Original BPMF code)
 -  Andrei Gedich
 -  Ilya Pasechnikov
+-  Thanh Le Van (sythetic out-of-matrix prediction example)
 
 Acknowledgements
 ----------------
