@@ -2,6 +2,7 @@
 
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <vector>
 
 using namespace smurff;
 
@@ -11,6 +12,34 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleF
     matrix_utils::sparse_eigen_struct str = matrix_utils::csr_to_eigen(m_side_info->M);
     matrix_ptr = str.row_major_sparse;
     matrix_trans_ptr = str.column_major_sparse;
+}
+
+SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr, double* vals) {
+    std::vector<Eigen::Triplet<double>> triplets = new std::vector<Eigen::Triplet<double>>();
+    for (int i = 0; i < nnz; i++) {
+        triplets.push_back(Eigen::Triplet<double>(rows_ptr[i], cols_ptr[i], vals[i]));
+    }
+
+    matrix_ptr = new Eigen::SparseMatrix<double, Eigen::RowMajor>(rows, cols);
+    matrix_ptr->setFromTriplets(triplets->begin(), triplets->end());
+    matrix_col_major_ptr = new Eigen::SparseMatrix<double, Eigen::ColMajor>(rows, cols);
+    matrix_col_major_ptr->setFromTriplets(triplets->begin(), triplets->end());
+    
+    delete triplets;
+}
+
+SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr) {
+    std::vector<Eigen::Triplet<double>> triplets = new std::vector<Eigen::Triplet<double>>();
+    for (int i = 0; i < nnz; i++) {
+        triplets.push_back(Eigen::Triplet<double>(rows_ptr[i], cols_ptr[i], vals[i]));
+    }
+
+    matrix_ptr = new Eigen::SparseMatrix<double, Eigen::RowMajor>(rows, cols);
+    matrix_ptr->setFromTriplets(triplets->begin(), triplets->end());
+    matrix_col_major_ptr = new Eigen::SparseMatrix<double, Eigen::ColMajor>(rows, cols);
+    matrix_col_major_ptr->setFromTriplets(triplets->begin(), triplets->end());
+    
+    delete triplets;
 }
 
 SparseDoubleFeatSideInfo::~SparseDoubleFeatSideInfo() {
@@ -31,8 +60,8 @@ int SparseDoubleFeatSideInfo::rows() const
 
 std::ostream& SparseDoubleFeatSideInfo::print(std::ostream &os) const
 {
-   double percent = 100.8 * (double)m_side_info->nnz() / (double)m_side_info->rows() / (double) m_side_info->cols();
-   os << "SparseDouble " << m_side_info->nnz() << " [" << m_side_info->rows() << ", " << m_side_info->cols() << "] ("
+   double percent = 100.8 * (double)matrix_ptr->nonZeros() / (double)matrix_ptr->rows() / (double) matrix_ptr->cols();
+   os << "SparseDouble " << matrix_ptr->nonZeros() << " [" << matrix_ptr->rows() << ", " << matrix_ptr->cols() << "] ("
       << percent << "%)" << std::endl;
    return os;
 }

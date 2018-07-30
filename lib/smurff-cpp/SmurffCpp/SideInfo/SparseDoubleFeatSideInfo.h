@@ -14,10 +14,12 @@ class SparseDoubleFeatSideInfo : public ISideInfo
 private:
    std::shared_ptr<SparseDoubleFeat> m_side_info;
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_ptr;
-   Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_trans_ptr;
+   Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_col_major_ptr;
 
 public:
    SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info);
+   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows, int* cols, double* vals);
+   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows, int* cols);
    ~SparseDoubleFeatSideInfo() override;
 
 public:
