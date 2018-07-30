@@ -11,13 +11,13 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleF
 {
     matrix_utils::sparse_eigen_struct str = matrix_utils::csr_to_eigen(m_side_info->M);
     matrix_ptr = str.row_major_sparse;
-    matrix_trans_ptr = str.column_major_sparse;
+    matrix_col_major_ptr = str.column_major_sparse;
 }
 
 SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr, double* vals) {
-    std::vector<Eigen::Triplet<double>> triplets = new std::vector<Eigen::Triplet<double>>();
+    std::vector<Eigen::Triplet<double>>* triplets = new std::vector<Eigen::Triplet<double>>();
     for (int i = 0; i < nnz; i++) {
-        triplets.push_back(Eigen::Triplet<double>(rows_ptr[i], cols_ptr[i], vals[i]));
+        triplets->push_back(Eigen::Triplet<double>(rows_ptr[i], cols_ptr[i], vals[i]));
     }
 
     matrix_ptr = new Eigen::SparseMatrix<double, Eigen::RowMajor>(rows, cols);
@@ -29,9 +29,9 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, 
 }
 
 SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr) {
-    std::vector<Eigen::Triplet<double>> triplets = new std::vector<Eigen::Triplet<double>>();
+    std::vector<Eigen::Triplet<double>>* triplets = new std::vector<Eigen::Triplet<double>>();
     for (int i = 0; i < nnz; i++) {
-        triplets.push_back(Eigen::Triplet<double>(rows_ptr[i], cols_ptr[i], vals[i]));
+        triplets->push_back(Eigen::Triplet<double>(rows_ptr[i], cols_ptr[i], 1.0));
     }
 
     matrix_ptr = new Eigen::SparseMatrix<double, Eigen::RowMajor>(rows, cols);
@@ -44,7 +44,7 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, 
 
 SparseDoubleFeatSideInfo::~SparseDoubleFeatSideInfo() {
     delete matrix_ptr;
-    delete matrix_trans_ptr;
+    delete matrix_col_major_ptr;
 }
 
 
@@ -95,8 +95,8 @@ Eigen::VectorXd SparseDoubleFeatSideInfo::col_square_sum()
 {
     const int ncol = matrix_ptr->cols();
     Eigen::VectorXd out(ncol);
-    const int* column_ptr = matrix_trans_ptr->outerIndexPtr();
-    const double* vals = matrix_trans_ptr->valuePtr();
+    const int* column_ptr = matrix_col_major_ptr->outerIndexPtr();
+    const double* vals = matrix_col_major_ptr->valuePtr();
 
     #pragma omp parallel for schedule(guided)
     for (int col = 0; col < ncol; col++) {
@@ -122,10 +122,10 @@ void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eige
 void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
 {
     Eigen::VectorXd bt = b.transpose();
-    const int* cols = matrix_trans_ptr->innerIndexPtr();
-    const double* vals = matrix_trans_ptr->valuePtr();
-    int i = matrix_trans_ptr->outerIndexPtr()[col];
-    const int end = matrix_trans_ptr->outerIndexPtr()[col + 1];
+    const int* cols = matrix_col_major_ptr->innerIndexPtr();
+    const double* vals = matrix_col_major_ptr->valuePtr();
+    int i = matrix_col_major_ptr->outerIndexPtr()[col];
+    const int end = matrix_col_major_ptr->outerIndexPtr()[col + 1];
     const int D = bt.size();
    for (; i < end; i++) 
    {

@@ -18,8 +18,8 @@ private:
 
 public:
    SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info);
-   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows, int* cols, double* vals);
-   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows, int* cols);
+   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr, double* vals);
+   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr);
    ~SparseDoubleFeatSideInfo() override;
 
 public:
