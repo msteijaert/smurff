@@ -15,6 +15,7 @@ private:
    std::shared_ptr<SparseDoubleFeat> m_side_info;
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_ptr;
    Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_col_major_ptr;
+   Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_trans_ptr;
 
 public:
    SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info);

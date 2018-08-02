@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
@@ -496,6 +497,16 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
 inline void AtA_mul_B_switch(
 		   Eigen::MatrixXd & out,
 		   Eigen::MatrixXd & A,
+			 double reg,
+			 Eigen::MatrixXd & B,
+			 Eigen::MatrixXd & tmp) {
+	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
+}
+
+template <>
+inline void AtA_mul_B_switch(
+		   Eigen::MatrixXd & out,
+		   Eigen::SparseMatrix<double, Eigen::RowMajor> & A,
 			 double reg,
 			 Eigen::MatrixXd & B,
 			 Eigen::MatrixXd & tmp) {

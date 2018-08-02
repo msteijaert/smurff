@@ -31,6 +31,7 @@ namespace smurff { namespace matrix_utils {
    typedef struct {
        Eigen::SparseMatrix<double, Eigen::RowMajor>* row_major_sparse;
        Eigen::SparseMatrix<double, Eigen::ColMajor>* column_major_sparse;
+       Eigen::SparseMatrix<double, Eigen::RowMajor>* transposed_sparse;
    } sparse_eigen_struct;
 
    sparse_eigen_struct csr_to_eigen(const CSR& csr);
