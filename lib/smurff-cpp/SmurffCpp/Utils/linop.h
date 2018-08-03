@@ -9,6 +9,7 @@
 
 #include <SmurffCpp/SideInfo/SparseFeat.h>
 #include <SmurffCpp/SideInfo/SparseDoubleFeat.h>
+#include <SmurffCpp/SideInfo/SparseDoubleFeatSideInfo.h>
 
 namespace smurff { namespace linop {
 
@@ -506,11 +507,11 @@ inline void AtA_mul_B_switch(
 template <>
 inline void AtA_mul_B_switch(
 		   Eigen::MatrixXd & out,
-		   Eigen::SparseMatrix<double, Eigen::RowMajor> & A,
+		   SparseDoubleFeatSideInfo & A,
 			 double reg,
 			 Eigen::MatrixXd & B,
 			 Eigen::MatrixXd & tmp) {
-	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
+	//out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
 }
 
 template<int N>

@@ -157,6 +157,10 @@ void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col
    }
 }
 
+inline void SparseDoubleFeatSideInfo::AtA_mul_B(Eigen::MatrixXd & out, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
+	out.noalias() = (*matrix_trans_ptr * (*matrix_ptr * B.transpose())).transpose() + reg * B;
+}
+
 std::shared_ptr<SparseDoubleFeat> SparseDoubleFeatSideInfo::get_features()
 {
    return m_side_info;

@@ -16,8 +16,8 @@ private:
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_ptr;
    Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_col_major_ptr;
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_trans_ptr;
-
 public:
+
    SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info);
    SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr, double* vals);
    SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr);
@@ -49,6 +49,8 @@ public:
    void At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B) override;
 
    void add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b) override;
+
+   inline void AtA_mul_B(Eigen::MatrixXd & out, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
    //only for tests
 public:
