@@ -87,9 +87,7 @@ bool SparseDoubleFeatSideInfo::is_dense() const
 void SparseDoubleFeatSideInfo::compute_uhat(Eigen::MatrixXd& uhat, Eigen::MatrixXd& beta)
 {
     COUNTER("compute_uhat");
-    Eigen::MatrixXd temp = ((*matrix_ptr) * beta.transpose()).eval();
-    std::cout << temp;
-    uhat = temp.transpose().eval();
+    uhat = beta * (*matrix_trans_ptr);
 }
 
 void SparseDoubleFeatSideInfo::At_mul_A(Eigen::MatrixXd& out)
