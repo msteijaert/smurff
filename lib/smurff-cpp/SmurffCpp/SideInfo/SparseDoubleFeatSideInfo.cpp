@@ -30,6 +30,7 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, 
     matrix_col_major_ptr->setFromTriplets(triplets->begin(), triplets->end());
     matrix_trans_ptr = new Eigen::SparseMatrix<double, Eigen::RowMajor>(cols, rows);
     matrix_trans_ptr->setFromTriplets(triplets_trans->begin(), triplets_trans->end());
+
     
     delete triplets;
     delete triplets_trans;
@@ -105,7 +106,7 @@ Eigen::MatrixXd SparseDoubleFeatSideInfo::A_mul_B(Eigen::MatrixXd& A)
 int SparseDoubleFeatSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixXd& B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error)
 {
     COUNTER("solve_blockcg");
-    return smurff::linop::solve_blockcg(X, *m_side_info, reg, B, tol, blocksize, excess, throw_on_cholesky_error);
+    return smurff::linop::solve_blockcg(X, *this, reg, B, tol, blocksize, excess, throw_on_cholesky_error);
 }
 
 Eigen::VectorXd SparseDoubleFeatSideInfo::col_square_sum()
@@ -155,10 +156,6 @@ void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col
          Z(d, c) += vals[i] * b(d);
       }
    }
-}
-
-inline void SparseDoubleFeatSideInfo::AtA_mul_B(Eigen::MatrixXd & out, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
-	out.noalias() = (*matrix_trans_ptr * (*matrix_ptr * B.transpose())).transpose() + reg * B;
 }
 
 std::shared_ptr<SparseDoubleFeat> SparseDoubleFeatSideInfo::get_features()

@@ -6,6 +6,7 @@
 #include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/counters.h>
 
 #include <SmurffCpp/SideInfo/SparseFeat.h>
 #include <SmurffCpp/SideInfo/SparseDoubleFeat.h>
@@ -46,6 +47,8 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<int N>
+void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeatSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
@@ -54,6 +57,8 @@ template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B);
 template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B);
+template<int N>
+void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
 
 
 void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
@@ -437,6 +442,41 @@ void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B) {
   }
 }
 
+template<int N>
+void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B) {
+   THROWERROR_ASSERT(N == out.rows());
+   THROWERROR_ASSERT(N == B.rows());
+   THROWERROR_ASSERT(A.cols() == B.cols());
+   THROWERROR_ASSERT(A.rows() == out.cols());
+
+  int* row_ptr   = A.outerIndexPtr();
+  int* cols      = A.innerIndexPtr();
+  double* vals   = A.valuePtr();
+  const int nrow = A.rows();
+  double* Y = out.data();
+  double* X = B.data();
+  #pragma omp parallel for schedule(guided)
+  for (int row = 0; row < nrow; row++) 
+  {
+    double tmp[N] = { 0 };
+    const int end = row_ptr[row + 1];
+    for (int i = row_ptr[row]; i < end; i++) 
+    {
+      int col = cols[i] * N;
+      double val = vals[i];
+      for (int j = 0; j < N; j++) 
+      {
+         tmp[j] += X[col + j] * val;
+      }
+    }
+    int r = row * N;
+    for (int j = 0; j < N; j++) 
+    {
+      Y[r + j] = tmp[j];
+    }
+  }
+}
+
 template<typename T>
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp)
 {
@@ -504,14 +544,46 @@ inline void AtA_mul_B_switch(
 	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
 }
 
-template <>
-inline void AtA_mul_B_switch(
-		   Eigen::MatrixXd & out,
-		   SparseDoubleFeatSideInfo & A,
-			 double reg,
-			 Eigen::MatrixXd & B,
-			 Eigen::MatrixXd & tmp) {
-	//out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
+template <int N>
+void AtA_mul_Bx(Eigen::MatrixXd& out, SparseDoubleFeatSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
+    THROWERROR_ASSERT(N == out.rows());
+    THROWERROR_ASSERT(N == B.rows());
+    THROWERROR_ASSERT(A.cols() == B.cols());
+    THROWERROR_ASSERT(A.cols() == out.cols());
+    THROWERROR_ASSERT(A.rows() == inner.cols());
+
+    Eigen::SparseMatrix<double, Eigen::RowMajor>* M = A.matrix_ptr;
+    Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
+
+    A_mul_Bx<N>(inner, *M, B);
+
+    int* row_ptr   = Mt->outerIndexPtr();
+    int* cols      = Mt->innerIndexPtr();
+    double* vals   = Mt->valuePtr();
+    const int nrow = Mt->rows();
+    double* Y      = out.data();
+    double* X      = inner.data();
+    double* Braw   = B.data();
+    #pragma omp parallel for schedule(guided)
+    for (int row = 0; row < nrow; row++) 
+    {
+        double tmp[N] = { 0 };
+        const int end = row_ptr[row + 1];
+        for (int i = row_ptr[row]; i < end; i++) 
+        {
+        int col = cols[i] * N;
+        double val = vals[i];
+        for (int j = 0; j < N; j++) 
+        {
+            tmp[j] += X[col + j] * val;
+        }
+        }
+        int r = row * N;
+        for (int j = 0; j < N; j++) 
+        {
+        Y[r + j] = tmp[j] + reg * Braw[r + j];
+        }
+    }
 }
 
 template<int N>

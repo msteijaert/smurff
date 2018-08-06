@@ -197,13 +197,24 @@ TEST_CASE( "SparseDoubleFeatSideInfo/compute_uhat", "[compute_uhat] for SparseDo
 TEST_CASE( "SparseDoubleFeatSideInfo/AtA_mul_B", "[AtA_mul_B] for SparseDoubleFeatSideInfo" )
 {
     Eigen::MatrixXd out(6,6);
-    Eigen::MatrixXd A(6,6);
-    A <<    0, 0, 0.0804, 0.0608, 4.6604, 3.2696,
-            0.072, -0.0984, 0.1428, -0.1608, -7.826, 0,
-            0.114, -0.1558, 0.3665, -3.1096, -3.8723, 5.7096,
-            -0.858, 1.1726, -1.8643, -3.0616, 1.6448, -6.6124,
-            0, 0, 0.1278, 1.628, 2.794, 5.1972,
-           -0.78, 1.066, -1.547, -0.4256, 1.092, 0;
+    int rows[30] =  { 
+                        0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
+                        3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5
+                    };
+    int cols[30] =  {
+                        2, 3, 4, 5, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5,
+                        0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 0, 1, 2, 3, 4
+                    };
+    double vals[30] =   { 
+                            0.0804, 0.0608, 4.6604, 3.2696,
+                            0.072, -0.0984, 0.1428, -0.1608, -7.826,
+                            0.114, -0.1558, 0.3665, -3.1096, -3.8723, 5.7096, 
+                            -0.858, 1.1726, -1.8643, -3.0616, 1.6448, -6.6124,
+                            0.1278, 1.628, 2.794, 5.1972, 
+                            -0.78, 1.066, -1.547, -0.4256, 1.092 
+                        };
+    
+    SparseDoubleFeatSideInfo A(6, 6, 30, rows, cols, vals);
 
     double reg = 0.76;
     Eigen::MatrixXd B(6,6);
@@ -214,7 +225,8 @@ TEST_CASE( "SparseDoubleFeatSideInfo/AtA_mul_B", "[AtA_mul_B] for SparseDoubleFe
             0., 0., 1.10, 2.13, 0., 0.,
             0.56, -1.3, 0., 0., -0.43, -3.21; 
 
-	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
+    Eigen::MatrixXd inner(6,6);
+    smurff::linop::AtA_mul_Bx<6>(out, A, reg, B, inner);
 
     Eigen::MatrixXd true_out(6,6);
     true_out << -7.10631, 11.1661, -20.3844, 28.4183, 121.97, -194.977,
