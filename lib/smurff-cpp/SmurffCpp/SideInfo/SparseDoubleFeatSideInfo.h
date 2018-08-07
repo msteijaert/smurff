@@ -19,8 +19,8 @@ public:
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_trans_ptr;
 
    SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info);
-   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr, double* vals);
-   SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr);
+   SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals);
+   SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr);
    ~SparseDoubleFeatSideInfo() override;
 
 public:

@@ -34,8 +34,7 @@ std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_binary_featu
    const std::uint32_t* rows = sideinfoConfig->getRows().data();
    const std::uint32_t* cols = sideinfoConfig->getCols().data();
 
-   auto side_info_ptr = std::make_shared<SparseFeat>(nrow, ncol, nnz, (int *)rows,  (int *)cols);
-   return std::make_shared<SparseFeatSideInfo>(side_info_ptr);
+   return std::make_shared<SparseDoubleFeatSideInfo>(nrow, ncol, nnz, rows, cols);
 }
 
 std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
@@ -48,8 +47,7 @@ std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_features(std
    const std::uint32_t* cols = sideinfoConfig->getCols().data();
    const double*        vals = sideinfoConfig->getValues().data();
 
-   auto side_info_ptr = std::make_shared<SparseDoubleFeat>(nrow, ncol, nnz, (int *)rows, (int *)cols, (double *)vals);
-   return std::make_shared<SparseDoubleFeatSideInfo>(side_info_ptr);
+   return std::make_shared<SparseDoubleFeatSideInfo>(nrow, ncol, nnz, rows, cols, vals);
 }
 
 //-------

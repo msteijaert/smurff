@@ -197,11 +197,11 @@ TEST_CASE( "SparseDoubleFeatSideInfo/compute_uhat", "[compute_uhat] for SparseDo
 TEST_CASE( "SparseDoubleFeatSideInfo/AtA_mul_B", "[AtA_mul_B] for SparseDoubleFeatSideInfo" )
 {
     Eigen::MatrixXd out(6,6);
-    int rows[30] =  { 
+    const uint32_t rows[30] =  { 
                         0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
                         3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5
                     };
-    int cols[30] =  {
+    const uint32_t cols[30] =  {
                         2, 3, 4, 5, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5,
                         0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 0, 1, 2, 3, 4
                     };

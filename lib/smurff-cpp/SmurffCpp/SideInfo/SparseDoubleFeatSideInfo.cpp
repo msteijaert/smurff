@@ -16,7 +16,7 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleF
     matrix_trans_ptr = str.transposed_sparse;
 }
 
-SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr, double* vals) {
+SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals) {
     std::vector<Eigen::Triplet<double>>* triplets = new std::vector<Eigen::Triplet<double>>();
     std::vector<Eigen::Triplet<double>>* triplets_trans = new std::vector<Eigen::Triplet<double>>();
     for (int i = 0; i < nnz; i++) {
@@ -36,7 +36,7 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, 
     delete triplets_trans;
 }
 
-SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(int rows, int cols, int nnz, int* rows_ptr, int* cols_ptr) {
+SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr) {
     std::vector<Eigen::Triplet<double>>* triplets = new std::vector<Eigen::Triplet<double>>();
     std::vector<Eigen::Triplet<double>>* triplets_trans = new std::vector<Eigen::Triplet<double>>();
     for (int i = 0; i < nnz; i++) {
