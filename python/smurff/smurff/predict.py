@@ -18,7 +18,7 @@ except ImportError:
 from .result import Prediction
 
 def read_config_file(file_name, dir_name = None):
-    cp = ConfigParser()
+    cp = ConfigParser(strict=False)
 
     if dir_name:
         full_name = os.path.join(dir_name, file_name)
@@ -126,6 +126,9 @@ class PredictSession:
 
     """
     @classmethod
+    def fromRootFile(cls, root_file):
+        return PredictSession(root_file)
+
     def __init__(self, root_file):
         """Creates a :class:`PredictSession` from a give root file
  
