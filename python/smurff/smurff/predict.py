@@ -144,25 +144,25 @@ class PredictSession:
 
         self.nmodes = self.options.getint("global", "num_priors")
         assert self.nmodes == 2
-        self.samples = []
 
+        # load only one sample
         for step_name, step_file in cp["steps"].items():
             if (step_name.startswith("sample_step")):
-                self.samples.append(Sample.fromStepFile(step_file, self.root_dir))
+                one_sample = Sample.fromStepFile(step_file, self.root_dir)
+                self.num_latent = one_sample.num_latent()
+                self.data_shape = one_sample.data_shape()
+                self.beta_shape = one_sample.beta_shape()
+                return
 
-        assert len(self.samples) > 0
+        raise ValueError("No samples found in " + root_file)
 
-    def num_latent(self):
-        return self.samples[0].num_latent()
-
-    def data_shape(self):
-        return self.samples[0].data_shape()
-
-    def beta_shape(self):
-        return self.samples[0].beta_shape()
+    def samples(self):
+        for step_name, step_file in self.root_config["steps"].items():
+            if (step_name.startswith("sample_step")):
+                yield Sample.fromStepFile(step_file, self.root_dir)
 
     def predict(self, coords_or_sideinfo=None):
-        return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples])
+        return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples()])
 
     def predict_all(self):
         """Computes the full prediction matrix/tensor.
@@ -193,7 +193,7 @@ class PredictSession:
         """        
         predictions = Prediction.fromTestMatrix(test_matrix)
 
-        for s in self.samples:
+        for s in self.samples():
             for p in predictions:
                 p.add_sample(s.predict(p.coords))
 
@@ -215,7 +215,7 @@ class PredictSession:
 
         """
         p = Prediction(coords_or_sideinfo, value)
-        for s in self.samples:
+        for s in self.samples():
             p.add_sample(s.predict(p.coords))
 
         return p
