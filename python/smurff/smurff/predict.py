@@ -221,6 +221,6 @@ class PredictSession:
         return p
 
     def __str__(self):
-        dat = (len(self.samples), self.data_shape(),
+        dat = (-1, self.data_shape(),
                self.beta_shape(), self.num_latent())
         return "PredictSession with %d samples\n  Data shape = %s\n  Beta shape = %s\n  Num latent = %d" % dat
