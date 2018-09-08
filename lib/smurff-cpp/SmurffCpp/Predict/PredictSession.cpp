@@ -6,6 +6,7 @@
 #include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Utils/RootFile.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/result.h>
 #include <SmurffCpp/ResultItem.h>
 
@@ -80,6 +81,18 @@ void PredictSession::run()
     {
         auto sparse_matrix = matrix_utils::sparse_to_eigen(*side_info);
         predictions = predict(mode, sparse_matrix);
+    }
+
+    int i = 0;
+    for (auto p : predictions)
+    {
+        auto filename = m_config.getSavePrefix() + "/predictions-sample-" + std::to_string(i) + m_config.getSaveExtension();
+        if (m_config.getVerbose())
+        {
+            std::cout << "-- Saving sample '" << i << " to " << filename << "." << std::endl;
+        }
+        matrix_io::eigen::write_matrix(filename, *p);
+        ++i;
     }
 }
 
