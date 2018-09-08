@@ -5,6 +5,7 @@
 
 #include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Utils/RootFile.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/result.h>
 #include <SmurffCpp/ResultItem.h>
 
@@ -42,9 +43,44 @@ PredictSession::PredictSession(const Config &config)
 void PredictSession::run()
 {
     THROWERROR_ASSERT(m_has_config);
-    init();
-    while (step())
-        ;
+
+    std::vector<std::shared_ptr<Eigen::MatrixXd>> predictions;
+    std::shared_ptr<MatrixConfig> side_info;
+    int mode;
+
+    if (m_config.getTest())
+    {
+        init();
+        while (step())
+            ;
+
+        return;
+    }
+    else if (m_config.getRowFeatures())
+    {
+        side_info = m_config.getRowFeatures();
+        mode = 0;
+    }
+    else if (m_config.getColFeatures())
+    {
+        side_info = m_config.getColFeatures();
+        mode = 1;
+    }
+    else 
+    {
+        THROWERROR("Need either test, row features or col features")
+    }
+
+    if (side_info->isDense())
+    {
+        auto dense_matrix = matrix_utils::dense_to_eigen(*side_info);
+        predictions = predict(mode, dense_matrix);
+    }
+    else
+    {
+        auto sparse_matrix = matrix_utils::sparse_to_eigen(*side_info);
+        predictions = predict(mode, sparse_matrix);
+    }
 }
 
 void PredictSession::init()
@@ -52,7 +88,9 @@ void PredictSession::init()
     THROWERROR_ASSERT(m_has_config);
     THROWERROR_ASSERT(m_config.getTest());
     m_result = std::make_shared<Result>(m_config.getTest(), m_config.getNSamples());
+
     m_pos = m_stepfiles.rbegin();
+    m_iter = 0;
     m_is_init = true;
 
     THROWERROR_ASSERT_MSG(m_config.getSavePrefix() != getModelRoot()->getPrefix(),
@@ -80,14 +118,14 @@ bool PredictSession::step()
     auto model = restoreModel(*m_pos);
     m_result->update(model, false);
     double stop = tick();
+    m_iter++;
     m_secs_per_iter = stop - start;
     m_secs_total += m_secs_per_iter;
 
     if (m_config.getVerbose())
         std::cout << getStatus()->asString() << std::endl;
 
-    const auto iter = m_result->sample_iter;
-    if (m_config.getSaveFreq() > 0 && (iter % m_config.getSaveFreq()) == 0)
+    if (m_config.getSaveFreq() > 0 && (m_iter % m_config.getSaveFreq()) == 0)
         save();
 
     auto next_pos = m_pos;
@@ -105,8 +143,7 @@ bool PredictSession::step()
 void PredictSession::save()
 {
     //save this iteration
-    const auto iter = m_result->sample_iter;
-    std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(iter);
+    std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(m_iter);
 
     if (m_config.getVerbose())
     {

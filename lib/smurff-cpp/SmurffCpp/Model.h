@@ -57,13 +57,13 @@ public:
    //pos - vector of column indices
    double predict(const PVec<>& pos) const;
 
-   // compute latent vector from feature vector
-   template<typename FeatVector>
-   std::shared_ptr<Eigen::VectorXd> predict_latent(int mode, const FeatVector& f);
+   // for each row in feature matrix f: compute latent vector from feature vector
+   template<typename FeatMatrix>
+   std::shared_ptr<Eigen::MatrixXd> predict_latent(int mode, const FeatMatrix& f);
 
-   // predict full column based on feature vector
-   template<typename FeatVector>
-   const Eigen::VectorXd predict(int mode, const FeatVector& f);
+   // for each row in feature matrix f: predict full column based on feature vector
+   template<typename FeatMatrix>
+   const Eigen::MatrixXd predict(int mode, const FeatMatrix& f);
 
 public:
    //return f'th U matrix in the model
@@ -158,15 +158,17 @@ public:
 };
 
 
-template<typename FeatVector>
-std::shared_ptr<Eigen::VectorXd> Model::predict_latent(int mode, const FeatVector& f)
+template<typename FeatMatrix>
+std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatrix& f)
 {
    THROWERROR_ASSERT_MSG(m_link_matrices.at(mode),
       "No link matrix available in mode " + std::to_string(mode));
 
+   auto Umean = U(mode).rowwise().mean();
+
    const auto &beta = *m_link_matrices.at(mode);
-   auto ret = std::make_shared<Eigen::VectorXd>(nlatent());
-   *ret = (beta * f) + U(mode).rowwise().mean();
+   auto ret = std::make_shared<Eigen::MatrixXd>(f.rows(), nlatent());
+   *ret = (beta * f) + Umean;
    #if 0
    std::cout << "beta =\n" << beta.transpose() << std::endl;
    std::cout << "f =\n" << f << std::endl;
@@ -179,8 +181,8 @@ std::shared_ptr<Eigen::VectorXd> Model::predict_latent(int mode, const FeatVecto
    return ret;
 }
 
-template<typename FeatVector>
-const Eigen::VectorXd Model::predict(int mode, const FeatVector& f)
+template<typename FeatMatrix>
+const Eigen::MatrixXd Model::predict(int mode, const FeatMatrix& f)
 {
    THROWERROR_ASSERT_MSG(nmodes() == 2,
       "Only implemented for modes == 2");

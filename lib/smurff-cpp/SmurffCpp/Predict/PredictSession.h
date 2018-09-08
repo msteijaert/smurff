@@ -28,6 +28,7 @@ private:
 
     double m_secs_per_iter;
     double m_secs_total;
+    int m_iter;
 
     std::vector<std::shared_ptr<StepFile>> m_stepfiles;
 
@@ -86,28 +87,20 @@ private:
 
     // predict element or elements based on sideinfo
     template <class Feat>
-    std::shared_ptr<Eigen::MatrixXd> predict(int mode, const Feat &f);
+    std::vector<std::shared_ptr<Eigen::MatrixXd>> predict(int mode, const Feat &f);
 };
 
 // predict element or elements based on sideinfo
 template <class Feat>
-std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f)
+std::vector<std::shared_ptr<Eigen::MatrixXd>> PredictSession::predict(int mode, const Feat &f)
 {
-    std::shared_ptr<Eigen::MatrixXd> ret(0);
+    std::vector<std::shared_ptr<Eigen::MatrixXd>> ret;
 
     for (int step=0; step<getNumSteps(); step++)
     {
         const auto &sf = m_stepfiles.at(step);
-        auto predictions = restoreModel(sf)->predict(mode, f);
-        if (!ret) {
-            ret = std::make_shared<Eigen::MatrixXd>(predictions.rows(),getNumSteps());
-        }
-        ret->col(step) = predictions;
-        #if 0
-        int sample = sf->getIsample();
-        std::cout << " model " << sample << ":\n" << model->U(0) << "\n" << model->U(1) << "\n";
-        std::cout << " full " << sample << ":\n" << model->U(0).transpose() * model->U(1) << "\n";
-        #endif
+        auto predictions = std::make_shared<Eigen::MatrixXd>(restoreModel(sf)->predict(mode, f));
+        ret.push_back(predictions);
     }
 
     return ret;

@@ -3085,7 +3085,7 @@ TEST_CASE("PredictSession/Features/2"
     {
         auto feat = sideInfoMatrix.row(r).transpose();
         auto out_of_matrix_predictions = predict_session.predict(0, feat);
-        Eigen::VectorXd out_of_matrix_averages = out_of_matrix_predictions->colwise().mean();
+        //Eigen::VectorXd out_of_matrix_averages = out_of_matrix_predictions->colwise().mean();
 
 #undef DEBUG_OOM_PREDICT
 #ifdef DEBUG_OOM_PREDICT
