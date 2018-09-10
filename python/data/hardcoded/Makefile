@@ -6,16 +6,16 @@ pred: pred/status.csv
 run: save/root.ini
 
 pred/status.csv:	save/root.ini
+	rm -rf pred
 	mkdir -p pred
-	rm -f pred/*
-	smurff --save-prefix pred --root save/root.ini --row-features feat_0_0.mtx
+	smurff --save-freq -1 --save-prefix pred --root save/root.ini --row-features feat_0_0.mtx --save-extension .csv
 
 save/root.ini:
+	rm -rf save
 	mkdir -p save
-	rm -f save/*
 	smurff --ini macau.ini
 	
 clean:
+	rm -fr save pred
 	mkdir -p pred save
-	rm -f save/* pred/*
 
