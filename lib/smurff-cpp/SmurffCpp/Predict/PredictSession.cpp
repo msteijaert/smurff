@@ -45,9 +45,6 @@ void PredictSession::run()
 {
     THROWERROR_ASSERT(m_has_config);
 
-    std::vector<std::shared_ptr<Eigen::MatrixXd>> predictions;
-    std::shared_ptr<MatrixConfig> side_info;
-    int mode;
 
     if (m_config.getTest())
     {
@@ -57,42 +54,36 @@ void PredictSession::run()
 
         return;
     }
-    else if (m_config.getRowFeatures())
-    {
-        side_info = m_config.getRowFeatures();
-        mode = 0;
-    }
-    else if (m_config.getColFeatures())
-    {
-        side_info = m_config.getColFeatures();
-        mode = 1;
-    }
-    else 
-    {
-        THROWERROR("Need either test, row features or col features")
-    }
-
-    if (side_info->isDense())
-    {
-        auto dense_matrix = matrix_utils::dense_to_eigen(*side_info);
-        predictions = predict(mode, dense_matrix);
-    }
     else
     {
-        auto sparse_matrix = matrix_utils::sparse_to_eigen(*side_info);
-        predictions = predict(mode, sparse_matrix);
-    }
+        std::shared_ptr<MatrixConfig> side_info;
+        int mode;
 
-    int i = 0;
-    for (auto p : predictions)
-    {
-        auto filename = m_config.getSavePrefix() + "/predictions-sample-" + std::to_string(i) + m_config.getSaveExtension();
-        if (m_config.getVerbose())
+        if (m_config.getRowFeatures())
         {
-            std::cout << "-- Saving sample '" << i << " to " << filename << "." << std::endl;
+            side_info = m_config.getRowFeatures();
+            mode = 0;
         }
-        matrix_io::eigen::write_matrix(filename, *p);
-        ++i;
+        else if (m_config.getColFeatures())
+        {
+            side_info = m_config.getColFeatures();
+            mode = 1;
+        }
+        else
+        {
+            THROWERROR("Need either test, row features or col features")
+        }
+
+        if (side_info->isDense())
+        {
+            auto dense_matrix = matrix_utils::dense_to_eigen(*side_info);
+            predict(mode, dense_matrix, m_config.getSaveFreq());
+        }
+        else
+        {
+            auto sparse_matrix = matrix_utils::sparse_to_eigen(*side_info);
+            predict(mode, sparse_matrix, m_config.getSaveFreq());
+        }
     }
 }
 

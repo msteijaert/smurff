@@ -6,8 +6,10 @@
 #include <Eigen/Core>
 
 #include <SmurffCpp/Utils/PVec.hpp>
+#include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/Sessions/ISession.h>
 #include <SmurffCpp/Model.h>
+
 
 namespace smurff {
 
@@ -87,23 +89,48 @@ private:
 
     // predict element or elements based on sideinfo
     template <class Feat>
-    std::vector<std::shared_ptr<Eigen::MatrixXd>> predict(int mode, const Feat &f);
+    std::shared_ptr<Eigen::MatrixXd> predict(int mode, const Feat &f, int save_freq = 0);
 };
 
 // predict element or elements based on sideinfo
 template <class Feat>
-std::vector<std::shared_ptr<Eigen::MatrixXd>> PredictSession::predict(int mode, const Feat &f)
+std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f, int save_freq)
 {
-    std::vector<std::shared_ptr<Eigen::MatrixXd>> ret;
+    std::shared_ptr<Eigen::MatrixXd> average(nullptr);
 
-    for (int step=0; step<getNumSteps(); step++)
+    for (int step = 0; step < getNumSteps(); step++)
     {
         const auto &sf = m_stepfiles.at(step);
-        auto predictions = std::make_shared<Eigen::MatrixXd>(restoreModel(sf)->predict(mode, f));
-        ret.push_back(predictions);
+        auto predictions = restoreModel(sf)->predict(mode, f);
+        if (!average)
+            average = std::make_shared<Eigen::MatrixXd>(predictions);
+        else
+            *average += predictions;
+
+        if (save_freq > 0 && (step % save_freq) == 0)
+        {
+            auto filename = m_config.getSavePrefix() + "/predictions-sample-" + std::to_string(step) + m_config.getSaveExtension();
+            if (m_config.getVerbose())
+            {
+                std::cout << "-- Saving sample " << step << " to " << filename << "." << std::endl;
+            }
+            matrix_io::eigen::write_matrix(filename, predictions);
+        }
     }
 
-    return ret;
+    (*average) /= (double)getNumSteps();
+
+    if (save_freq != 0)
+    {
+        auto filename = m_config.getSavePrefix() + "/predictions-average" + m_config.getSaveExtension();
+        if (m_config.getVerbose())
+        {
+            std::cout << "-- Saving average predictions to " << filename << "." << std::endl;
+        }
+        matrix_io::eigen::write_matrix(filename, *average);
+    }
+
+    return average;
 }
 
 } // end namespace smurff
