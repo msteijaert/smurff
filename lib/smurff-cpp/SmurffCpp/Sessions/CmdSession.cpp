@@ -149,7 +149,8 @@ fill_config(const po::variables_map &vm)
         std::string root_name = vm[ROOT_NAME].as<std::string>();
         config.setRootName(root_name);
 
-        if (!vm.count(PREDICT_NAME))
+        //  skip if predict-session
+        if (!vm.count(PREDICT_NAME) && !vm.count(ROW_FEAT_NAME) && !vm.count(COL_FEAT_NAME))
             RootFile(root_name).restoreConfig(config);
     }
 
@@ -238,7 +239,7 @@ Config smurff::parse_options(int argc, char *argv[])
         TRAIN_NAME, TEST_NAME, PRIOR_NAME, BURNIN_NAME, NSAMPLES_NAME, NUM_LATENT_NAME};
 
     //-- prediction only
-    if (vm.count(PREDICT_NAME))
+    if (vm.count(PREDICT_NAME) || vm.count(COL_FEAT_NAME) || vm.count(ROW_FEAT_NAME))
     {
         if (!vm.count(ROOT_NAME))
             THROWERROR("Need --root option in predict mode");
