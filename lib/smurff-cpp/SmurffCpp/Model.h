@@ -167,12 +167,13 @@ std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatri
    auto Umean = U(mode).rowwise().mean();
 
    const auto &beta = *m_link_matrices.at(mode);
-   auto ret = std::make_shared<Eigen::MatrixXd>(f.rows(), nlatent());
-   *ret = (beta * f) + Umean;
+   auto ret = std::make_shared<Eigen::MatrixXd>(nlatent(), f.rows());
+   *ret = f * beta.transpose();
+   ret->colwise() = Umean;
    #if 0
    std::cout << "beta =\n" << beta.transpose() << std::endl;
    std::cout << "f =\n" << f << std::endl;
-   std::cout << "beta * f =\n" << beta * f << std::endl;
+   std::cout << "f * beta.transpose() =\n" << f * beta.transpose() << std::endl;
    std::cout << "Umean: " << U(mode).rowwise().mean().transpose() << std::endl;
    std::cout << "U: " << U(mode) << std::endl;
    std::cout << "ret: " << ret->transpose() << std::endl;
