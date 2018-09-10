@@ -168,15 +168,15 @@ std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatri
 
    const auto &beta = *m_link_matrices.at(mode);
    auto ret = std::make_shared<Eigen::MatrixXd>(nlatent(), f.rows());
-   *ret = f * beta.transpose();
-   ret->colwise() = Umean;
+   *ret = beta * f.transpose();
+   ret->colwise() += Umean;
    #if 0
    std::cout << "beta =\n" << beta.transpose() << std::endl;
    std::cout << "f =\n" << f << std::endl;
-   std::cout << "f * beta.transpose() =\n" << f * beta.transpose() << std::endl;
-   std::cout << "Umean: " << U(mode).rowwise().mean().transpose() << std::endl;
+   std::cout << "beta * f.transpose() =\n" << beta * f.transpose() << std::endl;
+   std::cout << "Umean: " << Umean << std::endl;
    std::cout << "U: " << U(mode) << std::endl;
-   std::cout << "ret: " << ret->transpose() << std::endl;
+   std::cout << "ret: " << *ret << std::endl;
    #endif
 
    return ret;
@@ -191,6 +191,13 @@ const Eigen::MatrixXd Model::predict(int mode, const FeatMatrix& f)
    auto latent = predict_latent(mode, f);
 
    int othermode = (mode+1) % 2;
+
+   #if 0
+   std::cout << "predicted latent: " << *latent << std::endl;
+   std::cout << "other U: " << U(othermode) << std::endl;
+   std::cout << "ret: " << latent->transpose() * U(othermode) << std::endl;
+   #endif
+
    return latent->transpose() * U(othermode);
 }
 
