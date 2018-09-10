@@ -100,6 +100,11 @@ std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f
 
     for (int step = 0; step < getNumSteps(); step++)
     {
+        if (m_config.getVerbose())
+        {
+            std::cout << "Out-of-matrix prediction step " << step << "/" << getNumSteps() << "." << std::endl;
+        }
+ 
         const auto &sf = m_stepfiles.at(step);
         auto predictions = restoreModel(sf)->predict(mode, f);
         if (!average)
