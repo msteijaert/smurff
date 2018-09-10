@@ -176,6 +176,7 @@ public:
    void setRowFeatures(std::shared_ptr<MatrixConfig> value)
    {
       m_row_features = value;
+      m_action = ActionTypes::predict;
    }
 
    std::shared_ptr<MatrixConfig> getColFeatures() const
@@ -186,6 +187,7 @@ public:
    void setColFeatures(std::shared_ptr<MatrixConfig> value)
    {
       m_col_features = value;
+      m_action = ActionTypes::predict;
    }
 
 
