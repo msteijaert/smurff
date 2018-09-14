@@ -45,6 +45,7 @@
 #define INIT_MODEL_TAG "init_model"
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
+#define POSTPROP_TAG "post_prop"
 
 using namespace smurff;
 
@@ -124,6 +125,7 @@ int Config::BURNIN_DEFAULT_VALUE = 200;
 int Config::NSAMPLES_DEFAULT_VALUE = 800;
 int Config::NUM_LATENT_DEFAULT_VALUE = 96;
 int Config::NUM_THREADS_DEFAULT_VALUE = 0; // as many as you want
+bool Config::POSTPROP_DEFAULT_VALUE = false;
 ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
 const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "";
 const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".ddm";
@@ -140,6 +142,7 @@ int Config::RANDOM_SEED_DEFAULT_VALUE = 0;
 Config::Config()
 {
    m_action = Config::ACTION_DEFAULT_VALUE;
+   m_postprop = Config::POSTPROP_DEFAULT_VALUE;
    m_model_init_type = Config::INIT_MODEL_DEFAULT_VALUE;
 
    m_save_prefix = Config::SAVE_PREFIX_DEFAULT_VALUE;
@@ -402,6 +405,7 @@ void Config::save(std::string fname) const
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG, std::to_string(m_random_seed_set));
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, std::to_string(m_random_seed));
    ini.appendItem(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(m_model_init_type));
+   ini.appendItem(GLOBAL_SECTION_TAG, POSTPROP_TAG, std::to_string(m_postprop));
 
    //probit prior data
    ini.appendComment("binary classification");
@@ -511,6 +515,7 @@ bool Config::restore(std::string fname)
    m_random_seed_set = reader.getBoolean(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG,  false);
    m_random_seed = reader.getInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
    m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
+   m_postprop = reader.getBoolean(GLOBAL_SECTION_TAG, POSTPROP_TAG, Config::POSTPROP_DEFAULT_VALUE);
 
    //restore probit prior data
    m_classify = reader.getBoolean(GLOBAL_SECTION_TAG, CLASSIFY_TAG,  false);

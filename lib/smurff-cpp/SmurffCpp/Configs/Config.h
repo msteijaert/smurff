@@ -63,6 +63,7 @@ public:
    static int NSAMPLES_DEFAULT_VALUE;
    static int NUM_LATENT_DEFAULT_VALUE;
    static int NUM_THREADS_DEFAULT_VALUE;
+   static bool POSTPROP_DEFAULT_VALUE;
    static ModelInitTypes INIT_MODEL_DEFAULT_VALUE;
    static const char* SAVE_PREFIX_DEFAULT_VALUE;
    static const char* SAVE_EXTENSION_DEFAULT_VALUE;
@@ -93,6 +94,7 @@ private:
 
    // -- priors
    std::vector<PriorTypes> m_prior_types;
+   bool m_postprop;
 
    //-- init model
    ModelInitTypes m_model_init_type;
@@ -253,6 +255,16 @@ public:
           m_prior_types.push_back(stringToPriorType(value));
       }
       return m_prior_types;
+   }
+
+   bool getPosteriorProp() const
+   {
+       return m_postprop;
+   }
+
+   void setPosteriorProp(bool value) 
+   {
+      m_postprop = value;
    }
 
    ModelInitTypes getModelInitType() const
