@@ -19,6 +19,11 @@ public:
   // hyperparams
   Eigen::VectorXd mu; 
   Eigen::MatrixXd Lambda;
+
+  // PP hyperparams
+  std::shared_ptr<Eigen::MatrixXd> mu_pp; // array of size N to vector of size K 
+  std::shared_ptr<Eigen::MatrixXd> Lambda_pp; // array of size N  to matrix of size K x K
+
   Eigen::MatrixXd WI;
   Eigen::VectorXd mu0;
 
@@ -39,6 +44,7 @@ public:
   //however successors of this class can override this method
   //for example in MacauPrior mu depends on Uhat.col(n)
   virtual const Eigen::VectorXd getMu(int n) const;
+  virtual const Eigen::MatrixXd getLambda(int n) const;
   
   void sample_latent(int n) override;
 

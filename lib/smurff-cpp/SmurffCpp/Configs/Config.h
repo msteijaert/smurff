@@ -94,7 +94,11 @@ private:
 
    // -- priors
    std::vector<PriorTypes> m_prior_types;
+
+   // -- posterior propagation
    bool m_postprop;
+   std::shared_ptr<MatrixConfig> m_mu_postprop;
+   std::shared_ptr<MatrixConfig> m_lambda_postprop;
 
    //-- init model
    ModelInitTypes m_model_init_type;
@@ -265,6 +269,26 @@ public:
    void setPosteriorProp(bool value) 
    {
       m_postprop = value;
+   }
+
+   std::shared_ptr<MatrixConfig> getMuPosteriorProp() const
+   {
+       return m_mu_postprop;
+   }
+
+   void setMuPosteriorProp(std::shared_ptr<MatrixConfig> value)
+   {
+       m_mu_postprop = value;
+   }
+
+   std::shared_ptr<MatrixConfig> getLambdaPosteriorProp() const
+   {
+       return m_lambda_postprop;
+   }
+
+   void setLambdaPosteriorProp(std::shared_ptr<MatrixConfig> value)
+   {
+       m_lambda_postprop = value;
    }
 
    ModelInitTypes getModelInitType() const

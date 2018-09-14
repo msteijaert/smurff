@@ -43,13 +43,34 @@ void NormalPrior::init()
    mu0.setZero();
    b0 = 2;
    df = K;
+
+   const auto &config = m_session->getConfig();
+   if (config.getPosteriorProp())
+   {
+      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getMuPosteriorProp()));
+      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getLambdaPosteriorProp()));
+   }
 }
 
 const Eigen::VectorXd NormalPrior::getMu(int n) const
 {
+   if (m_session->getConfig().getPosteriorProp())
+   {
+      return mu_pp->col(n);
+   }
+   //else
    return mu;
 }
 
+const Eigen::MatrixXd NormalPrior::getLambda(int n) const
+{
+   if (m_session->getConfig().getPosteriorProp())
+   {
+      return Eigen::Map<Eigen::MatrixXd>(Lambda_pp->col(n).data(), num_latent(), num_latent());
+   }
+   //else
+   return Lambda;
+}
 void NormalPrior::update_prior()
 {
    std::tie(mu, Lambda) = CondNormalWishart(num_cols(), getUUsum(), getUsum(), mu0, b0, WI, df);
@@ -59,6 +80,7 @@ void NormalPrior::update_prior()
 void  NormalPrior::sample_latent(int n)
 {
    const auto &mu_u = getMu(n);
+   const auto &Lambda_u = getLambda(n);
 
    VectorXd &rr = rrs.local();
    MatrixXd &MM = MMs.local();
@@ -70,8 +92,8 @@ void  NormalPrior::sample_latent(int n)
    data().getMuLambda(model(), m_mode, n, rr, MM);
 
    // add hyperparams
-   rr.noalias() += Lambda * mu_u;
-   MM.noalias() += Lambda;
+   rr.noalias() += Lambda_u * mu_u;
+   MM.noalias() += Lambda_u;
 
    //Solve system of linear equations for x: MM * x = rr - not exactly correct  because we have random part
    //Sample from multivariate normal distribution with mean rr and precision matrix MM
