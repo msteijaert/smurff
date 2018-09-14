@@ -142,7 +142,6 @@ int Config::RANDOM_SEED_DEFAULT_VALUE = 0;
 Config::Config()
 {
    m_action = Config::ACTION_DEFAULT_VALUE;
-   m_postprop = Config::POSTPROP_DEFAULT_VALUE;
    m_model_init_type = Config::INIT_MODEL_DEFAULT_VALUE;
 
    m_save_prefix = Config::SAVE_PREFIX_DEFAULT_VALUE;
@@ -405,7 +404,7 @@ void Config::save(std::string fname) const
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG, std::to_string(m_random_seed_set));
    ini.appendItem(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, std::to_string(m_random_seed));
    ini.appendItem(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(m_model_init_type));
-   ini.appendItem(GLOBAL_SECTION_TAG, POSTPROP_TAG, std::to_string(m_postprop));
+
 
    //probit prior data
    ini.appendComment("binary classification");
@@ -436,6 +435,13 @@ void Config::save(std::string fname) const
    {
       TensorConfig::save_tensor_config(ini, AUX_DATA_PREFIX, sIndex, m_auxData.at(sIndex));
    }
+
+   //write posterior propagation
+   for (auto p : m_mu_postprop)
+       TensorConfig::save_tensor_config(ini, MU_POSTPROC_PREFIX, p.first, p.second);
+
+   for (auto p : m_lambda_postprop)
+       TensorConfig::save_tensor_config(ini, LAMBDA_POSTPROC_PREFIX, p.first, p.second);
 }
 
 bool Config::restore(std::string fname)

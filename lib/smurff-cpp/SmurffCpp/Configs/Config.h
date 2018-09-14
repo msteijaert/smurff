@@ -96,9 +96,8 @@ private:
    std::vector<PriorTypes> m_prior_types;
 
    // -- posterior propagation
-   bool m_postprop;
-   std::shared_ptr<MatrixConfig> m_mu_postprop;
-   std::shared_ptr<MatrixConfig> m_lambda_postprop;
+   std::map<int, std::shared_ptr<MatrixConfig> > m_mu_postprop;
+   std::map<int, std::shared_ptr<MatrixConfig> > m_lambda_postprop;
 
    //-- init model
    ModelInitTypes m_model_init_type;
@@ -261,35 +260,31 @@ public:
       return m_prior_types;
    }
 
-   bool getPosteriorProp() const
+   bool hasPosteriorProp(int mode) const
    {
-       return m_postprop;
+       return m_mu_postprop.find(mode) != m_mu_postprop.end();
    }
 
-   void setPosteriorProp(bool value) 
+   void addPosteriorProp(int mode,
+                         std::shared_ptr<MatrixConfig> mu,
+                         std::shared_ptr<MatrixConfig> lambda)
    {
-      m_postprop = value;
+       m_mu_postprop[mode] = mu;
+       m_lambda_postprop[mode] = lambda;
    }
 
-   std::shared_ptr<MatrixConfig> getMuPosteriorProp() const
+   std::shared_ptr<MatrixConfig> getMuPosteriorProp(int mode) const
    {
-       return m_mu_postprop;
+       return m_mu_postprop.find(mode);
    }
 
-   void setMuPosteriorProp(std::shared_ptr<MatrixConfig> value)
+
+   std::shared_ptr<MatrixConfig> getLambdaPosteriorProp(int mode) const
    {
-       m_mu_postprop = value;
+       return m_lambda_postprop.find(mode);
    }
 
-   std::shared_ptr<MatrixConfig> getLambdaPosteriorProp() const
-   {
-       return m_lambda_postprop;
-   }
 
-   void setLambdaPosteriorProp(std::shared_ptr<MatrixConfig> value)
-   {
-       m_lambda_postprop = value;
-   }
 
    ModelInitTypes getModelInitType() const
    {
