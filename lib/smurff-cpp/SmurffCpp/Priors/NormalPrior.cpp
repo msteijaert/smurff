@@ -48,7 +48,8 @@ void NormalPrior::init()
    if (config.hasPosteriorProp(getMode()))
    {
       mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getMuPosteriorProp(getMode())));
-      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getLambdaPosteriorProp(getMode())));
+      Lambda_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getLambdaPosteriorProp(getMode())));
+      m_name += " with posterior propagation";
    }
 }
 

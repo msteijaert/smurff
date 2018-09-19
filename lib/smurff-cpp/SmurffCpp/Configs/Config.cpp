@@ -21,6 +21,8 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 
+#define NONE_TAG "none"
+
 #define GLOBAL_SECTION_TAG "global"
 #define TRAIN_SECTION_TAG "train"
 #define TEST_SECTION_TAG "test"
@@ -46,9 +48,9 @@
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
 
-#define POSTPROP_TAG "post_prop"
-#define LAMBDA_POSTPROC_PREFIX "post_prop_lambda"
-#define MU_POSTPROC_PREFIX "post_prop_mu"
+#define POSTPROP_PREFIX "prop_posterior"
+#define LAMBDA_TAG "Lambda"
+#define MU_TAG "mu"
 
 using namespace smurff;
 
@@ -128,7 +130,6 @@ int Config::BURNIN_DEFAULT_VALUE = 200;
 int Config::NSAMPLES_DEFAULT_VALUE = 800;
 int Config::NUM_LATENT_DEFAULT_VALUE = 96;
 int Config::NUM_THREADS_DEFAULT_VALUE = 0; // as many as you want
-bool Config::POSTPROP_DEFAULT_VALUE = false;
 ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
 const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "";
 const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".ddm";
@@ -358,6 +359,13 @@ bool Config::validate() const
    return true;
 }
 
+static std::string add_index(const std::string name, int idx = -1)
+{
+    if (idx >= 0)
+        return name + "_" + std::to_string(idx);
+    return name;
+}
+
 void Config::save(std::string fname) const
 {
    INIFile ini;
@@ -440,11 +448,16 @@ void Config::save(std::string fname) const
    }
 
    //write posterior propagation
-   for (auto p : m_mu_postprop)
-       TensorConfig::save_tensor_config(ini, MU_POSTPROC_PREFIX, p.first, p.second);
-
-   for (auto p : m_lambda_postprop)
-       TensorConfig::save_tensor_config(ini, LAMBDA_POSTPROC_PREFIX, p.first, p.second);
+   for (std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
+   {
+       if (hasPosteriorProp(pIndex))
+       {
+           auto section = add_index(POSTPROP_PREFIX, pIndex);
+           ini.startSection(section);
+           ini.appendItem(section, MU_TAG, getMuPosteriorProp(pIndex)->getFilename());
+           ini.appendItem(section, LAMBDA_TAG, getLambdaPosteriorProp(pIndex)->getFilename());
+       }
+   }
 }
 
 bool Config::restore(std::string fname)
@@ -460,12 +473,7 @@ bool Config::restore(std::string fname)
       return false;
    }
 
-   auto add_index = [](const std::string name, int idx = -1) -> std::string
-   {
-      if (idx >= 0)
-         return name + "_" + std::to_string(idx);
-      return name;
-   };
+
 
    //restore train data
    setTest(TensorConfig::restore_tensor_config(reader, TEST_SECTION_TAG));
@@ -505,6 +513,36 @@ bool Config::restore(std::string fname)
    for(std::size_t pIndex = 0; pIndex < num_aux_data; pIndex++)
    {
       m_auxData.push_back(TensorConfig::restore_tensor_config(reader, add_index(AUX_DATA_PREFIX, pIndex)));
+   }
+
+   // restore posterior propagated data
+   for(std::size_t pIndex = 0; pIndex < num_priors; pIndex++)
+   {
+       auto mu = std::shared_ptr<MatrixConfig>();
+       auto lambda = std::shared_ptr<MatrixConfig>();
+
+       {
+           std::string filename = reader.get(add_index(POSTPROP_PREFIX, pIndex), MU_TAG, NONE_TAG);
+           if (filename != NONE_TAG)
+           {
+               mu = matrix_io::read_matrix(filename, false);
+               mu->setFilename(filename);
+           }
+       }
+
+       {
+           std::string filename = reader.get(add_index(POSTPROP_PREFIX, pIndex), LAMBDA_TAG, NONE_TAG);
+           if (filename != NONE_TAG)
+           {
+               lambda = matrix_io::read_matrix(filename, false);
+               lambda->setFilename(filename);
+           }
+       }
+
+       if (mu && lambda)
+       {
+           addPosteriorProp(pIndex, mu, lambda);
+       }
    }
 
    //restore save data
