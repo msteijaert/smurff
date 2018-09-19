@@ -275,13 +275,13 @@ public:
 
    std::shared_ptr<MatrixConfig> getMuPosteriorProp(int mode) const
    {
-       return m_mu_postprop.find(mode);
+       return m_mu_postprop.find(mode)->second;
    }
 
 
    std::shared_ptr<MatrixConfig> getLambdaPosteriorProp(int mode) const
    {
-       return m_lambda_postprop.find(mode);
+       return m_lambda_postprop.find(mode)->second;
    }
 
 

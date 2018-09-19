@@ -45,7 +45,10 @@
 #define INIT_MODEL_TAG "init_model"
 #define CLASSIFY_TAG "classify"
 #define THRESHOLD_TAG "threshold"
+
 #define POSTPROP_TAG "post_prop"
+#define LAMBDA_POSTPROC_PREFIX "post_prop_lambda"
+#define MU_POSTPROC_PREFIX "post_prop_mu"
 
 using namespace smurff;
 
@@ -521,7 +524,6 @@ bool Config::restore(std::string fname)
    m_random_seed_set = reader.getBoolean(GLOBAL_SECTION_TAG, RANDOM_SEED_SET_TAG,  false);
    m_random_seed = reader.getInteger(GLOBAL_SECTION_TAG, RANDOM_SEED_TAG, Config::RANDOM_SEED_DEFAULT_VALUE);
    m_model_init_type = stringToModelInitType(reader.get(GLOBAL_SECTION_TAG, INIT_MODEL_TAG, modelInitTypeToString(Config::INIT_MODEL_DEFAULT_VALUE)));
-   m_postprop = reader.getBoolean(GLOBAL_SECTION_TAG, POSTPROP_TAG, Config::POSTPROP_DEFAULT_VALUE);
 
    //restore probit prior data
    m_classify = reader.getBoolean(GLOBAL_SECTION_TAG, CLASSIFY_TAG,  false);

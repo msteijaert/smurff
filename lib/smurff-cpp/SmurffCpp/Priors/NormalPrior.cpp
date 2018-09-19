@@ -45,16 +45,16 @@ void NormalPrior::init()
    df = K;
 
    const auto &config = m_session->getConfig();
-   if (config.getPosteriorProp())
+   if (config.hasPosteriorProp(getMode()))
    {
-      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getMuPosteriorProp()));
-      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getLambdaPosteriorProp()));
+      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getMuPosteriorProp(getMode())));
+      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getLambdaPosteriorProp(getMode())));
    }
 }
 
 const Eigen::VectorXd NormalPrior::getMu(int n) const
 {
-   if (m_session->getConfig().getPosteriorProp())
+   if (m_session->getConfig().hasPosteriorProp(getMode()))
    {
       return mu_pp->col(n);
    }
@@ -64,7 +64,7 @@ const Eigen::VectorXd NormalPrior::getMu(int n) const
 
 const Eigen::MatrixXd NormalPrior::getLambda(int n) const
 {
-   if (m_session->getConfig().getPosteriorProp())
+   if (m_session->getConfig().hasPosteriorProp(getMode()))
    {
       return Eigen::Map<Eigen::MatrixXd>(Lambda_pp->col(n).data(), num_latent(), num_latent());
    }
