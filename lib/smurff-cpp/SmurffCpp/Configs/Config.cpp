@@ -356,6 +356,34 @@ bool Config::validate() const
 
    m_train->getNoiseConfig().validate();
 
+   // validate propagated posterior
+   for(uint64_t i=0; i<getTrain()->getNModes(); ++i)
+   {
+       if (hasPosteriorProp(i))
+       {
+           THROWERROR_ASSERT_MSG(
+               getMuPosteriorProp(i)->getNCol() == getTrain()->getDims().at(i),
+               "mu of propagated posterior in mode " + std::to_string(i) + 
+               " should have same number of columns as train in mode"
+           );
+           THROWERROR_ASSERT_MSG(
+               getLambdaPosteriorProp(i)->getNCol() == getTrain()->getDims().at(i),
+               "Lambda of propagated posterior in mode " + std::to_string(i) + 
+               " should have same number of columns as train in mode"
+           );
+           THROWERROR_ASSERT_MSG(
+               (int)getMuPosteriorProp(i)->getNRow() == getNumLatent(),
+               "mu of propagated posterior in mode " + std::to_string(i) + 
+               " should have num-latent rows"
+           );
+           THROWERROR_ASSERT_MSG(
+               (int)getLambdaPosteriorProp(i)->getNRow() == getNumLatent() * getNumLatent(),
+               "mu of propagated posterior in mode " + std::to_string(i) +
+                   " should have num-latent^2 rows"
+           );
+       }
+   }
+
    return true;
 }
 
