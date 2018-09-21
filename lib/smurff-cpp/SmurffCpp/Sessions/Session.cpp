@@ -370,11 +370,14 @@ std::shared_ptr<StatusItem> Session::getStatus() const
 
     ret->train_rmse = data().train_rmse(model());
 
-    ret->rmse_avg = m_pred->rmse_avg;
-    ret->rmse_1sample = m_pred->rmse_1sample;
+    if (m_pred)
+    {
+        ret->rmse_avg = m_pred->rmse_avg;
+        ret->rmse_1sample = m_pred->rmse_1sample;
 
-    ret->auc_avg = m_pred->auc_avg;
-    ret->auc_1sample = m_pred->auc_1sample;
+        ret->auc_avg = m_pred->auc_avg;
+        ret->auc_1sample = m_pred->auc_1sample;
+    }
 
     ret->elapsed_iter = m_secs_per_iter;
     ret->elapsed_total = m_secs_total;
