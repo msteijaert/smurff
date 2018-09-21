@@ -404,6 +404,25 @@ cdef class TrainSession:
         self.noise_config = prepare_noise_config(noise)
         self.config.addSideInfoConfig(mode, prepare_sideinfo(Y, self.noise_config, tol, direct))
 
+    def addPropagatedPosterior(self, mode, mu, Lambda):
+        """Adds mu and Lambda from propagated posterior
+
+        mode : int
+            dimension to add side info (rows = 0, cols = 1)
+
+        mu : :class: `numpy.ndarray` matrix
+            mean matrix  
+            mu should have as many rows as `num_latent`
+            mu should have as many columns as size of dimension `mode` in `train`
+
+        Lambda : :class: `numpy.ndarray` matrix
+            co-variance matrix  
+            Lambda should have as many rows as `num_latent ^ 2`
+            Lambda should have as many columns as size of dimension `mode` in `train`
+        """
+        self.config.addPropagatedPosterior(mode, prepare_dense_matrix(mu), prepare_dense_matrix(Lambda))
+
+
     def addData(self, pos, Y, is_scarce = False, noise = PyNoiseConfig()):
         """Stacks more matrices/tensors next to the main train matrix.
 

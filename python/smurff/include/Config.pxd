@@ -42,6 +42,10 @@ cdef extern from "<SmurffCpp/Configs/Config.h>" namespace "smurff":
         #-- aux data
         vector[shared_ptr[TensorConfig]]& addAuxData(shared_ptr[TensorConfig])
 
+        #-- propagated posterior
+        void addPropagatedPosterior(int mode, shared_ptr[MatrixConfig] mu, shared_ptr[MatrixConfig] Lambda)
+
+
         #-- priors
         vector[PriorTypes]& setPriorTypes(vector[string])
 
