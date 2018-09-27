@@ -359,25 +359,25 @@ bool Config::validate() const
    // validate propagated posterior
    for(uint64_t i=0; i<getTrain()->getNModes(); ++i)
    {
-       if (hasPosteriorProp(i))
+       if (hasPropagetedPosterio(i))
        {
            THROWERROR_ASSERT_MSG(
-               getMuPosteriorProp(i)->getNCol() == getTrain()->getDims().at(i),
+               getMuPropagetedPosterio(i)->getNCol() == getTrain()->getDims().at(i),
                "mu of propagated posterior in mode " + std::to_string(i) + 
                " should have same number of columns as train in mode"
            );
            THROWERROR_ASSERT_MSG(
-               getLambdaPosteriorProp(i)->getNCol() == getTrain()->getDims().at(i),
+               getLambdaPropagetedPosterio(i)->getNCol() == getTrain()->getDims().at(i),
                "Lambda of propagated posterior in mode " + std::to_string(i) + 
                " should have same number of columns as train in mode"
            );
            THROWERROR_ASSERT_MSG(
-               (int)getMuPosteriorProp(i)->getNRow() == getNumLatent(),
+               (int)getMuPropagetedPosterio(i)->getNRow() == getNumLatent(),
                "mu of propagated posterior in mode " + std::to_string(i) + 
                " should have num-latent rows"
            );
            THROWERROR_ASSERT_MSG(
-               (int)getLambdaPosteriorProp(i)->getNRow() == getNumLatent() * getNumLatent(),
+               (int)getLambdaPropagetedPosterio(i)->getNRow() == getNumLatent() * getNumLatent(),
                "mu of propagated posterior in mode " + std::to_string(i) +
                    " should have num-latent^2 rows"
            );
@@ -478,12 +478,12 @@ void Config::save(std::string fname) const
    //write posterior propagation
    for (std::size_t pIndex = 0; pIndex < m_prior_types.size(); pIndex++)
    {
-       if (hasPosteriorProp(pIndex))
+       if (hasPropagetedPosterio(pIndex))
        {
            auto section = add_index(POSTPROP_PREFIX, pIndex);
            ini.startSection(section);
-           ini.appendItem(section, MU_TAG, getMuPosteriorProp(pIndex)->getFilename());
-           ini.appendItem(section, LAMBDA_TAG, getLambdaPosteriorProp(pIndex)->getFilename());
+           ini.appendItem(section, MU_TAG, getMuPropagetedPosterio(pIndex)->getFilename());
+           ini.appendItem(section, LAMBDA_TAG, getLambdaPropagetedPosterio(pIndex)->getFilename());
        }
    }
 }
@@ -569,7 +569,7 @@ bool Config::restore(std::string fname)
 
        if (mu && lambda)
        {
-           addPosteriorProp(pIndex, mu, lambda);
+           addPropagatedPosterior(pIndex, mu, lambda);
        }
    }
 

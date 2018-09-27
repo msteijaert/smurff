@@ -260,12 +260,12 @@ public:
       return m_prior_types;
    }
 
-   bool hasPosteriorProp(int mode) const
+   bool hasPropagetedPosterio(int mode) const
    {
        return m_mu_postprop.find(mode) != m_mu_postprop.end();
    }
 
-   void addPosteriorProp(int mode,
+   void addPropagatedPosterior(int mode,
                          std::shared_ptr<MatrixConfig> mu,
                          std::shared_ptr<MatrixConfig> lambda)
    {
@@ -273,13 +273,13 @@ public:
        m_lambda_postprop[mode] = lambda;
    }
 
-   std::shared_ptr<MatrixConfig> getMuPosteriorProp(int mode) const
+   std::shared_ptr<MatrixConfig> getMuPropagetedPosterio(int mode) const
    {
        return m_mu_postprop.find(mode)->second;
    }
 
 
-   std::shared_ptr<MatrixConfig> getLambdaPosteriorProp(int mode) const
+   std::shared_ptr<MatrixConfig> getLambdaPropagetedPosterio(int mode) const
    {
        return m_lambda_postprop.find(mode)->second;
    }

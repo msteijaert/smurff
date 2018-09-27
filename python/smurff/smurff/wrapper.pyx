@@ -420,7 +420,12 @@ cdef class TrainSession:
             Lambda should have as many rows as `num_latent ^ 2`
             Lambda should have as many columns as size of dimension `mode` in `train`
         """
-        self.config.addPropagatedPosterior(mode, prepare_dense_matrix(mu), prepare_dense_matrix(Lambda))
+        self.noise_config = prepare_noise_config(PyNoiseConfig())
+        self.config.addPropagatedPosterior(
+            mode,
+            shared_ptr[MatrixConfig](prepare_dense_matrix(mu, self.noise_config)),
+            shared_ptr[MatrixConfig](prepare_dense_matrix(Lambda, self.noise_config))
+        )
 
 
     def addData(self, pos, Y, is_scarce = False, noise = PyNoiseConfig()):
