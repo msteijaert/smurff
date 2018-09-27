@@ -176,7 +176,7 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
 
 void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
 {
-   if (!m_pred || m_pred->isEmpty())
+   if (m_pred->isEmpty())
       return;
 
    m_pred->save(shared_from_this());
@@ -259,8 +259,7 @@ void StepFile::restorePred(std::shared_ptr<Result> m_pred) const
    if (!hasIniValueBase(PRED_SEC_TAG, PRED_STATE_TAG))
       return;
 
-   if (m_pred)
-       m_pred->restore(shared_from_this());
+   m_pred->restore(shared_from_this());
 }
 
 void StepFile::restorePriors(std::vector<std::shared_ptr<ILatentPrior> >& priors) const

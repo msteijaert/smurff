@@ -85,6 +85,10 @@ void Session::setFromBase()
         if (m_config.getClassify())
             m_pred->setThreshold(m_config.getThreshold());
     }
+    else 
+    {
+        m_pred = std::make_shared<Result>();
+    }
 
     // initialize data
 
@@ -167,11 +171,8 @@ bool Session::step()
         data().update(model());
         auto endi = tick();
 
-        if (m_pred)
-        {
-            //WARNING: update is an expensive operation because of sort (when calculating AUC)
-            m_pred->update(m_model, m_iter < m_config.getBurnin());
-        }
+        //WARNING: update is an expensive operation because of sort (when calculating AUC)
+        m_pred->update(m_model, m_iter < m_config.getBurnin());
 
         m_secs_per_iter = endi - starti;
         m_secs_total += m_secs_per_iter;
@@ -199,12 +200,9 @@ std::ostream &Session::info(std::ostream &os, std::string indent) const
     for (auto &p : m_priors)
         p->info(os, indent + "    ");
     os << indent << "  }" << std::endl;
-    if (m_pred)
-    {
-        os << indent << "  Result: {" << std::endl;
-        m_pred->info(os, indent + "    ");
-        os << indent << "  }" << std::endl;
-    }
+    os << indent << "  Result: {" << std::endl;
+    m_pred->info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
     os << indent << "  Config: {" << std::endl;
     m_config.info(os, indent + "    ");
     os << indent << "  }" << std::endl;
@@ -376,14 +374,11 @@ std::shared_ptr<StatusItem> Session::getStatus() const
 
     ret->train_rmse = data().train_rmse(model());
 
-    if (m_pred)
-    {
-        ret->rmse_avg = m_pred->rmse_avg;
-        ret->rmse_1sample = m_pred->rmse_1sample;
+    ret->rmse_avg = m_pred->rmse_avg;
+    ret->rmse_1sample = m_pred->rmse_1sample;
 
-        ret->auc_avg = m_pred->auc_avg;
-        ret->auc_1sample = m_pred->auc_1sample;
-    }
+    ret->auc_avg = m_pred->auc_avg;
+    ret->auc_1sample = m_pred->auc_1sample;
 
     ret->elapsed_iter = m_secs_per_iter;
     ret->elapsed_total = m_secs_total;
