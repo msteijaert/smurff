@@ -281,19 +281,18 @@ void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pre
 
 void StepFile::removeModel() const
 {
-   std::uint64_t index = 0;
-   while (true)
-   {
-      std::string path = getModelFileName(index++);
-      if (!generic_io::file_exists(path))
-         break;
+    for (std::uint32_t mode = 0; mode < getNModes(); ++mode)
+    {
+        if (!hasModel(mode))
+            continue;
 
-      std::remove(path.c_str());
-   }
+        std::string path = getModelFileName(mode);
+        std::remove(path.c_str());
+    }
 
-   std::int32_t nModels = getNModes();
-   for(std::int32_t i = 0; i < nModels; i++)
-      removeFromStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(i));
+    std::int32_t nModels = getNModes();
+    for (std::int32_t i = 0; i < nModels; i++)
+        removeFromStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(i));
 }
 
 void StepFile::removePred() const
@@ -307,24 +306,25 @@ void StepFile::removePred() const
 
 void StepFile::removePriors() const
 {
-   std::uint32_t mode = 0;
-   while (true)
-   {
-      std::string path = getLinkMatrixFileName(mode++);
-      if (path == NONE_TAG)
-         break;
+    for (std::uint32_t mode = 0; mode < getNModes(); ++mode)
+    {
+        if (!hasLinkMatrix(mode)) 
+            continue;
+            
+        std::string path = getLinkMatrixFileName(mode++);
+        std::remove(path.c_str());
+    }
 
-      std::remove(path.c_str());
-   }
-
-   for (std::int32_t i = 0; i < getNModes(); i++)
-      removeFromStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
+    for (std::int32_t i = 0; i < getNModes(); i++)
+        removeFromStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
 }
 
 void StepFile::remove(bool model, bool pred, bool priors) const
 {
    if (m_iniReader->empty()) 
        return;
+       
+    std::cout << "remove " << getStepFileName() << std::endl;
 
    //remove all model files
    if(model)
