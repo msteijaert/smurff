@@ -167,8 +167,11 @@ bool Session::step()
         data().update(model());
         auto endi = tick();
 
-        //WARNING: update is an expensive operation because of sort (when calculating AUC)
-        m_pred->update(m_model, m_iter < m_config.getBurnin());
+        if (m_pred)
+        {
+            //WARNING: update is an expensive operation because of sort (when calculating AUC)
+            m_pred->update(m_model, m_iter < m_config.getBurnin());
+        }
 
         m_secs_per_iter = endi - starti;
         m_secs_total += m_secs_per_iter;
@@ -196,9 +199,12 @@ std::ostream &Session::info(std::ostream &os, std::string indent) const
     for (auto &p : m_priors)
         p->info(os, indent + "    ");
     os << indent << "  }" << std::endl;
-    os << indent << "  Result: {" << std::endl;
-    m_pred->info(os, indent + "    ");
-    os << indent << "  }" << std::endl;
+    if (m_pred)
+    {
+        os << indent << "  Result: {" << std::endl;
+        m_pred->info(os, indent + "    ");
+        os << indent << "  }" << std::endl;
+    }
     os << indent << "  Config: {" << std::endl;
     m_config.info(os, indent + "    ");
     os << indent << "  }" << std::endl;
