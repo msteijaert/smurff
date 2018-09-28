@@ -49,8 +49,12 @@ namespace smurff {
       std::string getModelFileName(std::uint64_t index) const;
       std::string getLinkMatrixFileName(std::uint32_t mode) const;
       std::string getPredFileName() const;
-
       std::string getPredStateFileName() const;
+
+      std::string makeModelFileName(std::uint64_t index) const;
+      std::string makeLinkMatrixFileName(std::uint32_t mode) const;
+      std::string makePredFileName() const;
+      std::string makePredStateFileName() const;
 
    public:
       void saveModel(std::shared_ptr<const Model> model) const;

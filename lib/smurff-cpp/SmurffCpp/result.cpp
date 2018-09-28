@@ -95,7 +95,7 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
    if (isEmpty())
       return;
 
-   std::string fname_pred = sf->getPredFileName();
+   std::string fname_pred = sf->makePredFileName();
    std::ofstream predFile;
 
    if (sf->isBinary())
@@ -134,7 +134,7 @@ void Result::savePredState(std::shared_ptr<const StepFile> sf) const
    if (isEmpty())
       return;
 
-   std::string predStateName = sf->getPredStateFileName();
+   std::string predStateName = sf->makePredStateFileName();
 
    INIFile predStatefile;
    predStatefile.create(predStateName);

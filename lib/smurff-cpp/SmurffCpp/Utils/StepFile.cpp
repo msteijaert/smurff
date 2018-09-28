@@ -108,9 +108,12 @@ bool StepFile::hasModel(std::uint64_t index) const
 std::string StepFile::getModelFileName(std::uint64_t index) const
 {
    auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(index));
-   if (modelIt.first)
-      return modelIt.second;
+   THROWERROR_ASSERT(modelIt.first);
+   return modelIt.second;
+}
 
+std::string StepFile::makeModelFileName(std::uint64_t index) const
+{
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
    return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
@@ -125,9 +128,12 @@ bool StepFile::hasLinkMatrix(std::uint32_t mode) const
 std::string StepFile::getLinkMatrixFileName(std::uint32_t mode) const
 {
    auto linkMatrixIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(mode));
-   if (linkMatrixIt.first)
-      return linkMatrixIt.second;
+   THROWERROR_ASSERT(linkMatrixIt.first);
+   return linkMatrixIt.second;
+}
 
+std::string StepFile::makeLinkMatrixFileName(std::uint32_t mode) const
+{
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
@@ -139,25 +145,32 @@ bool StepFile::hasPred() const
    return predIt.first;
 }
 
+
 std::string StepFile::getPredFileName() const
 {
    auto predIt = tryGetIniValueFullPath(PRED_SEC_TAG, PRED_TAG);
-   if (predIt.first)
-      return predIt.second; 
+   THROWERROR_ASSERT(predIt.first);
+   return predIt.second;
+}
 
-   std::string prefix = getStepPrefix();
-   std::string extension = isBinary() ? ".bin" : ".csv";
-   return prefix + "-predictions" + extension;
+std::string StepFile::makePredFileName() const
+{
+    std::string prefix = getStepPrefix();
+    std::string extension = isBinary() ? ".bin" : ".csv";
+    return prefix + "-predictions" + extension;
 }
 
 std::string StepFile::getPredStateFileName() const
 {
    auto predStateIt = tryGetIniValueFullPath(PRED_SEC_TAG, PRED_STATE_TAG);
-   if (predStateIt.first)
-      return predStateIt.second; 
+   THROWERROR_ASSERT(predStateIt.first);
+   return predStateIt.second;
+}
 
-   std::string prefix = getStepPrefix();
-   return prefix + "-predictions-state.ini";
+std::string StepFile::makePredStateFileName() const
+{
+    std::string prefix = getStepPrefix();
+    return prefix + "-predictions-state.ini";
 }
 
 //save methods
@@ -169,7 +182,7 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    //save models
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
-      std::string path = getModelFileName(mIndex);
+      std::string path = makeModelFileName(mIndex);
       appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path);
    }
 }
@@ -183,8 +196,8 @@ void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
 
    //save predictions
 
-   appendToStepFile(PRED_SEC_TAG, PRED_TAG, getPredFileName());
-   appendToStepFile(PRED_SEC_TAG, PRED_STATE_TAG, getPredStateFileName());
+   appendToStepFile(PRED_SEC_TAG, PRED_TAG, makePredFileName());
+   appendToStepFile(PRED_SEC_TAG, PRED_STATE_TAG, makePredStateFileName());
 }
 
 void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
@@ -194,7 +207,7 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
    {
       if (p->save(shared_from_this()))
       {
-          std::string priorPath = getLinkMatrixFileName(priors.at(pIndex)->getMode());
+          std::string priorPath = makeLinkMatrixFileName(priors.at(pIndex)->getMode());
           appendToStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), priorPath);
       }
       else 
