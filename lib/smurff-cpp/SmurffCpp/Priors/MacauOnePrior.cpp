@@ -167,7 +167,7 @@ bool MacauOnePrior::save(std::shared_ptr<const StepFile> sf) const
 {
    NormalOnePrior::save(sf);
 
-   std::string path = sf->getLinkMatrixFileName(m_mode);
+   std::string path = sf->makeLinkMatrixFileName(m_mode);
    smurff::matrix_io::eigen::write_matrix(path, beta);
 
    return true;
