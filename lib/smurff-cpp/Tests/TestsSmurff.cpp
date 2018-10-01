@@ -3081,7 +3081,8 @@ TEST_CASE("PredictSession/Features/2"
     auto in_matrix_predictions = predict_session.predict(config.getTest())->m_predictions;
 
     auto sideInfoMatrix = matrix_utils::sparse_to_eigen(*rowSideInfoConfig->getSideInfo());
-    for (int r = 0; r < config.getTrain()->getDims()[0]; r++)
+    int d = config.getTrain()->getDims()[0];
+    for (int r = 0; r < d; r++)
     {
         auto feat = sideInfoMatrix.row(r).transpose();
         auto out_of_matrix_predictions = predict_session.predict(0, feat);
