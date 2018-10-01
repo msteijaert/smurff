@@ -16,7 +16,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std::vector<smurff::ResultItem>> actualResults)
+void printActualResults(int nr, double actualRmseAvg, const std::vector<smurff::ResultItem>& actualResults)
 {
    std::ofstream os("expected_results/TestsSmurff_" + std::to_string(nr) + ".h", std::ofstream::out);
 
@@ -25,9 +25,8 @@ void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std:
       << "   std::vector<ResultItem> expectedResults = \n"
       << "      {\n";
 
-   for (std::vector<smurff::ResultItem>::size_type i = 0; i < actualResults->size(); i++)
+   for (const auto &actualResultItem : actualResults) 
    {
-      const smurff::ResultItem &actualResultItem = actualResults->operator[](i);
       os << std::setprecision(16);
       os << "         { { " << actualResultItem.coords << " }, "
          << actualResultItem.val << ", "
@@ -41,8 +40,8 @@ void printActualResults(int nr, double actualRmseAvg, const std::shared_ptr<std:
 }
 
 
-#define PRINT_ACTUAL_RESULTS(nr)
-// #define PRINT_ACTUAL_RESULTS(nr) printActualResults(nr, actualRmseAvg, actualResults);
+//#define PRINT_ACTUAL_RESULTS(nr)
+#define PRINT_ACTUAL_RESULTS(nr) printActualResults(nr, actualRmseAvg, actualResults);
 
 // https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
 // By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
@@ -64,6 +63,7 @@ static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 #define HIDE_TWO_DIMENTIONAL_TENSOR_TESTS "[!hide]"
 #define HIDE_THREE_DIMENTIONAL_TENSOR_TESTS "[!hide]"
 #define HIDE_VS_TESTS "[!hide]"
+#warning Skipping all tests that depend on random seed. Enable these using -DENABLE_BOOST_RANDOM=ON in Cmake
 #endif
 
 
@@ -179,7 +179,7 @@ std::shared_ptr<MatrixConfig> getColAuxDataDenseMatrixConfig()
 
 std::shared_ptr<MatrixConfig> getRowSideInfoDenseMatrixConfig()
 {
-   NoiseConfig nc(NoiseTypes::adaptive);
+   NoiseConfig nc(NoiseTypes::sampled);
    nc.setPrecision(10.0);
 
    std::vector<double> rowSideInfoDenseMatrixConfigVals = { 1, 2, 3 };
@@ -190,7 +190,7 @@ std::shared_ptr<MatrixConfig> getRowSideInfoDenseMatrixConfig()
 
 std::shared_ptr<MatrixConfig> getColSideInfoDenseMatrixConfig()
 {
-   NoiseConfig nc(NoiseTypes::adaptive);
+   NoiseConfig nc(NoiseTypes::sampled);
    nc.setPrecision(10.0);
 
    std::vector<double> colSideInfoDenseMatrixConfigVals = { 1, 2, 3, 4 };
@@ -201,7 +201,7 @@ std::shared_ptr<MatrixConfig> getColSideInfoDenseMatrixConfig()
 
 std::shared_ptr<MatrixConfig> getRowSideInfoSparseMatrixConfig()
 {
-   NoiseConfig nc(NoiseTypes::adaptive);
+   NoiseConfig nc(NoiseTypes::sampled);
    nc.setPrecision(10.0);
 
    std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigRows = {0, 1, 2};
@@ -214,7 +214,7 @@ std::shared_ptr<MatrixConfig> getRowSideInfoSparseMatrixConfig()
 
 std::shared_ptr<MatrixConfig> getColSideInfoSparseMatrixConfig()
 {
-   NoiseConfig nc(NoiseTypes::adaptive);
+   NoiseConfig nc(NoiseTypes::sampled);
    nc.setPrecision(10.0);
 
    std::vector<std::uint32_t> colSideInfoSparseMatrixConfigRows = {0, 1, 2, 3};
@@ -227,7 +227,7 @@ std::shared_ptr<MatrixConfig> getColSideInfoSparseMatrixConfig()
 
 std::shared_ptr<MatrixConfig> getRowSideInfoDenseMatrix3dConfig()
 {
-   NoiseConfig nc(NoiseTypes::adaptive);
+   NoiseConfig nc(NoiseTypes::sampled);
    nc.setPrecision(10.0);
 
    std::vector<double> rowSideInfoDenseMatrixConfigVals = { 1, 2, 3, 4, 5, 6 };
@@ -2897,7 +2897,7 @@ TEST_CASE(
    REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults);
 }
 
-TEST_CASE("PredictSession")
+TEST_CASE("PredictSession/BPMF")
 {
    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
@@ -2918,7 +2918,7 @@ TEST_CASE("PredictSession")
 
    //std::cout << "Prediction from Session RMSE: " << session->getRmseAvg() << std::endl;
 
-   std::string root_fname =  session->getRootFile()->getRootFileName();
+   std::string root_fname =  session->getRootFile()->getFullPath();
    auto rf = std::make_shared<RootFile>(root_fname);
 
    {
@@ -2938,5 +2938,165 @@ TEST_CASE("PredictSession")
 
         //std::cout << "Prediction from RootFile+Config RMSE: " << result->rmse_avg << std::endl;
         REQUIRE(session->getRmseAvg()  == Approx(result->rmse_avg).epsilon(APPROX_EPSILON));
+    }
+}
+
+//=================================================================
+
+//
+//      train: dense matrix
+//       test: sparse matrix
+//     priors: macau normal
+//   features: row_side_info_dense_matrix none
+// num-latent: 4
+//     burnin: 50
+//   nsamples: 50
+//    verbose: 0
+//       seed: 1234
+//     direct: true
+//
+TEST_CASE("PredictSession/Features/1"
+   , HIDE_MATRIX_TESTS)
+{
+    std::shared_ptr<MatrixConfig> trainDenseMatrixConfig = getTrainDenseMatrixConfig();
+    std::shared_ptr<MatrixConfig> testSparseMatrixConfig = getTestSparseMatrixConfig();
+    std::shared_ptr<SideInfoConfig> rowSideInfoDenseMatrixConfig = getRowSideInfoDenseConfig();
+
+    Config config;
+    config.setTrain(trainDenseMatrixConfig);
+    config.setTest(testSparseMatrixConfig);
+    config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
+    config.addSideInfoConfig(0, rowSideInfoDenseMatrixConfig);
+    config.setNumLatent(4);
+    config.setBurnin(50);
+    config.setNSamples(50);
+    config.setVerbose(false);
+    config.setNumThreads(1);
+    config.setRandomSeed(1234);
+    config.setSaveFreq(1);
+
+    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+    session->run();
+
+    PredictSession predict_session(session->getRootFile());
+
+    auto sideInfoMatrix = matrix_utils::dense_to_eigen(*rowSideInfoDenseMatrixConfig->getSideInfo());
+    auto trainMatrix = smurff::matrix_utils::dense_to_eigen(*trainDenseMatrixConfig);
+
+    #if 0
+    std::cout << "sideInfo =\n" << sideInfoMatrix << std::endl;
+    std::cout << "train    =\n" << trainMatrix << std::endl;
+    #endif
+
+    for(int r = 0; r<sideInfoMatrix.rows(); r++)
+    {
+        #if 0
+        std::cout << "=== row " << r << " ===\n";
+        #endif
+
+        auto predictions = predict_session.predict(0, sideInfoMatrix.row(r));
+        #if 0
+        int i = 0;
+        for (auto P : predictions)
+        {
+            std::cout << "p[" << i++ << "] = " << P->transpose() << std::endl;
+        }
+        #endif
+    }
+}
+
+
+TEST_CASE("PredictSession/Features/2"
+   , HIDE_MATRIX_TESTS)
+{
+    /* 
+         BetaPrecision: 1.00
+    U = np.array([ [ 1, 2, -1, -2  ] ])
+    V = np.array([ [ 2, 2, 1, 2 ] ])
+    U*V = 
+      [[ 2,  2,  1,  2],
+       [ 4,  4,  2,  4],
+       [-2, -2, -1, -2],
+       [-4, -4, -2, -4]])
+    */
+
+    std::shared_ptr<MatrixConfig> trainMatrixConfig;
+    {
+        std::vector<std::uint32_t> trainMatrixConfigRows = {0, 0, 1, 1, 2, 2};
+        std::vector<std::uint32_t> trainMatrixConfigCols = {0, 1, 2, 3, 0, 1};
+        std::vector<double> trainMatrixConfigVals = {2, 2, 2, 4, -2, -2};
+        //std::vector<std::uint32_t> trainMatrixConfigRows = {0, 0, 1, 1, 2, 2, 3, 3};
+        //std::vector<std::uint32_t> trainMatrixConfigCols = {0, 1, 2, 3, 0, 1, 2, 3};
+        //std::vector<double> trainMatrixConfigVals = {2, 2, 2, 4, -2, -2, -2, -4};
+        fixed_ncfg.setPrecision(1.);
+        trainMatrixConfig = std::make_shared<MatrixConfig>(4, 4, std::move(trainMatrixConfigRows), std::move(trainMatrixConfigCols),
+            std::move(trainMatrixConfigVals), fixed_ncfg, true);
+    }
+
+    std::shared_ptr<MatrixConfig> testMatrixConfig;
+    {
+        std::vector<std::uint32_t> testMatrixConfigRows = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
+        std::vector<std::uint32_t> testMatrixConfigCols = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3};
+        std::vector<double> testMatrixConfigVals = {
+            2, 2, 1, 2,
+            4, 4, 2, 4,
+            -2, -2, -1, -2,
+            -4, -4, -2, -4};
+        testMatrixConfig =
+            std::make_shared<MatrixConfig>(4, 4, std::move(testMatrixConfigRows), std::move(testMatrixConfigCols), std::move(testMatrixConfigVals), fixed_ncfg, true);
+    }
+
+    std::shared_ptr<SideInfoConfig> rowSideInfoConfig;
+    {
+        NoiseConfig nc(NoiseTypes::sampled);
+        nc.setPrecision(10.0);
+
+        std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigRows = {0, 1, 2, 3};
+        std::vector<std::uint32_t> rowSideInfoSparseMatrixConfigCols = {0, 0, 0, 0};
+        std::vector<double> rowSideInfoSparseMatrixConfigVals = {2, 4, -2, -4};
+
+        auto mcfg =
+            std::make_shared<MatrixConfig>(4, 1, std::move(rowSideInfoSparseMatrixConfigRows),
+                std::move(rowSideInfoSparseMatrixConfigCols), std::move(rowSideInfoSparseMatrixConfigVals), nc, true);
+
+        rowSideInfoConfig = std::make_shared<SideInfoConfig>();
+        rowSideInfoConfig->setSideInfo(mcfg);
+        rowSideInfoConfig->setDirect(true);
+    }
+    Config config;
+    config.setTrain(trainMatrixConfig);
+    config.setTest(testMatrixConfig);
+    config.setPriorTypes({PriorTypes::macau, PriorTypes::normal});
+    config.addSideInfoConfig(0, rowSideInfoConfig);
+    config.setNumLatent(4);
+    config.setBurnin(50);
+    config.setNSamples(50);
+    config.setVerbose(0);
+    config.setSaveFreq(1);
+
+    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
+    session->run();
+
+    PredictSession predict_session(session->getRootFile());
+    auto in_matrix_predictions = predict_session.predict(config.getTest())->m_predictions;
+
+    auto sideInfoMatrix = matrix_utils::sparse_to_eigen(*rowSideInfoConfig->getSideInfo());
+    int d = config.getTrain()->getDims()[0];
+    for (int r = 0; r < d; r++)
+    {
+        auto feat = sideInfoMatrix.row(r).transpose();
+        auto out_of_matrix_predictions = predict_session.predict(0, feat);
+        //Eigen::VectorXd out_of_matrix_averages = out_of_matrix_predictions->colwise().mean();
+
+#undef DEBUG_OOM_PREDICT
+#ifdef DEBUG_OOM_PREDICT
+        for (auto p : in_matrix_predictions)
+        {
+            if (p.coords[0] == r) {
+                std::cout << "in: " << p << std::endl;
+                std::cout << "  out: " << out_of_matrix_averages.row(p.coords[1]) << std::endl;
+            }
+        }
+#endif
     }
 }

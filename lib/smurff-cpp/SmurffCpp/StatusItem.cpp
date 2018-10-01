@@ -13,7 +13,7 @@ std::string StatusItem::asString() const
     output << phase << " " << std::setfill(' ') << std::setw(3) << iter << "/" << std::setfill(' ') << std::setw(3) << phase_iter
            << ": RMSE: " << std::fixed << std::setprecision(4) << rmse_avg << " (1samp: " << std::fixed << std::setprecision(4) << rmse_1sample << ")";
 
-    if (auc_avg >= 0.0)
+    if (auc_1sample >= 0.0)
     {
         output << " AUC:" << std::fixed << std::setprecision(4) << auc_avg << " (1samp: " << std::fixed << std::setprecision(4) << auc_1sample << ")";
     }

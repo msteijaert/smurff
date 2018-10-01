@@ -49,3 +49,45 @@ bool smurff::startsWith(const std::string& str, const std::string& prefix)
 
    return std::equal(prefix.begin(), prefix.end(), str.begin());
 }
+
+std::string smurff::stripPrefix(const std::string& str,  const std::string& prefix)
+{
+   //protection from out of range exception
+   if (str.length() < prefix.length())
+      return str;
+
+   if (str.substr(0, prefix.size()) != prefix)
+      return str;
+   
+   return fileName(str);
+}
+
+
+std::string smurff::fileName(const std::string& str)
+{
+   auto pos = str.find_last_of("/");
+   if (std::string::npos == pos)
+      return str;
+     
+   return str.substr(pos+1);
+}
+
+std::string smurff::dirName(const std::string& str)
+{
+   auto pos = str.find_last_of("/");
+   if (std::string::npos == pos) 
+      return std::string();
+     
+   return str.substr(0, pos+1);
+}
+
+std::string smurff::addDirName(const std::string& str,  const std::string& dirname)
+{
+   if (str.size() >0 && str[0] == '/')
+      return str;
+     
+   return dirname + str;
+}
+
+
+

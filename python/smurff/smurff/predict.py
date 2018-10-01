@@ -17,35 +17,41 @@ except ImportError:
 
 from .result import Prediction
 
-def read_config_file(file_name):
-    cp = ConfigParser()
+def read_config_file(file_name, dir_name = None):
+    cp = ConfigParser(strict=False)
 
-    with open(file_name) as f:
+    if dir_name:
+        full_name = os.path.join(dir_name, file_name)
+    else:
+        full_name = file_name
+
+    with open(full_name) as f:
         try:
-            cp.read_file(f, file_name)
+            cp.read_file(f, full_name)
         except AttributeError:
-            cp.readfp(f, file_name)
+            cp.readfp(f, full_name)
 
     return cp
 
 class Sample:
     @classmethod
-    def fromStepFile(cls, file_name, iter):
-        cp = read_config_file(file_name)
-        nmodes = int(cp["models"]["num_models"])
+    def fromStepFile(cls, file_name, dir_name):
+        cp = read_config_file(file_name, dir_name)
+        nmodes = int(cp["global"]["num_modes"])
+        iter = int(cp["global"]["number"])
         sample = cls(nmodes, iter)
 
         # latent matrices
         for i in range(sample.nmodes):
-            file_name = cp["models"]["model_" + str(i)]
+            file_name = os.path.join(dir_name, cp["latents"]["latents_" + str(i)])
             sample.add_latent(mio.read_matrix(file_name))
 
         # link matrices (beta)
         for i in range(sample.nmodes):
-            file_name = cp["priors"]["prior_" + str(i)]
-            try:
-                sample.add_beta(mio.read_matrix(file_name))
-            except FileNotFoundError:
+            file_name = cp["link_matrices"]["link_matrix_" + str(i)]
+            if (file_name != 'none'):
+                sample.add_beta(mio.read_matrix(os.path.join(dir_name, file_name)))
+            else:
                 sample.add_beta(np.ndarray((0, 0)))
 
         return sample
@@ -116,11 +122,14 @@ class PredictSession:
 
     or from a root file
 
-    >>> predict_session = PredictSession.fromRootFile("save-root.ini")
+    >>> predict_session = PredictSession("root.ini")
 
     """
     @classmethod
     def fromRootFile(cls, root_file):
+        return PredictSession(root_file)
+
+    def __init__(self, root_file):
         """Creates a :class:`PredictSession` from a give root file
  
         Parameters
@@ -129,38 +138,31 @@ class PredictSession:
            Name of the root file.
  
         """
-        cp = read_config_file(root_file)
-        options = read_config_file(cp["options"]["options"])
+        self.root_config = cp = read_config_file(root_file)
+        self.root_dir = os.path.dirname(root_file)
+        self.options = read_config_file(cp["options"]["options"], self.root_dir)
 
-        session = cls(options.getint("global", "num_priors"))
+        self.nmodes = self.options.getint("global", "num_priors")
+        assert self.nmodes == 2
+
+        # load only one sample
         for step_name, step_file in cp["steps"].items():
             if (step_name.startswith("sample_step")):
-                iter = int(step_name[len("sample_step_"):])
-                session.add_sample(Sample.fromStepFile(step_file, iter))
+                one_sample = Sample.fromStepFile(step_file, self.root_dir)
+                self.num_latent = one_sample.num_latent()
+                self.data_shape = one_sample.data_shape()
+                self.beta_shape = one_sample.beta_shape()
+                return
 
-        assert len(session.samples) > 0
+        raise ValueError("No samples found in " + root_file)
 
-        return session
-
-    def __init__(self, nmodes):
-        assert nmodes == 2
-        self.nmodes = nmodes
-        self.samples = []
-
-    def add_sample(self, sample):
-        self.samples.append(sample)
-
-    def num_latent(self):
-        return self.samples[0].num_latent()
-
-    def data_shape(self):
-        return self.samples[0].data_shape()
-
-    def beta_shape(self):
-        return self.samples[0].beta_shape()
+    def samples(self):
+        for step_name, step_file in self.root_config["steps"].items():
+            if (step_name.startswith("sample_step")):
+                yield Sample.fromStepFile(step_file, self.root_dir)
 
     def predict(self, coords_or_sideinfo=None):
-        return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples])
+        return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples()])
 
     def predict_all(self):
         """Computes the full prediction matrix/tensor.
@@ -191,7 +193,7 @@ class PredictSession:
         """        
         predictions = Prediction.fromTestMatrix(test_matrix)
 
-        for s in self.samples:
+        for s in self.samples():
             for p in predictions:
                 p.add_sample(s.predict(p.coords))
 
@@ -212,13 +214,13 @@ class PredictSession:
             The prediction
 
         """
-        p = Prediction(coords, value)
-        for s in self.samples:
+        p = Prediction(coords_or_sideinfo, value)
+        for s in self.samples():
             p.add_sample(s.predict(p.coords))
 
         return p
 
     def __str__(self):
-        dat = (len(self.samples), self.data_shape(),
+        dat = (-1, self.data_shape(),
                self.beta_shape(), self.num_latent())
         return "PredictSession with %d samples\n  Data shape = %s\n  Beta shape = %s\n  Num latent = %d" % dat

@@ -4,7 +4,7 @@
 using namespace smurff;
 using namespace Eigen;
 
-NormalOnePrior::NormalOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name)
+NormalOnePrior::NormalOnePrior(std::shared_ptr<Session> session, uint32_t mode, std::string name)
    : ILatentPrior(session, mode, name)
 {
 

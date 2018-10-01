@@ -4,7 +4,7 @@
 using namespace smurff;
 using namespace Eigen;
 
-ILatentPrior::ILatentPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name)
+ILatentPrior::ILatentPrior(std::shared_ptr<Session> session, uint32_t mode, std::string name)
    : m_session(session), m_mode(mode), m_name(name)
 {
 
@@ -123,8 +123,9 @@ void ILatentPrior::sample_latents()
    update_prior();
 }
 
-void ILatentPrior::save(std::shared_ptr<const StepFile> sf) const
+bool ILatentPrior::save(std::shared_ptr<const StepFile> sf) const
 {
+    return false;
 }
 
 void ILatentPrior::restore(std::shared_ptr<const StepFile> sf)

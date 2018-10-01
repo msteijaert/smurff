@@ -3,7 +3,7 @@
 import unittest
 import numpy as np
 import scipy as sp
-from smurff import mean, center, std, scale, center_and_scale
+from smurff.center import mean, center, std, scale, center_and_scale
 
 class TestCentering(unittest.TestCase):
     def test_rows_centering(self):

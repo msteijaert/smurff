@@ -19,7 +19,16 @@
 #include <SmurffCpp/Utils/RootFile.h>
 #include <SmurffCpp/Utils/StringUtils.h>
 
+using namespace smurff;
+
+static const char *INI_NAME = "ini";
+static const char *ROOT_NAME = "root";
+
+#ifdef HAVE_BOOST
+
 static const char *PREDICT_NAME = "predict";
+static const char *ROW_FEAT_NAME = "row-features";
+static const char *COL_FEAT_NAME = "col-features";
 static const char *HELP_NAME = "help";
 static const char *PRIOR_NAME = "prior";
 static const char *TEST_NAME = "test";
@@ -36,12 +45,6 @@ static const char *THRESHOLD_NAME = "threshold";
 static const char *VERBOSE_NAME = "verbose";
 static const char *VERSION_NAME = "version";
 static const char *SEED_NAME = "seed";
-static const char *INI_NAME = "ini";
-static const char *ROOT_NAME = "root";
-
-using namespace smurff;
-
-#ifdef HAVE_BOOST
 
 namespace po = boost::program_options;
 
@@ -69,6 +72,8 @@ po::options_description get_desc()
     po::options_description predict_desc("Used during prediction");
     predict_desc.add_options()
 	(PREDICT_NAME, po::value<std::string>(), "sparse matrix with values to predict")
+	(ROW_FEAT_NAME, po::value<std::string>(), "sparse/dense row features for out-of-matrix predictions")
+	(COL_FEAT_NAME, po::value<std::string>(), "sparse/dense col features for out-of-matrix predictions")
 	(THRESHOLD_NAME, po::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
 
     po::options_description save_desc("Storing models and predictions");
@@ -101,6 +106,16 @@ struct ConfigFiller
             (config.*Func)(vm[name].as<T>());
     }
 
+    template <void (Config::*Func)(std::shared_ptr<MatrixConfig>)>
+    void set_matrix(std::string name, bool set_noise)
+    {
+        if (vm.count(name) && !vm[name].defaulted())
+        {
+            auto matrix_config = matrix_io::read_matrix(vm[name].as<std::string>(), true);
+            matrix_config->setNoiseConfig(NoiseConfig(NoiseConfig::NOISE_TYPE_DEFAULT_VALUE));
+            (this->config.*Func)(matrix_config); 
+        }
+    }
     template <void (Config::*Func)(std::shared_ptr<TensorConfig>)>
     void set_tensor(std::string name, bool set_noise)
     {
@@ -111,7 +126,7 @@ struct ConfigFiller
             (this->config.*Func)(tensor_config); 
         }
     }
-    
+        
     void set_priors(std::string name)
     {
         if (vm.count(name) && !vm[name].defaulted())
@@ -134,7 +149,8 @@ fill_config(const po::variables_map &vm)
         std::string root_name = vm[ROOT_NAME].as<std::string>();
         config.setRootName(root_name);
 
-        if (!vm.count(PREDICT_NAME))
+        //  skip if predict-session
+        if (!vm.count(PREDICT_NAME) && !vm.count(ROW_FEAT_NAME) && !vm.count(COL_FEAT_NAME))
             RootFile(root_name).restoreConfig(config);
     }
 
@@ -148,6 +164,8 @@ fill_config(const po::variables_map &vm)
     }
 
     filler.set_tensor<&Config::setPredict>(PREDICT_NAME, false);
+    filler.set_matrix<&Config::setRowFeatures>(ROW_FEAT_NAME, false);
+    filler.set_matrix<&Config::setColFeatures>(COL_FEAT_NAME, false);
     filler.set_tensor<&Config::setTest>(TEST_NAME, false);
     filler.set_tensor<&Config::setTrain>(TRAIN_NAME, true);
 
@@ -221,7 +239,7 @@ Config smurff::parse_options(int argc, char *argv[])
         TRAIN_NAME, TEST_NAME, PRIOR_NAME, BURNIN_NAME, NSAMPLES_NAME, NUM_LATENT_NAME};
 
     //-- prediction only
-    if (vm.count(PREDICT_NAME))
+    if (vm.count(PREDICT_NAME) || vm.count(COL_FEAT_NAME) || vm.count(ROW_FEAT_NAME))
     {
         if (!vm.count(ROOT_NAME))
             THROWERROR("Need --root option in predict mode");

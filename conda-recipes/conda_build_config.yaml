@@ -5,3 +5,6 @@ python:
     - 2.7   # [not win]
     - 3.5   # [not win]
     - 3.6
+
+pin_run_as_build:
+  boost: x.x

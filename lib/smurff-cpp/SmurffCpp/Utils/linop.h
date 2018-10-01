@@ -3,7 +3,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/counters.h>
@@ -296,7 +295,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
 
   // CG iteration:
   int iter = 0;
-  for (iter = 0; iter < 10; iter++) {
+  for (iter = 0; iter < 1000; iter++) {
     // KP = K * P
     ////double t1 = tick();
     AtA_mul_B_switch(KP, K, reg, P, KPtmp);
@@ -332,6 +331,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
 
     Eigen::VectorXd d = RtR2->diagonal();
     //std::cout << "[ iter " << iter << "] " << std::scientific << d.transpose() << " (max: " << d.maxCoeff() << " > " << tolsq << ")" << std::endl;
+    //std::cout << iter << ":" << std::scientific << d.transpose() << std::endl;
     if ( (d.array() < tolsq).all()) {
       break;
     } 
@@ -360,6 +360,15 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////double t6 = tick();
     ////printf("t2-t1 = %.3f, t3-t2 = %.3f, t4-t3 = %.3f, t5-t4 = %.3f, t6-t5 = %.3f\n", t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
   }
+  
+  if (iter == 1000)
+  {
+    Eigen::VectorXd d = RtR2->diagonal().cwiseSqrt();
+    std::cerr << "warning: block_cg: could not find a solution in 1000 iterations; residual: ["
+              << d.transpose() << " ].all() > " << tol << std::endl;
+  }
+
+
   // unnormalizing X:
   #pragma omp parallel for schedule(static) collapse(2)
   for (int feat = 0; feat < nfeat; feat++) 

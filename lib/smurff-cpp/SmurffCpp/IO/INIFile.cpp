@@ -25,6 +25,7 @@ void INIFile::open(const std::string& filename)
 {
    m_filePath = filename;
    m_error = ini_parse(filename.c_str(), ValueHandler, this);
+   THROWERROR_ASSERT_MSG(!m_error, "Error opening file: " + filename);
 }
 
 void INIFile::create(const std::string& filename)

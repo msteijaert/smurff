@@ -62,14 +62,15 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
             prior->addSideInfo(side_info, noise_config.getPrecision(), config_item->getTol(), config_item->getDirect(), false, config_item->getThrowOnCholeskyError());
          }
          break;
-      case NoiseTypes::adaptive:
+      case NoiseTypes::adaptive: // deprecated!
+      case NoiseTypes::sampled:
          {
             prior->addSideInfo(side_info, noise_config.getPrecision(), config_item->getTol(), config_item->getDirect(), true, config_item->getThrowOnCholeskyError());
          }
          break;
       default:
          {
-            THROWERROR("Unexpected noise type " + smurff::noiseTypeToString(noise_config.getNoiseType()) + "specified for macau prior");
+            THROWERROR("Unexpected noise type " + smurff::noiseTypeToString(noise_config.getNoiseType()) + " specified for macau prior. Allowed are: fixed and sampled noise.");
          }
       }
    }

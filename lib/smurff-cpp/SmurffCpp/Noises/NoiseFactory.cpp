@@ -2,6 +2,7 @@
 
 #include <SmurffCpp/Noises/AdaptiveGaussianNoise.h>
 #include <SmurffCpp/Noises/FixedGaussianNoise.h>
+#include <SmurffCpp/Noises/SampledGaussianNoise.h>
 #include <SmurffCpp/Noises/ProbitNoise.h>
 #include <SmurffCpp/Noises/UnusedNoise.h>
 
@@ -15,6 +16,8 @@ std::shared_ptr<INoiseModel> NoiseFactory::create_noise_model(const NoiseConfig&
    {
       case NoiseTypes::fixed:
          return std::shared_ptr<INoiseModel>(new FixedGaussianNoise(config.getPrecision()));
+      case NoiseTypes::sampled:
+         return std::shared_ptr<INoiseModel>(new SampledGaussianNoise(config.getPrecision()));
       case NoiseTypes::adaptive:
          return std::shared_ptr<INoiseModel>(new AdaptiveGaussianNoise(config.getSnInit(), config.getSnMax()));
       case NoiseTypes::probit:

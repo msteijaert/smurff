@@ -7,7 +7,7 @@
 
 using namespace smurff;
 
-MacauOnePrior::MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode)
+MacauOnePrior::MacauOnePrior(std::shared_ptr<Session> session, uint32_t mode)
    : NormalOnePrior(session, mode, "MacauOnePrior")
 {
    bp0 = SideInfoConfig::BETA_PRECISION_DEFAULT_VALUE;
@@ -163,12 +163,14 @@ void MacauOnePrior::sample_beta_precision()
    }
 }
 
-void MacauOnePrior::save(std::shared_ptr<const StepFile> sf) const
+bool MacauOnePrior::save(std::shared_ptr<const StepFile> sf) const
 {
    NormalOnePrior::save(sf);
 
-   std::string path = sf->getLinkMatrixFileName(m_mode);
+   std::string path = sf->makeLinkMatrixFileName(m_mode);
    smurff::matrix_io::eigen::write_matrix(path, beta);
+
+   return true;
 }
 
 void MacauOnePrior::restore(std::shared_ptr<const StepFile> sf)

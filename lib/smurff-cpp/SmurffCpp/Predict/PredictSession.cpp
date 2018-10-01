@@ -5,6 +5,8 @@
 
 #include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Utils/RootFile.h>
+#include <SmurffCpp/Utils/MatrixUtils.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 #include <SmurffCpp/result.h>
 #include <SmurffCpp/ResultItem.h>
 
@@ -42,9 +44,47 @@ PredictSession::PredictSession(const Config &config)
 void PredictSession::run()
 {
     THROWERROR_ASSERT(m_has_config);
-    init();
-    while (step())
-        ;
+
+
+    if (m_config.getTest())
+    {
+        init();
+        while (step())
+            ;
+
+        return;
+    }
+    else
+    {
+        std::shared_ptr<MatrixConfig> side_info;
+        int mode;
+
+        if (m_config.getRowFeatures())
+        {
+            side_info = m_config.getRowFeatures();
+            mode = 0;
+        }
+        else if (m_config.getColFeatures())
+        {
+            side_info = m_config.getColFeatures();
+            mode = 1;
+        }
+        else
+        {
+            THROWERROR("Need either test, row features or col features")
+        }
+
+        if (side_info->isDense())
+        {
+            auto dense_matrix = matrix_utils::dense_to_eigen(*side_info);
+            predict(mode, dense_matrix, m_config.getSaveFreq());
+        }
+        else
+        {
+            auto sparse_matrix = matrix_utils::sparse_to_eigen(*side_info);
+            predict(mode, sparse_matrix, m_config.getSaveFreq());
+        }
+    }
 }
 
 void PredictSession::init()
@@ -52,7 +92,9 @@ void PredictSession::init()
     THROWERROR_ASSERT(m_has_config);
     THROWERROR_ASSERT(m_config.getTest());
     m_result = std::make_shared<Result>(m_config.getTest(), m_config.getNSamples());
+
     m_pos = m_stepfiles.rbegin();
+    m_iter = 0;
     m_is_init = true;
 
     THROWERROR_ASSERT_MSG(m_config.getSavePrefix() != getModelRoot()->getPrefix(),
@@ -61,7 +103,7 @@ void PredictSession::init()
     if (m_config.getSaveFreq())
     {
         // create root file
-        m_pred_rootfile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+        m_pred_rootfile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension(), true);
         m_pred_rootfile->createCsvStatusFile();
         m_pred_rootfile->flushLast();
     }
@@ -80,14 +122,14 @@ bool PredictSession::step()
     auto model = restoreModel(*m_pos);
     m_result->update(model, false);
     double stop = tick();
+    m_iter++;
     m_secs_per_iter = stop - start;
     m_secs_total += m_secs_per_iter;
 
     if (m_config.getVerbose())
         std::cout << getStatus()->asString() << std::endl;
 
-    const auto iter = m_result->sample_iter;
-    if (m_config.getSaveFreq() > 0 && (iter % m_config.getSaveFreq()) == 0)
+    if (m_config.getSaveFreq() > 0 && (m_iter % m_config.getSaveFreq()) == 0)
         save();
 
     auto next_pos = m_pos;
@@ -105,8 +147,7 @@ bool PredictSession::step()
 void PredictSession::save()
 {
     //save this iteration
-    const auto iter = m_result->sample_iter;
-    std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(iter);
+    std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(m_iter);
 
     if (m_config.getVerbose())
     {
@@ -149,7 +190,7 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
 {
     os << indent << "PredictSession {\n";
     os << indent << "  Model {\n";
-    os << indent << "    model root-file: " << getModelRoot()->getRootFileName() << "\n";
+    os << indent << "    model root-file: " << getModelRoot()->getFullPath() << "\n";
     os << indent << "    num-samples: " << getNumSteps() << "\n";
     os << indent << "    num-latent: " << getNumLatent() << "\n";
     os << indent << "    dimensions: " << getModelDims() << "\n";
@@ -160,13 +201,13 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
     {
         os << indent << "    Save predictions: every " << m_config.getSaveFreq() << " iteration\n";
         os << indent << "    Save extension: " << m_config.getSaveExtension() << "\n";
-        os << indent << "    Output root-file: " << getRootFile()->getRootFileName() << "\n";
+        os << indent << "    Output root-file: " << getRootFile()->getFullPath() << "\n";
     }
     else if (m_config.getSaveFreq() < 0)
     {
         os << indent << "    Save predictions after last iteration\n";
         os << indent << "    Save extension: " << m_config.getSaveExtension() << "\n";
-        os << indent << "    Output root-file: " << getRootFile()->getRootFileName() << "\n";
+        os << indent << "    Output root-file: " << getRootFile()->getFullPath() << "\n";
     }
     else
     {
@@ -180,6 +221,7 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
 std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFile> &sf)
 {
     auto model = sf->restoreModel();
+
     if (m_num_latent <= 0)
     {
         m_num_latent = model->nlatent();
@@ -191,7 +233,14 @@ std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFi
         THROWERROR_ASSERT(m_dims == model->getDims());
     }
 
+    THROWERROR_ASSERT(m_num_latent > 0);
+
     return model;
+}
+
+std::shared_ptr<Model> PredictSession::restoreModel(int i)
+{
+    return restoreModel(m_stepfiles.at(i));
 }
 
 // predict one element
@@ -238,12 +287,6 @@ std::shared_ptr<Result> PredictSession::predict(std::shared_ptr<TensorConfig> Y)
     }
 
     return res;
-}
-
-// predict element or elements based on sideinfo
-template <class Feat>
-std::shared_ptr<Result> predict(std::vector<std::shared_ptr<Feat>>)
-{
 }
 
 } // end namespace smurff

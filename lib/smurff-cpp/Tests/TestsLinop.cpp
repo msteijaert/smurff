@@ -179,7 +179,7 @@ TEST_CASE( "MatrixXd/compute_uhat", "compute_uhat for MatrixXd" ) {
    }
 }
 
-TEST_CASE( "linop/solve_blockcg_dense/fail", "BlockCG solver for dense (3rhs separately)" ) 
+TEST_CASE( "linop/solve_blockcg_dense/fail", "BlockCG solver for dense (3rhs separately) [!hide]" ) 
 {
    int rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
    int cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };

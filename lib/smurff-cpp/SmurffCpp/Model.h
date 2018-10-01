@@ -7,6 +7,7 @@
 
 #include <SmurffCpp/Utils/PVec.hpp>
 #include <SmurffCpp/Utils/ThreadVector.hpp>
+#include <SmurffCpp/Utils/Error.h>
 
 #include <SmurffCpp/Configs/Config.h>
 
@@ -33,9 +34,11 @@ class ConstVMatrixIterator;
 class Model : public std::enable_shared_from_this<Model>
 {
 private:
-   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_samples; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_factors; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_link_matrices; //vector of U matrices
+
    int m_num_latent; //size of latent dimention for U matrices
-   PVec<> m_dims; //dimentions of train data
+   PVec<> m_dims; //dimensions of train data
 
    // to make predictions faster
    mutable thread_vector<Eigen::ArrayXd> Pcache;
@@ -47,10 +50,20 @@ public:
    //initialize U matrices in the model (random/zero)
    void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
 
+   void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd>);
+
 public:
    //dot product of i'th columns in each U matrix
    //pos - vector of column indices
    double predict(const PVec<>& pos) const;
+
+   // for each row in feature matrix f: compute latent vector from feature vector
+   template<typename FeatMatrix>
+   std::shared_ptr<Eigen::MatrixXd> predict_latent(int mode, const FeatMatrix& f);
+
+   // for each row in feature matrix f: predict full column based on feature vector
+   template<typename FeatMatrix>
+   const Eigen::MatrixXd predict(int mode, const FeatMatrix& f);
 
 public:
    //return f'th U matrix in the model
@@ -99,6 +112,7 @@ public:
 
 
 
+
 // SubModel is a proxy class that allows to access i'th column of each U matrix in the model
 class SubModel
 {
@@ -142,5 +156,49 @@ public:
       return m_model.nmodes();
    }
 };
+
+
+template<typename FeatMatrix>
+std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatrix& f)
+{
+   THROWERROR_ASSERT_MSG(m_link_matrices.at(mode),
+      "No link matrix available in mode " + std::to_string(mode));
+
+   auto Umean = U(mode).rowwise().mean();
+
+   const auto &beta = *m_link_matrices.at(mode);
+   auto ret = std::make_shared<Eigen::MatrixXd>(nlatent(), f.rows());
+   *ret = beta * f.transpose();
+   ret->colwise() += Umean;
+   #if 0
+   std::cout << "beta =\n" << beta.transpose() << std::endl;
+   std::cout << "f =\n" << f << std::endl;
+   std::cout << "beta * f.transpose() =\n" << beta * f.transpose() << std::endl;
+   std::cout << "Umean: " << Umean << std::endl;
+   std::cout << "U: " << U(mode) << std::endl;
+   std::cout << "ret: " << *ret << std::endl;
+   #endif
+
+   return ret;
+}
+
+template<typename FeatMatrix>
+const Eigen::MatrixXd Model::predict(int mode, const FeatMatrix& f)
+{
+   THROWERROR_ASSERT_MSG(nmodes() == 2,
+      "Only implemented for modes == 2");
+
+   auto latent = predict_latent(mode, f);
+
+   int othermode = (mode+1) % 2;
+
+   #if 0
+   std::cout << "predicted latent: " << *latent << std::endl;
+   std::cout << "other U: " << U(othermode) << std::endl;
+   std::cout << "ret: " << latent->transpose() * U(othermode) << std::endl;
+   #endif
+
+   return latent->transpose() * U(othermode);
+}
 
 };

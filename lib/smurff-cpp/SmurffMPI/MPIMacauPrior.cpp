@@ -4,7 +4,7 @@
 
 using namespace smurff;
 
-MPIMacauPrior::MPIMacauPrior(std::shared_ptr<BaseSession> session, int mode)
+MPIMacauPrior::MPIMacauPrior(std::shared_ptr<Session> session, int mode)
    : MacauPrior(session, mode)
 {
    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -45,8 +45,8 @@ std::ostream& MPIMacauPrior::info(std::ostream &os, std::string indent)
 
 void MPIMacauPrior::sample_beta()
 {
-   const int num_latent = this->beta.rows();
-   const int num_feat = this->beta.cols();
+   const int num_latent = this->m_beta->rows();
+   const int num_feat = this->m_beta->cols();
 
    if (world_rank == 0) {
       this->compute_Ft_y_omp(this->Ft_y);
@@ -81,7 +81,7 @@ void MPIMacauPrior::sample_beta()
       {
          for (int d = 0; d < num_latent; d++)
          {
-            this->beta(d, f) = this->Ft_y(f, d);
+            (*m_beta)(d, f) = this->Ft_y(f, d);
          }
       }
    }

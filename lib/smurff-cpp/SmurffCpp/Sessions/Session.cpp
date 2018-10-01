@@ -12,6 +12,7 @@
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/StringUtils.h>
 #include <SmurffCpp/Configs/Config.h>
 
 #include <SmurffCpp/DataMatrices/DataCreator.h>
@@ -21,6 +22,11 @@
 #include <SmurffCpp/StatusItem.h>
 
 using namespace smurff;
+Session::Session()
+    : m_model(std::make_shared<Model>()), m_pred()
+{
+    name = "Session";
+}
 
 void Session::fromRootPath(std::string rootPath)
 {
@@ -46,13 +52,13 @@ void Session::fromConfig(const Config &cfg)
     if (!cfg.getRootName().empty())
     {
         // open root file
-        m_rootFile = std::make_shared<RootFile>(cfg.getRootName());
+        m_rootFile = std::make_shared<RootFile>(cfg.getRootPrefix(), cfg.getSaveExtension(), false);
     }
     else if (m_config.getSaveFreq() || m_config.getCheckpointFreq())
     {
 
         // create root file
-        m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension());
+        m_rootFile = std::make_shared<RootFile>(m_config.getSavePrefix(), m_config.getSaveExtension(), true);
 
         //save config
         m_rootFile->saveConfig(m_config);
@@ -73,13 +79,15 @@ void Session::setFromBase()
     std::shared_ptr<Session> this_session = shared_from_this();
 
     // initialize pred
-
-    if (m_config.getClassify())
-        m_pred->setThreshold(m_config.getThreshold());
-
     if (m_config.getTest())
     {
-        m_pred->set(m_config.getTest(), m_config.getNSamples());
+        m_pred = std::make_shared<Result>(m_config.getTest());
+        if (m_config.getClassify())
+            m_pred->setThreshold(m_config.getThreshold());
+    }
+    else 
+    {
+        m_pred = std::make_shared<Result>();
     }
 
     // initialize data
@@ -91,6 +99,12 @@ void Session::setFromBase()
     std::shared_ptr<IPriorFactory> priorFactory = this->create_prior_factory();
     for (std::size_t i = 0; i < m_config.getPriorTypes().size(); i++)
         this->addPrior(priorFactory->create_prior(this_session, i));
+}
+
+void Session::addPrior(std::shared_ptr<ILatentPrior> prior)
+{
+   prior->setMode(m_priors.size());
+   m_priors.push_back(prior);
 }
 
 void Session::init()
@@ -146,13 +160,12 @@ bool Session::step()
 
     if (isStep)
     {
-        //init omp
-        threads::enable();
-
         THROWERROR_ASSERT(is_init);
 
         auto starti = tick();
-        BaseSession::step();
+        for (auto &p : m_priors)
+            p->sample_latents();
+        data().update(model());
         auto endi = tick();
 
         //WARNING: update is an expensive operation because of sort (when calculating AUC)
@@ -164,8 +177,6 @@ bool Session::step()
         printStatus(std::cout);
 
         save(m_iter);
-
-        threads::disable();
     }
 
     return isStep;
@@ -174,13 +185,22 @@ bool Session::step()
 std::ostream &Session::info(std::ostream &os, std::string indent) const
 {
     os << indent << name << " {\n";
-
-    BaseSession::info(os, indent);
-
+    os << indent << "  Data: {" << std::endl;
+    data().info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
+    os << indent << "  Model: {" << std::endl;
+    model().info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
+    os << indent << "  Priors: {" << std::endl;
+    for (auto &p : m_priors)
+        p->info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
+    os << indent << "  Result: {" << std::endl;
+    m_pred->info(os, indent + "    ");
+    os << indent << "  }" << std::endl;
     os << indent << "  Config: {" << std::endl;
     m_config.info(os, indent + "    ");
     os << indent << "  }" << std::endl;
-
     os << indent << "}\n";
     return os;
 }
@@ -252,7 +272,8 @@ void Session::saveInternal(std::shared_ptr<StepFile> stepFile)
     }
     double start = tick();
 
-    BaseSession::save(stepFile);
+    stepFile->save(m_model, m_pred, m_priors);
+
 
     //flush last item in a root file
     m_rootFile->flushLast();
@@ -269,7 +290,7 @@ bool Session::restore(int &iteration)
     std::shared_ptr<StepFile> stepFile = nullptr;
     if (m_rootFile)
     {
-        stepFile = m_rootFile->openLastStepFile();
+        stepFile = m_rootFile->openLastCheckpoint();
     }
 
     if (!stepFile)
@@ -289,7 +310,7 @@ bool Session::restore(int &iteration)
             std::cout << "-- Restoring model, predictions,... from '" << stepFile->getStepFileName() << "'." << std::endl;
         }
 
-        BaseSession::restore(stepFile);
+        stepFile->restore(m_model, m_pred, m_priors);
 
         //restore last iteration index
         if (stepFile->isCheckpoint())
@@ -311,6 +332,11 @@ bool Session::restore(int &iteration)
 
         return true;
     }
+}
+
+std::shared_ptr<Result> Session::getResult() const
+{
+   return m_pred;
 }
 
 std::shared_ptr<StatusItem> Session::getStatus() const
@@ -407,7 +433,7 @@ void Session::printStatus(std::ostream &output, bool resume)
 
 std::string StatusItem::getCsvHeader()
 {
-    return "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;elapsed";
+    return "phase;iter;phase_len;rmse_avg;rmse_1samp;train_rmse;auc_avg;auc_1samp;elapsed_1samp;elapsed_total";
 }
 
 std::string StatusItem::asCsvString() const

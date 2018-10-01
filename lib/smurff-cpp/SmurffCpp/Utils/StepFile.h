@@ -42,11 +42,19 @@ namespace smurff {
       std::string getStepFileName() const;
 
    public:
+      bool hasModel(std::uint64_t index) const;
+      bool hasLinkMatrix(std::uint32_t mode) const;
+      bool hasPred() const;
+
       std::string getModelFileName(std::uint64_t index) const;
       std::string getLinkMatrixFileName(std::uint32_t mode) const;
       std::string getPredFileName() const;
-
       std::string getPredStateFileName() const;
+
+      std::string makeModelFileName(std::uint64_t index) const;
+      std::string makeLinkMatrixFileName(std::uint32_t mode) const;
+      std::string makePredFileName() const;
+      std::string makePredStateFileName() const;
 
    public:
       void saveModel(std::shared_ptr<const Model> model) const;
@@ -62,7 +70,6 @@ namespace smurff {
       
       //-- used in PredictSession
       std::shared_ptr<Model> restoreModel() const;
-      std::vector<std::shared_ptr<MatrixConfig>> restoreLinkMatrices() const;
 
       void restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pred, std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
@@ -79,9 +86,7 @@ namespace smurff {
       bool isCheckpoint() const;
 
    public:
-      std::int32_t getNSamples() const;
-
-      std::int32_t getNPriors() const;
+      std::int32_t getNModes() const;
 
    public:
       std::string getIniValueBase(const std::string& section, const std::string& tag) const;
@@ -89,11 +94,13 @@ namespace smurff {
       bool hasIniValueBase(const std::string &section, const std::string& tag) const;
       std::pair<bool, std::string> tryGetIniValueBase(const std::string& section, const std::string& tag) const;
 
+      std::pair<bool, std::string> tryGetIniValueFullPath(const std::string& section, const std::string& tag) const;
+
       void appendToStepFile(std::string section, std::string tag, std::string value) const;
 
       void appendCommentToStepFile(std::string comment) const;
 
-      void removeFromStepFile(std::string tag) const;
+      void removeFromStepFile(std::string section, std::string tag) const;
 
       void flushLast() const;
    };

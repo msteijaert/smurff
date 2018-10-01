@@ -13,7 +13,7 @@ global_verbose = False
 def extract_rmse(stats_file):
     rmse = float("nan")
     try:
-        stats = pd.read_csv(stats_file, sep=";")
+        stats = pd.read_csv(stats_file, sep=";", index_col=False)
         last_row = stats.tail(1)
         rmse = float(last_row['rmse_avg'])
     except Exception as e:
@@ -37,6 +37,7 @@ class TestExCAPE_ini(unittest.TestCase):
                     "train.sdm",
                 ]
             with tempfile.TemporaryDirectory() as tmpdirname:
+                os.makedirs(os.path.join(tmpdirname, "save"))
                 for f in link_files:
                     os.symlink(os.path.join(from_dir, f), os.path.join(tmpdirname, f))
 
@@ -44,7 +45,7 @@ class TestExCAPE_ini(unittest.TestCase):
                 call("smurff --ini " + ini, shell=True, cwd=tmpdirname)
                 stop = time()
                 elapsed = stop - start
-                rmse = extract_rmse(os.path.join(tmpdirname, "save-status.csv"))
+                rmse = extract_rmse(os.path.join(tmpdirname, "save/status.csv"))
 
             self.assertLess(rmse, expected[0])
             self.assertGreater(rmse, expected[1])

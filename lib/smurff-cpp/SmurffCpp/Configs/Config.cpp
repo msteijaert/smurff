@@ -32,6 +32,8 @@
 #define SAVE_PREFIX_TAG "save_prefix"
 #define SAVE_EXTENSION_TAG "save_extension"
 #define SAVE_FREQ_TAG "save_freq"
+#define SAVE_PRED_TAG "save_pred"
+#define SAVE_MODEL_TAG "save_model"
 #define CHECKPOINT_FREQ_TAG "checkpoint_freq"
 #define VERBOSE_TAG "verbose"
 #define BURNING_TAG "burnin"
@@ -126,6 +128,8 @@ ModelInitTypes Config::INIT_MODEL_DEFAULT_VALUE = ModelInitTypes::zero;
 const char* Config::SAVE_PREFIX_DEFAULT_VALUE = "";
 const char* Config::SAVE_EXTENSION_DEFAULT_VALUE = ".ddm";
 int Config::SAVE_FREQ_DEFAULT_VALUE = 0;
+bool Config::SAVE_PRED_DEFAULT_VALUE = true;
+bool Config::SAVE_MODEL_DEFAULT_VALUE = true;
 int Config::CHECKPOINT_FREQ_DEFAULT_VALUE = 0;
 int Config::VERBOSE_DEFAULT_VALUE = 1;
 const char* Config::STATUS_DEFAULT_VALUE = "";
@@ -141,6 +145,8 @@ Config::Config()
    m_save_prefix = Config::SAVE_PREFIX_DEFAULT_VALUE;
    m_save_extension = Config::SAVE_EXTENSION_DEFAULT_VALUE;
    m_save_freq = Config::SAVE_FREQ_DEFAULT_VALUE;
+   m_save_pred = Config::SAVE_PRED_DEFAULT_VALUE;
+   m_save_model = Config::SAVE_MODEL_DEFAULT_VALUE;
    m_checkpoint_freq = Config::CHECKPOINT_FREQ_DEFAULT_VALUE;
 
    m_random_seed_set = false;
@@ -158,16 +164,25 @@ Config::Config()
 
 std::string Config::getSavePrefix() const
 {
+    auto &pfx = m_save_prefix;
 #ifndef _WINDOWS
-    if (m_save_prefix == Config::SAVE_PREFIX_DEFAULT_VALUE)
+    if (pfx == Config::SAVE_PREFIX_DEFAULT_VALUE || pfx.empty())
     {
         char templ[1024] = "/tmp/smurff.XXXXXX";
-        std::string tempdir(mkdtemp(templ));
-        m_save_prefix = tempdir + "/save";
+        pfx = mkdtemp(templ);
     }
 #endif
 
+    if (*pfx.rbegin() != '/') 
+        pfx += "/";
+
     return m_save_prefix;
+}
+
+std::string Config::getRootPrefix() const
+{
+    THROWERROR_ASSERT(fileName(m_root_name) == "root.ini");
+    return dirName(m_root_name);
 }
 
 const std::vector<std::shared_ptr<SideInfoConfig> >& Config::getSideInfoConfigs(int mode) const
@@ -373,6 +388,8 @@ void Config::save(std::string fname) const
    ini.appendItem(GLOBAL_SECTION_TAG, SAVE_PREFIX_TAG, m_save_prefix);
    ini.appendItem(GLOBAL_SECTION_TAG, SAVE_EXTENSION_TAG, m_save_extension);
    ini.appendItem(GLOBAL_SECTION_TAG, SAVE_FREQ_TAG, std::to_string(m_save_freq));
+   ini.appendItem(GLOBAL_SECTION_TAG, SAVE_PRED_TAG, std::to_string(m_save_pred));
+   ini.appendItem(GLOBAL_SECTION_TAG, SAVE_MODEL_TAG, std::to_string(m_save_model));
    ini.appendItem(GLOBAL_SECTION_TAG, CHECKPOINT_FREQ_TAG, std::to_string(m_checkpoint_freq));
 
    //general data
@@ -481,6 +498,8 @@ bool Config::restore(std::string fname)
    m_save_prefix = reader.get(GLOBAL_SECTION_TAG, SAVE_PREFIX_TAG, Config::SAVE_PREFIX_DEFAULT_VALUE);
    m_save_extension = reader.get(GLOBAL_SECTION_TAG, SAVE_EXTENSION_TAG, Config::SAVE_EXTENSION_DEFAULT_VALUE);
    m_save_freq = reader.getInteger(GLOBAL_SECTION_TAG, SAVE_FREQ_TAG, Config::SAVE_FREQ_DEFAULT_VALUE);
+   m_save_pred = reader.getBoolean(GLOBAL_SECTION_TAG, SAVE_PRED_TAG, Config::SAVE_PRED_DEFAULT_VALUE);
+   m_save_model = reader.getBoolean(GLOBAL_SECTION_TAG, SAVE_MODEL_TAG, Config::SAVE_MODEL_DEFAULT_VALUE);
    m_checkpoint_freq = reader.getInteger(GLOBAL_SECTION_TAG, CHECKPOINT_FREQ_TAG, Config::CHECKPOINT_FREQ_DEFAULT_VALUE);
 
    //restore general data

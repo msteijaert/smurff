@@ -14,7 +14,6 @@ struct StatusItem;
 class RootFile
 {
 private:
-   std::string m_path;
    std::string m_prefix;
    std::string m_extension;
 
@@ -31,13 +30,16 @@ public:
 
    //this constructor should be used to create a new root file on the first run of session
    //items are then appended to it when createStepFile is called
-   RootFile(std::string prefix, std::string extension);
+   RootFile(std::string prefix, std::string extension, bool create);
 
 public:
    std::string getPrefix() const;
-   std::string getRootFileName() const;
+   std::string getFullPath() const;
    std::string getOptionsFileName() const;
    std::string getCsvStatusFileName() const;
+
+private:
+   std::string getFullPathFromIni(const std::string &section, const std::string &field) const;
 
 private:
    void appendToRootFile(std::string section, std::string tag, std::string value) const;
@@ -50,8 +52,6 @@ public:
    void restoreConfig(Config& config);
 
 private:
-   void restoreState(std::string& save_prefix, std::string& save_extension);
-
    std::string restoreGetOptionsFileName() const;
 
 public:
@@ -71,7 +71,7 @@ private:
    void removeStepFileInternal(std::int32_t isample, bool burnin) const;
 
 public:
-   std::shared_ptr<StepFile> openLastStepFile() const;
+   std::shared_ptr<StepFile> openLastCheckpoint() const;
 
    std::shared_ptr<StepFile> openSampleStepFile(int isample) const;
 

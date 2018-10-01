@@ -19,9 +19,10 @@ namespace smurff {
 class MacauPrior : public NormalPrior
 {
 public:
+   std::shared_ptr<Eigen::MatrixXd> m_beta;      // link matrix
+
    Eigen::MatrixXd Uhat;
    Eigen::MatrixXd FtF_plus_beta;       // F'F
-   Eigen::MatrixXd beta;      // link matrix
    Eigen::MatrixXd HyperU, HyperU2;
    Eigen::MatrixXd Ft_y;
 
@@ -56,7 +57,7 @@ private:
    MacauPrior();
 
 public:
-   MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode);
+   MacauPrior(std::shared_ptr<Session> session, uint32_t mode);
 
    virtual ~MacauPrior();
 
@@ -77,7 +78,7 @@ public:
 
 public:
 
-   void save(std::shared_ptr<const StepFile> sf) const override;
+   bool save(std::shared_ptr<const StepFile> sf) const override;
 
    void restore(std::shared_ptr<const StepFile> sf) override;
 

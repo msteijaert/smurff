@@ -39,13 +39,8 @@ Result::Result() {}
 
 //Y - test sparse matrix
 Result::Result(std::shared_ptr<TensorConfig> Y, int nsamples)
+    : m_dims(Y->getDims())
 {
-   set(Y, nsamples);
-}
-
-void Result::set(std::shared_ptr<TensorConfig> Y, int nsamples)
-{
-
    if (!Y)
    {
       THROWERROR("test data is not initialized");
@@ -59,14 +54,20 @@ void Result::set(std::shared_ptr<TensorConfig> Y, int nsamples)
    for(std::uint64_t i = 0; i < Y->getNNZ(); i++)
    {
       const auto p = Y->get(i);
-      m_predictions.push_back({p.first, p.second});
-      if (nsamples > 0)
-            m_predictions.back().pred_all.reserve(nsamples);
+      m_predictions.push_back(ResultItem(p.first, p.second, nsamples));
    }
 
-   m_dims = Y->getDims();
-
    init();
+}
+
+Result::Result(PVec<> lo, PVec<> hi, double value, int nsamples)
+    : m_dims(hi - lo)
+{
+
+   for(auto it = PVecIterator(lo, hi); !it.done(); ++it)
+   {
+      m_predictions.push_back(ResultItem(*it, value, nsamples));
+   }
 }
 
 void Result::init()
@@ -94,7 +95,7 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
    if (isEmpty())
       return;
 
-   std::string fname_pred = sf->getPredFileName();
+   std::string fname_pred = sf->makePredFileName();
    std::ofstream predFile;
 
    if (sf->isBinary())
@@ -112,7 +113,7 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
       for (std::size_t d = 0; d < m_dims.size(); d++)
          predFile << "coord" << d << ",";
 
-      predFile << "y,pred_1samp,pred_avg,var,std" << std::endl;
+      predFile << "y,pred_1samp,pred_avg,var" << std::endl;
 
       for (std::vector<ResultItem>::const_iterator it = m_predictions.begin(); it != m_predictions.end(); it++)
       {
@@ -133,7 +134,7 @@ void Result::savePredState(std::shared_ptr<const StepFile> sf) const
    if (isEmpty())
       return;
 
-   std::string predStateName = sf->getPredStateFileName();
+   std::string predStateName = sf->makePredStateFileName();
 
    INIFile predStatefile;
    predStatefile.create(predStateName);
@@ -212,7 +213,7 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
          double var = stod(tokens.at(nCoords + 3).c_str());
 
          //construct result item
-         m_predictions.push_back({smurff::PVec<>(coords), val, pred_1sample, pred_avg, var});
+         m_predictions.push_back(ResultItem(smurff::PVec<>(coords), val, pred_1sample, pred_avg, var, sample_iter));
       }
 
       //just a sanity check, not sure if it is needed

@@ -5,7 +5,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include <SmurffCpp/Sessions/BaseSession.h>
+#include <SmurffCpp/Sessions/Session.h>
 #include <SmurffCpp/Noises/INoiseModel.h>
 #include <SmurffCpp/DataMatrices/Data.h>
 #include <SmurffCpp/Utils/Distribution.h>
@@ -23,7 +23,7 @@ class StepFile;
 class ILatentPrior
 {
 public:
-   std::shared_ptr<BaseSession> m_session;
+   std::shared_ptr<Session> m_session;
    std::uint32_t m_mode;
    std::string m_name = "xxxx";
 
@@ -34,7 +34,7 @@ protected:
    ILatentPrior(){}
 
 public:
-   ILatentPrior(std::shared_ptr<BaseSession> session, uint32_t mode, std::string name = "xxxx");
+   ILatentPrior(std::shared_ptr<Session> session, uint32_t mode, std::string name = "xxxx");
    virtual ~ILatentPrior() {}
    virtual void init();
 
@@ -65,7 +65,7 @@ public:
    const Eigen::VectorXd& getUsum() { return Usum; } 
    const Eigen::MatrixXd& getUUsum()  { return UUsum; }
 
-   virtual void save(std::shared_ptr<const StepFile> sf) const;
+   virtual bool save(std::shared_ptr<const StepFile> sf) const;
    virtual void restore(std::shared_ptr<const StepFile> sf);
    virtual std::ostream &info(std::ostream &os, std::string indent);
    virtual std::ostream &status(std::ostream &os, std::string indent) const = 0;

@@ -44,7 +44,7 @@ public:
    bool enable_beta_precision_sampling;
 
 public:
-   MacauOnePrior(std::shared_ptr<BaseSession> session, uint32_t mode);
+   MacauOnePrior(std::shared_ptr<Session> session, uint32_t mode);
 
    void init() override;
 
@@ -74,7 +74,7 @@ public:
 
 public:
 
-   void save(std::shared_ptr<const StepFile> sf) const override;
+   bool save(std::shared_ptr<const StepFile> sf) const override;
 
    void restore(std::shared_ptr<const StepFile> sf) override;
 

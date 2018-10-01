@@ -18,7 +18,7 @@ MacauPrior::MacauPrior()
 {
 }
 
-MacauPrior::MacauPrior(std::shared_ptr<BaseSession> session, uint32_t mode)
+MacauPrior::MacauPrior(std::shared_ptr<Session> session, uint32_t mode)
    : NormalPrior(session, mode, "MacauPrior")
 {
    beta_precision = SideInfoConfig::BETA_PRECISION_DEFAULT_VALUE;
@@ -48,8 +48,10 @@ void MacauPrior::init()
    Uhat.resize(this->num_latent(), Features->rows());
    Uhat.setZero();
 
-   beta.resize(this->num_latent(), Features->cols());
-   beta.setZero();
+   m_beta = std::make_shared<Eigen::MatrixXd>(this->num_latent(), Features->cols());
+   m_beta->setZero();
+
+   m_session->model().setLinkMatrix(m_mode, m_beta);
 }
 
 void MacauPrior::update_prior()
@@ -57,17 +59,17 @@ void MacauPrior::update_prior()
     COUNTER("update_prior");
     // residual (Uhat is later overwritten):
     Uhat.noalias() = U() - Uhat;
-    Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(beta);
+    Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(*m_beta);
 
     // sampling Gaussian
-    std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + beta.cols());
+    std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + m_beta->cols());
     sample_beta();
-    Features->compute_uhat(Uhat, beta);
+    Features->compute_uhat(Uhat, *m_beta);
 
     if (enable_beta_precision_sampling)
     {
         double old_beta = beta_precision;
-        beta_precision = sample_beta_precision(beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
+        beta_precision = sample_beta_precision(*m_beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
         FtF_plus_beta.diagonal().array() += beta_precision - old_beta;
    }
 }
@@ -79,7 +81,7 @@ const Eigen::VectorXd MacauPrior::getMu(int n) const
 
 void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 {
-   const int num_feat = beta.cols();
+   const int num_feat = m_beta->cols();
 
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
    // Ft_y is [ D x F ] matrix
@@ -138,12 +140,14 @@ void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, doub
    beta_precision_nu0 = 1e-3;
 }
 
-void MacauPrior::save(std::shared_ptr<const StepFile> sf) const
+bool MacauPrior::save(std::shared_ptr<const StepFile> sf) const
 {
    NormalPrior::save(sf);
 
-   std::string path = sf->getLinkMatrixFileName(m_mode);
-   smurff::matrix_io::eigen::write_matrix(path, this->beta);
+   std::string path = sf->makeLinkMatrixFileName(m_mode);
+   smurff::matrix_io::eigen::write_matrix(path, *m_beta);
+
+   return true;
 }
 
 void MacauPrior::restore(std::shared_ptr<const StepFile> sf)
@@ -154,7 +158,7 @@ void MacauPrior::restore(std::shared_ptr<const StepFile> sf)
 
    THROWERROR_FILE_NOT_EXIST(path);
 
-   smurff::matrix_io::eigen::read_matrix(path, this->beta);
+   smurff::matrix_io::eigen::read_matrix(path, *m_beta);
 }
 
 std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
@@ -170,10 +174,18 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
       if (needs_gb > 1.0) os << " (needing " << needs_gb << " GB of memory)";
       os << std::endl;
    } else {
-      os << "CG Solver" << std::endl;
-      os << indent << "  with tolerance: " << std::scientific << tol << std::fixed << std::endl;
+      os << "CG Solver with tolerance: " << std::scientific << tol << std::fixed << std::endl;
    }
-   os << indent << " BetaPrecision: " << beta_precision << std::endl;
+   os << indent << " BetaPrecision: ";
+   if (enable_beta_precision_sampling)
+   {
+       os << "sampled around ";
+   }
+   else
+   {
+       os << "fixed at ";
+   }
+   os << beta_precision << std::endl;
    return os;
 }
 
@@ -185,7 +197,7 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
    os << indent << "FtF_plus_beta= " << FtF_plus_beta.norm() << std::endl;
    os << indent << "HyperU       = " << HyperU.norm() << std::endl;
    os << indent << "HyperU2      = " << HyperU2.norm() << std::endl;
-   os << indent << "Beta         = " << beta.norm() << std::endl;
+   os << indent << "Beta         = " << m_beta->norm() << std::endl;
    os << indent << "beta_precision  = " << beta_precision << std::endl;
    os << indent << "Ft_y         = " << Ft_y.norm() << std::endl;
    return os;
@@ -195,7 +207,7 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 void MacauPrior::sample_beta_direct()
 {
     this->compute_Ft_y_omp(Ft_y);
-    beta = FtF_plus_beta.llt().solve(Ft_y.transpose()).transpose();
+    *m_beta = FtF_plus_beta.llt().solve(Ft_y.transpose()).transpose();
 }
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
@@ -221,5 +233,5 @@ void MacauPrior::sample_beta_cg()
     Eigen::MatrixXd Ft_y;
     this->compute_Ft_y_omp(Ft_y);
 
-    blockcg_iter = Features->solve_blockcg(beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
+    blockcg_iter = Features->solve_blockcg(*m_beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
 }

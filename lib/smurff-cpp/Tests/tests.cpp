@@ -14,7 +14,6 @@
 #include <SmurffCpp/Utils/TruncNorm.h>
 #include <SmurffCpp/Utils/InvNormCdf.h>
 #include <SmurffCpp/Utils/Distribution.h>
-#include <SmurffCpp/Utils/chol.h>
 #include <SmurffCpp/Utils/counters.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/linop.h>
@@ -43,32 +42,6 @@ using namespace smurff;
 
 static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 
-TEST_CASE( "chol/chol_solve_t", "[chol_solve_t]" ) {
-  Eigen::MatrixXd m(3,3), rhs(5,3), xopt(5,3);
-  m << 7, 0, 0,
-       2, 5, 0,
-       6, 1, 6;
-
-  rhs << -1.227, -0.890,  0.293,
-          0.356, -0.733, -1.201,
-         -0.003, -0.091, -1.467,
-          0.819,  0.725, -0.719,
-         -0.485,  0.955,  1.707;
-  chol_decomp(m);
-  chol_solve_t(m, rhs);
-  xopt << -1.67161,  0.151609,  1.69517,
-           2.10217, -0.545174, -2.21148,
-           1.80587, -0.34187,  -1.99339,
-           1.71883, -0.180826, -1.80852,
-          -2.93874,  0.746739,  3.09878;
-
-  for (int i = 0; i < 5; i++) {
-    for (int j = 0; j < 3; j++) {
-      REQUIRE( rhs(i,j) == Approx(xopt(i,j)) );
-    }
-  }
-}
-
 TEST_CASE( "mvnormal/rgamma", "generaring random gamma variable" ) {
   init_bmrng(1234);
   double g = rgamma(100.0, 0.01);
@@ -96,13 +69,11 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
   std::vector<std::uint32_t> cols = {0};
   std::vector<double>        vals = {4.5};
 
-  std::shared_ptr<Result> p(new Result());
   std::shared_ptr<Model> model(new Model());
   
   std::shared_ptr<MatrixConfig> S(new MatrixConfig(1, 1, rows, cols, vals, fixed_ncfg, false));
   std::shared_ptr<Data> data(new ScarceMatrixData(smurff::matrix_utils::sparse_to_eigen(*S)));
-
-  p->set(S);
+  std::shared_ptr<Result> p(new Result(S));
 
   data->setNoiseModel(NoiseFactory::create_noise_model(fixed_ncfg));
 
