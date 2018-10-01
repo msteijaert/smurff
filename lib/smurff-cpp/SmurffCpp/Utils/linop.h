@@ -37,10 +37,6 @@ template<int N>
 void AtA_mul_Bx(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B);
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B);
-template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
 
 
@@ -58,10 +54,6 @@ Eigen::MatrixXd A_mul_At_combo(Eigen::MatrixXd & A);
 void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 
 // util functions:
-void A_mul_B(  Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b);
-void A_mul_Bt( Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B);
-void A_mul_B(  Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b);
-void A_mul_Bt( Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B);
 void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
 
@@ -278,74 +270,6 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   delete RtR;
   delete RtR2;
   return iter;
-}
-
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.ncol == B.cols());
-   THROWERROR_ASSERT(A.nrow == out.cols());
-
-  int* row_ptr   = A.row_ptr;
-  int* cols      = A.cols;
-  const int nrow = A.nrow;
-  double* Y = out.data();
-  double* X = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
-    {
-      int col = cols[i] * N;
-      for (int j = 0; j < N; j++) 
-      {
-         tmp[j] += X[col + j];
-      }
-    }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j];
-    }
-  }
-}
-
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.ncol == B.cols());
-   THROWERROR_ASSERT(A.nrow == out.cols());
-
-  int* row_ptr   = A.row_ptr;
-  int* cols      = A.cols;
-  double* vals   = A.vals;
-  const int nrow = A.nrow;
-  double* Y = out.data();
-  double* X = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
-    {
-      int col = cols[i] * N;
-      double val = vals[i];
-      for (int j = 0; j < N; j++) 
-      {
-         tmp[j] += X[col + j] * val;
-      }
-    }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j];
-    }
-  }
 }
 
 template<int N>

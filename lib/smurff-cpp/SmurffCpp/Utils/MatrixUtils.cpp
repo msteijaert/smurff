@@ -70,42 +70,6 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen(const smurff::
    return out;
 }
 
-Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseBinaryMatrix& in)
-{
-    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
-    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = 1.;
-    return out;
-}
-
-Eigen::MatrixXd smurff::matrix_utils::sparse_to_dense(const SparseDoubleMatrix& in)
-{
-    Eigen::MatrixXd out = Eigen::MatrixXd::Zero(in.nrow, in.ncol);
-    for(int i=0; i<in.nnz; ++i) out(in.rows[i], in.cols[i]) = in.vals[i];
-    return out;
-}
-
-smurff::matrix_utils::sparse_eigen_struct smurff::matrix_utils::csr_to_eigen(const CSR& csr) {
-    std::vector<Eigen::Triplet<double>>* triplet_list = new std::vector<Eigen::Triplet<double>>();
-    std::vector<Eigen::Triplet<double>>* triplet_trans_list = new std::vector<Eigen::Triplet<double>>();
-    Eigen::SparseMatrix<double, Eigen::RowMajor>* row_major = new Eigen::SparseMatrix<double, Eigen::RowMajor>(csr.nrow, csr.ncol);
-    Eigen::SparseMatrix<double, Eigen::ColMajor>* col_major = new Eigen::SparseMatrix<double, Eigen::ColMajor>(csr.nrow, csr.ncol);
-    Eigen::SparseMatrix<double, Eigen::RowMajor>* transposed_sparse = new Eigen::SparseMatrix<double, Eigen::RowMajor>(csr.ncol, csr.nrow);
-
-    for (size_t row = 0; row < csr.nrow; row++) {
-        for (size_t i = csr.row_ptr[row]; i < csr.row_ptr[row + 1]; i++) {
-            triplet_list->push_back(Eigen::Triplet<double>(row, csr.cols[i], csr.vals[i]));
-            triplet_trans_list->push_back(Eigen::Triplet<double>(csr.cols[i], row, csr.vals[i]));
-        }
-    }
-    row_major->setFromTriplets(triplet_list->begin(), triplet_list->end());
-    col_major->setFromTriplets(triplet_list->begin(), triplet_list->end());
-    transposed_sparse->setFromTriplets(triplet_trans_list->begin(), triplet_trans_list->end());
-
-    delete triplet_list;
-    delete triplet_trans_list;
-    return {row_major, col_major, transposed_sparse};
-}
-
 std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixConfig& mc)
 {
    const std::vector<std::uint32_t>& rows = mc.getRows();

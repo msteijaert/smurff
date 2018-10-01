@@ -14,42 +14,6 @@
 using namespace Eigen;
 using namespace std;
 
-// out = bcsr * b (for vectors)
-void smurff::linop::A_mul_B(Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b) 
-{
-  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
-  bcsr_A_mul_B( out.data(), & csr, b.data() );
-}
-
-// OUT' = bcsr * B' (for matrices)
-void smurff::linop::A_mul_Bt(Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B) 
-{
-  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
-  bcsr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
-}
-
-// out = bcsr * b (for vectors)
-void smurff::linop::A_mul_B(Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b) 
-{
-  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
-  csr_A_mul_B( out.data(), & csr, b.data() );
-}
-
-// OUT' = bcsr * B' (for matrices)
-void smurff::linop::A_mul_Bt(Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B) 
-{
-  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
-  csr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
-}
-
-//method is identical
-
 //X = A * B
 Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B) 
 {

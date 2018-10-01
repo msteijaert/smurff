@@ -1,7 +1,5 @@
 #pragma once
 
-#include "LibFastSparseDependency.h"
-
 #include <Eigen/Dense>
 
 #include "ISideInfo.h"
