@@ -2,8 +2,6 @@
 
 #include "ISideInfo.h"
 
-#include "SparseDoubleFeat.h"
-
 #include <memory>
 #include <Eigen/Sparse>
 
@@ -48,9 +46,6 @@ public:
 
    void add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b) override;
 
-   //only for tests
-public:
-   std::shared_ptr<SparseDoubleFeat> get_features();
 };
 
 }

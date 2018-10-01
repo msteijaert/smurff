@@ -174,7 +174,6 @@ source_group ("Source Files" FILES ${SOURCE_FILES})
 
 FILE (GLOB SIDE_INFO_FILES "../SideInfo/ISideInfo.h"
                            "../SideInfo/SparseFeat.h"
-                           "../SideInfo/SparseDoubleFeat.h"
                            "../SideInfo/DenseDoubleFeat.h"
                            "../SideInfo/LibFastSparseDependency.h"
                            "../SideInfo/DenseDoubleFeatSideInfo.h"
