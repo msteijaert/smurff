@@ -81,11 +81,15 @@ macro(configure_mkl)
   include_directories(${MKL_INCLUDE_DIR})
 
   # make sure we link with iomp5 and not gomp
-  if(${OPENMP_FOUND} AND CMAKE_COMPILER_IS_GNUCXX)
+  list(FIND OpenMP_CXX_LIB_NAMES "gomp" GNU_OPENMP)
+  list(FIND OpenMP_CXX_LIB_NAMES "omp" LLVM_OPENMP)
+  if(NOT GNU_OPENMP EQUAL -1)
       set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-openmp")
       set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fno-openmp")
       find_library (IOMP_LIBRARIES "iomp5" HINTS ENV LD_LIBRARY_PATH REQUIRED)
       set(MKL_LIBRARIES "${MKL_LIBRARIES};${IOMP_LIBRARIES}")
+  elseif(NOT LLVM_OPENMP EQUAL -1)
+      message(ERROR "Please use iomp when using clang/llvm compiler, not omp")
   endif()
   
   add_definitions(-DEIGEN_USE_MKL_ALL)
