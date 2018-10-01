@@ -294,7 +294,7 @@ void StepFile::restore(std::shared_ptr<Model> model, std::shared_ptr<Result> pre
 
 void StepFile::removeModel() const
 {
-    for (std::uint32_t mode = 0; mode < getNModes(); ++mode)
+    for (std::int32_t mode = 0; mode < getNModes(); ++mode)
     {
         if (!hasModel(mode))
             continue;
@@ -319,7 +319,7 @@ void StepFile::removePred() const
 
 void StepFile::removePriors() const
 {
-    for (std::uint32_t mode = 0; mode < getNModes(); ++mode)
+    for (std::int32_t mode = 0; mode < getNModes(); ++mode)
     {
         if (!hasLinkMatrix(mode)) 
             continue;
