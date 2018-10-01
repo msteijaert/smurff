@@ -160,9 +160,6 @@ bool Session::step()
 
     if (isStep)
     {
-        //init omp
-        threads::enable();
-
         THROWERROR_ASSERT(is_init);
 
         auto starti = tick();
@@ -180,8 +177,6 @@ bool Session::step()
         printStatus(std::cout);
 
         save(m_iter);
-
-        threads::disable();
     }
 
     return isStep;
