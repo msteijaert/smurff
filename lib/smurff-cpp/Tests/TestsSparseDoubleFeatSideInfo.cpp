@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include <SmurffCpp/SideInfo/SparseDoubleFeatSideInfo.h>
+#include <SmurffCpp/SideInfo/SparseSideInfo.h>
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/linop.h>
 
@@ -8,12 +8,12 @@ using namespace smurff;
 
 static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 
-TEST_CASE( "SparseDoubleFeatSideInfo/At_mul_A", "[At_mul_A] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseSideInfo/At_mul_A", "[At_mul_A] for SparseSideInfo" )
 {
     std::uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
     std::uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
     double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
-    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(6, 4, 9, rows, cols, vals);
+    SparseSideInfo si = SparseSideInfo(6, 4, 9, rows, cols, vals);
 
     Eigen::MatrixXd AA(4, 4);
     si.At_mul_A(AA);
@@ -32,12 +32,12 @@ TEST_CASE( "SparseDoubleFeatSideInfo/At_mul_A", "[At_mul_A] for SparseDoubleFeat
     REQUIRE( AA(3,2) == 0 );
 }
 
-TEST_CASE( "SparseDoubleFeatSideInfo/A_mul_B", "[A_mul_B] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseSideInfo/A_mul_B", "[A_mul_B] for SparseSideInfo" )
 {
     std::uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
     std::uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
     double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
-    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(6, 4, 9, rows, cols, vals);
+    SparseSideInfo si = SparseSideInfo(6, 4, 9, rows, cols, vals);
 
     Eigen::MatrixXd X(4, 6);
     X << 0., 0.6, 0., 0., 0., -0.82,
@@ -70,12 +70,12 @@ TEST_CASE( "SparseDoubleFeatSideInfo/A_mul_B", "[A_mul_B] for SparseDoubleFeatSi
     REQUIRE( AB(2,3) == Approx(0.0888) );
 }
 
-TEST_CASE( "SparseDoubleFeatSideInfo/At_mul_Bt", "[At_mul_Bt] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseSideInfo/At_mul_Bt", "[At_mul_Bt] for SparseSideInfo" )
 {
     std::uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
     std::uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
     double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
-    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(6, 4, 9, rows, cols, vals);
+    SparseSideInfo si = SparseSideInfo(6, 4, 9, rows, cols, vals);
 
     Eigen::MatrixXd X(4, 6);
     X << 0., 0.6, 0., 0., 0., -0.82,
@@ -93,12 +93,12 @@ TEST_CASE( "SparseDoubleFeatSideInfo/At_mul_Bt", "[At_mul_Bt] for SparseDoubleFe
     REQUIRE( Y(3) == 0 );
 }
 
-TEST_CASE( "SparseDoubleFeatSideInfo/add_Acol_mul_bt", "[add_Acol_mul_bt] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseSideInfo/add_Acol_mul_bt", "[add_Acol_mul_bt] for SparseSideInfo" )
 {
     std::uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
     std::uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
     double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
-    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(6, 4, 9, rows, cols, vals);
+    SparseSideInfo si = SparseSideInfo(6, 4, 9, rows, cols, vals);
     
     Eigen::MatrixXd Z(4, 6);
     Z << 0., 0.6, 0., 0., 0., -0.82,
@@ -140,12 +140,12 @@ TEST_CASE( "SparseDoubleFeatSideInfo/add_Acol_mul_bt", "[add_Acol_mul_bt] for Sp
     REQUIRE( Z(3,5) == Approx(2.44) );
 }
 
-TEST_CASE( "SparseDoubleFeatSideInfo/col_square_sum", "[col_square_sum] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseSideInfo/col_square_sum", "[col_square_sum] for SparseSideInfo" )
 {
     std::uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
     std::uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
     double vals[9] = { 0.6 , -0.76,  1.48,  1.19,  2.44,  1.95, -0.82,  0.06,  2.54 };
-    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(6, 4, 9, rows, cols, vals);
+    SparseSideInfo si = SparseSideInfo(6, 4, 9, rows, cols, vals);
 
     Eigen::VectorXd out = si.col_square_sum();
 
@@ -155,12 +155,12 @@ TEST_CASE( "SparseDoubleFeatSideInfo/col_square_sum", "[col_square_sum] for Spar
     REQUIRE( out(3) == Approx(5.9572) );
 }
 
-TEST_CASE( "SparseDoubleFeatSideInfo/compute_uhat", "[compute_uhat] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseSideInfo/compute_uhat", "[compute_uhat] for SparseSideInfo" )
 {
     std::uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
     std::uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
     double vals[9] = {0.6, -0.76, 1.48, 1.19, 2.44, 1.95, -0.82, 0.06, 2.54};
-    SparseDoubleFeatSideInfo si = SparseDoubleFeatSideInfo(6, 4, 9, rows, cols, vals);
+    SparseSideInfo si = SparseSideInfo(6, 4, 9, rows, cols, vals);
     
     Eigen::MatrixXd beta(6,4);
     beta << 1.4, 0., 0.76, 1.34,
@@ -188,7 +188,7 @@ TEST_CASE( "SparseDoubleFeatSideInfo/compute_uhat", "[compute_uhat] for SparseDo
     }
 }
 
-TEST_CASE( "SparseDoubleFeatSideInfo/AtA_mul_B", "[AtA_mul_B] for SparseDoubleFeatSideInfo" )
+TEST_CASE( "SparseSideInfo/AtA_mul_B", "[AtA_mul_B] for SparseSideInfo" )
 {
     Eigen::MatrixXd out(6,6);
     const uint32_t rows[30] =  { 
@@ -208,7 +208,7 @@ TEST_CASE( "SparseDoubleFeatSideInfo/AtA_mul_B", "[AtA_mul_B] for SparseDoubleFe
                             -0.78, 1.066, -1.547, -0.4256, 1.092 
                         };
     
-    SparseDoubleFeatSideInfo A(6, 6, 30, rows, cols, vals);
+    SparseSideInfo A(6, 6, 30, rows, cols, vals);
 
     double reg = 0.76;
     Eigen::MatrixXd B(6,6);

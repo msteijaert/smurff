@@ -1,4 +1,4 @@
-#include "SparseDoubleFeatSideInfo.h"
+#include "SparseSideInfo.h"
 
 #include <SmurffCpp/Utils/linop.h>
 #include <SmurffCpp/Utils/MatrixUtils.h>
@@ -7,7 +7,7 @@
 
 using namespace smurff;
 
-SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals) {
+SparseSideInfo::SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals) {
     std::vector<Eigen::Triplet<double>>* triplets = new std::vector<Eigen::Triplet<double>>();
     std::vector<Eigen::Triplet<double>>* triplets_trans = new std::vector<Eigen::Triplet<double>>();
     for (int i = 0; i < nnz; i++) {
@@ -27,7 +27,7 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols,
     delete triplets_trans;
 }
 
-SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr) {
+SparseSideInfo::SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr) {
     std::vector<Eigen::Triplet<double>>* triplets = new std::vector<Eigen::Triplet<double>>();
     std::vector<Eigen::Triplet<double>>* triplets_trans = new std::vector<Eigen::Triplet<double>>();
     for (int i = 0; i < nnz; i++) {
@@ -46,24 +46,24 @@ SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols,
     delete triplets_trans;
 }
 
-SparseDoubleFeatSideInfo::~SparseDoubleFeatSideInfo() {
+SparseSideInfo::~SparseSideInfo() {
     delete matrix_ptr;
     delete matrix_col_major_ptr;
     delete matrix_trans_ptr;
 }
 
 
-int SparseDoubleFeatSideInfo::cols() const
+int SparseSideInfo::cols() const
 {
    return matrix_ptr->cols();
 }
 
-int SparseDoubleFeatSideInfo::rows() const
+int SparseSideInfo::rows() const
 {
    return matrix_ptr->rows();
 }
 
-std::ostream& SparseDoubleFeatSideInfo::print(std::ostream &os) const
+std::ostream& SparseSideInfo::print(std::ostream &os) const
 {
    double percent = 100.8 * (double)matrix_ptr->nonZeros() / (double)matrix_ptr->rows() / (double) matrix_ptr->cols();
    os << "SparseDouble " << matrix_ptr->nonZeros() << " [" << matrix_ptr->rows() << ", " << matrix_ptr->cols() << "] ("
@@ -71,36 +71,36 @@ std::ostream& SparseDoubleFeatSideInfo::print(std::ostream &os) const
    return os;
 }
 
-bool SparseDoubleFeatSideInfo::is_dense() const
+bool SparseSideInfo::is_dense() const
 {
    return false;
 }
 
-void SparseDoubleFeatSideInfo::compute_uhat(Eigen::MatrixXd& uhat, Eigen::MatrixXd& beta)
+void SparseSideInfo::compute_uhat(Eigen::MatrixXd& uhat, Eigen::MatrixXd& beta)
 {
     COUNTER("compute_uhat");
     uhat = beta * (*matrix_trans_ptr);
 }
 
-void SparseDoubleFeatSideInfo::At_mul_A(Eigen::MatrixXd& out)
+void SparseSideInfo::At_mul_A(Eigen::MatrixXd& out)
 {
     COUNTER("At_mul_A");
     out = (*matrix_trans_ptr) * (*matrix_ptr);
 }
 
-Eigen::MatrixXd SparseDoubleFeatSideInfo::A_mul_B(Eigen::MatrixXd& A)
+Eigen::MatrixXd SparseSideInfo::A_mul_B(Eigen::MatrixXd& A)
 {
     COUNTER("A_mul_B");
     return (A * (*matrix_ptr));
 }
 
-int SparseDoubleFeatSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixXd& B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error)
+int SparseSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixXd& B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error)
 {
     COUNTER("solve_blockcg");
     return smurff::linop::solve_blockcg(X, *this, reg, B, tol, blocksize, excess, throw_on_cholesky_error);
 }
 
-Eigen::VectorXd SparseDoubleFeatSideInfo::col_square_sum()
+Eigen::VectorXd SparseSideInfo::col_square_sum()
 {
     COUNTER("col_square_sum");
     const int ncol = matrix_ptr->cols();
@@ -122,7 +122,7 @@ Eigen::VectorXd SparseDoubleFeatSideInfo::col_square_sum()
 }
 
 // Y = X[:,col]' * B'
-void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B)
+void SparseSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B)
 {
     COUNTER("At_mul_Bt");
     Eigen::MatrixXd out = matrix_trans_ptr->block(col, 0, col + 1, matrix_trans_ptr->cols()) * B.transpose();
@@ -130,7 +130,7 @@ void SparseDoubleFeatSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eige
 }
 
 // computes Z += A[:,col] * b', where a and b are vectors
-void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
+void SparseSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
 {
     COUNTER("add_Acol_mul_bt");
     Eigen::VectorXd bt = b.transpose();

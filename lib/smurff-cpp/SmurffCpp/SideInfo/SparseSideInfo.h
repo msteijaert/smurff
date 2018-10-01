@@ -7,7 +7,7 @@
 
 namespace smurff {
 
-class SparseDoubleFeatSideInfo : public ISideInfo
+class SparseSideInfo : public ISideInfo
 {
 
 public:
@@ -15,9 +15,9 @@ public:
    Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_col_major_ptr;
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_trans_ptr;
 
-   SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals);
-   SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr);
-   ~SparseDoubleFeatSideInfo() override;
+   SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals);
+   SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr);
+   ~SparseSideInfo() override;
 
 public:
    int cols() const override;

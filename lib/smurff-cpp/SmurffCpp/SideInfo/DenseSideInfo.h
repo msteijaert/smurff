@@ -10,13 +10,13 @@
 
 namespace smurff {
 
-   class DenseDoubleFeatSideInfo : public ISideInfo
+   class DenseSideInfo : public ISideInfo
    {
    private:
       std::shared_ptr<Eigen::MatrixXd> m_side_info;
 
    public:
-      DenseDoubleFeatSideInfo(std::shared_ptr<Eigen::MatrixXd> side_info);
+      DenseSideInfo(std::shared_ptr<Eigen::MatrixXd> side_info);
 
    public:
       int cols() const override;

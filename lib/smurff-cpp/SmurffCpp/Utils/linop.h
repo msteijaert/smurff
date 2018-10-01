@@ -7,7 +7,7 @@
 #include <SmurffCpp/Utils/Error.h>
 #include <SmurffCpp/Utils/counters.h>
 
-#include <SmurffCpp/SideInfo/SparseDoubleFeatSideInfo.h>
+#include <SmurffCpp/SideInfo/SparseSideInfo.h>
 
 namespace smurff { namespace linop {
 
@@ -34,7 +34,7 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<int N>
-void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeatSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+void AtA_mul_Bx(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B);
@@ -451,7 +451,7 @@ inline void AtA_mul_B_switch(
 }
 
 template <int N>
-void AtA_mul_Bx(Eigen::MatrixXd& out, SparseDoubleFeatSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
+void AtA_mul_Bx(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
     THROWERROR_ASSERT(N == out.rows());
     THROWERROR_ASSERT(N == B.rows());
     THROWERROR_ASSERT(A.cols() == B.cols());
