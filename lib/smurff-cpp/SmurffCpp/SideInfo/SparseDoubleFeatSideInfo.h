@@ -11,14 +11,12 @@ namespace smurff {
 
 class SparseDoubleFeatSideInfo : public ISideInfo
 {
-private:
-   std::shared_ptr<SparseDoubleFeat> m_side_info;
+
 public:
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_ptr;
    Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_col_major_ptr;
    Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_trans_ptr;
 
-   SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info);
    SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals);
    SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr);
    ~SparseDoubleFeatSideInfo() override;

@@ -7,15 +7,6 @@
 
 using namespace smurff;
 
-SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(std::shared_ptr<SparseDoubleFeat> side_info)
-   : m_side_info(side_info)
-{
-    matrix_utils::sparse_eigen_struct str = matrix_utils::csr_to_eigen(m_side_info->M);
-    matrix_ptr = str.row_major_sparse;
-    matrix_col_major_ptr = str.column_major_sparse;
-    matrix_trans_ptr = str.transposed_sparse;
-}
-
 SparseDoubleFeatSideInfo::SparseDoubleFeatSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals) {
     std::vector<Eigen::Triplet<double>>* triplets = new std::vector<Eigen::Triplet<double>>();
     std::vector<Eigen::Triplet<double>>* triplets_trans = new std::vector<Eigen::Triplet<double>>();
@@ -156,9 +147,4 @@ void SparseDoubleFeatSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col
          Z(d, c) += vals[i] * b(d);
       }
    }
-}
-
-std::shared_ptr<SparseDoubleFeat> SparseDoubleFeatSideInfo::get_features()
-{
-   return m_side_info;
 }
