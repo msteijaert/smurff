@@ -58,50 +58,6 @@ Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B)
    return out;
 }
 
-//method is identical
- 
-Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, SparseFeat & B) 
-{
-   Eigen::MatrixXd out(A.rows(), B.cols());
-   A_mul_Bt(out, B.Mt, A);
-   return out;
-}
-
-//method is identical
- 
-void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
-  if (out.cols() != A.cols()) {
-   THROWERROR("At_mul_A(SparseFeat): out.cols() must equal A.cols()");
-  }
-  if (out.cols() != out.rows()) {
-   THROWERROR("At_mul_A(SparseFeat): out must be square matrix.)");
-  }
-
-  out.setZero();
-  const int nfeat = A.M.ncol;
-
-  #pragma omp parallel for schedule(guided)
-  for (int f1 = 0; f1 < nfeat; f1++) 
-  {
-    int end = A.Mt.row_ptr[f1 + 1];
-    out(f1, f1) = end - A.Mt.row_ptr[f1];
-    // looping over all non-zero rows of f1
-    for (int i = A.Mt.row_ptr[f1]; i < end; i++) 
-    {
-      int Mrow = A.Mt.cols[i]; /* row in M */
-      int end2 = A.M.row_ptr[Mrow + 1];
-      for (int j = A.M.row_ptr[Mrow]; j < end2; j++) 
-      {
-        int f2 = A.M.cols[j];
-        if (f1 < f2) 
-        {
-          out(f2, f1) += 1;
-        }
-      }
-    }
-  }
-}
-
 void smurff::linop::At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   At_mul_A_blas(A, out.data());
 }
@@ -177,25 +133,6 @@ void smurff::linop::Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alp
 void smurff::linop::Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
   cblas_dsymm(CblasColMajor, CblasRight, CblasLower, Y.rows(), Y.cols(), alpha, A.data(), A.rows(), B.data(), B.rows(), beta, Y.data(), Y.rows());
 }*/
-
-template<> 
-void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
-  // solution update:
-  A_mul_Bt(tmp, A.M, B);
-  // move KP += reg * P here with nowait from previous loop
-  // http://stackoverflow.com/questions/30496365/parallelize-the-addition-of-a-vector-of-matrices-in-openmp
-  A_mul_Bt(out, A.Mt, tmp);
-
-  int ncol = out.cols(), nrow = out.rows();
-  #pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) 
-  {
-    for (int row = 0; row < nrow; row++) 
-    {
-      out(row, col) += reg * B(row, col);
-    }
-  }
-}
 
 template<>
 void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
@@ -338,18 +275,6 @@ void smurff::linop::A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A,
       out(j, i) = tmp;
     }
   }
-}
-
-Eigen::VectorXd smurff::linop::col_square_sum(SparseFeat & A) 
-{
-   const int ncol = A.cols();
-   VectorXd out(ncol);
-   #pragma omp parallel for schedule(static)
-   for (int col = 0; col < ncol; col++)
-   {
-      out(col) = A.Mt.row_ptr[col + 1] - A.Mt.row_ptr[col];
-   }
-   return out;
 }
 
 Eigen::VectorXd smurff::linop::col_square_sum(Eigen::MatrixXd & A) 

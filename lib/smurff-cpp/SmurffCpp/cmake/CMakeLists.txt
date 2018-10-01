@@ -173,15 +173,12 @@ FILE (GLOB SOURCE_FILES "../Version.cpp"
 source_group ("Source Files" FILES ${SOURCE_FILES})
 
 FILE (GLOB SIDE_INFO_FILES "../SideInfo/ISideInfo.h"
-                           "../SideInfo/SparseFeat.h"
                            "../SideInfo/DenseDoubleFeat.h"
                            "../SideInfo/LibFastSparseDependency.h"
                            "../SideInfo/DenseDoubleFeatSideInfo.h"
                            "../SideInfo/DenseDoubleFeatSideInfo.cpp"
                            "../SideInfo/SparseDoubleFeatSideInfo.h"
                            "../SideInfo/SparseDoubleFeatSideInfo.cpp"
-                           "../SideInfo/SparseFeatSideInfo.h"
-                           "../SideInfo/SparseFeatSideInfo.cpp"
                         )
 source_group ("Side Info" FILES ${SIDE_INFO_FILES})
 

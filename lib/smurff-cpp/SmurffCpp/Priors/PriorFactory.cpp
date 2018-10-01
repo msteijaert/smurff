@@ -10,7 +10,6 @@
 
 #include <SmurffCpp/SideInfo/DenseDoubleFeatSideInfo.h>
 #include <SmurffCpp/SideInfo/SparseDoubleFeatSideInfo.h>
-#include <SmurffCpp/SideInfo/SparseFeatSideInfo.h>
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 
