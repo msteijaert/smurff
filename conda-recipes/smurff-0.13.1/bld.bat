@@ -5,7 +5,7 @@ mkdir build
 cd build
 if errorlevel 1 exit 1
 
-cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ..\lib\smurff-cpp\cmake
+cmake -G "NMake Makefiles" -DENABLE_MKL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ..\lib\smurff-cpp\cmake
 if errorlevel 1 exit 1
 cmake --build . --target INSTALL --config Release
 if errorlevel 1 exit 1

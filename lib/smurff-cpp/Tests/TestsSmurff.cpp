@@ -63,7 +63,7 @@ static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 #define HIDE_TWO_DIMENTIONAL_TENSOR_TESTS "[!hide]"
 #define HIDE_THREE_DIMENTIONAL_TENSOR_TESTS "[!hide]"
 #define HIDE_VS_TESTS "[!hide]"
-#warning Skipping all tests that depend on random seed. Enable these using -DENABLE_BOOST_RANDOM=ON in Cmake
+//Skipping all tests that depend on random seed. Enable these using -DENABLE_BOOST_RANDOM=ON in Cmake
 #endif
 
 
