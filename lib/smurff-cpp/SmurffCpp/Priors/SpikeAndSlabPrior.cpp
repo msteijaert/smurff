@@ -27,11 +27,14 @@ void SpikeAndSlabPrior::init()
    W2col.init(MatrixXd::Zero(K,nview));
 
    //-- prior params
-   alpha = ArrayXXd::Ones(K,nview);
    Zkeep = ArrayXXd::Constant(K, nview, D);
-   r = ArrayXXd::Constant(K,nview,.5);
 
+   alpha = ArrayXXd::Ones(K,nview);
+   log_alpha.resize(K, nview);
    log_alpha = alpha.log();
+
+   r = ArrayXXd::Constant(K,nview,.5);
+   log_r.resize(K, nview);
    log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
 }
 
