@@ -14,42 +14,6 @@
 using namespace Eigen;
 using namespace std;
 
-// out = bcsr * b (for vectors)
-void smurff::linop::A_mul_B(Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b) 
-{
-  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
-  bcsr_A_mul_B( out.data(), & csr, b.data() );
-}
-
-// OUT' = bcsr * B' (for matrices)
-void smurff::linop::A_mul_Bt(Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B) 
-{
-  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
-  bcsr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
-}
-
-// out = bcsr * b (for vectors)
-void smurff::linop::A_mul_B(Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b) 
-{
-  if (csr.nrow != out.size()) {THROWERROR("csr.nrow must equal out.size()");}
-  if (csr.ncol != b.size())   {THROWERROR("csr.ncol must equal b.size()");}
-  csr_A_mul_B( out.data(), & csr, b.data() );
-}
-
-// OUT' = bcsr * B' (for matrices)
-void smurff::linop::A_mul_Bt(Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B) 
-{
-  if (csr.nrow != out.cols()) {THROWERROR("csr.nrow must equal out.cols()");}
-  if (csr.ncol != B.cols())   {THROWERROR("csr.ncol must equal b.cols()");}
-  if (out.rows() != B.rows()) {THROWERROR("out.rows() must equal B.rows()");}
-  csr_A_mul_Bn( out.data(), & csr, B.data(), B.rows() );
-}
-
-//method is identical
-
 //X = A * B
 Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B) 
 {
@@ -58,90 +22,8 @@ Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B)
    return out;
 }
 
-//method is identical
- 
-Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, SparseFeat & B) 
-{
-   Eigen::MatrixXd out(A.rows(), B.cols());
-   A_mul_Bt(out, B.Mt, A);
-   return out;
-}
-
-//method is identical
- 
-Eigen::MatrixXd smurff::linop::A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B) 
-{
-   Eigen::MatrixXd out(A.rows(), B.cols());
-   A_mul_Bt(out, B.Mt, A);
-   return out;
-}
-
-void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseFeat & A) {
-  if (out.cols() != A.cols()) {
-   THROWERROR("At_mul_A(SparseFeat): out.cols() must equal A.cols()");
-  }
-  if (out.cols() != out.rows()) {
-   THROWERROR("At_mul_A(SparseFeat): out must be square matrix.)");
-  }
-
-  out.setZero();
-  const int nfeat = A.M.ncol;
-
-  #pragma omp parallel for schedule(guided)
-  for (int f1 = 0; f1 < nfeat; f1++) 
-  {
-    int end = A.Mt.row_ptr[f1 + 1];
-    out(f1, f1) = end - A.Mt.row_ptr[f1];
-    // looping over all non-zero rows of f1
-    for (int i = A.Mt.row_ptr[f1]; i < end; i++) 
-    {
-      int Mrow = A.Mt.cols[i]; /* row in M */
-      int end2 = A.M.row_ptr[Mrow + 1];
-      for (int j = A.M.row_ptr[Mrow]; j < end2; j++) 
-      {
-        int f2 = A.M.cols[j];
-        if (f1 < f2) 
-        {
-          out(f2, f1) += 1;
-        }
-      }
-    }
-  }
-}
-
 void smurff::linop::At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A) {
   At_mul_A_blas(A, out.data());
-}
-
-void smurff::linop::At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A) {
-  if (out.cols() != A.cols()) {
-   THROWERROR("At_mul_A(SparseDoubleFeat): out.cols() must equal A.cols()");
-  }
-  if (out.cols() != out.rows()) {
-   THROWERROR("At_mul_A(SparseDoubleFeat): out must be square matrix.)");
-  }
-  out.setZero();
-  const int nfeat = A.M.ncol;
-
-  #pragma omp parallel for schedule(guided)
-  for (int f1 = 0; f1 < nfeat; f1++) 
-  {
-    // looping over all non-zero rows of f1
-    for (int i = A.Mt.row_ptr[f1], end = A.Mt.row_ptr[f1 + 1]; i < end; i++) 
-    {
-      int Mrow     = A.Mt.cols[i]; /* row in M */
-      double val1  = A.Mt.vals[i]; /* value for Mrow */
-
-      for (int j = A.M.row_ptr[Mrow], end2 = A.M.row_ptr[Mrow + 1]; j < end2; j++) 
-      {
-        int f2 = A.M.cols[j];
-        if (f1 <= f2) 
-        {
-          out(f2, f1) += A.M.vals[j] * val1;
-        }
-      }
-    }
-  }
 }
 
 void smurff::linop::At_mul_A_blas(Eigen::MatrixXd & A, double* AtA) {
@@ -215,43 +97,6 @@ void smurff::linop::Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alp
 void smurff::linop::Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
   cblas_dsymm(CblasColMajor, CblasRight, CblasLower, Y.rows(), Y.cols(), alpha, A.data(), A.rows(), B.data(), B.rows(), beta, Y.data(), Y.rows());
 }*/
-
-template<> 
-void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
-  // solution update:
-  A_mul_Bt(tmp, A.M, B);
-  // move KP += reg * P here with nowait from previous loop
-  // http://stackoverflow.com/questions/30496365/parallelize-the-addition-of-a-vector-of-matrices-in-openmp
-  A_mul_Bt(out, A.Mt, tmp);
-
-  int ncol = out.cols(), nrow = out.rows();
-  #pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) 
-  {
-    for (int row = 0; row < nrow; row++) 
-    {
-      out(row, col) += reg * B(row, col);
-    }
-  }
-}
-
-template<>
-void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
-  // solution update:
-  A_mul_Bt(tmp, A.M, B);
-  // move KP += reg * P here with nowait from previous loop
-  // http://stackoverflow.com/questions/30496365/parallelize-the-addition-of-a-vector-of-matrices-in-openmp
-  A_mul_Bt(out, A.Mt, tmp);
-  int ncol = out.cols(), nrow = out.rows();
-  #pragma omp parallel for schedule(static)
-  for (int col = 0; col < ncol; col++) 
-  {
-    for (int row = 0; row < nrow; row++) 
-    {
-      out(row, col) += reg * B(row, col);
-    }
-  }
-}
 
 template<>
 void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
@@ -394,40 +239,6 @@ void smurff::linop::A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A,
       out(j, i) = tmp;
     }
   }
-}
-
-Eigen::VectorXd smurff::linop::col_square_sum(SparseFeat & A) 
-{
-   const int ncol = A.cols();
-   VectorXd out(ncol);
-   #pragma omp parallel for schedule(static)
-   for (int col = 0; col < ncol; col++)
-   {
-      out(col) = A.Mt.row_ptr[col + 1] - A.Mt.row_ptr[col];
-   }
-   return out;
-}
-
-Eigen::VectorXd smurff::linop::col_square_sum(SparseDoubleFeat & A) 
-{
-   const int ncol = A.cols();
-   const int* row_ptr = A.Mt.row_ptr;
-   const double* vals = A.Mt.vals;
-   VectorXd out(ncol);
-
-   #pragma omp parallel for schedule(guided)
-   for (int col = 0; col < ncol; col++) 
-   {
-      double tmp = 0;
-      int i   = row_ptr[col];
-      int end = row_ptr[col + 1];
-      for (; i < end; i++) 
-      {
-         tmp += vals[i] * vals[i];
-      }
-      out(col) = tmp;
-   }
-   return out;
 }
 
 Eigen::VectorXd smurff::linop::col_square_sum(Eigen::MatrixXd & A) 

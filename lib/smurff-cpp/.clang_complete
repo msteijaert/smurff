@@ -1,4 +1,3 @@
 -I../eigen3
--I../libfastsparse
 -I../inih
 -std=c++11

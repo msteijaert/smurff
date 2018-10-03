@@ -1,12 +1,13 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
+#include <SmurffCpp/Utils/counters.h>
 
-#include <SmurffCpp/SideInfo/SparseFeat.h>
-#include <SmurffCpp/SideInfo/SparseDoubleFeat.h>
+#include <SmurffCpp/SideInfo/SparseSideInfo.h>
 
 namespace smurff { namespace linop {
 
@@ -15,24 +16,14 @@ int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, 
 template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error = false);
 
-void At_mul_A(Eigen::MatrixXd & out, SparseFeat & A);
-void At_mul_A(Eigen::MatrixXd & out, SparseDoubleFeat & A);
 void At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
 
-Eigen::VectorXd col_square_sum(SparseFeat & A);
-Eigen::VectorXd col_square_sum(SparseDoubleFeat & A);
 Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A);
 
 template<typename T>
 void compute_uhat(Eigen::MatrixXd & uhat, T & feat, Eigen::MatrixXd & beta);
 template<typename T>
 void AtA_mul_B(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-template<> 
-void AtA_mul_B(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-template<>
-void AtA_mul_B(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<>
 void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
@@ -43,14 +34,10 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::Ma
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<int N>
-void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-template<int N>
-void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+void AtA_mul_Bx(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B);
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B);
+void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
 
 
 void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
@@ -67,16 +54,10 @@ Eigen::MatrixXd A_mul_At_combo(Eigen::MatrixXd & A);
 void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 
 // util functions:
-void A_mul_B(  Eigen::VectorXd & out, BinaryCSR & csr, Eigen::VectorXd & b);
-void A_mul_Bt( Eigen::MatrixXd & out, BinaryCSR & csr, Eigen::MatrixXd & B);
-void A_mul_B(  Eigen::VectorXd & out, CSR & csr, Eigen::VectorXd & b);
-void A_mul_Bt( Eigen::MatrixXd & out, CSR & csr, Eigen::MatrixXd & B);
 void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
 
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseFeat & B);
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, SparseDoubleFeat & B);
 
 void makeSymmetric(Eigen::MatrixXd & A);
 
@@ -84,40 +65,6 @@ void makeSymmetric(Eigen::MatrixXd & A);
 void Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 void Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 
-// Y = X[:,col]' * B'
-inline void At_mul_Bt(Eigen::VectorXd & Y, SparseFeat & X, const int col, Eigen::MatrixXd & B) 
-{
-  const int* cols = X.Mt.cols;
-  const int end   = X.Mt.row_ptr[col + 1];
-  const int D     = Y.size();
-  Y.setZero();
-  for (int i = X.Mt.row_ptr[col]; i < end; i++) {
-    int c = cols[i];
-    for (int d = 0; d < D; d++) {
-      Y(d) += B(d, c);
-    }
-  }
-}
-
-// Y = X[:,col]' * B'
-inline void At_mul_Bt(Eigen::VectorXd & Y, SparseDoubleFeat & X, const int col, Eigen::MatrixXd & B) 
-{
-   const int* cols    = X.Mt.cols;
-   const double* vals = X.Mt.vals;
-   const int end      = X.Mt.row_ptr[col + 1];
-   const int D        = Y.size();
-   Y.setZero();
-
-   for (int i = X.Mt.row_ptr[col]; i < end; i++) 
-   {
-      int c    = cols[i];
-      double v = vals[i];
-      for (int d = 0; d < D; d++) 
-      {
-         Y(d) += v * B(d, c);
-      }
-   }
-}
 
 inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) 
 {
@@ -126,42 +73,6 @@ inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, E
    for (int row = 0; row < B.rows(); row++)
    {
       Y(row) = X.col(col).dot(B.row(row));
-   }
-}
-
-// computes Z += A[:,col] * b', where a and b are vectors
-inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseFeat & A, const int col, Eigen::VectorXd & b) 
-{
-   const int* cols = A.Mt.cols;
-   int i           = A.Mt.row_ptr[col];
-   const int end   = A.Mt.row_ptr[col + 1];
-   const int D     = b.size();
-   for (; i < end; i++) 
-   {
-      int c = cols[i];
-      for (int d = 0; d < D; d++) 
-      {
-         Z(d, c) += b(d);
-      }
-   }
-}
-
-// computes Z += A[:,col] * b', where a and b are vectors
-inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, SparseDoubleFeat & A, const int col, Eigen::VectorXd & b) 
-{
-   const int*    cols = A.Mt.cols;
-   const double* vals = A.Mt.vals;
-   const int D        = b.size();
-   int i              = A.Mt.row_ptr[col];
-   const int end      = A.Mt.row_ptr[col + 1];
-   for (; i < end; i++) 
-   {
-      int c    = cols[i];
-      double v = vals[i];
-      for (int d = 0; d < D; d++) 
-      {
-         Z(d, c) += v * b(d);
-      }
    }
 }
 
@@ -180,21 +91,6 @@ inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int 
 ///////////////////////////////////
 
 //// for Sparse
-/** 
- * uhat       - [D x N] dense matrix
- * sparseFeat - [N x F] sparse matrix (features)
- * beta       - [D x F] dense matrix
- * computes:
- *   uhat = beta * sparseFeat'
- */
-template<> inline void compute_uhat(Eigen::MatrixXd & uhat, SparseFeat & sparseFeat, Eigen::MatrixXd & beta) {
-  A_mul_Bt(uhat, sparseFeat.M, beta);
-}
-
-template<> inline void compute_uhat(Eigen::MatrixXd & uhat, SparseDoubleFeat & feat, Eigen::MatrixXd & beta) {
-  A_mul_Bt(uhat, feat.M, beta);
-}
-
 /** computes uhat = denseFeat * beta, where beta and uhat are row ordered */
 template<> inline void compute_uhat(Eigen::MatrixXd & uhat, Eigen::MatrixXd & denseFeat, Eigen::MatrixXd & beta) {
   A_mul_Bt_blas(uhat, beta, denseFeat);
@@ -377,49 +273,16 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
 }
 
 template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, BinaryCSR & A, Eigen::MatrixXd & B) {
+void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B) {
    THROWERROR_ASSERT(N == out.rows());
    THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.ncol == B.cols());
-   THROWERROR_ASSERT(A.nrow == out.cols());
+   THROWERROR_ASSERT(A.cols() == B.cols());
+   THROWERROR_ASSERT(A.rows() == out.cols());
 
-  int* row_ptr   = A.row_ptr;
-  int* cols      = A.cols;
-  const int nrow = A.nrow;
-  double* Y = out.data();
-  double* X = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
-    {
-      int col = cols[i] * N;
-      for (int j = 0; j < N; j++) 
-      {
-         tmp[j] += X[col + j];
-      }
-    }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j];
-    }
-  }
-}
-
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, CSR & A, Eigen::MatrixXd & B) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.ncol == B.cols());
-   THROWERROR_ASSERT(A.nrow == out.cols());
-
-  int* row_ptr   = A.row_ptr;
-  int* cols      = A.cols;
-  double* vals   = A.vals;
-  const int nrow = A.nrow;
+  int* row_ptr   = A.outerIndexPtr();
+  int* cols      = A.innerIndexPtr();
+  double* vals   = A.valuePtr();
+  const int nrow = A.rows();
   double* Y = out.data();
   double* X = B.data();
   #pragma omp parallel for schedule(guided)
@@ -511,80 +374,46 @@ inline void AtA_mul_B_switch(
 	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
 }
 
-template<int N>
-void AtA_mul_Bx(Eigen::MatrixXd & out, SparseFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & inner) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.cols() == B.cols());
-   THROWERROR_ASSERT(A.cols() == out.cols());
-   THROWERROR_ASSERT(A.rows() == inner.cols());
+template <int N>
+void AtA_mul_Bx(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
+    THROWERROR_ASSERT(N == out.rows());
+    THROWERROR_ASSERT(N == B.rows());
+    THROWERROR_ASSERT(A.cols() == B.cols());
+    THROWERROR_ASSERT(A.cols() == out.cols());
+    THROWERROR_ASSERT(A.rows() == inner.cols());
 
-  A_mul_Bx<N>(inner, A.M,  B);
+    Eigen::SparseMatrix<double, Eigen::RowMajor>* M = A.matrix_ptr;
+    Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
 
-  int* row_ptr   = A.Mt.row_ptr;
-  int* cols      = A.Mt.cols;
-  const int nrow = A.Mt.nrow;
-  double* Y      = out.data();
-  double* X      = inner.data();
-  double* Braw   = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
+    A_mul_Bx<N>(inner, *M, B);
+
+    int* row_ptr   = Mt->outerIndexPtr();
+    int* cols      = Mt->innerIndexPtr();
+    double* vals   = Mt->valuePtr();
+    const int nrow = Mt->rows();
+    double* Y      = out.data();
+    double* X      = inner.data();
+    double* Braw   = B.data();
+    #pragma omp parallel for schedule(guided)
+    for (int row = 0; row < nrow; row++) 
     {
-      int col = cols[i] * N;
-      for (int j = 0; j < N; j++) 
-      {
-         tmp[j] += X[col + j];
-      }
+        double tmp[N] = { 0 };
+        const int end = row_ptr[row + 1];
+        for (int i = row_ptr[row]; i < end; i++) 
+        {
+        int col = cols[i] * N;
+        double val = vals[i];
+        for (int j = 0; j < N; j++) 
+        {
+            tmp[j] += X[col + j] * val;
+        }
+        }
+        int r = row * N;
+        for (int j = 0; j < N; j++) 
+        {
+        Y[r + j] = tmp[j] + reg * Braw[r + j];
+        }
     }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j] + reg * Braw[r + j];
-    }
-  }
-}
-
-template<int N>
-void AtA_mul_Bx(Eigen::MatrixXd & out, SparseDoubleFeat & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & inner) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.cols() == B.cols());
-   THROWERROR_ASSERT(A.cols() == out.cols());
-   THROWERROR_ASSERT(A.rows() == inner.cols());
-
-  A_mul_Bx<N>(inner, A.M,  B);
-
-  int* row_ptr   = A.Mt.row_ptr;
-  int* cols      = A.Mt.cols;
-  double* vals   = A.Mt.vals;
-  const int nrow = A.Mt.nrow;
-  double* Y      = out.data();
-  double* X      = inner.data();
-  double* Braw   = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
-    {
-      int col = cols[i] * N;
-      double val = vals[i];
-      for (int j = 0; j < N; j++) 
-      {
-        tmp[j] += X[col + j] * val;
-      }
-    }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j] + reg * Braw[r + j];
-    }
-  }
 }
 
 // computes out = alpha * out + beta * A * B

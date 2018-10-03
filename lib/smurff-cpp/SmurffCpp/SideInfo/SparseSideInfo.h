@@ -2,19 +2,22 @@
 
 #include "ISideInfo.h"
 
-#include "SparseFeat.h"
-
 #include <memory>
+#include <Eigen/Sparse>
 
 namespace smurff {
 
-class SparseFeatSideInfo : public ISideInfo
+class SparseSideInfo : public ISideInfo
 {
-private:
-   std::shared_ptr<SparseFeat> m_side_info;
 
 public:
-   SparseFeatSideInfo(std::shared_ptr<SparseFeat> side_info);
+   Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_ptr;
+   Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_col_major_ptr;
+   Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_trans_ptr;
+
+   SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals);
+   SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr);
+   ~SparseSideInfo() override;
 
 public:
    int cols() const override;
@@ -23,7 +26,7 @@ public:
 
 public:
    std::ostream& print(std::ostream &os) const override;
-
+   
    bool is_dense() const override;
 
 public:
@@ -43,9 +46,6 @@ public:
 
    void add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b) override;
 
-   //only for tests
-public:
-   std::shared_ptr<SparseFeat> get_features();
 };
 
 }

@@ -7,8 +7,6 @@
 
 #include <SmurffCpp/Configs/MatrixConfig.h>
 
-#include <SmurffCpp/SideInfo/LibFastSparseDependency.h>
-
 #include <SmurffCpp/Utils/Error.h>
 
 namespace smurff { namespace matrix_utils {
@@ -22,11 +20,11 @@ namespace smurff { namespace matrix_utils {
 
    Eigen::MatrixXd dense_to_eigen(smurff::MatrixConfig& matrixConfig);
 
-   // Conversion of libfastsparse matrices to dense eigen matrix - do we need it?
-
-   Eigen::MatrixXd sparse_to_dense(const SparseBinaryMatrix& in);
-
-   Eigen::MatrixXd sparse_to_dense(const SparseDoubleMatrix& in);
+   typedef struct {
+       Eigen::SparseMatrix<double, Eigen::RowMajor>* row_major_sparse;
+       Eigen::SparseMatrix<double, Eigen::ColMajor>* column_major_sparse;
+       Eigen::SparseMatrix<double, Eigen::RowMajor>* transposed_sparse;
+   } sparse_eigen_struct;
 
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 
