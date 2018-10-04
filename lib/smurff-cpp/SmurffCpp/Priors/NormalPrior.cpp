@@ -45,17 +45,17 @@ void NormalPrior::init()
    df = K;
 
    const auto &config = m_session->getConfig();
-   if (config.hasPropagetedPosterio(getMode()))
+   if (config.hasPropagatedPosterior(getMode()))
    {
-      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getMuPropagetedPosterio(getMode())));
-      Lambda_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getLambdaPropagetedPosterio(getMode())));
+      mu_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getMuPropagatedPosterior(getMode())));
+      Lambda_pp = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*config.getLambdaPropagatedPosterior(getMode())));
       m_name += " with posterior propagation";
    }
 }
 
 const Eigen::VectorXd NormalPrior::getMu(int n) const
 {
-   if (m_session->getConfig().hasPropagetedPosterio(getMode()))
+   if (m_session->getConfig().hasPropagatedPosterior(getMode()))
    {
       return mu_pp->col(n);
    }
@@ -65,7 +65,7 @@ const Eigen::VectorXd NormalPrior::getMu(int n) const
 
 const Eigen::MatrixXd NormalPrior::getLambda(int n) const
 {
-   if (m_session->getConfig().hasPropagetedPosterio(getMode()))
+   if (m_session->getConfig().hasPropagatedPosterior(getMode()))
    {
       return Eigen::Map<Eigen::MatrixXd>(Lambda_pp->col(n).data(), num_latent(), num_latent());
    }
