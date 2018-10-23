@@ -56,12 +56,13 @@ void MacauPrior::init()
 
 void MacauPrior::update_prior()
 {
+    Eigen::MatrixXd BBt;
     COUNTER("update_prior");
     {
         COUNTER("rest of update_prior");
         // residual (Uhat is later overwritten):
         Uhat.noalias() = U() - Uhat;
-        Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(*m_beta);
+        BBt = smurff::linop::A_mul_At_combo(*m_beta);
     }
 
     // sampling Gaussian
