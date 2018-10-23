@@ -19,12 +19,14 @@ namespace smurff {
 class MacauPrior : public NormalPrior
 {
 public:
-   std::shared_ptr<Eigen::MatrixXd> m_beta;      // link matrix
+   std::shared_ptr<Eigen::MatrixXd> 
+                   m_beta;           // num_feat x num_latent link matrix
 
-   Eigen::MatrixXd Uhat;
-   Eigen::MatrixXd FtF_plus_beta;       // F'F
-   Eigen::MatrixXd HyperU, HyperU2;
-   Eigen::MatrixXd Ft_y;
+   Eigen::MatrixXd Uhat;             // num_latent x num_items
+   Eigen::MatrixXd FtF_plus_beta;    // num_feat   x num feat
+   Eigen::MatrixXd HyperU;           // num_latent x num_items
+   Eigen::MatrixXd HyperU2;          // num_latent x num_feat
+   Eigen::MatrixXd Ft_y;             // num_latent x num_feat
 
    int blockcg_iter;
    

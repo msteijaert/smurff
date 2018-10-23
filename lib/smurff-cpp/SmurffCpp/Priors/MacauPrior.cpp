@@ -57,17 +57,27 @@ void MacauPrior::init()
 void MacauPrior::update_prior()
 {
     COUNTER("update_prior");
-    // residual (Uhat is later overwritten):
-    Uhat.noalias() = U() - Uhat;
-    Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(*m_beta);
+    {
+        COUNTER("rest of update_prior");
+        // residual (Uhat is later overwritten):
+        Uhat.noalias() = U() - Uhat;
+        Eigen::MatrixXd BBt = smurff::linop::A_mul_At_combo(*m_beta);
+    }
 
     // sampling Gaussian
-    std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + m_beta->cols());
+    {
+        COUNTER("sample hyper mu/Lambda");
+        std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + m_beta->cols());
+    }
     sample_beta();
-    Features->compute_uhat(Uhat, *m_beta);
+    {
+        COUNTER("compute_uhat");
+        Features->compute_uhat(Uhat, *m_beta);
+    }
 
     if (enable_beta_precision_sampling)
     {
+        COUNTER("sample_beta_precision");
         double old_beta = beta_precision;
         beta_precision = sample_beta_precision(*m_beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
         FtF_plus_beta.diagonal().array() += beta_precision - old_beta;
@@ -212,7 +222,7 @@ void MacauPrior::sample_beta_direct()
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
 {
-   const int D = beta.rows();
+   const int D = beta.rows(); // num feat
    Eigen::MatrixXd BB(D, D);
    smurff::linop::A_mul_At_combo(BB, beta);
    double nux = nu + beta.rows() * beta.cols();
