@@ -56,28 +56,68 @@ void MacauPrior::init()
 
 void MacauPrior::update_prior()
 {
-    Eigen::MatrixXd BBt;
+    /*
+>> compute_uhat:             0.5012     (12%) in        110
+>> main:             4.1396     (100%) in       1
+>> rest of update_prior:             0.1684     (4%) in 110
+>> sample hyper mu/Lambda:           0.3804     (9%) in 110
+>> sample_beta:      1.4927     (36%) in        110
+>> sample_latents:           3.8824     (94%) in        220
+>> step:             3.9824     (96%) in        111
+>> update_prior:             2.5436     (61%) in        110
+*/
     COUNTER("update_prior");
     {
         COUNTER("rest of update_prior");
         // residual (Uhat is later overwritten):
-        Uhat.noalias() = U() - Uhat;
+        //uses: U, Uhat
+        //writes: Uhat
+        Udelta = U() - Uhat;
+        // BBt = beta * beta'
+        //uses: beta
         BBt = smurff::linop::A_mul_At_combo(*m_beta);
     }
 
     // sampling Gaussian
     {
+        // Uses, Udelta   
         COUNTER("sample hyper mu/Lambda");
-        std::tie(this->mu, this->Lambda) = CondNormalWishart(Uhat, this->mu0, this->b0, this->WI + beta_precision * BBt, this->df + m_beta->cols());
+        std::tie(this->mu, this->Lambda) = CondNormalWishart(Udelta, this->mu0, this->b0,
+            this->WI + beta_precision * BBt, this->df + m_beta->cols());
     }
-    sample_beta();
+
+    // uses: U, F
+    // writes: Ft_y
+    compute_Ft_y_omp(Ft_y);
+
+    {
+        COUNTER("sample_beta");
+        if (use_FtF)
+        {
+            // uses: FtF, Ft_y, 
+            // writes: m_beta
+            *m_beta = FtF_plus_beta.llt().solve(Ft_y.transpose()).transpose();
+        } 
+        else
+        {
+            // uses: Features, beta_precision, Ft_y, 
+            // writes: m_beta
+            blockcg_iter = Features->solve_blockcg(*m_beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
+        }
+    }
+
     {
         COUNTER("compute_uhat");
+        // Uhat = beta * F
+        // uses: beta, F
+        // output: Uhat
         Features->compute_uhat(Uhat, *m_beta);
     }
 
     if (enable_beta_precision_sampling)
     {
+        // uses: beta
+        // writes: FtF
         COUNTER("sample_beta_precision");
         double old_beta = beta_precision;
         beta_precision = sample_beta_precision(*m_beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
@@ -92,14 +132,24 @@ const Eigen::VectorXd MacauPrior::getMu(int n) const
 
 void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 {
+   //-- input
+   // mu, Lambda (small)
+   // U
+   // F
+   //-- output
+   // Ft_y
    const int num_feat = m_beta->cols();
 
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
    // Ft_y is [ D x F ] matrix
-   HyperU = (U() + MvNormal_prec(Lambda, num_cols())).colwise() - mu;
 
-   Ft_y = Features->A_mul_B(HyperU);
-   HyperU2 = MvNormal_prec(Lambda, num_feat);
+   //HyperU: num_latent x num_item
+   HyperU = (U() + MvNormal_prec(Lambda, num_cols())).colwise() - mu;
+   Ft_y = Features->A_mul_B(HyperU); // num_latent x num_feat
+
+   //--  add beta_precision 
+
+   HyperU2 = MvNormal_prec(Lambda, num_feat); // num_latent x num_feat
 
    #pragma omp parallel for schedule(static)
    for (int f = 0; f < num_feat; f++)
@@ -112,13 +162,6 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 }
 
 void MacauPrior::sample_beta()
-{
-   COUNTER("sample_beta");
-   if (use_FtF)
-      sample_beta_direct();
-   else
-      sample_beta_cg();
-}
 
 void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a)
 {
@@ -217,8 +260,6 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 // direct method
 void MacauPrior::sample_beta_direct()
 {
-    this->compute_Ft_y_omp(Ft_y);
-    *m_beta = FtF_plus_beta.llt().solve(Ft_y.transpose()).transpose();
 }
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
@@ -241,8 +282,5 @@ double MacauPrior::sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd
 
 void MacauPrior::sample_beta_cg()
 {
-    Eigen::MatrixXd Ft_y;
-    this->compute_Ft_y_omp(Ft_y);
 
-    blockcg_iter = Features->solve_blockcg(*m_beta, beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
 }

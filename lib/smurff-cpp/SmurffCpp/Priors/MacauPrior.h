@@ -20,13 +20,15 @@ class MacauPrior : public NormalPrior
 {
 public:
    std::shared_ptr<Eigen::MatrixXd> 
-                   m_beta;           // num_feat x num_latent link matrix
+                   m_beta;           // num_feat x num_latent -- link matrix
 
    Eigen::MatrixXd Uhat;             // num_latent x num_items
+   Eigen::MatrixXd Udelta;           // num_latent x num_items
    Eigen::MatrixXd FtF_plus_beta;    // num_feat   x num feat
    Eigen::MatrixXd HyperU;           // num_latent x num_items
    Eigen::MatrixXd HyperU2;          // num_latent x num_feat
-   Eigen::MatrixXd Ft_y;             // num_latent x num_feat
+   Eigen::MatrixXd Ft_y;             // num_latent x num_feat -- RHS
+   Eigen::MatrixXd BBt;              // num_latent x num_latent
 
    int blockcg_iter;
    
@@ -71,32 +73,17 @@ public:
 
    void compute_Ft_y_omp(Eigen::MatrixXd& Ft_y);
 
-   // Update beta and Uhat
-   virtual void sample_beta();
-
 public:
 
    void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a);
 
 public:
-
    bool save(std::shared_ptr<const StepFile> sf) const override;
-
    void restore(std::shared_ptr<const StepFile> sf) override;
 
 public:
-
    std::ostream& info(std::ostream &os, std::string indent) override;
-
    std::ostream& status(std::ostream &os, std::string indent) const override;
-
-private:
-
-   // direct method
-   void sample_beta_direct();
-
-   // BlockCG solver
-   void sample_beta_cg();
 
 public:
 
