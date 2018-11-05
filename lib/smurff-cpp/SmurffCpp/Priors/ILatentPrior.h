@@ -60,7 +60,7 @@ public:
    ConstVMatrixIterator<Eigen::MatrixXd> CVend() const;
 
    int num_latent() const;
-   int num_cols() const;
+   int num_item() const;
 
    const Eigen::VectorXd& getUsum() { return Usum; } 
    const Eigen::MatrixXd& getUUsum()  { return UUsum; }

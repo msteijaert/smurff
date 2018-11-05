@@ -80,7 +80,7 @@ int ILatentPrior::num_latent() const
    return model().nlatent();
 }
 
-int ILatentPrior::num_cols() const
+int ILatentPrior::num_item() const
 {
    return model().U(m_mode).cols();
 }
