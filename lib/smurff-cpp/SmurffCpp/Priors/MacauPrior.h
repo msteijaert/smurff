@@ -90,8 +90,8 @@ public:
    std::ostream& status(std::ostream &os, std::string indent) const override;
 
 public:
-   std::pair<double, double> posterior_beta_precision();
-   double sample_beta_precision();
+   static std::pair<double, double> posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
+   static double sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
 };
 
 }

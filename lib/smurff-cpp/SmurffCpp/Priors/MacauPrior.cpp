@@ -140,7 +140,7 @@ void MacauPrior::update_prior()
         // writes: FtF
         COUNTER("sample_beta_precision");
         double old_beta = beta_precision;
-        beta_precision = sample_beta_precision();
+        beta_precision = sample_beta_precision(beta(), Lambda, beta_precision_nu0, beta_precision_mu0);
         FtF_plus_precision.diagonal().array() += beta_precision - old_beta;
     }
 }
@@ -248,18 +248,19 @@ std::ostream &MacauPrior::status(std::ostream &os, std::string indent) const
     return os;
 }
 
-std::pair<double, double> MacauPrior::posterior_beta_precision()
+std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
 {
-    auto BB = beta() * beta().transpose();
-    double nux = beta_precision_nu0 + num_feat() * num_latent();
-    double mux = beta_precision_mu0 * nux / (beta_precision_nu0 + beta_precision_mu0 * (BB.selfadjointView<Eigen::Lower>() * Lambda).trace());
-    double b = nux / 2;
-    double c = 2 * mux / nux;
-    return std::make_pair(b, c);
+   auto BB = beta * beta.transpose();
+   double nux = nu + beta.rows() * beta.cols();
+   double mux = mu * nux / (nu + mu * (BB.selfadjointView<Eigen::Lower>() * Lambda_u).trace());
+   double b = nux / 2;
+   double c = 2 * mux / nux;
+   return std::make_pair(b, c);
 }
 
-double MacauPrior::sample_beta_precision()
+double MacauPrior::sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
 {
-    auto gamma_post = posterior_beta_precision();
-    return rgamma(gamma_post.first, gamma_post.second);
+   auto gamma_post = posterior_beta_precision(beta, Lambda_u, nu, mu);
+   return rgamma(gamma_post.first, gamma_post.second);
 }
+
