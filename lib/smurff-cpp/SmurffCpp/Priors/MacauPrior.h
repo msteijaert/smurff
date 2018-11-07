@@ -20,15 +20,15 @@ class MacauPrior : public NormalPrior
 {
 public:
    std::shared_ptr<Eigen::MatrixXd> 
-                   m_beta;           // num_feat x num_latent -- link matrix
+                   m_beta;            // num_feat x num_latent -- link matrix
 
-   Eigen::MatrixXd Uhat;             // num_latent x num_items
-   Eigen::MatrixXd Udelta;           // num_latent x num_items
-   Eigen::MatrixXd FtF_plus_beta;    // num_feat   x num feat
-   Eigen::MatrixXd HyperU;           // num_latent x num_items
-   Eigen::MatrixXd HyperU2;          // num_latent x num_feat
-   Eigen::MatrixXd Ft_y;             // num_latent x num_feat -- RHS
-   Eigen::MatrixXd BBt;              // num_latent x num_latent
+   Eigen::MatrixXd Uhat;              // num_latent x num_items
+   Eigen::MatrixXd Udelta;            // num_latent x num_items
+   Eigen::MatrixXd FtF_plus_precision;// num_feat   x num feat
+   Eigen::MatrixXd HyperU;            // num_latent x num_items
+   Eigen::MatrixXd HyperU2;           // num_latent x num_feat
+   Eigen::MatrixXd Ft_y;              // num_latent x num_feat -- RHS
+   Eigen::MatrixXd BBt;               // num_latent x num_latent
 
    int blockcg_iter;
    
@@ -70,7 +70,11 @@ public:
    void update_prior() override;
 
    const Eigen::VectorXd getMu(int n) const override;
+   Eigen::MatrixXd &beta() const { return *m_beta; }
 
+   int num_feat() const { return Features->cols(); }
+
+private:
    void compute_Ft_y_omp(Eigen::MatrixXd& Ft_y);
 
 public:
@@ -86,10 +90,8 @@ public:
    std::ostream& status(std::ostream &os, std::string indent) const override;
 
 public:
-
-   static std::pair<double, double> posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
-
-   static double sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
+   std::pair<double, double> posterior_beta_precision();
+   double sample_beta_precision();
 };
 
 }
