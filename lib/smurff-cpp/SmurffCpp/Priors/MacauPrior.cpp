@@ -82,7 +82,7 @@ void MacauPrior::update_prior()
         // BBt = beta * beta'
         // uses: beta
         // complexity: num_feat x num_feat x num_latent
-        BBt = beta().transpose() * beta();
+        BBt = beta() * beta().transpose();
         // uses: Udelta
         // complexity: num_latent x num_items
         std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0,
