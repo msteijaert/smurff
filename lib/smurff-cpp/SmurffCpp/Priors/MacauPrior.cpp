@@ -106,24 +106,12 @@ void MacauPrior::update_prior()
         HyperU2 = MvNormal_prec(Lambda, num_feat());
         Ft_y += std::sqrt(beta_precision) * HyperU2;
     }
+    // uses: U, F
+    // writes: Ft_y
+    // complexity: num_latent x num_feat x num_item
+    compute_Ft_y_omp(Ft_y);
 
-    {
-        COUNTER("sample_beta");
-        if (use_FtF)
-        {
-            // uses: FtF, Ft_y,
-            // writes: m_beta
-            // complexity: num_feat^3
-            beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
-        }
-        else
-        {
-            // uses: Features, beta_precision, Ft_y,
-            // writes: beta
-            // complexity: num_feat x num_feat x num_iter
-            blockcg_iter = Features->solve_blockcg(beta(), beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
-        }
-    }
+    sample_beta();
 
     {
         COUNTER("compute_uhat");
@@ -143,6 +131,45 @@ void MacauPrior::update_prior()
         beta_precision = sample_beta_precision(beta(), Lambda, beta_precision_nu0, beta_precision_mu0);
         FtF_plus_precision.diagonal().array() += beta_precision - old_beta;
     }
+}
+
+void MacauPrior::sample_beta()
+{
+    COUNTER("sample_beta");
+    if (use_FtF)
+    {
+        // uses: FtF, Ft_y,
+        // writes: m_beta
+        // complexity: num_feat^3
+        beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
+    }
+    else
+    {
+        // uses: Features, beta_precision, Ft_y,
+        // writes: beta
+        // complexity: num_feat x num_feat x num_iter
+        blockcg_iter = Features->solve_blockcg(beta(), beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
+    }
+}
+
+
+// uses: U, F
+// writes: Ft_y
+// complexity: num_latent x num_feat x num_item
+void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd &Ft_y)
+{
+    COUNTER("compute Ft_y");
+    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
+    // Ft_y is [ K x F ] matrix
+
+    //HyperU: num_latent x num_item
+    HyperU = (U() + MvNormal_prec(Lambda, num_item())).colwise() - mu;
+    Ft_y = Features->A_mul_B(HyperU); // num_latent x num_feat
+
+    //--  add beta_precision
+    // HyperU2, Ft_y: num_latent x num_feat
+    HyperU2 = MvNormal_prec(Lambda, num_feat());
+    Ft_y += std::sqrt(beta_precision) * HyperU2;
 }
 
 const Eigen::VectorXd MacauPrior::getMu(int n) const
