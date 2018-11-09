@@ -161,8 +161,6 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
    }
 }
 
-void MacauPrior::sample_beta()
-
 void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a)
 {
    //FIXME: remove old code
@@ -257,11 +255,6 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
    return os;
 }
 
-// direct method
-void MacauPrior::sample_beta_direct()
-{
-}
-
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
 {
    const int D = beta.rows(); // num feat
@@ -278,9 +271,4 @@ double MacauPrior::sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd
 {
    auto gamma_post = posterior_beta_precision(beta, Lambda_u, nu, mu);
    return rgamma(gamma_post.first, gamma_post.second);
-}
-
-void MacauPrior::sample_beta_cg()
-{
-
 }
