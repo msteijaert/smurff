@@ -39,7 +39,7 @@ void MacauPrior::init()
 
    if (use_FtF)
    {
-      std::uint64_t dim = Features->cols();
+      std::uint64_t dim = num_feat();
       FtF_plus_precision.resize(dim, dim);
       Features->At_mul_A(FtF_plus_precision);
       FtF_plus_precision.diagonal().array() += beta_precision;
@@ -48,7 +48,7 @@ void MacauPrior::init()
    Uhat.resize(num_latent(), Features->rows());
    Uhat.setZero();
 
-   m_beta = std::make_shared<Eigen::MatrixXd>(num_latent(), Features->cols());
+   m_beta = std::make_shared<Eigen::MatrixXd>(num_latent(), num_feat());
    beta().setZero();
 
    m_session->model().setLinkMatrix(m_mode, m_beta);
@@ -83,7 +83,7 @@ void MacauPrior::update_prior()
         // Uses, Udelta   
         COUNTER("sample hyper mu/Lambda");
         std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0,
-            WI + beta_precision * BBt, df + beta().cols());
+            WI + beta_precision * BBt, df + num_feat());
     }
 
     // uses: U, F
@@ -138,8 +138,6 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
    // F
    //-- output
    // Ft_y
-   const int num_feat = beta().cols();
-
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
    // Ft_y is [ D x F ] matrix
 
@@ -149,10 +147,10 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 
    //--  add beta_precision 
 
-   HyperU2 = MvNormal_prec(Lambda, num_feat); // num_latent x num_feat
+   HyperU2 = MvNormal_prec(Lambda, num_feat()); // num_latent x num_feat
 
    #pragma omp parallel for schedule(static)
-   for (int f = 0; f < num_feat; f++)
+   for (int f = 0; f < num_feat(); f++)
    {
       for (int d = 0; d < num_latent(); d++)
       {
@@ -222,7 +220,7 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
    if (use_FtF)
    {
       os << "Cholesky Decomposition";
-      double needs_gb = (double)Features->cols() / 1024. * (double)Features->cols() / 1024. / 1024.;
+      double needs_gb = (double)num_feat() / 1024. * (double)num_feat() / 1024. / 1024.;
       if (needs_gb > 1.0) os << " (needing " << needs_gb << " GB of memory)";
       os << std::endl;
    } else {
