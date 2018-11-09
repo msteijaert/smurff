@@ -71,6 +71,10 @@ public:
 
    const Eigen::VectorXd getMu(int n) const override;
 
+   Eigen::MatrixXd &beta() const { return *m_beta; }
+ 
+   int num_feat() const { return Features->cols(); }
+
    void compute_Ft_y_omp(Eigen::MatrixXd& Ft_y);
 
 public:
