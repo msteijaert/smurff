@@ -48,7 +48,7 @@ void MacauPrior::init()
     Uhat.resize(num_latent(), Features->rows());
     Uhat.setZero();
 
-    m_beta = std::make_shared<Eigen::MatrixXd>(num_latent(), Features->cols());
+    m_beta = std::make_shared<Eigen::MatrixXd>(num_latent(), num_feat());
     beta().setZero();
 
     m_session->model().setLinkMatrix(m_mode, m_beta);
@@ -86,7 +86,7 @@ void MacauPrior::update_prior()
         // uses: Udelta
         // complexity: num_latent x num_items
         std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0,
-                                                 WI + beta_precision * BBt, df + num_latent());
+                                                 WI + beta_precision * BBt, df + num_feat());
     }
 
     // uses: U, F
