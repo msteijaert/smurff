@@ -35,7 +35,7 @@ void MacauPrior::init()
 {
    NormalPrior::init();
 
-   THROWERROR_ASSERT_MSG(Features->rows() == num_cols(), "Number of rows in train must be equal to number of rows in features");
+   THROWERROR_ASSERT_MSG(Features->rows() == num_item(), "Number of rows in train must be equal to number of rows in features");
 
    if (use_FtF)
    {
@@ -144,7 +144,7 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
    // Ft_y is [ D x F ] matrix
 
    //HyperU: num_latent x num_item
-   HyperU = (U() + MvNormal_prec(Lambda, num_cols())).colwise() - mu;
+   HyperU = (U() + MvNormal_prec(Lambda, num_item())).colwise() - mu;
    Ft_y = Features->A_mul_B(HyperU); // num_latent x num_feat
 
    //--  add beta_precision 

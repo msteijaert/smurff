@@ -39,7 +39,7 @@ const Eigen::VectorXd NormalOnePrior::getMu(int n) const
 
 void NormalOnePrior::update_prior()
 {
-    std::tie(mu, Lambda) = CondNormalWishart(num_cols(), getUUsum(), getUsum(), mu0, b0, WI, df);
+    std::tie(mu, Lambda) = CondNormalWishart(num_item(), getUUsum(), getUsum(), mu0, b0, WI, df);
 }
 
 void NormalOnePrior::sample_latent(int d)

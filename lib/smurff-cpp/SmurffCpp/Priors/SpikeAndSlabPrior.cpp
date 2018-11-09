@@ -18,7 +18,7 @@ void SpikeAndSlabPrior::init()
    NormalOnePrior::init();
 
    const int K = num_latent();
-   const int D = num_cols();
+   const int D = num_item();
    const int nview = data().nview(m_mode);
    
    THROWERROR_ASSERT(D > 0);
@@ -83,7 +83,7 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
         W2.col(v) += U().col(d).array().square(); 
       }
   }
-  THROWERROR_ASSERT(d == num_cols());
+  THROWERROR_ASSERT(d == num_item());
 
   Zcol.reset();
   W2col.reset();
