@@ -40,9 +40,9 @@ void MacauPrior::init()
    if (use_FtF)
    {
       std::uint64_t dim = Features->cols();
-      FtF_plus_beta.resize(dim, dim);
-      Features->At_mul_A(FtF_plus_beta);
-      FtF_plus_beta.diagonal().array() += beta_precision;
+      FtF_plus_precision.resize(dim, dim);
+      Features->At_mul_A(FtF_plus_precision);
+      FtF_plus_precision.diagonal().array() += beta_precision;
    }
 
    Uhat.resize(this->num_latent(), Features->rows());
@@ -96,7 +96,7 @@ void MacauPrior::update_prior()
         {
             // uses: FtF, Ft_y, 
             // writes: m_beta
-            *m_beta = FtF_plus_beta.llt().solve(Ft_y.transpose()).transpose();
+            *m_beta = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
         } 
         else
         {
@@ -121,7 +121,7 @@ void MacauPrior::update_prior()
         COUNTER("sample_beta_precision");
         double old_beta = beta_precision;
         beta_precision = sample_beta_precision(*m_beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
-        FtF_plus_beta.diagonal().array() += beta_precision - old_beta;
+        FtF_plus_precision.diagonal().array() += beta_precision - old_beta;
    }
 }
 
@@ -246,7 +246,7 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
    os << indent << m_name << ": " << std::endl;
    indent += "  ";
    os << indent << "blockcg iter = " << blockcg_iter << std::endl;
-   os << indent << "FtF_plus_beta= " << FtF_plus_beta.norm() << std::endl;
+   os << indent << "FtF_plus_precision= " << FtF_plus_precision.norm() << std::endl;
    os << indent << "HyperU       = " << HyperU.norm() << std::endl;
    os << indent << "HyperU2      = " << HyperU2.norm() << std::endl;
    os << indent << "Beta         = " << m_beta->norm() << std::endl;

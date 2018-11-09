@@ -24,7 +24,7 @@ public:
 
    Eigen::MatrixXd Uhat;             // num_latent x num_items
    Eigen::MatrixXd Udelta;           // num_latent x num_items
-   Eigen::MatrixXd FtF_plus_beta;    // num_feat   x num feat
+   Eigen::MatrixXd FtF_plus_precision;    // num_feat   x num feat
    Eigen::MatrixXd HyperU;           // num_latent x num_items
    Eigen::MatrixXd HyperU2;          // num_latent x num_feat
    Eigen::MatrixXd Ft_y;             // num_latent x num_feat -- RHS
