@@ -240,16 +240,3 @@ void smurff::linop::A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A,
     }
   }
 }
-
-Eigen::VectorXd smurff::linop::col_square_sum(Eigen::MatrixXd & A) 
-{
-   const int ncol = A.cols();
-   VectorXd out(ncol);
-   #pragma omp parallel for schedule(static)
-   for (int col = 0; col < ncol; col++) 
-   {
-      out(col) = A.col(col).dot(A.col(col));
-   }
-   return out;
-}
-

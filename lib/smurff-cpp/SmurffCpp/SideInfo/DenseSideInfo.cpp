@@ -52,8 +52,9 @@ int DenseSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixXd
 
 Eigen::VectorXd DenseSideInfo::col_square_sum()
 {
-   return smurff::linop::col_square_sum(*m_side_info);
+    return m_side_info->array().square().colwise().sum();
 }
+
 
 void DenseSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B)
 {
