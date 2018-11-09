@@ -45,10 +45,10 @@ void MacauPrior::init()
       FtF_plus_precision.diagonal().array() += beta_precision;
    }
 
-   Uhat.resize(this->num_latent(), Features->rows());
+   Uhat.resize(num_latent(), Features->rows());
    Uhat.setZero();
 
-   m_beta = std::make_shared<Eigen::MatrixXd>(this->num_latent(), Features->cols());
+   m_beta = std::make_shared<Eigen::MatrixXd>(num_latent(), Features->cols());
    m_beta->setZero();
 
    m_session->model().setLinkMatrix(m_mode, m_beta);
@@ -82,8 +82,8 @@ void MacauPrior::update_prior()
     {
         // Uses, Udelta   
         COUNTER("sample hyper mu/Lambda");
-        std::tie(this->mu, this->Lambda) = CondNormalWishart(Udelta, this->mu0, this->b0,
-            this->WI + beta_precision * BBt, this->df + m_beta->cols());
+        std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0,
+            WI + beta_precision * BBt, df + m_beta->cols());
     }
 
     // uses: U, F
@@ -120,14 +120,14 @@ void MacauPrior::update_prior()
         // writes: FtF
         COUNTER("sample_beta_precision");
         double old_beta = beta_precision;
-        beta_precision = sample_beta_precision(*m_beta, this->Lambda, beta_precision_nu0, beta_precision_mu0);
+        beta_precision = sample_beta_precision(*m_beta, Lambda, beta_precision_nu0, beta_precision_mu0);
         FtF_plus_precision.diagonal().array() += beta_precision - old_beta;
    }
 }
 
 const Eigen::VectorXd MacauPrior::getMu(int n) const
 {
-   return this->mu + Uhat.col(n);
+   return mu + Uhat.col(n);
 }
 
 void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
