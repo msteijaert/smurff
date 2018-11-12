@@ -20,7 +20,7 @@ class MacauPrior : public NormalPrior
 {
 public:
    std::shared_ptr<Eigen::MatrixXd> 
-                   m_beta;           // num_feat x num_latent -- link matrix
+                   m_beta;            // num_feat x num_latent -- link matrix
 
    Eigen::MatrixXd Uhat;             // num_latent x num_items
    Eigen::MatrixXd Udelta;           // num_latent x num_items
@@ -70,6 +70,7 @@ public:
    void update_prior() override;
 
    const Eigen::VectorXd getMu(int n) const override;
+   Eigen::MatrixXd &beta() const { return *m_beta; }
 
    Eigen::MatrixXd &beta() const { return *m_beta; }
  
@@ -91,9 +92,7 @@ public:
    std::ostream& status(std::ostream &os, std::string indent) const override;
 
 public:
-
    static std::pair<double, double> posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
-
    static double sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
 };
 

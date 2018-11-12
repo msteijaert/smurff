@@ -18,8 +18,6 @@ int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, 
 
 void At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
 
-Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A);
-
 template<typename T>
 void compute_uhat(Eigen::MatrixXd & uhat, T & feat, Eigen::MatrixXd & beta);
 template<typename T>
