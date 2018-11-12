@@ -73,15 +73,16 @@ void MacauPrior::update_prior()
         //uses: U, Uhat
         //writes: Uhat
         Udelta = U() - Uhat;
-        // BBt = beta * beta'
-        //uses: beta
-        BBt = smurff::linop::A_mul_At_combo(beta());
+
     }
 
     // sampling Gaussian
     {
-        // Uses, Udelta   
         COUNTER("sample hyper mu/Lambda");
+        // BBt = beta * beta'
+        //uses: beta
+        BBt = beta() * beta().transpose();
+        // Uses, Udelta   
         std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0,
             WI + beta_precision * BBt, df + num_feat());
     }
@@ -90,21 +91,7 @@ void MacauPrior::update_prior()
     // writes: Ft_y
     compute_Ft_y_omp(Ft_y);
 
-    {
-        COUNTER("sample_beta");
-        if (use_FtF)
-        {
-            // uses: FtF, Ft_y, 
-            // writes: beta
-            beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
-        } 
-        else
-        {
-            // uses: Features, beta_precision, Ft_y, 
-            // writes: beta
-            blockcg_iter = Features->solve_blockcg(beta(), beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
-        }
-    }
+    sample_beta();
 
     {
         COUNTER("compute_uhat");
@@ -124,6 +111,24 @@ void MacauPrior::update_prior()
         FtF_plus_precision.diagonal().array() += beta_precision - old_beta;
    }
 }
+
+void MacauPrior::sample_beta()
+{
+    COUNTER("sample_beta");
+    if (use_FtF)
+    {
+        // uses: FtF, Ft_y, 
+        // writes: beta
+        beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
+    } 
+    else
+    {
+        // uses: Features, beta_precision, Ft_y, 
+        // writes: beta
+        blockcg_iter = Features->solve_blockcg(beta(), beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
+    }
+}
+
 
 const Eigen::VectorXd MacauPrior::getMu(int n) const
 {
