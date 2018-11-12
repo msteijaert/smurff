@@ -95,7 +95,7 @@ void MacauPrior::update_prior()
     // uses: U, F
     // writes: Ft_y
     // complexity: num_latent x num_feat x num_item
-    compute_Ft_y_omp(Ft_y);
+    compute_Ft_y(Ft_y);
 
     sample_beta();
 
@@ -144,7 +144,7 @@ const Eigen::VectorXd MacauPrior::getMu(int n) const
    return mu + Uhat.col(n);
 }
 
-void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
+void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
 {
     COUNTER("compute Ft_y");
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)

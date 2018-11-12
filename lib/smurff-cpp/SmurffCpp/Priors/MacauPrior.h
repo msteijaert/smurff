@@ -75,7 +75,7 @@ public:
  
    int num_feat() const { return Features->cols(); }
 
-   void compute_Ft_y_omp(Eigen::MatrixXd& Ft_y);
+   void compute_Ft_y(Eigen::MatrixXd& Ft_y);
    virtual void sample_beta();
 
 public:
