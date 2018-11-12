@@ -151,17 +151,8 @@ void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
    Ft_y = Features->A_mul_B(HyperU); // num_latent x num_feat
 
    //--  add beta_precision 
-
    HyperU2 = MvNormal_prec(Lambda, num_feat()); // num_latent x num_feat
-
-   #pragma omp parallel for schedule(static)
-   for (int f = 0; f < num_feat(); f++)
-   {
-      for (int d = 0; d < num_latent(); d++)
-      {
-         Ft_y(d, f) += std::sqrt(beta_precision) * HyperU2(d, f);
-      }
-   }
+   Ft_y += std::sqrt(beta_precision) * HyperU2;
 }
 
 void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a)
