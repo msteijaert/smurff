@@ -237,7 +237,7 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
    return os;
 }
 
-std::ostream &MacauPrior::info(std::ostream &os, std::string indent)
+std::ostream &MacauPrior::status(std::ostream &os, std::string indent) const
 {
    os << indent << m_name << ": " << std::endl;
    indent += "  ";

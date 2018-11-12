@@ -70,7 +70,6 @@ public:
    void update_prior() override;
 
    const Eigen::VectorXd getMu(int n) const override;
-   Eigen::MatrixXd &beta() const { return *m_beta; }
 
    Eigen::MatrixXd &beta() const { return *m_beta; }
  
