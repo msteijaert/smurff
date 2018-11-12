@@ -260,9 +260,7 @@ std::ostream& MacauPrior::status(std::ostream &os, std::string indent) const
 
 std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
 {
-   const int D = beta.rows(); // num feat
-   Eigen::MatrixXd BB(D, D);
-   smurff::linop::A_mul_At_combo(BB, beta);
+   auto BB = beta * beta.transpose();
    double nux = nu + beta.rows() * beta.cols();
    double mux = mu * nux / (nu + mu * (BB.selfadjointView<Eigen::Lower>() * Lambda_u).trace());
    double b = nux / 2;
