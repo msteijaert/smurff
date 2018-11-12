@@ -71,7 +71,8 @@ void MacauPrior::update_prior()
         COUNTER("rest of update_prior");
         // residual (Uhat is later overwritten):
         //uses: U, Uhat
-        //writes: Uhat
+        // writes: Udelta
+        // complexity: num_latent x num_items
         Udelta = U() - Uhat;
 
     }
@@ -81,14 +82,19 @@ void MacauPrior::update_prior()
         COUNTER("sample hyper mu/Lambda");
         // BBt = beta * beta'
         //uses: beta
+        // complexity: num_feat x num_feat x num_latent
         BBt = beta() * beta().transpose();
-        // Uses, Udelta   
+        // uses: Udelta
+        // complexity: num_latent x num_items
         std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0,
             WI + beta_precision * BBt, df + num_feat());
     }
 
     // uses: U, F
     // writes: Ft_y
+    // uses: U, F
+    // writes: Ft_y
+    // complexity: num_latent x num_feat x num_item
     compute_Ft_y_omp(Ft_y);
 
     sample_beta();
@@ -98,6 +104,7 @@ void MacauPrior::update_prior()
         // Uhat = beta * F
         // uses: beta, F
         // output: Uhat
+        // complexity: num_feat x num_latent x num_item
         Features->compute_uhat(Uhat, beta());
     }
 
@@ -118,13 +125,15 @@ void MacauPrior::sample_beta()
     if (use_FtF)
     {
         // uses: FtF, Ft_y, 
-        // writes: beta
+        // writes: m_beta
+        // complexity: num_feat^3
         beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
     } 
     else
     {
         // uses: Features, beta_precision, Ft_y, 
         // writes: beta
+        // complexity: num_feat x num_feat x num_iter
         blockcg_iter = Features->solve_blockcg(beta(), beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
     }
 }
@@ -137,12 +146,7 @@ const Eigen::VectorXd MacauPrior::getMu(int n) const
 
 void MacauPrior::compute_Ft_y_omp(Eigen::MatrixXd& Ft_y)
 {
-   //-- input
-   // mu, Lambda (small)
-   // U
-   // F
-   //-- output
-   // Ft_y
+    COUNTER("compute Ft_y");
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
    // Ft_y is [ D x F ] matrix
 
