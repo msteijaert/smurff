@@ -32,17 +32,17 @@ bool DenseSideInfo::is_dense() const
 
 void DenseSideInfo::compute_uhat(Eigen::MatrixXd& uhat, Eigen::MatrixXd& beta)
 {
-   smurff::linop::compute_uhat(uhat, *m_side_info, beta);
+   uhat = beta * m_side_info->transpose();
 }
 
 void DenseSideInfo::At_mul_A(Eigen::MatrixXd& out)
 {
-   smurff::linop::At_mul_A(out, *m_side_info);
+   out = m_side_info->transpose() * *m_side_info;
 }
 
 Eigen::MatrixXd DenseSideInfo::A_mul_B(Eigen::MatrixXd& A)
 {
-   return smurff::linop::A_mul_B(A, *m_side_info);
+   return A * *m_side_info;
 }
 
 int DenseSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixXd& B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error)
@@ -58,12 +58,12 @@ Eigen::VectorXd DenseSideInfo::col_square_sum()
 
 void DenseSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B)
 {
-   smurff::linop::At_mul_Bt(Y, *m_side_info, col, B);
+   Y = B * m_side_info->col(col);
 }
 
 void DenseSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
 {
-   smurff::linop::add_Acol_mul_bt(Z, *m_side_info, col, b);
+   Z += (m_side_info->col(col) * b.transpose()).transpose();
 }
 
 std::shared_ptr<Eigen::MatrixXd> DenseSideInfo::get_features()
