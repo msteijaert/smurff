@@ -103,29 +103,17 @@ int SparseSideInfo::solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixX
 Eigen::VectorXd SparseSideInfo::col_square_sum()
 {
     COUNTER("col_square_sum");
-    const int ncol = matrix_ptr->cols();
-    Eigen::VectorXd out(ncol);
-    const int* column_ptr = matrix_col_major_ptr->outerIndexPtr();
-    const double* vals = matrix_col_major_ptr->valuePtr();
-
-    #pragma omp parallel for schedule(guided)
-    for (int col = 0; col < ncol; col++) {
-        double tmp = 0;
-        int i = column_ptr[col];
-        int end = column_ptr[col + 1];
-        for (; i < end; i++) {
-            tmp += vals[i] * vals[i];
-        }
-        out(col) = tmp;
-    }
-    return out;
+    // component-wise square
+    auto E = matrix_col_major_ptr->unaryExpr([](const double &d) { return d * d; });
+    // col-wise sum
+    return E.transpose() * Eigen::VectorXd::Ones(E.cols());
 }
 
 // Y = X[:,col]' * B'
 void SparseSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B)
 {
     COUNTER("At_mul_Bt");
-    Eigen::MatrixXd out = matrix_trans_ptr->block(col, 0, col + 1, matrix_trans_ptr->cols()) * B.transpose();
+    auto out = matrix_trans_ptr->block(col, 0, col + 1, matrix_trans_ptr->cols()) * B.transpose();
     Y = out.transpose();
 }
 
@@ -133,18 +121,5 @@ void SparseSideInfo::At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixX
 void SparseSideInfo::add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b)
 {
     COUNTER("add_Acol_mul_bt");
-    Eigen::VectorXd bt = b.transpose();
-    const int* cols = matrix_col_major_ptr->innerIndexPtr();
-    const double* vals = matrix_col_major_ptr->valuePtr();
-    int i = matrix_col_major_ptr->outerIndexPtr()[col];
-    const int end = matrix_col_major_ptr->outerIndexPtr()[col + 1];
-    const int D = bt.size();
-   for (; i < end; i++) 
-   {
-      int c = cols[i];
-      for (int d = 0; d < D; d++) 
-      {
-         Z(d, c) += vals[i] * b(d);
-      }
-   }
+    Z += (matrix_col_major_ptr->col(col) * b.transpose()).transpose();
 }
