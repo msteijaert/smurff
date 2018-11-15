@@ -44,8 +44,6 @@ void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt);
 void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 void A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 
-inline void A_mul_B_omp(double alpha, Eigen::MatrixXd & out, double beta, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
 void A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
 void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
 Eigen::MatrixXd A_mul_At_combo(Eigen::MatrixXd & A);
@@ -384,28 +382,6 @@ void AtA_mul_Bx(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::Matr
     Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
 
     out.noalias() = (*Mt * (*M * B.transpose())).transpose() + reg * B;
-}
-
-// computes out = alpha * out + beta * A * B
-inline void A_mul_B_omp(
-    double alpha,
-    Eigen::MatrixXd & out,
-    double beta,
-    Eigen::MatrixXd & A,
-    Eigen::MatrixXd & B)
-{
-   THROWERROR_ASSERT(out.cols() == B.cols());
-
-  const int nblocks = (int)ceil(out.cols() / 64.0);
-  const int nrow = out.rows();
-  const int ncol = out.cols();
-  #pragma omp parallel for schedule(guided)
-  for (int block = 0; block < nblocks; block++) 
-  {
-    int col = block * 64;
-    int bcols = std::min(64, ncol - col);
-    out.block(0, col, nrow, bcols).noalias() = alpha * out.block(0, col, nrow, bcols) + beta * A * B.block(0, col, nrow, bcols);
-  }
 }
 
 }}
