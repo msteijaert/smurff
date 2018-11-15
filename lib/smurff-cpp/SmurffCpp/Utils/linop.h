@@ -383,35 +383,7 @@ void AtA_mul_Bx(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::Matr
     Eigen::SparseMatrix<double, Eigen::RowMajor>* M = A.matrix_ptr;
     Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
 
-    A_mul_Bx<N>(inner, *M, B);
-
-    int* row_ptr   = Mt->outerIndexPtr();
-    int* cols      = Mt->innerIndexPtr();
-    double* vals   = Mt->valuePtr();
-    const int nrow = Mt->rows();
-    double* Y      = out.data();
-    double* X      = inner.data();
-    double* Braw   = B.data();
-    #pragma omp parallel for schedule(guided)
-    for (int row = 0; row < nrow; row++) 
-    {
-        double tmp[N] = { 0 };
-        const int end = row_ptr[row + 1];
-        for (int i = row_ptr[row]; i < end; i++) 
-        {
-        int col = cols[i] * N;
-        double val = vals[i];
-        for (int j = 0; j < N; j++) 
-        {
-            tmp[j] += X[col + j] * val;
-        }
-        }
-        int r = row * N;
-        for (int j = 0; j < N; j++) 
-        {
-        Y[r + j] = tmp[j] + reg * Braw[r + j];
-        }
-    }
+    out.noalias() = (*Mt * (*M * B.transpose())).transpose() + reg * B;
 }
 
 // computes out = alpha * out + beta * A * B
