@@ -30,13 +30,6 @@ void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::Ma
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
-template<int N>
-void AtA_mul_Bx(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
-
-
 void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 void At_mul_A_blas(Eigen::MatrixXd & A, double* AtA);
 void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt);
@@ -265,41 +258,6 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   delete RtR;
   delete RtR2;
   return iter;
-}
-
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.cols() == B.cols());
-   THROWERROR_ASSERT(A.rows() == out.cols());
-
-  int* row_ptr   = A.outerIndexPtr();
-  int* cols      = A.innerIndexPtr();
-  double* vals   = A.valuePtr();
-  const int nrow = A.rows();
-  double* Y = out.data();
-  double* X = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
-    {
-      int col = cols[i] * N;
-      double val = vals[i];
-      for (int j = 0; j < N; j++) 
-      {
-         tmp[j] += X[col + j] * val;
-      }
-    }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j];
-    }
-  }
 }
 
 inline void AtA_mul_B_switch(
