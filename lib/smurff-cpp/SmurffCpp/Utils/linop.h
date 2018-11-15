@@ -17,8 +17,8 @@ template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error = false);
 
 // compile-time optimized versions (N - number of RHSs)
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+inline void AtA_mul_B(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B);
+inline void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B);
 
 void makeSymmetric(Eigen::MatrixXd & A);
 
@@ -96,7 +96,6 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   Eigen::MatrixXd* RtR2 = new Eigen::MatrixXd(nrhs, nrhs);
 
   Eigen::MatrixXd KP(nrhs, nfeat);
-  Eigen::MatrixXd KPtmp(nrhs, K.rows());
   Eigen::MatrixXd PtKP(nrhs, nrhs);
   //Eigen::Matrix<double, N, N> A;
   //Eigen::Matrix<double, N, N> Psi;
@@ -114,11 +113,9 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   for (iter = 0; iter < 1000; iter++) {
     // KP = K * P
     ////double t1 = tick();
-    AtA_mul_B_switch(KP, K, reg, P, KPtmp);
+    AtA_mul_B(KP, K, reg, P);
     ////double t2 = tick();
 
-    //A_mul_Bt_blas(PtKP, P, KP); // TODO: use KPtmp with dsyrk two save 2x time
-    //A_mul_Bt_omp_sym(PtKP, P, KP);
     PtKP = P * KP.transpose();
 
     auto chol_PtKP = PtKP.llt();
@@ -201,11 +198,11 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   return iter;
 }
 
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
+inline void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B) {
 	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
 }
 
-inline void AtA_mul_B_switch(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
+inline void AtA_mul_B(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B) {
     Eigen::SparseMatrix<double, Eigen::RowMajor>* M = A.matrix_ptr;
     Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
 
