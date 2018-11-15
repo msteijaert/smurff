@@ -33,7 +33,7 @@ MacauPrior::~MacauPrior()
 
 void MacauPrior::init()
 {
-    NormalPrior::init();
+   NormalPrior::init();
 
    THROWERROR_ASSERT_MSG(Features->rows() == num_item(), "Number of rows in train must be equal to number of rows in features");
 
@@ -51,7 +51,9 @@ void MacauPrior::init()
    m_beta = std::make_shared<Eigen::MatrixXd>(num_latent(), num_feat());
    beta().setZero();
 
-    m_session->model().setLinkMatrix(m_mode, m_beta);
+   BBt = beta() * beta().transpose();
+
+   m_session->model().setLinkMatrix(m_mode, m_beta);
 }
 
 void MacauPrior::update_prior()
@@ -80,9 +82,6 @@ void MacauPrior::update_prior()
         // writes: Udelta
         // complexity: num_latent x num_items
         Udelta = U() - Uhat;
-        //uses: beta
-        // complexity: num_feat x num_feat x num_latent
-        BBt = beta() * beta().transpose();
         // uses: Udelta
         // complexity: num_latent x num_items
         std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0, WI + beta_precision * BBt, df + num_feat());
@@ -112,7 +111,7 @@ void MacauPrior::update_prior()
         // writes: FtF
         COUNTER("sample_beta_precision");
         double old_beta = beta_precision;
-        beta_precision = sample_beta_precision(beta(), Lambda, beta_precision_nu0, beta_precision_mu0);
+        beta_precision = sample_beta_precision(BBt, Lambda, beta_precision_nu0, beta_precision_mu0, beta().cols());
         FtF_plus_precision.diagonal().array() += beta_precision - old_beta;
    }
 }
@@ -134,8 +133,11 @@ void MacauPrior::sample_beta()
         // complexity: num_feat x num_feat x num_iter
         blockcg_iter = Features->solve_blockcg(beta(), beta_precision, Ft_y, tol, 32, 8, throw_on_cholesky_error);
     }
+    // complexity: num_feat x num_feat x num_latent
+    BBt = beta() * beta().transpose();
+    std::cout << "beta: " << beta().rows() << " x " << beta().cols() << std::endl;
+    std::cout << "BBt: " << BBt.rows() << " x " << BBt.cols() << std::endl;
 }
-
 
 const Eigen::VectorXd MacauPrior::getMu(int n) const
 {
@@ -249,18 +251,17 @@ std::ostream &MacauPrior::status(std::ostream &os, std::string indent) const
    return os;
 }
 
-std::pair<double, double> MacauPrior::posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
+std::pair<double, double> MacauPrior::posterior_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N)
 {
-   auto BB = beta * beta.transpose();
-   double nux = nu + beta.rows() * beta.cols();
-   double mux = mu * nux / (nu + mu * (BB.selfadjointView<Eigen::Lower>() * Lambda_u).trace());
+   double nux = nu + N * BBt.cols();
+   double mux = mu * nux / (nu + mu * (BBt.selfadjointView<Eigen::Lower>() * Lambda_u).trace());
    double b = nux / 2;
    double c = 2 * mux / nux;
    return std::make_pair(b, c);
 }
 
-double MacauPrior::sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu)
+double MacauPrior::sample_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N)
 {
-   auto gamma_post = posterior_beta_precision(beta, Lambda_u, nu, mu);
+   auto gamma_post = posterior_beta_precision(BBt, Lambda_u, nu, mu, N);
    return rgamma(gamma_post.first, gamma_post.second);
 }

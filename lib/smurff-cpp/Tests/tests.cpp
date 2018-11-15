@@ -55,11 +55,13 @@ TEST_CASE( "latentprior/sample_beta_precision", "sampling beta precision from ga
           1.0,  0.91, -0.2;
   Lambda_u << 0.5, 0.1,
               0.1, 0.3;
-  auto post = MacauPrior::posterior_beta_precision(beta, Lambda_u, 0.01, 0.05);
+  
+  Eigen::MatrixXd BBt = beta * beta.transpose();                  
+  auto post = MacauPrior::posterior_beta_precision(BBt, Lambda_u, 0.01, 0.05, beta.cols());
   REQUIRE( post.first  == Approx(3.005) );
   REQUIRE( post.second == Approx(0.2631083888) );
 
-  double beta_precision = MacauPrior::sample_beta_precision(beta, Lambda_u, 0.01, 0.05);
+  double beta_precision = MacauPrior::sample_beta_precision(BBt, Lambda_u, 0.01, 0.05, beta.cols());
   REQUIRE( beta_precision > 0 );
 }
 
