@@ -34,7 +34,7 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double 
 template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
 
-
+/*
 void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 void At_mul_A_blas(Eigen::MatrixXd & A, double* AtA);
 void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt);
@@ -51,6 +51,7 @@ void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
 
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
+*/
 
 void makeSymmetric(Eigen::MatrixXd & A);
 
