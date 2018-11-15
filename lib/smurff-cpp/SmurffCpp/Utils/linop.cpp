@@ -89,14 +89,6 @@ void smurff::linop::A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eige
   double beta  = 0.0;
   dgemm_(&transA, &transB, &m, &n, &k, &alpha, A.data(), &m, B.data(), &n, &beta, Y.data(), &m);
 }
-/*
-void smurff::linop::Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  cblas_dsymm(CblasColMajor, CblasLeft, CblasLower, Y.rows(), Y.cols(), alpha, A.data(), A.rows(), B.data(), B.rows(), beta, Y.data(), Y.rows());
-}
-
-void smurff::linop::Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B) {
-  cblas_dsymm(CblasColMajor, CblasRight, CblasLower, Y.rows(), Y.cols(), alpha, A.data(), A.rows(), B.data(), B.rows(), beta, Y.data(), Y.rows());
-}*/
 
 template<>
 void smurff::linop::AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
