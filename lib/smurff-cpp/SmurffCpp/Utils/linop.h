@@ -16,66 +16,11 @@ int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, 
 template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error = false);
 
-void At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
-
-template<typename T>
-void compute_uhat(Eigen::MatrixXd & uhat, T & feat, Eigen::MatrixXd & beta);
-template<typename T>
-void AtA_mul_B(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-template<>
-void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
 // compile-time optimized versions (N - number of RHSs)
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
-
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
-
-void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-void At_mul_A_blas(Eigen::MatrixXd & A, double* AtA);
-void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt);
-void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-void A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
-void A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
-void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
-Eigen::MatrixXd A_mul_At_combo(Eigen::MatrixXd & A);
-void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
-// util functions:
-void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
-void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
-
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
 void makeSymmetric(Eigen::MatrixXd & A);
-
-inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) 
-{
-   Y.setZero();
-
-   for (int row = 0; row < B.rows(); row++)
-   {
-      Y(row) = X.col(col).dot(B.row(row));
-   }
-}
-
-//
-// computes Z += A[:,col] * b', where a and b are vectors
-inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int col, Eigen::VectorXd & b) 
-{
-   for (int row = 0; row < b.size(); row++)
-   {
-      Z.row(row) += (A.col(col) * b(row)).transpose();
-   }
-}
-
-///////////////////////////////////
-//     Template functions
-///////////////////////////////////
 
 /** good values for solve_blockcg are blocksize=32 an excess=8 */
 template<typename T>
@@ -256,47 +201,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   return iter;
 }
 
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.cols() == B.cols());
-   THROWERROR_ASSERT(A.rows() == out.cols());
-
-  int* row_ptr   = A.outerIndexPtr();
-  int* cols      = A.innerIndexPtr();
-  double* vals   = A.valuePtr();
-  const int nrow = A.rows();
-  double* Y = out.data();
-  double* X = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
-    {
-      int col = cols[i] * N;
-      double val = vals[i];
-      for (int j = 0; j < N; j++) 
-      {
-         tmp[j] += X[col + j] * val;
-      }
-    }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j];
-    }
-  }
-}
-
-inline void AtA_mul_B_switch(
-		   Eigen::MatrixXd & out,
-		   Eigen::MatrixXd & A,
-			 double reg,
-			 Eigen::MatrixXd & B,
-			 Eigen::MatrixXd & tmp) {
+inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp) {
 	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
 }
 
