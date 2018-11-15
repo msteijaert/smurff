@@ -106,7 +106,7 @@ Eigen::VectorXd SparseSideInfo::col_square_sum()
     // component-wise square
     auto E = matrix_col_major_ptr->unaryExpr([](const double &d) { return d * d; });
     // col-wise sum
-    return E.transpose() * Eigen::VectorXd::Ones(E.cols());
+    return E.transpose() * Eigen::VectorXd::Ones(E.rows());
 }
 
 // Y = X[:,col]' * B'
