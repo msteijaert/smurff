@@ -57,37 +57,35 @@ void MacauPrior::init()
 void MacauPrior::update_prior()
 {
     /*
->> compute_uhat:             0.5012     (12%) in        110
->> main:             4.1396     (100%) in       1
+>> compute_uhat:                     0.5012     (12%) in        110
+>> main:                             4.1396     (100%) in       1
 >> rest of update_prior:             0.1684     (4%) in 110
 >> sample hyper mu/Lambda:           0.3804     (9%) in 110
->> sample_beta:      1.4927     (36%) in        110
->> sample_latents:           3.8824     (94%) in        220
->> step:             3.9824     (96%) in        111
->> update_prior:             2.5436     (61%) in        110
+>> sample_beta:                      1.4927     (36%) in        110
+>> sample_latents:                   3.8824     (94%) in        220
+>> step:                             3.9824     (96%) in        111
+>> update_prior:                     2.5436     (61%) in        110
 */
     COUNTER("update_prior");
     {
         COUNTER("rest of update_prior");
-        // residual (Uhat is later overwritten):
-        //uses: U, Uhat
-        // writes: Udelta
-        // complexity: num_latent x num_items
-        Udelta = U() - Uhat;
+
 
     }
 
     // sampling Gaussian
     {
         COUNTER("sample hyper mu/Lambda");
-        // BBt = beta * beta'
+        //uses: U, Uhat
+        // writes: Udelta
+        // complexity: num_latent x num_items
+        Udelta = U() - Uhat;
         //uses: beta
         // complexity: num_feat x num_feat x num_latent
         BBt = beta() * beta().transpose();
         // uses: Udelta
         // complexity: num_latent x num_items
-        std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0,
-            WI + beta_precision * BBt, df + num_feat());
+        std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0, WI + beta_precision * BBt, df + num_feat());
     }
 
     // uses: U, F
@@ -148,7 +146,7 @@ void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
 {
     COUNTER("compute Ft_y");
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
-   // Ft_y is [ D x F ] matrix
+   // Ft_y is [ num_latent x num_feat ] matrix
 
    //HyperU: num_latent x num_item
    HyperU = (U() + MvNormal_prec(Lambda, num_item())).colwise() - mu;
