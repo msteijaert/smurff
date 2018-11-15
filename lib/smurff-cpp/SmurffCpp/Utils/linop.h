@@ -34,7 +34,6 @@ inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double 
 template<int N>
 void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
 
-/*
 void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
 void At_mul_A_blas(Eigen::MatrixXd & A, double* AtA);
 void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt);
@@ -51,7 +50,6 @@ void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
 void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
 
 Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-*/
 
 void makeSymmetric(Eigen::MatrixXd & A);
 
@@ -78,12 +76,6 @@ inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int 
 ///////////////////////////////////
 //     Template functions
 ///////////////////////////////////
-
-//// for Sparse
-/** computes uhat = denseFeat * beta, where beta and uhat are row ordered */
-template<> inline void compute_uhat(Eigen::MatrixXd & uhat, Eigen::MatrixXd & denseFeat, Eigen::MatrixXd & beta) {
-  A_mul_Bt_blas(uhat, beta, denseFeat);
-}
 
 /** good values for solve_blockcg are blocksize=32 an excess=8 */
 template<typename T>
@@ -166,7 +158,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   Eigen::MatrixXd A;
   Eigen::MatrixXd Psi;
 
-  A_mul_At_combo(*RtR, R);
+  //A_mul_At_combo(*RtR, R);
   *RtR = R * R.transpose();
   makeSymmetric(*RtR);
 
