@@ -1,27 +1,25 @@
 #pragma once
 
-#include "ISideInfo.h"
 
 #include <memory>
 #include <Eigen/Sparse>
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
+#include "ISideInfo.h"
 namespace smurff {
 
 class SparseSideInfo : public ISideInfo
 {
 
 public:
-   Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_ptr;
-   Eigen::SparseMatrix<double, Eigen::ColMajor>* matrix_col_major_ptr;
-   Eigen::SparseMatrix<double, Eigen::RowMajor>* matrix_trans_ptr;
+   Eigen::SparseMatrix<double> F;
+   Eigen::SparseMatrix<double> Ft;
 
-   SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr, const double* vals);
-   SparseSideInfo(uint64_t rows, uint64_t cols, uint64_t nnz, const uint32_t* rows_ptr, const uint32_t* cols_ptr);
+   SparseSideInfo(const std::shared_ptr<MatrixConfig> &);
    ~SparseSideInfo() override;
 
 public:
    int cols() const override;
-
    int rows() const override;
 
 public:

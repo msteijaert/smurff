@@ -176,31 +176,22 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
 using namespace Eigen;
 using namespace std;
 
-MacauPrior* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF) 
+MacauPrior* make_dense_prior(int nlatent, const std::vector<double> & ptr, int nrows, int ncols, bool comp_FtF) 
 {
-   MatrixXd* Fmat = new MatrixXd(0, 0);
-   if (colMajor) 
-   {
-      *Fmat = Map<Matrix<double, Dynamic, Dynamic, ColMajor> >(ptr, nrows, ncols);
-   } 
-   else 
-   {
-      *Fmat = Map<Matrix<double, Dynamic, Dynamic, RowMajor> >(ptr, nrows, ncols);
-   }
    auto ret = new MacauPrior(0, 0);
-   std::shared_ptr<Eigen::MatrixXd> Fmat_ptr = std::shared_ptr<MatrixXd>(Fmat);
+   std::shared_ptr<MatrixConfig> Fmat_ptr = std::make_shared<MatrixConfig>(nrows, ncols, ptr, fixed_ncfg);
    std::shared_ptr<DenseSideInfo> side_info = std::make_shared<DenseSideInfo>(Fmat_ptr);
    ret->addSideInfo(side_info, 10.0, 1e-6, comp_FtF, true, false);
-   ret->FtF_plus_precision.resize(Fmat->cols(), Fmat->cols());
+   ret->FtF_plus_precision.resize(ncols, ncols);
    ret->Features->At_mul_A(ret->FtF_plus_precision);
    return ret;
 }
 
-TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
-    double x[6] = {0.1, 0.4, -0.7, 0.3, 0.11, 0.23};
+TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixConfig") {
+    std::vector<double> x = {0.1, 0.4, -0.7, 0.3, 0.11, 0.23};
 
     // ColMajor case
-    auto prior = make_dense_prior(3, x, 3, 2, true, true);
+    auto prior = make_dense_prior(3, x, 3, 2, true);
 
     Eigen::MatrixXd Ftrue(3, 2);
     Ftrue <<  0.1, 0.3, 0.4, 0.11, -0.7, 0.23;
@@ -210,20 +201,6 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
     tmp.triangularView<Eigen::Lower>()  = prior->FtF_plus_precision;
     tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
     REQUIRE( tmp.norm() == Approx(0) );
-
-    // RowMajor case
-    auto prior2 = make_dense_prior(3, x, 3, 2, false, true);
-    Eigen::MatrixXd Ftrue2(3, 2);
-    Ftrue2 << 0.1,  0.4,
-              -0.7,  0.3,
-              0.11, 0.23;
-
-    auto features_downcast2 = std::dynamic_pointer_cast<DenseSideInfo>(prior2->Features); //for the purpose of the test
-    REQUIRE( (*(features_downcast2->get_features()) - Ftrue2).norm() == Approx(0) );
-    Eigen::MatrixXd tmp2 = Eigen::MatrixXd::Zero(2, 2);
-    tmp2.triangularView<Eigen::Lower>()  = prior2->FtF_plus_precision;
-    tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;
-    REQUIRE( tmp2.norm() == Approx(0) );
 }
 
 TEST_CASE("inv_norm_cdf/inv_norm_cdf", "Inverse normal CDF") {

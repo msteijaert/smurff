@@ -1,10 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include <Eigen/Dense>
+
+#include <SmurffCpp/Configs/MatrixConfig.h>
 
 #include "ISideInfo.h"
 
-#include <memory>
 
 namespace smurff {
 
@@ -14,7 +17,7 @@ namespace smurff {
       std::shared_ptr<Eigen::MatrixXd> m_side_info;
 
    public:
-      DenseSideInfo(std::shared_ptr<Eigen::MatrixXd> side_info);
+      DenseSideInfo(const std::shared_ptr<MatrixConfig> &);
 
    public:
       int cols() const override;

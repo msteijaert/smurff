@@ -18,37 +18,6 @@ using namespace Eigen;
 
 //create macau prior features
 
-std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
-{
-   auto side_info_ptr = std::make_shared<Eigen::MatrixXd>(matrix_utils::dense_to_eigen(*sideinfoConfig));
-   return std::make_shared<DenseSideInfo>(side_info_ptr);
-}
-
-std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
-{
-   std::uint64_t nrow = sideinfoConfig->getNRow();
-   std::uint64_t ncol = sideinfoConfig->getNCol();
-   std::uint64_t nnz = sideinfoConfig->getNNZ();
-
-   const std::uint32_t* rows = sideinfoConfig->getRows().data();
-   const std::uint32_t* cols = sideinfoConfig->getCols().data();
-
-   return std::make_shared<SparseSideInfo>(nrow, ncol, nnz, rows, cols);
-}
-
-std::shared_ptr<ISideInfo> PriorFactory::side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode)
-{
-   std::uint64_t nrow = sideinfoConfig->getNRow();
-   std::uint64_t ncol = sideinfoConfig->getNCol();
-   std::uint64_t nnz = sideinfoConfig->getNNZ();
-
-   const std::uint32_t* rows = sideinfoConfig->getRows().data();
-   const std::uint32_t* cols = sideinfoConfig->getCols().data();
-   const double*        vals = sideinfoConfig->getValues().data();
-
-   return std::make_shared<SparseSideInfo>(nrow, ncol, nnz, rows, cols, vals);
-}
-
 //-------
 
 std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<Session> session, PriorTypes prior_type,

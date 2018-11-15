@@ -203,10 +203,7 @@ inline void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Ei
 }
 
 inline void AtA_mul_B(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B) {
-    Eigen::SparseMatrix<double, Eigen::RowMajor>* M = A.matrix_ptr;
-    Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
-
-    out.noalias() = (*Mt * (*M * B.transpose())).transpose() + reg * B;
+  out.noalias() = (A.Ft * (A.F * B.transpose())).transpose() + reg * B;
 }
 
 }}

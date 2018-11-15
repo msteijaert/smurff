@@ -10,9 +10,9 @@ static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 
 TEST_CASE( "SparseSideInfo/solve_blockcg", "BlockCG solver (1rhs)" ) 
 {
-   uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
-   uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
-   SparseSideInfo sf(6, 4, 9, rows, cols);
+   std::vector<uint32_t> rows = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+   std::vector<uint32_t> cols = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+   SparseSideInfo sf(std::make_shared<MatrixConfig>(6, 4, rows, cols, fixed_ncfg, false));
    Eigen::MatrixXd B(1, 4), X(1, 4), X_true(1, 4);
  
    B << 0.56,  0.55,  0.3 , -1.78;
@@ -28,9 +28,9 @@ TEST_CASE( "SparseSideInfo/solve_blockcg", "BlockCG solver (1rhs)" )
 
 TEST_CASE( "SparseSideInfo/solve_blockcg_1_0", "BlockCG solver (3rhs separately)" ) 
 {
-   uint32_t rows[9] = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
-   uint32_t cols[9] = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
-   SparseSideInfo sf(6, 4, 9, rows, cols);
+   std::vector<uint32_t> rows = { 0, 3, 3, 2, 5, 4, 1, 2, 4 };
+   std::vector<uint32_t> cols = { 1, 0, 2, 1, 3, 0, 1, 3, 2 };
+   SparseSideInfo sf(std::make_shared<MatrixConfig>(6, 4, rows, cols, fixed_ncfg, false));
    Eigen::MatrixXd B(3, 4), X(3, 4), X_true(3, 4);
  
    B << 0.56,  0.55,  0.3 , -1.78,

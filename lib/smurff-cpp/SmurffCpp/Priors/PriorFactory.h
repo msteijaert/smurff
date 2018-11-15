@@ -8,18 +8,13 @@
 #include <SmurffCpp/Configs/MatrixConfig.h>
 #include <SmurffCpp/Configs/SideInfoConfig.h>
 
-#include <SmurffCpp/SideInfo/ISideInfo.h>
+#include <SmurffCpp/SideInfo/DenseSideInfo.h>
+#include <SmurffCpp/SideInfo/SparseSideInfo.h>
 
 namespace smurff {
 
 class PriorFactory : public IPriorFactory
 {
-private:
-
-    std::shared_ptr<ISideInfo> side_info_config_to_dense_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
-    std::shared_ptr<ISideInfo> side_info_config_to_sparse_binary_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
-    std::shared_ptr<ISideInfo> side_info_config_to_sparse_features(std::shared_ptr<MatrixConfig> sideinfoConfig, int mode);
-
 public:
     template<class MacauPrior>
     std::shared_ptr<ILatentPrior> create_macau_prior(std::shared_ptr<Session> session,
@@ -92,17 +87,13 @@ std::shared_ptr<ILatentPrior> PriorFactory::create_macau_prior(std::shared_ptr<S
    {
       const auto &sideinfoConfig = item->getSideInfo();
 
-      if (sideinfoConfig->isBinary())
+      if (sideinfoConfig->isDense())
       {
-         side_infos.push_back(side_info_config_to_sparse_binary_features(sideinfoConfig, mode));
-      }
-      else if (sideinfoConfig->isDense())
-      {
-         side_infos.push_back(side_info_config_to_dense_features(sideinfoConfig, mode));
+         side_infos.push_back(std::make_shared<DenseSideInfo>(sideinfoConfig));
       }
       else
       {
-         side_infos.push_back(side_info_config_to_sparse_features(sideinfoConfig, mode));
+         side_infos.push_back(std::make_shared<SparseSideInfo>(sideinfoConfig));
       }
    }
 
