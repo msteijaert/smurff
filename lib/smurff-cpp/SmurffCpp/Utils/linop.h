@@ -166,6 +166,7 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   Eigen::MatrixXd Psi;
 
   A_mul_At_combo(*RtR, R);
+  *RtR = R * R.transpose();
   makeSymmetric(*RtR);
 
   const int nblocks = (int)ceil(nfeat / 64.0);
@@ -179,7 +180,8 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////double t2 = tick();
 
     //A_mul_Bt_blas(PtKP, P, KP); // TODO: use KPtmp with dsyrk two save 2x time
-    A_mul_Bt_omp_sym(PtKP, P, KP);
+    //A_mul_Bt_omp_sym(PtKP, P, KP);
+    PtKP = P * KP.transpose();
 
     auto chol_PtKP = PtKP.llt();
     THROWERROR_ASSERT_MSG(!throw_on_cholesky_error || chol_PtKP.info() != Eigen::NumericalIssue, "Cholesky Decomposition failed! (Numerical Issue)");
@@ -203,7 +205,8 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////double t4 = tick();
 
     // convergence check:
-    A_mul_At_combo(*RtR2, R);
+    //A_mul_At_combo(*RtR2, R);
+    *RtR2 = R * R.transpose();
     makeSymmetric(*RtR2);
 
     Eigen::VectorXd d = RtR2->diagonal();
