@@ -16,11 +16,13 @@ int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, 
 template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error = false);
 
-// compile-time optimized versions (N - number of RHSs)
 inline void AtA_mul_B(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B);
 inline void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B);
 
-void makeSymmetric(Eigen::MatrixXd & A);
+inline void makeSymmetric(Eigen::MatrixXd &A)
+{
+  A = A.selfadjointView<Eigen::Lower>();
+}
 
 /** good values for solve_blockcg are blocksize=32 an excess=8 */
 template<typename T>
