@@ -27,8 +27,7 @@ template<>
 void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 // compile-time optimized versions (N - number of RHSs)
-template<typename T>
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
+inline void AtA_mul_B_switch(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
 
 template<int N>
@@ -303,64 +302,6 @@ void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor
   }
 }
 
-template<typename T>
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp)
-{
-  switch(B.rows()) {
-    case 1: return AtA_mul_Bx<1>(out, A, reg, B, tmp);
-    case 2: return AtA_mul_Bx<2>(out, A, reg, B, tmp);
-    case 3: return AtA_mul_Bx<3>(out, A, reg, B, tmp);
-    case 4: return AtA_mul_Bx<4>(out, A, reg, B, tmp);
-    case 5: return AtA_mul_Bx<5>(out, A, reg, B, tmp);
-
-    case 6: return AtA_mul_Bx<6>(out, A, reg, B, tmp);
-    case 7: return AtA_mul_Bx<7>(out, A, reg, B, tmp);
-    case 8: return AtA_mul_Bx<8>(out, A, reg, B, tmp);
-    case 9: return AtA_mul_Bx<9>(out, A, reg, B, tmp);
-    case 10: return AtA_mul_Bx<10>(out, A, reg, B, tmp);
-
-    case 11: return AtA_mul_Bx<11>(out, A, reg, B, tmp);
-    case 12: return AtA_mul_Bx<12>(out, A, reg, B, tmp);
-    case 13: return AtA_mul_Bx<13>(out, A, reg, B, tmp);
-    case 14: return AtA_mul_Bx<14>(out, A, reg, B, tmp);
-    case 15: return AtA_mul_Bx<15>(out, A, reg, B, tmp);
-
-    case 16: return AtA_mul_Bx<16>(out, A, reg, B, tmp);
-    case 17: return AtA_mul_Bx<17>(out, A, reg, B, tmp);
-    case 18: return AtA_mul_Bx<18>(out, A, reg, B, tmp);
-    case 19: return AtA_mul_Bx<19>(out, A, reg, B, tmp);
-    case 20: return AtA_mul_Bx<20>(out, A, reg, B, tmp);
-
-    case 21: return AtA_mul_Bx<21>(out, A, reg, B, tmp);
-    case 22: return AtA_mul_Bx<22>(out, A, reg, B, tmp);
-    case 23: return AtA_mul_Bx<23>(out, A, reg, B, tmp);
-    case 24: return AtA_mul_Bx<24>(out, A, reg, B, tmp);
-    case 25: return AtA_mul_Bx<25>(out, A, reg, B, tmp);
-
-    case 26: return AtA_mul_Bx<26>(out, A, reg, B, tmp);
-    case 27: return AtA_mul_Bx<27>(out, A, reg, B, tmp);
-    case 28: return AtA_mul_Bx<28>(out, A, reg, B, tmp);
-    case 29: return AtA_mul_Bx<29>(out, A, reg, B, tmp);
-    case 30: return AtA_mul_Bx<30>(out, A, reg, B, tmp);
-
-    case 31: return AtA_mul_Bx<31>(out, A, reg, B, tmp);
-    case 32: return AtA_mul_Bx<32>(out, A, reg, B, tmp);
-    case 33: return AtA_mul_Bx<33>(out, A, reg, B, tmp);
-    case 34: return AtA_mul_Bx<34>(out, A, reg, B, tmp);
-    case 35: return AtA_mul_Bx<35>(out, A, reg, B, tmp);
-
-    case 36: return AtA_mul_Bx<36>(out, A, reg, B, tmp);
-    case 37: return AtA_mul_Bx<37>(out, A, reg, B, tmp);
-    case 38: return AtA_mul_Bx<38>(out, A, reg, B, tmp);
-    case 39: return AtA_mul_Bx<39>(out, A, reg, B, tmp);
-    case 40: return AtA_mul_Bx<40>(out, A, reg, B, tmp);
-    default: 
-    {
-       THROWERROR("BlockCG only available for up to 40 RHSs.");
-    }
-  }
-}
-
 inline void AtA_mul_B_switch(
 		   Eigen::MatrixXd & out,
 		   Eigen::MatrixXd & A,
@@ -370,14 +311,7 @@ inline void AtA_mul_B_switch(
 	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
 }
 
-template <int N>
-void AtA_mul_Bx(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
-    THROWERROR_ASSERT(N == out.rows());
-    THROWERROR_ASSERT(N == B.rows());
-    THROWERROR_ASSERT(A.cols() == B.cols());
-    THROWERROR_ASSERT(A.cols() == out.cols());
-    THROWERROR_ASSERT(A.rows() == inner.cols());
-
+inline void AtA_mul_B_switch(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
     Eigen::SparseMatrix<double, Eigen::RowMajor>* M = A.matrix_ptr;
     Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
 
