@@ -157,14 +157,14 @@ void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
    Ft_y += std::sqrt(beta_precision) * HyperU2;
 }
 
-void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a)
+void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side, double bp, double to, bool di, bool sa, bool th)
 {
-    Features = side_info_a;
-    beta_precision = beta_precision_a;
-    tol = tolerance_a;
-    use_FtF = direct_a;
-    enable_beta_precision_sampling = enable_beta_precision_sampling_a;
-    throw_on_cholesky_error = throw_on_cholesky_error_a;
+    Features = side;
+    beta_precision = bp;
+    tol = to;
+    use_FtF = di;
+    enable_beta_precision_sampling = sa;
+    throw_on_cholesky_error = th;
 
     // Hyper-prior for beta_precision (mean 1.0, var of 1e+3):
     beta_precision_mu0 = 1.0;
