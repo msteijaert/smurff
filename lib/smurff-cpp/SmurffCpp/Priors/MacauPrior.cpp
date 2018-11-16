@@ -135,8 +135,6 @@ void MacauPrior::sample_beta()
     }
     // complexity: num_feat x num_feat x num_latent
     BBt = beta() * beta().transpose();
-    std::cout << "beta: " << beta().rows() << " x " << beta().cols() << std::endl;
-    std::cout << "BBt: " << BBt.rows() << " x " << BBt.cols() << std::endl;
 }
 
 const Eigen::VectorXd MacauPrior::getMu(int n) const
