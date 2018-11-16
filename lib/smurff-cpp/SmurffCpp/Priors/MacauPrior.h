@@ -35,21 +35,6 @@ public:
    double beta_precision_mu0; // Hyper-prior for beta_precision
    double beta_precision_nu0; // Hyper-prior for beta_precision
 
-   //FIXME: these must be used
-
-   //new values
-
-   std::vector<std::shared_ptr<ISideInfo> > side_info_values;
-   std::vector<double> beta_precision_values;
-   std::vector<double> tol_values;
-   std::vector<bool> direct_values;
-   std::vector<bool> enable_beta_precision_sampling_values;
-   std::vector<bool> throw_on_cholesky_error_values;
-
-   //FIXME: these must be removed
-
-   //old values
-
    std::shared_ptr<ISideInfo> Features;  // side information
    double beta_precision;
    double tol = 1e-6;

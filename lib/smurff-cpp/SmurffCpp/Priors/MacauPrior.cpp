@@ -159,29 +159,12 @@ void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
 
 void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a)
 {
-    //FIXME: remove old code
-
-    // old code
-
-    // side information
     Features = side_info_a;
     beta_precision = beta_precision_a;
     tol = tolerance_a;
     use_FtF = direct_a;
     enable_beta_precision_sampling = enable_beta_precision_sampling_a;
     throw_on_cholesky_error = throw_on_cholesky_error_a;
-
-    // new code
-
-    // side information
-    side_info_values.push_back(side_info_a);
-    beta_precision_values.push_back(beta_precision_a);
-    tol_values.push_back(tolerance_a);
-    direct_values.push_back(direct_a);
-    enable_beta_precision_sampling_values.push_back(enable_beta_precision_sampling_a);
-    throw_on_cholesky_error_values.push_back(throw_on_cholesky_error_a);
-
-    // other code
 
     // Hyper-prior for beta_precision (mean 1.0, var of 1e+3):
     beta_precision_mu0 = 1.0;
