@@ -131,7 +131,9 @@ void MacauOnePrior::sample_mu_lambda(const Eigen::MatrixXd &U)
          Udelta(d, i) = U(d, i) - Uhat(d, i);
       }
    }
-   std::tie(mu, Lambda) = CondNormalWishart(Udelta, Eigen::VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
+   Eigen::VectorXd mu_c = Eigen::VectorXd::Zero(num_latent());
+   std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu_c, 2.0, WI, num_latent());
+
 }
 
 void MacauOnePrior::sample_beta_precision()
