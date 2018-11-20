@@ -33,6 +33,12 @@ class ConstVMatrixIterator;
 
 class Model : public std::enable_shared_from_this<Model>
 {
+public:
+   typedef double scalarType;
+   typedef Eigen::Matrix<scalarType, -1, -1> Matrix;
+   typedef Eigen::Array<scalarType, -1, -1> Array;
+   typedef Eigen::Matrix<scalarType, -1, 1> Vector;
+
 private:
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_factors; //vector of U matrices
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_link_matrices; //vector of U matrices

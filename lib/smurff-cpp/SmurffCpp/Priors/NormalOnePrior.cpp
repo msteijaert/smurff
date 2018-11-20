@@ -2,7 +2,6 @@
 #include <SmurffCpp/IO/MatrixIO.h>
 
 using namespace smurff;
-using namespace Eigen;
 
 NormalOnePrior::NormalOnePrior(std::shared_ptr<Session> session, uint32_t mode, std::string name)
    : ILatentPrior(session, mode, name)
@@ -46,8 +45,8 @@ void NormalOnePrior::sample_latent(int d)
 {
    const int K = num_latent();
 
-   MatrixXd XX = MatrixXd::Zero(K, K);
-   VectorXd yX = VectorXd::Zero(K);
+   Eigen::MatrixXd XX = Eigen::MatrixXd::Zero(K, K);
+   Eigen::VectorXd yX = Eigen::VectorXd::Zero(K);
 
    data().getMuLambda(model(), m_mode, d, yX, XX);
 
@@ -58,7 +57,7 @@ void NormalOnePrior::sample_latent(int d)
    for(int k=0;k<K;++k) sample_latent(d, k, XX, yX);
 }
  
-std::pair<double,double> NormalOnePrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)
+std::pair<double,double> NormalOnePrior::sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX)
 {
     auto Ucol = U().col(d);
     double lambda = XX(k,k);

@@ -31,7 +31,6 @@
 #define BURNIN_ITER_TAG "burnin_iter"
 
 using namespace std;
-using namespace Eigen;
 
 using namespace smurff;
 

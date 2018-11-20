@@ -70,7 +70,7 @@ void smurff::bmrandn(double* x, long n)
    }
 }
    
-void smurff::bmrandn(MatrixXd & X) 
+void smurff::bmrandn(Eigen::MatrixXd & X) 
 {
    long n = X.rows() * (long)X.cols();
    smurff::bmrandn(X.data(), n);
@@ -126,7 +126,7 @@ void smurff::bmrandn_single_thread(Eigen::VectorXd & x)
    smurff::bmrandn_single_thread(x.data(), x.size());
 }
  
-void smurff::bmrandn_single_thread(MatrixXd & X) 
+void smurff::bmrandn_single_thread(Eigen::MatrixXd & X) 
 {
    long n = X.rows() * (long)X.cols();
    smurff::bmrandn_single_thread(X.data(), n);
@@ -173,20 +173,20 @@ double smurff::rgamma(double shape, double scale)
    return gamma(bmrngs->local());
 }
 
-auto smurff::nrandn(int n) -> decltype(VectorXd::NullaryExpr(n, std::cref(randn))) 
+auto smurff::nrandn(int n) -> decltype(Eigen::VectorXd::NullaryExpr(n, std::cref(randn))) 
 {
-   return VectorXd::NullaryExpr(n, std::cref(randn));
+   return Eigen::VectorXd::NullaryExpr(n, std::cref(randn));
 }
 
-auto smurff::nrandn(int n, int m) -> decltype(ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)))
+auto smurff::nrandn(int n, int m) -> decltype(Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)))
 {
-   return ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)); 
+   return Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)); 
 }
 
 
-MatrixXd WishartUnit(int m, int df)
+Eigen::MatrixXd WishartUnit(int m, int df)
 {
-   MatrixXd c(m,m);
+   Eigen::MatrixXd c(m,m);
    c.setZero();
    auto& rng = bmrngs->local();
 
@@ -194,11 +194,11 @@ MatrixXd WishartUnit(int m, int df)
    {
       GAMMA_DISTRIBUTION gam(0.5*(df - i));
       c(i,i) = std::sqrt(2.0 * gam(rng));
-      VectorXd r = smurff::nrandn(m-i-1);
+      Eigen::VectorXd r = smurff::nrandn(m-i-1);
       c.block(i,i+1,1,m-i-1) = r.transpose();
    }
 
-   MatrixXd ret = c.transpose() * c;
+   Eigen::MatrixXd ret = c.transpose() * c;
 
    #ifdef TEST_MVNORMAL
    cout << "WISHART UNIT {\n" << endl;
@@ -212,17 +212,17 @@ MatrixXd WishartUnit(int m, int df)
    return ret;
 }
 
-MatrixXd Wishart(const MatrixXd &sigma, const int df)
+MatrixXd Wishart(const Eigen::MatrixXd &sigma, const int df)
 {
    //  Get R, the upper triangular Cholesky factor of SIGMA.
    auto chol = sigma.llt();
-   MatrixXd r = chol.matrixL();
+   Eigen::MatrixXd r = chol.matrixL();
 
    //  Get AU, a sample from the unit Wishart distribution.
-   MatrixXd au = WishartUnit(sigma.cols(), df);
+   Eigen::MatrixXd au = WishartUnit(sigma.cols(), df);
 
    //  Construct the matrix A = R' * AU * R.
-   MatrixXd a = r * au * chol.matrixU();
+   Eigen::MatrixXd a = r * au * chol.matrixU();
 
    #ifdef TEST_MVNORMAL
    cout << "WISHART {\n" << endl;
@@ -238,10 +238,10 @@ MatrixXd Wishart(const MatrixXd &sigma, const int df)
 }
 
 // from julia package Distributions: conjugates/normalwishart.jl
-std::pair<VectorXd, MatrixXd> smurff::NormalWishart(const VectorXd & mu, double kappa, const MatrixXd & T, double nu)
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::NormalWishart(const Eigen::VectorXd & mu, double kappa, const Eigen::MatrixXd & T, double nu)
 {
-   MatrixXd Lam = Wishart(T, nu);
-   MatrixXd mu_o = smurff::MvNormal_prec(Lam * kappa, mu);
+   Eigen::MatrixXd Lam = Wishart(T, nu);
+   Eigen::MatrixXd mu_o = smurff::MvNormal_prec(Lam * kappa, mu);
 
    #ifdef TEST_MVNORMAL
    cout << "NORMAL WISHART {\n" << endl;
@@ -257,7 +257,7 @@ std::pair<VectorXd, MatrixXd> smurff::NormalWishart(const VectorXd & mu, double 
    return std::make_pair(mu_o , Lam);
 }
 
-std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const int N, const MatrixXd &NS, const VectorXd &NU, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::CondNormalWishart(const int N, const Eigen::MatrixXd &NS, const Eigen::VectorXd &NU, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu)
 {
    int nu_c = nu + N;
 
@@ -269,7 +269,7 @@ std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const int N, const Matri
    return NormalWishart(mu_c, kappa_c, T_c, nu_c);
 }
 
-std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const MatrixXd &U, const VectorXd &mu, const double kappa, const MatrixXd &T, const int nu)
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::CondNormalWishart(const Eigen::MatrixXd &U, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu)
 {
    auto N = U.cols();
    auto NS = U * U.adjoint();
@@ -278,35 +278,35 @@ std::pair<VectorXd, MatrixXd> smurff::CondNormalWishart(const MatrixXd &U, const
 }
 
 // Normal(0, Lambda^-1) for nn columns
-MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, int ncols)
+MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, int ncols)
 {
    int nrows = Lambda.rows(); // Dimensionality (rows)
-   LLT<MatrixXd> chol(Lambda);
+   LLT<Eigen::MatrixXd> chol(Lambda);
 
-   MatrixXd r(nrows, ncols);
+   Eigen::MatrixXd r(nrows, ncols);
    smurff::bmrandn(r);
 
    return chol.matrixU().solve(r);
 }
 
-MatrixXd smurff::MvNormal_prec(const MatrixXd & Lambda, const VectorXd & mean, int nn)
+MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn)
 {
-   MatrixXd r = MvNormal_prec(Lambda, nn);
+   Eigen::MatrixXd r = MvNormal_prec(Lambda, nn);
    return r.colwise() + mean;
 }
 
 // Draw nn samples from a size-dimensional normal distribution
 // with a specified mean and covariance
-MatrixXd smurff::MvNormal(const MatrixXd covar, const VectorXd mean, int nn) 
+MatrixXd smurff::MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn) 
 {
    int size = mean.rows(); // Dimensionality (rows)
-   MatrixXd normTransform(size,size);
+   Eigen::MatrixXd normTransform(size,size);
 
-   LLT<MatrixXd> cholSolver(covar);
+   LLT<Eigen::MatrixXd> cholSolver(covar);
    normTransform = cholSolver.matrixL();
 
-   auto normSamples = MatrixXd::NullaryExpr(size, nn, std::cref(randn));
-   MatrixXd samples = (normTransform * normSamples).colwise() + mean;
+   auto normSamples = Eigen::MatrixXd::NullaryExpr(size, nn, std::cref(randn));
+   Eigen::MatrixXd samples = (normTransform * normSamples).colwise() + mean;
 
    return samples;
 }

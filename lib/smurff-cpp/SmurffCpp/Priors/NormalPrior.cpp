@@ -12,7 +12,6 @@
 #include <SmurffCpp/Utils/Distribution.h>
 #include <SmurffCpp/Utils/Error.h>
 
-using namespace Eigen;
 using namespace smurff;
 
 //  base class NormalPrior
@@ -60,8 +59,8 @@ void  NormalPrior::sample_latent(int n)
 {
    const auto &mu_u = getMu(n);
 
-   VectorXd &rr = rrs.local();
-   MatrixXd &MM = MMs.local();
+   Eigen::VectorXd &rr = rrs.local();
+   Eigen::MatrixXd &MM = MMs.local();
 
    rr.setZero();
    MM.setZero();
@@ -76,7 +75,7 @@ void  NormalPrior::sample_latent(int n)
    //Solve system of linear equations for x: MM * x = rr - not exactly correct  because we have random part
    //Sample from multivariate normal distribution with mean rr and precision matrix MM
 
-   Eigen::LLT<MatrixXd> chol;
+   Eigen::LLT<Eigen::MatrixXd> chol;
    {
       chol = MM.llt(); // compute the Cholesky decomposition X = L * U
       if(chol.info() != Eigen::Success)

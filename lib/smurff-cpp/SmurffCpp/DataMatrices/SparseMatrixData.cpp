@@ -1,21 +1,20 @@
 #include "SparseMatrixData.h"
 
 using namespace smurff;
-using namespace Eigen;
 
-SparseMatrixData::SparseMatrixData(SparseMatrix<double> Y)
-   : FullMatrixData<SparseMatrix<double>>(Y)
+SparseMatrixData::SparseMatrixData(Eigen::SparseMatrix<double> Y)
+   : FullMatrixData<Eigen::SparseMatrix<double>>(Y)
 {
    this->name = "SparseMatrixData [fully known]";
 }
 
-void SparseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM) const
+void SparseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const
 {
     const auto& Y = this->Y(mode);
     auto Vf = *model.CVbegin(mode);
     auto &ns = noise();
 
-    for (SparseMatrix<double>::InnerIterator it(Y, d); it; ++it) 
+    for (Eigen::SparseMatrix<double>::InnerIterator it(Y, d); it; ++it) 
     {
         const auto &col = Vf.col(it.row());
         auto p = pos(mode, d, it.row());
@@ -41,7 +40,7 @@ double SparseMatrixData::var_total() const
    for(int c = 0; c < Y().cols(); ++c)
    {
       int r = 0;
-      for (SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
          se += (r - it.row()) * cwise_mean_squared; // handle implicit zeroes
          se += std::pow(it.value() - cwise_mean, 2);
@@ -69,7 +68,7 @@ double SparseMatrixData::sumsq(const SubModel& model) const
    for(int c = 0; c < Y().cols(); ++c)
    {
       int r = 0;
-      for (SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
+      for (Eigen::SparseMatrix<double>::InnerIterator it(Y(), c); it; ++it)
       {
          for(; r < it.row(); r++) //handle implicit zeroes
             sumsq += std::pow(model.predict({r, c}), 2);

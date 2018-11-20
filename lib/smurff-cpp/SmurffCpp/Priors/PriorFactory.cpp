@@ -14,7 +14,6 @@
 #include <SmurffCpp/Utils/MatrixUtils.h>
 
 using namespace smurff;
-using namespace Eigen;
 
 //create macau prior features
 

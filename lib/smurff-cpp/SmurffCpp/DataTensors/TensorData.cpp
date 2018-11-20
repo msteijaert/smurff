@@ -6,7 +6,6 @@
 
 #include <SmurffCpp/ConstVMatrixExprIterator.hpp>
 
-using namespace Eigen;
 using namespace smurff;
 
 //convert array of coordinates to [nnz x nmodes] matrix
@@ -108,7 +107,7 @@ void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen:
    auto V0 = model.CVbegin(mode); //get first V matrix
    for (std::uint64_t j = sview->beginPlane(d); j < sview->endPlane(d); j++) //go through hyperplane in tensor rotation
    {
-      VectorXd col = (*V0).col(sview->getIndices()(j, 0)); //create a copy of m'th column from V (m = 0)
+      Eigen::VectorXd col = (*V0).col(sview->getIndices()(j, 0)); //create a copy of m'th column from V (m = 0)
       auto V = model.CVbegin(mode); //get V matrices for mode      
       for (std::uint64_t m = 1; m < sview->getNCoords(); m++) //go through each coordinate of value
       {
@@ -122,7 +121,7 @@ void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen:
       rr.noalias() += col * noisy_val; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
    }
 
-   MM.triangularView<Upper>() = MM.transpose();
+   MM.triangularView<Eigen::Upper>() = MM.transpose();
 }
 
 void TensorData::update_pnm(const SubModel& model, uint32_t mode)

@@ -2,7 +2,6 @@
 #include <SmurffCpp/Utils/counters.h>
 
 using namespace smurff;
-using namespace Eigen;
 
 ILatentPrior::ILatentPrior(std::shared_ptr<Session> session, uint32_t mode, std::string name)
    : m_session(session), m_mode(mode), m_name(name)
@@ -12,8 +11,8 @@ ILatentPrior::ILatentPrior(std::shared_ptr<Session> session, uint32_t mode, std:
 
 void ILatentPrior::init()
 {
-   rrs.init(VectorXd::Zero(num_latent()));
-   MMs.init(MatrixXd::Zero(num_latent(), num_latent()));
+   rrs.init(Eigen::VectorXd::Zero(num_latent()));
+   MMs.init(Eigen::MatrixXd::Zero(num_latent(), num_latent()));
 
    //this is some new initialization
    init_Usum();
@@ -44,12 +43,12 @@ INoiseModel& ILatentPrior::noise()
    return data().noise();
 }
 
-MatrixXd &ILatentPrior::U()
+Eigen::MatrixXd &ILatentPrior::U()
 {
    return model().U(m_mode);
 }
 
-const MatrixXd &ILatentPrior::U() const
+const Eigen::MatrixXd &ILatentPrior::U() const
 {
    return model().U(m_mode);
 }
@@ -102,8 +101,8 @@ void ILatentPrior::sample_latents()
    data().update_pnm(model(), m_mode);
 
    // for effiency, we keep + update Ucol and UUcol by every thread
-   thread_vector<VectorXd> Ucol(VectorXd::Zero(num_latent()));
-   thread_vector<MatrixXd> UUcol(MatrixXd::Zero(num_latent(), num_latent()));
+   thread_vector<Eigen::VectorXd> Ucol(Eigen::VectorXd::Zero(num_latent()));
+   thread_vector<Eigen::MatrixXd> UUcol(Eigen::MatrixXd::Zero(num_latent(), num_latent()));
 
    #pragma omp parallel for schedule(guided)
    for(int n = 0; n < U().cols(); n++)
