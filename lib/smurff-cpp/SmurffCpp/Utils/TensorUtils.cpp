@@ -19,14 +19,7 @@ Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig&
    return Eigen::Map<const Eigen::MatrixXd>(tensorConfig.getValues().data(), tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
 }
 
-Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(smurff::TensorConfig& tensorConfig)
-{
-   const smurff::TensorConfig& tc = tensorConfig;
-   return smurff::tensor_utils::dense_to_eigen(tc);
-}
-
-template<>
-Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<const smurff::TensorConfig>(const smurff::TensorConfig& tensorConfig)
+Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen(const smurff::TensorConfig& tensorConfig)
 {
    if(tensorConfig.isDense())
    {
@@ -55,12 +48,6 @@ Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<const smurff::
    out.setFromTriplets(triplets.begin(), triplets.end());
 
    return out;
-}
-
-template<>
-Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen<smurff::TensorConfig>(smurff::TensorConfig& tensorConfig)
-{
-   return smurff::tensor_utils::sparse_to_eigen<const smurff::TensorConfig>(tensorConfig);
 }
 
 smurff::MatrixConfig smurff::tensor_utils::tensor_to_matrix(const smurff::TensorConfig& tensorConfig)

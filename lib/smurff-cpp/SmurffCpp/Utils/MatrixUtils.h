@@ -14,13 +14,13 @@ namespace smurff { namespace matrix_utils {
    // Conversion of MatrixConfig to/from sparse eigen matrix
 
    Eigen::SparseMatrix<double> sparse_to_eigen(const smurff::MatrixConfig& matrixConfig);
-   smurff::MatrixConfig eigen_to_sparse(const Eigen::SparseMatrix<double> &, smurff::NoiseConfig n = smurff::NoiseConfig(), bool isScarce = false);
+   std::shared_ptr<smurff::MatrixConfig> eigen_to_sparse(const Eigen::SparseMatrix<double> &, smurff::NoiseConfig n = smurff::NoiseConfig(), bool isScarce = false);
 
    // Conversion of dense data to/from dense eigen matrix
 
    Eigen::MatrixXd dense_to_eigen(const smurff::MatrixConfig& matrixConfig);
 
-   smurff::MatrixConfig eigen_to_dense(const Eigen::MatrixXd &, smurff::NoiseConfig n = smurff::NoiseConfig());
+   std::shared_ptr<smurff::MatrixConfig> eigen_to_dense(const Eigen::MatrixXd &, smurff::NoiseConfig n = smurff::NoiseConfig());
 
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 
