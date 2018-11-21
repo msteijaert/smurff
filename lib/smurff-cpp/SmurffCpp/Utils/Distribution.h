@@ -1,7 +1,6 @@
 #pragma once
 
 #include <map>
-#include <functional>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -12,15 +11,12 @@ namespace smurff
    double randn(double = .0);
    
    void bmrandn(double* x, long n);
-
-   template<typename M>
-   void bmrandn(M & X);
+   void bmrandn(Eigen::MatrixXd & X);
    
    double bmrandn_single_thread();
    void bmrandn_single_thread(double* x, long n);
-
-   template<typename M>
-   void bmrandn_single_thread(M & X);
+   void bmrandn_single_thread(Eigen::VectorXd & x);
+   void bmrandn_single_thread(Eigen::MatrixXd & X);
    
    void init_bmrng();
    void init_bmrng(int seed);
@@ -32,34 +28,18 @@ namespace smurff
    
    // return a random matrix of size n, m
    
-   template<typename V>
-   auto nrandn(int n) -> decltype(V::NullaryExpr(n, std::cref(randn)) )
-   {
-      return V::NullaryExpr(n, std::cref(randn));
-   }
-
-   template <typename M>
-   auto nrandn(int n, int m) -> decltype(M::NullaryExpr(n, m, std::ptr_fun(randn)))
-   {
-      return M::NullaryExpr(n, m, std::ptr_fun(randn));
-   }
-
+   auto nrandn(int n) -> decltype(Eigen::VectorXd::NullaryExpr(n, std::cref(randn)) ); 
+   auto nrandn(int n, int m) -> decltype(Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)) );
+   
    // Wishart distribution
    
-   template<typename V, typename M>
-   std::pair<V, M> NormalWishart(const V & mu, double kappa, const M & T, double nu);
-   template<typename V, typename M>
-   std::pair<V, M> CondNormalWishart(const M &U, const V &mu, const double kappa, const M &T, const int nu);
-   template<typename V, typename M>
-   std::pair<V, M> CondNormalWishart(const int N, const M &NS, const V &NU, const V &mu, const double kappa, const M &T, const int nu);
+   std::pair<Eigen::VectorXd, Eigen::MatrixXd> NormalWishart(const Eigen::VectorXd & mu, double kappa, const Eigen::MatrixXd & T, double nu);
+   std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const Eigen::MatrixXd &U, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
+   std::pair<Eigen::VectorXd, Eigen::MatrixXd> CondNormalWishart(const int N, const Eigen::MatrixXd &NS, const Eigen::VectorXd &NU, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu);
    
    // Multivariate normal gaussian
 
-   template<typename M>
-   M MvNormal_prec(const M & Lambda, int nn = 1);
-   template<typename V, typename M>
-   M MvNormal_prec(const M & Lambda, const V & mean, int nn = 1);
-   template<typename V, typename M>
-   M MvNormal(const M & covar, const V & mean, int nn = 1);
-   
+   Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, int nn = 1);
+   Eigen::MatrixXd MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn = 1);
+   Eigen::MatrixXd MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn = 1);
 }
