@@ -19,10 +19,10 @@ Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig&
    return Eigen::Map<const Eigen::MatrixXd>(matrixConfig.getValues().data(), matrixConfig.getNRow(), matrixConfig.getNCol());
 }
 
-smurff::MatrixConfig smurff::matrix_utils::eigen_to_dense(const Eigen::MatrixXd &eigenMatrix, NoiseConfig n)
+std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_dense(const Eigen::MatrixXd &eigenMatrix, NoiseConfig n)
 {
    std::vector<double> values(eigenMatrix.data(),  eigenMatrix.data() + eigenMatrix.size());
-   return smurff::MatrixConfig(eigenMatrix.rows(), eigenMatrix.cols(), values, n);
+   return std::make_shared<smurff::MatrixConfig>(eigenMatrix.rows(), eigenMatrix.cols(), values, n);
 }
 
 struct sparse_vec_iterator
@@ -72,7 +72,7 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen(const smurff::
    return out;
 }
 
-smurff::MatrixConfig smurff::matrix_utils::eigen_to_sparse(const Eigen::SparseMatrix<double> &X, NoiseConfig n, bool isScarce)
+std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_sparse(const Eigen::SparseMatrix<double> &X, NoiseConfig n, bool isScarce)
 {
    std::uint64_t nrow = X.rows();
    std::uint64_t ncol = X.cols();
@@ -85,15 +85,15 @@ smurff::MatrixConfig smurff::matrix_utils::eigen_to_sparse(const Eigen::SparseMa
    {
       for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)
       {
-         rows.push_back(it.row() + 1);
-         cols.push_back(it.col() + 1);
+         rows.push_back(it.row());
+         cols.push_back(it.col());
          values.push_back(it.value());
       }
    }
 
    std::uint64_t nnz = values.size();
 
-   return smurff::MatrixConfig(nrow, ncol, rows, cols, values, n, isScarce);
+   return std::make_shared<smurff::MatrixConfig>(nrow, ncol, rows, cols, values, n, isScarce);
 }
 
 std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixConfig& mc)
