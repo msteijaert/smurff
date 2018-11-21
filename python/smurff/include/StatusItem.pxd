@@ -7,7 +7,7 @@ cdef extern from "<SmurffCpp/StatusItem.h>" namespace "smurff":
         int iter;
         int phase_iter;
 
-        vector[double] model_norms;
+        vector[float] model_norms;
 
         double rmse_avg;
         double rmse_1sample;
