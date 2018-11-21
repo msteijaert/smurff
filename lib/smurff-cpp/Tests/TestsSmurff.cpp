@@ -29,10 +29,10 @@ void printActualResults(int nr, float actualRmseAvg, const std::vector<smurff::R
    {
       os << std::setprecision(16);
       os << "         { { " << actualResultItem.coords << " }, "
-         << actualResultItem.val << ", "
-         << std::fixed << actualResultItem.pred_1sample << ", "
-         << actualResultItem.pred_avg << ", "
-         << actualResultItem.var << ", "
+         << actualResultItem.val << "f, "
+         << std::fixed << actualResultItem.pred_1sample << "f, "
+         << actualResultItem.pred_avg << "f, "
+         << actualResultItem.var << "f, "
          << " }," << std::endl;
     }
 
