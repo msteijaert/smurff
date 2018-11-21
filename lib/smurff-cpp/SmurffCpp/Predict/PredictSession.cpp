@@ -118,10 +118,10 @@ bool PredictSession::step()
     THROWERROR_ASSERT(m_is_init);
     THROWERROR_ASSERT(m_pos != m_stepfiles.rend());
 
-    double start = tick();
+    float start = tick();
     auto model = restoreModel(*m_pos);
     m_result->update(model, false);
-    double stop = tick();
+    float stop = tick();
     m_iter++;
     m_secs_per_iter = stop - start;
     m_secs_total += m_secs_per_iter;

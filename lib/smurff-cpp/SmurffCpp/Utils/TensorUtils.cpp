@@ -4,7 +4,7 @@
 
 #include <SmurffCpp/Utils/Error.h>
 
-Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig& tensorConfig)
+Eigen::MatrixXf smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig& tensorConfig)
 {
    if(!tensorConfig.isDense())
    {
@@ -16,10 +16,11 @@ Eigen::MatrixXd smurff::tensor_utils::dense_to_eigen(const smurff::TensorConfig&
       THROWERROR("Invalid number of dimensions. Tensor can not be converted to matrix.");
    }
 
-   return Eigen::Map<const Eigen::MatrixXd>(tensorConfig.getValues().data(), tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
+   std::vector<float> values(tensorConfig.getValues().begin(), tensorConfig.getValues().end());
+   return Eigen::Map<const Eigen::MatrixXf>(values.data(), tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
 }
 
-Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen(const smurff::TensorConfig& tensorConfig)
+Eigen::SparseMatrix<float> smurff::tensor_utils::sparse_to_eigen(const smurff::TensorConfig& tensorConfig)
 {
    if(tensorConfig.isDense())
    {
@@ -34,15 +35,15 @@ Eigen::SparseMatrix<double> smurff::tensor_utils::sparse_to_eigen(const smurff::
    const auto &columns = tensorConfig.getColumns();
    const auto &values = tensorConfig.getValues();
 
-   Eigen::SparseMatrix<double> out(tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
+   Eigen::SparseMatrix<float> out(tensorConfig.getDims()[0], tensorConfig.getDims()[1]);
 
-   std::vector<Eigen::Triplet<double> > triplets;
+   std::vector<Eigen::Triplet<float> > triplets;
    for(std::uint64_t i = 0; i < tensorConfig.getNNZ(); i++)
    {
-      double val = values[i];
+      float val = values[i];
       std::uint32_t row = columns[i];
       std::uint32_t col = columns[i + tensorConfig.getNNZ()];
-      triplets.push_back(Eigen::Triplet<double>(row, col, val));
+      triplets.push_back(Eigen::Triplet<float>(row, col, val));
    }
 
    out.setFromTriplets(triplets.begin(), triplets.end());
@@ -98,11 +99,11 @@ std::ostream& smurff::tensor_utils::operator << (std::ostream& os, const TensorC
    {
       os << "dims: " << tc.getDims()[0] << " " << tc.getDims()[1] << std::endl;
 
-      Eigen::SparseMatrix<double> X(tc.getDims()[0], tc.getDims()[1]);
+      Eigen::SparseMatrix<float> X(tc.getDims()[0], tc.getDims()[1]);
 
-      std::vector<Eigen::Triplet<double> > triplets;
+      std::vector<Eigen::Triplet<float> > triplets;
       for(std::uint64_t i = 0; i < tc.getNNZ(); i++)
-         triplets.push_back(Eigen::Triplet<double>(columns[i], columns[i + tc.getNNZ()], values[i]));
+         triplets.push_back(Eigen::Triplet<float>(columns[i], columns[i + tc.getNNZ()], values[i]));
 
       os << "NTriplets: " << triplets.size() << std::endl;
 
@@ -114,7 +115,7 @@ std::ostream& smurff::tensor_utils::operator << (std::ostream& os, const TensorC
    return os;
 }
 
-Eigen::MatrixXd smurff::tensor_utils::slice( const TensorConfig& tensorConfig
+Eigen::MatrixXf smurff::tensor_utils::slice( const TensorConfig& tensorConfig
                                            , const std::array<std::uint64_t, 2>& fixedDims
                                            , const std::unordered_map<std::uint64_t, std::uint32_t>& dimCoords)
 {
@@ -161,7 +162,7 @@ Eigen::MatrixXd smurff::tensor_utils::slice( const TensorConfig& tensorConfig
       dimColumns[dc.first] = tensorConfig.getColumns().begin() + dimOffset;
    }
 
-   Eigen::MatrixXd sliceMatrix(tensorConfig.getDims()[fixedDims[0]], tensorConfig.getDims()[fixedDims[1]]);
+   Eigen::MatrixXf sliceMatrix(tensorConfig.getDims()[fixedDims[0]], tensorConfig.getDims()[fixedDims[1]]);
    for (std::size_t i = 0; i < tensorConfig.getValues().size(); i++)
    {
       bool dimCoordsMatchColumns =

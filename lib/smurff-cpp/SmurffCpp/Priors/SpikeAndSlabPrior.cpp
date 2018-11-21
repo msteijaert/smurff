@@ -22,19 +22,19 @@ void SpikeAndSlabPrior::init()
    
    THROWERROR_ASSERT(D > 0);
 
-   Zcol.init(Eigen::MatrixXd::Zero(K,nview));
-   W2col.init(Eigen::MatrixXd::Zero(K,nview));
+   Zcol.init(Eigen::MatrixXf::Zero(K,nview));
+   W2col.init(Eigen::MatrixXf::Zero(K,nview));
 
    //-- prior params
-   Zkeep = Eigen::ArrayXXd::Constant(K, nview, D);
+   Zkeep = Eigen::ArrayXXf::Constant(K, nview, D);
 
-   alpha = Eigen::ArrayXXd::Ones(K,nview);
+   alpha = Eigen::ArrayXXf::Ones(K,nview);
    log_alpha.resize(K, nview);
    log_alpha = alpha.log();
 
-   r = Eigen::ArrayXXd::Constant(K,nview,.5);
+   r = Eigen::ArrayXXf::Constant(K,nview,.5);
    log_r.resize(K, nview);
-   log_r = - r.log() + (Eigen::ArrayXXd::Ones(K, nview) - r).log();
+   log_r = - r.log() + (Eigen::ArrayXXf::Ones(K, nview) - r).log();
 }
 
 void SpikeAndSlabPrior::update_prior()
@@ -51,7 +51,7 @@ void SpikeAndSlabPrior::update_prior()
        r.col(v) = ( Zkeep.col(v).array() + prior_beta ) / ( D + prior_beta * D ) ;
        auto ww = W2c.col(v).array() / 2 + prior_beta_0;
        auto tmpz = Zkeep.col(v).array() / 2 + prior_alpha_0 ;
-       alpha.col(v) = tmpz.binaryExpr(ww, [](double a, double b)->double {
+       alpha.col(v) = tmpz.binaryExpr(ww, [](float a, float b)->float {
                return rgamma(a, 1/b) + 1e-7;
        });
    }
@@ -60,7 +60,7 @@ void SpikeAndSlabPrior::update_prior()
    W2col.reset(); 
 
    log_alpha = alpha.log();
-   log_r = - r.log() + (Eigen::ArrayXXd::Ones(K, nview) - r).log();
+   log_r = - r.log() + (Eigen::ArrayXXf::Ones(K, nview) - r).log();
 }
 
 void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
@@ -72,8 +72,8 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
 
   //compute Zcol
   int d = 0;
-  Eigen::ArrayXXd Z(Eigen::ArrayXXd::Zero(K,nview));
-  Eigen::ArrayXXd W2(Eigen::ArrayXXd::Zero(K,nview));
+  Eigen::ArrayXXf Z(Eigen::ArrayXXf::Zero(K,nview));
+  Eigen::ArrayXXf W2(Eigen::ArrayXXf::Zero(K,nview));
   for(int v=0; v<data().nview(m_mode); ++v) 
   {
       for(int i=0; i<data().view_size(m_mode, v); ++i, ++d)
@@ -92,19 +92,19 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
   update_prior();
 }
 
-std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX)
+std::pair<float, float> SpikeAndSlabPrior::sample_latent(int d, int k, const Eigen::MatrixXf& XX, const Eigen::VectorXf& yX)
 {
     const int v = data().view(m_mode, d);
-    double mu, lambda;
+    float mu, lambda;
 
-    Eigen::MatrixXd aXX = alpha.matrix().col(v).asDiagonal();
+    Eigen::MatrixXf aXX = alpha.matrix().col(v).asDiagonal();
     aXX += XX;
     std::tie(mu, lambda) = NormalOnePrior::sample_latent(d, k, aXX, yX);
 
     auto Ucol = U().col(d);
-    double z1 = log_r(k,v) -  0.5 * (lambda * mu * mu - std::log(lambda) + log_alpha(k,v));
-    double z = 1 / (1 + exp(z1));
-    double p = rand_unif(0,1);
+    float z1 = log_r(k,v) -  0.5 * (lambda * mu * mu - std::log(lambda) + log_alpha(k,v));
+    float z = 1 / (1 + exp(z1));
+    float p = rand_unif(0,1);
     if (Zkeep(k,v) > 0 && p < z) {
         Zcol.local()(k,v)++;
         W2col.local()(k,v) += Ucol(k) * Ucol(k);

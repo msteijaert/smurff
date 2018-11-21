@@ -4,29 +4,29 @@
 
 namespace smurff
 {
-   class ScarceMatrixData : public MatrixDataTempl<Eigen::SparseMatrix<double> >
+   class ScarceMatrixData : public MatrixDataTempl<Eigen::SparseMatrix<float> >
    {
    private:
       int num_empty[2] = {0,0};
 
    public:
-      ScarceMatrixData(Eigen::SparseMatrix<double> Y);
+      ScarceMatrixData(Eigen::SparseMatrix<float> Y);
 
    public:
       void init_pre() override;
       
-      double train_rmse(const SubModel& model) const override;
+      float train_rmse(const SubModel& model) const override;
 
       std::ostream& info(std::ostream& os, std::string indent) override;
 
-      void getMuLambda(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const override;
+      void getMuLambda(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const override;
       void update_pnm(const SubModel& model, std::uint32_t mode) override;
 
       std::uint64_t nna() const override;
 
    public:
-      double var_total() const override;
+      float var_total() const override;
       
-      double sumsq(const SubModel& model) const override;
+      float sumsq(const SubModel& model) const override;
    };
 }

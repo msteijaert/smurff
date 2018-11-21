@@ -39,7 +39,7 @@ namespace smurff {
       virtual std::ostream &info(std::ostream &os, std::string indent)   = 0;
       virtual std::string getStatus()  = 0;
 
-      virtual double getAlpha() const;
-      virtual double sample(const SubModel& model, const PVec<> &pos, double val);
+      virtual float getAlpha() const;
+      virtual float sample(const SubModel& model, const PVec<> &pos, float val);
    };
 }

@@ -17,13 +17,13 @@ namespace smurff {
       friend class NoiseFactory;
       
    public:
-      double var_total = NAN;
-      double alpha_max = NAN;
-      double sn_max;
-      double sn_init;
+      float var_total = NAN;
+      float alpha_max = NAN;
+      float sn_max;
+      float sn_init;
 
    protected:
-      AdaptiveGaussianNoise(double sinit = 1., double smax = 10.);
+      AdaptiveGaussianNoise(float sinit = 1., float smax = 10.);
 
    public:
       void init(const Data* data) override;
@@ -32,8 +32,8 @@ namespace smurff {
       std::ostream &info(std::ostream &os, std::string indent) override;
       std::string getStatus() override;
 
-      void setSNInit(double a);
-      void setSNMax(double a);
+      void setSNInit(float a);
+      void setSNMax(float a);
    };
 
 }

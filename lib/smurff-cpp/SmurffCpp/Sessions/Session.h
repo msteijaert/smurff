@@ -41,9 +41,9 @@ protected:
 
 private:
    int m_iter = -1; //index of step iteration
-   double m_secs_per_iter = .0; //time in seconds for last_iter
-   double m_secs_total = .0; //time in seconds for last_iter
-   double m_lastCheckpointTime;
+   float m_secs_per_iter = .0; //time in seconds for last_iter
+   float m_secs_total = .0; //time in seconds for last_iter
+   float m_lastCheckpointTime;
    int m_lastCheckpointIter;
 
 protected:

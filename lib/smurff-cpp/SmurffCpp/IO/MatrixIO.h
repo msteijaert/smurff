@@ -64,17 +64,17 @@ namespace smurff { namespace matrix_io
    void write_matrix_market(std::ostream& out, std::shared_ptr<const MatrixConfig> matrixConfig);
 
    namespace eigen{
-      void read_matrix(const std::string& filename, Eigen::VectorXd& V);
+      void read_matrix(const std::string& filename, Eigen::VectorXf& V);
 
-      void read_matrix(const std::string& filename, Eigen::MatrixXd& X);
+      void read_matrix(const std::string& filename, Eigen::MatrixXf& X);
 
-      void read_matrix(const std::string& filename, Eigen::SparseMatrix<double>& X);
+      void read_matrix(const std::string& filename, Eigen::SparseMatrix<float>& X);
 
       // ===
 
-      void write_matrix(const std::string& filename, const Eigen::MatrixXd& X);
+      void write_matrix(const std::string& filename, const Eigen::MatrixXf& X);
 
-      void write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X);
+      void write_matrix(const std::string& filename, const Eigen::SparseMatrix<float>& X);
 
    }
 }}

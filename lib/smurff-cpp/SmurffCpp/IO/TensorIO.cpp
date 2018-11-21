@@ -10,11 +10,11 @@
 
 using namespace smurff;
 
-#define EXTENSION_SDT ".sdt" //sparse double tensor (binary file)
+#define EXTENSION_SDT ".sdt" //sparse float tensor (binary file)
 #define EXTENSION_SBT ".sbt" //sparse binary tensor (binary file)
 #define EXTENSION_TNS ".tns" //sparse tensor (txt file)
 #define EXTENSION_CSV ".csv" //dense tensor (txt file)
-#define EXTENSION_DDT ".ddt" //dense double tensor (binary file)
+#define EXTENSION_DDT ".ddt" //dense float tensor (binary file)
 
 tensor_io::TensorType tensor_io::ExtensionToTensorType(const std::string& fname)
 {

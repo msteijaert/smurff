@@ -71,26 +71,26 @@ std::shared_ptr<Data> MatricesData::add(const PVec<>& p, std::shared_ptr<Data> d
    return blocks.back().data();
 }
 
-double MatricesData::sumsq(const SubModel& model) const
+float MatricesData::sumsq(const SubModel& model) const
 {
    THROWERROR_NOTIMPL();
 }
 
-double MatricesData::var_total() const
+float MatricesData::var_total() const
 {
    return NAN;
 }
 
-double MatricesData::train_rmse(const SubModel& model) const
+float MatricesData::train_rmse(const SubModel& model) const
 {
-   double sum = .0;
+   float sum = .0;
    std::uint64_t N = 0;
    int count = 0;
 
    for(auto &p : blocks)
    {
        auto mtx = p.data();
-       double local_rmse = mtx->train_rmse(p.submodel(model));
+       float local_rmse = mtx->train_rmse(p.submodel(model));
        sum += (local_rmse * local_rmse) * (mtx->size() - mtx->nna());
        N += (mtx->size() - mtx->nna());
        count++;
@@ -109,7 +109,7 @@ void MatricesData::update(const SubModel &model)
    }
 }
 
-void MatricesData::getMuLambda(const SubModel& model, uint32_t mode, int pos, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const
+void MatricesData::getMuLambda(const SubModel& model, uint32_t mode, int pos, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const
 {
    int count = 0;
    apply(mode, pos, [&model, mode, pos, &rr, &MM, &count](const Block &b) {
@@ -164,7 +164,7 @@ std::uint64_t MatricesData::nna() const
    return accumulate(0LL, &MatrixData::nna);
 }
 
-double MatricesData::sum() const
+float MatricesData::sum() const
 {
    return accumulate(.0, &MatrixData::sum);
 }

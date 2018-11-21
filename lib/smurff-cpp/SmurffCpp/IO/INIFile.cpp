@@ -63,12 +63,12 @@ int INIFile::getInteger(const std::string& section, const std::string& name, int
    return end > value ? n : default_value;
 }
 
-double INIFile::getReal(const std::string& section, const std::string& name, double default_value) const
+float INIFile::getReal(const std::string& section, const std::string& name, float default_value) const
 {
    std::string valstr = get(section, name, "");
    const char* value = valstr.c_str();
    char* end;
-   double n = strtod(value, &end);
+   float n = strtod(value, &end);
    return end > value ? n : default_value;
 }
 

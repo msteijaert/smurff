@@ -4,12 +4,12 @@
 
 using namespace smurff;
 
-double INoiseModel::getAlpha() const
+float INoiseModel::getAlpha() const
 {
     return 1.0;
 }
 
-double INoiseModel::sample(const SubModel& model, const PVec<> &pos, double val)
+float INoiseModel::sample(const SubModel& model, const PVec<> &pos, float val)
 {
     return getAlpha() * val;
 }

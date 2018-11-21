@@ -14,34 +14,32 @@
 #ifdef USE_BOOST_RANDOM
 #include <boost/random.hpp>
 #define MERSENNE_TWISTER boost::random::mt19937
-#define UNIFORM_REAL_DISTRIBUTION boost::random::uniform_real_distribution<double>
-#define GAMMA_DISTRIBUTION boost::random::gamma_distribution<double>
+#define UNIFORM_REAL_DISTRIBUTION boost::random::uniform_real_distribution<float>
+#define GAMMA_DISTRIBUTION boost::random::gamma_distribution<float>
 #else
 #include <random>
 #define MERSENNE_TWISTER std::mt19937
-#define UNIFORM_REAL_DISTRIBUTION std::uniform_real_distribution<double>
-#define GAMMA_DISTRIBUTION std::gamma_distribution<double>
+#define UNIFORM_REAL_DISTRIBUTION std::uniform_real_distribution<float>
+#define GAMMA_DISTRIBUTION std::gamma_distribution<float>
 #endif
 
 #include <Eigen/Dense>
 
 #include "Distribution.h"
 
-using namespace Eigen;
-
 static smurff::thread_vector<MERSENNE_TWISTER> *bmrngs;
 
-double smurff::randn0()
+float smurff::randn0()
 {
    return smurff::bmrandn_single_thread();
 }
 
-double smurff::randn(double) 
+float smurff::randn(float) 
 {
    return smurff::bmrandn_single_thread();
 }
 
-void smurff::bmrandn(double* x, long n) 
+void smurff::bmrandn(float* x, long n) 
 {
    #pragma omp parallel 
    {
@@ -51,7 +49,7 @@ void smurff::bmrandn(double* x, long n)
       #pragma omp for schedule(static)
       for (long i = 0; i < n; i += 2) 
       {
-         double x1, x2, w;
+         float x1, x2, w;
          do 
          {
            x1 = unif(bmrng);
@@ -70,19 +68,19 @@ void smurff::bmrandn(double* x, long n)
    }
 }
    
-void smurff::bmrandn(Eigen::MatrixXd & X) 
+void smurff::bmrandn(Eigen::MatrixXf & X) 
 {
    long n = X.rows() * (long)X.cols();
    smurff::bmrandn(X.data(), n);
 }
 
-double smurff::bmrandn_single_thread() 
+float smurff::bmrandn_single_thread() 
 {
    //TODO: add bmrng as input
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
    auto& bmrng = bmrngs->local();
   
-   double x1, x2, w;
+   float x1, x2, w;
    do 
    {
       x1 = unif(bmrng);
@@ -95,14 +93,14 @@ double smurff::bmrandn_single_thread()
 }
 
 // to be called within OpenMP parallel loop (also from serial code is fine)
-void smurff::bmrandn_single_thread(double* x, long n) 
+void smurff::bmrandn_single_thread(float* x, long n) 
 {
    UNIFORM_REAL_DISTRIBUTION unif(-1.0, 1.0);
    auto& bmrng = bmrngs->local();
 
    for (long i = 0; i < n; i += 2) 
    {
-      double x1, x2, w;
+      float x1, x2, w;
 
       do 
       {
@@ -121,12 +119,12 @@ void smurff::bmrandn_single_thread(double* x, long n)
    }
 }
   
-void smurff::bmrandn_single_thread(Eigen::VectorXd & x) 
+void smurff::bmrandn_single_thread(Eigen::VectorXf & x) 
 {
    smurff::bmrandn_single_thread(x.data(), x.size());
 }
  
-void smurff::bmrandn_single_thread(Eigen::MatrixXd & X) 
+void smurff::bmrandn_single_thread(Eigen::MatrixXf & X) 
 {
    long n = X.rows() * (long)X.cols();
    smurff::bmrandn_single_thread(X.data(), n);
@@ -151,14 +149,14 @@ void smurff::init_bmrng(int seed)
     bmrngs->init(v);
 }
    
-double smurff::rand_unif() 
+float smurff::rand_unif() 
 {
    UNIFORM_REAL_DISTRIBUTION unif(0.0, 1.0);
    auto& bmrng = bmrngs->local();
    return unif(bmrng);
 }
  
-double smurff::rand_unif(double low, double high) 
+float smurff::rand_unif(float low, float high) 
 {
    UNIFORM_REAL_DISTRIBUTION unif(low, high);
    auto& bmrng = bmrngs->local();
@@ -167,26 +165,26 @@ double smurff::rand_unif(double low, double high)
 
 // returns random number according to Gamma distribution
 // with the given shape (k) and scale (theta). See wiki.
-double smurff::rgamma(double shape, double scale) 
+float smurff::rgamma(float shape, float scale) 
 {
    GAMMA_DISTRIBUTION gamma(shape, scale);
    return gamma(bmrngs->local());
 }
 
-auto smurff::nrandn(int n) -> decltype(Eigen::VectorXd::NullaryExpr(n, std::cref(randn))) 
+auto smurff::nrandn(int n) -> decltype(Eigen::VectorXf::NullaryExpr(n, std::cref(randn))) 
 {
-   return Eigen::VectorXd::NullaryExpr(n, std::cref(randn));
+   return Eigen::VectorXf::NullaryExpr(n, std::cref(randn));
 }
 
-auto smurff::nrandn(int n, int m) -> decltype(Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)))
+auto smurff::nrandn(int n, int m) -> decltype(Eigen::ArrayXXf::NullaryExpr(n, m, std::ptr_fun(randn)))
 {
-   return Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)); 
+   return Eigen::ArrayXXf::NullaryExpr(n, m, std::ptr_fun(randn)); 
 }
 
 
-Eigen::MatrixXd WishartUnit(int m, int df)
+Eigen::MatrixXf WishartUnit(int m, int df)
 {
-   Eigen::MatrixXd c(m,m);
+   Eigen::MatrixXf c(m,m);
    c.setZero();
    auto& rng = bmrngs->local();
 
@@ -194,11 +192,11 @@ Eigen::MatrixXd WishartUnit(int m, int df)
    {
       GAMMA_DISTRIBUTION gam(0.5*(df - i));
       c(i,i) = std::sqrt(2.0 * gam(rng));
-      Eigen::VectorXd r = smurff::nrandn(m-i-1);
+      Eigen::VectorXf r = smurff::nrandn(m-i-1);
       c.block(i,i+1,1,m-i-1) = r.transpose();
    }
 
-   Eigen::MatrixXd ret = c.transpose() * c;
+   Eigen::MatrixXf ret = c.transpose() * c;
 
    #ifdef TEST_MVNORMAL
    cout << "WISHART UNIT {\n" << endl;
@@ -212,17 +210,17 @@ Eigen::MatrixXd WishartUnit(int m, int df)
    return ret;
 }
 
-MatrixXd Wishart(const Eigen::MatrixXd &sigma, const int df)
+Eigen::MatrixXf Wishart(const Eigen::MatrixXf &sigma, const int df)
 {
    //  Get R, the upper triangular Cholesky factor of SIGMA.
    auto chol = sigma.llt();
-   Eigen::MatrixXd r = chol.matrixL();
+   Eigen::MatrixXf r = chol.matrixL();
 
    //  Get AU, a sample from the unit Wishart distribution.
-   Eigen::MatrixXd au = WishartUnit(sigma.cols(), df);
+   Eigen::MatrixXf au = WishartUnit(sigma.cols(), df);
 
    //  Construct the matrix A = R' * AU * R.
-   Eigen::MatrixXd a = r * au * chol.matrixU();
+   Eigen::MatrixXf a = r * au * chol.matrixU();
 
    #ifdef TEST_MVNORMAL
    cout << "WISHART {\n" << endl;
@@ -238,10 +236,10 @@ MatrixXd Wishart(const Eigen::MatrixXd &sigma, const int df)
 }
 
 // from julia package Distributions: conjugates/normalwishart.jl
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::NormalWishart(const Eigen::VectorXd & mu, double kappa, const Eigen::MatrixXd & T, double nu)
+std::pair<Eigen::VectorXf, Eigen::MatrixXf> smurff::NormalWishart(const Eigen::VectorXf & mu, float kappa, const Eigen::MatrixXf & T, float nu)
 {
-   Eigen::MatrixXd Lam = Wishart(T, nu);
-   Eigen::MatrixXd mu_o = smurff::MvNormal_prec(Lam * kappa, mu);
+   Eigen::MatrixXf Lam = Wishart(T, nu);
+   Eigen::MatrixXf mu_o = smurff::MvNormal_prec(Lam * kappa, mu);
 
    #ifdef TEST_MVNORMAL
    cout << "NORMAL WISHART {\n" << endl;
@@ -257,19 +255,19 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::NormalWishart(const Eigen::V
    return std::make_pair(mu_o , Lam);
 }
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::CondNormalWishart(const int N, const Eigen::MatrixXd &NS, const Eigen::VectorXd &NU, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu)
+std::pair<Eigen::VectorXf, Eigen::MatrixXf> smurff::CondNormalWishart(const int N, const Eigen::MatrixXf &NS, const Eigen::VectorXf &NU, const Eigen::VectorXf &mu, const float kappa, const Eigen::MatrixXf &T, const int nu)
 {
    int nu_c = nu + N;
 
-   double kappa_c = kappa + N;
+   float kappa_c = kappa + N;
    auto mu_c = (kappa * mu + NU) / (kappa + N);
    auto X    = (T + NS + kappa * mu * mu.adjoint() - kappa_c * mu_c * mu_c.adjoint());
-   Eigen::MatrixXd T_c = X.inverse();
+   Eigen::MatrixXf T_c = X.inverse();
     
    return NormalWishart(mu_c, kappa_c, T_c, nu_c);
 }
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::CondNormalWishart(const Eigen::MatrixXd &U, const Eigen::VectorXd &mu, const double kappa, const Eigen::MatrixXd &T, const int nu)
+std::pair<Eigen::VectorXf, Eigen::MatrixXf> smurff::CondNormalWishart(const Eigen::MatrixXf &U, const Eigen::VectorXf &mu, const float kappa, const Eigen::MatrixXf &T, const int nu)
 {
    auto N = U.cols();
    auto NS = U * U.adjoint();
@@ -278,35 +276,35 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXd> smurff::CondNormalWishart(const Eige
 }
 
 // Normal(0, Lambda^-1) for nn columns
-MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, int ncols)
+Eigen::MatrixXf smurff::MvNormal_prec(const Eigen::MatrixXf & Lambda, int ncols)
 {
    int nrows = Lambda.rows(); // Dimensionality (rows)
-   LLT<Eigen::MatrixXd> chol(Lambda);
+   Eigen::LLT<Eigen::MatrixXf> chol(Lambda);
 
-   Eigen::MatrixXd r(nrows, ncols);
+   Eigen::MatrixXf r(nrows, ncols);
    smurff::bmrandn(r);
 
    return chol.matrixU().solve(r);
 }
 
-Eigen::MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn)
+Eigen::MatrixXf smurff::MvNormal_prec(const Eigen::MatrixXf & Lambda, const Eigen::VectorXf & mean, int nn)
 {
-   Eigen::MatrixXd r = MvNormal_prec(Lambda, nn);
+   Eigen::MatrixXf r = MvNormal_prec(Lambda, nn);
    return r.colwise() + mean;
 }
 
 // Draw nn samples from a size-dimensional normal distribution
 // with a specified mean and covariance
-Eigen::MatrixXd smurff::MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn) 
+Eigen::MatrixXf smurff::MvNormal(const Eigen::MatrixXf covar, const Eigen::VectorXf mean, int nn) 
 {
    int size = mean.rows(); // Dimensionality (rows)
-   Eigen::MatrixXd normTransform(size,size);
+   Eigen::MatrixXf normTransform(size,size);
 
-   LLT<Eigen::MatrixXd> cholSolver(covar);
+   Eigen::LLT<Eigen::MatrixXf> cholSolver(covar);
    normTransform = cholSolver.matrixL();
 
-   auto normSamples = Eigen::MatrixXd::NullaryExpr(size, nn, std::cref(randn));
-   Eigen::MatrixXd samples = (normTransform * normSamples).colwise() + mean;
+   auto normSamples = Eigen::MatrixXf::NullaryExpr(size, nn, std::cref(randn));
+   Eigen::MatrixXf samples = (normTransform * normSamples).colwise() + mean;
 
    return samples;
 }

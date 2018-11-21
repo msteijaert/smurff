@@ -17,21 +17,21 @@ namespace smurff {
 class MacauOnePrior : public NormalOnePrior
 {
 public:
-   Eigen::MatrixXd Uhat;
+   Eigen::MatrixXf Uhat;
 
-   Eigen::VectorXd F_colsq;   // sum-of-squares for every feature (column)
+   Eigen::VectorXf F_colsq;   // sum-of-squares for every feature (column)
 
-   Eigen::MatrixXd beta;      // link matrix
+   Eigen::MatrixXf beta;      // link matrix
    
-   double beta_precision_a0; // Hyper-prior for beta_precision
-   double beta_precision_b0; // Hyper-prior for beta_precision
+   float beta_precision_a0; // Hyper-prior for beta_precision
+   float beta_precision_b0; // Hyper-prior for beta_precision
 
    //FIXME: these must be used
 
    //new values
 
    std::vector<std::shared_ptr<ISideInfo> > side_info_values;
-   std::vector<double> beta_precision_values;
+   std::vector<float> beta_precision_values;
    std::vector<bool> enable_beta_precision_sampling_values;
 
    //FIXME: these must be removed
@@ -39,8 +39,8 @@ public:
    //old values
 
    std::shared_ptr<ISideInfo> Features;  // side information
-   Eigen::VectorXd beta_precision;
-   double bp0;
+   Eigen::VectorXf beta_precision;
+   float bp0;
    bool enable_beta_precision_sampling;
 
 public:
@@ -50,23 +50,23 @@ public:
 
    void update_prior() override;
     
-   const Eigen::VectorXd getMu(int n) const override;
+   const Eigen::VectorXf getMu(int n) const override;
 
 public:
    //FIXME: tolerance_a and direct_a are not really used. 
    //should remove later after PriorFactory is properly implemented. 
    //No reason generalizing addSideInfo between priors
-   void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a);
+   void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, float beta_precision_a, float tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a);
 
 public:
 
    //used in update_prior
 
-   void sample_beta(const Eigen::MatrixXd &U);
+   void sample_beta(const Eigen::MatrixXf &U);
 
    //used in update_prior
 
-   void sample_mu_lambda(const Eigen::MatrixXd &U);
+   void sample_mu_lambda(const Eigen::MatrixXf &U);
 
    //used in update_prior
 

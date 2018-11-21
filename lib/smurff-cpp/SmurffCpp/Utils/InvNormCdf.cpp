@@ -8,7 +8,7 @@
  *
  * SYNOPSIS:
  *
- * double x, y, inv_norm_cdf();
+ * float x, y, inv_norm_cdf();
  *
  * x = inv_norm_cdf( y );
  *
@@ -56,10 +56,10 @@
 #include <limits>
 
 /* std::sqrt(2pi) */
-static double s2pi = 2.50662827463100050242E0;
+static float s2pi = 2.50662827463100050242E0;
 
 /* approximation for 0 <= |y - 0.5| <= 3/8 */
-static double P0[5] = {
+static float P0[5] = {
     -5.99633501014107895267E1,
     9.80010754185999661536E1,
     -5.66762857469070293439E1,
@@ -67,7 +67,7 @@ static double P0[5] = {
     -1.23916583867381258016E0,
 };
 
-static double Q0[8] = {
+static float Q0[8] = {
     /* 1.00000000000000000000E0, */
     1.95448858338141759834E0,
     4.67627912898881538453E0,
@@ -82,7 +82,7 @@ static double Q0[8] = {
 /* Approximation for interval z = std::sqrt(-2 log y ) between 2 and 8
  * i.e., y between exp(-2) = .135 and exp(-32) = 1.27e-14.
  */
-static double P1[9] = {
+static float P1[9] = {
     4.05544892305962419923E0,
     3.15251094599893866154E1,
     5.71628192246421288162E1,
@@ -94,7 +94,7 @@ static double P1[9] = {
     -8.57456785154685413611E-4,
 };
 
-static double Q1[8] = {
+static float Q1[8] = {
     /*  1.00000000000000000000E0, */
     1.57799883256466749731E1,
     4.53907635128879210584E1,
@@ -110,7 +110,7 @@ static double Q1[8] = {
  * i.e., y between exp(-32) = 1.27e-14 and exp(-2048) = 3.67e-890.
  */
 
-static double P2[9] = {
+static float P2[9] = {
     3.23774891776946035970E0,
     6.91522889068984211695E0,
     3.93881025292474443415E0,
@@ -122,7 +122,7 @@ static double P2[9] = {
     6.23974539184983293730E-9,
 };
 
-static double Q2[8] = {
+static float Q2[8] = {
     /*  1.00000000000000000000E0, */
     6.02427039364742014255E0,
     3.67983563856160859403E0,
@@ -134,11 +134,11 @@ static double Q2[8] = {
     6.79019408009981274425E-9,
 };
 
-static inline double polevl(double x, double coef[], int N)
+static inline float polevl(float x, float coef[], int N)
 {
-	double ans;
+	float ans;
 	int i;
-	double *p;
+	float *p;
 
 	p = coef;
 	ans = *p++;
@@ -156,10 +156,10 @@ static inline double polevl(double x, double coef[], int N)
  * Otherwise same as polevl.
  */
 
-static inline double p1evl(double x, double coef[], int N)
+static inline float p1evl(float x, float coef[], int N)
 {
-	double ans;
-	double *p;
+	float ans;
+	float *p;
 	int i;
 
 	p = coef;
@@ -173,15 +173,15 @@ static inline double p1evl(double x, double coef[], int N)
 	return (ans);
 }
 
-double inv_norm_cdf(double y0)
+float inv_norm_cdf(float y0)
 {
-  double x, y, z, y2, x0, x1;
+  float x, y, z, y2, x0, x1;
   int code;
 
   if (y0 <= 0.0) 
-    return -std::numeric_limits<double>::infinity();
+    return -std::numeric_limits<float>::infinity();
   if (y0 >= 1.0) 
-    return std::numeric_limits<double>::infinity();
+    return std::numeric_limits<float>::infinity();
 
   code = 1;
   y = y0;

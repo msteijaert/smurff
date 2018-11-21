@@ -59,7 +59,7 @@ Result::Result(std::shared_ptr<TensorConfig> Y, int nsamples)
    init();
 }
 
-Result::Result(PVec<> lo, PVec<> hi, double value, int nsamples)
+Result::Result(PVec<> lo, PVec<> hi, float value, int nsamples)
     : m_dims(hi - lo)
 {
 
@@ -206,10 +206,10 @@ void Result::restorePred(std::shared_ptr<const StepFile> sf)
             coords.push_back(stoi(tokens[c].c_str()));
 
          //parse other values
-         double val = stod(tokens.at(nCoords).c_str());
-         double pred_1sample = stod(tokens.at(nCoords + 1).c_str());
-         double pred_avg = stod(tokens.at(nCoords + 2).c_str());
-         double var = stod(tokens.at(nCoords + 3).c_str());
+         float val = stod(tokens.at(nCoords).c_str());
+         float pred_1sample = stod(tokens.at(nCoords + 1).c_str());
+         float pred_avg = stod(tokens.at(nCoords + 2).c_str());
+         float var = stod(tokens.at(nCoords + 3).c_str());
 
          //construct result item
          m_predictions.push_back(ResultItem(smurff::PVec<>(coords), val, pred_1sample, pred_avg, var, sample_iter));
@@ -265,7 +265,7 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
 
    if (burnin)
    {
-      double se_1sample = 0.0;
+      float se_1sample = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample)
       for(size_t k = 0; k < m_predictions.size(); ++k)
@@ -286,14 +286,14 @@ void Result::update(std::shared_ptr<const Model> model, bool burnin)
    }
    else
    {
-      double se_1sample = 0.0;
-      double se_avg = 0.0;
+      float se_1sample = 0.0;
+      float se_avg = 0.0;
 
       #pragma omp parallel for schedule(guided) reduction(+:se_1sample, se_avg)
       for(size_t k = 0; k < m_predictions.size(); ++k)
       {
          auto &t = m_predictions.operator[](k);
-         const double pred = model->predict(t.coords); //dot product of i'th columns in each U matrix
+         const float pred = model->predict(t.coords); //dot product of i'th columns in each U matrix
          t.update(pred);
 
          se_1sample += std::pow(t.val - pred, 2);
@@ -323,7 +323,7 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
       for(size_t d = 0; d < m_dims.size(); d++)
          dtotal *= m_dims[d];
 
-      double test_fill_rate = 100. * m_predictions.size() / dtotal;
+      float test_fill_rate = 100. * m_predictions.size() / dtotal;
 
       os << indent << "Test data: " << m_predictions.size();
 
@@ -341,7 +341,7 @@ std::ostream &Result::info(std::ostream &os, std::string indent)
 
       if (classify)
       {
-         double pos = 100. * (double)total_pos / (double)m_predictions.size();
+         float pos = 100. * (float)total_pos / (float)m_predictions.size();
          os << indent << "Binary classification threshold: " << threshold << std::endl;
          os << indent << "  " << pos << "% positives in test data" << std::endl;
       }

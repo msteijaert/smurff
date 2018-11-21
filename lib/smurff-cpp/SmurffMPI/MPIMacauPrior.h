@@ -23,10 +23,10 @@ public:
 
 private:
    int* rhs_for_rank = NULL;
-   double* rec     = NULL;
+   float* rec     = NULL;
    int* sendcounts = NULL;
    int* displs     = NULL;
-   Eigen::MatrixXd Ft_y;
+   Eigen::MatrixXf Ft_y;
 
 public:
    MPIMacauPrior(std::shared_ptr<Session> session, int mode);

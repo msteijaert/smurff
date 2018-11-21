@@ -39,7 +39,7 @@ namespace smurff
 
    //#### arithmetic functions ####
    public:
-      virtual double sum() const = 0;
+      virtual float sum() const = 0;
 
    //#### dimention functions ####
    public:
@@ -65,13 +65,13 @@ namespace smurff
       std::shared_ptr<INoiseModel> noise_ptr; // noise model for this data
 
    public:
-      virtual double train_rmse(const SubModel& model) const = 0;
+      virtual float train_rmse(const SubModel& model) const = 0;
       virtual void update_pnm(const SubModel& model, uint32_t mode) = 0;
-      virtual void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const = 0;
+      virtual void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const = 0;
 
    public:
-      virtual double sumsq(const SubModel& model) const = 0;
-      virtual double var_total() const = 0;
+      virtual float sumsq(const SubModel& model) const = 0;
+      virtual float var_total() const = 0;
 
    public:
       INoiseModel &noise() const;

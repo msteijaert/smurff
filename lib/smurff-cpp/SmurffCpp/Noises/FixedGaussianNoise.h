@@ -15,13 +15,13 @@ namespace smurff {
       friend class NoiseFactory;
 
    protected:
-      FixedGaussianNoise(double a = 1.);
+      FixedGaussianNoise(float a = 1.);
 
    public:
       std::ostream& info(std::ostream& os, std::string indent)  override;
       std::string getStatus() override;
 
-      void setPrecision(double a);
+      void setPrecision(float a);
    };
 
 }

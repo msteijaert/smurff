@@ -32,7 +32,8 @@ TensorData::TensorData(const smurff::TensorConfig& tc)
 
    for (std::uint64_t mode = 0; mode < tc.getNModes(); mode++) 
    {
-      m_Y->push_back(std::make_shared<SparseMode>(idx, tc.getValues(), mode, m_dims[mode]));
+      std::vector<float> values(tc.getValues().begin(), tc.getValues().end());
+      m_Y->push_back(std::make_shared<SparseMode>(idx, values, mode, m_dims[mode]));
    }
 
    std::uint64_t totalSize = std::accumulate(m_dims.begin(), m_dims.end(), (std::uint64_t)1, std::multiplies<std::uint64_t>());
@@ -50,9 +51,9 @@ void TensorData::init_pre()
    //no logic here
 }
 
-double TensorData::sum() const
+float TensorData::sum() const
 {
-   double esum = 0.0;
+   float esum = 0.0;
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
@@ -91,7 +92,7 @@ PVec<> TensorData::dim() const
    return PVec<>(pvec_dims);
 }
 
-double TensorData::train_rmse(const SubModel& model) const
+float TensorData::train_rmse(const SubModel& model) const
 {
    return std::sqrt(sumsq(model) / this->nnz());
 }
@@ -100,14 +101,14 @@ double TensorData::train_rmse(const SubModel& model) const
 //this function selects d'th hyperplane from mode`th SparseMode
 //it does j multiplications
 //where each multiplication is a cwiseProduct of columns from each V matrix
-void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const
+void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const
 {
    std::shared_ptr<SparseMode> sview = Y(mode); //get tensor rotation for mode
    
    auto V0 = model.CVbegin(mode); //get first V matrix
    for (std::uint64_t j = sview->beginPlane(d); j < sview->endPlane(d); j++) //go through hyperplane in tensor rotation
    {
-      Eigen::VectorXd col = (*V0).col(sview->getIndices()(j, 0)); //create a copy of m'th column from V (m = 0)
+      Eigen::VectorXf col = (*V0).col(sview->getIndices()(j, 0)); //create a copy of m'th column from V (m = 0)
       auto V = model.CVbegin(mode); //get V matrices for mode      
       for (std::uint64_t m = 1; m < sview->getNCoords(); m++) //go through each coordinate of value
       {
@@ -117,7 +118,7 @@ void TensorData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen:
       MM.triangularView<Eigen::Lower>() += noise().getAlpha() * col * col.transpose(); // MM = MM + (col * colT) * alpha (where col = product of columns in each V)
       
       auto pos = sview->pos(d, j);
-      double noisy_val = noise().sample(model, pos, sview->getValues()[j]);
+      float noisy_val = noise().sample(model, pos, sview->getValues()[j]);
       rr.noalias() += col * noisy_val; // rr = rr + (col * value) * alpha (where value = j'th value of Y)
    }
 
@@ -129,9 +130,9 @@ void TensorData::update_pnm(const SubModel& model, uint32_t mode)
    //do not need to cache VV here
 }
 
-double TensorData::sumsq(const SubModel& model) const
+float TensorData::sumsq(const SubModel& model) const
 {
-   double sumsq = 0.0;
+   float sumsq = 0.0;
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
@@ -141,7 +142,7 @@ double TensorData::sumsq(const SubModel& model) const
       for(std::uint64_t n = 0; n < sview->nItemsOnPlane(h); n++) //go through each item in the hyperplane
       {
          auto item = sview->item(h, n);
-         double pred = model.predict(item.first);
+         float pred = model.predict(item.first);
          sumsq += std::pow(pred - item.second, 2);
       }
    }
@@ -149,10 +150,10 @@ double TensorData::sumsq(const SubModel& model) const
    return sumsq;
 }
 
-double TensorData::var_total() const
+float TensorData::var_total() const
 {
-   double cwise_mean = this->sum() / this->nnz();
-   double se = 0.0;
+   float cwise_mean = this->sum() / this->nnz();
+   float se = 0.0;
 
    std::shared_ptr<SparseMode> sview = Y(0);
 
@@ -166,7 +167,7 @@ double TensorData::var_total() const
       }
    }
 
-   double var = se / this->nnz();
+   float var = se / this->nnz();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0
@@ -176,7 +177,7 @@ double TensorData::var_total() const
    return var;
 }
 
-std::pair<PVec<>, double> TensorData::item(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const
+std::pair<PVec<>, float> TensorData::item(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const
 {
    if(mode >= m_Y->size())
    {
@@ -199,7 +200,7 @@ PVec<> TensorData::pos(std::uint64_t mode, std::uint64_t hyperplane, std::uint64
 std::ostream& TensorData::info(std::ostream& os, std::string indent)
 {
    Data::info(os, indent);
-   double train_fill_rate = 100. * nnz() / size();
+   float train_fill_rate = 100. * nnz() / size();
    
    os << indent << "Size: " << nnz() << " [";
 

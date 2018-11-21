@@ -7,7 +7,7 @@
 
 using namespace smurff;
 
-ProbitNoise::ProbitNoise(double t)
+ProbitNoise::ProbitNoise(float t)
    : INoiseModel(), threshold(t)
 {
 
@@ -15,15 +15,15 @@ ProbitNoise::ProbitNoise(double t)
 
 /* original code from jaak:
  *
- * double y = 2 * it.value() - 1; // y == sign (-1. or +1.)
+ * float y = 2 * it.value() - 1; // y == sign (-1. or +1.)
  * z = y * rand_truncnorm(y * col.dot(u), 1.0, 0.0);
  * rr.noalias() += col * z
  */
 
-double ProbitNoise::sample(const SubModel& model, const PVec<> &pos, double val)
+float ProbitNoise::sample(const SubModel& model, const PVec<> &pos, float val)
 {
-    double sign = (val < threshold) ? -1. : 1.;
-    double pred = model.predict(pos);
+    float sign = (val < threshold) ? -1. : 1.;
+    float pred = model.predict(pos);
     return sign * rand_truncnorm(pred * sign, 1.0, 0.0);
 }
 

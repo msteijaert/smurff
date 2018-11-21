@@ -4,7 +4,7 @@
 
 using namespace smurff;
 
-SampledGaussianNoise::SampledGaussianNoise(double a)
+SampledGaussianNoise::SampledGaussianNoise(float a)
    : FixedGaussianNoise(a)
 {
 }

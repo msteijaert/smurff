@@ -12,7 +12,7 @@ std::uint64_t MatrixData::nmode() const
 std::ostream& MatrixData::info(std::ostream& os, std::string indent)
 {
    Data::info(os, indent);
-   double train_fill_rate = 100. * nnz() / size();
+   float train_fill_rate = 100. * nnz() / size();
    os << indent << "Size: " << nnz() << " [" << nrow() << " x " << ncol() << "] (" << std::fixed << std::setprecision(2) << train_fill_rate << "%)\n";
    return os;
 }

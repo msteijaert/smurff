@@ -11,10 +11,10 @@ namespace smurff {
    class GaussianNoise : public INoiseModel
    {
    protected:
-      double alpha = NAN;
+      float alpha = NAN;
 
    public:
-      double getAlpha() const override;
+      float getAlpha() const override;
    };
 
 }

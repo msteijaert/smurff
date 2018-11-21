@@ -44,7 +44,7 @@ void NormalPrior::init()
    df = K;
 }
 
-const Eigen::VectorXd NormalPrior::getMu(int n) const
+const Eigen::VectorXf NormalPrior::getMu(int n) const
 {
    return mu;
 }
@@ -59,8 +59,8 @@ void  NormalPrior::sample_latent(int n)
 {
    const auto &mu_u = getMu(n);
 
-   Eigen::VectorXd &rr = rrs.local();
-   Eigen::MatrixXd &MM = MMs.local();
+   Eigen::VectorXf &rr = rrs.local();
+   Eigen::MatrixXf &MM = MMs.local();
 
    rr.setZero();
    MM.setZero();
@@ -75,7 +75,7 @@ void  NormalPrior::sample_latent(int n)
    //Solve system of linear equations for x: MM * x = rr - not exactly correct  because we have random part
    //Sample from multivariate normal distribution with mean rr and precision matrix MM
 
-   Eigen::LLT<Eigen::MatrixXd> chol;
+   Eigen::LLT<Eigen::MatrixXf> chol;
    {
       chol = MM.llt(); // compute the Cholesky decomposition X = L * U
       if(chol.info() != Eigen::Success)

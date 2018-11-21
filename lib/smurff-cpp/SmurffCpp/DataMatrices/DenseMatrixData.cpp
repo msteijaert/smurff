@@ -2,14 +2,14 @@
 
 using namespace smurff;
 
-DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)
-   : FullMatrixData<Eigen::MatrixXd>(Y)
+DenseMatrixData::DenseMatrixData(Eigen::MatrixXf Y)
+   : FullMatrixData<Eigen::MatrixXf>(Y)
 {
     this->name = "DenseMatrixData [fully known]";
 }
 
 //d is an index of column in U matrix
-void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const
+void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const
 {
     auto &Y = this->Y(mode).col(d);
     auto Vf = *model.CVbegin(mode);
@@ -19,24 +19,24 @@ void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, E
     {
         const auto &col = Vf.col(r);
         PVec<> pos = this->pos(mode, d, r);
-        double noisy_val = ns.sample(model, pos, Y(r));
+        float noisy_val = ns.sample(model, pos, Y(r));
         rr.noalias() += col * noisy_val; // rr = rr + (V[m] * noisy_y[d]) 
     }
 
     MM.noalias() += ns.getAlpha() * VV[mode]; // MM = MM + VV[m]
 }
 
-double DenseMatrixData::train_rmse(const SubModel& model) const
+float DenseMatrixData::train_rmse(const SubModel& model) const
 {
    return std::sqrt(sumsq(model) / this->size());
 }
 
-double DenseMatrixData::var_total() const
+float DenseMatrixData::var_total() const
 {
-   double cwise_mean = this->sum() / this->size();
-   double se = (Y().array() - cwise_mean).square().sum();
+   float cwise_mean = this->sum() / this->size();
+   float se = (Y().array() - cwise_mean).square().sum();
    
-   double var = se / this->size();
+   float var = se / this->size();
    if (var <= 0.0 || std::isnan(var))
    {
       // if var cannot be computed using 1.0
@@ -47,9 +47,9 @@ double DenseMatrixData::var_total() const
 }
 
 // for the adaptive gaussian noise
-double DenseMatrixData::sumsq(const SubModel& model) const
+float DenseMatrixData::sumsq(const SubModel& model) const
 {
-   double sumsq = 0.0;
+   float sumsq = 0.0;
 
    #pragma omp parallel for schedule(guided) reduction(+:sumsq)
    for (int j = 0; j < this->ncol(); j++) 

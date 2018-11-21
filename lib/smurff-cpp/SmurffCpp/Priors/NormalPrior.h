@@ -17,10 +17,10 @@ class NormalPrior : public ILatentPrior
 {
 public:
   // hyperparams
-  Eigen::VectorXd mu; 
-  Eigen::MatrixXd Lambda;
-  Eigen::MatrixXd WI;
-  Eigen::VectorXd mu0;
+  Eigen::VectorXf mu; 
+  Eigen::MatrixXf Lambda;
+  Eigen::MatrixXf WI;
+  Eigen::VectorXf mu0;
 
   // constants
   int b0;
@@ -38,7 +38,7 @@ public:
   //mu in NormalPrior does not depend on column index
   //however successors of this class can override this method
   //for example in MacauPrior mu depends on Uhat.col(n)
-  virtual const Eigen::VectorXd getMu(int n) const;
+  virtual const Eigen::VectorXf getMu(int n) const;
   
   void sample_latent(int n) override;
 

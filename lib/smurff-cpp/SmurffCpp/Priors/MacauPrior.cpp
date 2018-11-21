@@ -48,7 +48,7 @@ void MacauPrior::init()
    Uhat.resize(num_latent(), Features->rows());
    Uhat.setZero();
 
-   m_beta = std::make_shared<Eigen::MatrixXd>(num_latent(), num_feat());
+   m_beta = std::make_shared<Eigen::MatrixXf>(num_latent(), num_feat());
    beta().setZero();
 
    BBt = beta() * beta().transpose();
@@ -110,7 +110,7 @@ void MacauPrior::update_prior()
         // uses: beta
         // writes: FtF
         COUNTER("sample_beta_precision");
-        double old_beta = beta_precision;
+        float old_beta = beta_precision;
         beta_precision = sample_beta_precision(BBt, Lambda, beta_precision_nu0, beta_precision_mu0, beta().cols());
         FtF_plus_precision.diagonal().array() += beta_precision - old_beta;
    }
@@ -137,12 +137,12 @@ void MacauPrior::sample_beta()
     BBt = beta() * beta().transpose();
 }
 
-const Eigen::VectorXd MacauPrior::getMu(int n) const
+const Eigen::VectorXf MacauPrior::getMu(int n) const
 {
    return mu + Uhat.col(n);
 }
 
-void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
+void MacauPrior::compute_Ft_y(Eigen::MatrixXf& Ft_y)
 {
     COUNTER("compute Ft_y");
    // Ft_y = (U .- mu + Normal(0, Lambda^-1)) * F + std::sqrt(beta_precision) * Normal(0, Lambda^-1)
@@ -157,7 +157,7 @@ void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
    Ft_y += std::sqrt(beta_precision) * HyperU2;
 }
 
-void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side, double bp, double to, bool di, bool sa, bool th)
+void MacauPrior::addSideInfo(const std::shared_ptr<ISideInfo>& side, float bp, float to, bool di, bool sa, bool th)
 {
     Features = side;
     beta_precision = bp;
@@ -199,7 +199,7 @@ std::ostream& MacauPrior::info(std::ostream &os, std::string indent)
    if (use_FtF)
    {
       os << "Cholesky Decomposition";
-      double needs_gb = (double)num_feat() / 1024. * (double)num_feat() / 1024. / 1024.;
+      float needs_gb = (float)num_feat() / 1024. * (float)num_feat() / 1024. / 1024.;
       if (needs_gb > 1.0) os << " (needing " << needs_gb << " GB of memory)";
       os << std::endl;
    } else {
@@ -232,16 +232,16 @@ std::ostream &MacauPrior::status(std::ostream &os, std::string indent) const
    return os;
 }
 
-std::pair<double, double> MacauPrior::posterior_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N)
+std::pair<float, float> MacauPrior::posterior_beta_precision(const Eigen::MatrixXf & BBt, Eigen::MatrixXf & Lambda_u, float nu, float mu, int N)
 {
-   double nux = nu + N * BBt.cols();
-   double mux = mu * nux / (nu + mu * (BBt.selfadjointView<Eigen::Lower>() * Lambda_u).trace());
-   double b = nux / 2;
-   double c = 2 * mux / nux;
+   float nux = nu + N * BBt.cols();
+   float mux = mu * nux / (nu + mu * (BBt.selfadjointView<Eigen::Lower>() * Lambda_u).trace());
+   float b = nux / 2;
+   float c = 2 * mux / nux;
    return std::make_pair(b, c);
 }
 
-double MacauPrior::sample_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N)
+float MacauPrior::sample_beta_precision(const Eigen::MatrixXf & BBt, Eigen::MatrixXf & Lambda_u, float nu, float mu, int N)
 {
    auto gamma_post = posterior_beta_precision(BBt, Lambda_u, nu, mu, N);
    return rgamma(gamma_post.first, gamma_post.second);

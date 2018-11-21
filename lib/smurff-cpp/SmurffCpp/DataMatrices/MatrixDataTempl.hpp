@@ -38,7 +38,7 @@ namespace smurff
          return Y().nonZeros(); 
       }
 
-      double sum() const override 
+      float sum() const override 
       { 
          return Y().sum(); 
       }

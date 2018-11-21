@@ -17,8 +17,8 @@ protected:
    UnusedNoise();
 
 public:
-   double getAlpha() const override;
-   double sample(const SubModel& model, const PVec<> &pos, double val) override;
+   float getAlpha() const override;
+   float sample(const SubModel& model, const PVec<> &pos, float val) override;
 
    std::ostream& info(std::ostream& os, std::string indent) override;
    std::string getStatus() override;

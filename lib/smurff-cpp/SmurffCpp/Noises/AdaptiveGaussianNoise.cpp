@@ -7,7 +7,7 @@
 
 using namespace smurff;
 
-AdaptiveGaussianNoise::AdaptiveGaussianNoise(double sinit, double smax)
+AdaptiveGaussianNoise::AdaptiveGaussianNoise(float sinit, float smax)
 : sn_max(smax), sn_init(sinit)
 {
 
@@ -26,13 +26,13 @@ void AdaptiveGaussianNoise::init(const Data* data)
 
 void AdaptiveGaussianNoise::update(const SubModel& model)
 {
-   double sumsq = data().sumsq(model);
+   float sumsq = data().sumsq(model);
 
    // (a0, b0) correspond to a prior of 1 sample of noise with full variance
-   double a0 = 0.5;
-   double b0 = 0.5 * var_total;
-   double aN = a0 + data().nnz() / 2.0;
-   double bN = b0 + sumsq / 2.0;
+   float a0 = 0.5;
+   float b0 = 0.5 * var_total;
+   float aN = a0 + data().nnz() / 2.0;
+   float bN = b0 + sumsq / 2.0;
    alpha = rgamma(aN, 1.0 / bN);
 
    if (alpha > alpha_max)
@@ -54,12 +54,12 @@ std::string AdaptiveGaussianNoise::getStatus()
    return ss.str();
 }
 
-void AdaptiveGaussianNoise::setSNInit(double a)
+void AdaptiveGaussianNoise::setSNInit(float a)
 {
    sn_init = a;
 }
 
-void AdaptiveGaussianNoise::setSNMax(double a)
+void AdaptiveGaussianNoise::setSNMax(float a)
 {
    sn_max  = a;
 }

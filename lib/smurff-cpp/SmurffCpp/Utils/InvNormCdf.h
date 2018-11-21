@@ -1,3 +1,3 @@
 #pragma once
 
-double inv_norm_cdf(double y0);
+float inv_norm_cdf(float y0);

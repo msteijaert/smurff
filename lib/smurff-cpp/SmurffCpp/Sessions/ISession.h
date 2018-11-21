@@ -29,7 +29,7 @@ namespace smurff {
       virtual std::shared_ptr<Result> getResult() const = 0;
       virtual std::shared_ptr<RootFile> getRootFile() const = 0;
 
-      double getRmseAvg() { return getStatus()->rmse_avg; }
+      float getRmseAvg() { return getStatus()->rmse_avg; }
       const std::vector<ResultItem> & getResultItems() const;
 
     public:

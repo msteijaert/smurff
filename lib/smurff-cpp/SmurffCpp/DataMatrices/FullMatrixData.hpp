@@ -13,7 +13,7 @@ namespace smurff
    class FullMatrixData : public MatrixDataTempl<YType>
    {
    protected:
-      Eigen::MatrixXd VV[2]; // sum of v * vT, where v is column of V
+      Eigen::MatrixXf VV[2]; // sum of v * vT, where v is column of V
 
    public:
       FullMatrixData(YType Y) 
@@ -28,7 +28,7 @@ namespace smurff
       {
          auto Vf = *model.CVbegin(mode);
          const int nl = model.nlatent();
-         smurff::thread_vector<Eigen::MatrixXd> VVs(Eigen::MatrixXd::Zero(nl, nl));
+         smurff::thread_vector<Eigen::MatrixXf> VVs(Eigen::MatrixXf::Zero(nl, nl));
 
          //for each column v of Vf - calculate v * vT and add to VVs
          #pragma omp parallel for schedule(guided) shared(VVs)

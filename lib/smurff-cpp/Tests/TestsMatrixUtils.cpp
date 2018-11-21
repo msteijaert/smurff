@@ -62,13 +62,13 @@ TEST_CASE("tensor_utils::slice : 3D tensor")
 
    // 1st and 2nd dimension slice. Matrix with 2 rows and 3 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                             , {{ 0, 1 }}
                             , {{ 2, 3 }}
                             );
 
-      Eigen::MatrixXd expectedTensorSlice(2, 3);
+      Eigen::MatrixXf expectedTensorSlice(2, 3);
       expectedTensorSlice << 18, 19, 20,
                              21, 22, 23;
 
@@ -77,13 +77,13 @@ TEST_CASE("tensor_utils::slice : 3D tensor")
 
    // 2nd and 1st dimension slice. Matrix with 3 rows and 2 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                             , {{ 1, 0 }}
                             , {{ 2, 3 }}
                             );
 
-      Eigen::MatrixXd expectedTensorSlice(3, 2);
+      Eigen::MatrixXf expectedTensorSlice(3, 2);
       expectedTensorSlice << 18, 21,
                              19, 22,
                              20, 23;
@@ -93,13 +93,13 @@ TEST_CASE("tensor_utils::slice : 3D tensor")
 
    // 2nd and 3rd dimension slice. Matrix with 3 rows and 4 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                             , {{ 1, 2 }}
                             , {{ 0, 1 }}
                             );
 
-      Eigen::MatrixXd expectedTensorSlice(3, 4);
+      Eigen::MatrixXf expectedTensorSlice(3, 4);
       expectedTensorSlice << 3,  9, 15, 21,
                              4, 10, 16, 22,
                              5, 11, 17, 23;
@@ -109,13 +109,13 @@ TEST_CASE("tensor_utils::slice : 3D tensor")
 
    // 3rd and 2nd dimension slice. Matrix with 4 rows and 3 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                             , {{ 2, 1 }}
                             , {{ 0, 1 }}
                             );
 
-      Eigen::MatrixXd expectedTensorSlice(4, 3);
+      Eigen::MatrixXf expectedTensorSlice(4, 3);
       expectedTensorSlice <<  3,  4,  5,
                               9, 10, 11,
                              15, 16, 17,
@@ -126,13 +126,13 @@ TEST_CASE("tensor_utils::slice : 3D tensor")
 
    // 1st and 3rd dimension slice. Matrix with 2 rows and 4 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                             , {{ 0, 2 }}
                             , {{ 1, 1 }}
                             );
 
-      Eigen::MatrixXd expectedTensorSlice(2, 4);
+      Eigen::MatrixXf expectedTensorSlice(2, 4);
       expectedTensorSlice << 1,  7, 13, 19,
                              4, 10, 16, 22;
 
@@ -141,13 +141,13 @@ TEST_CASE("tensor_utils::slice : 3D tensor")
 
    // 3rd and 1st dimension slice. Matrix with 4 rows and 2 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                             , {{ 2, 0 }}
                             , {{ 1, 1 }}
                             );
 
-      Eigen::MatrixXd expectedTensorSlice(4, 2);
+      Eigen::MatrixXf expectedTensorSlice(4, 2);
       expectedTensorSlice <<  1,  4,
                               7, 10,
                              13, 16,
@@ -176,13 +176,13 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
 
    // 1st and 2nd dimension slice. Matrix with 4 rows and 3 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                             , {{ 0, 1 }}
                             , { { 4, 1 }, { 3, 1 }, { 2, 3 } }
                             );
 
-      Eigen::MatrixXd expectedTensorSlice(4, 3);
+      Eigen::MatrixXf expectedTensorSlice(4, 3);
       expectedTensorSlice << 0, 4, 8,
                              1, 5, 9,
                              2, 6, 7,
@@ -193,13 +193,13 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
 
    // 3rd and 5th dimension slice. Matrix with 5 rows and 2 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                          , {{ 2, 4 }}
                          , { { 0, 2 }, { 1, 1 }, { 3, 1 } }
                          );
 
-      Eigen::MatrixXd expectedTensorSlice(5, 2);
+      Eigen::MatrixXf expectedTensorSlice(5, 2);
       expectedTensorSlice << 6, 6,
                              6, 6,
                              6, 6,
@@ -211,13 +211,13 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
 
    // 5th and 1st dimension slice. Matrix with 2 rows and 4 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                          , {{ 4, 0 }}
                          , { { 1, 1 }, { 2, 2 }, { 3, 1 } }
                          );
 
-      Eigen::MatrixXd expectedTensorSlice(2, 4);
+      Eigen::MatrixXf expectedTensorSlice(2, 4);
       expectedTensorSlice << 4, 5, 6, 7,
                              4, 5, 6, 7;
 
@@ -226,13 +226,13 @@ TEST_CASE("matrix_utils::slice : 5D tensor")
 
    // 1st and 5th dimension slice. Matrix with 4 rows and 2 cols
    {
-      Eigen::MatrixXd actualTensorSlice =
+      Eigen::MatrixXf actualTensorSlice =
       tensor_utils::slice( tensorConfig
                          , {{ 0, 4 }}
                          , { { 1, 1 }, { 2, 2 }, { 3, 1 } }
                          );
 
-      Eigen::MatrixXd expectedTensorSlice(4, 2);
+      Eigen::MatrixXf expectedTensorSlice(4, 2);
       expectedTensorSlice << 4, 4,
                              5, 5,
                              6, 6,

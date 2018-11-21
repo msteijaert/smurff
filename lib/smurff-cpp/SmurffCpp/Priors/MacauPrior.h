@@ -19,25 +19,25 @@ namespace smurff {
 class MacauPrior : public NormalPrior
 {
 public:
-   std::shared_ptr<Eigen::MatrixXd> 
+   std::shared_ptr<Eigen::MatrixXf> 
                    m_beta;            // num_latent x num_feat -- link matrix
 
-   Eigen::MatrixXd Uhat;             // num_latent x num_items
-   Eigen::MatrixXd Udelta;           // num_latent x num_items
-   Eigen::MatrixXd FtF_plus_precision;    // num_feat   x num feat
-   Eigen::MatrixXd HyperU;           // num_latent x num_items
-   Eigen::MatrixXd HyperU2;          // num_latent x num_feat
-   Eigen::MatrixXd Ft_y;             // num_latent x num_feat -- RHS
-   Eigen::MatrixXd BBt;              // num_latent x num_latent
+   Eigen::MatrixXf Uhat;             // num_latent x num_items
+   Eigen::MatrixXf Udelta;           // num_latent x num_items
+   Eigen::MatrixXf FtF_plus_precision;    // num_feat   x num feat
+   Eigen::MatrixXf HyperU;           // num_latent x num_items
+   Eigen::MatrixXf HyperU2;          // num_latent x num_feat
+   Eigen::MatrixXf Ft_y;             // num_latent x num_feat -- RHS
+   Eigen::MatrixXf BBt;              // num_latent x num_latent
 
    int blockcg_iter;
    
-   double beta_precision_mu0; // Hyper-prior for beta_precision
-   double beta_precision_nu0; // Hyper-prior for beta_precision
+   float beta_precision_mu0; // Hyper-prior for beta_precision
+   float beta_precision_nu0; // Hyper-prior for beta_precision
 
    std::shared_ptr<ISideInfo> Features;  // side information
-   double beta_precision;
-   double tol = 1e-6;
+   float beta_precision;
+   float tol = 1e-6;
    bool use_FtF;
    bool enable_beta_precision_sampling;
    bool throw_on_cholesky_error;
@@ -54,18 +54,18 @@ public:
 
    void update_prior() override;
 
-   const Eigen::VectorXd getMu(int n) const override;
+   const Eigen::VectorXf getMu(int n) const override;
 
-   Eigen::MatrixXd &beta() const { return *m_beta; }
+   Eigen::MatrixXf &beta() const { return *m_beta; }
  
    int num_feat() const { return Features->cols(); }
 
-   void compute_Ft_y(Eigen::MatrixXd& Ft_y);
+   void compute_Ft_y(Eigen::MatrixXf& Ft_y);
    virtual void sample_beta();
 
 public:
 
-   void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a);
+   void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, float beta_precision_a, float tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a);
 
 public:
    bool save(std::shared_ptr<const StepFile> sf) const override;
@@ -76,8 +76,8 @@ public:
    std::ostream& status(std::ostream &os, std::string indent) const override;
 
 public:
-   static std::pair<double, double> posterior_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N);
-   static double sample_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N);
+   static std::pair<float, float> posterior_beta_precision(const Eigen::MatrixXf & BBt, Eigen::MatrixXf & Lambda_u, float nu, float mu, int N);
+   static float sample_beta_precision(const Eigen::MatrixXf & BBt, Eigen::MatrixXf & Lambda_u, float nu, float mu, int N);
 };
 
 }

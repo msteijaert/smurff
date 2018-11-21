@@ -5,7 +5,7 @@
 
 using namespace smurff;
 
-double GaussianNoise::getAlpha() const
+float GaussianNoise::getAlpha() const
 {
     return alpha;
 }

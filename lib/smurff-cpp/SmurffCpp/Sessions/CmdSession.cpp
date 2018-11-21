@@ -67,14 +67,14 @@ po::options_description get_desc()
 	(BURNIN_NAME, po::value<int>()->default_value(Config::BURNIN_DEFAULT_VALUE), "number of samples to discard")
 	(NSAMPLES_NAME, po::value<int>()->default_value(Config::NSAMPLES_DEFAULT_VALUE), "number of samples to collect")
 	(NUM_LATENT_NAME, po::value<int>()->default_value(Config::NUM_LATENT_DEFAULT_VALUE), "number of latent dimensions")
-	(THRESHOLD_NAME, po::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
+	(THRESHOLD_NAME, po::value<float>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
 
     po::options_description predict_desc("Used during prediction");
     predict_desc.add_options()
 	(PREDICT_NAME, po::value<std::string>(), "sparse matrix with values to predict")
 	(ROW_FEAT_NAME, po::value<std::string>(), "sparse/dense row features for out-of-matrix predictions")
 	(COL_FEAT_NAME, po::value<std::string>(), "sparse/dense col features for out-of-matrix predictions")
-	(THRESHOLD_NAME, po::value<double>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
+	(THRESHOLD_NAME, po::value<float>()->default_value(Config::THRESHOLD_DEFAULT_VALUE), "threshold for binary classification and AUC calculation");
 
     po::options_description save_desc("Storing models and predictions");
     save_desc.add_options()

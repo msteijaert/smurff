@@ -270,7 +270,7 @@ void Session::saveInternal(std::shared_ptr<StepFile> stepFile)
     {
         std::cout << "-- Saving model, predictions,... into '" << stepFile->getStepFileName() << "'." << std::endl;
     }
-    double start = tick();
+    float start = tick();
 
     stepFile->save(m_model, m_pred, m_priors);
 
@@ -278,7 +278,7 @@ void Session::saveInternal(std::shared_ptr<StepFile> stepFile)
     //flush last item in a root file
     m_rootFile->flushLast();
 
-    double stop = tick();
+    float stop = tick();
     if (m_config.getVerbose())
     {
         std::cout << "-- Done saving model. Took " << stop - start << " seconds." << std::endl;
@@ -378,8 +378,8 @@ std::shared_ptr<StatusItem> Session::getStatus() const
     ret->elapsed_iter = m_secs_per_iter;
     ret->elapsed_total = m_secs_total;
 
-    ret->nnz_per_sec = (double)(data().nnz()) / m_secs_per_iter;
-    ret->samples_per_sec = (double)(model().nsamples()) / m_secs_per_iter;
+    ret->nnz_per_sec = (float)(data().nnz()) / m_secs_per_iter;
+    ret->samples_per_sec = (float)(model().nsamples()) / m_secs_per_iter;
 
     return ret;
 }

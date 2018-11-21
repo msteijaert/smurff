@@ -11,20 +11,20 @@ struct StatusItem
     int iter;
     int phase_iter;
 
-    std::vector<double> model_norms;
+    std::vector<float> model_norms;
 
-    double rmse_avg;
-    double rmse_1sample;
-    double train_rmse;
+    float rmse_avg;
+    float rmse_1sample;
+    float train_rmse;
 
-    double auc_1sample;
-    double auc_avg;
+    float auc_1sample;
+    float auc_avg;
 
-    double elapsed_iter;
-    double elapsed_total;
+    float elapsed_iter;
+    float elapsed_total;
 
-    double nnz_per_sec;
-    double samples_per_sec;
+    float nnz_per_sec;
+    float samples_per_sec;
 
     // to csv 
     static std::string getCsvHeader();

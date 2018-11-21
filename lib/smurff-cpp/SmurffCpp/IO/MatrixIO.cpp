@@ -14,12 +14,12 @@
 
 using namespace smurff;
 
-#define EXTENSION_SDM ".sdm" //sparse double matrix (binary file)
+#define EXTENSION_SDM ".sdm" //sparse float matrix (binary file)
 #define EXTENSION_SBM ".sbm" //sparse binary matrix (binary file)
 #define EXTENSION_MTX ".mtx" //sparse matrix (txt file)
 #define EXTENSION_MM  ".mm"  //sparse matrix (txt file)
 #define EXTENSION_CSV ".csv" //dense matrix (txt file)
-#define EXTENSION_DDM ".ddm" //dense double matrix (binary file)
+#define EXTENSION_DDM ".ddm" //dense float matrix (binary file)
 
 #define MM_OBJ_MATRIX   "MATRIX"
 #define MM_FMT_ARRAY    "ARRAY"
@@ -364,7 +364,7 @@ std::shared_ptr<MatrixConfig> matrix_io::read_matrix_market(std::istream& in, bo
 
          std::uint32_t row;
          std::uint32_t col;
-         double val;
+         float val;
 
          if (field == MM_FLD_REAL)
          {
@@ -583,7 +583,7 @@ void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<const Mat
    {
       out << matrixConfig->getNRow() << " ";
       out << matrixConfig->getNCol() << std::endl;
-      for (const double& val : matrixConfig->getValues())
+      for (const float& val : matrixConfig->getValues())
          out << val << std::endl;
    }
    else
@@ -601,7 +601,7 @@ void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<const Mat
          }
          else
          {
-            const double& val = matrixConfig->getValues()[i];
+            const float& val = matrixConfig->getValues()[i];
             out << row << " " << col << " " << val << std::endl;
          }
       }
@@ -610,20 +610,20 @@ void matrix_io::write_matrix_market(std::ostream& out, std::shared_ptr<const Mat
 
 // ======================================================================================================
 
-void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::VectorXd& V)
+void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::VectorXf& V)
 {
-   Eigen::MatrixXd X;
+   Eigen::MatrixXf X;
    matrix_io::eigen::read_matrix(filename, X);
    V = X; // this will fail if X has more than one column
 }
 
-void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd& X)
+void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXf& X)
 {
    auto ptr = matrix_io::read_matrix(filename, false);
    X = matrix_utils::dense_to_eigen(*ptr);
 }
 
-void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMatrix<double>& X)
+void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMatrix<float>& X)
 {
    auto ptr = matrix_io::read_matrix(filename, false);
    X = matrix_utils::sparse_to_eigen(*ptr);
@@ -631,12 +631,12 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMat
 
 // ======================================================================================================
 
-void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXd& X)
+void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::MatrixXf& X)
 {
    matrix_io::write_matrix(filename, matrix_utils::eigen_to_dense(X));
 }
 
-void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X)
+void matrix_io::eigen::write_matrix(const std::string& filename, const Eigen::SparseMatrix<float>& X)
 {
    matrix_io::write_matrix(filename, matrix_utils::eigen_to_sparse(X));
 }

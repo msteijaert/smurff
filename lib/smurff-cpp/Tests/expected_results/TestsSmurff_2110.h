@@ -1,4 +1,4 @@
-   double expectedRmseAvg = 8.0966167101081616;
+   float expectedRmseAvg = 8.0966167101081616;
    std::vector<ResultItem> expectedResults = 
       {
          { { 0, 0, 0,  }, 1.0000000000000000, 1.3752908503072341, 1.2335185293814654, 4.3694727038204659,  },

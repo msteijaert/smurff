@@ -18,13 +18,13 @@ namespace smurff
 
       // helper functions for noise
       // but
-      double sumsq(const SubModel& model) const override;
-      double var_total() const override;
-      double train_rmse(const SubModel& model) const override;
+      float sumsq(const SubModel& model) const override;
+      float var_total() const override;
+      float train_rmse(const SubModel& model) const override;
 
       // update noise and precision/mean
       void update(const SubModel& model) override;
-      void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const override;
+      void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const override;
       void update_pnm(const SubModel& model, uint32_t mode) override;
 
       //-- print info
@@ -41,7 +41,7 @@ namespace smurff
 
       std::uint64_t    nnz() const override;
       std::uint64_t    nna() const override;
-      double sum() const override;
+      float sum() const override;
       PVec<>   dim() const override;
 
    private:

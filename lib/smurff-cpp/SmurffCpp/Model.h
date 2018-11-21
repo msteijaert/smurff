@@ -34,20 +34,20 @@ class ConstVMatrixIterator;
 class Model : public std::enable_shared_from_this<Model>
 {
 public:
-   typedef double scalarType;
+   typedef float scalarType;
    typedef Eigen::Matrix<scalarType, -1, -1> Matrix;
    typedef Eigen::Array<scalarType, -1, -1> Array;
    typedef Eigen::Matrix<scalarType, -1, 1> Vector;
 
 private:
-   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_factors; //vector of U matrices
-   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_link_matrices; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXf>> m_factors; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXf>> m_link_matrices; //vector of U matrices
 
    int m_num_latent; //size of latent dimention for U matrices
    PVec<> m_dims; //dimensions of train data
 
    // to make predictions faster
-   mutable thread_vector<Eigen::ArrayXd> Pcache;
+   mutable thread_vector<Eigen::ArrayXf> Pcache;
 
 public:
    Model();
@@ -56,38 +56,38 @@ public:
    //initialize U matrices in the model (random/zero)
    void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
 
-   void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd>);
+   void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXf>);
 
 public:
    //dot product of i'th columns in each U matrix
    //pos - vector of column indices
-   double predict(const PVec<>& pos) const;
+   float predict(const PVec<>& pos) const;
 
    // for each row in feature matrix f: compute latent vector from feature vector
    template<typename FeatMatrix>
-   std::shared_ptr<Eigen::MatrixXd> predict_latent(int mode, const FeatMatrix& f);
+   std::shared_ptr<Eigen::MatrixXf> predict_latent(int mode, const FeatMatrix& f);
 
    // for each row in feature matrix f: predict full column based on feature vector
    template<typename FeatMatrix>
-   const Eigen::MatrixXd predict(int mode, const FeatMatrix& f);
+   const Eigen::MatrixXf predict(int mode, const FeatMatrix& f);
 
 public:
    //return f'th U matrix in the model
-   Eigen::MatrixXd &U(uint32_t f);
+   Eigen::MatrixXf &U(uint32_t f);
 
-   const Eigen::MatrixXd &U(uint32_t f) const;
+   const Eigen::MatrixXf &U(uint32_t f) const;
 
    //return V matrices in the model opposite to mode
-   VMatrixIterator<Eigen::MatrixXd> Vbegin(std::uint32_t mode);
+   VMatrixIterator<Eigen::MatrixXf> Vbegin(std::uint32_t mode);
    
-   VMatrixIterator<Eigen::MatrixXd> Vend();
+   VMatrixIterator<Eigen::MatrixXf> Vend();
 
-   ConstVMatrixIterator<Eigen::MatrixXd> CVbegin(std::uint32_t mode) const;
+   ConstVMatrixIterator<Eigen::MatrixXf> CVbegin(std::uint32_t mode) const;
    
-   ConstVMatrixIterator<Eigen::MatrixXd> CVend() const;
+   ConstVMatrixIterator<Eigen::MatrixXf> CVend() const;
 
    //return i'th column of f'th U matrix in the model
-   Eigen::MatrixXd::ConstColXpr col(int f, int i) const;
+   Eigen::MatrixXf::ConstColXpr col(int f, int i) const;
 
 public:
    //number of dimentions in train data
@@ -138,14 +138,14 @@ public:
       : m_model(m), m_off(m.nmodes()), m_dims(m.getDims()) {}
 
 public:
-   Eigen::MatrixXd::ConstBlockXpr U(int f) const;
+   Eigen::MatrixXf::ConstBlockXpr U(int f) const;
 
-   ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> CVbegin(std::uint32_t mode) const;
-   ConstVMatrixExprIterator<Eigen::MatrixXd::ConstBlockXpr> CVend() const;
+   ConstVMatrixExprIterator<Eigen::MatrixXf::ConstBlockXpr> CVbegin(std::uint32_t mode) const;
+   ConstVMatrixExprIterator<Eigen::MatrixXf::ConstBlockXpr> CVend() const;
 
 public:
    //dot product of i'th columns in each U matrix
-   double predict(const PVec<> &pos) const
+   float predict(const PVec<> &pos) const
    {
       return m_model.predict(m_off + pos);
    }
@@ -165,7 +165,7 @@ public:
 
 
 template<typename FeatMatrix>
-std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatrix& f)
+std::shared_ptr<Eigen::MatrixXf> Model::predict_latent(int mode, const FeatMatrix& f)
 {
    THROWERROR_ASSERT_MSG(m_link_matrices.at(mode),
       "No link matrix available in mode " + std::to_string(mode));
@@ -173,7 +173,7 @@ std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatri
    auto Umean = U(mode).rowwise().mean();
 
    const auto &beta = *m_link_matrices.at(mode);
-   auto ret = std::make_shared<Eigen::MatrixXd>(nlatent(), f.rows());
+   auto ret = std::make_shared<Eigen::MatrixXf>(nlatent(), f.rows());
    *ret = beta * f.transpose();
    ret->colwise() += Umean;
    #if 0
@@ -189,7 +189,7 @@ std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatri
 }
 
 template<typename FeatMatrix>
-const Eigen::MatrixXd Model::predict(int mode, const FeatMatrix& f)
+const Eigen::MatrixXf Model::predict(int mode, const FeatMatrix& f)
 {
    THROWERROR_ASSERT_MSG(nmodes() == 2,
       "Only implemented for modes == 2");

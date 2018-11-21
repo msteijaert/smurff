@@ -16,7 +16,7 @@ namespace smurff {
       friend class NoiseFactory;
 
    protected:
-      SampledGaussianNoise(double a = 1.);
+      SampledGaussianNoise(float a = 1.);
 
    public:
       std::ostream& info(std::ostream& os, std::string indent)  override;

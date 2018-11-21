@@ -24,7 +24,7 @@ namespace smurff
       int convert<int>(const std::string& value);
 
       template<>
-      double convert<double>(const std::string& value);
+      float convert<float>(const std::string& value);
    }
 
    template<typename T>

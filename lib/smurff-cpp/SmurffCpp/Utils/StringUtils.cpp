@@ -19,7 +19,7 @@ int smurff::_util::convert<int>(const std::string& value)
 }
 
 template<>
-double smurff::_util::convert<double>(const std::string& value)
+float smurff::_util::convert<float>(const std::string& value)
 {
    return std::stod(value);
 }

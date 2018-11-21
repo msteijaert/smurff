@@ -15,13 +15,13 @@ namespace smurff {
       friend class NoiseFactory;
       
    private:
-      double threshold;
+      float threshold;
       
    protected:
-      ProbitNoise(double threshold = 0.0);
+      ProbitNoise(float threshold = 0.0);
 
    public:
-      double sample(const SubModel& model, const PVec<> &pos, double val) override;
+      float sample(const SubModel& model, const PVec<> &pos, float val) override;
 
       std::ostream& info(std::ostream& os, std::string indent) override;
       std::string getStatus() override;

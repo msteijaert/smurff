@@ -9,17 +9,19 @@
 
 #include <SmurffCpp/Utils/Error.h>
 
-Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig& matrixConfig)
+Eigen::MatrixXf smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig& matrixConfig)
 {
    if(!matrixConfig.isDense())
    {
       THROWERROR("matrix config should be dense");
    }
 
-   return Eigen::Map<const Eigen::MatrixXd>(matrixConfig.getValues().data(), matrixConfig.getNRow(), matrixConfig.getNCol());
+   std::vector<float> float_values(matrixConfig.getValues().begin(), matrixConfig.getValues().end());
+
+   return Eigen::Map<const Eigen::MatrixXf>(float_values.data(), matrixConfig.getNRow(), matrixConfig.getNCol());
 }
 
-std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_dense(const Eigen::MatrixXd &eigenMatrix, NoiseConfig n)
+std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_dense(const Eigen::MatrixXf &eigenMatrix, NoiseConfig n)
 {
    std::vector<double> values(eigenMatrix.data(),  eigenMatrix.data() + eigenMatrix.size());
    return std::make_shared<smurff::MatrixConfig>(eigenMatrix.rows(), eigenMatrix.cols(), values, n);
@@ -40,27 +42,27 @@ struct sparse_vec_iterator
 
   sparse_vec_iterator &operator++() { pos++; return *this; }
 
-  typedef Eigen::Triplet<double> T;
+  typedef Eigen::Triplet<float> T;
   T v;
 
   T* operator->() {
      // also convert from 1-base to 0-base
      uint32_t row = config.getRows()[pos];
      uint32_t col = config.getCols()[pos];
-     double val = config.getValues()[pos];
+     float val = config.getValues()[pos];
      v = T(row, col, val);
      return &v;
   }
 };
 
-Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen(const smurff::MatrixConfig& matrixConfig)
+Eigen::SparseMatrix<float> smurff::matrix_utils::sparse_to_eigen(const smurff::MatrixConfig& matrixConfig)
 {
    if(matrixConfig.isDense())
    {
       THROWERROR("matrix config should be sparse");
    }
 
-   Eigen::SparseMatrix<double> out(matrixConfig.getNRow(), matrixConfig.getNCol());
+   Eigen::SparseMatrix<float> out(matrixConfig.getNRow(), matrixConfig.getNCol());
 
    sparse_vec_iterator begin(matrixConfig, 0);
    sparse_vec_iterator end(matrixConfig, matrixConfig.getNNZ());
@@ -72,7 +74,7 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen(const smurff::
    return out;
 }
 
-std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_sparse(const Eigen::SparseMatrix<double> &X, NoiseConfig n, bool isScarce)
+std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_sparse(const Eigen::SparseMatrix<float> &X, NoiseConfig n, bool isScarce)
 {
    std::uint64_t nrow = X.rows();
    std::uint64_t ncol = X.cols();
@@ -83,15 +85,13 @@ std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_sparse(cons
 
    for (int k = 0; k < X.outerSize(); ++k)
    {
-      for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)
+      for (Eigen::SparseMatrix<float>::InnerIterator it(X,k); it; ++it)
       {
          rows.push_back(it.row());
          cols.push_back(it.col());
          values.push_back(it.value());
       }
    }
-
-   std::uint64_t nnz = values.size();
 
    return std::make_shared<smurff::MatrixConfig>(nrow, ncol, rows, cols, values, n, isScarce);
 }
@@ -130,11 +130,11 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
 
    os << "NRow: " << mc.getNRow() << " NCol: " << mc.getNCol() << std::endl;
 
-   Eigen::SparseMatrix<double> X(mc.getNRow(), mc.getNCol());
+   Eigen::SparseMatrix<float> X(mc.getNRow(), mc.getNCol());
 
-   std::vector<Eigen::Triplet<double> > triplets;
+   std::vector<Eigen::Triplet<float> > triplets;
    for(std::uint64_t i = 0; i < mc.getNNZ(); i++)
-      triplets.push_back(Eigen::Triplet<double>(rows[i], cols[i], values[i]));
+      triplets.push_back(Eigen::Triplet<float>(rows[i], cols[i], values[i]));
 
    os << "NTriplets: " << triplets.size() << std::endl;
 
@@ -145,7 +145,7 @@ std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixC
    return os;
 }
 
-bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::MatrixXd& m2, double precision)
+bool smurff::matrix_utils::equals(const Eigen::MatrixXf& m1, const Eigen::MatrixXf& m2, float precision)
 {
    if (m1.rows() != m2.rows() || m1.cols() != m2.cols())
       return false;
@@ -154,8 +154,8 @@ bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::Matrix
    {
       for (Eigen::Index j = 0; j < m1.cols(); j++)
       {
-         Eigen::MatrixXd::Scalar m1_v = m1(i, j);
-         Eigen::MatrixXd::Scalar m2_v = m2(i, j);
+         Eigen::MatrixXf::Scalar m1_v = m1(i, j);
+         Eigen::MatrixXf::Scalar m2_v = m2(i, j);
 
          if (std::abs(m1_v - m2_v) > precision)
             return false;
@@ -165,7 +165,7 @@ bool smurff::matrix_utils::equals(const Eigen::MatrixXd& m1, const Eigen::Matrix
    return true;
 }
 
-bool smurff::matrix_utils::equals_vector(const Eigen::VectorXd& v1, const Eigen::VectorXd& v2, double precision)
+bool smurff::matrix_utils::equals_vector(const Eigen::VectorXf& v1, const Eigen::VectorXf& v2, float precision)
 {
    if (v1.size() != v2.size())
       return false;

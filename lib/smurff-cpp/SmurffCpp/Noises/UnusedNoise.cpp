@@ -9,12 +9,12 @@ UnusedNoise::UnusedNoise()
 {
 }
 
-double UnusedNoise::getAlpha() const 
+float UnusedNoise::getAlpha() const 
 {
    THROWERROR_NOTIMPL();
 }
 
-double UnusedNoise::sample(const SubModel& model, const PVec<> &pos, double val)
+float UnusedNoise::sample(const SubModel& model, const PVec<> &pos, float val)
 {
    THROWERROR_NOTIMPL();
 }

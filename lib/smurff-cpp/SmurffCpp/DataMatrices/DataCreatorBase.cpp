@@ -22,14 +22,14 @@ std::shared_ptr<Data> DataCreatorBase::create(std::shared_ptr<const MatrixConfig
 
    if (mc->isDense())
    {
-      Eigen::MatrixXd Ytrain = matrix_utils::dense_to_eigen(*mc);
+      Eigen::MatrixXf Ytrain = matrix_utils::dense_to_eigen(*mc);
       std::shared_ptr<MatrixData> local_data_ptr(new DenseMatrixData(Ytrain));
       local_data_ptr->setNoiseModel(noise);
       return local_data_ptr;
    }
    else
    {
-      Eigen::SparseMatrix<double> Ytrain = matrix_utils::sparse_to_eigen(*mc);
+      Eigen::SparseMatrix<float> Ytrain = matrix_utils::sparse_to_eigen(*mc);
       if (!mc->isScarce())
       {
          std::shared_ptr<MatrixData> local_data_ptr(new SparseMatrixData(Ytrain));

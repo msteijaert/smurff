@@ -30,7 +30,7 @@ void MPIMacauPrior::init()
       displs[n] = sum;
       sum += sendcounts[n];
    }
-   rec = new double[sendcounts[world_rank]];
+   rec = new float[sendcounts[world_rank]];
 }
 
 //TODO: missing implementation
@@ -59,7 +59,7 @@ void MPIMacauPrior::sample_beta()
    // sending Ft_y
    MPI_Scatterv(this->Ft_y.data(), sendcounts, displs, MPI_DOUBLE, rec, sendcounts[world_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
    int nrhs = rhs_for_rank[world_rank];
-   Eigen::MatrixXd RHS(nrhs, num_feat), result(nrhs, num_feat);
+   Eigen::MatrixXf RHS(nrhs, num_feat), result(nrhs, num_feat);
 
 #pragma omp parallel for schedule(static)
    for (int f = 0; f < num_feat; f++)
@@ -100,7 +100,7 @@ int MPIMacauPrior::rhs() const
 
 void MPIMacauPrior::split_work_mpi(int num_latent, int num_nodes, int* work)
 {
-   double avg_work = num_latent / (double)num_nodes;
+   float avg_work = num_latent / (float)num_nodes;
    int work_unit;
    if (2 <= avg_work) work_unit = 2;
    else work_unit = 1;

@@ -31,7 +31,7 @@ protected:
    void init_pre() override;
 
 public:
-   double sum() const override;
+   float sum() const override;
 
 public:
    std::uint64_t nmode() const override;
@@ -40,19 +40,19 @@ public:
    PVec<> dim() const override;
 
 public:
-   double train_rmse(const SubModel& model) const override;
-   void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const override;
+   float train_rmse(const SubModel& model) const override;
+   void getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const override;
    void update_pnm(const SubModel& model, uint32_t mode) override;
 
 public:
-   double sumsq(const SubModel& model) const override;
-   double var_total() const override;
+   float sumsq(const SubModel& model) const override;
+   float var_total() const override;
 
 public:
    std::ostream& info(std::ostream& os, std::string indent) override;
 
 public:
-   std::pair<PVec<>, double> item(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const;
+   std::pair<PVec<>, float> item(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const;
    
    PVec<> pos(std::uint64_t mode, std::uint64_t hyperplane, std::uint64_t item) const;
 };

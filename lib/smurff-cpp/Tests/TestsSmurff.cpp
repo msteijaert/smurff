@@ -16,11 +16,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-void printActualResults(int nr, double actualRmseAvg, const std::vector<smurff::ResultItem>& actualResults)
+void printActualResults(int nr, float actualRmseAvg, const std::vector<smurff::ResultItem>& actualResults)
 {
    std::ofstream os("expected_results/TestsSmurff_" + std::to_string(nr) + ".h", std::ofstream::out);
 
-   os << "   double expectedRmseAvg = "
+   os << "   float expectedRmseAvg = "
       << std::fixed << std::setprecision(16) << actualRmseAvg << ";" << std::endl
       << "   std::vector<ResultItem> expectedResults = \n"
       << "      {\n";
@@ -228,7 +228,7 @@ std::shared_ptr<MatrixConfig> getRowSideInfoDenseMatrix3dConfig()
 }
 
 
-std::shared_ptr<SideInfoConfig> getRowSideInfoDenseConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getRowSideInfoDenseConfig(bool direct = true, float tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getRowSideInfoDenseMatrixConfig();
    
@@ -240,7 +240,7 @@ std::shared_ptr<SideInfoConfig> getRowSideInfoDenseConfig(bool direct = true, do
    return picfg;
 }
 
-std::shared_ptr<SideInfoConfig> getColSideInfoDenseConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getColSideInfoDenseConfig(bool direct = true, float tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getColSideInfoDenseMatrixConfig();
 
@@ -252,7 +252,7 @@ std::shared_ptr<SideInfoConfig> getColSideInfoDenseConfig(bool direct = true, do
    return picfg;
 }
 
-std::shared_ptr<SideInfoConfig> getRowSideInfoSparseConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getRowSideInfoSparseConfig(bool direct = true, float tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getRowSideInfoSparseMatrixConfig();
 
@@ -264,7 +264,7 @@ std::shared_ptr<SideInfoConfig> getRowSideInfoSparseConfig(bool direct = true, d
    return picfg;
 }
 
-std::shared_ptr<SideInfoConfig> getColSideInfoSparseConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getColSideInfoSparseConfig(bool direct = true, float tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getColSideInfoSparseMatrixConfig();
 
@@ -276,7 +276,7 @@ std::shared_ptr<SideInfoConfig> getColSideInfoSparseConfig(bool direct = true, d
    return picfg;
 }
 
-std::shared_ptr<SideInfoConfig> getRowSideInfoDenseMacauPrior3dConfig(bool direct = true, double tol = 1e-6)
+std::shared_ptr<SideInfoConfig> getRowSideInfoDenseMacauPrior3dConfig(bool direct = true, float tol = 1e-6)
 {
    std::shared_ptr<MatrixConfig> mcfg = getRowSideInfoDenseMatrix3dConfig();
 
@@ -335,7 +335,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(359)
@@ -375,7 +375,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(411)
@@ -419,7 +419,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(467)
@@ -463,7 +463,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(523)
@@ -505,7 +505,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(577)
@@ -545,7 +545,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(629)
@@ -589,7 +589,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(685)
@@ -633,7 +633,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior spi
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(741)
@@ -675,7 +675,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(795)
@@ -715,7 +715,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(847)
@@ -759,7 +759,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(903)
@@ -803,7 +803,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior nor
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(959)
@@ -850,7 +850,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1018)
@@ -895,7 +895,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1075)
@@ -943,7 +943,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1135)
@@ -989,7 +989,7 @@ TEST_CASE("--train <train_sparse_matrix> --test <test_sparse_matrix> --prior mac
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1193)
@@ -1034,7 +1034,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1250)
@@ -1077,7 +1077,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1305)
@@ -1226,7 +1226,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1466)
@@ -1266,7 +1266,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1518)
@@ -1308,7 +1308,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior norm
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1572)
@@ -1350,7 +1350,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1626)
@@ -1395,7 +1395,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior maca
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1683)
@@ -1438,7 +1438,7 @@ TEST_CASE("--train <train_dense_matrix> --test <test_sparse_matrix> --prior spik
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1738)
@@ -1480,7 +1480,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1792)
@@ -1520,7 +1520,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1844)
@@ -1562,7 +1562,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1898)
@@ -1602,7 +1602,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(1950)
@@ -1644,7 +1644,7 @@ TEST_CASE("--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prio
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2004)
@@ -1684,7 +1684,7 @@ TEST_CASE("--train <train_sparse_2d_tensor> --test <test_sparse_2d_tensor> --pri
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2056)
@@ -1726,7 +1726,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2110)
@@ -1768,7 +1768,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2164)
@@ -1814,7 +1814,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2222)
@@ -1860,7 +1860,7 @@ TEST_CASE("--train <train_dense_3d_tensor> --test <test_sparse_3d_tensor> --prio
    std::shared_ptr<ISession> session = SessionFactory::create_session(config);
    session->run();
 
-   double actualRmseAvg = session->getRmseAvg();
+   float actualRmseAvg = session->getRmseAvg();
    const std::vector<ResultItem> & actualResults = session->getResultItems();
 
    PRINT_ACTUAL_RESULTS(2280)
@@ -2680,10 +2680,10 @@ TEST_CASE(
    std::shared_ptr<ISession> matrixRunSession = SessionFactory::create_session(matrixRunConfig);
    matrixRunSession->run();
 
-   double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
+   float tensorRunRmseAvg = tensorRunSession->getRmseAvg();
    const std::vector<ResultItem> & tensorRunResults = tensorRunSession->getResultItems();
 
-   double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
+   float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
@@ -2746,10 +2746,10 @@ TEST_CASE(
    std::shared_ptr<ISession> matrixRunSession = SessionFactory::create_session(matrixRunConfig);
    matrixRunSession->run();
 
-   double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
+   float tensorRunRmseAvg = tensorRunSession->getRmseAvg();
    const std::vector<ResultItem> & tensorRunResults = tensorRunSession->getResultItems();
 
-   double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
+   float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
@@ -2812,10 +2812,10 @@ TEST_CASE(
    std::shared_ptr<ISession> matrixRunSession = SessionFactory::create_session(matrixRunConfig);
    matrixRunSession->run();
 
-   double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
+   float tensorRunRmseAvg = tensorRunSession->getRmseAvg();
    const std::vector<ResultItem> & tensorRunResults = tensorRunSession->getResultItems();
 
-   double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
+   float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
@@ -2878,10 +2878,10 @@ TEST_CASE(
    std::shared_ptr<ISession> matrixRunSession = SessionFactory::create_session(matrixRunConfig);
    matrixRunSession->run();
 
-   double tensorRunRmseAvg = tensorRunSession->getRmseAvg();
+   float tensorRunRmseAvg = tensorRunSession->getRmseAvg();
    const std::vector<ResultItem> & tensorRunResults = tensorRunSession->getResultItems();
 
-   double matrixRunRmseAvg = matrixRunSession->getRmseAvg();
+   float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
    REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
@@ -3077,7 +3077,7 @@ TEST_CASE("PredictSession/Features/2"
     {
         auto feat = sideInfoMatrix.row(r).transpose();
         auto out_of_matrix_predictions = predict_session.predict(0, feat);
-        //Eigen::VectorXd out_of_matrix_averages = out_of_matrix_predictions->colwise().mean();
+        //Eigen::VectorXf out_of_matrix_averages = out_of_matrix_predictions->colwise().mean();
 
 #undef DEBUG_OOM_PREDICT
 #ifdef DEBUG_OOM_PREDICT

@@ -15,8 +15,8 @@ class Model;
 class Data;
 
 template<typename Item, typename Compare>
-double calc_auc(const std::vector<Item> &predictions,
-                double threshold,
+float calc_auc(const std::vector<Item> &predictions,
+                float threshold,
                 const Compare &compare)
 {
     auto sorted_predictions = predictions;
@@ -24,7 +24,7 @@ double calc_auc(const std::vector<Item> &predictions,
 
     int num_positive = 0;
     int num_negative = 0;
-    double auc = .0;
+    float auc = .0;
 
     for(auto &t : sorted_predictions)
     {
@@ -41,7 +41,7 @@ double calc_auc(const std::vector<Item> &predictions,
 }
 
 template<typename Item>
-double calc_auc(const std::vector<Item> &predictions, double threshold)
+float calc_auc(const std::vector<Item> &predictions, float threshold)
 {
    return calc_auc(predictions, threshold, [](const Item &a, const Item &b) { return a.pred < b.pred;});
 }
@@ -53,7 +53,7 @@ public:
    Result(std::shared_ptr<TensorConfig> Y, int nsamples = 0);
 
    //fill with dense value
-   Result(PVec<> lo, PVec<> hi, double value, int nsamples = 0);
+   Result(PVec<> lo, PVec<> hi, float value, int nsamples = 0);
 
    //empty c'tor
    Result();
@@ -69,10 +69,10 @@ public:
    void update(std::shared_ptr<const Model> model, bool burnin);
 
 public:
-   double rmse_avg = NAN;
-   double rmse_1sample = NAN;
-   double auc_avg = NAN;
-   double auc_1sample = NAN;
+   float rmse_avg = NAN;
+   float rmse_1sample = NAN;
+   float auc_avg = NAN;
+   float auc_1sample = NAN;
    int sample_iter = 0;
    int burnin_iter = 0;
 
@@ -99,9 +99,9 @@ public:
    //-- for binary classification
    int total_pos = -1;
    bool classify = false;
-   double threshold;
+   float threshold;
 
-   void setThreshold(double t)
+   void setThreshold(float t)
    {
       threshold = t; classify = true;
    }

@@ -33,7 +33,7 @@ TEST_CASE("test sparse view new 1")
       };
    TensorConfig tensorConfig(tensorConfigDims, tensorConfigColumns, tensorConfigValues, fixed_ncfg, false);
 
-   Eigen::MatrixXd actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
+   Eigen::MatrixXf actualMatrix0 = tensor_utils::sparse_to_eigen(tensorConfig);
 
    //std::cout << actualMatrix0 << std::endl;
 
@@ -135,26 +135,26 @@ TEST_CASE("bpmfutils/eval_rmse_tensor", "Testing eval_rmse_tensor") {
        1, 3, 1,
        1, 0, 1,
        2, 3, 0;
-  Eigen::VectorXd v(5);
+  Eigen::VectorXf v(5);
   v << 0.1, 0.2, 0.3, 0.4, 0.5;
 
   // mode 0
   SparseMode sm0(C, v, 0, 4);
   int nlatent = 5;
-  double gmean = 0.9;
+  float gmean = 0.9;
 
-  std::vector< std::unique_ptr<Eigen::MatrixXd> > samples;
+  std::vector< std::unique_ptr<Eigen::MatrixXf> > samples;
   Eigen::VectorXi dims(3);
   dims << 4, 5, 2;
 
   for (int d = 0; d < 3; d++) {
-    Eigen::MatrixXd* x = new Eigen::MatrixXd(nlatent, dims(d));
+    Eigen::MatrixXf* x = new Eigen::MatrixXf(nlatent, dims(d));
     bmrandn(*x);
-    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXd>(x)) );
+    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXf>(x)) );
   }
 
-  Eigen::VectorXd pred(5);
-  Eigen::VectorXd pred_var(5);
+  Eigen::VectorXf pred(5);
+  Eigen::VectorXf pred_var(5);
   pred.setZero();
   pred_var.setZero();
 
@@ -175,21 +175,21 @@ TEST_CASE("latentprior/sample_tensor", "Test whether sampling tensor is correct"
        1, 3, 1,
        2, 3, 0,
        1, 0, 1;
-  Eigen::VectorXd v(5);
+  Eigen::VectorXf v(5);
   v << 0.15, 0.23, 0.31, 0.47, 0.59;
 
-	Eigen::VectorXd mu(3);
-	Eigen::MatrixXd Lambda(3, 3);
+	Eigen::VectorXf mu(3);
+	Eigen::MatrixXf Lambda(3, 3);
 	mu << 0.03, -0.08, 0.12;
 	Lambda << 1.2, 0.11, 0.17,
 				    0.11, 1.4, 0.08,
 						0.17, 0.08, 1.7;
 
-	double mvalue = 0.2;
-	double alpha  = 7.5;
+	float mvalue = 0.2;
+	float alpha  = 7.5;
   int nlatent = 3;
 
-  std::vector< std::unique_ptr<Eigen::MatrixXd> > samples;
+  std::vector< std::unique_ptr<Eigen::MatrixXf> > samples;
 	std::vector< std::unique_ptr<SparseMode> > sparseModes;
 
   Eigen::VectorXi dims(3);
@@ -198,15 +198,15 @@ TEST_CASE("latentprior/sample_tensor", "Test whether sampling tensor is correct"
   st.setTrain(C, v, dims);
 
   for (int d = 0; d < 3; d++) {
-    Eigen::MatrixXd* x = new Eigen::MatrixXd(nlatent, dims(d));
+    Eigen::MatrixXf* x = new Eigen::MatrixXf(nlatent, dims(d));
     bmrandn(*x);
-    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXd>(x)) );
+    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXf>(x)) );
 
 		SparseMode* sm  = new SparseMode(C, v, d, dims(d));
 		sparseModes.push_back( std::move(std::unique_ptr<SparseMode>(sm)) );
   }
 
-	VectorView<Eigen::MatrixXd> vv0(samples, 0);
+	VectorView<Eigen::MatrixXf> vv0(samples, 0);
   sample_latent_tensor(samples[0], 0, sparseModes[0], vv0, mvalue, alpha, mu, Lambda);
 }
 
@@ -222,23 +222,23 @@ TEST_CASE("macauoneprior/sample_tensor_uni", "Testing sampling tensor univariate
        1, 3, 1,
        2, 3, 0,
        1, 0, 1;
-  Eigen::VectorXd v(5);
+  Eigen::VectorXf v(5);
   v << 0.15, 0.23, 0.31, 0.47, 0.59;
 
-	Eigen::VectorXd mu(3);
-	Eigen::MatrixXd Lambda(3, 3);
+	Eigen::VectorXf mu(3);
+	Eigen::MatrixXf Lambda(3, 3);
 	mu << 0.03, -0.08, 0.12;
 	Lambda << 1.2, 0.11, 0.17,
 				    0.11, 1.4, 0.08,
 						0.17, 0.08, 1.7;
 
-	double mvalue = 0.2;
-	double alpha  = 7.5;
+	float mvalue = 0.2;
+	float alpha  = 7.5;
   int nlatent = 3;
 
   MacauOnePrior<SparseFeat> prior(nlatent, sfptr);
 
-  std::vector< std::unique_ptr<Eigen::MatrixXd> > samples;
+  std::vector< std::unique_ptr<Eigen::MatrixXf> > samples;
 
   Eigen::VectorXi dims(3);
   dims << 6, 5, 2;
@@ -246,9 +246,9 @@ TEST_CASE("macauoneprior/sample_tensor_uni", "Testing sampling tensor univariate
   st.setTrain(C, v, dims);
 
   for (int d = 0; d < 3; d++) {
-    Eigen::MatrixXd* x = new Eigen::MatrixXd(nlatent, dims(d));
+    Eigen::MatrixXf* x = new Eigen::MatrixXf(nlatent, dims(d));
     bmrandn(*x);
-    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXd>(x)) );
+    samples.push_back( std::move(std::unique_ptr<Eigen::MatrixXf>(x)) );
   }
 
   prior.sample_latents(alpha, st, samples, 0, nlatent);

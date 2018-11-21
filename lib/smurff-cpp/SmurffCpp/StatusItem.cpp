@@ -19,7 +19,7 @@ std::string StatusItem::asString() const
     }
 
     output << "  U:[";
-    for (double n : model_norms)
+    for (float n : model_norms)
     {
         output << std::scientific << std::setprecision(2) << n << ", ";
     }

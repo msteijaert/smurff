@@ -72,7 +72,7 @@ void Data::setNoiseModel(std::shared_ptr<INoiseModel> nm)
 
 std::ostream& Data::info(std::ostream& os, std::string indent)
 {
-   double cwise_mean = this->sum() / (this->size() - this->nna());
+   float cwise_mean = this->sum() / (this->size() - this->nna());
 
    os << indent << "Type: " << name << std::endl;
    os << indent << "Component-wise mean: " << cwise_mean << std::endl;

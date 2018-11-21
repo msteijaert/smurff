@@ -14,7 +14,7 @@ namespace smurff {
    class DenseSideInfo : public ISideInfo
    {
    private:
-      std::shared_ptr<Eigen::MatrixXd> m_side_info;
+      std::shared_ptr<Eigen::MatrixXf> m_side_info;
 
    public:
       DenseSideInfo(const std::shared_ptr<MatrixConfig> &);
@@ -32,23 +32,23 @@ namespace smurff {
    public:
       //linop
 
-      void compute_uhat(Eigen::MatrixXd& uhat, Eigen::MatrixXd& beta) override;
+      void compute_uhat(Eigen::MatrixXf& uhat, Eigen::MatrixXf& beta) override;
 
-      void At_mul_A(Eigen::MatrixXd& out) override;
+      void At_mul_A(Eigen::MatrixXf& out) override;
 
-      Eigen::MatrixXd A_mul_B(Eigen::MatrixXd& A) override;
+      Eigen::MatrixXf A_mul_B(Eigen::MatrixXf& A) override;
 
-      int solve_blockcg(Eigen::MatrixXd& X, double reg, Eigen::MatrixXd& B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error = false) override;
+      int solve_blockcg(Eigen::MatrixXf& X, float reg, Eigen::MatrixXf& B, float tol, const int blocksize, const int excess, bool throw_on_cholesky_error = false) override;
 
-      Eigen::VectorXd col_square_sum() override;
+      Eigen::VectorXf col_square_sum() override;
 
-      void At_mul_Bt(Eigen::VectorXd& Y, const int col, Eigen::MatrixXd& B) override;
+      void At_mul_Bt(Eigen::VectorXf& Y, const int col, Eigen::MatrixXf& B) override;
 
-      void add_Acol_mul_bt(Eigen::MatrixXd& Z, const int col, Eigen::VectorXd& b) override;
+      void add_Acol_mul_bt(Eigen::MatrixXf& Z, const int col, Eigen::VectorXf& b) override;
 
       //only for tests
    public:
-      std::shared_ptr<Eigen::MatrixXd> get_features();
+      std::shared_ptr<Eigen::MatrixXf> get_features();
    };
 
 }

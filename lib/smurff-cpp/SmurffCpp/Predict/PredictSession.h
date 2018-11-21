@@ -28,8 +28,8 @@ private:
     std::shared_ptr<Result> m_result;
     std::vector<std::shared_ptr<StepFile>>::reverse_iterator m_pos;
 
-    double m_secs_per_iter;
-    double m_secs_total;
+    float m_secs_per_iter;
+    float m_secs_total;
     int m_iter;
 
     std::vector<std::shared_ptr<StepFile>> m_stepfiles;
@@ -89,14 +89,14 @@ private:
 
     // predict element or elements based on sideinfo
     template <class Feat>
-    std::shared_ptr<Eigen::MatrixXd> predict(int mode, const Feat &f, int save_freq = 0);
+    std::shared_ptr<Eigen::MatrixXf> predict(int mode, const Feat &f, int save_freq = 0);
 };
 
 // predict element or elements based on sideinfo
 template <class Feat>
-std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f, int save_freq)
+std::shared_ptr<Eigen::MatrixXf> PredictSession::predict(int mode, const Feat &f, int save_freq)
 {
-    std::shared_ptr<Eigen::MatrixXd> average(nullptr);
+    std::shared_ptr<Eigen::MatrixXf> average(nullptr);
 
     for (int step = 0; step < getNumSteps(); step++)
     {
@@ -108,7 +108,7 @@ std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f
         const auto &sf = m_stepfiles.at(step);
         auto predictions = restoreModel(sf)->predict(mode, f);
         if (!average)
-            average = std::make_shared<Eigen::MatrixXd>(predictions);
+            average = std::make_shared<Eigen::MatrixXf>(predictions);
         else
             *average += predictions;
 
@@ -123,7 +123,7 @@ std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f
         }
     }
 
-    (*average) /= (double)getNumSteps();
+    (*average) /= (float)getNumSteps();
 
     if (save_freq != 0)
     {

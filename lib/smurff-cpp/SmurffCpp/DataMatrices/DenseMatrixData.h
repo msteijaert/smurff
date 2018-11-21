@@ -4,18 +4,18 @@
 
 namespace smurff
 {
-   class DenseMatrixData : public FullMatrixData<Eigen::MatrixXd>
+   class DenseMatrixData : public FullMatrixData<Eigen::MatrixXf>
    {
    public:
-      DenseMatrixData(Eigen::MatrixXd Y);
-      void getMuLambda(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const override;
+      DenseMatrixData(Eigen::MatrixXf Y);
+      void getMuLambda(const SubModel& model, std::uint32_t mode, int d, Eigen::VectorXf& rr, Eigen::MatrixXf& MM) const override;
 
    public:
-      double train_rmse(const SubModel& model) const override;
+      float train_rmse(const SubModel& model) const override;
 
    public:
-      double var_total() const override;
+      float var_total() const override;
       
-      double sumsq(const SubModel& model) const override;
+      float sumsq(const SubModel& model) const override;
    };
 }

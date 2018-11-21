@@ -31,7 +31,7 @@ void NormalOnePrior::init()
    df = K;
 }
 
-const Eigen::VectorXd NormalOnePrior::getMu(int n) const
+const Eigen::VectorXf NormalOnePrior::getMu(int n) const
 {
    return mu;
 }
@@ -45,8 +45,8 @@ void NormalOnePrior::sample_latent(int d)
 {
    const int K = num_latent();
 
-   Eigen::MatrixXd XX = Eigen::MatrixXd::Zero(K, K);
-   Eigen::VectorXd yX = Eigen::VectorXd::Zero(K);
+   Eigen::MatrixXf XX = Eigen::MatrixXf::Zero(K, K);
+   Eigen::VectorXf yX = Eigen::VectorXf::Zero(K);
 
    data().getMuLambda(model(), m_mode, d, yX, XX);
 
@@ -57,11 +57,11 @@ void NormalOnePrior::sample_latent(int d)
    for(int k=0;k<K;++k) sample_latent(d, k, XX, yX);
 }
  
-std::pair<double,double> NormalOnePrior::sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX)
+std::pair<float,float> NormalOnePrior::sample_latent(int d, int k, const Eigen::MatrixXf& XX, const Eigen::VectorXf& yX)
 {
     auto Ucol = U().col(d);
-    double lambda = XX(k,k);
-    double mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
+    float lambda = XX(k,k);
+    float mu = (1/lambda) * (yX(k) - Ucol.transpose() * XX.col(k) + Ucol(k) * XX(k,k));
     Ucol(k) = mu + randn() / sqrt(lambda);
     return std::make_pair(mu, lambda);
 }

@@ -8,13 +8,13 @@ namespace smurff {
 
 struct ResultItem
 {
-   ResultItem(const PVec<> &c, double v, double p1s, double pa, double var, int n = 0)
+   ResultItem(const PVec<> &c, float v, float p1s, float pa, float var, int n = 0)
    : coords(c), val(v), pred_1sample(p1s), pred_avg(pa), var(var), nsamples(n), keep_samples(0)
    {
    }
 
 
-   ResultItem(const PVec<> &c, double v = NAN, int n = 0)
+   ResultItem(const PVec<> &c, float v = NAN, int n = 0)
    : coords(c), val(v), pred_1sample(NAN), pred_avg(NAN), var(NAN),
      nsamples(0), keep_samples(n)
    {
@@ -23,17 +23,17 @@ struct ResultItem
 
    smurff::PVec<> coords;
 
-   double val;
-   double pred_1sample;
-   double pred_avg;
-   double var;
+   float val;
+   float pred_1sample;
+   float pred_avg;
+   float var;
 
    int nsamples;
    int keep_samples;
 
-   std::vector<double> pred_all;
+   std::vector<float> pred_all;
 
-   void update(double pred) {
+   void update(float pred) {
       if (nsamples < keep_samples)
          pred_all[nsamples] = pred;
 
@@ -41,7 +41,7 @@ struct ResultItem
       if (nsamples > 1)
       {
         // update pred_1sample, pred_avg and var
-        double delta = pred - pred_avg;
+        float delta = pred - pred_avg;
         pred_avg = (pred_avg + delta / nsamples);
         var += delta * (pred - pred_avg);
       }

@@ -16,7 +16,7 @@ SparseMode::SparseMode()
 // vals - vector of values
 // m - index of dimention to fix
 // mode_size - size of dimention to fix
-SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<double>& vals, std::uint64_t mode, std::uint64_t mode_size) 
+SparseMode::SparseMode(const MatrixXui32& idx, const std::vector<float>& vals, std::uint64_t mode, std::uint64_t mode_size) 
 {
    if ((size_t)idx.rows() != vals.size())
    {
@@ -96,7 +96,7 @@ std::uint64_t SparseMode::getNCoords() const
    return m_indices.cols();
 }
 
-const std::vector<double>& SparseMode::getValues() const
+const std::vector<float>& SparseMode::getValues() const
 {
    return m_values;
 }
@@ -126,7 +126,7 @@ const MatrixXui32& SparseMode::getIndices() const
    return m_indices;
 }
 
-std::pair<PVec<>, double> SparseMode::item(std::uint64_t hyperplane, std::uint64_t item) const
+std::pair<PVec<>, float> SparseMode::item(std::uint64_t hyperplane, std::uint64_t item) const
 {
    std::vector<int> coords(this->getNCoords() + 1); //number of coordinates in sview + 1 dimension that is fixed
 

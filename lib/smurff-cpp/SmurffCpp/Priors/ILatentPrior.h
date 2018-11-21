@@ -27,8 +27,8 @@ public:
    std::uint32_t m_mode;
    std::string m_name = "xxxx";
 
-   smurff::thread_vector<Eigen::VectorXd> rrs;
-   smurff::thread_vector<Eigen::MatrixXd> MMs;
+   smurff::thread_vector<Eigen::VectorXf> rrs;
+   smurff::thread_vector<Eigen::MatrixXf> MMs;
 
 protected:
    ILatentPrior(){}
@@ -43,27 +43,27 @@ public:
    Model& model();
 
    Data& data() const;
-   double predict(const PVec<> &) const;
+   float predict(const PVec<> &) const;
 
    INoiseModel& noise();
 
-   Eigen::MatrixXd &U();
-   const Eigen::MatrixXd &U() const;
+   Eigen::MatrixXf &U();
+   const Eigen::MatrixXf &U() const;
 
    //return V matrices in the model opposite to mode
-   VMatrixIterator<Eigen::MatrixXd> Vbegin();
+   VMatrixIterator<Eigen::MatrixXf> Vbegin();
    
-   VMatrixIterator<Eigen::MatrixXd> Vend();
+   VMatrixIterator<Eigen::MatrixXf> Vend();
 
-   ConstVMatrixIterator<Eigen::MatrixXd> CVbegin() const;
+   ConstVMatrixIterator<Eigen::MatrixXf> CVbegin() const;
    
-   ConstVMatrixIterator<Eigen::MatrixXd> CVend() const;
+   ConstVMatrixIterator<Eigen::MatrixXf> CVend() const;
 
    int num_latent() const;
    int num_item() const;
 
-   const Eigen::VectorXd& getUsum() { return Usum; } 
-   const Eigen::MatrixXd& getUUsum()  { return UUsum; }
+   const Eigen::VectorXf& getUsum() { return Usum; } 
+   const Eigen::MatrixXf& getUUsum()  { return UUsum; }
 
    virtual bool save(std::shared_ptr<const StepFile> sf) const;
    virtual void restore(std::shared_ptr<const StepFile> sf);
@@ -80,8 +80,8 @@ public:
 
 private:
    void init_Usum();
-   Eigen::VectorXd Usum;
-   Eigen::MatrixXd UUsum;
+   Eigen::VectorXf Usum;
+   Eigen::MatrixXf UUsum;
 
 public:
    void setMode(std::uint32_t value)

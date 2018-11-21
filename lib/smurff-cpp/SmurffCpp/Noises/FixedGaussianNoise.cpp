@@ -4,7 +4,7 @@
 
 using namespace smurff;
 
-FixedGaussianNoise::FixedGaussianNoise(double a)
+FixedGaussianNoise::FixedGaussianNoise(float a)
    : GaussianNoise()
 {
     alpha = a;
@@ -21,7 +21,7 @@ std::string FixedGaussianNoise::getStatus()
    return std::string("Fixed: ") + std::to_string(alpha);
 }
 
-void FixedGaussianNoise::setPrecision(double a)
+void FixedGaussianNoise::setPrecision(float a)
 {
    alpha = a;
 }

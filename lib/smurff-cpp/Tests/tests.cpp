@@ -44,24 +44,24 @@ static NoiseConfig fixed_ncfg(NoiseTypes::fixed);
 
 TEST_CASE( "mvnormal/rgamma", "generaring random gamma variable" ) {
   init_bmrng(1234);
-  double g = rgamma(100.0, 0.01);
+  float g = rgamma(100.0, 0.01);
   REQUIRE( g > 0 );
 }
 
 TEST_CASE( "latentprior/sample_beta_precision", "sampling beta precision from gamma distribution" ) {
   init_bmrng(1234);
-  Eigen::MatrixXd beta(2, 3), Lambda_u(2, 2);
+  Eigen::MatrixXf beta(2, 3), Lambda_u(2, 2);
   beta << 3.0, -2.00,  0.5,
           1.0,  0.91, -0.2;
   Lambda_u << 0.5, 0.1,
               0.1, 0.3;
   
-  Eigen::MatrixXd BBt = beta * beta.transpose();                  
+  Eigen::MatrixXf BBt = beta * beta.transpose();                  
   auto post = MacauPrior::posterior_beta_precision(BBt, Lambda_u, 0.01, 0.05, beta.cols());
   REQUIRE( post.first  == Approx(3.005) );
   REQUIRE( post.second == Approx(0.2631083888) );
 
-  double beta_precision = MacauPrior::sample_beta_precision(BBt, Lambda_u, 0.01, 0.05, beta.cols());
+  float beta_precision = MacauPrior::sample_beta_precision(BBt, Lambda_u, 0.01, 0.05, beta.cols());
   REQUIRE( beta_precision > 0 );
 }
 
@@ -121,7 +121,7 @@ TEST_CASE( "utils/eval_rmse", "Test if prediction variance is correctly calculat
 
 TEST_CASE("utils/auc","AUC ROC") {
   struct TestItem {
-      double pred, val;
+      float pred, val;
   };
   std::vector<TestItem> items = {
    { 20.0, 1.0 },
@@ -164,7 +164,7 @@ TEST_CASE( "ScarceMatrixData/var_total", "Test if variance of Scarce Matrix is c
 }
 
 TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is correctly calculated") {
-  Eigen::MatrixXd Y(2, 2);
+  Eigen::MatrixXf Y(2, 2);
   Y << 1., 2., 3., 4.;
 
   std::shared_ptr<Data> data(new DenseMatrixData(Y));
@@ -175,7 +175,6 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
   REQUIRE(data->var_total() == Approx(1.25));
 }
 
-using namespace Eigen;
 using namespace std;
 
 MacauPrior* make_dense_prior(int nlatent, const std::vector<double> & ptr, int nrows, int ncols, bool comp_FtF) 
@@ -195,18 +194,18 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixConfig") 
     // ColMajor case
     auto prior = make_dense_prior(3, x, 3, 2, true);
 
-    Eigen::MatrixXd Ftrue(3, 2);
+    Eigen::MatrixXf Ftrue(3, 2);
     Ftrue <<  0.1, 0.3, 0.4, 0.11, -0.7, 0.23;
     auto features_downcast1 = std::dynamic_pointer_cast<DenseSideInfo>(prior->Features); //for the purpose of the test
     REQUIRE( (*(features_downcast1->get_features()) - Ftrue).norm() == Approx(0) );
-    Eigen::MatrixXd tmp = Eigen::MatrixXd::Zero(2, 2);
+    Eigen::MatrixXf tmp = Eigen::MatrixXf::Zero(2, 2);
     tmp.triangularView<Eigen::Lower>()  = prior->FtF_plus_precision;
     tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
     REQUIRE( tmp.norm() == Approx(0) );
 }
 
 TEST_CASE("inv_norm_cdf/inv_norm_cdf", "Inverse normal CDF") {
-	REQUIRE( inv_norm_cdf(0.0)  == -std::numeric_limits<double>::infinity());
+	REQUIRE( inv_norm_cdf(0.0)  == -std::numeric_limits<float>::infinity());
 	REQUIRE( inv_norm_cdf(0.5)  == Approx(0) );
 	REQUIRE( inv_norm_cdf(0.9)  == Approx(1.2815515655446004) );
 	REQUIRE( inv_norm_cdf(0.01) == Approx(-2.3263478740408408) );
@@ -238,11 +237,11 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
 
    {
        init_bmrng(1234);
-       Eigen::MatrixXd U(K,N);
+       Eigen::MatrixXf U(K,N);
        bmrandn(U);
 
-       Eigen::MatrixXd M(K,K) ;
-       double start = tick();
+       Eigen::MatrixXf M(K,K) ;
+       float start = tick();
        for(int i=0; i<R; ++i) {
            M.setZero();
            for(int j=0; j<N;++j) {
@@ -250,7 +249,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
                M.noalias() += col * col.transpose();
            }
        }
-       double stop = tick();
+       float stop = tick();
        std::cout << "norm U: " << U.norm() << std::endl;
        std::cout << "norm M: " << M.norm() << std::endl;
        std::cout << "MatrixXd: " << stop - start << std::endl;
@@ -258,11 +257,11 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
 
    {
        init_bmrng(1234);
-       Eigen::Matrix<double, K, Eigen::Dynamic> U(K,N);
+       Eigen::Matrix<float, K, Eigen::Dynamic> U(K,N);
        U = nrandn(K,N);
 
-       Eigen::Matrix<double,K,K> M;
-       double start = tick();
+       Eigen::Matrix<float,K,K> M;
+       float start = tick();
        for(int i=0; i<R; ++i) {
            M.setZero();
            for(int j=0; j<N;++j) {
@@ -270,7 +269,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
                M.noalias() += col * col.transpose();
            }
        }
-       double stop = tick();
+       float stop = tick();
        std::cout << "norm U: " << U.norm() << std::endl;
        std::cout << "norm M: " << M.norm() << std::endl;
        std::cout << "MatrixXd: " << stop - start << std::endl;
@@ -283,7 +282,7 @@ TEST_CASE("randn", "Test random number generation")
    std::cout << "Running boost" << std::endl;
    init_bmrng(1234);
 
-   double rnd = 0.0;
+   float rnd = 0.0;
    rnd = smurff::randn();
    REQUIRE(rnd == Approx(-1.38981).epsilon(APPROX_EPSILON));
 
@@ -317,7 +316,7 @@ TEST_CASE("randn", "Test random number generation")
    std::cout << "Running std" << std::endl;
    init_bmrng(1234);
    
-   double rnd = 0.0;
+   float rnd = 0.0;
    rnd = smurff::randn();
    REQUIRE(rnd == Approx(-0.00989496).epsilon(APPROX_EPSILON));
 
@@ -358,7 +357,7 @@ TEST_CASE("rgamma", "Test random number generation")
    std::cout << "Running boost" << std::endl;
    init_bmrng(1234);
 
-   double rnd = 0.0;
+   float rnd = 0.0;
    rnd = smurff::rgamma(1, 2);
    REQUIRE(rnd == Approx(0.425197).epsilon(APPROX_EPSILON));
 
@@ -393,7 +392,7 @@ TEST_CASE("rgamma", "Test random number generation")
    std::cout << "Running std" << std::endl;
    init_bmrng(1234);
    
-   double rnd = 0.0;
+   float rnd = 0.0;
    rnd = smurff::rgamma(1, 2);
    REQUIRE(rnd == Approx(4.96088).epsilon(APPROX_EPSILON));
 
