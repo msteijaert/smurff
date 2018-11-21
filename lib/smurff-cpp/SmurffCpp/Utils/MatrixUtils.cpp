@@ -3,6 +3,8 @@
 #include <numeric>
 #include <set>
 #include <vector>
+#include <iterator>
+
 #include <unsupported/Eigen/SparseExtra>
 
 #include <SmurffCpp/Utils/Error.h>
@@ -17,10 +19,10 @@ Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig&
    return Eigen::Map<const Eigen::MatrixXd>(matrixConfig.getValues().data(), matrixConfig.getNRow(), matrixConfig.getNCol());
 }
 
-Eigen::MatrixXd smurff::matrix_utils::dense_to_eigen(smurff::MatrixConfig& matrixConfig)
+smurff::MatrixConfig smurff::matrix_utils::eigen_to_dense(const Eigen::MatrixXd &eigenMatrix, NoiseConfig n)
 {
-   const smurff::MatrixConfig& mc = matrixConfig;
-   return smurff::matrix_utils::dense_to_eigen(mc);
+   std::vector<double> values(eigenMatrix.data(),  eigenMatrix.data() + eigenMatrix.size());
+   return smurff::MatrixConfig(eigenMatrix.rows(), eigenMatrix.cols(), values, n);
 }
 
 struct sparse_vec_iterator
@@ -68,6 +70,30 @@ Eigen::SparseMatrix<double> smurff::matrix_utils::sparse_to_eigen(const smurff::
    THROWERROR_ASSERT_MSG(out.nonZeros() == (int)matrixConfig.getNNZ(), "probable presence of duplicate records in " + matrixConfig.getFilename());
 
    return out;
+}
+
+smurff::MatrixConfig smurff::matrix_utils::eigen_to_sparse(const Eigen::SparseMatrix<double> &X, NoiseConfig n, bool isScarce)
+{
+   std::uint64_t nrow = X.rows();
+   std::uint64_t ncol = X.cols();
+
+   std::vector<uint32_t> rows;
+   std::vector<uint32_t> cols;
+   std::vector<double> values;
+
+   for (int k = 0; k < X.outerSize(); ++k)
+   {
+      for (Eigen::SparseMatrix<double>::InnerIterator it(X,k); it; ++it)
+      {
+         rows.push_back(it.row() + 1);
+         cols.push_back(it.col() + 1);
+         values.push_back(it.value());
+      }
+   }
+
+   std::uint64_t nnz = values.size();
+
+   return smurff::MatrixConfig(nrow, ncol, rows, cols, values, n, isScarce);
 }
 
 std::ostream& smurff::matrix_utils::operator << (std::ostream& os, const MatrixConfig& mc)
