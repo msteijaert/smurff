@@ -85,7 +85,7 @@ void  NormalPrior::sample_latent(int n)
    }
 
    chol.matrixL().solveInPlace(rr); // solve for y: y = L^-1 * b
-   rr.noalias() += nrandn<Eigen::VectorXd>(num_latent());
+   rr.noalias() += nrandn(num_latent());
    chol.matrixU().solveInPlace(rr); // solve for x: x = U^-1 * y
    
    U().col(n).noalias() = rr; // rr is equal to x
