@@ -289,7 +289,7 @@ MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, int ncols)
    return chol.matrixU().solve(r);
 }
 
-MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn)
+Eigen::MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::VectorXd & mean, int nn)
 {
    Eigen::MatrixXd r = MvNormal_prec(Lambda, nn);
    return r.colwise() + mean;
@@ -297,7 +297,7 @@ MatrixXd smurff::MvNormal_prec(const Eigen::MatrixXd & Lambda, const Eigen::Vect
 
 // Draw nn samples from a size-dimensional normal distribution
 // with a specified mean and covariance
-MatrixXd smurff::MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn) 
+Eigen::MatrixXd smurff::MvNormal(const Eigen::MatrixXd covar, const Eigen::VectorXd mean, int nn) 
 {
    int size = mean.rows(); // Dimensionality (rows)
    Eigen::MatrixXd normTransform(size,size);
