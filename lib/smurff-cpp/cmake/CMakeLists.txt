@@ -282,6 +282,13 @@ if(ENABLE_OPENCL)
   endif()
 endif()
 
+FIND_PACKAGE(ArrayFire REQUIRED)
+INCLUDE_DIRECTORIES(${ArrayFire_INCLUDE_DIRS})
+
+if(ArrayFire_OpenCL_FOUND)
+  set(ALGEBRA_LIBS ${ALGEBRA_LIBS} ArrayFire::afopencl)
+endif()
+
 message(STATUS "Algebra lib name:  ${ALGEBRA_LIB_NAME}")
 message(STATUS "Algebra libs: ${ALGEBRA_LIBS}")
 
