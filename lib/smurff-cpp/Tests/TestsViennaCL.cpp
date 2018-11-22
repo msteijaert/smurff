@@ -4,10 +4,10 @@
 
 #include <Eigen/Core>
 
+#include <SmurffCpp/Utils/Error.h>
+
 TEST_CASE("RowMajor/ColMajor", "[viennacl]")
 {
-   #define SHOW(M) std::cout << #M << " =\n" << M << std::endl << std::endl;
-
    typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> EigenRowmajor;
    EigenRowmajor eigen_rowmajor(3, 2);
    eigen_rowmajor << 1, 2, 3, 4, 5, 6;
