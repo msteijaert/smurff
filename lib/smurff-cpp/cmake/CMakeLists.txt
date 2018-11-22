@@ -10,6 +10,7 @@ MESSAGE("smurff")
 
 OPTION(ENABLE_OPENBLAS "Look only for OPENBLAS library" OFF)
 OPTION(ENABLE_MKL "Look only for MKL library" OFF)
+OPTION(ENABLE_OPENCL "Enable OpenCL acceleration" OFF)
 
 OPTION(ENABLE_PROFILING "Enable performance counters" OFF)
 OPTION(ENABLE_ASAN "Enable address sanitizer in Debug mode" OFF)
