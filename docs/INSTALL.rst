@@ -134,7 +134,7 @@ Configure eigen3 environment variables as in the example:
 
 ::
 
-    EIGEN3_INCLUDE_DIR=C:\Program Files\Eigen3\include\eigen3
+    SMURFF_INCLUDE_DIRS=C:\Program Files\Eigen3\include\eigen3
 
 Install MinGW-64
 ~~~~~~~~~~~~~~~~
