@@ -72,14 +72,37 @@ namespace threads
 
 namespace opencl
 {
+    static int m_device = -1;
+
     void init(int verbose, int device_idx)
     {
+        if (m_device < 0)
+        {
 
     #ifdef VIENNACL_WITH_OPENCL
         const std::vector<viennacl::ocl::device> devices = viennacl::ocl::platform().devices();
         viennacl::ocl::setup_context(0, devices[device_idx]);
         viennacl::ocl::switch_context(0);
+        if (verbose) {
+            std::cout << "Using OpenCL Device:\n" << devices[device_idx].info() << std::endl;
+        }
     #endif
+
+        m_device = device_idx;
+
+        }
+        else if (m_device != device_idx)
+        {
+            THROWERROR("Cannot change OpenCL device")
+        }
+
+#ifdef VIENNACL_WITH_OPENCL
+        if (verbose)
+        {
+            const std::vector<viennacl::ocl::device> devices = viennacl::ocl::platform().devices();
+            std::cout << "Using OpenCL Device:\n" << devices[m_device].info() << std::endl;
+        }
+#endif
     }
 } // namespace opencl
 
