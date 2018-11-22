@@ -1,23 +1,3 @@
-macro(configure_pthreads)
-    message ("Dependency check for pthreads multi-threading support...")
-
-    if(UNIX)
-        find_package(Threads REQUIRED)
-        if(Threads_FOUND)
-            message(STATUS "Found threading library")
-            if(CMAKE_USE_PTHREADS_INIT)
-                message(STATUS "Found pthreads " ${CMAKE_THREAD_LIBS_INIT})
-            else()
-                message(STATUS "Pthreads not found")
-            endif()
-        else()
-            message(STATUS "Threading library not found")
-        endif()
-    else()
-       message(STATUS "Not required on windows")
-    endif()
-endmacro(configure_pthreads)
-
 macro(configure_mpi)
   message ("Dependency check for mpi...")
 
@@ -38,6 +18,8 @@ macro(configure_openmp)
       message(STATUS "OpenMP found")
       set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
       set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${OpenMP_C_FLAGS}")
+      add_definitions(-DVIENNACL_WITH_OPENMP)
+
       message(STATUS "OpenMP_CXX_LIB_NAMES ${OpenMP_CXX_LIB_NAMES}")
       message(STATUS "OpenMP_CXX_LIBRARY ${OpenMP_CXX_LIBRARY}")
       message(STATUS "OpenMP_CXX_LIBRARIES ${OpenMP_CXX_LIBRARIES}")
@@ -68,7 +50,7 @@ macro(configure_openblas)
   find_package( BLAS REQUIRED )
   endif()
 
-  add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKEyy)
+  add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE)
 
   message(STATUS BLAS: ${BLAS_LIBRARIES} )
  
@@ -97,18 +79,22 @@ macro(configure_mkl)
   message(STATUS MKL: ${MKL_LIBRARIES} )
 endmacro(configure_mkl)
 
-macro(configure_eigen)
-  message ("Dependency check for eigen...")
+macro(configure_eigen_viennacl)
+  message ("Dependency check for Eigen and ViennaCL...")
   
-  if(DEFINED ENV{EIGEN3_INCLUDE_DIR})
-  SET(EIGEN3_INCLUDE_DIR $ENV{EIGEN3_INCLUDE_DIR})
+  if(DEFINED ENV{SMURFF_INCLUDE_DIRS})
+    SET(EIGEN3_INCLUDE_DIR $ENV{SMURFF_INCLUDE_DIRS})
   else()
-  find_package(Eigen3 REQUIRED)
+    find_package(Eigen3 REQUIRED)
   endif()
 
+  find_package(ViennaCL REQUIRED)
+  add_definitions(-DVIENNACL_HAVE_EIGEN)
   
-  message(STATUS EIGEN3: ${EIGEN3_INCLUDE_DIR})
-endmacro(configure_eigen)
+  SET(SMURFF_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR} ${VIENNACL_INCLUDE_DIR})
+
+  message(STATUS "Eigen/ViennaCL include dirs: ${SMURFF_INCLUDE_DIRS}")
+endmacro(configure_eigen_viennacl)
 
 macro(configure_boost)
   if(${ENABLE_BOOST})

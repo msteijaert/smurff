@@ -242,14 +242,11 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCRIPT_DIR}")
 
 include(scripts/DependenciesConfig.cmake)
 
-if(MSVC)
-  configure_eigen()
-  configure_boost()
-else()
-  configure_pthreads()
+configure_eigen_viennacl()
+configure_boost()
+
+if(NOT MSVC)
   configure_openmp()
-  configure_eigen()
-  configure_boost()
 endif()
 
 if(ENABLE_MPI)
@@ -273,6 +270,11 @@ else()
   configure_lapack()
   set(ALGEBRA_LIBS ${LAPACKE_LIBRARIES} ${LAPACK_LIBRARIES})
   set(ALGEBRA_LIB_NAME LAPACK)
+endif()
+
+if(ENABLE_OPENCL)
+  find_package(OpenCL REQUIRED)
+  set(ALGEBRA_LIBS ${ALGEBRA_LIBS} ${OPENCL_LIBRARIES})
 endif()
 
 message(STATUS "Algebra lib name:  ${ALGEBRA_LIB_NAME}")
