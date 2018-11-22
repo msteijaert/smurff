@@ -89,7 +89,7 @@ macro(configure_eigen_viennacl)
   endif()
 
   find_package(ViennaCL REQUIRED)
-  add_definitions(-DVIENNACL_HAVE_EIGEN)
+  add_definitions(-DVIENNACL_WITH_EIGEN)
   
   SET(SMURFF_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR} ${VIENNACL_INCLUDE_DIR})
 
