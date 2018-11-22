@@ -121,14 +121,16 @@ void MacauPrior::update_prior()
 
 void MacauPrior::sample_beta()
 {
+    bool use_ViennaCL = true;
+
     COUNTER("sample_beta");
     if (use_FtF)
     {
         // uses: FtF, Ft_y, 
         // writes: m_beta
         // complexity: num_feat^3
-        beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
 
+        if (use_ViennaCL)
         {
             typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> EigenRowMajor;
 
@@ -155,6 +157,11 @@ void MacauPrior::sample_beta()
             copy(vcl_Ft_y_t, map_beta);
 
         }
+        else
+        {
+            beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
+        }
+
     } 
     else
     {
