@@ -45,7 +45,9 @@ void printActualResults(int nr, float actualRmseAvg, const std::vector<smurff::R
 
 // https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
 // By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
-#define APPROX_EPSILON std::numeric_limits<float>::epsilon()*100
+const double APPROX_EPSILON = std::numeric_limits<float>::epsilon()*100;
+// for tensor vs. matrix tests we increase margin
+const double APPROX_EPSILON_TENSOR  = std::numeric_limits<float>::epsilon()*10000;
 
 using namespace smurff;
 
@@ -290,7 +292,10 @@ std::shared_ptr<SideInfoConfig> getRowSideInfoDenseMacauPrior3dConfig(bool direc
 
 //result comparison
 
-void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, const std::vector<ResultItem>& expectedResultItems)
+void REQUIRE_RESULT_ITEMS(
+   const std::vector<ResultItem>& actualResultItems, const std::vector<ResultItem>& expectedResultItems,
+   double eps = APPROX_EPSILON
+   )
 {
    REQUIRE(actualResultItems.size() == expectedResultItems.size());
    for (std::vector<ResultItem>::size_type i = 0; i < actualResultItems.size(); i++)
@@ -299,9 +304,9 @@ void REQUIRE_RESULT_ITEMS(const std::vector<ResultItem>& actualResultItems, cons
       const ResultItem& expectedResultItem = expectedResultItems[i];
       REQUIRE(actualResultItem.coords == expectedResultItem.coords);
       REQUIRE(actualResultItem.val == expectedResultItem.val);
-      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample).epsilon(APPROX_EPSILON));
-      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg).epsilon(APPROX_EPSILON));
-      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var).epsilon(APPROX_EPSILON));
+      REQUIRE(actualResultItem.pred_1sample == Approx(expectedResultItem.pred_1sample).epsilon(eps));
+      REQUIRE(actualResultItem.pred_avg == Approx(expectedResultItem.pred_avg).epsilon(eps));
+      REQUIRE(actualResultItem.var == Approx(expectedResultItem.var).epsilon(eps));
    }
 }
 
@@ -1927,8 +1932,8 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems());
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems(), APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2139,8 +2144,8 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems());
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems(), APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2353,8 +2358,8 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems());
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems(), APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2459,8 +2464,8 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems());
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems(), APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2512,8 +2517,8 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems());
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems(), APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2565,8 +2570,8 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems());
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems(), APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2618,8 +2623,8 @@ TEST_CASE(
    matrixSession->run();
    tensorSession->run();
 
-   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems());
+   REQUIRE(matrixSession->getRmseAvg() == Approx(tensorSession->getRmseAvg()).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(matrixSession->getResultItems(), tensorSession->getResultItems(), APPROX_EPSILON_TENSOR);
 }
 
 //==========================================================================
@@ -2686,8 +2691,8 @@ TEST_CASE(
    float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
-   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults);
+   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults, APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2752,8 +2757,8 @@ TEST_CASE(
    float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
-   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults);
+   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults, APPROX_EPSILON_TENSOR);
 }
 
 //
@@ -2773,7 +2778,7 @@ TEST_CASE(
    "matrix vs 2D-tensor"
    "--train <train_dense_2d_tensor> --test <test_sparse_2d_tensor> --prior macauone macauone --side-info <row_side_info_dense_matrix> <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct"
    "--train <train_dense_matrix>    --test <test_sparse_matrix>    --prior macauone macauone --side-info <row_side_info_dense_matrix> <col_side_info_dense_matrix> --num-latent 4 --burnin 50 --nsamples 50 --verbose 0 --seed 1234 --direct"
-   , TAG_VS_TESTS)
+   , TAG_VS_TESTS"[!hide]")
 {
    std::shared_ptr<TensorConfig> trainDenseTensorConfig = getTrainDenseTensor2dConfig();
    std::shared_ptr<TensorConfig> testSparseTensorConfig = getTestSparseTensor2dConfig();
@@ -2818,8 +2823,8 @@ TEST_CASE(
    float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
-   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults);
+   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON_TENSOR*10));
+   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults, APPROX_EPSILON_TENSOR*10);
 }
 
 //
@@ -2884,8 +2889,8 @@ TEST_CASE(
    float matrixRunRmseAvg = matrixRunSession->getRmseAvg();
    const std::vector<ResultItem> & matrixRunResults = matrixRunSession->getResultItems();
 
-   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON));
-   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults);
+   REQUIRE(tensorRunRmseAvg == Approx(matrixRunRmseAvg).epsilon(APPROX_EPSILON_TENSOR));
+   REQUIRE_RESULT_ITEMS(tensorRunResults, matrixRunResults, APPROX_EPSILON_TENSOR);
 }
 
 TEST_CASE("PredictSession/BPMF")
