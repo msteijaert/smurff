@@ -1,3 +1,6 @@
+#include <viennacl/matrix.hpp>
+#include <viennacl/linalg/lu.hpp>
+
 #include "MacauPrior.h"
 
 #include <SmurffCpp/IO/MatrixIO.h>
@@ -125,6 +128,33 @@ void MacauPrior::sample_beta()
         // writes: m_beta
         // complexity: num_feat^3
         beta() = FtF_plus_precision.llt().solve(Ft_y.transpose()).transpose();
+
+        {
+            typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> EigenRowMajor;
+
+            using namespace viennacl;
+            using namespace viennacl::linalg;
+
+            //allocate
+            matrix<double> vcl_FtF(FtF_plus_precision.rows(), FtF_plus_precision.cols());
+            matrix<double> vcl_Ft_y_t(Ft_y.cols(), Ft_y.rows());
+
+            //map
+            Eigen::Map<EigenRowMajor> map_beta(beta().data(), beta().cols(), beta().rows());
+            Eigen::Map<EigenRowMajor> map_Ft_y(Ft_y.data(), Ft_y.cols(), Ft_y.rows());
+
+            //copy
+            copy(FtF_plus_precision, vcl_FtF);
+            copy(map_Ft_y, vcl_Ft_y_t);
+
+            // calculate
+            lu_factorize(vcl_FtF);
+            lu_substitute(vcl_FtF, vcl_Ft_y_t);
+
+            //copy back
+            copy(vcl_Ft_y_t, map_beta);
+
+        }
     } 
     else
     {
