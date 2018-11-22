@@ -91,8 +91,6 @@ std::shared_ptr<smurff::MatrixConfig> smurff::matrix_utils::eigen_to_sparse(cons
       }
    }
 
-   std::uint64_t nnz = values.size();
-
    return std::make_shared<smurff::MatrixConfig>(nrow, ncol, rows, cols, values, n, isScarce);
 }
 
