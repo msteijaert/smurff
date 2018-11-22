@@ -416,6 +416,11 @@ public:
        m_num_threads = value;
    }
 
+  int getOpenCLDevice() const
+   {
+       return 1;
+   }
+
    std::string getRootName() const
    {
        return m_root_name;

@@ -11,6 +11,11 @@ namespace smurff
         int  get_thread_num();
 
     }
+
+    namespace opencl
+    {
+        void init(int verbose, int device);
+    }
 }
 
 
