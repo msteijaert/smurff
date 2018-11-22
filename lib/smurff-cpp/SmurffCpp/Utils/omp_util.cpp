@@ -4,6 +4,10 @@
 
 #include <SmurffCpp/Utils/Error.h>
 
+#ifdef VIENNACL_WITH_OPENCL
+#include "viennacl/ocl/backend.hpp"
+#endif
+
 namespace smurff
 {
 namespace threads
@@ -66,4 +70,17 @@ namespace threads
     #endif // _OPENMP
 }
 
-}
+namespace opencl
+{
+    void init(int verbose, int device_idx)
+    {
+
+    #ifdef VIENNACL_WITH_OPENCL
+        const std::vector<viennacl::ocl::device> devices = viennacl::ocl::platform().devices();
+        viennacl::ocl::setup_context(0, devices[device_idx]);
+        viennacl::ocl::switch_context(0);
+    #endif
+    }
+} // namespace opencl
+
+} // namespace smurff

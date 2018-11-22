@@ -109,8 +109,9 @@ void Session::addPrior(std::shared_ptr<ILatentPrior> prior)
 
 void Session::init()
 {
-    //init omp
+    //init openmp and opencl
     threads::init(m_config.getVerbose(), m_config.getNumThreads());
+    opencl::init(m_config.getVerbose(), m_config.getOpenCLDevice());
 
     //initialize random generator
     initRng();
