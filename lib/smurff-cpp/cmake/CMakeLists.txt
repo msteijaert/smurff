@@ -242,7 +242,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCRIPT_DIR}")
 
 include(scripts/DependenciesConfig.cmake)
 
-configure_eigen_viennacl()
+configure_eigen()
 configure_boost()
 
 if(NOT MSVC)

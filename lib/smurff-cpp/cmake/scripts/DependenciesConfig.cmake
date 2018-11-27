@@ -18,7 +18,6 @@ macro(configure_openmp)
       message(STATUS "OpenMP found")
       set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
       set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${OpenMP_C_FLAGS}")
-      add_definitions(-DVIENNACL_WITH_OPENMP)
 
       message(STATUS "OpenMP_CXX_LIB_NAMES ${OpenMP_CXX_LIB_NAMES}")
       message(STATUS "OpenMP_CXX_LIBRARY ${OpenMP_CXX_LIBRARY}")
@@ -79,22 +78,21 @@ macro(configure_mkl)
   message(STATUS MKL: ${MKL_LIBRARIES} )
 endmacro(configure_mkl)
 
-macro(configure_eigen_viennacl)
-  message ("Dependency check for Eigen and ViennaCL...")
+macro(configure_eigen)
+  message ("Dependency check for Eigen...")
   
-  if(DEFINED ENV{SMURFF_INCLUDE_DIRS})
+  if(DEFINED ENV{EIGEN3_INCLUDE_DIR})
+    SET(EIGEN3_INCLUDE_DIR $ENV{EIGEN3_INCLUDE_DIR})
+  elseif(DEFINED ENV{SMURFF_INCLUDE_DIRS})
     SET(EIGEN3_INCLUDE_DIR $ENV{SMURFF_INCLUDE_DIRS})
   else()
     find_package(Eigen3 REQUIRED)
   endif()
 
-  find_package(ViennaCL REQUIRED)
-  add_definitions(-DVIENNACL_WITH_EIGEN)
-  
-  SET(SMURFF_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR} ${VIENNACL_INCLUDE_DIR})
+  SET(SMURFF_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 
-  message(STATUS "Eigen/ViennaCL include dirs: ${SMURFF_INCLUDE_DIRS}")
-endmacro(configure_eigen_viennacl)
+  message(STATUS "Eigen include dirs: ${SMURFF_INCLUDE_DIRS}")
+endmacro(configure_eigen)
 
 macro(configure_boost)
   if(${ENABLE_BOOST})
