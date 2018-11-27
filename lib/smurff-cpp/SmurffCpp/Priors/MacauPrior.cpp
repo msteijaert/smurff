@@ -144,17 +144,30 @@ void MacauPrior::sample_beta()
             //map
             Eigen::Map<EigenRowMajor> map_beta(beta().data(), beta().cols(), beta().rows());
             Eigen::Map<EigenRowMajor> map_Ft_y(Ft_y.data(), Ft_y.cols(), Ft_y.rows());
+            viennacl::backend::finish(); 
 
-            //copy
-            copy(FtF_plus_precision, vcl_FtF);
-            copy(map_Ft_y, vcl_Ft_y_t);
+            {
+                COUNTER("cpu-gpu-copy");
+                //copy
+                copy(FtF_plus_precision, vcl_FtF);
+                copy(map_Ft_y, vcl_Ft_y_t);
+                viennacl::backend::finish(); 
+            }
 
-            // calculate
-            lu_factorize(vcl_FtF);
-            lu_substitute(vcl_FtF, vcl_Ft_y_t);
+            {
+                COUNTER("gpu-calc");
+                // calculate
+                lu_factorize(vcl_FtF);
+                lu_substitute(vcl_FtF, vcl_Ft_y_t);
+                viennacl::backend::finish(); 
+            }
 
-            //copy back
-            copy(vcl_Ft_y_t, map_beta);
+            {
+                COUNTER("gpu-cpu-copy");
+                //copy back
+                copy(vcl_Ft_y_t, map_beta);
+                viennacl::backend::finish(); 
+            }
 
         }
         else
