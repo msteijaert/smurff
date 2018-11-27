@@ -418,7 +418,7 @@ public:
 
   int getOpenCLDevice() const
    {
-       return 1;
+       return 0;
    }
 
    std::string getRootName() const
