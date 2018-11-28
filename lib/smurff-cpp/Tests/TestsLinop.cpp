@@ -116,16 +116,14 @@ TEST_CASE( "Eigen::MatrixFree::1", "Test smurff::linop::AtA_mulB - 1" )
   B << 0.56, 0.55, 0.3, -1.78,
       0.34, 0.05, -1.48, 1.11,
       0.09, 0.51, -0.63, 1.59;
-  B.transposeInPlace();
 
   X_true << 0.35555556, 0.40709677, -0.16444444, -0.87483871,
       1.69333333, -0.12709677, -1.94666667, 0.49483871,
       0.66, -0.04064516, -0.78, 0.65225806;
-  X_true.transposeInPlace();
 
   Eigen::ConjugateGradient<smurff::linop::AtA, Eigen::Lower | Eigen::Upper, Eigen::IdentityPreconditioner> cg;
   cg.compute(A);
-  X = cg.solve(B);
+  X = cg.solve(B.transpose()).transpose();
 
   for (int i = 0; i < X.rows(); i++)
   {
