@@ -55,8 +55,6 @@ Result::Result(std::shared_ptr<TensorConfig> Y, int nsamples)
       const auto p = Y->get(i);
       m_predictions.push_back(ResultItem(p.first, p.second, nsamples));
    }
-
-   init();
 }
 
 Result::Result(PVec<> lo, PVec<> hi, float value, int nsamples)

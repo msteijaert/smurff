@@ -90,7 +90,7 @@ private:
    void restorePred(std::shared_ptr<const StepFile> sf);
    void restoreState(std::shared_ptr<const StepFile> sf);
 
-private:
+public:
    void init();
 
 public:

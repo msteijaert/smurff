@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 
+#define SHOW(M) std::cout << #M << " =\n" << M << std::endl << std::endl;
 
 #define CONCAT_VAR(n1, n2) n1 ## n2
 

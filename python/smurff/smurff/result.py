@@ -1,9 +1,12 @@
 from scipy import sparse
 import math
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, roc_auc_score
 
 def calc_rmse(predictions):
     return math.sqrt(mean_squared_error([p.val for p in predictions], [p.pred_avg for p in predictions]))
+
+def calc_auc(predictions, threshold):
+    return roc_auc_score([p.val > threshold for p in predictions], [p.pred_avg - threshold for p in predictions])
 
 class Prediction:
     """Stores predictions for a single point in the matrix/tensor
