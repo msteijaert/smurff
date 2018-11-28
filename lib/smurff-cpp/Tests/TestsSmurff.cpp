@@ -45,7 +45,7 @@ void printActualResults(int nr, float actualRmseAvg, const std::vector<smurff::R
 
 // https://github.com/catchorg/Catch2/blob/master/docs/assertions.md#floating-point-comparisons
 // By default Catch.hpp sets epsilon to std::numeric_limits<float>::epsilon()*100
-const double APPROX_EPSILON = std::numeric_limits<float>::epsilon()*10000;
+const double APPROX_EPSILON = std::numeric_limits<float>::epsilon()*1000;
 // for tensor vs. matrix tests we increase margin
 const double APPROX_EPSILON_TENSOR  = std::numeric_limits<float>::epsilon()*10000;
 
