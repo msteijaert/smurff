@@ -3,7 +3,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
-#include <unsupported/Eigen/IterativeSolvers>
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
