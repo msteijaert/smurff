@@ -13,16 +13,16 @@
 
 namespace smurff {
 namespace linop {
-  class AtA_mul_B;
+  class AtA;
 } }
 
 using Eigen::SparseMatrix;
 
 namespace Eigen {
 namespace internal {
-  // AtA_mul_B looks-like a SparseMatrix, so let's inherits its traits:
+  // AtA looks-like a SparseMatrix, so let's inherits its traits:
   template<>
-  struct traits<smurff::linop::AtA_mul_B> :  public Eigen::internal::traits<Eigen::SparseMatrix<double> >
+  struct traits<smurff::linop::AtA> :  public Eigen::internal::traits<Eigen::SparseMatrix<double> >
   {};
 }
 }
@@ -34,7 +34,7 @@ namespace linop
 
 // Example of a matrix-free wrapper from a user type to Eigen's compatible type
 // For the sake of simplicity, this example simply wrap a Eigen::SparseMatrix.
-class AtA_mul_B : public Eigen::EigenBase<AtA_mul_B>
+class AtA : public Eigen::EigenBase<AtA>
 {
 public:
   // Required typedefs, constants, and method:
@@ -50,12 +50,12 @@ public:
   Index rows() const { return m_A.cols(); }
   Index cols() const { return m_A.cols(); }
   template <typename Rhs>
-  Eigen::Product<AtA_mul_B, Rhs, Eigen::AliasFreeProduct> operator*(const Eigen::MatrixBase<Rhs> &x) const
+  Eigen::Product<AtA, Rhs, Eigen::AliasFreeProduct> operator*(const Eigen::MatrixBase<Rhs> &x) const
   {
-    return Eigen::Product<AtA_mul_B, Rhs, Eigen::AliasFreeProduct>(*this, x.derived());
+    return Eigen::Product<AtA, Rhs, Eigen::AliasFreeProduct>(*this, x.derived());
   }
   // Custom API:
-  AtA_mul_B(const Eigen::SparseMatrix<double> &A, double reg) : m_A(A), m_reg(reg) {}
+  AtA(const Eigen::SparseMatrix<double> &A, double reg) : m_A(A), m_reg(reg) {}
 
   const SparseMatrix<double> &m_A;
   double m_reg;
@@ -64,19 +64,19 @@ public:
 } // namespace linop
 } // namespace smurff
 
-// Implementation of AtA_mul_B * Eigen::DenseVector though a specialization of internal::generic_product_impl:
+// Implementation of AtA * Eigen::DenseVector though a specialization of internal::generic_product_impl:
 namespace Eigen {
 namespace internal {
   template<typename Rhs>
-  struct generic_product_impl<smurff::linop::AtA_mul_B, Rhs, SparseShape, DenseShape, GemvProduct> // GEMV stands for matrix-vector
-  : generic_product_impl_base<smurff::linop::AtA_mul_B,Rhs,generic_product_impl<smurff::linop::AtA_mul_B,Rhs> >
+  struct generic_product_impl<smurff::linop::AtA, Rhs, SparseShape, DenseShape, GemvProduct> // GEMV stands for matrix-vector
+  : generic_product_impl_base<smurff::linop::AtA,Rhs,generic_product_impl<smurff::linop::AtA,Rhs> >
   {
-    typedef typename Product<smurff::linop::AtA_mul_B,Rhs>::Scalar Scalar;
+    typedef typename Product<smurff::linop::AtA,Rhs>::Scalar Scalar;
     template<typename Dest>
-    static void scaleAndAddTo(Dest& dst, const smurff::linop::AtA_mul_B& lhs, const Rhs& rhs, const Scalar& alpha)
+    static void scaleAndAddTo(Dest& dst, const smurff::linop::AtA& lhs, const Rhs& rhs, const Scalar& alpha)
     {
       // This method should implement "dst += alpha * lhs * rhs" inplace,
-      dst += alpha * ((lhs.m_A.transpose() * (lhs.m_A * rhs.transpose())).transpose() + lhs.m_reg * rhs);
+      dst += alpha * ((lhs.m_A.transpose() * (lhs.m_A * rhs)) + lhs.m_reg * rhs);
     }
   };
 }
