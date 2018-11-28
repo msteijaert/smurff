@@ -107,11 +107,11 @@ TEST_CASE( "Eigen::MatrixFree::1", "Test smurff::linop::AtA_mulB - 1" )
 {
   std::vector<uint32_t> rows = {0, 3, 3, 2, 5, 4, 1, 2, 4};
   std::vector<uint32_t> cols = {1, 0, 2, 1, 3, 0, 1, 3, 2};
-  Eigen::SparseMatrix<double> S = matrix_utils::sparse_to_eigen(MatrixConfig(6, 4, rows, cols, fixed_ncfg, false));
+  Eigen::SparseMatrix<float> S = matrix_utils::sparse_to_eigen(MatrixConfig(6, 4, rows, cols, fixed_ncfg, false));
 
   smurff::linop::AtA A(S, 0.5);
 
-  Eigen::MatrixXd B(3, 4), X(3, 4), X_true(3, 4);
+  Eigen::MatrixXf B(3, 4), X(3, 4), X_true(3, 4);
 
   B << 0.56, 0.55, 0.3, -1.78,
       0.34, 0.05, -1.48, 1.11,

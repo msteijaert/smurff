@@ -3,7 +3,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
-#include <unsupported/Eigen/IterativeSolvers>
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
@@ -22,7 +21,7 @@ namespace Eigen {
 namespace internal {
   // AtA looks-like a SparseMatrix, so let's inherits its traits:
   template<>
-  struct traits<smurff::linop::AtA> :  public Eigen::internal::traits<Eigen::SparseMatrix<double> >
+  struct traits<smurff::linop::AtA> :  public Eigen::internal::traits<Eigen::SparseMatrix<float> >
   {};
 }
 }
@@ -38,8 +37,8 @@ class AtA : public Eigen::EigenBase<AtA>
 {
 public:
   // Required typedefs, constants, and method:
-  typedef double Scalar;
-  typedef double RealScalar;
+  typedef float Scalar;
+  typedef float RealScalar;
   typedef int StorageIndex;
   enum
   {
@@ -55,10 +54,10 @@ public:
     return Eigen::Product<AtA, Rhs, Eigen::AliasFreeProduct>(*this, x.derived());
   }
   // Custom API:
-  AtA(const Eigen::SparseMatrix<double> &A, double reg) : m_A(A), m_reg(reg) {}
+  AtA(const Eigen::SparseMatrix<float> &A, float reg) : m_A(A), m_reg(reg) {}
 
-  const SparseMatrix<double> &m_A;
-  double m_reg;
+  const SparseMatrix<float> &m_A;
+  float m_reg;
 };
 
 } // namespace linop
