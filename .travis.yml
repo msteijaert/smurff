@@ -3,11 +3,9 @@ matrix:
   include:
   - os: linux
     dist: xenial
-    sudo: false
     env: BUILD_TYPE="Debug"
   - os: linux
     dist: xenial
-    sudo: false
     env: BUILD_TYPE="Release"
 env:
   global:
@@ -24,6 +22,7 @@ addons:
       - liblapacke-dev
       - libboost-all-dev
       - libopenmpi-dev
+      - libeigen3-dev
 
 script:
     - cd "${TRAVIS_BUILD_DIR}"
