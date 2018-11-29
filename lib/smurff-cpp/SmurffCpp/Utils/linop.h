@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
@@ -9,7 +10,81 @@
 
 #include <SmurffCpp/SideInfo/SparseSideInfo.h>
 
-namespace smurff { namespace linop {
+namespace smurff {
+namespace linop {
+  class AtA;
+} }
+
+using Eigen::SparseMatrix;
+
+namespace Eigen {
+namespace internal {
+  // AtA looks-like a SparseMatrix, so let's inherits its traits:
+  template<>
+  struct traits<smurff::linop::AtA> :  public Eigen::internal::traits<Eigen::SparseMatrix<double> >
+  {};
+}
+}
+
+namespace smurff
+{
+namespace linop
+{
+
+// Example of a matrix-free wrapper from a user type to Eigen's compatible type
+// For the sake of simplicity, this example simply wrap a Eigen::SparseMatrix.
+class AtA : public Eigen::EigenBase<AtA>
+{
+public:
+  // Required typedefs, constants, and method:
+  typedef double Scalar;
+  typedef double RealScalar;
+  typedef int StorageIndex;
+  enum
+  {
+    ColsAtCompileTime = Eigen::Dynamic,
+    MaxColsAtCompileTime = Eigen::Dynamic,
+    IsRowMajor = false
+  };
+  Index rows() const { return m_A.cols(); }
+  Index cols() const { return m_A.cols(); }
+  template <typename Rhs>
+  Eigen::Product<AtA, Rhs, Eigen::AliasFreeProduct> operator*(const Eigen::MatrixBase<Rhs> &x) const
+  {
+    return Eigen::Product<AtA, Rhs, Eigen::AliasFreeProduct>(*this, x.derived());
+  }
+  // Custom API:
+  AtA(const Eigen::SparseMatrix<double> &A, double reg) : m_A(A), m_reg(reg) {}
+
+  const SparseMatrix<double> &m_A;
+  double m_reg;
+};
+
+} // namespace linop
+} // namespace smurff
+
+// Implementation of AtA * Eigen::DenseVector though a specialization of internal::generic_product_impl:
+namespace Eigen {
+namespace internal {
+  template<typename Rhs>
+  struct generic_product_impl<smurff::linop::AtA, Rhs, SparseShape, DenseShape, GemvProduct> // GEMV stands for matrix-vector
+  : generic_product_impl_base<smurff::linop::AtA,Rhs,generic_product_impl<smurff::linop::AtA,Rhs> >
+  {
+    typedef typename Product<smurff::linop::AtA,Rhs>::Scalar Scalar;
+    template<typename Dest>
+    static void scaleAndAddTo(Dest& dst, const smurff::linop::AtA& lhs, const Rhs& rhs, const Scalar& alpha)
+    {
+      // This method should implement "dst += alpha * lhs * rhs" inplace,
+      dst += alpha * ((lhs.m_A.transpose() * (lhs.m_A * rhs)) + lhs.m_reg * rhs);
+    }
+  };
+}
+}
+
+namespace smurff
+{
+namespace linop
+{
 
 template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error = false);

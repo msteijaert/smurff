@@ -116,6 +116,10 @@ void Session::init()
     //initialize random generator
     initRng();
 
+
+    //initialize test set
+    if (m_pred) m_pred->init();
+
     //initialize train matrix (centring and noise model)
     data().init();
 
