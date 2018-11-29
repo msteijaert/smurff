@@ -14,11 +14,6 @@ env:
     - MAKEFLAGS="-j 2"
     - OMP_NUM_THREADS=1
 
-before_install:
-  - sudo add-apt-repository ppa:lkoppel/robotics -y
-  - sudo apt-get update -q
-  - sudo apt-get install libeigen3-dev -y
-
 addons:
   apt:
     sources:
