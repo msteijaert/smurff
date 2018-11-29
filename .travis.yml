@@ -12,6 +12,7 @@ matrix:
 env:
   global:
     - MAKEFLAGS="-j 2"
+    - OMP_NUM_THREADS=1
 
 before_install:
   - sudo add-apt-repository ppa:lkoppel/robotics -y
@@ -20,6 +21,8 @@ before_install:
 
 addons:
   apt:
+    sources:
+    - sourceline: 'ppa:lkoppel/robotics'
     packages:
       - libblas-dev
       - liblapack-dev
