@@ -24,6 +24,9 @@ install:
       export PATH="${DEPS_DIR}/cmake/bin:${PATH}"
       export OMP_NUM_THREADS=1
     fi
+  - wget -q https://arrayfire.s3.amazonaws.com/3.6.1/ArrayFire-v3.6.1_Linux_x86_64.sh
+  - sudo chmod +x ArrayFire-v*_Linux_x86_64.sh
+  - sudo ./ArrayFire-v*_Linux_x86_64.sh --exclude-subdir --prefix=/usr/local
 addons:
   apt:
     packages:
