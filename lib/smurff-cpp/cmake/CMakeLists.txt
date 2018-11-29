@@ -258,7 +258,7 @@ set(ALGEBRA_LIB_FOUND OFF)
 
 if(${ENABLE_OPENBLAS})
   if(${ENABLE_MKL})
-  message(FATAL_ERROR "You cannot both enable OpenBLAS and MKL")
+    message(FATAL_ERROR "You cannot both enable OpenBLAS and MKL")
   endif()
   configure_openblas()
   set(ALGEBRA_LIBS ${BLAS_LIBRARIES})
@@ -287,9 +287,10 @@ INCLUDE_DIRECTORIES(${ArrayFire_INCLUDE_DIRS})
 
 if(ArrayFire_OpenCL_FOUND)
   set(ALGEBRA_LIBS ${ALGEBRA_LIBS} ArrayFire::afopencl)
+else()
+  set(ALGEBRA_LIBS ${ALGEBRA_LIBS} ArrayFire::afcpu)
 endif()
 
-message(STATUS "Algebra lib name:  ${ALGEBRA_LIB_NAME}")
 message(STATUS "Algebra libs: ${ALGEBRA_LIBS}")
 
 if(${ENABLE_PROFILING})
