@@ -25,8 +25,7 @@ addons:
       - libboost-all-dev
       - libopenmpi-dev
       - libeigen3-dev
-      - cmake3
-      - cmake3-data
+      - cmake
 script:
     - cd "${TRAVIS_BUILD_DIR}"
     - cd lib/smurff-cpp/cmake
