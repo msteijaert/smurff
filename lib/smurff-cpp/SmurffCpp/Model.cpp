@@ -7,7 +7,6 @@
 #include <cmath>
 #include <signal.h>
 
-#include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/DataMatrices/Data.h>

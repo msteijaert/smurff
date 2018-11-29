@@ -278,8 +278,17 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
 
 TEST_CASE("randn", "Test random number generation")
 {
-   #ifdef USE_BOOST_RANDOM
-   std::cout << "Running boost" << std::endl;
+#if defined(USE_BOOST_RANDOM) 
+   #if defined(TEST_RANDOM_OK)
+      INFO("Testing with correct BOOST random - all testcases should pass\n");
+   #else
+      WARN("Wrong BOOST version (should be 1.5x) - expect many failures\n");
+   #endif
+#else
+   WARN("Testing with std random - expect many failures\n");
+#endif
+
+#if defined(USE_BOOST_RANDOM) 
    init_bmrng(1234);
 
    float rnd = 0.0;
@@ -350,7 +359,6 @@ TEST_CASE("randn", "Test random number generation")
    #endif
 }
 
-#ifdef TEST_RANDOM
 TEST_CASE("rgamma", "Test random number generation")
 {
    #ifdef USE_BOOST_RANDOM
@@ -425,4 +433,3 @@ TEST_CASE("rgamma", "Test random number generation")
    
    #endif
 }
-#endif //TEST_RANDOM

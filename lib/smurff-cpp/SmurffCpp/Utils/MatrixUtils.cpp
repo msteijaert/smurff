@@ -5,8 +5,6 @@
 #include <vector>
 #include <iterator>
 
-#include <unsupported/Eigen/SparseExtra>
-
 #include <SmurffCpp/Utils/Error.h>
 
 Eigen::MatrixXf smurff::matrix_utils::dense_to_eigen(const smurff::MatrixConfig& matrixConfig)
