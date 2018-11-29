@@ -12,21 +12,21 @@ matrix:
 env:
   global:
     - MAKEFLAGS="-j 2"
-install:
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
+
+before_install:
+  - sudo add-apt-repository ppa:lkoppel/robotics -y
+  - sudo apt-get update -q
+  - sudo apt-get install libeigen3-dev -y
+
 addons:
   apt:
-    sources:
-      - ppa:lkoppel/robotics
     packages:
       - libblas-dev
       - liblapack-dev
       - liblapacke-dev
       - libboost-all-dev
       - libopenmpi-dev
-      - libeigen3-dev
-      - cmake
+
 script:
     - cd "${TRAVIS_BUILD_DIR}"
     - cd lib/smurff-cpp/cmake
