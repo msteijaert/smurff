@@ -17,8 +17,9 @@ install:
   - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
 addons:
   apt:
+    sources:
+      - ppa:lkoppel/robotics
     packages:
-#      - libopenblas-dev
       - libblas-dev
       - liblapack-dev
       - liblapacke-dev
