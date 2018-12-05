@@ -277,7 +277,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
    }
 }
 
-TEST_CASE("randn", "Test random number generation", "[random]")
+TEST_CASE("Test random number generation", "[random]")
 {
 #if defined(USE_BOOST_RANDOM) 
    #if defined(TEST_RANDOM_OK)
