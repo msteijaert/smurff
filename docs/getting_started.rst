@@ -14,6 +14,7 @@ notebooks that discuss different aspects of SMURFF.
    notebooks/a_first_example.ipynb
    notebooks/input_matrices_and_tensors.ipynb
    notebooks/different_methods.ipynb
+   notebooks/different_noise_models.ipynb
    notebooks/inference_with_smurff.ipynb
    notebooks/centering.ipynb
 

@@ -7,7 +7,6 @@
 #include <cmath>
 #include <signal.h>
 
-#include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 
 #include <SmurffCpp/DataMatrices/Data.h>
@@ -27,7 +26,6 @@
 #include <SmurffCpp/IO/GenericIO.h>
 
 using namespace std;
-using namespace Eigen;
 using namespace smurff;
 
 
@@ -67,7 +65,7 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
 
    m_link_matrices.resize(nmodes());
 
-   Pcache.init(ArrayXd::Ones(m_num_latent));
+   Pcache.init(Eigen::ArrayXd::Ones(m_num_latent));
 }
 
 void Model::setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd> link_matrix)
@@ -178,7 +176,7 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
    }
 
    m_link_matrices.resize(nmodes);
-   Pcache.init(ArrayXd::Ones(m_num_latent));
+   Pcache.init(Eigen::ArrayXd::Ones(m_num_latent));
 }
 
 std::ostream& Model::info(std::ostream &os, std::string indent) const

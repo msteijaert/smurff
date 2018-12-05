@@ -1,16 +1,15 @@
 #include "DenseMatrixData.h"
 
 using namespace smurff;
-using namespace Eigen;
 
-DenseMatrixData::DenseMatrixData(MatrixXd Y)
-   : FullMatrixData<MatrixXd>(Y)
+DenseMatrixData::DenseMatrixData(Eigen::MatrixXd Y)
+   : FullMatrixData<Eigen::MatrixXd>(Y)
 {
     this->name = "DenseMatrixData [fully known]";
 }
 
 //d is an index of column in U matrix
-void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, VectorXd& rr, MatrixXd& MM) const
+void DenseMatrixData::getMuLambda(const SubModel& model, uint32_t mode, int d, Eigen::VectorXd& rr, Eigen::MatrixXd& MM) const
 {
     auto &Y = this->Y(mode).col(d);
     auto Vf = *model.CVbegin(mode);

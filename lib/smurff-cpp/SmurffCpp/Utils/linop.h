@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
 #include <SmurffCpp/Utils/MatrixUtils.h>
 #include <SmurffCpp/Utils/Error.h>
@@ -9,91 +10,93 @@
 
 #include <SmurffCpp/SideInfo/SparseSideInfo.h>
 
-namespace smurff { namespace linop {
+namespace smurff {
+namespace linop {
+  class AtA;
+} }
+
+using Eigen::SparseMatrix;
+
+namespace Eigen {
+namespace internal {
+  // AtA looks-like a SparseMatrix, so let's inherits its traits:
+  template<>
+  struct traits<smurff::linop::AtA> :  public Eigen::internal::traits<Eigen::SparseMatrix<double> >
+  {};
+}
+}
+
+namespace smurff
+{
+namespace linop
+{
+
+// Example of a matrix-free wrapper from a user type to Eigen's compatible type
+// For the sake of simplicity, this example simply wrap a Eigen::SparseMatrix.
+class AtA : public Eigen::EigenBase<AtA>
+{
+public:
+  // Required typedefs, constants, and method:
+  typedef double Scalar;
+  typedef double RealScalar;
+  typedef int StorageIndex;
+  enum
+  {
+    ColsAtCompileTime = Eigen::Dynamic,
+    MaxColsAtCompileTime = Eigen::Dynamic,
+    IsRowMajor = false
+  };
+  Index rows() const { return m_A.cols(); }
+  Index cols() const { return m_A.cols(); }
+  template <typename Rhs>
+  Eigen::Product<AtA, Rhs, Eigen::AliasFreeProduct> operator*(const Eigen::MatrixBase<Rhs> &x) const
+  {
+    return Eigen::Product<AtA, Rhs, Eigen::AliasFreeProduct>(*this, x.derived());
+  }
+  // Custom API:
+  AtA(const Eigen::SparseMatrix<double> &A, double reg) : m_A(A), m_reg(reg) {}
+
+  const SparseMatrix<double> &m_A;
+  double m_reg;
+};
+
+} // namespace linop
+} // namespace smurff
+
+// Implementation of AtA * Eigen::DenseVector though a specialization of internal::generic_product_impl:
+namespace Eigen {
+namespace internal {
+  template<typename Rhs>
+  struct generic_product_impl<smurff::linop::AtA, Rhs, SparseShape, DenseShape, GemvProduct> // GEMV stands for matrix-vector
+  : generic_product_impl_base<smurff::linop::AtA,Rhs,generic_product_impl<smurff::linop::AtA,Rhs> >
+  {
+    typedef typename Product<smurff::linop::AtA,Rhs>::Scalar Scalar;
+    template<typename Dest>
+    static void scaleAndAddTo(Dest& dst, const smurff::linop::AtA& lhs, const Rhs& rhs, const Scalar& alpha)
+    {
+      // This method should implement "dst += alpha * lhs * rhs" inplace,
+      dst += alpha * ((lhs.m_A.transpose() * (lhs.m_A * rhs)) + lhs.m_reg * rhs);
+    }
+  };
+}
+}
+
+namespace smurff
+{
+namespace linop
+{
 
 template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, const int blocksize, const int excess, bool throw_on_cholesky_error = false);
 template<typename T>
 int  solve_blockcg(Eigen::MatrixXd & X, T & t, double reg, Eigen::MatrixXd & B, double tol, bool throw_on_cholesky_error = false);
 
-void At_mul_A(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
+inline void AtA_mul_B(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B);
+inline void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B);
 
-Eigen::VectorXd col_square_sum(Eigen::MatrixXd & A);
-
-template<typename T>
-void compute_uhat(Eigen::MatrixXd & uhat, T & feat, Eigen::MatrixXd & beta);
-template<typename T>
-void AtA_mul_B(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-template<>
-void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-// compile-time optimized versions (N - number of RHSs)
-template<typename T>
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-template<int N>
-void AtA_mul_Bx(Eigen::MatrixXd & out, SparseSideInfo & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp);
-
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B);
-
-
-void At_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-void At_mul_A_blas(Eigen::MatrixXd & A, double* AtA);
-void A_mul_At_blas(Eigen::MatrixXd & A, double* AAt);
-void A_mul_B_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-void A_mul_Bt_blas(Eigen::MatrixXd & Y, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
-inline void A_mul_B_omp(double alpha, Eigen::MatrixXd & out, double beta, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
-void A_mul_At_combo(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
-void A_mul_At_omp(Eigen::MatrixXd & out, Eigen::MatrixXd & A);
-Eigen::MatrixXd A_mul_At_combo(Eigen::MatrixXd & A);
-void A_mul_Bt_omp_sym(Eigen::MatrixXd & out, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
-// util functions:
-void A_mul_B(  Eigen::VectorXd & out, Eigen::MatrixXd & m, Eigen::VectorXd & b);
-void A_mul_Bt( Eigen::MatrixXd & out, Eigen::MatrixXd & m, Eigen::MatrixXd & B);
-
-Eigen::MatrixXd A_mul_B(Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
-void makeSymmetric(Eigen::MatrixXd & A);
-
-// Y = beta * Y + alpha * A * B (where B is symmetric)
-void Asym_mul_B_left(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-void Asym_mul_B_right(double beta, Eigen::MatrixXd & Y, double alpha, Eigen::MatrixXd & A, Eigen::MatrixXd & B);
-
-
-inline void At_mul_Bt(Eigen::VectorXd & Y, Eigen::MatrixXd & X, const int col, Eigen::MatrixXd & B) 
+inline void makeSymmetric(Eigen::MatrixXd &A)
 {
-   Y.setZero();
-
-   for (int row = 0; row < B.rows(); row++)
-   {
-      Y(row) = X.col(col).dot(B.row(row));
-   }
-}
-
-//
-// computes Z += A[:,col] * b', where a and b are vectors
-inline void add_Acol_mul_bt(Eigen::MatrixXd & Z, Eigen::MatrixXd & A, const int col, Eigen::VectorXd & b) 
-{
-   for (int row = 0; row < b.size(); row++)
-   {
-      Z.row(row) += (A.col(col) * b(row)).transpose();
-   }
-}
-
-///////////////////////////////////
-//     Template functions
-///////////////////////////////////
-
-//// for Sparse
-/** computes uhat = denseFeat * beta, where beta and uhat are row ordered */
-template<> inline void compute_uhat(Eigen::MatrixXd & uhat, Eigen::MatrixXd & denseFeat, Eigen::MatrixXd & beta) {
-  A_mul_Bt_blas(uhat, beta, denseFeat);
+  A = A.selfadjointView<Eigen::Lower>();
 }
 
 /** good values for solve_blockcg are blocksize=32 an excess=8 */
@@ -170,14 +173,14 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   Eigen::MatrixXd* RtR2 = new Eigen::MatrixXd(nrhs, nrhs);
 
   Eigen::MatrixXd KP(nrhs, nfeat);
-  Eigen::MatrixXd KPtmp(nrhs, K.rows());
   Eigen::MatrixXd PtKP(nrhs, nrhs);
   //Eigen::Matrix<double, N, N> A;
   //Eigen::Matrix<double, N, N> Psi;
   Eigen::MatrixXd A;
   Eigen::MatrixXd Psi;
 
-  A_mul_At_combo(*RtR, R);
+  //A_mul_At_combo(*RtR, R);
+  *RtR = R * R.transpose();
   makeSymmetric(*RtR);
 
   const int nblocks = (int)ceil(nfeat / 64.0);
@@ -187,11 +190,10 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   for (iter = 0; iter < 1000; iter++) {
     // KP = K * P
     ////double t1 = tick();
-    AtA_mul_B_switch(KP, K, reg, P, KPtmp);
+    AtA_mul_B(KP, K, reg, P);
     ////double t2 = tick();
 
-    //A_mul_Bt_blas(PtKP, P, KP); // TODO: use KPtmp with dsyrk two save 2x time
-    A_mul_Bt_omp_sym(PtKP, P, KP);
+    PtKP = P * KP.transpose();
 
     auto chol_PtKP = PtKP.llt();
     THROWERROR_ASSERT_MSG(!throw_on_cholesky_error || chol_PtKP.info() != Eigen::NumericalIssue, "Cholesky Decomposition failed! (Numerical Issue)");
@@ -215,7 +217,8 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
     ////double t4 = tick();
 
     // convergence check:
-    A_mul_At_combo(*RtR2, R);
+    //A_mul_At_combo(*RtR2, R);
+    *RtR2 = R * R.transpose();
     makeSymmetric(*RtR2);
 
     Eigen::VectorXd d = RtR2->diagonal();
@@ -272,170 +275,12 @@ inline int solve_blockcg(Eigen::MatrixXd & X, T & K, double reg, Eigen::MatrixXd
   return iter;
 }
 
-template<int N>
-void A_mul_Bx(Eigen::MatrixXd & out, Eigen::SparseMatrix<double, Eigen::RowMajor> & A, Eigen::MatrixXd & B) {
-   THROWERROR_ASSERT(N == out.rows());
-   THROWERROR_ASSERT(N == B.rows());
-   THROWERROR_ASSERT(A.cols() == B.cols());
-   THROWERROR_ASSERT(A.rows() == out.cols());
-
-  int* row_ptr   = A.outerIndexPtr();
-  int* cols      = A.innerIndexPtr();
-  double* vals   = A.valuePtr();
-  const int nrow = A.rows();
-  double* Y = out.data();
-  double* X = B.data();
-  #pragma omp parallel for schedule(guided)
-  for (int row = 0; row < nrow; row++) 
-  {
-    double tmp[N] = { 0 };
-    const int end = row_ptr[row + 1];
-    for (int i = row_ptr[row]; i < end; i++) 
-    {
-      int col = cols[i] * N;
-      double val = vals[i];
-      for (int j = 0; j < N; j++) 
-      {
-         tmp[j] += X[col + j] * val;
-      }
-    }
-    int r = row * N;
-    for (int j = 0; j < N; j++) 
-    {
-      Y[r + j] = tmp[j];
-    }
-  }
-}
-
-template<typename T>
-inline void AtA_mul_B_switch(Eigen::MatrixXd & out, T & A, double reg, Eigen::MatrixXd & B, Eigen::MatrixXd & tmp)
-{
-  switch(B.rows()) {
-    case 1: return AtA_mul_Bx<1>(out, A, reg, B, tmp);
-    case 2: return AtA_mul_Bx<2>(out, A, reg, B, tmp);
-    case 3: return AtA_mul_Bx<3>(out, A, reg, B, tmp);
-    case 4: return AtA_mul_Bx<4>(out, A, reg, B, tmp);
-    case 5: return AtA_mul_Bx<5>(out, A, reg, B, tmp);
-
-    case 6: return AtA_mul_Bx<6>(out, A, reg, B, tmp);
-    case 7: return AtA_mul_Bx<7>(out, A, reg, B, tmp);
-    case 8: return AtA_mul_Bx<8>(out, A, reg, B, tmp);
-    case 9: return AtA_mul_Bx<9>(out, A, reg, B, tmp);
-    case 10: return AtA_mul_Bx<10>(out, A, reg, B, tmp);
-
-    case 11: return AtA_mul_Bx<11>(out, A, reg, B, tmp);
-    case 12: return AtA_mul_Bx<12>(out, A, reg, B, tmp);
-    case 13: return AtA_mul_Bx<13>(out, A, reg, B, tmp);
-    case 14: return AtA_mul_Bx<14>(out, A, reg, B, tmp);
-    case 15: return AtA_mul_Bx<15>(out, A, reg, B, tmp);
-
-    case 16: return AtA_mul_Bx<16>(out, A, reg, B, tmp);
-    case 17: return AtA_mul_Bx<17>(out, A, reg, B, tmp);
-    case 18: return AtA_mul_Bx<18>(out, A, reg, B, tmp);
-    case 19: return AtA_mul_Bx<19>(out, A, reg, B, tmp);
-    case 20: return AtA_mul_Bx<20>(out, A, reg, B, tmp);
-
-    case 21: return AtA_mul_Bx<21>(out, A, reg, B, tmp);
-    case 22: return AtA_mul_Bx<22>(out, A, reg, B, tmp);
-    case 23: return AtA_mul_Bx<23>(out, A, reg, B, tmp);
-    case 24: return AtA_mul_Bx<24>(out, A, reg, B, tmp);
-    case 25: return AtA_mul_Bx<25>(out, A, reg, B, tmp);
-
-    case 26: return AtA_mul_Bx<26>(out, A, reg, B, tmp);
-    case 27: return AtA_mul_Bx<27>(out, A, reg, B, tmp);
-    case 28: return AtA_mul_Bx<28>(out, A, reg, B, tmp);
-    case 29: return AtA_mul_Bx<29>(out, A, reg, B, tmp);
-    case 30: return AtA_mul_Bx<30>(out, A, reg, B, tmp);
-
-    case 31: return AtA_mul_Bx<31>(out, A, reg, B, tmp);
-    case 32: return AtA_mul_Bx<32>(out, A, reg, B, tmp);
-    case 33: return AtA_mul_Bx<33>(out, A, reg, B, tmp);
-    case 34: return AtA_mul_Bx<34>(out, A, reg, B, tmp);
-    case 35: return AtA_mul_Bx<35>(out, A, reg, B, tmp);
-
-    case 36: return AtA_mul_Bx<36>(out, A, reg, B, tmp);
-    case 37: return AtA_mul_Bx<37>(out, A, reg, B, tmp);
-    case 38: return AtA_mul_Bx<38>(out, A, reg, B, tmp);
-    case 39: return AtA_mul_Bx<39>(out, A, reg, B, tmp);
-    case 40: return AtA_mul_Bx<40>(out, A, reg, B, tmp);
-    default: 
-    {
-       THROWERROR("BlockCG only available for up to 40 RHSs.");
-    }
-  }
-}
-
-inline void AtA_mul_B_switch(
-		   Eigen::MatrixXd & out,
-		   Eigen::MatrixXd & A,
-			 double reg,
-			 Eigen::MatrixXd & B,
-			 Eigen::MatrixXd & tmp) {
+inline void AtA_mul_B(Eigen::MatrixXd & out, Eigen::MatrixXd & A, double reg, Eigen::MatrixXd & B) {
 	out.noalias() = (A.transpose() * (A * B.transpose())).transpose() + reg * B;
 }
 
-template <int N>
-void AtA_mul_Bx(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B, Eigen::MatrixXd& inner) {
-    THROWERROR_ASSERT(N == out.rows());
-    THROWERROR_ASSERT(N == B.rows());
-    THROWERROR_ASSERT(A.cols() == B.cols());
-    THROWERROR_ASSERT(A.cols() == out.cols());
-    THROWERROR_ASSERT(A.rows() == inner.cols());
-
-    Eigen::SparseMatrix<double, Eigen::RowMajor>* M = A.matrix_ptr;
-    Eigen::SparseMatrix<double, Eigen::RowMajor>* Mt = A.matrix_trans_ptr;
-
-    A_mul_Bx<N>(inner, *M, B);
-
-    int* row_ptr   = Mt->outerIndexPtr();
-    int* cols      = Mt->innerIndexPtr();
-    double* vals   = Mt->valuePtr();
-    const int nrow = Mt->rows();
-    double* Y      = out.data();
-    double* X      = inner.data();
-    double* Braw   = B.data();
-    #pragma omp parallel for schedule(guided)
-    for (int row = 0; row < nrow; row++) 
-    {
-        double tmp[N] = { 0 };
-        const int end = row_ptr[row + 1];
-        for (int i = row_ptr[row]; i < end; i++) 
-        {
-        int col = cols[i] * N;
-        double val = vals[i];
-        for (int j = 0; j < N; j++) 
-        {
-            tmp[j] += X[col + j] * val;
-        }
-        }
-        int r = row * N;
-        for (int j = 0; j < N; j++) 
-        {
-        Y[r + j] = tmp[j] + reg * Braw[r + j];
-        }
-    }
-}
-
-// computes out = alpha * out + beta * A * B
-inline void A_mul_B_omp(
-    double alpha,
-    Eigen::MatrixXd & out,
-    double beta,
-    Eigen::MatrixXd & A,
-    Eigen::MatrixXd & B)
-{
-   THROWERROR_ASSERT(out.cols() == B.cols());
-
-  const int nblocks = (int)ceil(out.cols() / 64.0);
-  const int nrow = out.rows();
-  const int ncol = out.cols();
-  #pragma omp parallel for schedule(guided)
-  for (int block = 0; block < nblocks; block++) 
-  {
-    int col = block * 64;
-    int bcols = std::min(64, ncol - col);
-    out.block(0, col, nrow, bcols).noalias() = alpha * out.block(0, col, nrow, bcols) + beta * A * B.block(0, col, nrow, bcols);
-  }
+inline void AtA_mul_B(Eigen::MatrixXd& out, SparseSideInfo& A, double reg, Eigen::MatrixXd& B) {
+  out.noalias() = (A.Ft * (A.F * B.transpose())).transpose() + reg * B;
 }
 
 }}

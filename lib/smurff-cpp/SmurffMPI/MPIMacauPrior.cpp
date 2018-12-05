@@ -49,7 +49,7 @@ void MPIMacauPrior::sample_beta()
    const int num_feat = this->m_beta->cols();
 
    if (world_rank == 0) {
-      this->compute_Ft_y_omp(this->Ft_y);
+      this->compute_Ft_y(this->Ft_y);
       this->Ft_y.transposeInPlace();
    }
 

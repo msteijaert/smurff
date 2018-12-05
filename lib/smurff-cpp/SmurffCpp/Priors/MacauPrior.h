@@ -20,33 +20,20 @@ class MacauPrior : public NormalPrior
 {
 public:
    std::shared_ptr<Eigen::MatrixXd> 
-                   m_beta;           // num_feat x num_latent link matrix
+                   m_beta;            // num_latent x num_feat -- link matrix
 
    Eigen::MatrixXd Uhat;             // num_latent x num_items
-   Eigen::MatrixXd FtF_plus_beta;    // num_feat   x num feat
+   Eigen::MatrixXd Udelta;           // num_latent x num_items
+   Eigen::MatrixXd FtF_plus_precision;    // num_feat   x num feat
    Eigen::MatrixXd HyperU;           // num_latent x num_items
    Eigen::MatrixXd HyperU2;          // num_latent x num_feat
-   Eigen::MatrixXd Ft_y;             // num_latent x num_feat
+   Eigen::MatrixXd Ft_y;             // num_latent x num_feat -- RHS
+   Eigen::MatrixXd BBt;              // num_latent x num_latent
 
    int blockcg_iter;
    
    double beta_precision_mu0; // Hyper-prior for beta_precision
    double beta_precision_nu0; // Hyper-prior for beta_precision
-
-   //FIXME: these must be used
-
-   //new values
-
-   std::vector<std::shared_ptr<ISideInfo> > side_info_values;
-   std::vector<double> beta_precision_values;
-   std::vector<double> tol_values;
-   std::vector<bool> direct_values;
-   std::vector<bool> enable_beta_precision_sampling_values;
-   std::vector<bool> throw_on_cholesky_error_values;
-
-   //FIXME: these must be removed
-
-   //old values
 
    std::shared_ptr<ISideInfo> Features;  // side information
    double beta_precision;
@@ -69,9 +56,11 @@ public:
 
    const Eigen::VectorXd getMu(int n) const override;
 
-   void compute_Ft_y_omp(Eigen::MatrixXd& Ft_y);
+   Eigen::MatrixXd &beta() const { return *m_beta; }
+ 
+   int num_feat() const { return Features->cols(); }
 
-   // Update beta and Uhat
+   void compute_Ft_y(Eigen::MatrixXd& Ft_y);
    virtual void sample_beta();
 
 public:
@@ -79,30 +68,16 @@ public:
    void addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool throw_on_cholesky_error_a);
 
 public:
-
    bool save(std::shared_ptr<const StepFile> sf) const override;
-
    void restore(std::shared_ptr<const StepFile> sf) override;
 
 public:
-
    std::ostream& info(std::ostream &os, std::string indent) override;
-
    std::ostream& status(std::ostream &os, std::string indent) const override;
 
-private:
-
-   // direct method
-   void sample_beta_direct();
-
-   // BlockCG solver
-   void sample_beta_cg();
-
 public:
-
-   static std::pair<double, double> posterior_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
-
-   static double sample_beta_precision(Eigen::MatrixXd & beta, Eigen::MatrixXd & Lambda_u, double nu, double mu);
+   static std::pair<double, double> posterior_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N);
+   static double sample_beta_precision(const Eigen::MatrixXd & BBt, Eigen::MatrixXd & Lambda_u, double nu, double mu, int N);
 };
 
 }

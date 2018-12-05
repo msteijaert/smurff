@@ -5,7 +5,6 @@
 
 #include <SmurffCpp/Utils/Error.h>
 
-using namespace Eigen;
 using namespace smurff;
 
 SparseMode::SparseMode() 

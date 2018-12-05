@@ -6,25 +6,21 @@
 #include <Eigen/SparseCore>
 
 #include <SmurffCpp/Configs/MatrixConfig.h>
+#include <SmurffCpp/Configs/NoiseConfig.h>
 
 #include <SmurffCpp/Utils/Error.h>
 
 namespace smurff { namespace matrix_utils {
-   // Conversion of MatrixConfig to sparse eigen matrix
+   // Conversion of MatrixConfig to/from sparse eigen matrix
 
    Eigen::SparseMatrix<double> sparse_to_eigen(const smurff::MatrixConfig& matrixConfig);
+   std::shared_ptr<smurff::MatrixConfig> eigen_to_sparse(const Eigen::SparseMatrix<double> &, smurff::NoiseConfig n = smurff::NoiseConfig(), bool isScarce = false);
 
-   // Conversion of dense data to dense eigen matrix - do we need it? (sparse eigen matrix can be converted to dense eigen matrix with = operator)
+   // Conversion of dense data to/from dense eigen matrix
 
    Eigen::MatrixXd dense_to_eigen(const smurff::MatrixConfig& matrixConfig);
 
-   Eigen::MatrixXd dense_to_eigen(smurff::MatrixConfig& matrixConfig);
-
-   typedef struct {
-       Eigen::SparseMatrix<double, Eigen::RowMajor>* row_major_sparse;
-       Eigen::SparseMatrix<double, Eigen::ColMajor>* column_major_sparse;
-       Eigen::SparseMatrix<double, Eigen::RowMajor>* transposed_sparse;
-   } sparse_eigen_struct;
+   std::shared_ptr<smurff::MatrixConfig> eigen_to_dense(const Eigen::MatrixXd &, smurff::NoiseConfig n = smurff::NoiseConfig());
 
    std::ostream& operator << (std::ostream& os, const MatrixConfig& mc);
 

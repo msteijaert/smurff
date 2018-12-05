@@ -55,11 +55,13 @@ TEST_CASE( "latentprior/sample_beta_precision", "sampling beta precision from ga
           1.0,  0.91, -0.2;
   Lambda_u << 0.5, 0.1,
               0.1, 0.3;
-  auto post = MacauPrior::posterior_beta_precision(beta, Lambda_u, 0.01, 0.05);
+  
+  Eigen::MatrixXd BBt = beta * beta.transpose();                  
+  auto post = MacauPrior::posterior_beta_precision(BBt, Lambda_u, 0.01, 0.05, beta.cols());
   REQUIRE( post.first  == Approx(3.005) );
   REQUIRE( post.second == Approx(0.2631083888) );
 
-  double beta_precision = MacauPrior::sample_beta_precision(beta, Lambda_u, 0.01, 0.05);
+  double beta_precision = MacauPrior::sample_beta_precision(BBt, Lambda_u, 0.01, 0.05, beta.cols());
   REQUIRE( beta_precision > 0 );
 }
 
@@ -176,54 +178,31 @@ TEST_CASE( "DenseMatrixData/var_total", "Test if variance of Dense Matrix is cor
 using namespace Eigen;
 using namespace std;
 
-MacauPrior* make_dense_prior(int nlatent, double* ptr, int nrows, int ncols, bool colMajor, bool comp_FtF) 
+MacauPrior* make_dense_prior(int nlatent, const std::vector<double> & ptr, int nrows, int ncols, bool comp_FtF) 
 {
-   MatrixXd* Fmat = new MatrixXd(0, 0);
-   if (colMajor) 
-   {
-      *Fmat = Map<Matrix<double, Dynamic, Dynamic, ColMajor> >(ptr, nrows, ncols);
-   } 
-   else 
-   {
-      *Fmat = Map<Matrix<double, Dynamic, Dynamic, RowMajor> >(ptr, nrows, ncols);
-   }
    auto ret = new MacauPrior(0, 0);
-   std::shared_ptr<Eigen::MatrixXd> Fmat_ptr = std::shared_ptr<MatrixXd>(Fmat);
+   std::shared_ptr<MatrixConfig> Fmat_ptr = std::make_shared<MatrixConfig>(nrows, ncols, ptr, fixed_ncfg);
    std::shared_ptr<DenseSideInfo> side_info = std::make_shared<DenseSideInfo>(Fmat_ptr);
    ret->addSideInfo(side_info, 10.0, 1e-6, comp_FtF, true, false);
-   ret->FtF_plus_beta.resize(Fmat->cols(), Fmat->cols());
-   ret->Features->At_mul_A(ret->FtF_plus_beta);
+   ret->FtF_plus_precision.resize(ncols, ncols);
+   ret->Features->At_mul_A(ret->FtF_plus_precision);
    return ret;
 }
 
-TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixXd") {
-    double x[6] = {0.1, 0.4, -0.7, 0.3, 0.11, 0.23};
+TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixConfig") {
+    std::vector<double> x = {0.1, 0.4, -0.7, 0.3, 0.11, 0.23};
 
     // ColMajor case
-    auto prior = make_dense_prior(3, x, 3, 2, true, true);
+    auto prior = make_dense_prior(3, x, 3, 2, true);
 
     Eigen::MatrixXd Ftrue(3, 2);
     Ftrue <<  0.1, 0.3, 0.4, 0.11, -0.7, 0.23;
     auto features_downcast1 = std::dynamic_pointer_cast<DenseSideInfo>(prior->Features); //for the purpose of the test
     REQUIRE( (*(features_downcast1->get_features()) - Ftrue).norm() == Approx(0) );
     Eigen::MatrixXd tmp = Eigen::MatrixXd::Zero(2, 2);
-    tmp.triangularView<Eigen::Lower>()  = prior->FtF_plus_beta;
+    tmp.triangularView<Eigen::Lower>()  = prior->FtF_plus_precision;
     tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
     REQUIRE( tmp.norm() == Approx(0) );
-
-    // RowMajor case
-    auto prior2 = make_dense_prior(3, x, 3, 2, false, true);
-    Eigen::MatrixXd Ftrue2(3, 2);
-    Ftrue2 << 0.1,  0.4,
-              -0.7,  0.3,
-              0.11, 0.23;
-
-    auto features_downcast2 = std::dynamic_pointer_cast<DenseSideInfo>(prior2->Features); //for the purpose of the test
-    REQUIRE( (*(features_downcast2->get_features()) - Ftrue2).norm() == Approx(0) );
-    Eigen::MatrixXd tmp2 = Eigen::MatrixXd::Zero(2, 2);
-    tmp2.triangularView<Eigen::Lower>()  = prior2->FtF_plus_beta;
-    tmp2.triangularView<Eigen::Lower>() -= Ftrue2.transpose() * Ftrue2;
-    REQUIRE( tmp2.norm() == Approx(0) );
 }
 
 TEST_CASE("inv_norm_cdf/inv_norm_cdf", "Inverse normal CDF") {
@@ -300,8 +279,17 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
 
 TEST_CASE("randn", "Test random number generation")
 {
-   #ifdef USE_BOOST_RANDOM
-   std::cout << "Running boost" << std::endl;
+#if defined(USE_BOOST_RANDOM) 
+   #if defined(TEST_RANDOM_OK)
+      INFO("Testing with correct BOOST random - all testcases should pass\n");
+   #else
+      WARN("Wrong BOOST version (should be 1.5x) - expect many failures\n");
+   #endif
+#else
+   WARN("Testing with std random - expect many failures\n");
+#endif
+
+#if defined(USE_BOOST_RANDOM) 
    init_bmrng(1234);
 
    double rnd = 0.0;
@@ -372,7 +360,6 @@ TEST_CASE("randn", "Test random number generation")
    #endif
 }
 
-#ifdef TEST_RANDOM
 TEST_CASE("rgamma", "Test random number generation")
 {
    #ifdef USE_BOOST_RANDOM
@@ -447,4 +434,3 @@ TEST_CASE("rgamma", "Test random number generation")
    
    #endif
 }
-#endif //TEST_RANDOM

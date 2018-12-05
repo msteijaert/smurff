@@ -5,7 +5,6 @@
 #include <SmurffCpp/Utils/Error.h>
 
 using namespace smurff;
-using namespace Eigen;
 
 SpikeAndSlabPrior::SpikeAndSlabPrior(std::shared_ptr<Session> session, uint32_t mode)
    : NormalOnePrior(session, mode, "SpikeAndSlabPrior")
@@ -18,24 +17,24 @@ void SpikeAndSlabPrior::init()
    NormalOnePrior::init();
 
    const int K = num_latent();
-   const int D = num_cols();
+   const int D = num_item();
    const int nview = data().nview(m_mode);
    
    THROWERROR_ASSERT(D > 0);
 
-   Zcol.init(MatrixXd::Zero(K,nview));
-   W2col.init(MatrixXd::Zero(K,nview));
+   Zcol.init(Eigen::MatrixXd::Zero(K,nview));
+   W2col.init(Eigen::MatrixXd::Zero(K,nview));
 
    //-- prior params
-   Zkeep = ArrayXXd::Constant(K, nview, D);
+   Zkeep = Eigen::ArrayXXd::Constant(K, nview, D);
 
-   alpha = ArrayXXd::Ones(K,nview);
+   alpha = Eigen::ArrayXXd::Ones(K,nview);
    log_alpha.resize(K, nview);
    log_alpha = alpha.log();
 
-   r = ArrayXXd::Constant(K,nview,.5);
+   r = Eigen::ArrayXXd::Constant(K,nview,.5);
    log_r.resize(K, nview);
-   log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
+   log_r = - r.log() + (Eigen::ArrayXXd::Ones(K, nview) - r).log();
 }
 
 void SpikeAndSlabPrior::update_prior()
@@ -61,7 +60,7 @@ void SpikeAndSlabPrior::update_prior()
    W2col.reset(); 
 
    log_alpha = alpha.log();
-   log_r = - r.log() + (ArrayXXd::Ones(K, nview) - r).log();
+   log_r = - r.log() + (Eigen::ArrayXXd::Ones(K, nview) - r).log();
 }
 
 void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
@@ -73,8 +72,8 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
 
   //compute Zcol
   int d = 0;
-  ArrayXXd Z(ArrayXXd::Zero(K,nview));
-  ArrayXXd W2(ArrayXXd::Zero(K,nview));
+  Eigen::ArrayXXd Z(Eigen::ArrayXXd::Zero(K,nview));
+  Eigen::ArrayXXd W2(Eigen::ArrayXXd::Zero(K,nview));
   for(int v=0; v<data().nview(m_mode); ++v) 
   {
       for(int i=0; i<data().view_size(m_mode, v); ++i, ++d)
@@ -83,7 +82,7 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
         W2.col(v) += U().col(d).array().square(); 
       }
   }
-  THROWERROR_ASSERT(d == num_cols());
+  THROWERROR_ASSERT(d == num_item());
 
   Zcol.reset();
   W2col.reset();
@@ -93,12 +92,12 @@ void SpikeAndSlabPrior::restore(std::shared_ptr<const StepFile> sf)
   update_prior();
 }
 
-std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const MatrixXd& XX, const VectorXd& yX)
+std::pair<double, double> SpikeAndSlabPrior::sample_latent(int d, int k, const Eigen::MatrixXd& XX, const Eigen::VectorXd& yX)
 {
     const int v = data().view(m_mode, d);
     double mu, lambda;
 
-    MatrixXd aXX = alpha.matrix().col(v).asDiagonal();
+    Eigen::MatrixXd aXX = alpha.matrix().col(v).asDiagonal();
     aXX += XX;
     std::tie(mu, lambda) = NormalOnePrior::sample_latent(d, k, aXX, yX);
 
