@@ -360,7 +360,7 @@ TEST_CASE("Test random number generation", "[random]")
    #endif
 }
 
-TEST_CASE("rgamma", "Test random number generation")
+TEST_CASE("rgamma", " [random]")
 {
    #ifdef USE_BOOST_RANDOM
    std::cout << "Running boost" << std::endl;
