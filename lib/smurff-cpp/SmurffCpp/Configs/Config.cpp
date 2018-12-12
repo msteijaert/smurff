@@ -1,6 +1,8 @@
 #include "Config.h"
 
-#ifndef _WINDOWS
+#ifdef _WINDOWS
+#include <windows.h>
+#else
 #include <unistd.h>
 #endif
 
@@ -9,6 +11,7 @@
 #include <fstream>
 #include <iomanip>
 #include <ctime>
+#include <cstdio>
 #include <string>
 #include <memory>
 
@@ -171,13 +174,18 @@ Config::Config()
 std::string Config::getSavePrefix() const
 {
     auto &pfx = m_save_prefix;
-#ifndef _WINDOWS
     if (pfx == Config::SAVE_PREFIX_DEFAULT_VALUE || pfx.empty())
     {
+#ifdef _WINDOWS
+       char templ[1024];
+       static int temp_counter = 0;
+       snprintf(templ, 1023, "C:\\temp\\smurff.%3d", temp_counter++);
+       CreateDirectory(templ, NULL);
+#else
         char templ[1024] = "/tmp/smurff.XXXXXX";
         pfx = mkdtemp(templ);
-    }
 #endif
+    }
 
     if (*pfx.rbegin() != '/') 
         pfx += "/";
