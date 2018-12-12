@@ -181,6 +181,7 @@ std::string Config::getSavePrefix() const
        static int temp_counter = 0;
        snprintf(templ, 1023, "C:\\temp\\smurff.%3d", temp_counter++);
        CreateDirectory(templ, NULL);
+       pfx = templ;
 #else
         char templ[1024] = "/tmp/smurff.XXXXXX";
         pfx = mkdtemp(templ);
