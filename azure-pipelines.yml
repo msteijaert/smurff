@@ -22,7 +22,7 @@ jobs:
     - task: CMake@1
       inputs:
         workingDirectory: 'build.release'
-        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Release ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON
+        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Release ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON'
     - script: |
         cd build.debug
         ninja
