@@ -18,7 +18,6 @@ jobs:
       inputs:
         workingDirectory: 'build.debug'
         cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Debug ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON'
-    - make'
     - task: CMake@1
       inputs:
         workingDirectory: 'build.release'
