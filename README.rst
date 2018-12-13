@@ -1,7 +1,7 @@
 SMURFF - Scalable Matrix Factorization Framework
 ================================================
 
-|Build Status| |Anaconda-Server Badge|
+|Azure Build Status| |Travis Build Status| |Anaconda-Server Badge|
 
 What is Bayesian Matrix Factorization
 -------------------------------------
