@@ -1,6 +1,6 @@
 jobs:
 
-- job: 'Ubuntu 16.04 Apt'
+- job: 'Ubuntu_16.04_Apt'
   pool:
     vmImage: 'Ubuntu 16.04'
 
