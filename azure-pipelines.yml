@@ -28,7 +28,7 @@ jobs:
       displayName: 'Run ninja, debug'
     - script: |
         cd build.debug/Debug
-        ./test '~[random]'
+        ./tests '~[random]'
       displayName: 'Run tests, debug'
     - script: |
         cd build.release
