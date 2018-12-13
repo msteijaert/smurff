@@ -7,7 +7,7 @@ jobs:
   steps:
     - script: |
         sudo add-apt-repository ppa:lkoppel/robotics
-        sudo add-get update
+        sudo apt-get update
         sudo apt-get install -y ninja-build libblas-dev liblapack-dev liblapacke-dev libboost-all-dev libopenmpi-dev libeigen3-dev
       displayName: Apt install dependencies
     - script: |
