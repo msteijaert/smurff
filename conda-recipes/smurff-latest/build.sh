@@ -1,16 +1,22 @@
 #!/bin/bash
 
-pushd lib/smurff-cpp/cmake
 rm -rf build 
 mkdir build
 cd build
 
-cmake ../ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PREFIX -DENABLE_MKL=ON
+if [ -n "$OSX_ARCH" ]
+then
+    OPENMP_FLAGS="-DOpenMP_CXX_FLAG=-fopenmp=libiomp5 -DOpenMP_C_FLAG=-fopenmp=libiomp5"
+else
+    OPENMP_FLAGS=""
+fi
+
+
+cmake ../lib/smurff-cpp/cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PREFIX \
+    -DENABLE_MKL=ON $OPENMP_FLAGS
 
 make -j$CPU_COUNT
 make install
-popd
+cd python/Smurff
 
-pushd python/smurff
-$PYTHON setup.py install --with-openmp --single-version-externally-managed --record=record.txt
-popd
+$PYTHON setup.py install --single-version-externally-managed --record=record.txt
