@@ -33,3 +33,16 @@ jobs:
         cd build.$(build.type)/$(build.type)
         ./tests
       displayName: 'Run tests'
+
+- job: 'Conda'
+  pool:
+    vmImage: 'Ubuntu 16.04'
+
+  steps:
+    - task: CondaEnvironment@1
+    - script: |
+        cd conda-recipes
+        conda build smurff-0.14
+      displayName: Build
+
+
