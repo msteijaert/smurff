@@ -192,6 +192,9 @@ void StepFile::savePred(std::shared_ptr<const Result> m_pred) const
    if (m_pred->isEmpty())
       return;
 
+   if (!m_pred->m_save_pred)
+      return;
+
    m_pred->save(shared_from_this());
 
    //save predictions
