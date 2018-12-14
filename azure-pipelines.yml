@@ -31,5 +31,5 @@ jobs:
       displayName: 'Run ninja'
     - script: |
         cd build.$(build.type)/$(build.type)
-        ./tests '~[random]'
+        ./tests
       displayName: 'Run tests'
