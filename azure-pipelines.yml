@@ -31,7 +31,7 @@ jobs:
       displayName: 'Run ninja'
     - script: |
         cd build.$(build.type)/$(build.type)
-        ./tests
+        OMP_NUM_THREADS=1 ./tests
       displayName: 'Run tests'
 
 - job: 'Conda'
