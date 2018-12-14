@@ -4,6 +4,14 @@ jobs:
   pool:
     vmImage: 'Ubuntu 16.04'
 
+  strategy:
+    maxParallel: 2
+    matrix:
+      Debug:
+        build.type: 'Debug'
+      Release:
+        build.type: 'Release'
+
   steps:
     - script: |
         sudo add-apt-repository ppa:lkoppel/robotics
@@ -11,30 +19,17 @@ jobs:
         sudo apt-get install -y ninja-build libblas-dev liblapack-dev liblapacke-dev libboost-all-dev libopenmpi-dev libeigen3-dev
       displayName: Apt install dependencies
     - script: |
-        mkdir build.debug
-        mkdir build.release
-      displayName: Make Build Directories
+        mkdir build.$(build.type)
+      displayName: Make Build Directory
     - task: CMake@1
       inputs:
-        workingDirectory: 'build.debug'
-        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Debug ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON'
-    - task: CMake@1
-      inputs:
-        workingDirectory: 'build.release'
-        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Release ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON'
+        workingDirectory: 'build.$(build.type)'
+        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(build.type) ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON'
     - script: |
-        cd build.debug
+        cd build.$(build.type)
         ninja
-      displayName: 'Run ninja, debug'
+      displayName: 'Run ninja'
     - script: |
-        cd build.debug/Debug
+        cd build.$(build.type)/$(build.type)
         ./tests '~[random]'
-      displayName: 'Run tests, debug'
-    - script: |
-        cd build.release
-        ninja
-      displayName: 'Run ninja, release'
-    - script: |
-        cd build.release/Release
-        ./tests '~[random]'
-      displayName: 'Run tests, release'
+      displayName: 'Run tests'
