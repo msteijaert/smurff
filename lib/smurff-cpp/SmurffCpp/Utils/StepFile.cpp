@@ -177,6 +177,9 @@ std::string StepFile::makePredStateFileName() const
 
 void StepFile::saveModel(std::shared_ptr<const Model> model) const
 {
+   if (!model->m_save_model)
+      return;
+      
    model->save(shared_from_this());
 
    //save models

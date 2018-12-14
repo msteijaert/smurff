@@ -54,7 +54,7 @@ public:
 
 public:
    //initialize U matrices in the model (random/zero)
-   void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
+   void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type, bool save_model);
 
    void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd>);
 
@@ -109,6 +109,7 @@ public:
 
 public:
    // output to file
+   bool m_save_model = true;
    void save(std::shared_ptr<const StepFile> sf) const;
    void restore(std::shared_ptr<const StepFile> sf);
 

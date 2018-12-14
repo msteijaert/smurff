@@ -124,7 +124,7 @@ void Session::init()
     data().init();
 
     //initialize model (samples)
-    model().init(m_config.getNumLatent(), data().dim(), m_config.getModelInitType());
+    model().init(m_config.getNumLatent(), data().dim(), m_config.getModelInitType(), m_config.getSaveModel());
 
     //initialize priors
     for (auto &p : m_priors)
