@@ -44,7 +44,7 @@ jobs:
         packageSpecs: 'conda-build' # Optional
     - script: |
         cd conda-recipes
-        conda build smurff-0.14.1
+        conda build smurff-latest
       displayName: Build
 
 
