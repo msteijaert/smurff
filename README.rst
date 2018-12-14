@@ -1,7 +1,7 @@
 SMURFF - Scalable Matrix Factorization Framework
 ================================================
 
-|Build Status| |Anaconda-Server Badge|
+|Azure Build Status| |Travis Build Status| |Anaconda-Server Badge|
 
 What is Bayesian Matrix Factorization
 -------------------------------------
@@ -77,7 +77,11 @@ Acknowledgements
 This work was partly funded by the European projects ExCAPE
 (http://excape-h2020.eu) and EXA2CT, and the Flemish Exaptation project.
 
-.. |Build Status| image:: https://travis-ci.org/ExaScience/smurff.svg?branch=master
+.. |Travis Build Status| image:: https://travis-ci.org/ExaScience/smurff.svg?branch=master
    :target: https://travis-ci.org/ExaScience/smurff
+   
+.. |Azure Build Status| image:: https://dev.azure.com/ExaScience/smurff/_apis/build/status/ExaScience.smurff?branchName=master
+   :target: https://travis-ci.org/ExaScience/smurff
+
 .. |Anaconda-Server Badge| image:: https://anaconda.org/vanderaa/smurff/badges/installer/conda.svg
    :target: https://conda.anaconda.org/vanderaa
