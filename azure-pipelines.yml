@@ -38,16 +38,16 @@ jobs:
   pool:
     vmImage: 'Ubuntu 16.04'
   steps:
-    - template: conda-steps.yml
+    - template: ci/conda-steps.yml
 
 - job: 'Conda_macOS'
   pool:
     vmImage: 'macOS-10.13'
   steps:
-    - template: conda-steps.yml
+    - template: ci/conda-steps.yml
 
 - job: 'Conda_Windows'
   pool:
     vmImage: 'vs2015-win2012r2'
   steps:
-    - template: conda-steps.yml
+    - template: ci/conda-steps.yml
