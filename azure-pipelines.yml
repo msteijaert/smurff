@@ -55,18 +55,10 @@ jobs:
   - template: ci/conda-steps.yml
 
 - job: 'Conda_Windows'
+  variables:
+    CONDA: '$(Agent.WorkFolder)/MiniConda'
   pool:
     vmImage: 'vs2015-win2012r2'
   steps:
-    - task: PowerShell@2
-      inputs:
-         targetType: 'filePath'
-         filePath: 'ci/install-miniconda.ps1'
-       #arguments: # Optional
-       #script: '# Write your powershell commands here.' # Required when targetType == Inline
-       #errorActionPreference: 'stop' # Optional. Options: stop, continue, silentlyContinue
-       #failOnStderr: false # Optional
-       #ignoreLASTEXITCODE: false # Optional
-       #pwsh: false # Optional
-     #workingDirectory: # Optional
+    - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
     - template: ci/conda-steps.yml

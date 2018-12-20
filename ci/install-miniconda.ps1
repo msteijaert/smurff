@@ -3,11 +3,18 @@
 # Borrwed from: Olivier Grisel and Kyle Kastner
 # License: BSD 3 clause
 
+Param (
+    [string]$python_version = "3", 
+    [string]$conda_version = "latest", 
+    [string]$platform = "x86_64",    
+    [string]$destination = $ENV:CONDA
+)
+
 $MINICONDA_URL = "http://repo.continuum.io/miniconda/"
 
-function DownloadMiniconda ($version, $platform_suffix) {
+function DownloadMiniconda ($python_version, $conda_version, $pdirlatform_suffix) {
     $webclient = New-Object System.Net.WebClient
-    $filename = "Miniconda-" + $version + "-Windows-" + $platform_suffix + ".exe"
+    $filename = "Miniconda" + $python_version + "-" + $conda_version + "-Windows-" + $platform_suffix + ".exe"
 
     $url = $MINICONDA_URL + $filename
 
@@ -39,10 +46,10 @@ function DownloadMiniconda ($version, $platform_suffix) {
    return $filepath
 }
 
-function InstallMiniconda ($python_version, $architecture, $python_home) {
-    Write-Host "Installing miniconda" $python_version "for" $architecture "bit architecture to" $python_home
-    if (Test-Path $python_home) {
-        Write-Host $python_home "already exists, skipping."
+function InstallMiniconda ($python_version, $conda_version, $architecture, $destination) {
+    Write-Host "Installing miniconda" $python_version "for" $architecture "bit architecture to" $destination
+    if (Test-Path $destination) {
+        Write-Host $destination "already exists, skipping."
         return $false
     }
     if ($architecture -eq "x86") {
@@ -50,28 +57,23 @@ function InstallMiniconda ($python_version, $architecture, $python_home) {
     } else {
         $platform_suffix = "x86_64"
     }
-    $filepath = DownloadMiniconda $python_version $platform_suffix
-    Write-Host "Installing" $filepath "to" $python_home
-    $args = "/InstallationType=AllUsers /S /AddToPath=1 /RegisterPython=1 /D=" + $python_home
+    $filepath = DownloadMiniconda $python_version $conda_version $platform_suffix
+    Write-Host "Installing" $filepath "to" $destination
+    $args = "/NoRegistry=1 /S /D=" + $destination
     Write-Host $filepath $args
     Start-Process -FilePath $filepath -ArgumentList $args -Wait -Passthru
     #Start-Sleep -s 15
-    if (Test-Path C:\conda) {
+    if (Test-Path $destination) {
         Write-Host "Miniconda $python_version ($architecture) installation complete"
     } else {
-        Write-Host "Failed to install Python in $python_home"
+        Write-Host "Failed to install MiniConda in $destination"
         Exit 1
     }
 }
 
- param (
-    [string]$python_version = "3.7",
-    [string]$platform = "x86_64",
-    [string]$destination = "c:/conda",
- )
 
 function main () {
-    InstallMiniconda $python_version $platform $destination
+    InstallMiniconda $python_version $conda_version $platform $destination
 }
 
 main
