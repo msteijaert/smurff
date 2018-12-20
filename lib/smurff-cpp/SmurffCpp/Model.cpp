@@ -154,8 +154,9 @@ void Model::save(std::shared_ptr<const StepFile> sf) const
    std::uint64_t i = 0;
    for (auto U : m_factors)
    {
-      std::string path = sf->makeModelFileName(i++);
-      smurff::matrix_io::eigen::write_matrix(path, *U);
+      auto path = sf->makeModelFileName(i++);
+      smurff::matrix_io::eigen::write_matrix(path.first, *U);
+      smurff::matrix_io::eigen::write_matrix(path.second, U->colwise().mean());
    }
 }
 

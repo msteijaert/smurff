@@ -18,6 +18,7 @@
 #define STEP_INI_SUFFIX "-step.ini"
 
 #define LATENTS_PREFIX "latents_"
+#define LATENTS_MEAN_PREFIX "latents_mean_   "
 #define LINK_MATRIX_PREFIX "link_matrix_"
 
 #define GLOBAL_SEC_TAG "global"
@@ -112,11 +113,27 @@ std::string StepFile::getModelFileName(std::uint64_t index) const
    return modelIt.second;
 }
 
-std::string StepFile::makeModelFileName(std::uint64_t index) const
+bool StepFile::hasModelMean(std::uint64_t index) const
+{
+   auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_MEAN_PREFIX + std::to_string(index));
+   return modelIt.first;
+}
+
+std::string StepFile::getModelMeanFileName(std::uint64_t index) const
+{
+   auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_MEAN_PREFIX + std::to_string(index));
+   THROWERROR_ASSERT(modelIt.first);
+   return modelIt.second;
+}
+
+
+std::pair<std::string,std::string> StepFile::makeModelFileName(std::uint64_t index) const
 {
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
-   return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
+   std::string full_model_name = prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
+   std::string mean_model_name = prefix + "-U" + std::to_string(index) + "-latents-mean" + m_extension;
+   return std::make_pair(full_model_name, mean_model_name);
 }
 
 bool StepFile::hasLinkMatrix(std::uint32_t mode) const
@@ -185,8 +202,9 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    //save models
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
-      std::string path = makeModelFileName(mIndex);
-      appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path);
+      auto path = makeModelFileName(mIndex);
+      appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path.first);
+      appendToStepFile(LATENTS_SEC_TAG, LATENTS_MEAN_PREFIX + std::to_string(mIndex), path.second);
    }
 }
 
@@ -302,11 +320,17 @@ void StepFile::removeModel() const
 {
     for (std::int32_t mode = 0; mode < getNModes(); ++mode)
     {
-        if (!hasModel(mode))
-            continue;
+        if (hasModel(mode))
+        {
+           std::string path = getModelFileName(mode);
+           std::remove(path.c_str());
+        }
 
-        std::string path = getModelFileName(mode);
-        std::remove(path.c_str());
+        if (hasModelMean(mode))
+        {
+           std::string path = getModelMeanFileName(mode);
+           std::remove(path.c_str());
+        }
     }
 
     std::int32_t nModels = getNModes();
