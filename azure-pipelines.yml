@@ -48,7 +48,7 @@ jobs:
     macOS_sdk_filename: '$(Agent.TempDirectory)/MacOSX10.9.sdk.tar.xz'
   steps:
   - script: |
-    curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
+      curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
   - task: ExtractFiles@1
     inputs:
       archiveFilePatterns: '$(MacOS_sdk_filename)' 
