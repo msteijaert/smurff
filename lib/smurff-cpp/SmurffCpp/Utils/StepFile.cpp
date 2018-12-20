@@ -367,8 +367,6 @@ void StepFile::remove(bool model, bool pred, bool priors) const
    if (m_iniReader->empty()) 
        return;
        
-    std::cout << "remove " << getStepFileName() << std::endl;
-
    //remove all model files
    if(model)
       removeModel();
