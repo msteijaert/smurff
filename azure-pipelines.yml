@@ -44,19 +44,14 @@ jobs:
   pool:
     vmImage: 'macOS-10.13'
   variables:
-    macOS_sdk_url: 'https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.9.sdk.tar.xz'
-    macOS_sdk_filename: '$(Agent.TempDirectory)/MacOSX10.9.sdk.tar.xz'
+    macOS_sdk_url: 'https://github.com/tvandera/MacOSX_SDKs/releases/download/v10.11.0.1/MacOSX10.9.sdk.tar.gz'
+    macOS_sdk_filename: '$(Agent.TempDirectory)/MacOSX10.9.sdk.tar.gz'
   steps:
   - script: |
       curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
       sudo mkdir -p /opt
-      sudo chown $(USER) /opt
+      sudo tar -xzvf $(macOS_sdk_filename) -C /opt
     displayName: 'Install MacOSX10.9.sdk'
-  - task: ExtractFiles@1
-    inputs:
-      archiveFilePatterns: '$(MacOS_sdk_filename)'
-      destinationFolder: '/opt'
-      cleanDestinationFolder: false
   - template: ci/conda-steps.yml
 
 - job: 'Conda_Windows'
