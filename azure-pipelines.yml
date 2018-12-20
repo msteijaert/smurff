@@ -41,6 +41,7 @@ jobs:
   steps:
     - task: CondaEnvironment@1
       inputs:
+        updateConda: true
         packageSpecs: 'conda-build' # Optional
     - script: |
         cd conda-recipes
