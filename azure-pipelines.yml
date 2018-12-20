@@ -48,9 +48,7 @@ jobs:
     macOS_sdk_filename: '$(Agent.TempDirectory)/MacOSX10.9.sdk.tar.gz'
   steps:
   - script: |
-      set -x
-      curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
-      file $(macOS_sdk_filename) 
+      curl -L -o $(macOS_sdk_filename) $(macOS_sdk_url)
       sudo mkdir -p /opt
       sudo tar -xzvf $(macOS_sdk_filename) -C /opt
     displayName: 'Install MacOSX10.9.sdk'
