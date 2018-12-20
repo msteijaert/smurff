@@ -34,9 +34,23 @@ jobs:
         OMP_NUM_THREADS=1 ./tests
       displayName: 'Run tests'
 
-- job: 'Conda'
+- job: 'Conda Linux'
   pool:
     vmImage: 'Ubuntu 16.04'
+
+  steps:
+    - task: CondaEnvironment@1
+      inputs:
+        updateConda: true
+        packageSpecs: 'conda-build' # Optional
+    - script: |
+        cd conda-recipes
+        conda build -c vanderaa smurff-latest
+      displayName: Build
+
+- job: 'Conda macOS'
+  pool:
+    vmImage: 'macOS-10.13'
 
   steps:
     - task: CondaEnvironment@1
