@@ -50,8 +50,8 @@ jobs:
   - script: |
       curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
       sudo mkdir -p /opt
-      cd /opt
-      gunzip -c $(macOS_sdk_filename) | sudo tar xf -
+      sudo which tar
+      sudo tar -xvf $(macOS_sdk_filename) -C /opt
     displayName: 'Install MacOSX10.9.sdk'
   - template: ci/conda-steps.yml
 
