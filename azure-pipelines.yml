@@ -51,7 +51,7 @@ jobs:
       curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
       sudo mkdir -p /opt
       cd /opt
-      sudo tar xf $(macOS_sdk_filename) 
+      sudo tar xzf $(macOS_sdk_filename) 
     displayName: 'Install MacOSX10.9.sdk'
   - template: ci/conda-steps.yml
 
