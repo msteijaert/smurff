@@ -47,15 +47,13 @@ jobs:
     macOS_sdk_url: 'https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.9.sdk.tar.xz'
     macOS_sdk_filename: '$(Agent.TempDirectory)/MacOSX10.9.sdk.tar.xz'
   steps:
-  - task: PythonScript@0
-    inputs:
-      scriptSource: 'inline'
-      script: from urllib.request import urlretrieve; urlretrieve('$(macOS_sdk_url)', '$(macOS_sdk_filename)')
+  - script: |
+    curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
   - task: ExtractFiles@1
     inputs:
       archiveFilePatterns: '$(MacOS_sdk_filename)' 
       destinationFolder: '/opt'
-      cleanDestinationFolder: true 
+      cleanDestinationFolder: false 
   - template: ci/conda-steps.yml
 
 - job: 'Conda_Windows'
