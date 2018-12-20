@@ -34,32 +34,20 @@ jobs:
         OMP_NUM_THREADS=1 ./tests
       displayName: 'Run tests'
 
-- job: 'Conda Linux'
+- job: 'Conda_Linux'
   pool:
     vmImage: 'Ubuntu 16.04'
-
   steps:
-    - task: CondaEnvironment@1
-      inputs:
-        updateConda: true
-        packageSpecs: 'conda-build' # Optional
-    - script: |
-        cd conda-recipes
-        conda build -c vanderaa smurff-latest
-      displayName: Build
+    - template: conda-steps.yml
 
-- job: 'Conda macOS'
+- job: 'Conda_macOS'
   pool:
     vmImage: 'macOS-10.13'
-
   steps:
-    - task: CondaEnvironment@1
-      inputs:
-        updateConda: true
-        packageSpecs: 'conda-build' # Optional
-    - script: |
-        cd conda-recipes
-        conda build -c vanderaa smurff-latest
-      displayName: Build
+    - template: conda-steps.yml
 
-
+- job: 'Conda_Windows'
+  pool:
+    vmImage: 'vs2015-win2012r2'
+  steps:
+    - template: conda-steps.yml
