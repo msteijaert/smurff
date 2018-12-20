@@ -50,9 +50,13 @@ jobs:
   - script: |
       curl -o $(macOS_sdk_filename) $(macOS_sdk_url)
       sudo mkdir -p /opt
-      sudo which tar
-      sudo tar -xvf $(macOS_sdk_filename) -C /opt
+      sudo chown $(USER) /opt
     displayName: 'Install MacOSX10.9.sdk'
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '$(MacOS_sdk_filename)'
+      destinationFolder: '/opt'
+      cleanDestinationFolder: false
   - template: ci/conda-steps.yml
 
 - job: 'Conda_Windows'
