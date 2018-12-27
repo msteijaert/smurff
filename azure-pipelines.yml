@@ -61,4 +61,10 @@ jobs:
     vmImage: 'vs2015-win2012r2'
   steps:
     - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
-    - template: ci/conda-steps.yml
+    - task: CondaEnvironment@1
+    - script: |
+        cd conda-recipes
+        conda create -n smurff-builder conda-build
+        call activate smurff-builder
+        conda build -c vanderaa smurff-latest
+      displayName: Build
