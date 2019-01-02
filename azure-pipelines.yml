@@ -62,6 +62,7 @@ jobs:
   steps:
     - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
     - task: CondaEnvironment@1
+      inputs:
         updateConda: true
         packageSpecs: 'conda-build'
     - script: |
