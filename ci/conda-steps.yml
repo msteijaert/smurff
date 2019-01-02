@@ -1,8 +1,9 @@
 steps:
     - task: CondaEnvironment@1
+      inputs:
+        updateConda: true
+        packageSpecs: 'conda-build' # Optional
     - script: |
         cd conda-recipes
-        conda create -n smurff-builder conda-build
-        conda activate smurff-builder
         conda build -c vanderaa smurff-latest
       displayName: Build
