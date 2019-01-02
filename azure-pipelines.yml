@@ -67,7 +67,7 @@ jobs:
         packageSpecs: 'conda-build'
     - script: |
       echo '##vso[task.setvariable variable=PATH]$(CONDA);$(CONDA)\Library\mingw-w64\bin;$(CONDA)\Library\usr\bin;$(CONDA)\Library\bin;$(CONDA)\Scripts;$(CONDA)\bin;$(PATH)'
-    displayName: Add conda to path
+      displayName: Add conda to path
     - script: |
         cd conda-recipes
         conda build -c vanderaa smurff-latest
