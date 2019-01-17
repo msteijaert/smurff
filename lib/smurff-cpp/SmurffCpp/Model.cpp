@@ -155,8 +155,7 @@ void Model::save(std::shared_ptr<const StepFile> sf) const
    for (auto U : m_factors)
    {
       auto path = sf->makeModelFileName(i++);
-      smurff::matrix_io::eigen::write_matrix(path.first, *U);
-      smurff::matrix_io::eigen::write_matrix(path.second, U->colwise().mean());
+      smurff::matrix_io::eigen::write_matrix(path, *U);
    }
 }
 
@@ -189,12 +188,12 @@ std::ostream& Model::info(std::ostream &os, std::string indent) const
 
 std::ostream& Model::status(std::ostream &os, std::string indent) const
 {
-   Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
-   
+   os << indent << "  Umean: " << std::endl;
    for(std::uint64_t d = 0; d < nmodes(); ++d)
-      P *= U(d).rowwise().norm().array();
+      os << indent << "    U(" << d << ").colwise().mean: "
+         << U(d).rowwise().mean().transpose()
+         << std::endl;
 
-   os << indent << "  Latent-wise norm: " << P.transpose() << std::endl;
    return os;
 }
 

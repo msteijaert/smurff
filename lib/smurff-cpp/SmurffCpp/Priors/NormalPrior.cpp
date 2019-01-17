@@ -93,6 +93,7 @@ void  NormalPrior::sample_latent(int n)
 
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
 {
-   os << indent << m_name << ": mu = " <<  mu.norm() << std::endl;
+   os << indent << m_name << std::endl;
+   os << indent << "  mu: " <<  mu.transpose() << std::endl;
    return os;
 }

@@ -53,8 +53,9 @@ namespace smurff {
       std::string getPredFileName() const;
       std::string getPredStateFileName() const;
 
-      std::pair<std::string,std::string> makeModelFileName(std::uint64_t index) const;
+      std::string makeModelFileName(std::uint64_t index) const;
       std::string makeLinkMatrixFileName(std::uint32_t mode) const;
+      std::string makeMuFileName(std::uint32_t mode) const;
       std::string makePredFileName() const;
       std::string makePredStateFileName() const;
 

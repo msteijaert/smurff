@@ -20,6 +20,7 @@
 #define LATENTS_PREFIX "latents_"
 #define LATENTS_MEAN_PREFIX "latents_mean_   "
 #define LINK_MATRIX_PREFIX "link_matrix_"
+#define MU_PREFIX "mu_"
 
 #define GLOBAL_SEC_TAG "global"
 #define LATENTS_SEC_TAG "latents"
@@ -127,13 +128,12 @@ std::string StepFile::getModelMeanFileName(std::uint64_t index) const
 }
 
 
-std::pair<std::string,std::string> StepFile::makeModelFileName(std::uint64_t index) const
+std::string StepFile::makeModelFileName(std::uint64_t index) const
 {
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
-   std::string full_model_name = prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
-   std::string mean_model_name = prefix + "-U" + std::to_string(index) + "-latents-mean" + m_extension;
-   return std::make_pair(full_model_name, mean_model_name);
+   std::string file_name = prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
+   return file_name;
 }
 
 bool StepFile::hasLinkMatrix(std::uint32_t mode) const
@@ -154,6 +154,13 @@ std::string StepFile::makeLinkMatrixFileName(std::uint32_t mode) const
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
+}
+
+std::string StepFile::makeMuFileName(std::uint32_t mode) const
+{
+   THROWERROR_ASSERT(!m_extension.empty());
+   std::string prefix = getStepPrefix();
+   return prefix + "-M" + std::to_string(mode) + m_extension;
 }
 
 bool StepFile::hasPred() const
@@ -203,8 +210,7 @@ void StepFile::saveModel(std::shared_ptr<const Model> model) const
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
       auto path = makeModelFileName(mIndex);
-      appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path.first);
-      appendToStepFile(LATENTS_SEC_TAG, LATENTS_MEAN_PREFIX + std::to_string(mIndex), path.second);
+      appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path);
    }
 }
 
@@ -231,12 +237,15 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
    {
       if (p->save(shared_from_this()))
       {
-          std::string priorPath = makeLinkMatrixFileName(priors.at(pIndex)->getMode());
-          appendToStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), priorPath);
+          std::string priorPath0 = makeLinkMatrixFileName(priors.at(pIndex)->getMode());
+          appendToStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), priorPath0);
+          std::string priorPath1 = makeMuFileName(priors.at(pIndex)->getMode());
+          appendToStepFile(LINK_MATRICES_SEC_TAG, MU_PREFIX + std::to_string(pIndex), priorPath1);
       }
       else 
       {
           appendToStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(pIndex), NONE_TAG);
+          appendToStepFile(LINK_MATRICES_SEC_TAG, MU_PREFIX + std::to_string(pIndex), NONE_TAG);
       }
 
       pIndex++;
