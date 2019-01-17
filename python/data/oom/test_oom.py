@@ -52,35 +52,35 @@ def oom_prediction(predict_session, sideinfo, test):
 class TestOom(unittest.TestCase):
     def test_macauoom(self):
         # ic50 = mio.read_matrix("chembl-IC50-346targets-100compounds.mm")
-        # ic50_train, ic50_test = smurff.make_train_test(ic50, 0.2)
-        # mio.write_matrix("chembl-IC50-346targets-100compounds-train.mm", ic50_train)
-        # mio.write_matrix("chembl-IC50-346targets-100compounds-test.mm", ic50_test)
-        ic50_train = mio.read_matrix("chembl-IC50-346targets-100compounds-train.mm")
-        ic50_train = ic50_train.tocsr()
+        # train, test = smurff.make_train_test(ic50, 0.2)
+        # mio.write_matrix("chembl-IC50-346targets-100compounds-train.mm", train)
+        # mio.write_matrix("chembl-IC50-346targets-100compounds-test.mm", test)
+        train = mio.read_matrix("train.mm")
+        train = train.tocsr()
         
-        ic50_test = mio.read_matrix("chembl-IC50-346targets-100compounds-test.mm")
-        ic50_test = ic50_test.tocsr()
+        test = mio.read_matrix("test.mm")
+        test = test.tocsr()
 
-        sideinfo = mio.read_matrix("chembl-IC50-100compounds-feat.mm")
+        sideinfo = mio.read_matrix("sideinfo.mm")
         sideinfo = sideinfo.tocsr()
 
-        #train_session("bpmf_root", ic50_train, ic50_test, )
-        #train_session("macau_root", ic50_train, ic50_test, sideinfo, )
+        #train_session("bpmf_root", train, test, )
+        #train_session("macau_root", train, test, sideinfo, )
 
-        predict_session = smurff.PredictSession("macau_root/root.ini")
+        predict_session = smurff.PredictSession("save/root.ini")
 
-        num_nonzeros_train = np.diff(ic50_train.indptr)
-        ic50_test_empty = ic50_test[num_nonzeros_train == 0]
-        ic50_train_empty = ic50_train[num_nonzeros_train == 0]
+        num_nonzeros_train = np.diff(train.indptr)
+        test_empty = test[num_nonzeros_train == 0]
+        train_empty = train[num_nonzeros_train == 0]
 
-        print("ic50_test_empty")
-        print(ic50_test_empty)
-        print("ic50_train_empty")
-        print(ic50_train_empty)
+        print("test_empty")
+        print(test_empty)
+        print("train_empty")
+        print(train_empty)
 
 
-        im_prediction(predict_session, ic50_test_empty)
-        oom_prediction(predict_session, sideinfo, ic50_test_empty)
+        im_prediction(predict_session, test_empty)
+        oom_prediction(predict_session, sideinfo, test_empty)
 
 if __name__ == "__main__":
     for arg in sys.argv:
