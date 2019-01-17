@@ -53,7 +53,7 @@ void MacauPrior::init()
 
    BBt = beta() * beta().transpose();
 
-   m_session->model().setLinkMatrix(m_mode, m_beta);
+   m_session->model().setLinkMatrix(m_mode, m_beta, m_mu);
 }
 
 void MacauPrior::update_prior()
@@ -84,7 +84,7 @@ void MacauPrior::update_prior()
         Udelta = U() - Uhat;
         // uses: Udelta
         // complexity: num_latent x num_items
-        std::tie(mu, Lambda) = CondNormalWishart(Udelta, mu0, b0, WI + beta_precision * BBt, df + num_feat());
+        std::tie(hyperMu(), Lambda) = CondNormalWishart(Udelta, mu0, b0, WI + beta_precision * BBt, df + num_feat());
     }
 
     // uses: U, F
@@ -137,9 +137,9 @@ void MacauPrior::sample_beta()
     BBt = beta() * beta().transpose();
 }
 
-const Eigen::VectorXd MacauPrior::getMu(int n) const
+const Eigen::VectorXd MacauPrior::fullMu(int n) const
 {
-   return mu + Uhat.col(n);
+   return hyperMu() + Uhat.col(n);
 }
 
 void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
@@ -149,7 +149,7 @@ void MacauPrior::compute_Ft_y(Eigen::MatrixXd& Ft_y)
    // Ft_y is [ num_latent x num_feat ] matrix
 
    //HyperU: num_latent x num_item
-   HyperU = (U() + MvNormal_prec(Lambda, num_item())).colwise() - mu;
+   HyperU = (U() + MvNormal_prec(Lambda, num_item())).colwise() - hyperMu();
    Ft_y = Features->A_mul_B(HyperU); // num_latent x num_feat
 
    //--  add beta_precision 
@@ -178,7 +178,7 @@ bool MacauPrior::save(std::shared_ptr<const StepFile> sf) const
    std::string path0 = sf->makeLinkMatrixFileName(m_mode);
    smurff::matrix_io::eigen::write_matrix(path0, beta());
    std::string path1 = sf->makeMuFileName(m_mode);
-   smurff::matrix_io::eigen::write_matrix(path1, mu);
+   smurff::matrix_io::eigen::write_matrix(path1, hyperMu());
 
     return true;
 }
@@ -224,7 +224,7 @@ std::ostream &MacauPrior::status(std::ostream &os, std::string indent) const
 {
    os << indent << m_name << ": " << std::endl;
    indent += "  ";
-   os << indent << "mu           = " <<  mu.transpose() << std::endl;
+   os << indent << "mu           = " <<  hyperMu().transpose() << std::endl;
    os << indent << "Uhat mean    = " <<  Uhat.rowwise().mean().transpose() << std::endl;
    os << indent << "blockcg iter = " << blockcg_iter << std::endl;
    os << indent << "FtF_plus_prec= " << FtF_plus_precision.norm() << std::endl;

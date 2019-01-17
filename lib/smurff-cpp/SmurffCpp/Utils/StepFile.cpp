@@ -18,7 +18,6 @@
 #define STEP_INI_SUFFIX "-step.ini"
 
 #define LATENTS_PREFIX "latents_"
-#define LATENTS_MEAN_PREFIX "latents_mean_   "
 #define LINK_MATRIX_PREFIX "link_matrix_"
 #define MU_PREFIX "mu_"
 
@@ -114,19 +113,6 @@ std::string StepFile::getModelFileName(std::uint64_t index) const
    return modelIt.second;
 }
 
-bool StepFile::hasModelMean(std::uint64_t index) const
-{
-   auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_MEAN_PREFIX + std::to_string(index));
-   return modelIt.first;
-}
-
-std::string StepFile::getModelMeanFileName(std::uint64_t index) const
-{
-   auto modelIt = tryGetIniValueFullPath(LATENTS_SEC_TAG, LATENTS_MEAN_PREFIX + std::to_string(index));
-   THROWERROR_ASSERT(modelIt.first);
-   return modelIt.second;
-}
-
 
 std::string StepFile::makeModelFileName(std::uint64_t index) const
 {
@@ -154,6 +140,19 @@ std::string StepFile::makeLinkMatrixFileName(std::uint32_t mode) const
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
    return prefix + "-F" + std::to_string(mode) + "-link" + m_extension;
+}
+
+bool StepFile::hasMu(std::uint64_t index) const
+{
+   auto modelIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, MU_PREFIX + std::to_string(index));
+   return modelIt.first;
+}
+
+std::string StepFile::getMuFileName(std::uint64_t index) const
+{
+   auto modelIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, MU_PREFIX + std::to_string(index));
+   THROWERROR_ASSERT(modelIt.first);
+   return modelIt.second;
 }
 
 std::string StepFile::makeMuFileName(std::uint32_t mode) const
@@ -280,12 +279,17 @@ void StepFile::restoreModel(std::shared_ptr<Model> model) const
        if (!linkMatrixIt.first || linkMatrixIt.second == "none")
            continue;
 
-       std::string path = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i)).second;
-       THROWERROR_FILE_NOT_EXIST(path);
+       std::string path0 = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i)).second;
+       THROWERROR_FILE_NOT_EXIST(path0);
        auto beta = std::make_shared<Eigen::MatrixXd>();
-       matrix_io::eigen::read_matrix(path, *beta); 
+       matrix_io::eigen::read_matrix(path0, *beta); 
 
-       model->setLinkMatrix(i, beta);
+       std::string path1 = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, MU_PREFIX + std::to_string(i)).second;
+       THROWERROR_FILE_NOT_EXIST(path1);
+       auto mu = std::make_shared<Eigen::VectorXd>();
+       matrix_io::eigen::read_matrix(path1, *mu); 
+
+       model->setLinkMatrix(i, beta, mu);
    }
 }
 
@@ -335,9 +339,9 @@ void StepFile::removeModel() const
            std::remove(path.c_str());
         }
 
-        if (hasModelMean(mode))
+        if (hasMu(mode))
         {
-           std::string path = getModelMeanFileName(mode);
+           std::string path = getMuFileName(mode);
            std::remove(path.c_str());
         }
     }

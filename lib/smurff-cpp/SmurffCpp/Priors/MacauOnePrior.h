@@ -50,7 +50,7 @@ public:
 
    void update_prior() override;
     
-   const Eigen::VectorXd getMu(int n) const override;
+   const Eigen::VectorXd fullMu(int n) const override;
 
 public:
    //FIXME: tolerance_a and direct_a are not really used. 

@@ -65,13 +65,18 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
    }
 
    m_link_matrices.resize(nmodes());
+   m_mus.resize(nmodes());
 
    Pcache.init(Eigen::ArrayXd::Ones(m_num_latent));
 }
 
-void Model::setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd> link_matrix)
+void Model::setLinkMatrix(int mode, 
+   std::shared_ptr<Eigen::MatrixXd> link_matrix,
+   std::shared_ptr<Eigen::VectorXd> mu
+   )
 {
    m_link_matrices.at(mode) = link_matrix;
+   m_mus.at(mode) = mu;
 }
 
 double Model::predict(const PVec<> &pos) const
@@ -177,6 +182,7 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
    }
 
    m_link_matrices.resize(nmodes);
+   m_mus.resize(nmodes);
    Pcache.init(Eigen::ArrayXd::Ones(m_num_latent));
 }
 

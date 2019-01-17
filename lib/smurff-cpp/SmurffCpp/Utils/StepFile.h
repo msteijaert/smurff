@@ -43,12 +43,12 @@ namespace smurff {
 
    public:
       bool hasModel(std::uint64_t index) const;
-      bool hasModelMean(std::uint64_t index) const;
+      bool hasMu(std::uint64_t index) const;
       bool hasLinkMatrix(std::uint32_t mode) const;
       bool hasPred() const;
 
       std::string getModelFileName(std::uint64_t index) const;
-      std::string getModelMeanFileName(std::uint64_t index) const;
+      std::string getMuFileName(std::uint64_t index) const;
       std::string getLinkMatrixFileName(std::uint32_t mode) const;
       std::string getPredFileName() const;
       std::string getPredStateFileName() const;
