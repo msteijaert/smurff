@@ -46,36 +46,43 @@ class Sample:
             file_name = os.path.join(dir_name, cp["latents"]["latents_" + str(i)])
             sample.add_latent(mio.read_matrix(file_name))
 
-        # link matrices (beta)
+        # link matrices (beta) and hyper mus
         for i in range(sample.nmodes):
+            beta = np.ndarray((0, 0))
+            mu = np.ndarray((0, 0))
+
             file_name = cp["link_matrices"]["link_matrix_" + str(i)]
             if (file_name != 'none'):
-                sample.add_beta(mio.read_matrix(os.path.join(dir_name, file_name)))
-            else:
-                sample.add_beta(np.ndarray((0, 0)))
+                beta = mio.read_matrix(os.path.join(dir_name, file_name))
+            file_name = cp["link_matrices"]["mu_" + str(i)]
+            if (file_name != 'none'):
+                mu = mio.read_matrix(os.path.join(dir_name, file_name))
+                mu = np.squeeze(mu)
+
+            sample.add_beta(beta, mu)
 
         return sample
 
-    def __init__(self, nmodes, iter):
+    def __init__(self, nmodes, it):
         assert nmodes == 2
         self.nmodes = nmodes
-        self.iter = iter
+        self.iter = it
         self.latents = []
-        self.latent_means = []
         self.betas = []
+        self.mus = []
 
     def check(self):
         for l, b in zip(self.latents, self.betas):
             assert l.shape[0] == self.num_latent()
             assert b.shape[0] == 0 or b.shape[0] == self.num_latent()
 
-    def add_beta(self, b):
+    def add_beta(self, b, mu):
         self.betas.append(b)
+        self.mus.append(mu)
         self.check()
 
     def add_latent(self, U):
         self.latents.append(U)
-        self.latent_means.append(np.mean(U, axis=1))
         self.check()
 
     def num_latent(self):
@@ -95,7 +102,7 @@ class Sample:
             None] * self.nmodes
 
         operands = []
-        for U, Umean, c, m in zip(self.latents, self.latent_means, cs, range(self.nmodes)):
+        for U, mu, c, m in zip(self.latents, self.mus, cs, range(self.nmodes)):
             # predict all in this dimension
             if c is None:
                 operands += [U, [0, m+1]]
@@ -103,9 +110,9 @@ class Sample:
                 # if side_info was specified for this dimension, we predict for this side_info
                 try:  # try to compute sideinfo * beta using dot
                     # compute latent vector from side_info
-                    uhat = c.dot(self.betas[m].transpose()) + Umean
-                    uhat = np.squeeze(uhat)
-                    operands += [uhat, [0]]
+                    uhat = c.dot(self.betas[m].transpose())
+                    uhat = np.squeeze(uhat) 
+                    operands += [uhat + mu, [0]]
                 except AttributeError:  # assume it is a coord
                     # if coords was specified for this dimension, we predict for this coord
                     operands += [U[:, c], [0]]
