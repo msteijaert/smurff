@@ -159,7 +159,7 @@ std::string StepFile::makeMuFileName(std::uint32_t mode) const
 {
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
-   return prefix + "-M" + std::to_string(mode) + m_extension;
+   return prefix + "-M" + std::to_string(mode) + "-hypermu" + m_extension;
 }
 
 bool StepFile::hasPred() const
