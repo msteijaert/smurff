@@ -353,6 +353,9 @@ void StepFile::removeModel() const
 
 void StepFile::removePred() const
 {
+   if (!hasPred())
+      return;
+
    std::remove(getPredFileName().c_str());
    removeFromStepFile(PRED_SEC_TAG, PRED_TAG);
 
