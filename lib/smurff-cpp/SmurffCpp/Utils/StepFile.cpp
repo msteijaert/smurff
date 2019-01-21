@@ -370,12 +370,15 @@ void StepFile::removePriors() const
         if (!hasLinkMatrix(mode)) 
             continue;
             
-        std::string path = getLinkMatrixFileName(mode++);
-        std::remove(path.c_str());
+        std::remove(getLinkMatrixFileName(mode).c_str());
+        std::remove(getMuFileName(mode).c_str());
     }
 
     for (std::int32_t i = 0; i < getNModes(); i++)
-        removeFromStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
+    {
+       removeFromStepFile(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(i));
+       removeFromStepFile(LINK_MATRICES_SEC_TAG, MU_PREFIX + std::to_string(i));
+    }
 }
 
 void StepFile::remove(bool model, bool pred, bool priors) const
