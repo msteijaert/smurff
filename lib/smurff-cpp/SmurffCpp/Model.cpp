@@ -164,7 +164,7 @@ void Model::save(std::shared_ptr<const StepFile> sf) const
    }
 }
 
-void Model::restore(std::shared_ptr<const StepFile> sf)
+void Model::restore(std::shared_ptr<const StepFile> sf, int skip_mode)
 {
    unsigned nmodes = sf->getNModes();
    m_factors.clear();
@@ -174,6 +174,7 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
    {
       auto U = std::make_shared<Eigen::MatrixXd>();
       std::string path = sf->getModelFileName(i);
+      if (i == skip_mode) continue;
       THROWERROR_FILE_NOT_EXIST(path);
       smurff::matrix_io::eigen::read_matrix(path, *U);
       m_dims.at(i) = U->cols();

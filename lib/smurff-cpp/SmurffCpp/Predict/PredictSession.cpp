@@ -218,9 +218,9 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
     return os;
 }
 
-std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFile> &sf)
+std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFile> &sf, int skip_mode)
 {
-    auto model = sf->restoreModel();
+    auto model = sf->restoreModel(skip_mode);
 
     if (m_num_latent <= 0)
     {

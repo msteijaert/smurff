@@ -264,7 +264,7 @@ void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Re
 
 //restore methods
 
-void StepFile::restoreModel(std::shared_ptr<Model> model) const
+void StepFile::restoreModel(std::shared_ptr<Model> model, int skip_mode) const
 {
    //it is enough to check presence of num tag
    if (!hasIniValueBase(GLOBAL_SEC_TAG, NUM_MODES_TAG))
@@ -294,10 +294,10 @@ void StepFile::restoreModel(std::shared_ptr<Model> model) const
 }
 
   //-- used in PredictSession
-std::shared_ptr<Model> StepFile::restoreModel() const
+std::shared_ptr<Model> StepFile::restoreModel(int skip_mode) const
 {
     auto model = std::make_shared<Model>();
-    restoreModel(model);
+    restoreModel(model, skip_mode);
     return model;
 }
 
