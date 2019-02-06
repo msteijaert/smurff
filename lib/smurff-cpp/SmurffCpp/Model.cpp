@@ -180,6 +180,10 @@ void Model::restore(std::shared_ptr<const StepFile> sf, int skip_mode)
           m_dims.at(i) = U->cols();
           m_num_latent = U->rows();
       }
+      else
+      {
+          m_dims.at(i) = -1;
+      }
       m_factors.push_back(U);
    }
 
