@@ -40,7 +40,7 @@ private:
 
 private:
     std::shared_ptr<Model> restoreModel(const std::shared_ptr<StepFile> &, int skip_mode = -1);
-    std::shared_ptr<Model> restoreModel(int i);
+    std::shared_ptr<Model> restoreModel(int i, int skip_mode = -1);
 
 public:
     int    getNumSteps()  const { return m_stepfiles.size(); } 
