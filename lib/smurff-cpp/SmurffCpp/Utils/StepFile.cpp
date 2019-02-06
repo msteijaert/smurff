@@ -270,7 +270,7 @@ void StepFile::restoreModel(std::shared_ptr<Model> model, int skip_mode) const
    if (!hasIniValueBase(GLOBAL_SEC_TAG, NUM_MODES_TAG))
       return;
 
-   model->restore(shared_from_this());
+   model->restore(shared_from_this(), skip_mode);
 
    int nmodes = model->nmodes();
    for(int i=0; i<nmodes; ++i)
