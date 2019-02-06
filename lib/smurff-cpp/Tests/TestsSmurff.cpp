@@ -3068,15 +3068,16 @@ TEST_CASE("PredictSession/Features/2"
     std::shared_ptr<ISession> session = SessionFactory::create_session(config);
     session->run();
 
-    PredictSession predict_session(session->getRootFile());
-    auto in_matrix_predictions = predict_session.predict(config.getTest())->m_predictions;
+    PredictSession predict_session_in(session->getRootFile());
+    auto in_matrix_predictions = predict_session_in.predict(config.getTest())->m_predictions;
 
+    PredictSession predict_session_out(session->getRootFile());
     auto sideInfoMatrix = matrix_utils::sparse_to_eigen(*rowSideInfoConfig->getSideInfo());
     int d = config.getTrain()->getDims()[0];
     for (int r = 0; r < d; r++)
     {
         auto feat = sideInfoMatrix.row(r).transpose();
-        auto out_of_matrix_predictions = predict_session.predict(0, feat);
+        auto out_of_matrix_predictions = predict_session_out.predict(0, feat);
         //Eigen::VectorXd out_of_matrix_averages = out_of_matrix_predictions->colwise().mean();
 
 #undef DEBUG_OOM_PREDICT
