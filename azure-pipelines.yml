@@ -54,21 +54,20 @@ jobs:
     displayName: 'Install MacOSX10.9.sdk'
   - template: ci/conda-steps.yml
 
-# - job: 'Conda_Windows'
-#   variables:
-#     CONDA: '$(Agent.WorkFolder)\MiniConda'
-#   pool:
-#     vmImage: 'vs2015-win2012r2'
-#   steps:
-#     - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
-#     - task: CondaEnvironment@1
-#       inputs:
-#         updateConda: true
-#         packageSpecs: 'conda-build'
-#     - script: |
-#         echo '##vso[task.setvariable variable=PATH]$(CONDA);$(CONDA)\Library\mingw-w64\bin;$(CONDA)\Library\usr\bin;$(CONDA)\Library\bin;$(CONDA)\Scripts;$(CONDA)\bin;$(PATH)'
-#       displayName: Add conda to path
-#     - script: |
-#         cd conda-recipes
-#         conda build -c vanderaa smurff-latest
-#       displayName: Build
+- job: 'Conda_Windows'
+  variables:
+    CONDA: '$(Agent.WorkFolder)\MiniConda'
+  pool:
+    vmImage: 'vs2015-win2012r2'
+  steps:
+    - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
+      displayName: Install miniconda
+    - script: echo "##vso[task.prependpath]$CONDA/bin"
+      displayName: Add conda to PATH
+    - script: conda create --yes --quiet --name buildEnv conda-build
+      displayName: Create Anaconda environment and install conda-build
+    - script: |
+        call activate buildEnv
+        cd conda-recipes
+        conda build -c vanderaa smurff-latest
+      displayName: Build using "conda build"
