@@ -60,8 +60,8 @@ jobs:
   pool:
     vmImage: 'vs2015-win2012r2'
   steps:
-    - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
-      displayName: Install miniconda
+    # - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
+    #  displayName: Install miniconda
     - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
       displayName: Add conda to PATH
     - script: conda create --yes --quiet --name buildEnv conda-build
