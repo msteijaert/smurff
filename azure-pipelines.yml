@@ -62,7 +62,7 @@ jobs:
   steps:
     - powershell: ci/install-miniconda.ps1 -destination $(CONDA)
       displayName: Install miniconda
-    - script: echo "##vso[task.prependpath]$CONDA/bin"
+    - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
       displayName: Add conda to PATH
     - script: conda create --yes --quiet --name buildEnv conda-build
       displayName: Create Anaconda environment and install conda-build
