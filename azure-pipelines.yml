@@ -55,8 +55,8 @@ jobs:
   - template: ci/conda-steps.yml
 
 - job: 'Conda_Windows'
-  variables:
-    CONDA: '$(Agent.WorkFolder)\MiniConda'
+  # variables:
+  #   CONDA: '$(Agent.WorkFolder)\MiniConda'
   pool:
     vmImage: 'vs2015-win2012r2'
   steps:
