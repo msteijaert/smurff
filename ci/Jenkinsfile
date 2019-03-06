@@ -1,0 +1,37 @@
+pipeline {
+    agent {
+        dockerfile {
+            dir 'ci'
+        }
+    }
+
+    environment {
+        MAKEFLAGS = "-j 2"
+        OMP_NUM_THREADS = "1"
+    }
+
+    stages {
+        stage('Release Build') {
+            steps {
+                sh '''
+                    mkdir release_build
+                    cd release_build
+                    cmake ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_BOOST_RANDOM=ON
+                    make 
+                   ./Release/tests
+            '''
+            }
+        stage('Debug Build') {
+            steps {
+                sh '''
+                    mkdir debug_build
+                    cd debug_build
+                    cmake ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DCMAKE_BUILD_TYPE=Debug -DENABLE_BOOST_RANDOM=ON
+                    make 
+                   ./Debug/tests
+            '''
+            }
+        }
+        }
+    }
+}
