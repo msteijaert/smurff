@@ -21,6 +21,7 @@ pipeline {
                    ./Release/tests
             '''
             }
+        }
         stage('Debug Build') {
             steps {
                 sh '''
@@ -31,7 +32,6 @@ pipeline {
                    ./Debug/tests
             '''
             }
-        }
         }
     }
 }
