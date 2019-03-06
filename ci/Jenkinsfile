@@ -14,7 +14,7 @@ pipeline {
         stage('Release Build') {
             steps {
                 sh '''
-                    rm -r release_build && mkdir release_build && cd release_build
+                    rm -rf release_build && mkdir release_build && cd release_build
                     cmake ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_BOOST_RANDOM=ON
                     make 
                    ./Release/tests
@@ -24,7 +24,7 @@ pipeline {
         stage('Debug Build') {
             steps {
                 sh '''
-                    rm -r debug_build && mkdir debug_build && cd debug_build
+                    rm -rf debug_build && mkdir debug_build && cd debug_build
                     cmake ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DCMAKE_BUILD_TYPE=Debug -DENABLE_BOOST_RANDOM=ON
                     make 
                    ./Debug/tests
