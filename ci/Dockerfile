@@ -10,6 +10,7 @@ RUN apt-get update && \
        openmpi-bin \
        libeigen3-dev \
        libboost-all-dev \
+       ca-certificates \
        wget \
     && rm -rf /var/lib/apt/lists/*
 
