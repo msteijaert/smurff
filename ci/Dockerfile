@@ -11,3 +11,6 @@ RUN apt-get update && \
        libeigen3-dev \
        libboost-all-dev \
     && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://cmake.org/files/v3.12/cmake-3.12.0-Linux-x86_64.sh &&
+   sh cmake-3.12.0-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
