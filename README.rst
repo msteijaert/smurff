@@ -70,6 +70,7 @@ Contributors
 -  Andrei Gedich
 -  Ilya Pasechnikov
 -  Thanh Le Van (sythetic out-of-matrix prediction example)
+-  Xiangju Qin (BPMF using posterior propagation)
 
 Acknowledgements
 ----------------
