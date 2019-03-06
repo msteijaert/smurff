@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:16.04
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -10,5 +10,4 @@ RUN apt-get update && \
        openmpi-bin \
        libeigen3-dev \
        libboost-all-dev \
-       openssh-client \
     && rm -rf /var/lib/apt/lists/*
