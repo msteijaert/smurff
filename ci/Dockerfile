@@ -1,8 +1,12 @@
 FROM ubuntu:16.04
 
 RUN apt-get update && \
+   apt-get install -y --no-install-recommends software-properties-common && \
+   add-apt-repository ppa:lkoppel/robotics
+
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-       git g++ cmake python3 \
+       git g++ python3 \
        libblas-dev \
        liblapack-dev \
        liblapacke-dev \
