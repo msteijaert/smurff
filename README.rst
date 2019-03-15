@@ -82,7 +82,7 @@ This work was partly funded by the European projects ExCAPE
    :target: https://travis-ci.org/ExaScience/smurff
    
 .. |Azure Build Status| image:: https://dev.azure.com/ExaScience/smurff/_apis/build/status/ExaScience.smurff?branchName=master
-   :target: https://travis-ci.org/ExaScience/smurff
+   :target: https://dev.azure.com/ExaScience/smurff/_build
 
 .. |Anaconda-Server Badge| image:: https://anaconda.org/vanderaa/smurff/badges/installer/conda.svg
    :target: https://conda.anaconda.org/vanderaa
