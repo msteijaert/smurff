@@ -24,7 +24,7 @@ jobs:
     - task: CMake@1
       inputs:
         workingDirectory: 'build.$(build.type)'
-        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(build.type) ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON'
+        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(build.type) ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON -DBOOST_ROOT=/usr'
     - script: |
         cd build.$(build.type)
         ninja
