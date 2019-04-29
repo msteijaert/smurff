@@ -75,8 +75,8 @@ Contributors
 Acknowledgements
 ----------------
 
-This work was partly funded by the European projects ExCAPE
-(http://excape-h2020.eu) and EXA2CT, and the Flemish Exaptation project.
+Over the course of the last 5 years, this work has been supported by the EU H2020 FET-HPC projects
+EPEEC (contract #801051), ExCAPE (contract #671555) and EXA2CT (contract #610741), and the Flemish Exaptation project.
 
 .. |Travis Build Status| image:: https://travis-ci.org/ExaScience/smurff.svg?branch=master
    :target: https://travis-ci.org/ExaScience/smurff
