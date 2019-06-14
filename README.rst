@@ -78,7 +78,7 @@ Citing SMURFF
 If you are using SMURFF in a scientific publication, please cite the following preprint plus the paper describing the corresponding algorithm:
  
 SMURFF: a High-Performance Framework for Matrix Factorization
-arXiv preprint `arXiv:1904:02514 https://arxiv.org/abs/1904.02514`_
+arXiv preprint `arXiv:1904:02514 <https://arxiv.org/abs/1904.02514>`_
  
 When using pure Bayesian Probabilistic Matrix Factorization, please also cite:
 
