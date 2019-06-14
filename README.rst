@@ -77,21 +77,19 @@ Citing SMURFF
 
 If you are using SMURFF in a scientific publication, please cite the following preprint plus the paper describing the corresponding algorithm:
  
-SMURFF: a High-Performance Framework for Matrix Factorization
-arXiv preprint `arXiv:1904:02514 <https://arxiv.org/abs/1904.02514>`_
+SMURFF: a High-Performance Framework for Matrix Factorization arXiv preprint `arXiv:1904:02514 <https://arxiv.org/abs/1904.02514>`_
  
 When using pure Bayesian Probabilistic Matrix Factorization, please also cite:
 
-Ruslan Salakhutdinov and Andriy Mnih. 2008. Bayesian probabilistic matrix factorization using Markov chain Monte Carlo. In Proceedings of the 25th international conference on Machine learning (ICML '08). ACM, New York, NY, USA, 880-887. 
+ Ruslan Salakhutdinov and Andriy Mnih. 2008. Bayesian probabilistic matrix factorization using Markov chain Monte Carlo. In Proceedings of the 25th international conference on Machine learning (ICML '08). ACM, New York, NY, USA, 880-887. 
  
 When using Bayesian Factorization with Side Information, please also cite:
 
-Simm, Jaak ; Arany, Ádám ; Zakeri P., Pooya Zakeri ; Haber, T ; Wegner, JK ; Chupakhin, V ; Ceulemans, H ; Moreau, Yves. Macau: Scalable Bayesian Factorization with High-Dimensional Side Information Using MCMC Proc. of the Machine Learning for Signal Processing (MLSP), 2017 IEEE 27th 
-International Workshop on MLSP; 2017; Vol. 2017-September; pp. 1 - 6. Tokyo, Japan.
+ Simm, Jaak ; Arany, Ádám ; Zakeri P., Pooya Zakeri ; Haber, T ; Wegner, JK ; Chupakhin, V ; Ceulemans, H ; Moreau, Yves.   Macau: Scalable Bayesian Factorization with High-Dimensional Side Information Using MCMC Proc. of the Machine Learning for  Signal Processing (MLSP), 2017 IEEE 27th International Workshop on MLSP; 2017; Vol. 2017-September; pp. 1 - 6. Tokyo, Japan.
  
 When using Group Factor Analysis, please also cite:
 
-A. Klami, S. Virtanen, E. Leppäaho and S. Kaski, "Group Factor Analysis," in IEEE Transactions on Neural Networks and Learning Systems, vol. 26, no. 9, pp. 2136-2147, Sept. 2015.
+ A. Klami, S. Virtanen, E. Leppäaho and S. Kaski, "Group Factor Analysis," in IEEE Transactions on Neural Networks and Learning Systems, vol. 26, no. 9, pp. 2136-2147, Sept. 2015.
 
 
 Acknowledgements
