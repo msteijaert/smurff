@@ -81,11 +81,11 @@ SMURFF: a High-Performance Framework for Matrix Factorization arXiv preprint `ar
  
 When using pure Bayesian Probabilistic Matrix Factorization, please also cite:
 
- Ruslan Salakhutdinov and Andriy Mnih. 2008. Bayesian probabilistic matrix factorization using Markov chain Monte Carlo. In Proceedings of the 25th international conference on Machine learning (ICML '08). ACM, New York, NY, USA, 880-887. 
+ Salakhutdinov R, Mnih A. Bayesian probabilistic matrix factorization using Markov chain Monte Carlo. In Proceedings of the 25th international conference on Machine learning (ICML '08), 2008. ACM, New York, NY, USA, 880-887. 
  
 When using Bayesian Factorization with Side Information, please also cite:
 
- Simm, Jaak ; Arany, Ádám ; Zakeri P., Pooya Zakeri ; Haber, T ; Wegner, JK ; Chupakhin, V ; Ceulemans, H ; Moreau, Yves.   Macau: Scalable Bayesian Factorization with High-Dimensional Side Information Using MCMC Proc. of the Machine Learning for  Signal Processing (MLSP), 2017 IEEE 27th International Workshop on MLSP; 2017; Vol. 2017-September; pp. 1 - 6. Tokyo, Japan.
+ Simm J, Arany Á, Zakeri P, Haber T, Wegner JK, Chupakhin V, Ceulemans H, Moreau Y.  Macau: Scalable Bayesian Factorization with High-Dimensional Side Information Using MCMC Proc. of the Machine Learning for  Signal Processing (MLSP), 2017 IEEE 27th International Workshop on MLSP; 2017; Vol. 2017-September; pp. 1 - 6. Tokyo, Japan.
  
 When using Group Factor Analysis, please also cite:
 
