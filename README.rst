@@ -89,7 +89,7 @@ When using Bayesian Factorization with Side Information, please also cite:
  
 When using Group Factor Analysis, please also cite:
 
- A. Klami, S. Virtanen, E. Leppäaho and S. Kaski, "Group Factor Analysis," in IEEE Transactions on Neural Networks and Learning Systems, vol. 26, no. 9, pp. 2136-2147, Sept. 2015.
+ Klami A, Virtanen S, Leppäaho E, Kaski S., "Group Factor Analysis," in IEEE Transactions on Neural Networks and Learning Systems, vol. 26, no. 9, pp. 2136-2147, Sept. 2015.
 
 
 Acknowledgements
