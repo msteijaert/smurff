@@ -4,8 +4,6 @@ from .prepare import make_train_test, make_train_test_df
 from .result import Prediction
 from .predict import PredictSession
 
-
-
 class TrainSession:
     """Class for doing a training run in smurff
 
@@ -35,7 +33,10 @@ class TrainSession:
         Number of OpenMP threads to use for model building
 
     verbose: {0, 1, 2}
-        Verbosity level
+        Verbosity level for C++ library
+
+    logger: 
+        Python logger
 
     seed: float
         Random seed to use for sampling
@@ -72,6 +73,7 @@ class TrainSession:
         nsamples         = 800,
         seed             = 0,
         verbose          = 1,
+        logger           = logging.getLogger(),
         save_prefix      = None,
         save_extension   = None,
         save_freq        = None,

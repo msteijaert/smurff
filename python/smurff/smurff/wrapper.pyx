@@ -32,6 +32,7 @@ import scipy.sparse
 import numbers
 import tempfile
 import os
+import logging
 
 from .helper import SparseTensor, PyNoiseConfig, StatusItem as PyStatusItem
 from .prepare import make_train_test, make_train_test_df
@@ -267,7 +268,10 @@ cdef class TrainSession:
         Number of OpenMP threads to use for model building
 
     verbose: {0, 1, 2}
-        Verbosity level
+        Verbosity level for C++ library
+
+    logger:
+        Python logger
 
     seed: float
         Random seed to use for sampling
@@ -312,6 +316,7 @@ cdef class TrainSession:
         seed             = RANDOM_SEED_DEFAULT_VALUE,
         threshold        = None,
         verbose          = 1,
+        logger           = logging.getLogger(),
         save_prefix      = None,
         save_extension   = None,
         save_freq        = None,
@@ -321,6 +326,7 @@ cdef class TrainSession:
 
         self.nmodes = len(priors)
         self.verbose = verbose
+        self.logger = logger
 
         if save_prefix is None and save_freq:
             save_prefix = tempfile.mkdtemp()
@@ -339,7 +345,7 @@ cdef class TrainSession:
         self.config.setNumThreads(num_threads)
         self.config.setBurnin(burnin)
         self.config.setNSamples(nsamples)
-        self.config.setVerbose(verbose - 1)
+        self.config.setVerbose(verbose)
 
         if seed:           self.config.setRandomSeed(seed)
         if threshold is not None:
@@ -472,8 +478,7 @@ cdef class TrainSession:
 
         self.ptr = SessionFactory.create_py_session_from_config(self.config)
         self.ptr_get().init()
-        if (self.verbose > 0):
-            print(self)
+        self.logger.info(self)
         return self.getStatus()
 
 
@@ -542,8 +547,7 @@ cdef class TrainSession:
                 self.status_item.get().nnz_per_sec,
                 self.status_item.get().samples_per_sec)
 
-            if (self.verbose > 0):
-                print(status)
+            self.logger.info(status)
             
             return status
         else:
