@@ -189,7 +189,7 @@ void Model::save(std::shared_ptr<const StepFile> sf, bool saveAggr) const
          double n = m_num_aggr.at(m);
 
          // calculate real mu and Lambda
-         for (int i = 0; i < nsamples(); i++)
+         for (int i = 0; i < U(m).cols(); i++)
          {
             Eigen::VectorXd sum = m_aggr_sum.at(m)->col(i);
             Eigen::MatrixXd prod = Eigen::Map<Eigen::MatrixXd>( m_aggr_dot.at(m)->col(i).data(), nlatent(), nlatent());
