@@ -113,6 +113,9 @@ void ILatentPrior::sample_latents()
            const auto& col = U().col(n);
            Ucol.local().noalias() += col;
            UUcol.local().noalias() += col * col.transpose();
+
+           if (m_session->inSamplingPhase())
+             model().updateAggr(m_mode, n);
        }
    }
 

@@ -37,10 +37,13 @@ Model::Model()
 //num_latent - size of latent dimention
 //dims - dimentions of train data
 //init_model_type - samples initialization type
-void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type)
+void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type, bool aggregate)
 {
    m_num_latent = num_latent;
    m_dims = dims;
+   m_collect_aggr = aggregate;
+
+   m_num_aggr = std::vector<int>(dims.size(), 0);
 
    for(size_t i = 0; i < dims.size(); ++i)
    {
@@ -61,6 +64,16 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
       }
 
       m_factors.push_back(mat);
+
+      if (aggregate)
+      {
+         std::shared_ptr<Eigen::MatrixXd> aggr_sum(new Eigen::MatrixXd(m_num_latent, dims[i]));
+         aggr_sum->setZero();
+         m_aggr_sum.push_back(aggr_sum);
+         std::shared_ptr<Eigen::MatrixXd> aggr_dot(new Eigen::MatrixXd(m_num_latent * m_num_latent, dims[i]));
+         aggr_dot->setZero();
+         m_aggr_dot.push_back(aggr_dot);
+      }
    }
 
    m_link_matrices.resize(nmodes());
@@ -148,13 +161,52 @@ SubModel Model::full()
    return SubModel(*this);
 }
 
-void Model::save(std::shared_ptr<const StepFile> sf) const
+void Model::updateAggr(int m, int i)
+{
+   if (!m_collect_aggr) return;
+
+   const auto &r = col(m, i);
+   Matrix cov = (r * r.transpose());
+   m_aggr_sum.at(m)->col(i) += r;
+   m_aggr_dot.at(m)->col(i) += Eigen::Map<Eigen::VectorXd>(cov.data(), nlatent() * nlatent());
+   m_num_aggr.at(m)++;
+}
+
+void Model::save(std::shared_ptr<const StepFile> sf, bool saveAggr) const
 {
    std::uint64_t i = 0;
    for (auto U : m_factors)
    {
       std::string path = sf->makeModelFileName(i++);
       smurff::matrix_io::eigen::write_matrix(path, *U);
+   }
+
+   unsigned nmodes = sf->getNModes();
+   if (m_collect_aggr && saveAggr)
+   {
+      for (std::uint64_t m = 0; m < nmodes; ++m)
+      {
+         double n = m_num_aggr.at(m);
+
+         // calculate real mu and Lambda
+         for (int i = 0; i < nsamples(); i++)
+         {
+            Eigen::VectorXd sum = m_aggr_sum.at(m)->col(i);
+            Eigen::MatrixXd prod = Eigen::Map<Eigen::MatrixXd>( m_aggr_dot.at(m)->col(i).data(), nlatent(), nlatent());
+
+            Matrix cov = (prod - (sum * sum.transpose() / n)) / (n - 1);
+            Matrix prec = cov.inverse(); // precision = covariance^-1
+
+            m_aggr_dot.at(m)->col(i) = Eigen::Map<Eigen::VectorXd>(cov.data(), nlatent() * nlatent());
+            m_aggr_sum.at(m)->col(i) = sum / n;
+         }
+
+         std::string mu_path = sf->makePostMuFileName(m);
+         smurff::matrix_io::eigen::write_matrix(mu_path, *m_aggr_sum.at(m));
+
+         std::string cov_path = sf->makePostCovFileName(m);
+         smurff::matrix_io::eigen::write_matrix(cov_path, *m_aggr_dot.at(m));
+      }
    }
 }
 

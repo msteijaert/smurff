@@ -43,6 +43,11 @@ private:
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_factors; //vector of U matrices
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_link_matrices; //vector of U matrices
 
+   bool m_collect_aggr;
+   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_aggr_sum; //vector of aggr summed m_factors matrices
+   std::vector<std::shared_ptr<Eigen::MatrixXd>> m_aggr_dot; //vector of aggr dot m_factors matrices
+   std::vector<int> m_num_aggr; //number of aggregated samples in above vectors
+
    int m_num_latent; //size of latent dimention for U matrices
    PVec<> m_dims; //dimensions of train data
 
@@ -54,7 +59,7 @@ public:
 
 public:
    //initialize U matrices in the model (random/zero)
-   void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type);
+   void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type, bool collect_aggr = true);
 
    void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd>);
 
@@ -108,8 +113,11 @@ public:
    SubModel full();
 
 public:
+   void updateAggr(int m, int n);
+
+public:
    // output to file
-   void save(std::shared_ptr<const StepFile> sf) const;
+   void save(std::shared_ptr<const StepFile> sf, bool saveAggr) const;
    void restore(std::shared_ptr<const StepFile> sf);
 
    std::ostream& info(std::ostream &os, std::string indent) const;

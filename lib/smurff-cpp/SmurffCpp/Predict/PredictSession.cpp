@@ -147,7 +147,7 @@ bool PredictSession::step()
 void PredictSession::save()
 {
     //save this iteration
-    std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(m_iter);
+    std::shared_ptr<StepFile> stepFile = getRootFile()->createSampleStepFile(m_iter, false);
 
     if (m_config.getVerbose())
     {

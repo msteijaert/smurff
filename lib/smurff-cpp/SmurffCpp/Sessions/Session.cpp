@@ -260,7 +260,7 @@ void Session::save(int iteration)
         else
         {
             //do save this iteration
-            std::shared_ptr<StepFile> stepFile = m_rootFile->createSampleStepFile(isample);
+            std::shared_ptr<StepFile> stepFile = m_rootFile->createSampleStepFile(isample, isample == m_config.getNSamples());
             saveInternal(stepFile);
         }
     }

@@ -121,19 +121,19 @@ void RootFile::restoreConfig(Config& config)
    m_extension = config.getSaveExtension();
 }
 
-std::shared_ptr<StepFile> RootFile::createSampleStepFile(std::int32_t isample) const
+std::shared_ptr<StepFile> RootFile::createSampleStepFile(std::int32_t isample, bool final) const
 {
-   return createStepFileInternal(isample, false);
+   return createStepFileInternal(isample, false, final);
 }
 
 std::shared_ptr<StepFile> RootFile::createCheckpointStepFile(std::int32_t isample) const
 {
-   return createStepFileInternal(isample, true);
+   return createStepFileInternal(isample, true, false);
 }
 
-std::shared_ptr<StepFile> RootFile::createStepFileInternal(std::int32_t isample, bool checkpoint) const
+std::shared_ptr<StepFile> RootFile::createStepFileInternal(std::int32_t isample, bool checkpoint, bool final) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true, checkpoint);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, true, checkpoint, final);
 
    std::string stepFileName = stepFile->getStepFileName();
    std::string tagPrefix = checkpoint ? CHECKPOINT_STEP_PREFIX : SAMPLE_STEP_PREFIX;
@@ -155,7 +155,7 @@ void RootFile::removeCheckpointStepFile(std::int32_t isample) const
 
 void RootFile::removeStepFileInternal(std::int32_t isample, bool checkpoint) const
 {
-   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, checkpoint);
+   std::shared_ptr<StepFile> stepFile = std::make_shared<StepFile>(isample, m_prefix, m_extension, false, checkpoint, false);
    stepFile->remove(true, true, true);
 
    std::string stepFileName = stepFile->getStepFileName();

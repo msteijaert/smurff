@@ -18,6 +18,8 @@
 #define STEP_INI_SUFFIX "-step.ini"
 
 #define LATENTS_PREFIX "latents_"
+#define POST_MU_PREFIX "post_mu_"
+#define POST_COV_PREFIX "post_cov_"
 #define LINK_MATRIX_PREFIX "link_matrix_"
 
 #define GLOBAL_SEC_TAG "global"
@@ -33,8 +35,8 @@
 
 using namespace smurff;
 
-StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool checkpoint)
-   : m_isample(isample), m_prefix(prefix), m_extension(extension), m_checkpoint(checkpoint)
+StepFile::StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool checkpoint, bool final)
+   : m_isample(isample), m_prefix(prefix), m_extension(extension), m_checkpoint(checkpoint), m_final(final)
 {
    if (create)
    {
@@ -119,6 +121,20 @@ std::string StepFile::makeModelFileName(std::uint64_t index) const
    return prefix + "-U" + std::to_string(index) + "-latents" + m_extension;
 }
 
+std::string StepFile::makePostMuFileName(std::uint64_t index) const
+{
+   THROWERROR_ASSERT(!m_extension.empty());
+   std::string prefix = getStepPrefix();
+   return prefix + "-Mu" + std::to_string(index) + "-aggr" + m_extension;
+}
+
+std::string StepFile::makePostCovFileName(std::uint64_t index) const
+{
+   THROWERROR_ASSERT(!m_extension.empty());
+   std::string prefix = getStepPrefix();
+   return prefix + "-Cov" + std::to_string(index) + "-aggr" + m_extension;
+}
+
 bool StepFile::hasLinkMatrix(std::uint32_t mode) const
 {
    auto linkMatrixIt = tryGetIniValueFullPath(LINK_MATRICES_SEC_TAG, LINK_MATRIX_PREFIX + std::to_string(mode));
@@ -175,15 +191,26 @@ std::string StepFile::makePredStateFileName() const
 
 //save methods
 
-void StepFile::saveModel(std::shared_ptr<const Model> model) const
+void StepFile::saveModel(std::shared_ptr<const Model> model, bool saveAggr) const
 {
-   model->save(shared_from_this());
+   model->save(shared_from_this(), saveAggr);
 
    //save models
    for (std::uint64_t mIndex = 0; mIndex < model->nmodes(); mIndex++)
    {
-      std::string path = makeModelFileName(mIndex);
-      appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path);
+      {
+         std::string path = makeModelFileName(mIndex);
+         appendToStepFile(LATENTS_SEC_TAG, LATENTS_PREFIX + std::to_string(mIndex), path);
+      }
+
+      if (saveAggr)
+      {
+         std::string mu_path = makePostMuFileName(mIndex);
+         appendToStepFile(LATENTS_SEC_TAG, POST_MU_PREFIX + std::to_string(mIndex), mu_path);
+
+         std::string cov_path = makePostCovFileName(mIndex);
+         appendToStepFile(LATENTS_SEC_TAG, POST_COV_PREFIX + std::to_string(mIndex), cov_path);
+      }
    }
 }
 
@@ -219,13 +246,16 @@ void StepFile::savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& pri
    }
 }
 
-void StepFile::save(std::shared_ptr<const Model> model, std::shared_ptr<const Result> pred, const std::vector<std::shared_ptr<ILatentPrior> >& priors) const
+void StepFile::save(std::shared_ptr<const Model> model,
+         std::shared_ptr<const Result> pred,
+   const std::vector<std::shared_ptr<ILatentPrior> >& priors
+   ) const
 {
     appendToStepFile(GLOBAL_SEC_TAG, IS_CHECKPOINT_TAG, std::to_string(m_checkpoint));
     appendToStepFile(GLOBAL_SEC_TAG, NUMBER_TAG, std::to_string(m_isample));
     appendToStepFile(GLOBAL_SEC_TAG, NUM_MODES_TAG, std::to_string(model->nmodes()));
 
-    saveModel(model);
+    saveModel(model, m_final);
     savePred(pred);
     savePriors(priors);
 }

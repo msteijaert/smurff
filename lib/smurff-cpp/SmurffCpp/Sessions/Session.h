@@ -46,6 +46,11 @@ private:
    double m_lastCheckpointTime;
    int m_lastCheckpointIter;
 
+public:
+   bool inBurninPhase() const { return m_iter < m_config.getBurnin(); }
+   bool inSamplingPhase() const { return !inBurninPhase(); }
+   bool finalSample() const { return m_iter == (m_config.getNSamples() + m_config.getBurnin()); }
+
 protected:
    Session();
 

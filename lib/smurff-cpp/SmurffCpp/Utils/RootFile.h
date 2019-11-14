@@ -55,7 +55,7 @@ private:
    std::string restoreGetOptionsFileName() const;
 
 public:
-   std::shared_ptr<StepFile> createSampleStepFile(std::int32_t isample) const;
+   std::shared_ptr<StepFile> createSampleStepFile(std::int32_t isample, bool final) const;
 
    std::shared_ptr<StepFile> createCheckpointStepFile(std::int32_t isample) const;
 
@@ -65,7 +65,7 @@ public:
    void removeCheckpointStepFile(std::int32_t isample) const;
 
 private:
-   std::shared_ptr<StepFile> createStepFileInternal(std::int32_t isample, bool burnin) const;
+   std::shared_ptr<StepFile> createStepFileInternal(std::int32_t isample, bool burnin, bool final) const;
 
 private:
    void removeStepFileInternal(std::int32_t isample, bool burnin) const;

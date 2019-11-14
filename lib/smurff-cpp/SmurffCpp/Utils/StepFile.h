@@ -21,6 +21,7 @@ namespace smurff {
       std::string m_prefix;
       std::string m_extension;
       bool m_checkpoint;
+      bool m_final;
 
       mutable std::string m_cur_section;
 
@@ -29,7 +30,7 @@ namespace smurff {
 
    public:
       //this constructor should be used to create a step file on a first run of session
-      StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool checkpoint);
+      StepFile(std::int32_t isample, std::string prefix, std::string extension, bool create, bool checkpoint, bool final);
 
       //this constructor should be used to  open existing step file when previous session is continued
       StepFile(const std::string& path, std::string prefix, std::string extension);
@@ -56,8 +57,11 @@ namespace smurff {
       std::string makePredFileName() const;
       std::string makePredStateFileName() const;
 
+      std::string makePostMuFileName(std::uint64_t index) const;
+      std::string makePostCovFileName(std::uint64_t index) const;
+
    public:
-      void saveModel(std::shared_ptr<const Model> model) const;
+      void saveModel(std::shared_ptr<const Model> model, bool saveAggr) const;
       void savePred(std::shared_ptr<const Result> m_pred) const;
       void savePriors(const std::vector<std::shared_ptr<ILatentPrior> >& priors) const;
 
