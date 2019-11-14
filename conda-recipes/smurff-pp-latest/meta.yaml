@@ -29,7 +29,7 @@ requirements:
     - mkl
     - libboost
     - python
-    - numpy
+    - numpy >=1.13
     - scipy
     - pandas
     - scikit-learn
