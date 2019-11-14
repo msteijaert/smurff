@@ -94,7 +94,7 @@ class TestSmurff(unittest.TestCase):
         df["value"] = (np.array([ np.sum(A[i[0], :] * B[i[1], :]) for i in idx ]) > 0.0).astype(np.float64)
         Ytrain, Ytest = smurff.make_train_test_df(df, 0.2)
 
-        threshold = 0.5  # since we sample from µ(0,1)
+        threshold = 0.5  # since we sample from mu(0,1)
         
         session = smurff.TrainSession(priors=['macau', 'normal'],
                                 num_latent=4,
