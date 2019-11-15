@@ -26,6 +26,7 @@
 #define GLOBAL_SEC_TAG "global"
 #define LATENTS_SEC_TAG "latents"
 #define PRED_SEC_TAG "predictions"
+
 #define LINK_MATRICES_SEC_TAG "link_matrices"
 
 #define IS_CHECKPOINT_TAG "is_checkpoint"
@@ -33,6 +34,8 @@
 #define NUM_MODES_TAG "num_modes"
 #define PRED_TAG "pred"
 #define PRED_STATE_TAG "pred_state"
+#define PRED_AVG_TAG "pred_avg"
+#define PRED_VAR_TAG "pred_var"
 
 using namespace smurff;
 
@@ -210,6 +213,34 @@ std::string StepFile::makePredStateFileName() const
 {
     std::string prefix = getStepPrefix();
     return prefix + "-predictions-state.ini";
+}
+
+std::string StepFile::getPredAvgFileName() const
+{
+   auto predIt = tryGetIniValueFullPath(PRED_SEC_TAG, PRED_AVG_TAG);
+   THROWERROR_ASSERT(predIt.first);
+   return predIt.second;
+}
+
+std::string StepFile::makePredAvgFileName() const
+{
+    std::string prefix = getStepPrefix();
+    std::string extension = isBinary() ? ".sdm" : ".csv";
+    return prefix + "-predavg" + extension;
+}
+
+std::string StepFile::getPredVarFileName() const
+{
+   auto predIt = tryGetIniValueFullPath(PRED_SEC_TAG, PRED_VAR_TAG);
+   THROWERROR_ASSERT(predIt.first);
+   return predIt.second;
+}
+
+std::string StepFile::makePredVarFileName() const
+{
+    std::string prefix = getStepPrefix();
+    std::string extension = isBinary() ? ".sdm" : ".csv";
+    return prefix + "-predvar" + extension;
 }
 
 //save methods

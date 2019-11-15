@@ -21,6 +21,7 @@
 #include <SmurffCpp/Utils/StringUtils.h>
 
 #include <SmurffCpp/IO/GenericIO.h>
+#include <SmurffCpp/IO/MatrixIO.h>
 
 #define GLOBAL_TAG "global"
 #define RMSE_AVG_TAG "rmse_avg"
@@ -87,6 +88,24 @@ void Result::save(std::shared_ptr<const StepFile> sf) const
    savePredState(sf);
 }
 
+
+template<typename Accessor>
+std::shared_ptr<const MatrixConfig> Result::toMatrixConfig(const Accessor &acc) const
+{
+   std::vector<std::uint32_t> rows;
+   std::vector<std::uint32_t> cols;
+   std::vector<double> values;
+
+   for (const auto &p : m_predictions)
+   {
+      rows.push_back(p.coords.at(0));
+      cols.push_back(p.coords.at(1));
+      values.push_back(acc(p));
+   }
+
+   return std::make_shared<MatrixConfig>(m_dims.at(0), m_dims.at(1), rows, cols, values, NoiseConfig(), false);
+}
+
 void Result::savePred(std::shared_ptr<const StepFile> sf) const
 {
    if (isEmpty())
@@ -99,7 +118,14 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
    {
       predFile.open(fname_pred, std::ios::out | std::ios::binary);
       THROWERROR_ASSERT_MSG(predFile.is_open(), "Error opening file: " + fname_pred);
-      predFile.write((const char *)(&m_predictions[0]), m_predictions.size() * sizeof(m_predictions[0]));  
+      predFile.write((const char *)(&m_predictions[0]), m_predictions.size() * sizeof(m_predictions[0]));
+
+      if (m_dims.size() == 2)
+      {
+         std::string pred_avg_path = sf->makePredAvgFileName();
+         auto pred_avg = toMatrixConfig([](const ResultItem &p) { return p.pred_avg; });
+         smurff::matrix_io::write_matrix(pred_avg_path, pred_avg);
+      }
    }
    else
    {
@@ -124,6 +150,7 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
    }
 
    predFile.close();
+
 }
 
 void Result::savePredState(std::shared_ptr<const StepFile> sf) const

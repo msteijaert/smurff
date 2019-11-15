@@ -54,12 +54,16 @@ namespace smurff {
       std::string getLinkMatrixFileName(std::uint32_t mode) const;
       std::string getPredFileName() const;
       std::string getPredStateFileName() const;
+      std::string getPredAvgFileName() const;
+      std::string getPredVarFileName() const;
 
       std::string makeModelFileName(std::uint64_t index) const;
       std::string makeLinkMatrixFileName(std::uint32_t mode) const;
       std::string makeMuFileName(std::uint32_t mode) const;
       std::string makePredFileName() const;
       std::string makePredStateFileName() const;
+      std::string makePredAvgFileName() const;
+      std::string makePredVarFileName() const;
 
       std::string makePostMuFileName(std::uint64_t index) const;
       std::string makePostLambdaFileName(std::uint64_t index) const;
