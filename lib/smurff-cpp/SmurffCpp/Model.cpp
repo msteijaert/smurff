@@ -191,7 +191,6 @@ void Model::save(std::shared_ptr<const StepFile> sf, bool saveAggr) const
       for (std::uint64_t m = 0; m < nmodes; ++m)
       {
          double n = m_num_aggr.at(m);
-         std::cout << "Divide by " << n << std::endl;
 
          Eigen::MatrixXd &Usum = *m_aggr_sum.at(m);
          Eigen::MatrixXd &Uprod = *m_aggr_dot.at(m);
