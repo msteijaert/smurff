@@ -125,6 +125,10 @@ void Result::savePred(std::shared_ptr<const StepFile> sf) const
          std::string pred_avg_path = sf->makePredAvgFileName();
          auto pred_avg = toMatrixConfig([](const ResultItem &p) { return p.pred_avg; });
          smurff::matrix_io::write_matrix(pred_avg_path, pred_avg);
+
+         std::string pred_var_path = sf->makePredVarFileName();
+         auto pred_var = toMatrixConfig([](const ResultItem &p) { return p.var; });
+         smurff::matrix_io::write_matrix(pred_var_path, pred_var);
       }
    }
    else
