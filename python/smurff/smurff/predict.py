@@ -41,6 +41,11 @@ class Sample:
         iter = int(cp["global"]["number"])
         sample = cls(nmodes, iter)
 
+        # predictions, rmse
+        sample.pred_stats = dict(read_config_file(cp["predictions"]["pred_state"], dir_name)["global"].items())
+        sample.pred_avg = mio.read_matrix(os.path.join(dir_name, cp["predictions"]["pred_avg"]))
+        sample.pred_var = mio.read_matrix(os.path.join(dir_name, cp["predictions"]["pred_var"]))
+
         # latent matrices
         for i in range(sample.nmodes):
             file_name = os.path.join(dir_name, cp["latents"]["latents_" + str(i)])
@@ -79,8 +84,10 @@ class Sample:
         self.nmodes = nmodes
         self.iter = it
         self.latents = []
+
         self.post_mu = []
         self.post_Lambda = []
+
         self.betas = []
         self.mus = []
 
@@ -183,21 +190,40 @@ class PredictSession:
             if (step_name.startswith("sample_step")):
                 yield Sample.fromStepFile(step_file, self.root_dir)
 
-    def postMuLambda(self, axis):
-        # start from last sample
+    def lastSample(self):
         steps = list(self.root_config["steps"].items())
-        for step_name, step_file in reversed(steps):
-            if (step_name.startswith("sample_step")):
-                sample = Sample.fromStepFile(step_file, self.root_dir)
-                postMu = sample.post_mu[axis]
-                postLambda = sample.post_Lambda[axis]
-                if postMu is not None and postLambda is not None:
-                    nl = self.num_latent
-                    assert postLambda.shape[0] == nl * nl
-                    postLambda = np.reshape(postLambda, (nl, nl, postLambda.shape[1]))
-                    return postMu, postLambda
-        
+        last_step_name, last_step_file = steps[-1]
+        if last_step_name.startswith("sample_step"):
+            return Sample.fromStepFile(last_step_file, self.root_dir)
+        else:
+            return None
+
+    def postMuLambda(self, axis):
+        sample = self.lastSample()
+        if sample is not None:
+            postMu = sample.post_mu[axis]
+            postLambda = sample.post_Lambda[axis]
+            if postMu is not None and postLambda is not None:
+                nl = self.num_latent
+                assert postLambda.shape[0] == nl * nl
+                postLambda = np.reshape(postLambda, (nl, nl, postLambda.shape[1]))
+                return postMu, postLambda
+
         return None, None
+
+    def predictionsYTest(self):
+        sample = self.lastSample()
+        if sample is not None:
+            return sample.pred_avg, sample.pred_var 
+
+        return None, None
+
+    def statsYTest(self):
+        sample = self.lastSample()
+        if sample is not None:
+            return sample.pred_stats 
+
+        return None
 
     def predict(self, coords_or_sideinfo=None):
         return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples()])
