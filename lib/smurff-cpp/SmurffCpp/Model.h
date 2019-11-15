@@ -113,6 +113,7 @@ public:
    SubModel full();
 
 public:
+   void updateAggr(int m);
    void updateAggr(int m, int n);
 
 public:

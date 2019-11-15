@@ -119,6 +119,9 @@ void ILatentPrior::sample_latents()
        }
    }
 
+   if (m_session->inSamplingPhase())
+      model().updateAggr(m_mode);
+
    Usum  = Ucol.combine();
    UUsum = UUcol.combine();
 

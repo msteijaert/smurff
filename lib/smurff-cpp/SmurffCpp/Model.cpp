@@ -169,6 +169,10 @@ void Model::updateAggr(int m, int i)
    Matrix cov = (r * r.transpose());
    m_aggr_sum.at(m)->col(i) += r;
    m_aggr_dot.at(m)->col(i) += Eigen::Map<Eigen::VectorXd>(cov.data(), nlatent() * nlatent());
+}
+
+void Model::updateAggr(int m)
+{
    m_num_aggr.at(m)++;
 }
 
@@ -187,25 +191,30 @@ void Model::save(std::shared_ptr<const StepFile> sf, bool saveAggr) const
       for (std::uint64_t m = 0; m < nmodes; ++m)
       {
          double n = m_num_aggr.at(m);
+         std::cout << "Divide by " << n << std::endl;
+
+         Eigen::MatrixXd &Usum = *m_aggr_sum.at(m);
+         Eigen::MatrixXd &Uprod = *m_aggr_dot.at(m);
+
+         Eigen::MatrixXd mu = Eigen::MatrixXd::Zero(Usum.rows(), Usum.cols());
+         Eigen::MatrixXd cov = Eigen::MatrixXd::Zero(Uprod.rows(), Uprod.cols());
 
          // calculate real mu and Lambda
          for (int i = 0; i < U(m).cols(); i++)
          {
-            Eigen::VectorXd sum = m_aggr_sum.at(m)->col(i);
-            Eigen::MatrixXd prod = Eigen::Map<Eigen::MatrixXd>( m_aggr_dot.at(m)->col(i).data(), nlatent(), nlatent());
+            Eigen::VectorXd sum  = Usum.col(i);
+            Eigen::MatrixXd prod = Eigen::Map<Eigen::MatrixXd>( Uprod.col(i).data(), nlatent(), nlatent());
+            Eigen::MatrixXd cov_i = (prod - (sum * sum.transpose() / n)) / (n - 1);
 
-            Matrix cov = (prod - (sum * sum.transpose() / n)) / (n - 1);
-            Matrix prec = cov.inverse(); // precision = covariance^-1
-
-            m_aggr_dot.at(m)->col(i) = Eigen::Map<Eigen::VectorXd>(cov.data(), nlatent() * nlatent());
-            m_aggr_sum.at(m)->col(i) = sum / n;
+            cov.col(i) = Eigen::Map<Eigen::VectorXd>(cov_i.data(), nlatent() * nlatent());
+            mu.col(i) = sum / n;
          }
 
          std::string mu_path = sf->makePostMuFileName(m);
-         smurff::matrix_io::eigen::write_matrix(mu_path, *m_aggr_sum.at(m));
+         smurff::matrix_io::eigen::write_matrix(mu_path, mu);
 
          std::string cov_path = sf->makePostCovFileName(m);
-         smurff::matrix_io::eigen::write_matrix(cov_path, *m_aggr_dot.at(m));
+         smurff::matrix_io::eigen::write_matrix(cov_path, cov);
       }
    }
 }
