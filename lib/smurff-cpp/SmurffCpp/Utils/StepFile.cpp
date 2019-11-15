@@ -206,10 +206,14 @@ void StepFile::saveModel(std::shared_ptr<const Model> model, bool saveAggr) cons
       if (saveAggr)
       {
          std::string mu_path = makePostMuFileName(mIndex);
-         appendToStepFile(LATENTS_SEC_TAG, POST_MU_PREFIX + std::to_string(mIndex), mu_path);
-
          std::string cov_path = makePostCovFileName(mIndex);
+         appendToStepFile(LATENTS_SEC_TAG, POST_MU_PREFIX + std::to_string(mIndex), mu_path);
          appendToStepFile(LATENTS_SEC_TAG, POST_COV_PREFIX + std::to_string(mIndex), cov_path);
+      }
+      else
+      {
+         appendToStepFile(LATENTS_SEC_TAG, POST_MU_PREFIX + std::to_string(mIndex), NONE_TAG);
+         appendToStepFile(LATENTS_SEC_TAG, POST_COV_PREFIX + std::to_string(mIndex), NONE_TAG);
       }
    }
 }
