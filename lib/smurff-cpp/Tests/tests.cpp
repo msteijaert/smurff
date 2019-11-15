@@ -251,9 +251,9 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
            }
        }
        double stop = tick();
-       std::cout << "norm U: " << U.norm() << std::endl;
-       std::cout << "norm M: " << M.norm() << std::endl;
-       std::cout << "MatrixXd: " << stop - start << std::endl;
+       //std::cout << "norm U: " << U.norm() << std::endl;
+       //std::cout << "norm M: " << M.norm() << std::endl;
+       //std::cout << "MatrixXd: " << stop - start << std::endl;
    }
 
    {
@@ -271,9 +271,9 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
            }
        }
        double stop = tick();
-       std::cout << "norm U: " << U.norm() << std::endl;
-       std::cout << "norm M: " << M.norm() << std::endl;
-       std::cout << "MatrixXd: " << stop - start << std::endl;
+       //std::cout << "norm U: " << U.norm() << std::endl;
+       //std::cout << "norm M: " << M.norm() << std::endl;
+       //std::cout << "MatrixXd: " << stop - start << std::endl;
    }
 }
 
