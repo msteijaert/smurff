@@ -6,11 +6,9 @@
 
 namespace smurff
 {
-   std::string& ltrim(std::string& s);
-
-   std::string& rtrim(std::string& s);
-
-   std::string& trim(std::string& s);
+   std::string& ltrim(std::string& s, const std::string& delimiters = " \f\n\r\t\v" );
+   std::string& rtrim(std::string& s, const std::string& delimiters = " \f\n\r\t\v" );
+   std::string&  trim(std::string& s, const std::string& delimiters = " \f\n\r\t\v" );
 
    namespace _util
    {

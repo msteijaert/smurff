@@ -24,21 +24,21 @@ double smurff::_util::convert<double>(const std::string& value)
    return std::stod(value);
 }
 
-std::string& smurff::ltrim(std::string& s)
+std::string& smurff::rtrim(std::string& s, const std::string& delimiters)
 {
-   s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+   s.erase( s.find_last_not_of( delimiters ) + 1 );
    return s;
 }
-
-std::string& smurff::rtrim(std::string& s)
+ 
+std::string& smurff::ltrim(std::string& s,  const std::string& delimiters)
 {
-   s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+   s.erase( 0, s.find_first_not_of( delimiters ) );
    return s;
 }
-
-std::string& smurff::trim(std::string& s)
+ 
+std::string& smurff::trim(std::string& s, const std::string& delimiters)
 {
-   return ltrim(rtrim(s));
+   return ltrim(rtrim(s, delimiters), delimiters);
 }
 
 bool smurff::startsWith(const std::string& str, const std::string& prefix)
