@@ -80,7 +80,7 @@ class Sample:
         self.iter = it
         self.latents = []
         self.post_mu = []
-        self.post_cov = []
+        self.post_Lambda = []
         self.betas = []
         self.mus = []
 
@@ -97,7 +97,7 @@ class Sample:
     def add_latent(self, U, postMu, postLambda):
         self.latents.append(U)
         self.post_mu.append(postMu)
-        self.post_cov.append(postLambda)
+        self.post_Lambda.append(postLambda)
         self.check()
 
     def num_latent(self):
@@ -183,14 +183,14 @@ class PredictSession:
             if (step_name.startswith("sample_step")):
                 yield Sample.fromStepFile(step_file, self.root_dir)
 
-    def postMuCov(self, axis):
+    def postMuLambda(self, axis):
         # start from last sample
         steps = list(self.root_config["steps"].items())
         for step_name, step_file in reversed(steps):
             if (step_name.startswith("sample_step")):
                 sample = Sample.fromStepFile(step_file, self.root_dir)
                 postMu = sample.post_mu[axis]
-                postLambda = sample.post_cov[axis]
+                postLambda = sample.post_Lambda[axis]
                 if postMu is not None and postLambda is not None:
                     nl = self.num_latent
                     assert postLambda.shape[0] == nl * nl

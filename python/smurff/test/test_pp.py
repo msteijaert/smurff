@@ -9,7 +9,7 @@ import collections
 verbose = 0
 
 # Taken from BMF_PP/postprocess_posterior_samples
-def calc_posteriorMeanCovs(predict_session, axis):
+def calc_posteriorMeanPrec(predict_session, axis):
     # collect U/V for all samples
     Us = [ s.latents[axis] for s in predict_session.samples() ]
 
@@ -17,14 +17,14 @@ def calc_posteriorMeanCovs(predict_session, axis):
     Ustacked = np.stack(Us)
     mu = np.mean(Ustacked, axis = 0)
 
-    # Compute covariance, first unstack in different way
+    # Compute Lambdaariance, first unstack in different way
     Uunstacked = np.squeeze(np.split(Ustacked, Ustacked.shape[2], axis = 2))
-    Ucov = [ np.cov(u, rowvar = False) for u in Uunstacked ]
+    Uprec = [ np.linalg.inv(np.cov(u, rowvar = False)) for u in Uunstacked ]
 
     # restack, shape: (K, K, N)
-    Ucovstacked = np.stack(Ucov, axis = 2)
+    Uprecstacked = np.stack(Uprec, axis = 2)
 
-    return mu, Ucovstacked
+    return mu, Uprecstacked
 
 class TestPP(unittest.TestCase):
     def test_bmf_pp(self):
@@ -35,17 +35,17 @@ class TestPP(unittest.TestCase):
         predict_session = session.makePredictSession()
 
         for m in range(predict_session.nmodes):
-            calc_mu, calc_cov = calc_posteriorMeanCovs(predict_session, m)
-            sess_mu, sess_cov = predict_session.postMuCov(m)
+            calc_mu, calc_Lambda = calc_posteriorMeanPrec(predict_session, m)
+            sess_mu, sess_Lambda = predict_session.postMuLambda(m)
 
             np.testing.assert_almost_equal(calc_mu, sess_mu)
-            np.testing.assert_almost_equal(calc_cov, sess_cov)
+            np.testing.assert_almost_equal(calc_Lambda, sess_Lambda)
 
             # print("calculated mu: ", calc_mu[0:2,0])
             # print("   session mu: ", sess_mu[0:2,0])
 
-            # print("calculated cov ", calc_cov.shape, ": ", calc_cov[0:2,0:2,1] )
-            # print("   session cov ", sess_cov.shape, ": ", sess_cov[0:2,0:2,1] )
+            # print("calculated Lambda ", calc_Lambda.shape, ": ", calc_Lambda[0:2,0:2,1] )
+            # print("   session Lambda ", sess_Lambda.shape, ": ", sess_Lambda[0:2,0:2,1] )
 
 if __name__ == '__main__':
     unittest.main()
