@@ -178,9 +178,9 @@ auto smurff::nrandn(int n) -> decltype(Eigen::VectorXd::NullaryExpr(n, std::cref
    return Eigen::VectorXd::NullaryExpr(n, std::cref(randn));
 }
 
-auto smurff::nrandn(int n, int m) -> decltype(Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)))
+auto smurff::nrandn(int n, int m) -> decltype(Eigen::ArrayXXd::NullaryExpr(n, m, std::cref(randn)))
 {
-   return Eigen::ArrayXXd::NullaryExpr(n, m, std::ptr_fun(randn)); 
+   return Eigen::ArrayXXd::NullaryExpr(n, m, std::cref(randn)); 
 }
 
 
