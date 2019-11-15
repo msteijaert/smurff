@@ -617,10 +617,211 @@ void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::VectorXd&
    V = X; // this will fail if X has more than one column
 }
 
+
+void matrix_io::eigen::read_dense_float64_bin(std::istream& in, Eigen::MatrixXd& X)
+{
+   std::uint64_t nrow = 0;
+   std::uint64_t ncol = 0;
+
+   in.read(reinterpret_cast<char*>(&nrow), sizeof(std::uint64_t));
+   in.read(reinterpret_cast<char*>(&ncol), sizeof(std::uint64_t));
+
+   X.resize(nrow, ncol);
+   in.read(reinterpret_cast<char*>(X.data()), nrow * ncol * sizeof(typename Eigen::MatrixXd::Scalar));
+}
+
+void matrix_io::eigen::read_dense_float64_csv(std::istream& in, Eigen::MatrixXd& X)
+{
+   std::stringstream ss;
+   std::string line;
+
+   // rows and cols
+   getline(in, line);
+   ss.clear();
+   ss << line;
+   std::uint64_t nrow;
+   ss >> nrow;
+
+   getline(in, line);
+   ss.clear();
+   ss << line;
+   std::uint64_t ncol;
+   ss >> ncol;
+
+   X.resize(nrow, ncol);
+
+   std::uint64_t row = 0;
+   std::uint64_t col = 0;
+
+   while(getline(in, line) && row < nrow)
+   {
+      col = 0;
+
+      std::stringstream lineStream(line);
+      std::string cell;
+
+      while (std::getline(lineStream, cell, ',') && col < ncol)
+      {
+         X(row, col++) = stod(cell);
+      }
+
+      row++;
+   }
+
+   if(row != nrow)
+   {
+      THROWERROR("invalid number of rows");
+   }
+
+   if(col != ncol)
+   {
+      THROWERROR("invalid number of columns");
+   }
+}
+
+
+// MatrixMarket format specification
+// https://github.com/ExaScience/smurff/files/1398286/MMformat.pdf
+void matrix_io::eigen::read_matrix_market(std::istream& in, Eigen::MatrixXd& X)
+{
+   // Check that stream has MatrixMarket format data
+   std::array<char, 15> matrixMarketArr;
+   in.read(matrixMarketArr.data(), 14);
+   std::string matrixMarketStr(matrixMarketArr.begin(), matrixMarketArr.end());
+   if (matrixMarketStr != "%%MatrixMarket" && !std::isblank(in.get()))
+   {
+      std::stringstream ss;
+      ss << "Cannot read MatrixMarket from input stream: ";
+      ss << "the first 15 characters must be '%%MatrixMarket' followed by at least one blank";
+      THROWERROR(ss.str());
+   }
+
+   // Parse MatrixMarket header
+   std::string headerStr;
+   std::getline(in, headerStr);
+   std::stringstream headerStream(headerStr);
+
+   std::string object;
+   headerStream >> object;
+   std::transform(object.begin(), object.end(), object.begin(), ::toupper);
+
+   std::string format;
+   headerStream >> format;
+   std::transform(format.begin(), format.end(), format.begin(), ::toupper);
+
+   std::string field;
+   headerStream >> field;
+   std::transform(field.begin(), field.end(), field.begin(), ::toupper);
+
+   std::string symmetry;
+   headerStream >> symmetry;
+   std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::toupper);
+
+   // Check object type
+   if (object != MM_OBJ_MATRIX)
+   {
+      std::stringstream ss;
+      ss << "Invalid MartrixMarket object type: expected 'matrix' but got '" << object << "'";
+      THROWERROR(ss.str());
+   }
+
+   // Check field type
+   if (field != MM_FLD_REAL)
+   {
+      THROWERROR("Invalid MatrixMarket field type: only 'real' field type is supported");
+   }
+
+   // Check symmetry type
+   if (symmetry != MM_SYM_GENERAL)
+   {
+      THROWERROR("Invalid MatrixMarket symmetry type: only 'general' symmetry type is supported");
+   }
+
+   // Skip comments and empty lines
+   while (in.peek() == '%' || in.peek() == '\n')
+      in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+   if (format != MM_FMT_ARRAY)
+   {
+      THROWERROR("Cannot read a sparse matrix as Eigen::MatrixXd");
+   }
+
+   std::uint64_t nrows;
+   std::uint64_t ncols;
+   in >> nrows >> ncols;
+
+   if (in.fail())
+   {
+      THROWERROR("Could not get 'rows', 'cols' values for array matrix format");
+   }
+
+   X.resize(nrows, ncols);
+
+   for (std::uint64_t col = 0; col < ncols; col++)
+   {
+      for (std::uint64_t row = 0; row < nrows; row++)
+      {
+         while (in.peek() == '%' || in.peek() == '\n')
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+         double val;
+         in >> val;
+         if (in.fail())
+         {
+            THROWERROR("Could not parse an entry line for array matrix format");
+         }
+
+         X(row, col) = val;
+      }
+   }
+}
+
 void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::MatrixXd& X)
 {
-   auto ptr = matrix_io::read_matrix(filename, false);
-   X = matrix_utils::dense_to_eigen(*ptr);
+   matrix_io::MatrixType matrixType = matrix_io::ExtensionToMatrixType(filename);
+
+   THROWERROR_FILE_NOT_EXIST(filename);
+
+   switch (matrixType)
+   {
+   case matrix_io::MatrixType::sdm:
+      {
+         THROWERROR("Invalid matrix type");
+      }
+   case matrix_io::MatrixType::sbm:
+      {
+         THROWERROR("Invalid matrix type");
+      }
+   case matrix_io::MatrixType::mtx:
+      {
+         std::ifstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
+         read_matrix_market(fileStream, X);
+      }
+      break;
+   case matrix_io::MatrixType::csv:
+      {
+         std::ifstream fileStream(filename);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
+         read_dense_float64_csv(fileStream, X);
+      }
+      break;
+   case matrix_io::MatrixType::ddm:
+      {
+         std::ifstream fileStream(filename, std::ios_base::binary);
+         THROWERROR_ASSERT_MSG(fileStream.is_open(), "Error opening file: " + filename);
+         read_dense_float64_bin(fileStream, X);
+      }
+      break;
+   case matrix_io::MatrixType::none:
+      {
+         THROWERROR("Unknown matrix type");
+      }
+   default:
+      {
+         THROWERROR("Unknown matrix type");
+      }
+   }
 }
 
 void matrix_io::eigen::read_matrix(const std::string& filename, Eigen::SparseMatrix<double>& X)

@@ -17,7 +17,9 @@ class NormalPrior : public ILatentPrior
 {
 public:
   // hyperparams
-  Eigen::VectorXd mu; 
+  std::shared_ptr<Eigen::VectorXd> m_mu; 
+  Eigen::VectorXd &hyperMu() const { return *m_mu; }
+
   Eigen::MatrixXd Lambda;
 
   // PP hyperparams
@@ -43,8 +45,8 @@ public:
   //mu in NormalPrior does not depend on column index
   //however successors of this class can override this method
   //for example in MacauPrior mu depends on Uhat.col(n)
-  virtual const Eigen::VectorXd getMu(int n) const;
-  virtual const Eigen::MatrixXd getLambda(int n) const;
+  virtual const Eigen::VectorXd fullMu(int n) const;
+  const Eigen::MatrixXd getLambda(int n) const;
   
   void sample_latent(int n) override;
 

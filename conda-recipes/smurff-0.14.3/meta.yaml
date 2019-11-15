@@ -1,12 +1,13 @@
 package:
   name: smurff
-  version: 0.99.0
+  version: 0.14.3
 
 source:
   git_url: https://github.com/ExaScience/smurff
+  git_rev: v0.14.3
 
 build:
-    number: 1
+    number: 3
 
 requirements:
   build:

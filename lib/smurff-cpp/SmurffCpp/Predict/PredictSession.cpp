@@ -218,9 +218,9 @@ std::ostream &PredictSession::info(std::ostream &os, std::string indent) const
     return os;
 }
 
-std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFile> &sf)
+std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFile> &sf, int skip_mode)
 {
-    auto model = sf->restoreModel();
+    auto model = sf->restoreModel(skip_mode);
 
     if (m_num_latent <= 0)
     {
@@ -238,9 +238,9 @@ std::shared_ptr<Model> PredictSession::restoreModel(const std::shared_ptr<StepFi
     return model;
 }
 
-std::shared_ptr<Model> PredictSession::restoreModel(int i)
+std::shared_ptr<Model> PredictSession::restoreModel(int i, int skip_mode)
 {
-    return restoreModel(m_stepfiles.at(i));
+    return restoreModel(m_stepfiles.at(i), skip_mode);
 }
 
 // predict one element

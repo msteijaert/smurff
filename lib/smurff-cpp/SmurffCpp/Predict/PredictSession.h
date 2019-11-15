@@ -39,8 +39,8 @@ private:
     bool m_is_init;
 
 private:
-    std::shared_ptr<Model> restoreModel(const std::shared_ptr<StepFile> &);
-    std::shared_ptr<Model> restoreModel(int i);
+    std::shared_ptr<Model> restoreModel(const std::shared_ptr<StepFile> &, int skip_mode = -1);
+    std::shared_ptr<Model> restoreModel(int i, int skip_mode = -1);
 
 public:
     int    getNumSteps()  const { return m_stepfiles.size(); } 
@@ -106,7 +106,7 @@ std::shared_ptr<Eigen::MatrixXd> PredictSession::predict(int mode, const Feat &f
         }
  
         const auto &sf = m_stepfiles.at(step);
-        auto predictions = restoreModel(sf)->predict(mode, f);
+        auto predictions = restoreModel(sf, mode)->predict(mode, f);
         if (!average)
             average = std::make_shared<Eigen::MatrixXd>(predictions);
         else

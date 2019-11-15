@@ -82,6 +82,7 @@ void Session::setFromBase()
     if (m_config.getTest())
     {
         m_pred = std::make_shared<Result>(m_config.getTest());
+        m_pred->setSavePred(m_config.getSavePred());
         if (m_config.getClassify())
             m_pred->setThreshold(m_config.getThreshold());
     }
@@ -123,7 +124,7 @@ void Session::init()
     data().init();
 
     //initialize model (samples)
-    model().init(m_config.getNumLatent(), data().dim(), m_config.getModelInitType());
+    model().init(m_config.getNumLatent(), data().dim(), m_config.getModelInitType(), m_config.getSaveModel());
 
     //initialize priors
     for (auto &p : m_priors)

@@ -28,8 +28,8 @@ void NormalPrior::init()
    ILatentPrior::init();
 
    const int K = num_latent();
-   mu.resize(K);
-   mu.setZero();
+   m_mu = std::make_shared<Eigen::VectorXd>(K);
+   hyperMu().setZero();
 
    Lambda.resize(K, K);
    Lambda.setIdentity();
@@ -52,14 +52,14 @@ void NormalPrior::init()
    }
 }
 
-const Eigen::VectorXd NormalPrior::getMu(int n) const
+const Eigen::VectorXd NormalPrior::fullMu(int n) const
 {
    if (m_session->getConfig().hasPropagatedPosterior(getMode()))
    {
       return mu_pp->col(n);
    }
    //else
-   return mu;
+   return hyperMu();
 }
 
 const Eigen::MatrixXd NormalPrior::getLambda(int n) const
@@ -73,13 +73,13 @@ const Eigen::MatrixXd NormalPrior::getLambda(int n) const
 }
 void NormalPrior::update_prior()
 {
-   std::tie(mu, Lambda) = CondNormalWishart(num_item(), getUUsum(), getUsum(), mu0, b0, WI, df);
+   std::tie(hyperMu(), Lambda) = CondNormalWishart(num_item(), getUUsum(), getUsum(), mu0, b0, WI, df);
 }
 
 //n is an index of column in U matrix
 void  NormalPrior::sample_latent(int n)
 {
-   const auto &mu_u = getMu(n);
+   const auto &mu_u = fullMu(n);
    const auto &Lambda_u = getLambda(n);
 
    Eigen::VectorXd &rr = rrs.local();
@@ -116,6 +116,7 @@ void  NormalPrior::sample_latent(int n)
 
 std::ostream &NormalPrior::status(std::ostream &os, std::string indent) const
 {
-   os << indent << m_name << ": mu = " <<  mu.norm() << std::endl;
+   os << indent << m_name << std::endl;
+   os << indent << "  mu: " <<  hyperMu().transpose() << std::endl;
    return os;
 }

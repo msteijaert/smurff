@@ -178,8 +178,8 @@ std::string Config::getSavePrefix() const
     {
 #ifdef _WINDOWS
        char templ[1024];
-       static int temp_counter = 0;
-       snprintf(templ, 1023, "C:\\temp\\smurff.%3d", temp_counter++);
+	   static int temp_counter = 0;
+       snprintf(templ, 1023, "%s\\smurff.%03d", getenv("TEMP"), temp_counter++);
        CreateDirectory(templ, NULL);
        pfx = templ;
 #else

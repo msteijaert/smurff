@@ -76,5 +76,9 @@ namespace smurff { namespace matrix_io
 
       void write_matrix(const std::string& filename, const Eigen::SparseMatrix<double>& X);
 
+      // ===
+      void read_dense_float64_bin(std::istream &in, Eigen::MatrixXd &X);
+      void read_dense_float64_csv(std::istream &in, Eigen::MatrixXd &X);
+      void read_matrix_market(std::istream &in, Eigen::MatrixXd &X);
    }
 }}

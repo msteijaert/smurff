@@ -40,9 +40,9 @@ void MacauOnePrior::update_prior()
       sample_beta_precision();
 }
 
-const Eigen::VectorXd MacauOnePrior::getMu(int n) const
+const Eigen::VectorXd MacauOnePrior::fullMu(int n) const
 {
-   return this->mu + Uhat.col(n);
+   return this->hyperMu() + Uhat.col(n);
 }
 
 void MacauOnePrior::addSideInfo(const std::shared_ptr<ISideInfo>& side_info_a, double beta_precision_a, double tolerance_a, bool direct_a, bool enable_beta_precision_sampling_a, bool)
@@ -87,7 +87,7 @@ void MacauOnePrior::sample_beta(const Eigen::MatrixXd &U)
          for (int d = 0; d < dcount; d++)
          {
             int dx = d + dstart;
-            Z(d, i) = U(dx, i) - mu(dx) - Uhat(dx, i);
+            Z(d, i) = U(dx, i) - hyperMu()(dx) - Uhat(dx, i);
          }
       }
 
@@ -131,7 +131,7 @@ void MacauOnePrior::sample_mu_lambda(const Eigen::MatrixXd &U)
          Udelta(d, i) = U(d, i) - Uhat(d, i);
       }
    }
-   std::tie(mu, Lambda) = CondNormalWishart(Udelta, Eigen::VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
+   std::tie(hyperMu(), Lambda) = CondNormalWishart(Udelta, Eigen::VectorXd::Constant(num_latent(), 0.0), 2.0, WI, num_latent());
 }
 
 void MacauOnePrior::sample_beta_precision()

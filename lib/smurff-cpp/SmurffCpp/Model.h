@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -42,6 +43,7 @@ public:
 private:
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_factors; //vector of U matrices
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_link_matrices; //vector of U matrices
+   std::vector<std::shared_ptr<Eigen::VectorXd>> m_mus; //vector of mu vectors
 
    bool m_collect_aggr;
    std::vector<std::shared_ptr<Eigen::MatrixXd>> m_aggr_sum; //vector of aggr summed m_factors matrices
@@ -59,9 +61,9 @@ public:
 
 public:
    //initialize U matrices in the model (random/zero)
-   void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type, bool collect_aggr = true);
+   void init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type, bool save_model, bool collect_aggr = true);
 
-   void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd>);
+   void setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd>, std::shared_ptr<Eigen::VectorXd>);
 
 public:
    //dot product of i'th columns in each U matrix
@@ -119,7 +121,8 @@ public:
 public:
    // output to file
    void save(std::shared_ptr<const StepFile> sf, bool saveAggr) const;
-   void restore(std::shared_ptr<const StepFile> sf);
+   bool m_save_model = true;
+   void restore(std::shared_ptr<const StepFile> sf, int skip_mode = -1);
 
    std::ostream& info(std::ostream &os, std::string indent) const;
    std::ostream& status(std::ostream &os, std::string indent) const;
@@ -179,12 +182,12 @@ std::shared_ptr<Eigen::MatrixXd> Model::predict_latent(int mode, const FeatMatri
    THROWERROR_ASSERT_MSG(m_link_matrices.at(mode),
       "No link matrix available in mode " + std::to_string(mode));
 
-   auto Umean = U(mode).rowwise().mean();
-
    const auto &beta = *m_link_matrices.at(mode);
+   const auto &mu = *m_mus.at(mode);
+
    auto ret = std::make_shared<Eigen::MatrixXd>(nlatent(), f.rows());
    *ret = beta * f.transpose();
-   ret->colwise() += Umean;
+   ret->colwise() += mu;
    #if 0
    std::cout << "beta =\n" << beta.transpose() << std::endl;
    std::cout << "f =\n" << f << std::endl;

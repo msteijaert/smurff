@@ -1,0 +1,75 @@
+jobs:
+
+- job: 'Ubuntu_1604_Apt'
+  pool:
+    vmImage: 'Ubuntu 16.04'
+
+  strategy:
+    maxParallel: 2
+    matrix:
+      Debug:
+        build.type: 'Debug'
+      Release:
+        build.type: 'Release'
+
+  steps:
+    - script: |
+        sudo add-apt-repository ppa:lkoppel/robotics
+        sudo apt-get update
+        sudo apt-get install -y ninja-build libblas-dev liblapack-dev liblapacke-dev libboost-all-dev libopenmpi-dev libeigen3-dev
+      displayName: Apt install dependencies
+    - script: |
+        mkdir build.$(build.type)
+      displayName: Make Build Directory
+    - task: CMake@1
+      inputs:
+        workingDirectory: 'build.$(build.type)'
+        cmakeArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(build.type) ../lib/smurff-cpp/cmake -DENABLE_PYTHON=OFF -DENABLE_BOOST_RANDOM=ON -DBOOST_ROOT=/usr'
+    - script: |
+        cd build.$(build.type)
+        ninja
+      displayName: 'Run ninja'
+    - script: |
+        cd build.$(build.type)/$(build.type)
+        OMP_NUM_THREADS=1 ./tests
+      displayName: 'Run tests'
+
+- job: 'Conda_Linux'
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+    - template: ci/conda-steps.yml
+
+- job: 'Conda_macOS'
+  pool:
+    vmImage: 'macOS-10.13'
+  variables:
+    macOS_sdk_url: 'https://github.com/tvandera/MacOSX_SDKs/releases/download/v10.11.0.1/MacOSX10.9.sdk.tar.gz'
+    macOS_sdk_filename: '$(Agent.TempDirectory)/MacOSX10.9.sdk.tar.gz'
+  steps:
+  - script: |
+      curl -L -o $(macOS_sdk_filename) $(macOS_sdk_url)
+      sudo mkdir -p /opt
+      sudo tar -xzvf $(macOS_sdk_filename) -C /opt
+    displayName: 'Install MacOSX10.9.sdk'
+  - bash: echo "##vso[task.prependpath]$CONDA/bin"
+    displayName: Add conda to PATH
+  # On Hosted macOS, the agent user doesn't have ownership of Miniconda's installation directory/
+  # We need to take ownership if we want to update conda or install packages globally
+  - bash: sudo chown -R $USER $CONDA
+    displayName: Take ownership of conda installation
+  - template: ci/conda-steps.yml
+
+# - job: 'Conda_Windows'
+#   pool:
+#     vmImage: 'vs2017-win2016	'
+#   steps:
+#     - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+#       displayName: Add conda to PATH
+#     - script: conda create --yes --quiet --name buildEnv conda-build
+#       displayName: Create Anaconda environment and install conda-build
+#     - script: |
+#         call activate buildEnv
+#         cd conda-recipes
+#         conda build --no-test  -c vanderaa smurff-latest
+#       displayName: Build using "conda build"

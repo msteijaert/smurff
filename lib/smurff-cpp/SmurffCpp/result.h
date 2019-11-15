@@ -101,9 +101,17 @@ public:
    bool classify = false;
    double threshold;
 
+   //-- save predictions to file?
+   bool m_save_pred = true;
+
    void setThreshold(double t)
    {
       threshold = t; classify = true;
+   }
+
+   void setSavePred(bool v)
+   {
+      m_save_pred = v;
    }
 
 public:

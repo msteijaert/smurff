@@ -15,8 +15,9 @@ void NormalOnePrior::init()
    ILatentPrior::init();
 
    const int K = num_latent();
-   mu.resize(K);
-   mu.setZero();
+
+   m_mu = std::make_shared<Eigen::VectorXd>(K);
+   hyperMu().setZero(); 
 
    Lambda.resize(K, K);
    Lambda.setIdentity();
@@ -31,14 +32,14 @@ void NormalOnePrior::init()
    df = K;
 }
 
-const Eigen::VectorXd NormalOnePrior::getMu(int n) const
+const Eigen::VectorXd NormalOnePrior::fullMu(int n) const
 {
-   return mu;
+   return hyperMu();
 }
 
 void NormalOnePrior::update_prior()
 {
-    std::tie(mu, Lambda) = CondNormalWishart(num_item(), getUUsum(), getUsum(), mu0, b0, WI, df);
+    std::tie(hyperMu(), Lambda) = CondNormalWishart(num_item(), getUUsum(), getUsum(), mu0, b0, WI, df);
 }
 
 void NormalOnePrior::sample_latent(int d)
@@ -51,7 +52,7 @@ void NormalOnePrior::sample_latent(int d)
    data().getMuLambda(model(), m_mode, d, yX, XX);
 
    // add hyperparams
-   yX.noalias() += Lambda * mu;
+   yX.noalias() += Lambda * hyperMu();
    XX.noalias() += Lambda;
 
    for(int k=0;k<K;++k) sample_latent(d, k, XX, yX);

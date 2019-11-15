@@ -37,12 +37,12 @@ Model::Model()
 //num_latent - size of latent dimention
 //dims - dimentions of train data
 //init_model_type - samples initialization type
-void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type, bool aggregate)
+void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_type, bool save_model, bool aggregate)
 {
    m_num_latent = num_latent;
    m_dims = dims;
    m_collect_aggr = aggregate;
-
+   m_save_model = save_model;
    m_num_aggr = std::vector<int>(dims.size(), 0);
 
    for(size_t i = 0; i < dims.size(); ++i)
@@ -77,13 +77,18 @@ void Model::init(int num_latent, const PVec<>& dims, ModelInitTypes model_init_t
    }
 
    m_link_matrices.resize(nmodes());
+   m_mus.resize(nmodes());
 
    Pcache.init(Eigen::ArrayXd::Ones(m_num_latent));
 }
 
-void Model::setLinkMatrix(int mode, std::shared_ptr<Eigen::MatrixXd> link_matrix)
+void Model::setLinkMatrix(int mode, 
+   std::shared_ptr<Eigen::MatrixXd> link_matrix,
+   std::shared_ptr<Eigen::VectorXd> mu
+   )
 {
    m_link_matrices.at(mode) = link_matrix;
+   m_mus.at(mode) = mu;
 }
 
 double Model::predict(const PVec<> &pos) const
@@ -181,7 +186,7 @@ void Model::save(std::shared_ptr<const StepFile> sf, bool saveAggr) const
    std::uint64_t i = 0;
    for (auto U : m_factors)
    {
-      std::string path = sf->makeModelFileName(i++);
+      auto path = sf->makeModelFileName(i++);
       smurff::matrix_io::eigen::write_matrix(path, *U);
    }
 
@@ -218,7 +223,7 @@ void Model::save(std::shared_ptr<const StepFile> sf, bool saveAggr) const
    }
 }
 
-void Model::restore(std::shared_ptr<const StepFile> sf)
+void Model::restore(std::shared_ptr<const StepFile> sf, int skip_mode)
 {
    unsigned nmodes = sf->getNModes();
    m_factors.clear();
@@ -228,14 +233,21 @@ void Model::restore(std::shared_ptr<const StepFile> sf)
    {
       auto U = std::make_shared<Eigen::MatrixXd>();
       std::string path = sf->getModelFileName(i);
-      THROWERROR_FILE_NOT_EXIST(path);
-      smurff::matrix_io::eigen::read_matrix(path, *U);
-      m_dims.at(i) = U->cols();
-      m_num_latent = U->rows();
+      if (i != skip_mode) {
+          THROWERROR_FILE_NOT_EXIST(path);
+          smurff::matrix_io::eigen::read_matrix(path, *U);
+          m_dims.at(i) = U->cols();
+          m_num_latent = U->rows();
+      }
+      else
+      {
+          m_dims.at(i) = -1;
+      }
       m_factors.push_back(U);
    }
 
    m_link_matrices.resize(nmodes);
+   m_mus.resize(nmodes);
    Pcache.init(Eigen::ArrayXd::Ones(m_num_latent));
 }
 
@@ -247,12 +259,12 @@ std::ostream& Model::info(std::ostream &os, std::string indent) const
 
 std::ostream& Model::status(std::ostream &os, std::string indent) const
 {
-   Eigen::ArrayXd P = Eigen::ArrayXd::Ones(m_num_latent);
-   
+   os << indent << "  Umean: " << std::endl;
    for(std::uint64_t d = 0; d < nmodes(); ++d)
-      P *= U(d).rowwise().norm().array();
+      os << indent << "    U(" << d << ").colwise().mean: "
+         << U(d).rowwise().mean().transpose()
+         << std::endl;
 
-   os << indent << "  Latent-wise norm: " << P.transpose() << std::endl;
    return os;
 }
 

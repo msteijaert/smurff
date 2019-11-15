@@ -5,6 +5,7 @@ cdef extern from "<SmurffCpp/Utils/StepFile.h>" namespace "smurff":
     cdef cppclass StepFile:
         string getStepFileName()
         string getModelFileName(uint64_t index)
+        string getMuFileName(uint64_t index)
         string getLinkMatrixFileName(uint32_t mode)
         string getPredFileName()
         string getPredStateFileName()
