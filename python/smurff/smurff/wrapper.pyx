@@ -298,6 +298,7 @@ cdef class TrainSession:
     cdef NoiseConfig noise_config
     cdef shared_ptr[StatusItem] status_item
     cdef readonly int nmodes
+    cdef readonly int num_latent
     cdef readonly int verbose
     cdef vector[string] prior_types
 
@@ -319,7 +320,7 @@ cdef class TrainSession:
         checkpoint_freq  = None,
         csv_status       = None):
 
-
+        self.num_latent = num_latent
         self.nmodes = len(priors)
         self.verbose = verbose
 
@@ -418,10 +419,15 @@ cdef class TrainSession:
 
         Lambda : :class: `numpy.ndarray` matrix
             co-variance matrix  
-            Lambda should have as many rows as `num_latent ^ 2`
-            Lambda should have as many columns as size of dimension `mode` in `train`
+            Lambda should be shaped like K x K x N 
+            Where K == `num_latent` and N == dimension `mode` in `train`
         """
         self.noise_config = prepare_noise_config(PyNoiseConfig())
+        if len(Lambda.shape) == 3:
+            assert Lambda.shape[0] == self.num_latent
+            assert Lambda.shape[1] == self.num_latent
+            Lambda = Lambda.reshape(self.num_latent * self.num_latent, Lambda.shape[2], order='F')
+
         self.config.addPropagatedPosterior(
             mode,
             shared_ptr[MatrixConfig](prepare_dense_matrix(mu, self.noise_config)),
