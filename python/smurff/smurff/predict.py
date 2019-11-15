@@ -98,7 +98,6 @@ class Sample:
         self.latents.append(U)
         self.post_mu.append(postMu)
         self.post_cov.append(postLambda)
-        self.latent_means.append(np.mean(U, axis=1))
         self.check()
 
     def num_latent(self):
