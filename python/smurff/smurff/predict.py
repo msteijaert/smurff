@@ -44,10 +44,21 @@ class Sample:
         # latent matrices
         for i in range(sample.nmodes):
             file_name = os.path.join(dir_name, cp["latents"]["latents_" + str(i)])
-            sample.add_latent(mio.read_matrix(file_name))
+            U = mio.read_matrix(file_name)
+            postMu = None
+            postCov = None
+
+            file_name = cp["latents"]["post_mu_" + str(i)]
+            if (file_name != 'none'):
+                postMu = mio.read_matrix(os.path.join(dir_name, file_name))
+
+            file_name = cp["latents"]["post_cov_" + str(i)]
+            if (file_name != 'none'):
+                postCov = mio.read_matrix(os.path.join(dir_name, file_name))
+
+            sample.add_latent(U, postMu, postCov)
 
         # link matrices (beta)
-        for i in range(sample.nmodes):
             file_name = cp["link_matrices"]["link_matrix_" + str(i)]
             if (file_name != 'none'):
                 sample.add_beta(mio.read_matrix(os.path.join(dir_name, file_name)))
@@ -61,6 +72,8 @@ class Sample:
         self.nmodes = nmodes
         self.iter = iter
         self.latents = []
+        self.post_mu = []
+        self.post_cov = []
         self.latent_means = []
         self.betas = []
 
@@ -73,8 +86,10 @@ class Sample:
         self.betas.append(b)
         self.check()
 
-    def add_latent(self, U):
+    def add_latent(self, U, postMu, postCov):
         self.latents.append(U)
+        self.post_mu.append(postMu)
+        self.post_cov.append(postCov)
         self.latent_means.append(np.mean(U, axis=1))
         self.check()
 
@@ -160,6 +175,22 @@ class PredictSession:
         for step_name, step_file in self.root_config["steps"].items():
             if (step_name.startswith("sample_step")):
                 yield Sample.fromStepFile(step_file, self.root_dir)
+
+    def postMuCov(self, axis):
+        # start from last sample
+        steps = list(self.root_config["steps"].items())
+        for step_name, step_file in reversed(steps):
+            if (step_name.startswith("sample_step")):
+                sample = Sample.fromStepFile(step_file, self.root_dir)
+                postMu = sample.post_mu[axis]
+                postCov = sample.post_cov[axis]
+                if postMu is not None and postCov is not None:
+                    nl = self.num_latent
+                    assert postCov.shape[0] == nl * nl
+                    postCov = np.reshape(postCov, (nl, nl, postCov.shape[1]))
+                    return postMu, postCov
+        
+        return None, None
 
     def predict(self, coords_or_sideinfo=None):
         return np.stack([sample.predict(coords_or_sideinfo) for sample in self.samples()])
