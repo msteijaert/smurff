@@ -46,17 +46,17 @@ class Sample:
             file_name = os.path.join(dir_name, cp["latents"]["latents_" + str(i)])
             U = mio.read_matrix(file_name)
             postMu = None
-            postCov = None
+            postLambda = None
 
             file_name = cp["latents"]["post_mu_" + str(i)]
             if (file_name != 'none'):
                 postMu = mio.read_matrix(os.path.join(dir_name, file_name))
 
-            file_name = cp["latents"]["post_cov_" + str(i)]
+            file_name = cp["latents"]["post_lambda_" + str(i)]
             if (file_name != 'none'):
-                postCov = mio.read_matrix(os.path.join(dir_name, file_name))
+                postLambda = mio.read_matrix(os.path.join(dir_name, file_name))
 
-            sample.add_latent(U, postMu, postCov)
+            sample.add_latent(U, postMu, postLambda)
 
             # link matrices (beta) and hyper mus
             beta = np.ndarray((0, 0))
@@ -94,10 +94,10 @@ class Sample:
         self.mus.append(mu)
         self.check()
 
-    def add_latent(self, U, postMu, postCov):
+    def add_latent(self, U, postMu, postLambda):
         self.latents.append(U)
         self.post_mu.append(postMu)
-        self.post_cov.append(postCov)
+        self.post_cov.append(postLambda)
         self.latent_means.append(np.mean(U, axis=1))
         self.check()
 
@@ -191,12 +191,12 @@ class PredictSession:
             if (step_name.startswith("sample_step")):
                 sample = Sample.fromStepFile(step_file, self.root_dir)
                 postMu = sample.post_mu[axis]
-                postCov = sample.post_cov[axis]
-                if postMu is not None and postCov is not None:
+                postLambda = sample.post_cov[axis]
+                if postMu is not None and postLambda is not None:
                     nl = self.num_latent
-                    assert postCov.shape[0] == nl * nl
-                    postCov = np.reshape(postCov, (nl, nl, postCov.shape[1]))
-                    return postMu, postCov
+                    assert postLambda.shape[0] == nl * nl
+                    postLambda = np.reshape(postLambda, (nl, nl, postLambda.shape[1]))
+                    return postMu, postLambda
         
         return None, None
 

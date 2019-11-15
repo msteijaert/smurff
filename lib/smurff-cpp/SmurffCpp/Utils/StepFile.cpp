@@ -19,7 +19,7 @@
 
 #define LATENTS_PREFIX "latents_"
 #define POST_MU_PREFIX "post_mu_"
-#define POST_COV_PREFIX "post_cov_"
+#define POST_LAMBDA_PREFIX "post_lambda_"
 #define LINK_MATRIX_PREFIX "link_matrix_"
 #define MU_PREFIX "mu_"
 
@@ -131,11 +131,11 @@ std::string StepFile::makePostMuFileName(std::uint64_t index) const
    return prefix + "-Mu" + std::to_string(index) + "-aggr" + m_extension;
 }
 
-std::string StepFile::makePostCovFileName(std::uint64_t index) const
+std::string StepFile::makePostLambdaFileName(std::uint64_t index) const
 {
    THROWERROR_ASSERT(!m_extension.empty());
    std::string prefix = getStepPrefix();
-   return prefix + "-Cov" + std::to_string(index) + "-aggr" + m_extension;
+   return prefix + "-Lambda" + std::to_string(index) + "-aggr" + m_extension;
 }
 
 bool StepFile::hasLinkMatrix(std::uint32_t mode) const
@@ -232,14 +232,14 @@ void StepFile::saveModel(std::shared_ptr<const Model> model, bool saveAggr) cons
       if (saveAggr)
       {
          std::string mu_path = makePostMuFileName(mIndex);
-         std::string cov_path = makePostCovFileName(mIndex);
+         std::string prec_path = makePostLambdaFileName(mIndex);
          appendToStepFile(LATENTS_SEC_TAG, POST_MU_PREFIX + std::to_string(mIndex), mu_path);
-         appendToStepFile(LATENTS_SEC_TAG, POST_COV_PREFIX + std::to_string(mIndex), cov_path);
+         appendToStepFile(LATENTS_SEC_TAG, POST_LAMBDA_PREFIX + std::to_string(mIndex), prec_path);
       }
       else
       {
          appendToStepFile(LATENTS_SEC_TAG, POST_MU_PREFIX + std::to_string(mIndex), NONE_TAG);
-         appendToStepFile(LATENTS_SEC_TAG, POST_COV_PREFIX + std::to_string(mIndex), NONE_TAG);
+         appendToStepFile(LATENTS_SEC_TAG, POST_LAMBDA_PREFIX + std::to_string(mIndex), NONE_TAG);
       }
    }
 }

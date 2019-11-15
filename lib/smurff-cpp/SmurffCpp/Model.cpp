@@ -201,24 +201,25 @@ void Model::save(std::shared_ptr<const StepFile> sf, bool saveAggr) const
          Eigen::MatrixXd &Uprod = *m_aggr_dot.at(m);
 
          Eigen::MatrixXd mu = Eigen::MatrixXd::Zero(Usum.rows(), Usum.cols());
-         Eigen::MatrixXd cov = Eigen::MatrixXd::Zero(Uprod.rows(), Uprod.cols());
+         // inverse of the covariance
+         Eigen::MatrixXd prec = Eigen::MatrixXd::Zero(Uprod.rows(), Uprod.cols());
 
          // calculate real mu and Lambda
          for (int i = 0; i < U(m).cols(); i++)
          {
             Eigen::VectorXd sum  = Usum.col(i);
             Eigen::MatrixXd prod = Eigen::Map<Eigen::MatrixXd>( Uprod.col(i).data(), nlatent(), nlatent());
-            Eigen::MatrixXd cov_i = (prod - (sum * sum.transpose() / n)) / (n - 1);
+            Eigen::MatrixXd prec_i = ((prod - (sum * sum.transpose() / n)) / (n - 1)).inverse();
 
-            cov.col(i) = Eigen::Map<Eigen::VectorXd>(cov_i.data(), nlatent() * nlatent());
+            prec.col(i) = Eigen::Map<Eigen::VectorXd>(prec_i.data(), nlatent() * nlatent());
             mu.col(i) = sum / n;
          }
 
          std::string mu_path = sf->makePostMuFileName(m);
          smurff::matrix_io::eigen::write_matrix(mu_path, mu);
 
-         std::string cov_path = sf->makePostCovFileName(m);
-         smurff::matrix_io::eigen::write_matrix(cov_path, cov);
+         std::string prec_path = sf->makePostLambdaFileName(m);
+         smurff::matrix_io::eigen::write_matrix(prec_path, prec);
       }
    }
 }

@@ -62,7 +62,7 @@ namespace smurff {
       std::string makePredStateFileName() const;
 
       std::string makePostMuFileName(std::uint64_t index) const;
-      std::string makePostCovFileName(std::uint64_t index) const;
+      std::string makePostLambdaFileName(std::uint64_t index) const;
 
    public:
       void saveModel(std::shared_ptr<const Model> model, bool saveAggr) const;
