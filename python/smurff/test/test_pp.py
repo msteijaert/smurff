@@ -2,6 +2,8 @@ import unittest
 import numpy as np
 import pandas as pd
 import scipy.sparse
+from sklearn.metrics import mean_squared_error
+import math
 import smurff
 import itertools
 import collections
@@ -33,6 +35,12 @@ class TestPP(unittest.TestCase):
         session = smurff.BPMFSession(Y, Ytest=Ytest, num_latent=4, verbose=verbose, burnin=5, nsamples=20, save_freq=1)
         session.run()
         predict_session = session.makePredictSession()
+
+        sess_rmse = float(predict_session.statsYTest()["rmse_avg"])
+        Ypred, Yvar = predict_session.predictionsYTest()
+        calc_rmse = math.sqrt(mean_squared_error(Ytest.tocoo().data, Ypred.tocoo().data))
+
+        self.assertAlmostEqual(sess_rmse, calc_rmse, 2)
 
         for m in range(predict_session.nmodes):
             calc_mu, calc_Lambda = calc_posteriorMeanPrec(predict_session, m)
