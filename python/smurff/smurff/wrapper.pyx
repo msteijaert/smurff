@@ -270,9 +270,6 @@ cdef class TrainSession:
     verbose: {0, 1, 2}
         Verbosity level for C++ library
 
-    logger:
-        Python logger
-
     seed: float
         Random seed to use for sampling
 
@@ -316,7 +313,6 @@ cdef class TrainSession:
         seed             = RANDOM_SEED_DEFAULT_VALUE,
         threshold        = None,
         verbose          = 1,
-        logger           = logging.getLogger(),
         save_prefix      = None,
         save_extension   = None,
         save_freq        = None,
@@ -326,7 +322,6 @@ cdef class TrainSession:
 
         self.nmodes = len(priors)
         self.verbose = verbose
-        self.logger = logger
 
         if save_prefix is None and save_freq:
             save_prefix = tempfile.mkdtemp()
@@ -478,7 +473,7 @@ cdef class TrainSession:
 
         self.ptr = SessionFactory.create_py_session_from_config(self.config)
         self.ptr_get().init()
-        self.logger.info(self)
+        logging.info(self)
         return self.getStatus()
 
 
@@ -547,7 +542,7 @@ cdef class TrainSession:
                 self.status_item.get().nnz_per_sec,
                 self.status_item.get().samples_per_sec)
 
-            self.logger.info(status)
+            logging.info(status)
             
             return status
         else:
