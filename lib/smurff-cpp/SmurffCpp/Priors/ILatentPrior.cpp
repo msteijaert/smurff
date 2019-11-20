@@ -20,12 +20,12 @@ void ILatentPrior::init()
 
 const Model& ILatentPrior::model() const
 {
-   return m_session->model();
+   return getSession().model();
 }
 
 Model& ILatentPrior::model()
 {
-   return m_session->model();
+   return getSession().model();
 }
 
 double ILatentPrior::predict(const PVec<> &pos) const
@@ -35,7 +35,7 @@ double ILatentPrior::predict(const PVec<> &pos) const
 
 Data& ILatentPrior::data() const
 {
-   return m_session->data();
+   return getSession().data();
 }
 
 INoiseModel& ILatentPrior::noise()
@@ -114,12 +114,12 @@ void ILatentPrior::sample_latents()
            Ucol.local().noalias() += col;
            UUcol.local().noalias() += col * col.transpose();
 
-           if (m_session->inSamplingPhase())
+           if (getSession().inSamplingPhase())
              model().updateAggr(m_mode, n);
        }
    }
 
-   if (m_session->inSamplingPhase())
+   if (getSession().inSamplingPhase())
       model().updateAggr(m_mode);
 
    Usum  = Ucol.combine();

@@ -22,8 +22,12 @@ class StepFile;
 
 class ILatentPrior
 {
+   
+private:
+   std::weak_ptr<Session> m_session;
+
 public:
-   std::shared_ptr<Session> m_session;
+   Session &getSession() const { return *m_session.lock(); }
    std::uint32_t m_mode;
    std::string m_name = "xxxx";
 

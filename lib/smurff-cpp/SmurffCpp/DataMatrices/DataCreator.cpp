@@ -15,7 +15,7 @@ using namespace smurff;
 
 std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const MatrixConfig> mc) const
 {
-   auto& aux_matrices = m_session->getConfig().getAuxData();
+   auto& aux_matrices = getSession().getConfig().getAuxData();
 
    //create creator
    std::shared_ptr<DataCreatorBase> creatorBase = std::make_shared<DataCreatorBase>();
@@ -42,7 +42,7 @@ std::shared_ptr<Data> DataCreator::create(std::shared_ptr<const TensorConfig> tc
 {
 
    //we need TensorsData class to utilize aux data
-   const auto& auxDataSet = m_session->getConfig().getAuxData();
+   const auto& auxDataSet = getSession().getConfig().getAuxData();
    if (!auxDataSet.empty())
    {
       THROWERROR("Tensor config does not support aux data");

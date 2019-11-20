@@ -53,7 +53,7 @@ void MacauPrior::init()
 
    BBt = beta() * beta().transpose();
 
-   m_session->model().setLinkMatrix(m_mode, m_beta, m_mu);
+   getSession().model().setLinkMatrix(m_mode, m_beta, m_mu);
 }
 
 void MacauPrior::update_prior()

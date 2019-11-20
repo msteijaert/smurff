@@ -11,7 +11,9 @@ namespace smurff
    class DataCreator : public IDataCreator
    {
    private:
-      std::shared_ptr<Session> m_session;
+      std::weak_ptr<Session> m_session;
+
+      Session &getSession() const { return *m_session.lock(); }
 
    public:
       DataCreator(std::shared_ptr<Session> session)
