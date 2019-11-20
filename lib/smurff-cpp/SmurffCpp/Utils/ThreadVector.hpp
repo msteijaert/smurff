@@ -48,7 +48,7 @@ namespace smurff
                reset();
            }
            void init(const std::vector<T> &v) {
-               assert(v.size() == threads::get_max_threads());
+               assert((int)v.size() == threads::get_max_threads());
                _m = v;
            }
    
