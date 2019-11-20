@@ -482,6 +482,9 @@ cdef class TrainSession:
         logging.info(self)
         return self.getStatus()
 
+    def __dealloc__(self):
+        if (self.ptr.get()):
+            self.ptr.reset()
 
     def step(self):
         """Does on sampling or burnin iteration.
