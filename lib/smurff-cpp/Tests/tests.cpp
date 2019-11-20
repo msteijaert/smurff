@@ -242,7 +242,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
        bmrandn(U);
 
        Eigen::MatrixXd M(K,K) ;
-       double start = tick();
+       //double start = tick();
        for(int i=0; i<R; ++i) {
            M.setZero();
            for(int j=0; j<N;++j) {
@@ -250,7 +250,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
                M.noalias() += col * col.transpose();
            }
        }
-       double stop = tick();
+       //double stop = tick();
        //std::cout << "norm U: " << U.norm() << std::endl;
        //std::cout << "norm M: " << M.norm() << std::endl;
        //std::cout << "MatrixXd: " << stop - start << std::endl;
@@ -262,7 +262,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
        U = nrandn(K,N);
 
        Eigen::Matrix<double,K,K> M;
-       double start = tick();
+       //double start = tick();
        for(int i=0; i<R; ++i) {
            M.setZero();
            for(int j=0; j<N;++j) {
@@ -270,7 +270,7 @@ TEST_CASE("Benchmark from old 'data.cpp' file", "[!hide]")
                M.noalias() += col * col.transpose();
            }
        }
-       double stop = tick();
+       //double stop = tick();
        //std::cout << "norm U: " << U.norm() << std::endl;
        //std::cout << "norm M: " << M.norm() << std::endl;
        //std::cout << "MatrixXd: " << stop - start << std::endl;
