@@ -29,7 +29,7 @@
 
 using namespace Eigen;
 
-static smurff::thread_vector<MERSENNE_TWISTER> *bmrngs;
+static smurff::thread_vector<MERSENNE_TWISTER> *bmrngs = 0;
 
 double smurff::randn0()
 {
@@ -142,11 +142,14 @@ void smurff::init_bmrng()
 
 void smurff::init_bmrng(int seed) 
 {
+    if (bmrngs) delete bmrngs;
+
     std::vector<MERSENNE_TWISTER> v;
     for (int i = 0; i < threads::get_max_threads(); i++)
     {
         v.push_back(MERSENNE_TWISTER(seed + i * 1999));
     }
+
     bmrngs = new smurff::thread_vector<MERSENNE_TWISTER>();
     bmrngs->init(v);
 }
