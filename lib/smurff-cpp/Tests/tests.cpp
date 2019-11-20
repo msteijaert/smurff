@@ -203,6 +203,8 @@ TEST_CASE("macauprior/make_dense_prior", "Making MacauPrior with MatrixConfig") 
     tmp.triangularView<Eigen::Lower>()  = prior->FtF_plus_precision;
     tmp.triangularView<Eigen::Lower>() -= Ftrue.transpose() * Ftrue;
     REQUIRE( tmp.norm() == Approx(0) );
+
+    delete prior;
 }
 
 TEST_CASE("inv_norm_cdf/inv_norm_cdf", "Inverse normal CDF") {
